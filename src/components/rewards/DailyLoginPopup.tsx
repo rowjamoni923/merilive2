@@ -138,7 +138,7 @@ const DailyLoginPopup = () => {
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
                   }}
                 >
-                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <Sparkles className="w-3 h-3 text-amber-700" />
                   <span className="text-[10px] font-bold tracking-[0.22em] uppercase bg-gradient-to-b from-amber-100 to-amber-300 bg-clip-text text-transparent">
                     Premium Daily Reward
                   </span>
@@ -158,7 +158,7 @@ const DailyLoginPopup = () => {
                   >
                     <Sparkles className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,0.95)]" />
                     <Sparkles className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-3 text-cyan-200 drop-shadow-[0_0_8px_rgba(103,232,249,0.9)]" />
-                    <Sparkles className="absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-3 text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.9)]" />
+                    <Sparkles className="absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-3 text-fuchsia-700 drop-shadow-[0_0_8px_rgba(232,121,249,0.9)]" />
                   </motion.div>
 
                   {/* Floating chest */}
@@ -296,7 +296,7 @@ const DailyLoginPopup = () => {
                           isToday
                             ? "text-amber-200"
                             : isClaimed
-                            ? "text-emerald-300/70"
+                            ? "text-emerald-700/70"
                             : "text-slate-600"
                         )}
                       >
@@ -324,7 +324,7 @@ const DailyLoginPopup = () => {
                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                           >
                             <Crown
-                              className="w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]"
+                              className="w-6 h-6 text-amber-700 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]"
                               fill="currentColor"
                             />
                           </motion.div>
@@ -377,7 +377,7 @@ const DailyLoginPopup = () => {
 
                   <div className="relative z-10 flex items-center justify-between p-3.5">
                     <div className="min-w-0">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-amber-300/80 mb-1.5">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-amber-700/80 mb-1.5">
                         Today's Reward
                       </p>
                       <div className="flex items-center gap-2">
@@ -497,7 +497,7 @@ const DailyLoginPopup = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.15 }}
-                    className="text-center text-[11px] text-amber-300/75 mt-3 font-semibold tracking-wide"
+                    className="text-center text-[11px] text-amber-700/75 mt-3 font-semibold tracking-wide"
                   >
                     🏆 Complete 7 days for the MEGA bonus
                   </motion.p>

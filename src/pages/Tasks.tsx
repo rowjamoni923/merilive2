@@ -559,7 +559,7 @@ const Tasks = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-amber-300 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
+                  <p className="text-amber-700 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
                   <p className="text-[10px] text-purple-200/70">beans/hour</p>
                 </div>
               </div>
@@ -598,7 +598,7 @@ const Tasks = () => {
               {/* Stats row */}
               <div className="flex items-center justify-around mb-3">
                 <div className="text-center">
-                  <p className="text-amber-300 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
+                  <p className="text-amber-700 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
                   <p className="text-[9px] text-purple-200/70">Earned Today</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
@@ -608,7 +608,7 @@ const Tasks = () => {
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-fuchsia-300 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
+                  <p className="text-fuchsia-700 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
                   <p className="text-[9px] text-purple-200/70">Period</p>
                 </div>
               </div>
@@ -792,7 +792,7 @@ const Tasks = () => {
 
         {tasks.length === 0 && !isEligibleForBonus && (
           <div className="text-center py-12">
-            <Star className="w-16 h-16 text-amber-300 mx-auto mb-4" />
+            <Star className="w-16 h-16 text-amber-700 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-700">No Tasks Available</h3>
             <p className="text-sm text-slate-500">New tasks coming soon</p>
           </div>

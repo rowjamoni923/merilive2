@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-05-14T23:55:38.176Z",
+  "generatedAt": "2026-05-14T23:59:56.341Z",
   "totals": {
-    "findings": 276,
-    "files": 36,
+    "findings": 254,
+    "files": 33,
     "byRule": {
       "M3": 40,
       "M6": 26,
-      "M5": 174,
+      "M5": 152,
       "M1": 23,
       "M2": 13
     }
@@ -1372,57 +1372,6 @@
         "snippet": "className=\"flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white"
       }
     ],
-    "src/pages/Level5HelperDashboard.tsx": [
-      {
-        "file": "src/pages/Level5HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 1669,
-        "snippet": "<span className=\"inline-block px-2 py-0.5 rounded bg-amber-100 border border-amber-500/40 text-amber-300 text-[10px] font-bold\">"
-      },
-      {
-        "file": "src/pages/Level5HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 1888,
-        "snippet": "<Badge className=\"bg-amber-100 text-amber-300 text-[10px] px-1.5 py-0\">⚡ Merchant</Badge>"
-      },
-      {
-        "file": "src/pages/Level5HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 2571,
-        "snippet": "<Label htmlFor=\"is-merchant-legacy\" className=\"text-amber-300 font-medium text-sm cursor-pointer\">"
-      },
-      {
-        "file": "src/pages/Level5HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 2757,
-        "snippet": "<p className=\"text-green-300 font-semibold\">Approved!</p>"
-      },
-      {
-        "file": "src/pages/Level5HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 2903,
-        "snippet": "⚡ {g.name} <span className=\"text-[10px] text-amber-300/70 ml-1\">(Auto Pay)</span>"
-      },
-      {
-        "file": "src/pages/Level5HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 2995,
-        "snippet": "<p className=\"text-emerald-300 font-semibold text-sm\">ZiniPay Auto Pay Setup</p>"
-      },
-      {
-        "file": "src/pages/Level5HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 3248,
-        "snippet": "<Label htmlFor=\"is-merchant-country\" className=\"text-amber-300 font-medium text-sm cursor-pointer\">"
-      }
-    ],
     "src/components/party/ProfessionalBottomBar.tsx": [
       {
         "file": "src/components/party/ProfessionalBottomBar.tsx",
@@ -1474,50 +1423,6 @@
         "snippet": "className=\"flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-xl bg-white/10 border border-white/10\""
       }
     ],
-    "src/pages/Tasks.tsx": [
-      {
-        "file": "src/pages/Tasks.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 562,
-        "snippet": "<p className=\"text-amber-300 font-bold text-lg\">{bonusSettings.beans_per_hour.toLocaleString()}</p>"
-      },
-      {
-        "file": "src/pages/Tasks.tsx",
-        "id": "M6",
-        "label": "Glass border on dialog",
-        "line": 579,
-        "snippet": ": 'bg-white/5 border border-white/10'"
-      },
-      {
-        "file": "src/pages/Tasks.tsx",
-        "id": "M6",
-        "label": "Glass border on dialog",
-        "line": 597,
-        "snippet": "<div className=\"mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10\">"
-      },
-      {
-        "file": "src/pages/Tasks.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 601,
-        "snippet": "<p className=\"text-amber-300 font-bold text-sm\">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>"
-      },
-      {
-        "file": "src/pages/Tasks.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 611,
-        "snippet": "<p className=\"text-fuchsia-300 font-bold text-sm\">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>"
-      },
-      {
-        "file": "src/pages/Tasks.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 795,
-        "snippet": "<Star className=\"w-16 h-16 text-amber-300 mx-auto mb-4\" />"
-      }
-    ],
     "src/components/report/ReportUserDialog.tsx": [
       {
         "file": "src/components/report/ReportUserDialog.tsx",
@@ -1560,87 +1465,6 @@
         "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
         "line": 208,
         "snippet": "className=\"bg-white/70 border-amber-200/60 text-slate-800 placeholder:text-slate-400 min-h-[80px] resize-none rounded-xl focus:border-purple"
-      }
-    ],
-    "src/components/rewards/DailyLoginPopup.tsx": [
-      {
-        "file": "src/components/rewards/DailyLoginPopup.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 141,
-        "snippet": "<Sparkles className=\"w-3 h-3 text-amber-300\" />"
-      },
-      {
-        "file": "src/components/rewards/DailyLoginPopup.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 161,
-        "snippet": "<Sparkles className=\"absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-3 text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.9)]\" />"
-      },
-      {
-        "file": "src/components/rewards/DailyLoginPopup.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 299,
-        "snippet": "? \"text-emerald-300/70\""
-      },
-      {
-        "file": "src/components/rewards/DailyLoginPopup.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 327,
-        "snippet": "className=\"w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]\""
-      },
-      {
-        "file": "src/components/rewards/DailyLoginPopup.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 380,
-        "snippet": "<p className=\"text-[9px] font-bold uppercase tracking-[0.24em] text-amber-300/80 mb-1.5\">"
-      },
-      {
-        "file": "src/components/rewards/DailyLoginPopup.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 500,
-        "snippet": "className=\"text-center text-[11px] text-amber-300/75 mt-3 font-semibold tracking-wide\""
-      }
-    ],
-    "src/pages/HelperDashboard.tsx": [
-      {
-        "file": "src/pages/HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 1686,
-        "snippet": "<span className=\"text-emerald-300 font-mono text-sm\">{selectedPaymentMethod.account_number}</span>"
-      },
-      {
-        "file": "src/pages/HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 1722,
-        "snippet": "className=\"w-full mt-3 border-emerald-500/50 text-emerald-300 hover:bg-emerald-100\""
-      },
-      {
-        "file": "src/pages/HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 1944,
-        "snippet": "<p className=\"text-emerald-300 text-xs\">"
-      },
-      {
-        "file": "src/pages/HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 1967,
-        "snippet": "<Badge className=\"bg-green-500/30 text-green-300 text-[10px]\">Approved</Badge>"
-      },
-      {
-        "file": "src/pages/HelperDashboard.tsx",
-        "id": "M5",
-        "label": "Pale 300/400 accent icon",
-        "line": 2519,
-        "snippet": "<p className=\"text-emerald-300 text-xs\">Transfer from wallet to your own diamond balance</p>"
       }
     ],
     "src/components/games/LiveGameSelector.tsx": [
@@ -1938,6 +1762,22 @@
         "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
         "line": 407,
         "snippet": "className=\"pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focu"
+      }
+    ],
+    "src/pages/Tasks.tsx": [
+      {
+        "file": "src/pages/Tasks.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 579,
+        "snippet": ": 'bg-white/5 border border-white/10'"
+      },
+      {
+        "file": "src/pages/Tasks.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 597,
+        "snippet": "<div className=\"mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10\">"
       }
     ],
     "src/components/auth/BanPopupDialog.tsx": [

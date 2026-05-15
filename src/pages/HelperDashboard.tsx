@@ -1445,7 +1445,7 @@ const HelperDashboard = () => {
                     <Gem className="w-4 h-4 text-purple-700" />
                     <span className="text-slate-800 text-sm font-medium">Your Level {helperData?.trader_level || 1} Rate</span>
                   </div>
-                  <Badge className="bg-purple-500/30 text-purple-300">
+                  <Badge className="bg-purple-500/30 text-purple-700">
                     {levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}
                   </Badge>
                 </div>
@@ -1588,7 +1588,7 @@ const HelperDashboard = () => {
                       />
                       {parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000 && (
                         <div className="p-2 bg-purple-500/10 rounded-lg border border-purple-500/30">
-                          <p className="text-purple-300 text-sm text-center">
+                          <p className="text-purple-700 text-sm text-center">
                             💎 {formatDiamonds(parseInt(customDiamondAmount.replace(/,/g, '')))} = ${calculateUSD(parseInt(customDiamondAmount.replace(/,/g, ''))).toFixed(2)}
                           </p>
                         </div>
@@ -1683,7 +1683,7 @@ const HelperDashboard = () => {
                             <div className="flex justify-between items-center">
                               <span className="text-slate-600 text-xs">ID/Number:</span>
                               <div className="flex items-center gap-2">
-                                <span className="text-emerald-300 font-mono text-sm">{selectedPaymentMethod.account_number}</span>
+                                <span className="text-emerald-700 font-mono text-sm">{selectedPaymentMethod.account_number}</span>
                                 <button
                                   onClick={() => {
                                     navigator.clipboard.writeText(selectedPaymentMethod.account_number);
@@ -1719,7 +1719,7 @@ const HelperDashboard = () => {
                               navigator.clipboard.writeText(text);
                               toast({ title: "All details copied! ✅", description: "Payment details copied to clipboard" });
                             }}
-                            className="w-full mt-3 border-emerald-500/50 text-emerald-300 hover:bg-emerald-100"
+                            className="w-full mt-3 border-emerald-500/50 text-emerald-700 hover:bg-emerald-100"
                           >
                             <Copy className="w-4 h-4 mr-2" />
                             Copy All Details
@@ -1941,7 +1941,7 @@ const HelperDashboard = () => {
                   {/* For levels 2-4: Show info that they can upgrade via manual top-up */}
                   {canUpgrade && !hasPendingRequest && level.level_number >= 2 && level.level_number <= 4 && (
                     <div className="mt-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-                      <p className="text-emerald-300 text-xs">
+                      <p className="text-emerald-700 text-xs">
                         💡 Use <strong>Manual Top-up</strong> above to add ${level.upgrade_cost_usd} to your wallet and upgrade to this level automatically.
                       </p>
                     </div>
@@ -1964,13 +1964,13 @@ const HelperDashboard = () => {
                         <CheckCircle className="w-4 h-4 text-green-700" />
                         <span className="text-green-700 text-xs">Upgrade approved! Level updated.</span>
                       </div>
-                      <Badge className="bg-green-500/30 text-green-300 text-[10px]">Approved</Badge>
+                      <Badge className="bg-green-500/30 text-green-700 text-[10px]">Approved</Badge>
                     </div>
                   )}
                   
                   {level.level_number === 5 && isCurrent && (
                     <div className="mt-3 p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
-                      <p className="text-purple-300 text-xs">
+                      <p className="text-purple-700 text-xs">
                         <strong>Payroll Benefits:</strong> Receive agency withdrawal requests (5,000 - 100,000 beans) and earn commission on every transaction.
                       </p>
                       
@@ -2096,7 +2096,7 @@ const HelperDashboard = () => {
               {/* Show selected payment method details */}
               {selectedPaymentMethod && (
                 <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30">
-                  <p className="text-xs text-purple-300 mb-2">Pay to this account:</p>
+                  <p className="text-xs text-purple-700 mb-2">Pay to this account:</p>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-slate-600 text-xs">Account:</span>
@@ -2142,7 +2142,7 @@ const HelperDashboard = () => {
                       navigator.clipboard.writeText(text);
                       toast({ title: "All details copied! ✅", description: "Payment details copied to clipboard" });
                     }}
-                    className="w-full mt-3 border-purple-500/50 text-purple-300 hover:bg-purple-100"
+                    className="w-full mt-3 border-purple-500/50 text-purple-700 hover:bg-purple-100"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy All Payment Details
@@ -2232,7 +2232,7 @@ const HelperDashboard = () => {
                 </div>
                 <div>
                   <p className="text-slate-800 font-bold">Level 5 Payroll Benefits</p>
-                  <p className="text-purple-300 text-xs">Exclusive for Diamond Traders</p>
+                  <p className="text-purple-700 text-xs">Exclusive for Diamond Traders</p>
                 </div>
               </div>
               <ul className="space-y-2 text-sm text-slate-500">
@@ -2516,7 +2516,7 @@ const HelperDashboard = () => {
                     </div>
                     <div>
                       <p className="text-slate-800 font-semibold">Self Recharge</p>
-                      <p className="text-emerald-300 text-xs">Transfer from wallet to your own diamond balance</p>
+                      <p className="text-emerald-700 text-xs">Transfer from wallet to your own diamond balance</p>
                     </div>
                   </div>
 
@@ -2608,7 +2608,7 @@ const HelperDashboard = () => {
                             "text-[10px] px-1.5 py-0",
                             transfer.sender_type === 'trader_to_user' 
                               ? "bg-cyan-100 text-cyan-600"
-                              : "bg-purple-100 text-purple-300"
+                              : "bg-purple-100 text-purple-700"
                           )}
                         >
                           {transfer.sender_type === 'trader_to_user' ? 'User' : 'Agency'}

@@ -1666,7 +1666,7 @@ const Level5HelperDashboard = () => {
                           )}
                           {order.payment_details.manual_review_required && (
                             <div className="mb-2">
-                              <span className="inline-block px-2 py-0.5 rounded bg-amber-100 border border-amber-500/40 text-amber-300 text-[10px] font-bold">
+                              <span className="inline-block px-2 py-0.5 rounded bg-amber-100 border border-amber-500/40 text-amber-700 text-[10px] font-bold">
                                 ⚠ MANUAL REVIEW (auto-verify missed)
                               </span>
                             </div>
@@ -1885,7 +1885,7 @@ const Level5HelperDashboard = () => {
                             <div className="flex items-center gap-2">
  <p className="text-slate-900 font-medium text-sm">{method.method_name}</p>
                               {method.is_merchant && (
-                                <Badge className="bg-amber-100 text-amber-300 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>
+                                <Badge className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>
                               )}
                             </div>
                             <p className="text-slate-600 text-xs truncate">{method.account_name}</p>
@@ -2568,7 +2568,7 @@ const Level5HelperDashboard = () => {
                   onChange={(e) => setIsMerchant(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300"
                 />
-                <Label htmlFor="is-merchant-legacy" className="text-amber-300 font-medium text-sm cursor-pointer">
+                <Label htmlFor="is-merchant-legacy" className="text-amber-700 font-medium text-sm cursor-pointer">
                   ⚡ This is a Merchant Account (Auto-Verify)
                 </Label>
               </div>
@@ -2746,7 +2746,7 @@ const Level5HelperDashboard = () => {
               {selectedWithdrawal.status === 'screenshot_submitted' && (
                 <div className="text-center p-4 bg-purple-100 rounded-xl border border-purple-500/30">
                   <Clock className="w-8 h-8 text-purple-700 mx-auto mb-2" />
-                  <p className="text-purple-300 font-semibold">Waiting for Admin Approval</p>
+                  <p className="text-purple-700 font-semibold">Waiting for Admin Approval</p>
                   <p className="text-xs text-purple-700 mt-1">You'll receive diamonds once approved</p>
                 </div>
               )}
@@ -2754,7 +2754,7 @@ const Level5HelperDashboard = () => {
               {selectedWithdrawal.status === 'approved' && (
                 <div className="text-center p-4 bg-green-100 rounded-xl border border-green-500/30">
                   <CheckCircle className="w-8 h-8 text-green-700 mx-auto mb-2" />
-                  <p className="text-green-300 font-semibold">Approved!</p>
+                  <p className="text-green-700 font-semibold">Approved!</p>
                   <p className="text-xs text-green-700 mt-1">
                     +{selectedWithdrawal.diamond_reward.toLocaleString()} diamonds credited
                   </p>
@@ -2900,7 +2900,7 @@ const Level5HelperDashboard = () => {
                     .filter(g => g.is_integrated)
                     .map(g => (
  <SelectItem key={g.id} value={g.gateway_type} className="text-slate-900">
-                        ⚡ {g.name} <span className="text-[10px] text-amber-300/70 ml-1">(Auto Pay)</span>
+                        ⚡ {g.name} <span className="text-[10px] text-amber-700/70 ml-1">(Auto Pay)</span>
                       </SelectItem>
                     ))}
 
@@ -2992,7 +2992,7 @@ const Level5HelperDashboard = () => {
               <div className="border border-emerald-500/30 rounded-xl p-3 bg-emerald-500/10 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">⚡</span>
-                  <p className="text-emerald-300 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
+                  <p className="text-emerald-700 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
                 </div>
                 <p className="text-xs text-emerald-700/70 mb-2">
                   🎯 Auto payment using personal bKash/Nagad number. No merchant account needed!
@@ -3058,7 +3058,7 @@ const Level5HelperDashboard = () => {
                 <div className="border border-purple-500/30 rounded-xl p-3 bg-purple-500/10 space-y-3">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">⚡</span>
-                    <p className="text-purple-300 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
+                    <p className="text-purple-700 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
                   </div>
                   <p className="text-xs text-purple-700/70 mb-2">
                     🌍 Country: <strong>{selectedCountry}</strong> · Auto verification will credit diamonds instantly when payment confirms.
@@ -3245,7 +3245,7 @@ const Level5HelperDashboard = () => {
                   onChange={(e) => setIsMerchant(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300"
                 />
-                <Label htmlFor="is-merchant-country" className="text-amber-300 font-medium text-sm cursor-pointer">
+                <Label htmlFor="is-merchant-country" className="text-amber-700 font-medium text-sm cursor-pointer">
                   ⚡ This is a Merchant Account (Auto-Verify)
                 </Label>
               </div>
