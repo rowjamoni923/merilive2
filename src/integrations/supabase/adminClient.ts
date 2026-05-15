@@ -56,6 +56,19 @@ const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: 
 const SAFETY_LIMIT = 500;
 const DEDUPE_MS = 250;
 const inflight = new Map<string, { p: Promise<Response>; t: number }>();
+let adminLogoutInProgress = false;
+
+function forceAdminLogout(): void {
+  if (typeof window === 'undefined') return;
+  if (adminLogoutInProgress) return;
+  adminLogoutInProgress = true;
+  clearAdminSession();
+  window.dispatchEvent(new CustomEvent('admin-session-change'));
+  if (window.location.pathname.startsWith('/admin')) {
+    window.history.replaceState(null, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
+}
 
 function urlString(input: RequestInfo | URL): string {
   if (typeof input === 'string') return input;
@@ -109,7 +122,9 @@ const adminFetch: typeof fetch = (input, init) => {
       message,
       detail: message,
       url,
+      silent: true,
     });
+    forceAdminLogout();
     return Promise.resolve(new Response(JSON.stringify({ message }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
@@ -144,7 +159,8 @@ const adminFetch: typeof fetch = (input, init) => {
       /access denied|admin only|permission denied|forbidden|insufficient/i.test(parsedMsg);
     const missingToken = isRpc && !token && isAuthStatus;
 
-    // Surface clear toast + log for ANY admin auth / access-denied failure.
+    // Auth/session failures are security state, not UI errors: clear session and
+    // leave admin silently so users never see scary RPC error stacks/toasts.
     if (sessionExpired || accessDenied || missingToken) {
       recordAdminError({
         kind: isRpc ? 'rpc' : 'rest',
@@ -157,18 +173,10 @@ const adminFetch: typeof fetch = (input, init) => {
             : `Access denied: ${String(parsedMsg).slice(0, 160)}`,
         detail: bodyText.slice(0, 1000),
         url,
+        silent: true,
       });
 
-      if (sessionExpired || missingToken) {
-        clearAdminSession();
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('admin-session-change'));
-          const pathName = window.location.pathname;
-          if (pathName.startsWith('/admin') && pathName !== '/admin/auth' && pathName !== '/admin/login') {
-            window.location.replace('/admin/auth');
-          }
-        }
-      }
+      forceAdminLogout();
       return resp;
     }
 
