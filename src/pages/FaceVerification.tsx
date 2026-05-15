@@ -3048,7 +3048,7 @@ const FaceVerification = () => {
           {!faceVerified && (
             <Button
               variant="outline"
-              className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
+              className="w-full h-12 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 font-semibold shadow-sm"
               onClick={() => {
                 stopFaceCamera();
                 setCurrentStep(2);
