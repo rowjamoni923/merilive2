@@ -104,7 +104,7 @@ async function callRpc(name: string, body: unknown, token: string) {
   return { status: res.status, text };
 }
 
-Deno.test("admin x-admin-token unlocks every dashboard RPC", async () => {
+Deno.test({ name: "admin x-admin-token unlocks every dashboard RPC", ignore: !CAN_RUN }, async () => {
   const { token } = await provisionAdminSession();
   try {
     const failures: string[] = [];
