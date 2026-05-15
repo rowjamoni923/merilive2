@@ -52,7 +52,14 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       const accessToken = getAccessTokenFromURL();
       if (!mounted) return;
       if (isLoginRoute()) {
-        setIsAuthorized(true);
+        // Login route is ONLY accessible with a valid secret-link flag/token or an existing session.
+        // Without it, hide the panel entirely (show BlogPage) — no one should reach the login form
+        // just by typing /admin/auth.
+        if (session || hasFlag || accessToken) {
+          setIsAuthorized(true);
+        } else {
+          setIsAuthorized(false);
+        }
       } else if (session) {
         // Session present but no usable header token → broken state, force re-login.
         const token = getAdminSessionToken();
