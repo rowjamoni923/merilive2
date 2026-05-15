@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useSingleDeviceSession } from "@/hooks/useSingleDeviceSession";
 import { useAppResumeHandler } from "@/hooks/useAppResumeHandler";
 import { useLevelPrivilegeAutoEquip } from "@/hooks/useLevelPrivilegeAutoEquip";
+import { useAdminBroadcastSync } from "@/hooks/useAdminBroadcastSync";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import { queryClient } from "@/App";
 
