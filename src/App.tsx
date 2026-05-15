@@ -1096,7 +1096,8 @@ const App = () => {
             <BrowserRouter>
               <ScrollToTop />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
-              <Suspense fallback={null}><AndroidBackButtonHandler /></Suspense>
+              <AndroidBackButtonHandler />
+              {session ? <MandatoryPermissionsGate /> : null}
               <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
