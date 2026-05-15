@@ -1037,29 +1037,29 @@ const AgencyDashboard = () => {
       {/* Parent Agency Card (if sub-agency) */}
       {parentAgency && (
         <div className="mx-4 mt-2">
- <Card className="bg-gradient-to-br from-brand-600 via-info-600 to-info-600 border-0 text-white overflow-hidden relative">
+          <Card className="surface-indigo border-0 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-3 relative z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                    <Building2 className="w-6 h-6" />
+                  <div className="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <Building2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
- <p className="text-white/70 text-[10px] uppercase tracking-wide">Parent Agency</p>
-                    <p className="font-bold">{parentAgency.name}</p>
+                    <p className="text-white/65 text-[10px] uppercase tracking-wide font-medium">Parent Agency</p>
+                    <p className="font-bold text-white">{parentAgency.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
- <Badge className="bg-white/20 text-white text-[10px] h-4 px-1.5">
+                      <Badge className="bg-white/15 text-white border border-white/10 text-[10px] h-4 px-1.5">
                         {parentAgency.level}
                       </Badge>
- <span className="text-xs text-white/70">{parentAgency.agency_code}</span>
+                      <span className="text-xs text-white/65">{parentAgency.agency_code}</span>
                     </div>
                   </div>
                 </div>
                 <Button
                   onClick={() => setShowParentContactModal(true)}
                   size="sm"
- className="bg-white/20 hover:bg-white/30 text-white border-0 h-8"
+                  className="bg-white/15 hover:bg-white/25 text-white border border-white/15 h-8 backdrop-blur-sm font-semibold"
                 >
                   <MessageCircle className="w-4 h-4 mr-1" />
                   Contact
@@ -1067,18 +1067,18 @@ const AgencyDashboard = () => {
               </div>
               
               {parentAgency.owner_profile && (
-                <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
- <Avatar className="w-8 h-8 border border-slate-200/30">
+                <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2 border border-white/10">
+                  <Avatar className="w-8 h-8 border border-white/20">
                     <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
- <AvatarFallback className="bg-white/20 text-white text-xs">
+                    <AvatarFallback className="bg-white/15 text-white text-xs">
                       {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">
+                    <p className="text-xs font-medium truncate text-white">
                       {parentAgency.owner_profile.display_name || "Agency Owner"}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">Agency Owner</p>
+                    <p className="text-[10px] text-white/60">Agency Owner</p>
                   </div>
                 </div>
               )}
@@ -1089,7 +1089,7 @@ const AgencyDashboard = () => {
 
       {/* Earnings Card - Compact */}
       <div className="mx-4 mt-2">
- <Card className="bg-gradient-to-br from-warning-500 via-warning-500 to-danger-500 border-0 text-white overflow-hidden relative">
+        <Card className="surface-amber-warm border-0 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
           
@@ -1101,48 +1101,48 @@ const AgencyDashboard = () => {
                 className="flex items-center gap-2 text-left hover:opacity-90 transition-opacity"
                 aria-label="View commission history"
               >
-                <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <Coins className="w-5 h-5" />
+                <div className="w-9 h-9 bg-white/15 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/10">
+                  <Coins className="w-5 h-5 text-white" />
                 </div>
                 <div>
- <p className="text-white/80 text-[10px] uppercase tracking-wide flex items-center gap-1">
+                  <p className="text-white/75 text-[10px] uppercase tracking-wide flex items-center gap-1 font-medium">
                     Total Beans <ChevronRight className="w-3 h-3" />
                   </p>
-                  <p className="text-xl font-bold">{fmtNum(agencyBeansBalance)}</p>
- <p className="text-[9px] text-white/85">Tap to view commission history</p>
+                  <p className="text-xl font-bold text-white tracking-tight">{fmtNum(agencyBeansBalance)}</p>
+                  <p className="text-[9px] text-white/65">Tap to view commission history</p>
                 </div>
               </button>
-              <div className="text-right bg-white/20 backdrop-blur-sm rounded-lg p-2">
- <p className="text-white/80 text-[10px] flex items-center gap-0.5 justify-end">
+              <div className="text-right bg-white/15 backdrop-blur-sm rounded-lg p-2 border border-white/10">
+                <p className="text-white/75 text-[10px] flex items-center gap-0.5 justify-end font-medium">
                   <DollarSign className="w-2.5 h-2.5" />
                   USD Value
                 </p>
-                <p className="text-lg font-bold text-success-200">
+                <p className="text-lg font-bold text-white tracking-tight">
                   ${usdValue.toFixed(2)}
                 </p>
               </div>
             </div>
 
             {/* Local Currency Value - Compact */}
- <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 mb-1.5 border border-slate-200/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 mb-1.5 border border-white/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm">{localCurrency.flag}</span>
- <span className="text-xs text-white/80">{localCurrency.code} Value</span>
+                  <span className="text-xs text-white/75 font-medium">{localCurrency.code} Value</span>
                 </div>
-                <span className="text-sm font-bold text-info-200">
+                <span className="text-sm font-bold text-white tracking-tight">
                   {localCurrency.symbol}{localValue.toFixed(2)}
                 </span>
               </div>
             </div>
             
             {/* Exchange Rate Info - Compact */}
- <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 flex items-center justify-between mb-2 border border-slate-200/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 flex items-center justify-between mb-2 border border-white/10">
               <div className="flex items-center gap-1.5">
- <ArrowRightLeft className="w-3 h-3 text-white/70" />
- <span className="text-xs text-white/80">Exchange Rate</span>
+                <ArrowRightLeft className="w-3 h-3 text-white/65" />
+                <span className="text-xs text-white/75 font-medium">Exchange Rate</span>
               </div>
-              <span className="text-[10px] font-semibold">
+              <span className="text-[10px] font-semibold text-white/85">
                 {fmtNum(coinsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}
               </span>
             </div>
@@ -1150,14 +1150,14 @@ const AgencyDashboard = () => {
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => navigate("/agency-withdrawal")}
- className="bg-white/20 hover:bg-white/30 text-white border-0 h-9 text-xs"
+                className="bg-white/15 hover:bg-white/25 text-white border border-white/15 h-9 text-xs font-semibold backdrop-blur-sm"
               >
                 <Wallet className="w-4 h-4 mr-1.5" />
                 Withdraw
               </Button>
               <Button
                 onClick={() => setShowWithdrawalHistory(!showWithdrawalHistory)}
- className={`${showWithdrawalHistory ?'bg-white/40' :'bg-white/20'} hover:bg-white/30 text-white border-0 h-9 text-xs`}
+                className={`${showWithdrawalHistory ? 'bg-white/30' : 'bg-white/15'} hover:bg-white/25 text-white border border-white/15 h-9 text-xs font-semibold backdrop-blur-sm`}
               >
                 <Calendar className="w-4 h-4 mr-1.5" />
                 History
