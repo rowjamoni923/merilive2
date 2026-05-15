@@ -193,6 +193,30 @@ export type Database = {
           },
         ]
       }
+      admin_broadcast: {
+        Row: {
+          last_event: string | null
+          last_row_id: string | null
+          topic: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          last_event?: string | null
+          last_row_id?: string | null
+          topic: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          last_event?: string | null
+          last_row_id?: string | null
+          topic?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       admin_invitations: {
         Row: {
           accepted_at: string | null
