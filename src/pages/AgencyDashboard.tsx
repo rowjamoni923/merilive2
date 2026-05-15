@@ -1037,29 +1037,29 @@ const AgencyDashboard = () => {
       {/* Parent Agency Card (if sub-agency) */}
       {parentAgency && (
         <div className="mx-4 mt-2">
- <Card className="bg-gradient-to-br from-brand-600 via-info-600 to-info-600 border-0 text-white overflow-hidden relative">
+          <Card className="surface-indigo border-0 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-3 relative z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                    <Building2 className="w-6 h-6" />
+                  <div className="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <Building2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
- <p className="text-white/70 text-[10px] uppercase tracking-wide">Parent Agency</p>
-                    <p className="font-bold">{parentAgency.name}</p>
+                    <p className="text-white/65 text-[10px] uppercase tracking-wide font-medium">Parent Agency</p>
+                    <p className="font-bold text-white">{parentAgency.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
- <Badge className="bg-white/20 text-white text-[10px] h-4 px-1.5">
+                      <Badge className="bg-white/15 text-white border border-white/10 text-[10px] h-4 px-1.5">
                         {parentAgency.level}
                       </Badge>
- <span className="text-xs text-white/70">{parentAgency.agency_code}</span>
+                      <span className="text-xs text-white/65">{parentAgency.agency_code}</span>
                     </div>
                   </div>
                 </div>
                 <Button
                   onClick={() => setShowParentContactModal(true)}
                   size="sm"
- className="bg-white/20 hover:bg-white/30 text-white border-0 h-8"
+                  className="bg-white/15 hover:bg-white/25 text-white border border-white/15 h-8 backdrop-blur-sm font-semibold"
                 >
                   <MessageCircle className="w-4 h-4 mr-1" />
                   Contact
@@ -1067,18 +1067,18 @@ const AgencyDashboard = () => {
               </div>
               
               {parentAgency.owner_profile && (
-                <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
- <Avatar className="w-8 h-8 border border-slate-200/30">
+                <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2 border border-white/10">
+                  <Avatar className="w-8 h-8 border border-white/20">
                     <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
- <AvatarFallback className="bg-white/20 text-white text-xs">
+                    <AvatarFallback className="bg-white/15 text-white text-xs">
                       {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">
+                    <p className="text-xs font-medium truncate text-white">
                       {parentAgency.owner_profile.display_name || "Agency Owner"}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">Agency Owner</p>
+                    <p className="text-[10px] text-white/60">Agency Owner</p>
                   </div>
                 </div>
               )}
