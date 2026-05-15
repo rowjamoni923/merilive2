@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useSingleDeviceSession } from "@/hooks/useSingleDeviceSession";
 import { useAppResumeHandler } from "@/hooks/useAppResumeHandler";
 import { useLevelPrivilegeAutoEquip } from "@/hooks/useLevelPrivilegeAutoEquip";
+import { useAdminBroadcastSync } from "@/hooks/useAdminBroadcastSync";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import { queryClient } from "@/App";
 
@@ -20,6 +21,8 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   useSingleDeviceSession(singleDeviceUserId);
   useAppResumeHandler(appResumeUserId, queryClient);
   useLevelPrivilegeAutoEquip(singleDeviceUserId);
+  // Pkg36: instant admin → app sync (web + native, all routes)
+  useAdminBroadcastSync();
   
   return isAdminRoute ? null : <SessionDebugOverlay userId={singleDeviceUserId} />;
 });
