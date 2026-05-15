@@ -25,6 +25,8 @@ import {
   XCircle,
   Settings,
   Download,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,6 +175,7 @@ const FaceVerification = () => {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const hostPhotosInputRef = useRef<HTMLInputElement>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [troubleshootOpen, setTroubleshootOpen] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
@@ -1991,7 +1994,7 @@ const FaceVerification = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute left-3 right-3 bottom-[120px]"
+                className="absolute left-3 right-3 bottom-[120px] pointer-events-auto max-h-[42%] overflow-y-auto"
               >
                 <div className={`rounded-2xl backdrop-blur-xl px-3.5 py-3 border shadow-lg ${
                   liveDiag.severity === 'ok'
@@ -2060,8 +2063,19 @@ const FaceVerification = () => {
                     )}
                   </div>
 
+                  {/* Toggle for detailed troubleshooting checklist */}
+                  <button
+                    type="button"
+                    onClick={() => setTroubleshootOpen(v => !v)}
+                    className="mt-2 w-full flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 py-1 rounded-md hover:bg-slate-100/60"
+                    aria-expanded={troubleshootOpen}
+                  >
+                    {troubleshootOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    {troubleshootOpen ? 'Hide details' : 'Show troubleshooting'}
+                  </button>
+
                   {/* Step-specific live troubleshooting checklist */}
-                  {(() => {
+                  {troubleshootOpen && (() => {
                     const stepId = (faceInstructions[currentInstruction]?.id ?? 'center') as string;
                     const hint = (liveDiag.hint || '').toLowerCase();
                     const c = calibrationRef.current;
