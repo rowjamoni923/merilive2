@@ -43,8 +43,8 @@ const PublicAccountDeletion = () => {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <div className="bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 py-6 px-4 text-center">
-        <h1 className="text-2xl font-bold text-white">Account & Data Deletion</h1>
-        <p className="text-white/90 text-sm mt-1">MeriLive — Party & Chat (com.merilive.app)</p>
+        <h1 className="text-2xl font-bold text-white">Account & Data Deletion</h1> {/* dark-ok */}
+        <p className="text-white/90 text-sm mt-1">MeriLive — Party & Chat (com.merilive.app)</p> {/* dark-ok */}
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6 text-sm leading-relaxed">
@@ -131,7 +131,7 @@ const PublicAccountDeletion = () => {
             <button
               type="submit"
               disabled={submitting || !email}
-              className="w-full bg-red-600 text-white font-bold py-3 rounded-md hover:bg-red-700 disabled:opacity-50"
+              className="w-full bg-red-600 text-white font-bold py-3 rounded-md hover:bg-red-700 disabled:opacity-50" // dark-ok
             >
               {submitting ? 'Submitting…' : 'Submit Deletion Request'}
             </button>
