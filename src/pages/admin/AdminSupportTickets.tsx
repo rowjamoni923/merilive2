@@ -182,6 +182,29 @@ const AdminSupportTickets = () => {
     return ((data as any)?.support_display_name?.trim() || (data as any)?.display_name || null) as string | null;
   };
 
+  const sendAdminSupportMessage = async (params: {
+    ticketId: string;
+    content: string;
+    translatedContent?: string | null;
+    originalLanguage?: string | null;
+    attachmentUrl?: string | null;
+    attachmentType?: string | null;
+    supportAdminName?: string | null;
+    markPending?: boolean;
+  }) => {
+    const { error } = await supabase.rpc("admin_send_support_message" as any, {
+      _ticket_id: params.ticketId,
+      _content: params.content,
+      _translated_content: params.translatedContent || null,
+      _original_language: params.originalLanguage || null,
+      _attachment_url: params.attachmentUrl || null,
+      _attachment_type: params.attachmentType || null,
+      _support_admin_name: params.supportAdminName || null,
+      _mark_pending: Boolean(params.markPending),
+    });
+    if (error) throw error;
+  };
+
   useEffect(() => {
     selectedTicketRef.current = selectedTicket;
     // Lookup agency for this user
@@ -504,29 +527,14 @@ const AdminSupportTickets = () => {
       // Snapshot the admin's chosen support display name for this reply
       const supportName = await getCurrentSupportName();
 
-      const { error: msgError } = await supabase
-        .from('support_messages')
-        .insert({
-          ticket_id: selectedTicket.id,
-          sender_id: null,
-          sender_type: 'admin',
-          content: replyMessage.trim(),
-          is_read: false,
-          translated_content: translatedContent || null,
-          original_language: 'bn',
-          support_admin_name: supportName,
-        } as any);
-
-      if (msgError) throw msgError;
-
-      // Update ticket status to pending (waiting for user response)
-      await supabase
-        .from('support_tickets')
-        .update({ 
-          status: 'pending',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedTicket.id);
+      await sendAdminSupportMessage({
+        ticketId: selectedTicket.id,
+        content: replyMessage.trim(),
+        translatedContent: translatedContent || null,
+        originalLanguage: 'bn',
+        supportAdminName: supportName,
+        markPending: true,
+      });
 
       // Send email notification (fire-and-forget, don't block UI)
       supabase.functions.invoke("send-support-reply-email", {
@@ -640,13 +648,10 @@ const AdminSupportTickets = () => {
       }
 
       const supportName = await getCurrentSupportName();
-      await supabase.from('support_messages').insert({
-        ticket_id: selectedTicket.id,
-        sender_id: null,
-        sender_type: 'admin',
+      await sendAdminSupportMessage({
+        ticketId: selectedTicket.id,
         content: `🎁 Compensation: ${rewardParts.join(' + ')} has been adjusted.`,
-        is_read: false,
-        support_admin_name: supportName,
+        supportAdminName: supportName,
       });
 
       // Send notification to user about compensation
@@ -692,18 +697,13 @@ const AdminSupportTickets = () => {
       if (uploadError) throw uploadError;
       const supportName = await getCurrentSupportName();
 
-      const { error: msgError } = await supabase.from('support_messages').insert({
-        ticket_id: selectedTicket.id,
-        sender_id: null,
-        sender_type: 'admin',
+      await sendAdminSupportMessage({
+        ticketId: selectedTicket.id,
         content: replyMessage.trim() || '📷 Image',
-        is_read: false,
-        attachment_url: path,
-        attachment_type: 'image',
-        support_admin_name: supportName,
-      } as any);
-
-      if (msgError) throw msgError;
+        attachmentUrl: path,
+        attachmentType: 'image',
+        supportAdminName: supportName,
+      });
       toast({ title: "✅ Image Sent" });
       setReplyMessage("");
       loadMessages(selectedTicket.id);
@@ -926,13 +926,10 @@ const AdminSupportTickets = () => {
         : `✅ Ticket has been resolved. Thank you for contacting support.`;
 
       const supportName = await getCurrentSupportName();
-      await supabase.from('support_messages').insert({
-        ticket_id: selectedTicket.id,
-        sender_id: null,
-        sender_type: 'admin',
+      await sendAdminSupportMessage({
+        ticketId: selectedTicket.id,
         content: resolveContent,
-        is_read: false,
-        support_admin_name: supportName,
+        supportAdminName: supportName,
       });
 
       // Send notification to user about ticket resolution + reward

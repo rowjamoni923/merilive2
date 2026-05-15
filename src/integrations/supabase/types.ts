@@ -15205,6 +15205,19 @@ export type Database = {
         }
         Returns: string
       }
+      admin_send_support_message: {
+        Args: {
+          _attachment_type?: string
+          _attachment_url?: string
+          _content: string
+          _mark_pending?: boolean
+          _original_language?: string
+          _support_admin_name?: string
+          _ticket_id: string
+          _translated_content?: string
+        }
+        Returns: string
+      }
       admin_session_block_user: {
         Args: {
           _admin_id: string
