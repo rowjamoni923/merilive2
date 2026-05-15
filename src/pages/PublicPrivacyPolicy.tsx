@@ -120,7 +120,68 @@ const PublicPrivacyPolicy = () => (
       </section>
 
       <section>
-        <h2 className="text-lg font-bold mb-2">8. Your Rights</h2>
+        <h2 className="text-lg font-bold mb-2">8. Data Retention — How Long We Store Your Data</h2>
+        <p>
+          We retain your personal data only for as long as necessary to provide our services
+          and fulfill the purposes outlined in this Privacy Policy. Specific retention periods:
+        </p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li><strong>Account Profile Data</strong> (name, email, phone, photo, bio, gender, DOB): Retained while your account is active. Deleted within <strong>30 days</strong> of account deletion request.</li>
+          <li><strong>Chat Messages & Call Logs:</strong> Stored for up to <strong>90 days</strong> for moderation and dispute resolution, then automatically purged.</li>
+          <li><strong>Live Stream / Video Call Media:</strong> Transmitted in real-time and <strong>not stored</strong> on our servers after the session ends.</li>
+          <li><strong>Face Verification Photos:</strong> Stored encrypted for up to <strong>180 days</strong> for identity audit, then permanently deleted.</li>
+          <li><strong>Payment & Transaction Records:</strong> Retained for <strong>7 years</strong> as required by financial and tax regulations.</li>
+          <li><strong>Crash Logs & Analytics:</strong> Anonymized after <strong>90 days</strong>; aggregated data may be retained indefinitely.</li>
+          <li><strong>IP Address & Device Identifiers:</strong> Retained for up to <strong>12 months</strong> for fraud prevention.</li>
+          <li><strong>Backups:</strong> Encrypted backups are rotated and fully purged within <strong>60 days</strong> of deletion.</li>
+        </ul>
+        <p className="mt-2">
+          After the applicable retention period, your data is permanently deleted from our active
+          servers and backups, except where retention is required by law (e.g., financial records).
+        </p>
+      </section>
+
+      <section>
+        <h2 className="text-lg font-bold mb-2">9. Data Deletion — How to Delete Your Data</h2>
+        <p>
+          You have the right to request deletion of your account and associated personal data at
+          any time. We provide <strong>three ways</strong> to delete your data:
+        </p>
+        <p className="font-semibold mt-3 mb-1">Option 1 — In-App Deletion (Recommended):</p>
+        <ol className="list-decimal pl-5 space-y-1">
+          <li>Open the MeriLive app and log in</li>
+          <li>Go to <strong>Settings → Account → Delete Account</strong></li>
+          <li>Confirm your password and tap <strong>"Permanently Delete"</strong></li>
+          <li>Your account is immediately deactivated; data is purged within 30 days</li>
+        </ol>
+        <p className="font-semibold mt-3 mb-1">Option 2 — Web Deletion Request:</p>
+        <ol className="list-decimal pl-5 space-y-1">
+          <li>Visit <strong>https://merilive.top/account-deletion</strong></li>
+          <li>Submit your registered email/phone and reason</li>
+          <li>You will receive a confirmation email within 24 hours</li>
+          <li>Account and data are deleted within 30 days of confirmation</li>
+        </ol>
+        <p className="font-semibold mt-3 mb-1">Option 3 — Email Request:</p>
+        <p>
+          Send a deletion request from your registered email address to{' '}
+          <strong>support@merilive.com</strong> with the subject line{' '}
+          <em>"Account Deletion Request"</em>. Include your username/User ID. We will process the
+          request within <strong>30 days</strong> and confirm deletion via email.
+        </p>
+        <p className="mt-3">
+          <strong>What gets deleted:</strong> Your profile, photos, chat messages, call history,
+          followers/following, virtual gifts inventory, beans/diamonds balance, device tokens,
+          and all personal identifiers.
+        </p>
+        <p className="mt-2">
+          <strong>What is retained (and why):</strong> Anonymized transaction records (legal/tax
+          compliance — 7 years), aggregated analytics (no personal identifiers), and content
+          required for active legal investigations or fraud disputes.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="text-lg font-bold mb-2">10. Your Rights</h2>
         <p>You have the right to:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li>Access your personal data</li>
