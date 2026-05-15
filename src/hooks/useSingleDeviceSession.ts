@@ -137,6 +137,19 @@ export const useSingleDeviceSession = (userId: string | null) => {
 
     // Single-device enforcement active on ALL platforms (web + native)
 
+    // On native: make sure we are using the resolved hardware UUID, not the
+    // pre-cache placeholder. This handles the cold-start race where the very
+    // first paint runs before Capacitor's Device plugin has answered.
+    if (IS_NATIVE) {
+      try {
+        const hw = await getPersistentDeviceId();
+        if (hw && hw.startsWith('device_') && sessionId.current !== hw) {
+          sessionId.current = hw;
+          try { localStorage.setItem(STORAGE_KEY, hw); } catch { /* noop */ }
+        }
+      } catch { /* noop */ }
+    }
+
     // If forceNewId (fresh login), generate a brand new session ID
     if (forceNewId) {
       const newId = forceNewSessionId();
