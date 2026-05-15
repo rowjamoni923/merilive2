@@ -2177,6 +2177,30 @@ const FaceVerification = () => {
           </Button>
           <Button
             variant="outline"
+            className="w-full h-11 rounded-xl border-cyan-300/40 bg-white/5 text-white hover:bg-white/10 text-sm font-medium leading-5"
+            onClick={runNeutralCalibration}
+            disabled={!cameraReady || neutralCalibrating}
+          >
+            {neutralCalibrating ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Calibrating… {Math.round(neutralProgress * 100)}%
+              </>
+            ) : (
+              <>
+                <ScanFace className="w-4 h-4 mr-2" />
+                {neutralCalib && neutralCalib.capturedAt > 0 ? 'Recalibrate neutral pose' : 'Calibrate neutral pose (3s)'}
+              </>
+            )}
+          </Button>
+          {neutralCalib && neutralCalib.capturedAt > 0 && !neutralCalibrating && (
+            <p className="text-[11px] text-center text-cyan-100/80 leading-5">
+              Tuned for you · baseline {neutralCalib.baselineYaw.toFixed(1)}° / {neutralCalib.baselinePitch.toFixed(1)}° ·
+              turn ±{neutralCalib.turnYaw.toFixed(0)}° · tilt ±{neutralCalib.tiltPitch.toFixed(0)}°
+            </p>
+          )}
+          <Button
+            variant="outline"
             className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 rounded-xl"
             onClick={stopFaceCamera}
           >
