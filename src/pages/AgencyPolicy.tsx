@@ -393,29 +393,41 @@ const AgencyPolicy = () => {
                     Commission rate is determined based on total income of your hosts and sub-agents from last week.
                   </p>
                   <div className="space-y-3">
-                    {commissionTiers.map((tier) => (
+                    {commissionTiers.map((tier) => {
+                      const displayName = (tier.name || tier.level || "").toString();
+                      const displayLevel = (tier.level || "").toString();
+                      const initial = displayName.charAt(0).toUpperCase() || "•";
+                      const showLevelChip = displayLevel && displayLevel.toLowerCase() !== displayName.toLowerCase();
+                      return (
                       <div 
                         key={tier.level}
- className={`bg-gradient-to-r ${tierColors[tier.level] ||'from-gray-400 to-gray-600'} rounded-xl p-4 text-slate-900 relative overflow-hidden`}
+                        className={`bg-gradient-to-r ${getTierStyle(tier)} rounded-xl p-4 text-white relative overflow-hidden shadow-md ring-1 ring-white/10`}
                       >
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10 pointer-events-none" />
                         <div className="flex items-center justify-between relative z-10">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center font-bold text-lg">
-                              {tier.level}
+                            <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center font-bold text-lg text-white ring-1 ring-white/30 shadow-inner">
+                              {initial}
                             </div>
-                            <div>
-                              <p className="font-bold">{tier.name}</p>
-                              <p className="text-xs text-slate-700">{formatIncome(tier.income_min, tier.income_max)}</p>
+                            <div className="min-w-0">
+                              <p className="font-bold text-white capitalize leading-tight drop-shadow-sm">{displayName}</p>
+                              {showLevelChip && (
+                                <span className="inline-block mt-0.5 mr-1 px-1.5 py-px text-[10px] font-semibold rounded bg-white/20 text-white uppercase tracking-wide">
+                                  {displayLevel}
+                                </span>
+                              )}
+                              <p className="text-xs text-white/85 mt-0.5">{formatIncome(tier.income_min, tier.income_max)}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold">{tier.rate}%</p>
-                            <p className="text-[10px] text-slate-600 uppercase">Commission</p>
+                            <p className="text-2xl font-extrabold text-white drop-shadow-sm">{tier.rate}%</p>
+                            <p className="text-[10px] text-white/80 uppercase tracking-wider font-semibold">Commission</p>
                           </div>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
