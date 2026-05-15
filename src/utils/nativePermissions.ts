@@ -31,13 +31,20 @@ const MeriPermissions = registerPlugin<MeriPermissionsPlugin>('MeriPermissions')
 
 /** Per-permission "can the system dialog still be shown?" flags. */
 export const canRequestAgain = async (): Promise<MeriPermissionsStatus> => {
+  permLog('canRequest.start', { native: isNativeApp() });
   if (!isNativeApp()) {
-    return { camera: true, microphone: true, location: true, notifications: true };
+    const fallback = { camera: true, microphone: true, location: true, notifications: true };
+    permLog('canRequest.result', { ...fallback, source: 'web-fallback' });
+    return fallback;
   }
   try {
-    return await MeriPermissions.canRequestAgain();
-  } catch {
-    return { camera: true, microphone: true, location: true, notifications: true };
+    const r = await MeriPermissions.canRequestAgain();
+    permLog('canRequest.result', { ...r, source: 'native' });
+    return r;
+  } catch (err) {
+    const fallback = { camera: true, microphone: true, location: true, notifications: true };
+    permLog('canRequest.result', { ...fallback, source: 'native-error', error: String(err) });
+    return fallback;
   }
 };
 
