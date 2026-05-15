@@ -1150,14 +1150,14 @@ const AgencyDashboard = () => {
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => navigate("/agency-withdrawal")}
- className="bg-white/20 hover:bg-white/30 text-white border-0 h-9 text-xs"
+                className="bg-white/15 hover:bg-white/25 text-white border border-white/15 h-9 text-xs font-semibold backdrop-blur-sm"
               >
                 <Wallet className="w-4 h-4 mr-1.5" />
                 Withdraw
               </Button>
               <Button
                 onClick={() => setShowWithdrawalHistory(!showWithdrawalHistory)}
- className={`${showWithdrawalHistory ?'bg-white/40' :'bg-white/20'} hover:bg-white/30 text-white border-0 h-9 text-xs`}
+                className={`${showWithdrawalHistory ? 'bg-white/30' : 'bg-white/15'} hover:bg-white/25 text-white border border-white/15 h-9 text-xs font-semibold backdrop-blur-sm`}
               >
                 <Calendar className="w-4 h-4 mr-1.5" />
                 History
