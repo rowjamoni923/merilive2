@@ -481,7 +481,7 @@ const NativeSystemUIBridge = lazy(lazyRetry(() => import("./hooks/useNativeSyste
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isPublicPage = ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/google-library-order-rules', '/join-agency'].some(r => location.pathname.startsWith(r));
+  const isPublicPage = ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/google-library-order-rules', '/join-agency', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
 
   return (
@@ -1021,7 +1021,7 @@ const App = () => {
     '/admin', '/agency-signup', '/smart-link', '/link', 
     '/policies', '/policies-benefits', '/about', '/google-library-order-rules', '/policies/',
     '/agency-policy', '/helper-policy', '/agency',
-    '/privacy-policy', '/terms', '/contact', '/become-sub-agent', '/payroll-helper-guide',
+    '/privacy-policy', '/terms', '/contact', '/account-deletion', '/delete-account', '/become-sub-agent', '/payroll-helper-guide',
     '/create-agency', '/join-agency',
     '/auth/callback', '/reset-password', '/~oauth'
   ];
@@ -1069,7 +1069,7 @@ const App = () => {
   // merilive.com is the MAIN APP domain — must load the full app, NOT landing.
   const publicLandingHosts = ['merilive.top', 'www.merilive.top'];
   const isPublicLandingHost = publicLandingHosts.includes(window.location.hostname);
-  const publicLandingAllowedPaths = ['/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact'];
+  const publicLandingAllowedPaths = ['/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact', '/account-deletion', '/delete-account'];
   const isPublicLandingSubRoute = isPublicLandingHost && publicLandingAllowedPaths.some(p => currentPath.startsWith(p));
   
   if (isPublicLandingHost && !isPublicLandingSubRoute) {
