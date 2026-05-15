@@ -145,6 +145,7 @@ const HostDashboard = lazy(() => import("./pages/HostDashboard"));
 const HostVerification = lazy(() => import("./pages/HostVerification"));
 const FaceVerification = lazy(() => import("./pages/FaceVerification"));
 const FacePoseRegression = lazy(() => import("./pages/FacePoseRegression"));
+const AvatarFrameRingCheck = lazy(() => import("./pages/AvatarFrameRingCheck"));
 const AgencyWithdrawal = lazy(() => import("./pages/AgencyWithdrawal"));
 const AgencyTransferHistory = lazy(() => import("./pages/AgencyTransferHistory"));
 const AgencyCommissionHistory = lazy(() => import("./pages/AgencyCommissionHistory"));
