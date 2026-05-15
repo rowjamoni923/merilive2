@@ -16849,6 +16849,7 @@ export type Database = {
         Args: { _task_id: string; _user_id: string }
         Returns: Json
       }
+      verify_admin_token_rpc_access: { Args: never; Returns: Json }
       verify_party_room_password: {
         Args: { _password: string; _room_id: string }
         Returns: boolean
