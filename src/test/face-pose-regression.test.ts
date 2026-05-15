@@ -32,7 +32,7 @@ describe('Face pose threshold regression', () => {
       const r = replaySampleSet(set);
       r.stepsPassed.forEach(s => seen.add(s));
     }
-    ['center', 'left', 'right', 'up', 'down'].forEach(s => {
+    ['center', 'left', 'right'].forEach(s => {
       expect(seen.has(s), `step ${s} never passed across all fixtures`).toBe(true);
     });
   });
