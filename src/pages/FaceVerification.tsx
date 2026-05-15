@@ -1398,7 +1398,6 @@ const FaceVerification = () => {
     if (hostPhotos.length !== 3) missing.push("host_photos");
     if (!faceVerificationVideo) missing.push("face_video");
     if (!faceVerified) missing.push("face_verification");
-    if (faceManualReviewRequired) missing.push("manual_face_review");
 
     return missing;
   };
