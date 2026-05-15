@@ -21,6 +21,8 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   useSingleDeviceSession(singleDeviceUserId);
   useAppResumeHandler(appResumeUserId, queryClient);
   useLevelPrivilegeAutoEquip(singleDeviceUserId);
+  // Pkg36: instant admin → app sync (web + native, all routes)
+  useAdminBroadcastSync();
   
   return isAdminRoute ? null : <SessionDebugOverlay userId={singleDeviceUserId} />;
 });
