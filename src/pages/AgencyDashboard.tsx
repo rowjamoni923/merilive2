@@ -1252,17 +1252,17 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-info-50 to-brand-50 border border-info-100 rounded-2xl p-3 cursor-pointer hover:shadow-lg transition-all active:scale-[0.98]"
+          className="bg-gradient-to-r from-[#0a2540] via-[#1a1145] to-[#0f0a2e] border border-white/10 rounded-2xl p-3 cursor-pointer hover:shadow-xl transition-all active:scale-[0.98] shadow-lg"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-info-500 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
- <FileText className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <FileText className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-foreground font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-muted-foreground text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
+              <p className="text-white/65 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-info-500" />
+            <ArrowRight className="w-4 h-4 text-sky-300" />
           </div>
         </div>
       </div>
