@@ -29,6 +29,7 @@ import {
   openNativeAppPermissionSettings,
   canRequestAgain,
 } from '@/utils/nativePermissions';
+import { permLog } from '@/utils/permissionDebugLog';
 
 const REQUIRED_KEYS = ['camera', 'microphone', 'notifications'] as const;
 type Status = { camera: boolean; microphone: boolean; location: boolean; notifications: boolean };
