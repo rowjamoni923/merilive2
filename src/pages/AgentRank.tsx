@@ -493,21 +493,21 @@ const AgentRank = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-semibold text-[13px] truncate">{agency.agency_name}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <Users className="w-3 h-3 text-white/60" />
-                      <span className="text-[11px] text-white/60 font-medium">{agency.total_hosts} hosts</span>
+                      <Users className="w-3 h-3 text-white/75" />
+                      <span className="text-[11px] text-white/75 font-medium">{agency.total_hosts} hosts</span>
                     </div>
                   </div>
                   
                   {/* Value */}
                   <div className="text-right flex flex-col items-end gap-0.5">
                     <div className="flex items-center gap-1">
-                      <Gem className="w-3.5 h-3.5 text-cyan-400" />
-                      <span className="text-cyan-300 font-black text-sm">{formatNumber(agency.metric_value)}</span>
+                      <Gem className="w-3.5 h-3.5 text-cyan-300" />
+                      <span className="text-white font-black text-sm">{formatNumber(agency.metric_value)}</span>
                     </div>
                     {reward && (
                       <div className="flex items-center gap-0.5">
-                        <Gift className="w-2.5 h-2.5 text-yellow-400/60" />
-                        <span className="text-[9px] text-yellow-400/60 font-bold">+{formatNumber(reward.reward_coins)}</span>
+                        <Gift className="w-2.5 h-2.5 text-yellow-300" />
+                        <span className="text-[9px] text-yellow-200 font-bold">+{formatNumber(reward.reward_coins)}</span>
                       </div>
                     )}
                   </div>
