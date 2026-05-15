@@ -41,6 +41,8 @@ const PUBLICATION_TABLES = new Set([
   'face_verification_submissions',
   'agencies',
   'agency_withdrawals',
+  // Pkg37: single broadcast table fans out admin saves; cost-guarded server-side
+  'admin_broadcast',
 ]);
 
 // During DB pressure we preserve only mission-critical realtime tables.
