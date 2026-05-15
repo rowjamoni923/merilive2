@@ -41,8 +41,8 @@ export const DEFAULT_CALIB: PoseCalibration = {
   capturedAt: 0,
 };
 
-export type StepId = 'center' | 'left' | 'right' | 'up' | 'down';
-export const STEP_IDS: StepId[] = ['center', 'left', 'right', 'up', 'down'];
+export type StepId = 'center' | 'left' | 'right';
+export const STEP_IDS: StepId[] = ['center', 'left', 'right'];
 
 export function calibrateThresholds(samples: PoseSample[]): PoseCalibration {
   if (samples.length < 4) return { ...DEFAULT_CALIB, capturedAt: Date.now() };
@@ -79,8 +79,6 @@ export function evaluatePose(stepId: string, pose: PoseSample, c: PoseCalibratio
     case 'center': return Math.abs(dy) < c.centerYaw && Math.abs(dp) < c.centerPitch;
     case 'left':   return dy >  c.turnYaw;
     case 'right':  return dy < -c.turnYaw;
-    case 'up':     return dp < -c.tiltPitch;
-    case 'down':   return dp >  c.tiltPitch;
     default:       return false;
   }
 }
