@@ -385,11 +385,59 @@ const AdminFaceVerification = () => {
 
   const isVideoUrl = (url: string) => /\.(webm|mp4|mov|avi|ogg)(\?|$)/i.test(url);
 
-  const MIN_FACE_MATCH_PERCENTAGE = 90;
+  // Sync with edge function auto-face-verify (MIN_FACE_MATCH_PERCENTAGE = 76)
+  const MIN_FACE_MATCH_PERCENTAGE = 76;
   const extractFaceMatchPercentage = (notes?: string | null) => {
     if (!notes) return null;
     const match = notes.match(/Face\s*Match:\s*([0-9]+(?:\.[0-9]+)?)%/i);
     return match ? Number(match[1]) : null;
+  };
+
+  // Re-run AWS analysis (admin-only edge function)
+  const handleRerunAws = async (submissionId: string) => {
+    if (processing || actionInFlightRef.current) return;
+    actionInFlightRef.current = true;
+    setProcessing(true);
+    try {
+      const adminToken = localStorage.getItem('admin_session_token') || '';
+      const projectId = (import.meta as any).env?.VITE_SUPABASE_PROJECT_ID;
+      const url = `https://${projectId}.supabase.co/functions/v1/admin-rerun-face-verify`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ submissionId }),
+      });
+      const data = await res.json();
+      if (!res.ok || data?.error) throw new Error(data?.error || 'Re-run failed');
+      toast({
+        title: data.ok ? '✅ AWS Re-run Complete' : '⚠️ Re-run Note Saved',
+        description: typeof data.faceMatchPercentage === 'number'
+          ? `Match: ${data.faceMatchPercentage.toFixed(1)}% • Faces: ${data.facesDetected} • Gender: ${data.gender || 'N/A'}`
+          : (data.error || 'See admin notes'),
+      });
+      fetchSubmissions();
+    } catch (e: any) {
+      toast({ title: 'Re-run failed', description: e.message || 'Unknown error', variant: 'destructive' });
+    } finally {
+      setProcessing(false);
+      actionInFlightRef.current = false;
+    }
+  };
+
+  // Manual override approve — bypasses face-match threshold (admin takes responsibility)
+  const handleManualOverrideApprove = async (sub: Submission, asRole: 'host' | 'user') => {
+    const reason = prompt(
+      `⚠️ MANUAL OVERRIDE\n\nFace match is below ${MIN_FACE_MATCH_PERCENTAGE}% but you are approving anyway.\nProvide a reason (logged in admin_notes):`,
+      'Manual approval — verified visually by admin',
+    );
+    if (!reason || !reason.trim()) return;
+    await processSubmissionAction({
+      submission: sub,
+      action: 'approve',
+      approveAs: asRole,
+      setGender: asRole === 'host' ? 'female' : 'male',
+      reason: `[OVERRIDE] ${reason.trim()}`,
+    });
   };
 
   const autoApprovedSubmissions = submissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto'));
