@@ -454,8 +454,6 @@ const AdminSupportTickets = () => {
 
     setSending(true);
     try {
-      const adminSession = getAdminSession();
-      
       // Translate admin reply to user's language if needed
       let translatedContent = "";
       
@@ -483,12 +481,7 @@ const AdminSupportTickets = () => {
 
       // Insert reply message with translation
       // Snapshot the admin's chosen support display name for this reply
-      const { data: meRow } = await supabase
-        .from('admin_users')
-        .select('support_display_name, display_name')
-        .eq('id', adminSession?.admin_id ?? '')
-        .maybeSingle();
-      const supportName = ((meRow as any)?.support_display_name?.trim() || (meRow as any)?.display_name) ?? null;
+      const supportName = await getCurrentSupportName();
 
       const { error: msgError } = await supabase
         .from('support_messages')
@@ -513,12 +506,6 @@ const AdminSupportTickets = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedTicket.id);
-
-      // Send in-app notification to user about support reply
-      const notifContent = (translatedContent || replyMessage.trim()).substring(0, 120);
-      await adminSendNotification(selectedTicket.user_id, '💬 Support Reply', `Support team replied: "${notifContent}${notifContent.length >= 120 ? '...' : ''}"`, 'support_reply').then(() => {
-        console.log("📨 Support reply notification sent");
-      }).catch(e => console.warn("Notification insert failed:", e));
 
       // Send email notification (fire-and-forget, don't block UI)
       supabase.functions.invoke("send-support-reply-email", {
