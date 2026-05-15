@@ -2088,12 +2088,12 @@ const AgencyDashboard = () => {
               </DialogHeader>
               
               <div className="space-y-4 mt-4">
-                <div className="bg-gradient-to-br from-warning-50 to-warning-50 rounded-2xl p-6 text-center border border-warning-200">
-                  <div className="w-16 h-16 mx-auto bg-warning-100 rounded-full flex items-center justify-center mb-4">
-                    <Clock className="w-8 h-8 text-warning-600" />
+                <div className="bg-gradient-to-br from-[#3d2a07] via-[#7a5410] to-[#2e1f05] rounded-2xl p-6 text-center border border-amber-400/20 shadow-xl">
+                  <div className="w-16 h-16 mx-auto bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 border border-white/10">
+                    <Clock className="w-8 h-8 text-amber-200" />
                   </div>
-                  <h3 className="font-bold text-warning-800 text-lg">Under Review</h3>
-                  <p className="text-sm text-warning-700 mt-2">
+                  <h3 className="font-bold text-white text-lg">Under Review</h3>
+                  <p className="text-sm text-white/80 mt-2">
                     Your application to become a Helper/Diamond Trader is currently under review. 
                     You will be notified once approved.
                   </p>
