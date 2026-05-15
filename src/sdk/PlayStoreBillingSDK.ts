@@ -91,12 +91,12 @@ const makeProductConfig = (baseCoins: number, bonusCoins: number, productId: str
 };
 
 export const PLAY_STORE_PRODUCTS: Record<number, PlayStoreProductConfig> = {
-  7000:   makeProductConfig(7000, 3500, 'diamonds_7000', 1.29),
-  13200:  makeProductConfig(13200, 1320, 'diamonds_13200', 2.49),
-  56000:  makeProductConfig(56000, 42000, 'diamonds_56000', 9.99),
-  169000: makeProductConfig(169000, 42250, 'diamonds_169000', 30.99),
-  470000: makeProductConfig(470000, 352500, 'diamonds_470000', 72.99),
-  650000: makeProductConfig(650000, 487500, 'diamonds_650000', 89.99),
+  7000:   makeProductConfig(7000, 3500, 'diamonds_7000_v2', 1.49),
+  13200:  makeProductConfig(13200, 1320, 'diamonds_13200_v2', 2.49),
+  56000:  makeProductConfig(56000, 42000, 'diamonds_56000_v2', 9.99),
+  169000: makeProductConfig(169000, 42250, 'diamonds_169000_v2', 30.99),
+  470000: makeProductConfig(470000, 352500, 'diamonds_470000_v2', 74.99),
+  650000: makeProductConfig(650000, 487500, 'diamonds_650000_v2', 89.99),
 };
 
 export let ALL_PRODUCT_IDS: string[] = uniqueIds(Object.values(PLAY_STORE_PRODUCTS).flatMap(p => p.aliases));
