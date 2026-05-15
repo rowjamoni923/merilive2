@@ -2424,60 +2424,60 @@ const AgencyWithdrawal = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <main className="px-4 py-4 space-y-6">
         {/* Balance Card */}
-        <Card className="bg-gradient-to-br from-success-500 via-success-500 to-success-600 text-white border-0 shadow-xl overflow-hidden relative">
+        <Card className="bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 text-white border-0 shadow-xl overflow-hidden relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
           <CardContent className="p-6 relative z-10">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-inner">
-                <Wallet className="w-7 h-7" />
+              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-inner border border-white/15">
+                <Wallet className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-slate-700 text-sm font-medium">Total Beans</p>
-                <p className="text-4xl font-bold tracking-tight">
+                <p className="text-white/80 text-sm font-medium">Total Beans</p>
+                <p className="text-4xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
                   {formatNumber(agency?.wallet_balance || 0)}
                 </p>
-                <p className="text-slate-500 text-xs mt-0.5">Withdrawable balance</p>
+                <p className="text-white/70 text-xs mt-0.5">Withdrawable balance</p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-warning-200/60">
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
                 <div className="flex items-center gap-2 mb-1">
-                  <DollarSign className="w-4 h-4 text-warning-700" />
-                  <p className="text-slate-700 text-xs">USD Value</p>
+                  <DollarSign className="w-4 h-4 text-amber-200" />
+                  <p className="text-white/75 text-xs font-medium">USD Value</p>
                 </div>
-                <p className="text-xl font-bold text-warning-700">
+                <p className="text-xl font-bold text-white">
                   ${beansToUsd(agency?.wallet_balance || 0).toFixed(2)}
                 </p>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-warning-200/60">
+              <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
                 <div className="flex items-center gap-2 mb-1">
-                  <Globe className="w-4 h-4 text-info-700" />
-                  <p className="text-slate-700 text-xs">{countryConfig.currency} Value</p>
+                  <Globe className="w-4 h-4 text-sky-200" />
+                  <p className="text-white/75 text-xs font-medium">{countryConfig.currency} Value</p>
                 </div>
-                <p className="text-xl font-bold text-info-700">
+                <p className="text-xl font-bold text-white">
                   {formatLocalCurrency(beansToLocal(agency?.wallet_balance || 0))}
                 </p>
               </div>
             </div>
             
-            <div className="mt-4 py-3 bg-white/10 rounded-lg space-y-2">
+            <div className="mt-4 py-3 bg-black/15 backdrop-blur-sm rounded-lg space-y-2 border border-white/10">
               <div className="flex items-center justify-center gap-2">
-                <TrendingUp className="w-4 h-4 text-slate-500" />
-                <p className="text-slate-600 text-xs font-medium">
+                <TrendingUp className="w-4 h-4 text-white/80" />
+                <p className="text-white/85 text-xs font-semibold tracking-wide">
                   Exchange Rates (Set by Admin)
                 </p>
               </div>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center px-3">
-                  <p className="text-warning-700 font-bold">{formatNumber(coinsToUsdRate)}</p>
-                  <p className="text-slate-500 text-xs">Beans = $1 USD</p>
+                  <p className="text-amber-200 font-bold">{formatNumber(coinsToUsdRate)}</p>
+                  <p className="text-white/70 text-xs">Beans = $1 USD</p>
                 </div>
-                <div className="h-8 w-px bg-white/20" />
+                <div className="h-8 w-px bg-white/25" />
                 <div className="text-center px-3">
-                  <p className="text-info-700 font-bold">{countryConfig.currencySymbol}{formatNumber(exchangeRates[countryConfig.currency] || 1)}</p>
-                  <p className="text-slate-500 text-xs">= $1 USD</p>
+                  <p className="text-sky-200 font-bold">{countryConfig.currencySymbol}{formatNumber(exchangeRates[countryConfig.currency] || 1)}</p>
+                  <p className="text-white/70 text-xs">= $1 USD</p>
                 </div>
               </div>
             </div>
