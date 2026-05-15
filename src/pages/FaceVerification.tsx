@@ -1285,8 +1285,9 @@ const FaceVerification = () => {
     setVerificationRecording(false);
     setCurrentInstruction(0);
     currentInstructionRef.current = 0;
-    setInstructionsCompleted([false, false, false, false, false]);
-    instructionsCompletedRef.current = [false, false, false, false, false];
+    const freshCompleted = faceInstructions.map(() => false);
+    setInstructionsCompleted(freshCompleted);
+    instructionsCompletedRef.current = freshCompleted;
     setVerificationFailed(false);
     setVerificationTime(0);
     setFaceVerificationVideo(null);
@@ -2139,14 +2140,6 @@ const FaceVerification = () => {
                         case 'right':
                           headAngle = dy < -c.turnYaw ? 'ok' : 'warn';
                           headTip = headAngle === 'ok' ? 'Right angle reached' : `Turn ~${Math.round(Math.max(c.turnYaw + dy, 0) + 4)}° more right`;
-                          break;
-                        case 'up':
-                          headAngle = dp < -c.tiltPitch ? 'ok' : 'warn';
-                          headTip = headAngle === 'ok' ? 'Up tilt reached' : `Tilt up ~${Math.round(Math.max(c.tiltPitch + dp, 0) + 3)}° more`;
-                          break;
-                        case 'down':
-                          headAngle = dp > c.tiltPitch ? 'ok' : 'warn';
-                          headTip = headAngle === 'ok' ? 'Down tilt reached' : `Tilt down ~${Math.round(Math.max(c.tiltPitch - dp, 0) + 3)}° more`;
                           break;
                         default:
                           headAngle = (ady < c.centerYaw && adp < c.centerPitch) ? 'ok' : 'warn';
