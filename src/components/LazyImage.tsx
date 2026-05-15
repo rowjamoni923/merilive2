@@ -25,7 +25,7 @@ export const LazyImage = ({
   placeholder,
   wrapperClassName,
   className,
-  rootMargin = "200px",
+  rootMargin = "1200px",
   onError,
   onLoad,
   ...rest
