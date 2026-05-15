@@ -2550,10 +2550,34 @@ const Recharge = () => {
             {/* Recommend Payment Methods - Level 5 Helper Methods (Local Pay) */}
             {selectedPaymentMethod === 'local' && (
               <div className="mb-2">
-                {helperPaymentMethods.length > 0 ? (
+                {helperMethodsLoading && helperPaymentMethods.length === 0 ? (
+                  /* Skeleton loading state — professional shimmer while fetching */
+                  <div className="space-y-2" aria-busy="true" aria-live="polite">
+                    <div className="flex flex-wrap gap-1.5">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-100 bg-white"
+                        >
+                          <div className="w-5 h-5 rounded bg-gray-200 animate-pulse" />
+                          <div
+                            className="h-3 rounded bg-gray-200 animate-pulse"
+                            style={{ width: `${48 + i * 12}px` }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-center gap-2 pt-1">
+                      <RefreshCw className="w-3 h-3 text-gray-400 animate-spin" />
+                      <span className="text-[10px] font-medium text-gray-500">
+                        Loading local payment methods…
+                      </span>
+                    </div>
+                  </div>
+                ) : helperPaymentMethods.length > 0 ? (
                   <>
                     {/* Payment Method Type Selector with Helper's Uploaded Logos */}
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1.5 animate-in fade-in duration-300">
                       {Array.from(new Set(helperPaymentMethods.map(m => m.method_name.toLowerCase()))).map((methodType) => {
                         const isSelected = selectedPaymentType === methodType;
                         // 1) Try helper's own uploaded logo
@@ -2609,8 +2633,8 @@ const Recharge = () => {
                     {/* Selected method number is hidden here; it will show only after package click */}
                   </>
                 ) : (
-                  /* Loading or No helpers state */
-                  <div className="flex flex-col items-center justify-center py-6 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+                  /* Empty state - no helpers available */
+                  <div className="flex flex-col items-center justify-center py-6 bg-white rounded-2xl border-2 border-dashed border-gray-200 animate-in fade-in duration-300">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-2xl">🌍</span>
                       <span className="text-sm font-medium text-gray-600">
