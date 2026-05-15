@@ -118,9 +118,9 @@ const ShopItemCard = ({
       onClick={onPreview}
       className="relative rounded-2xl overflow-hidden cursor-pointer group"
       style={{
-        background: 'linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        boxShadow: '0 6px 22px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)',
+        background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+        border: '1px solid rgba(217,182,107,0.35)',
+        boxShadow: '0 6px 22px rgba(180,140,40,0.12), inset 0 1px 0 rgba(255,255,255,0.7)',
       }}
     >
       {/* Featured indicator */}
