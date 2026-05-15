@@ -96,6 +96,13 @@ function CampaignFloatingButton() {
   const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
   const appState = useAppState();
+  const location = useLocation();
+  // Profile page has wallet/beans cards stacked above bottom-nav — push the
+  // floating button higher so the 150% bonus pill never overlaps "MY BEANS".
+  const isProfileRoute = location.pathname.startsWith('/profile');
+  const bottomOffset = isProfileRoute
+    ? 'calc(var(--bottom-nav-height, 64px) + 240px)'
+    : 'calc(var(--bottom-nav-height, 64px) + 110px)';
 
   useEffect(() => {
     (async () => {
