@@ -934,37 +934,35 @@ const AgencyDashboard = () => {
         if (activeHostCount < 10 && daysRemaining > 0) {
           return (
             <div className="mx-3 mt-2">
-              <div className={`rounded-2xl p-3 border shadow-lg ${
+              <div className={`rounded-2xl p-3 border shadow-xl ${
                 daysRemaining <= 5 
-                  ? 'bg-gradient-to-r from-danger-50 to-danger-50 border-danger-200' 
+                  ? 'bg-gradient-to-r from-[#3d0a14] via-[#7a0f24] to-[#2e0810] border-rose-400/20' 
                   : daysRemaining <= 10 
-                    ? 'bg-gradient-to-r from-warning-50 to-warning-50 border-warning-200'
-                    : 'bg-gradient-to-r from-info-50 to-info-50 border-info-200'
+                    ? 'bg-gradient-to-r from-[#3d2a07] via-[#7a5410] to-[#2e1f05] border-amber-400/20'
+                    : 'bg-gradient-to-r from-[#0a2540] via-[#0f3a6b] to-[#081a30] border-sky-400/20'
               }`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    daysRemaining <= 5 ? 'bg-danger-100' : daysRemaining <= 10 ? 'bg-warning-100' : 'bg-info-100'
-                  }`}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-sm border border-white/10">
                     <Clock className={`w-4 h-4 ${
-                      daysRemaining <= 5 ? 'text-danger-600' : daysRemaining <= 10 ? 'text-warning-600' : 'text-info-600'
+                      daysRemaining <= 5 ? 'text-rose-200' : daysRemaining <= 10 ? 'text-amber-200' : 'text-sky-200'
                     }`} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-foreground text-xs font-bold">
+                    <p className="text-white text-xs font-bold">
                       {daysRemaining} Days Remaining
                     </p>
-                    <p className="text-muted-foreground text-[10px]">
+                    <p className="text-white/70 text-[10px]">
                       Minimum 10 active hosts required within 30 days
                     </p>
                   </div>
                   <div className={`text-lg font-black ${
-                    daysRemaining <= 5 ? 'text-danger-600' : daysRemaining <= 10 ? 'text-warning-600' : 'text-info-600'
+                    daysRemaining <= 5 ? 'text-rose-200' : daysRemaining <= 10 ? 'text-amber-200' : 'text-sky-200'
                   }`}>
                     {activeHostCount}/10
                   </div>
                 </div>
-                <Progress value={progress} className="h-2 bg-white/70" />
-                <p className="text-muted-foreground text-[9px] mt-1.5 text-center">
+                <Progress value={progress} className="h-2 bg-white/15" />
+                <p className="text-white/70 text-[9px] mt-1.5 text-center">
                   {daysRemaining <= 5 
                     ? 'Agency will be auto-deactivated if target is not met'
                     : `Add ${10 - activeHostCount} more hosts to secure your agency`
@@ -980,16 +978,16 @@ const AgencyDashboard = () => {
       {/* Pending Host Requests */}
       {pendingHosts.length > 0 && (
         <div className="mx-3 mt-2">
-          <div className="rounded-2xl bg-gradient-to-r from-warning-50 to-warning-50 border border-warning-200 p-3 shadow-lg">
+          <div className="rounded-2xl bg-gradient-to-r from-[#3d2a07] via-[#7a5410] to-[#2e1f05] border border-amber-400/20 p-3 shadow-xl">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-warning-100 rounded-full flex items-center justify-center">
-                <Bell className="w-4 h-4 text-warning-600" />
+              <div className="w-8 h-8 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10">
+                <Bell className="w-4 h-4 text-amber-200" />
               </div>
               <div>
-                <p className="font-bold text-warning-900 text-sm">
+                <p className="font-bold text-white text-sm">
                   {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
                 </p>
-                <p className="text-[10px] text-warning-700">Approve or reject host join requests</p>
+                <p className="text-[10px] text-white/70">Approve or reject host join requests</p>
               </div>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -1254,17 +1252,17 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-info-50 to-brand-50 border border-info-100 rounded-2xl p-3 cursor-pointer hover:shadow-lg transition-all active:scale-[0.98]"
+          className="bg-gradient-to-r from-[#0a2540] via-[#1a1145] to-[#0f0a2e] border border-white/10 rounded-2xl p-3 cursor-pointer hover:shadow-xl transition-all active:scale-[0.98] shadow-lg"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-info-500 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
- <FileText className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <FileText className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-foreground font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-muted-foreground text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
+              <p className="text-white/65 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-info-500" />
+            <ArrowRight className="w-4 h-4 text-sky-300" />
           </div>
         </div>
       </div>
@@ -1478,51 +1476,51 @@ const AgencyDashboard = () => {
 
             {/* Performance Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="agency-premium-card bg-gradient-to-br from-brand-50 to-info-50">
+              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e]">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center mb-2">
-                    <Gift className="w-5 h-5 text-brand-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Gift className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-brand-700">
+                  <p className="text-2xl font-bold text-white">
                     {fmtNum(performance?.total_income || 0)}
                   </p>
-                  <p className="text-sm text-brand-600">Weekly Income</p>
+                  <p className="text-sm text-white/75">Weekly Income</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-success-50 to-success-50">
+              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a3d2e] via-[#0f6b4a] to-[#0a2e22]">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-success-100 rounded-xl flex items-center justify-center mb-2">
-                    <Users className="w-5 h-5 text-success-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Users className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-success-700">
+                  <p className="text-2xl font-bold text-white">
                     {performance?.new_hosts_count || 0}
                   </p>
-                  <p className="text-sm text-success-600">New Hosts</p>
+                  <p className="text-sm text-white/75">New Hosts</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
+              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d1f0a] via-[#7a3d10] to-[#2e1707]">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center mb-2">
-                    <Clock className="w-5 h-5 text-warning-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Clock className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-warning-700">
+                  <p className="text-2xl font-bold text-white">
                     {(performance?.total_host_hours || 0).toFixed(1)}h
                   </p>
-                  <p className="text-sm text-warning-600">Live Hours</p>
+                  <p className="text-sm text-white/75">Live Hours</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
+              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d2a07] via-[#8a5a10] to-[#2e1f05]">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center mb-2">
-                    <Crown className="w-5 h-5 text-warning-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Crown className="w-5 h-5 text-amber-200" />
                   </div>
-                  <p className="text-2xl font-bold text-warning-700">
+                  <p className="text-2xl font-bold text-white">
                     {fmtNum(performance?.golden_host_income || 0)}
                   </p>
-                  <p className="text-sm text-warning-600">Golden Income</p>
+                  <p className="text-sm text-white/75">Golden Income</p>
                 </CardContent>
               </Card>
             </div>
@@ -1728,29 +1726,29 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Host Invite Link Card */}
-            <Card className="agency-premium-card bg-gradient-to-br from-info-50 to-info-50">
+            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a2540] via-[#0f3a6b] to-[#081a30]">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-info-100 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-info-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <LinkIcon className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-info-800">Host Invite Link</h3>
-                    <p className="text-xs text-info-600">Share to recruit new hosts</p>
+                    <h3 className="font-semibold text-white">Host Invite Link</h3>
+                    <p className="text-xs text-white/70">Share to recruit new hosts</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copyHostJoinLink}
                     variant="outline" 
-                    className="flex-1 border-info-300 text-info-700"
+                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
                   </Button>
                   <Button 
                     onClick={shareHostJoinLink}
- className="flex-1 bg-info-500 hover:bg-info-600 text-white"
+                    className="flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-lg"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
@@ -1770,29 +1768,29 @@ const AgencyDashboard = () => {
 
           {/* Sub-Agents Tab */}
           <TabsContent value="subagents" className="mt-4 space-y-4">
-            <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
+            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d2a07] via-[#7a5410] to-[#2e1f05]">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-warning-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <LinkIcon className="w-5 h-5 text-amber-200" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-warning-800">Referral Link</h3>
-                    <p className="text-xs text-warning-600">Share to add sub-agents</p>
+                    <h3 className="font-semibold text-white">Referral Link</h3>
+                    <p className="text-xs text-white/70">Share to add sub-agents</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copySubAgentLink}
                     variant="outline" 
-                    className="flex-1 border-warning-300 text-warning-700"
+                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
                   </Button>
                   <Button 
                     onClick={shareSubAgentLink}
- className="flex-1 bg-warning-500 hover:bg-warning-600 text-white"
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
@@ -1899,24 +1897,24 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="agency-premium-card bg-gradient-to-br from-brand-50 to-info-50">
+            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e]">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-brand-800 mb-3 flex items-center gap-2">
-                  <Award className="w-5 h-5" />
+                <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-300" />
                   Commission Structure
                 </h3>
-                <ul className="text-sm text-brand-700 space-y-2">
-                  <li className="flex items-center justify-between py-2 border-b border-brand-200">
+                <ul className="text-sm text-white/85 space-y-2">
+                  <li className="flex items-center justify-between py-2 border-b border-white/10">
                     <span>Sub-Agent Base Commission:</span>
-                    <span className="font-bold">2%</span>
+                    <span className="font-bold text-amber-300">2%</span>
                   </li>
-                  <li className="flex items-center justify-between py-2 border-b border-brand-200">
+                  <li className="flex items-center justify-between py-2 border-b border-white/10">
                     <span>Top Performer Bonus:</span>
-                    <span className="font-bold">+1%</span>
+                    <span className="font-bold text-amber-300">+1%</span>
                   </li>
                   <li className="flex items-center justify-between py-2">
                     <span>10+ Referral Bonus:</span>
-                    <span className="font-bold">+0.5%</span>
+                    <span className="font-bold text-amber-300">+0.5%</span>
                   </li>
                 </ul>
               </CardContent>
@@ -2041,26 +2039,26 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="agency-premium-card bg-gradient-to-br from-success-50 to-success-50">
+            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a3d2e] via-[#0f6b4a] to-[#0a2e22]">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-success-800 mb-3 flex items-center gap-2">
-                  <Zap className="w-5 h-5" />
+                <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-emerald-300" />
                   Compared to Last Week
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/60 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-success-600">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/10">
+                    <div className="flex items-center justify-center gap-1 text-emerald-300">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+12%</span>
                     </div>
-                    <p className="text-xs text-success-700 mt-1">Income Growth</p>
+                    <p className="text-xs text-white/75 mt-1">Income Growth</p>
                   </div>
-                  <div className="bg-white/60 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-info-600">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/10">
+                    <div className="flex items-center justify-center gap-1 text-sky-300">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+8%</span>
                     </div>
-                    <p className="text-xs text-info-700 mt-1">Host Activity</p>
+                    <p className="text-xs text-white/75 mt-1">Host Activity</p>
                   </div>
                 </div>
               </CardContent>
@@ -2088,12 +2086,12 @@ const AgencyDashboard = () => {
               </DialogHeader>
               
               <div className="space-y-4 mt-4">
-                <div className="bg-gradient-to-br from-warning-50 to-warning-50 rounded-2xl p-6 text-center border border-warning-200">
-                  <div className="w-16 h-16 mx-auto bg-warning-100 rounded-full flex items-center justify-center mb-4">
-                    <Clock className="w-8 h-8 text-warning-600" />
+                <div className="bg-gradient-to-br from-[#3d2a07] via-[#7a5410] to-[#2e1f05] rounded-2xl p-6 text-center border border-amber-400/20 shadow-xl">
+                  <div className="w-16 h-16 mx-auto bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 border border-white/10">
+                    <Clock className="w-8 h-8 text-amber-200" />
                   </div>
-                  <h3 className="font-bold text-warning-800 text-lg">Under Review</h3>
-                  <p className="text-sm text-warning-700 mt-2">
+                  <h3 className="font-bold text-white text-lg">Under Review</h3>
+                  <p className="text-sm text-white/80 mt-2">
                     Your application to become a Helper/Diamond Trader is currently under review. 
                     You will be notified once approved.
                   </p>
@@ -2148,33 +2146,33 @@ const AgencyDashboard = () => {
           
           {parentAgency && (
             <div className="space-y-4 mt-4">
-              <div className="bg-gradient-to-br from-brand-50 to-info-50 rounded-2xl p-4 border border-brand-200">
+              <div className="bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e] rounded-2xl p-4 border border-white/10 shadow-xl">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-info-600 rounded-xl flex items-center justify-center">
- <Building2 className="w-7 h-7 text-white" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Building2 className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <p className="font-bold text-lg text-brand-800">{parentAgency.name}</p>
+                    <p className="font-bold text-lg text-white">{parentAgency.name}</p>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-brand-100 text-brand-700 text-xs">
+                      <Badge className="bg-white/15 text-white border border-white/20 text-xs">
                         {parentAgency.level}
                       </Badge>
-                      <span className="text-xs text-brand-600">{parentAgency.agency_code}</span>
+                      <span className="text-xs text-white/70">{parentAgency.agency_code}</span>
                     </div>
                   </div>
                 </div>
 
                 {parentAgency.owner_profile && (
-                  <div className="bg-white rounded-xl p-3 flex items-center gap-3">
-                    <Avatar className="w-12 h-12 border-2 border-brand-200">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3 border border-white/10">
+                    <Avatar className="w-12 h-12 border-2 border-white/20">
                       <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
-                      <AvatarFallback className="bg-brand-100 text-brand-700">
+                      <AvatarFallback className="bg-white/15 text-white">
                         {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
-                      <p className="text-xs text-muted-foreground">Agency Owner</p>
+                      <p className="font-semibold text-white">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
+                      <p className="text-xs text-white/65">Agency Owner</p>
                     </div>
                   </div>
                 )}
