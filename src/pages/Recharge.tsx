@@ -654,6 +654,22 @@ const Recharge = () => {
 
       if (combinedMethodsData.length === 0) {
         console.log('[Recharge] No payment methods found for country:', userCountryCode);
+        // Breadcrumb: leave a server-side trace so admins can later run
+        // diagnose_helper_payment_visibility() to see exactly where rows dropped.
+        try {
+          await (supabase as any).rpc('log_helper_payment_visibility', {
+            _country_code: userCountryCode,
+            _stage: 'empty_combined',
+            _legacy_count: legacyNormalized.length,
+            _country_count: countryNormalized.length,
+            _global_count: globalNormalized.length,
+            _active_helper_count: 0,
+            _final_count: 0,
+            _notes: { source: 'Recharge.tsx', path: window.location.pathname },
+          });
+        } catch (logErr) {
+          console.warn('[Recharge] visibility log failed (non-fatal):', logErr);
+        }
         setHelperPaymentMethods([]);
         return;
       }
@@ -849,6 +865,25 @@ const Recharge = () => {
       console.log('[Recharge] Stable-sorted', sorted.length, 'payment methods for country:', userCountryCode, '| Breakdown:', methodBreakdown);
 
       setHelperPaymentMethods(sorted as Level5HelperPaymentMethod[]);
+
+      // Trace: methods came back from tables but were all filtered out
+      // by the helper join (inactive helper / wallet threshold / country mismatch).
+      if (sorted.length === 0) {
+        try {
+          await (supabase as any).rpc('log_helper_payment_visibility', {
+            _country_code: userCountryCode,
+            _stage: 'empty_after_helper_join',
+            _legacy_count: legacyNormalized.length,
+            _country_count: countryNormalized.length,
+            _global_count: globalNormalized.length,
+            _active_helper_count: helpersData?.length || 0,
+            _final_count: 0,
+            _notes: { source: 'Recharge.tsx', combined: combinedMethodsData.length },
+          });
+        } catch (logErr) {
+          console.warn('[Recharge] visibility log failed (non-fatal):', logErr);
+        }
+      }
     } catch (error) {
       console.error('Error fetching level 5 helper payment methods:', error);
       recordClientError({ label: "Recharge.key", message: error instanceof Error ? error.message : String(error) });
