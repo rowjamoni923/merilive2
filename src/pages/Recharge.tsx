@@ -458,7 +458,8 @@ const Recharge = () => {
       console.log('[Recharge] Skipping helper fetch - no country code yet');
       return;
     }
-    
+
+    setHelperMethodsLoading(true);
     try {
       console.log('[Recharge] Fetching AUTOMATIC helper payment methods for country:', userCountryCode);
       
