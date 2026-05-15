@@ -2097,15 +2097,15 @@ const Recharge = () => {
 
         {/* Compact Balance Display */}
         <div className="relative px-3 pt-1 pb-4">
- <div className="relative bg-white/15 backdrop-blur-xl rounded-xl p-3 border border-slate-200/20">
+  <div className="relative bg-white/15 backdrop-blur-xl rounded-xl p-3 border border-white/25">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
                   <Diamond3DIcon size={24} />
                 </div>
                 <div>
-                  <p className="text-slate-800/85 text-[10px] font-semibold uppercase tracking-wider">Your Balance</p>
-                  <span className="text-xl font-bold text-slate-800">
+                  <p className="text-white/80 text-[10px] font-semibold uppercase tracking-wider">Your Balance</p>
+                  <span className="text-xl font-bold text-white drop-shadow-sm">
                     {formatNumber(currentBalance)}
                   </span>
                 </div>
@@ -2113,8 +2113,8 @@ const Recharge = () => {
               
               {currencyRate && (
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 text-right">
-                  <p className="text-slate-800/85 text-[9px] font-semibold uppercase tracking-wider">Currency</p>
-                  <p className="text-slate-800 font-bold text-sm">
+                  <p className="text-white/80 text-[9px] font-semibold uppercase tracking-wider">Currency</p>
+                  <p className="text-white font-bold text-sm drop-shadow-sm">
                     {currencyRate.currency_symbol} {currencyRate.currency_code}
                   </p>
                 </div>
