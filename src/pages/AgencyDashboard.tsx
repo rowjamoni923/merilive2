@@ -978,16 +978,16 @@ const AgencyDashboard = () => {
       {/* Pending Host Requests */}
       {pendingHosts.length > 0 && (
         <div className="mx-3 mt-2">
-          <div className="rounded-2xl bg-gradient-to-r from-warning-50 to-warning-50 border border-warning-200 p-3 shadow-lg">
+          <div className="rounded-2xl bg-gradient-to-r from-[#3d2a07] via-[#7a5410] to-[#2e1f05] border border-amber-400/20 p-3 shadow-xl">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-warning-100 rounded-full flex items-center justify-center">
-                <Bell className="w-4 h-4 text-warning-600" />
+              <div className="w-8 h-8 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10">
+                <Bell className="w-4 h-4 text-amber-200" />
               </div>
               <div>
-                <p className="font-bold text-warning-900 text-sm">
+                <p className="font-bold text-white text-sm">
                   {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
                 </p>
-                <p className="text-[10px] text-warning-700">Approve or reject host join requests</p>
+                <p className="text-[10px] text-white/70">Approve or reject host join requests</p>
               </div>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
