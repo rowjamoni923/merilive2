@@ -56,22 +56,27 @@ export const isNativeApp = (): boolean => {
 // CAMERA PERMISSION - Native dialog, no browser
 // =====================================================
 export const requestCameraPermission = async (): Promise<boolean> => {
+  permLog('requestCamera.start', { native: isNativeApp() });
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestCamera();
+      permLog('requestCamera.result', { granted: permission.camera, all: permission });
       return permission.camera;
     } catch (error) {
+      permLog('requestCamera.error', { error: String(error) });
       console.error('Native camera permission error:', error);
       return false;
     }
   }
-  
+
   // Web fallback - uses browser's native permission dialog
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     stream.getTracks().forEach(track => track.stop());
+    permLog('requestCamera.result', { granted: true, source: 'web' });
     return true;
-  } catch {
+  } catch (e) {
+    permLog('requestCamera.result', { granted: false, source: 'web', error: String(e) });
     return false;
   }
 };
