@@ -182,6 +182,29 @@ const AdminSupportTickets = () => {
     return ((data as any)?.support_display_name?.trim() || (data as any)?.display_name || null) as string | null;
   };
 
+  const sendAdminSupportMessage = async (params: {
+    ticketId: string;
+    content: string;
+    translatedContent?: string | null;
+    originalLanguage?: string | null;
+    attachmentUrl?: string | null;
+    attachmentType?: string | null;
+    supportAdminName?: string | null;
+    markPending?: boolean;
+  }) => {
+    const { error } = await supabase.rpc("admin_send_support_message" as any, {
+      _ticket_id: params.ticketId,
+      _content: params.content,
+      _translated_content: params.translatedContent || null,
+      _original_language: params.originalLanguage || null,
+      _attachment_url: params.attachmentUrl || null,
+      _attachment_type: params.attachmentType || null,
+      _support_admin_name: params.supportAdminName || null,
+      _mark_pending: Boolean(params.markPending),
+    });
+    if (error) throw error;
+  };
+
   useEffect(() => {
     selectedTicketRef.current = selectedTicket;
     // Lookup agency for this user
