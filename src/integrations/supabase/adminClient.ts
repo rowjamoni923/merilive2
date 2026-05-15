@@ -13,7 +13,7 @@
  * The user app login/logout will NEVER affect admin panel session and vice-versa.
  */
 import { createClient } from '@supabase/supabase-js';
-import { getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
+import { clearAdminSession, getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
 import { recordAdminError } from '@/utils/adminErrorLog';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
@@ -110,6 +110,26 @@ const adminFetch: typeof fetch = (input, init) => {
     } catch { /* not json */ }
     const isRpc = url.includes('/rest/v1/rpc/');
     const path = url.replace(SUPABASE_URL, '').split('?')[0];
+    const authIssue = isRpc && [400, 401, 403].includes(resp.status) &&
+      /not authorized|unauthorized|invalid.*session|session.*expired|jwt/i.test(parsedMsg);
+
+    // Admin auth is custom x-admin-token based. If a stale/missing admin token
+    // triggers an RPC rejection, do not show noisy error toasts across the app;
+    // clear the stale session and let the admin guard route back to login.
+    if (isRpc && (!token || authIssue)) {
+      if (authIssue) {
+        clearAdminSession();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('admin-session-change'));
+          const pathName = window.location.pathname;
+          if (pathName.startsWith('/admin') && pathName !== '/admin/auth' && pathName !== '/admin/login') {
+            window.location.replace('/admin/auth');
+          }
+        }
+      }
+      return resp;
+    }
+
     recordAdminError({
       kind: isRpc ? 'rpc' : 'rest',
       label: `${method} ${path}`,
