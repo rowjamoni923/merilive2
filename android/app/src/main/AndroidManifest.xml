@@ -61,8 +61,8 @@
     <!-- Google Play Billing -->
     <uses-permission android:name="com.android.vending.BILLING" />
 
-    <!-- App Update -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- App Update — REQUEST_INSTALL_PACKAGES removed per Google Play policy rejection (May 2026).
+         Updates are delivered exclusively via Google Play Store. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <!-- Hardware Features -->
