@@ -2,6 +2,10 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
 import { getDeviceIdSync, getPersistentDeviceId } from '@/utils/persistentDeviceId';
+import {
+  recordSessionEvent,
+  setCurrentChannelName,
+} from '@/utils/sessionDebugBus';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
 const SESSION_CHECK_MIN_INTERVAL_MS = IS_NATIVE ? 20_000 : 60_000;
@@ -173,10 +177,17 @@ export const useSingleDeviceSession = (userId: string | null) => {
       if (rpcError) throw rpcError;
 
       console.log('[SingleDevice] ✅ Session registered:', sessionId.current.substring(0, 15));
+      recordSessionEvent('register', {
+        sessionId: sessionId.current,
+        userId,
+        forceNewId,
+        platform: deviceInfo.platform,
+      });
       isRegistered.current = true;
       resetErrorBackoff();
     } catch (error) {
       console.error('[SingleDevice] Failed to register session:', error);
+      recordSessionEvent('register.error', { sessionId: sessionId.current }, String((error as Error)?.message || error));
       isRegistered.current = true;
       applyErrorBackoff('register');
     }
@@ -212,17 +223,22 @@ export const useSingleDeviceSession = (userId: string | null) => {
 
       if (error) {
         console.error('[SingleDevice] Session check error:', error);
+        recordSessionEvent('check.error', { sessionId: sessionId.current }, error.message);
         applyErrorBackoff('rpc_error');
         return true;
       }
 
       if (data === true) {
+        recordSessionEvent('check.valid');
         resetErrorBackoff();
+      } else {
+        recordSessionEvent('check.invalid', { sessionId: sessionId.current, userId });
       }
 
       return data === true;
     } catch (error) {
       console.error('[SingleDevice] Session check failed:', error);
+      recordSessionEvent('check.error', { sessionId: sessionId.current }, String((error as Error)?.message || error));
       applyErrorBackoff('rpc_exception');
       return true;
     }
@@ -235,6 +251,7 @@ export const useSingleDeviceSession = (userId: string | null) => {
     isLoggingOut.current = true;
 
     console.log('[SingleDevice] 🔒 Forcing logout — another device logged in');
+    recordSessionEvent('forceLogout', { sessionId: sessionId.current, userId });
 
     try {
       // Set manual logout flag so App.tsx allows the sign-out
@@ -317,8 +334,12 @@ export const useSingleDeviceSession = (userId: string | null) => {
   useEffect(() => {
     if (!userId) return;
 
+    const channelName = `session-${userId}-${sessionId.current.slice(-8)}-${Math.random().toString(36).slice(2, 8)}`;
+    setCurrentChannelName(channelName);
+    recordSessionEvent('channel.subscribe', { channel: channelName, sessionId: sessionId.current });
+
     const channel = supabase
-      .channel(`session-${userId}-${sessionId.current.slice(-8)}-${Math.random().toString(36).slice(2, 8)}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -328,17 +349,26 @@ export const useSingleDeviceSession = (userId: string | null) => {
           filter: `id=eq.${userId}`,
         },
         (payload) => {
+          const newSessionId = (payload.new as { active_session_id?: string } | null)?.active_session_id;
+          recordSessionEvent('realtime.update', {
+            channel: channelName,
+            incomingSessionId: newSessionId,
+            mySessionId: sessionId.current,
+          });
+
           // ✅ CRITICAL: Don't react during grace period (this is the NEW device)
           if (isInGracePeriod()) {
             console.log('[SingleDevice] 🛡️ Realtime change ignored — grace period active');
+            recordSessionEvent('realtime.ignored.grace', { channel: channelName });
             return;
           }
-          
+
           // Don't react until this device has finished registering
-          if (!isRegistered.current) return;
-          
-          const newSessionId = payload.new?.active_session_id;
-          
+          if (!isRegistered.current) {
+            recordSessionEvent('realtime.ignored.unregistered', { channel: channelName });
+            return;
+          }
+
           if (newSessionId && newSessionId !== sessionId.current) {
             console.log('[SingleDevice] 🔄 Another device logged in — THIS (old) device logging out');
             forceLogout();
@@ -348,6 +378,8 @@ export const useSingleDeviceSession = (userId: string | null) => {
       .subscribe();
 
     return () => {
+      recordSessionEvent('channel.unsubscribe', { channel: channelName });
+      setCurrentChannelName(null);
       supabase.removeChannel(channel);
     };
   }, [userId, forceLogout, isInGracePeriod]);

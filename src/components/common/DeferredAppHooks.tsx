@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useSingleDeviceSession } from "@/hooks/useSingleDeviceSession";
 import { useAppResumeHandler } from "@/hooks/useAppResumeHandler";
 import { useLevelPrivilegeAutoEquip } from "@/hooks/useLevelPrivilegeAutoEquip";
+import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import { queryClient } from "@/App";
 
 /**
@@ -20,9 +21,10 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   useAppResumeHandler(appResumeUserId, queryClient);
   useLevelPrivilegeAutoEquip(singleDeviceUserId);
   
-  return null;
+  return isAdminRoute ? null : <SessionDebugOverlay userId={singleDeviceUserId} />;
 });
 
 DeferredAppHooks.displayName = 'DeferredAppHooks';
 
 export default DeferredAppHooks;
+
