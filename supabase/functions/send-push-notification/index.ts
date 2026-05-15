@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface PushNotificationRequest {
   userId?: string;
+  userIds?: string[];
   title: string;
   body: string;
   imageUrl?: string;
