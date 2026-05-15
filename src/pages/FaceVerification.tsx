@@ -2117,14 +2117,50 @@ const FaceVerification = () => {
                       }
                     }
 
-                    const items: Array<{ key: string; label: string; status: 'ok' | 'warn' | 'error'; tip: string }> = [
+                    type FixAction = { label: string; run: () => void } | null;
+                    const stepIdxOf = (id: string) => faceInstructions.findIndex(i => i.id === id);
+                    const lightingFix: FixAction = lighting === 'ok' ? null : {
+                      label: 'How to fix',
+                      run: () => toast({
+                        title: 'Improve lighting',
+                        description: 'Face a window or lamp. Avoid backlight (no bright light behind you). Remove shadows on one side of your face.',
+                      }),
+                    };
+                    const distanceFix: FixAction = distance === 'ok' ? null : {
+                      label: 'How to fix',
+                      run: () => toast({
+                        title: 'Adjust distance',
+                        description: 'Hold the phone ~30–40 cm (about an arm-bend) away. Your whole face should comfortably fit inside the oval.',
+                      }),
+                    };
+                    const alignmentFix: FixAction = alignment === 'ok' ? null : {
+                      label: 'Go to Center step',
+                      run: () => {
+                        const idx = stepIdxOf('center');
+                        if (idx >= 0) setCurrentInstruction(idx);
+                        toast({ title: 'Centering', description: 'Face the camera straight and hold still.' });
+                      },
+                    };
+                    const headFix: FixAction = headAngle === 'ok' ? null : (
+                      stepId === 'center'
+                        ? { label: 'Recalibrate baseline', run: () => { runNeutralCalibration(); } }
+                        : { label: `Go to ${stepId} step`, run: () => {
+                            const idx = stepIdxOf(stepId);
+                            if (idx >= 0) setCurrentInstruction(idx);
+                          } }
+                    );
+
+                    const items: Array<{ key: string; label: string; status: 'ok' | 'warn' | 'error'; tip: string; fix: FixAction }> = [
                       { key: 'lighting', label: 'Lighting', status: lighting,
-                        tip: lighting === 'ok' ? 'Looks bright enough' : 'Move to brighter, even light — avoid backlight' },
+                        tip: lighting === 'ok' ? 'Looks bright enough' : 'Move to brighter, even light — avoid backlight',
+                        fix: lightingFix },
                       { key: 'distance', label: 'Distance', status: distance,
-                        tip: distance === 'ok' ? 'Good framing' : 'Hold phone ~30–40 cm away, fit face in oval' },
+                        tip: distance === 'ok' ? 'Good framing' : 'Hold phone ~30–40 cm away, fit face in oval',
+                        fix: distanceFix },
                       { key: 'alignment', label: 'Alignment', status: alignment,
-                        tip: alignment === 'ok' ? 'Centered' : 'Center your face in the oval' },
-                      { key: 'head', label: 'Head angle', status: headAngle, tip: headTip },
+                        tip: alignment === 'ok' ? 'Centered' : 'Center your face in the oval',
+                        fix: alignmentFix },
+                      { key: 'head', label: 'Head angle', status: headAngle, tip: headTip, fix: headFix },
                     ];
 
                     return (
@@ -2134,11 +2170,24 @@ const FaceVerification = () => {
                                     : it.status === 'error' ? 'bg-rose-500'
                                     : 'bg-amber-500';
                           const text = it.status === 'ok' ? 'text-slate-500' : 'text-slate-800';
+                          const btnTone = it.status === 'error'
+                            ? 'border-rose-300 text-rose-700 hover:bg-rose-50'
+                            : 'border-amber-300 text-amber-700 hover:bg-amber-50';
                           return (
                             <li key={it.key} className="flex items-start gap-2 text-[11px] leading-5">
                               <span className={`mt-1 inline-block w-2 h-2 rounded-full shrink-0 ${dot}`} aria-hidden />
                               <span className={`font-semibold ${text} w-[68px] shrink-0`}>{it.label}</span>
-                              <span className={text}>{it.tip}</span>
+                              <span className={`${text} flex-1`}>{it.tip}</span>
+                              {it.fix && (
+                                <button
+                                  type="button"
+                                  onClick={it.fix.run}
+                                  className={`shrink-0 px-2 py-0.5 rounded-md border text-[10px] font-semibold leading-4 bg-white/80 ${btnTone}`}
+                                  aria-label={`Quick fix for ${it.label}: ${it.fix.label}`}
+                                >
+                                  {it.fix.label}
+                                </button>
+                              )}
                             </li>
                           );
                         })}
