@@ -2488,7 +2488,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-14 bg-transparent border-0 text-slate-900 font-semibold tracking-wide placeholder:text-slate-500 placeholder:font-normal placeholder:tracking-normal rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
