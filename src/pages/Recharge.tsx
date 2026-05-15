@@ -2083,7 +2083,7 @@ const Recharge = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-slate-800 font-bold text-lg">Diamond Store</h1>
+            <h1 className="text-white font-bold text-lg drop-shadow-sm">Diamond Store</h1>
             <Button
               variant="ghost"
               size="icon"
