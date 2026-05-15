@@ -2747,7 +2747,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-indigo-500/40 to-purple-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-indigo-400/70" /></div>
-                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="h-13 bg-transparent border-0 text-slate-900 font-semibold tracking-wide placeholder:text-slate-500 placeholder:font-normal placeholder:tracking-normal rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
