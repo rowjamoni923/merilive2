@@ -316,6 +316,8 @@ const FaceVerification = () => {
   const instructionsCompletedRef = useRef<boolean[]>([false, false, false, false, false]);
   // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
   const capturedAnglesRef = useRef<{ center?: string; left?: string; right?: string }>({});
+  const horizontalFirstTurnSignRef = useRef<number | null>(null);
+  const verticalFirstTiltSignRef = useRef<number | null>(null);
 
   const attachFacePreviewStream = useCallback((stream: MediaStream) => {
     const videoEl = faceVideoRef.current;
@@ -800,10 +802,7 @@ const FaceVerification = () => {
         faceStream.getTracks().forEach(track => track.stop());
         setFaceStream(null);
       }
-      
-      // Small delay to let the camera hardware fully release
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
+
       // getCameraStream already handles permission internally — no separate probe needed
       // This avoids the double getUserMedia issue that causes black screen on Android WebView
       const stream = await getCameraStream(false);
