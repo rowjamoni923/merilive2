@@ -111,9 +111,21 @@ export const useSingleDeviceSession = (userId: string | null) => {
   
   // ✅ LOGIN GRACE PERIOD: Prevent ANY logout for 30 seconds after fresh login
   const loginGraceUntil = useRef<number>(0);
+  // ✅ RECONNECT GRACE PERIOD: After airplane-mode / network drop, suppress
+  // any forceLogout for 15s so stale realtime replays or a half-open RPC
+  // can't kick a perfectly valid device.
+  const reconnectGraceUntil = useRef<number>(0);
+  const RECONNECT_GRACE_MS = 15_000;
 
   const isInGracePeriod = useCallback(() => {
-    return Date.now() < loginGraceUntil.current;
+    const now = Date.now();
+    return now < loginGraceUntil.current || now < reconnectGraceUntil.current;
+  }, []);
+
+  const armReconnectGrace = useCallback((reason: string) => {
+    reconnectGraceUntil.current = Date.now() + RECONNECT_GRACE_MS;
+    console.log(`[SingleDevice] 🛡️ Reconnect grace armed (${reason}) for ${RECONNECT_GRACE_MS / 1000}s`);
+    recordSessionEvent('grace.start', { reason, durationMs: RECONNECT_GRACE_MS });
   }, []);
 
   const resetErrorBackoff = useCallback(() => {
