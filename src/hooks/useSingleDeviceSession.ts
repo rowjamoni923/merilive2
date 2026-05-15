@@ -243,11 +243,18 @@ export const useSingleDeviceSession = (userId: string | null) => {
       if (data === true) {
         recordSessionEvent('check.valid');
         resetErrorBackoff();
-      } else {
-        recordSessionEvent('check.invalid', { sessionId: sessionId.current, userId });
+        return true;
       }
-
-      return data === true;
+      // ✅ Only an EXPLICIT false from the RPC means "another device won".
+      // null/undefined/anything else = treat as still valid (defensive — a
+      // half-open response after airplane-mode toggle must not log us out).
+      if (data === false) {
+        recordSessionEvent('check.invalid', { sessionId: sessionId.current, userId });
+        return false;
+      }
+      console.warn('[SingleDevice] Unexpected check_session_valid response, treating as valid:', data);
+      recordSessionEvent('check.error', { sessionId: sessionId.current }, `unexpected_response:${JSON.stringify(data)}`);
+      return true;
     } catch (error) {
       console.error('[SingleDevice] Session check failed:', error);
       recordSessionEvent('check.error', { sessionId: sessionId.current }, String((error as Error)?.message || error));
