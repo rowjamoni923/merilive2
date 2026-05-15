@@ -1475,13 +1475,13 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Performance Stats */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <Card className="overflow-hidden relative surface-indigo">
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
                     <Gift className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-xl sm:text-2xl font-bold text-white">
                     {fmtNum(performance?.total_income || 0)}
                   </p>
                   <p className="text-sm text-white/75">Weekly Income</p>
@@ -1489,11 +1489,11 @@ const AgencyDashboard = () => {
               </Card>
               
               <Card className="overflow-hidden relative surface-emerald">
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
                     <Users className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-xl sm:text-2xl font-bold text-white">
                     {performance?.new_hosts_count || 0}
                   </p>
                   <p className="text-sm text-white/75">New Hosts</p>
@@ -1501,11 +1501,11 @@ const AgencyDashboard = () => {
               </Card>
               
               <Card className="overflow-hidden relative surface-amber-warm">
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
                     <Clock className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-xl sm:text-2xl font-bold text-white">
                     {(performance?.total_host_hours || 0).toFixed(1)}h
                   </p>
                   <p className="text-sm text-white/75">Live Hours</p>
@@ -1513,11 +1513,11 @@ const AgencyDashboard = () => {
               </Card>
               
               <Card className="overflow-hidden relative surface-amber">
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
                     <Crown className="w-5 h-5 text-amber-200" />
                   </div>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-xl sm:text-2xl font-bold text-white">
                     {fmtNum(performance?.golden_host_income || 0)}
                   </p>
                   <p className="text-sm text-white/75">Golden Income</p>
@@ -2046,14 +2046,14 @@ const AgencyDashboard = () => {
                   Compared to Last Week
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/10">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center border border-white/10">
                     <div className="flex items-center justify-center gap-1 text-emerald-300">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+12%</span>
                     </div>
                     <p className="text-xs text-white/75 mt-1">Income Growth</p>
                   </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/10">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center border border-white/10">
                     <div className="flex items-center justify-center gap-1 text-sky-300">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+8%</span>
@@ -2086,7 +2086,7 @@ const AgencyDashboard = () => {
               </DialogHeader>
               
               <div className="space-y-4 mt-4">
-                <div className="surface-amber rounded-2xl p-6 text-center border border-amber-400/20 shadow-xl">
+                <div className="surface-amber rounded-2xl p-4 sm:p-6 text-center border border-amber-400/20 shadow-xl">
                   <div className="w-16 h-16 mx-auto bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 border border-white/10">
                     <Clock className="w-8 h-8 text-amber-200" />
                   </div>
@@ -2146,7 +2146,7 @@ const AgencyDashboard = () => {
           
           {parentAgency && (
             <div className="space-y-4 mt-4">
-              <div className="surface-indigo rounded-2xl p-4 border border-white/10 shadow-xl">
+              <div className="surface-indigo rounded-2xl p-4 sm:p-5 border border-white/10 shadow-xl">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg">
                     <Building2 className="w-7 h-7 text-white" />
