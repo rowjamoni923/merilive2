@@ -1540,7 +1540,7 @@ const Level5HelperDashboard = () => {
                             setSelectedAgencyWithdrawal(withdrawal);
                             setShowAgencyWithdrawalDialog(true);
                           }}
- className="w-full mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-slate-900 font-semibold"
+ className="w-full mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold"
                         >
                           <Send className="w-4 h-4 mr-2" />
                           Continue Processing

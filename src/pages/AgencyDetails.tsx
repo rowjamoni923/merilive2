@@ -139,7 +139,7 @@ const AgencyDetailsPage = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-brand-50 via-white to-info-50">
       {/* Header */}
-      <header className={`flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r ${getLevelColor(hostAgency.level || 'A1')} text-slate-800 safe-area-top shadow-lg`}>
+      <header className={`flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r ${getLevelColor(hostAgency.level || 'A1')} text-white safe-area-top shadow-lg`}>
         <div className="flex items-center h-14 px-4">
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-white/20 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />

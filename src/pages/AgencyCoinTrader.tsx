@@ -482,7 +482,7 @@ const AgencyCoinTrader = () => {
                 <Coins className="w-7 h-7" />
               </div>
               <div>
-                <p className="text-slate-700 text-sm">Trader Wallet</p>
+                <p className="text-white/85 text-sm">Trader Wallet</p>
                 <p className="text-3xl font-bold">
                   {((helperData?.wallet_balance ?? 0) + (agency?.diamond_balance ?? 0)).toLocaleString()}
                 </p>
