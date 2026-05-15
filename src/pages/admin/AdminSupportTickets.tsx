@@ -734,8 +734,14 @@ const AdminSupportTickets = () => {
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.recognition", message: event.error instanceof Error ? event.error.message : String(event.error) });
+      const err = String(event?.error || '');
+      console.warn('Speech recognition error:', err);
+      // Browser mic/permission errors are not RPC failures — show a friendly toast instead of admin error log
+      if (err === 'not-allowed' || err === 'service-not-allowed') {
+        toast({ title: "Microphone blocked", description: "Allow microphone access in your browser to use voice input.", variant: "destructive" });
+      } else if (err && err !== 'aborted' && err !== 'no-speech') {
+        toast({ title: "Voice input error", description: err, variant: "destructive" });
+      }
       setIsRecording(false);
     };
 
