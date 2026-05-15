@@ -1291,6 +1291,7 @@ const FaceVerification = () => {
     setVerificationTime(0);
     setFaceVerificationVideo(null);
     setFaceVerified(false);
+    setFaceManualReviewRequired(false);
     setScanningStatus('idle');
     poseHistoryRef.current = [];
     setLiveDiag(null); setCalibrating(false);
