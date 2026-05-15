@@ -142,6 +142,7 @@ const Recharge = () => {
   
   // Level 5 Helper Payment Methods State
   const [helperPaymentMethods, setHelperPaymentMethods] = useState<Level5HelperPaymentMethod[]>([]);
+  const [helperMethodsLoading, setHelperMethodsLoading] = useState(true);
   const [adminPaymentMethods, setAdminPaymentMethods] = useState<any[]>([]); // Admin-configured topup_payment_methods
   const [selectedHelperMethod, setSelectedHelperMethod] = useState<Level5HelperPaymentMethod | null>(null);
   const [showHelperPaymentModal, setShowHelperPaymentModal] = useState(false);
