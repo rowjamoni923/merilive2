@@ -243,18 +243,18 @@ const AgentRank = () => {
     >
       {/* Premium Header */}
       <div className="flex-shrink-0 safe-area-top relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-rose-50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-500/10 via-purple-600/5 to-transparent" />
         <div className="relative z-10">
           <div className="flex items-center justify-between h-12 px-4">
             <button onClick={() => navigate(-1)} className="p-2 -ml-2 active:scale-95 transition-transform">
-              <ArrowLeft className="w-5 h-5 text-slate-700" />
+              <ArrowLeft className="w-5 h-5 text-white/85" />
             </button>
-            <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <h1 className="text-lg font-bold text-white flex items-center gap-2 drop-shadow-sm">
               <Trophy className="w-5 h-5 text-yellow-400" />
               Agency Rankings
             </h1>
             <button onClick={() => setShowRules(true)} className="p-2 -mr-2 active:scale-95 transition-transform">
-              <HelpCircle className="w-5 h-5 text-slate-500" />
+              <HelpCircle className="w-5 h-5 text-white/65" />
             </button>
           </div>
 
@@ -267,7 +267,7 @@ const AgentRank = () => {
                 className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${
                   periodType === p
                     ? "bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-lg shadow-purple-500/30"
-                    : "bg-white/[0.06] text-white/70 border border-white/[0.06]"
+                    : "bg-white/[0.06] text-white/70 border border-white/10"
                 }`}
               >
                 {p === 'weekly' ? '📅 Weekly' : '📆 Monthly'}
@@ -276,7 +276,7 @@ const AgentRank = () => {
           </div>
 
           {/* Countdown & Live */}
-          <div className="flex justify-between items-center px-4 py-2 bg-white/80 border-t border-b border-white/[0.06]">
+          <div className="flex justify-between items-center px-4 py-2 bg-white/[0.04] border-t border-b border-white/[0.06] backdrop-blur-sm">
             <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5 text-amber-400" />
               <span className="text-xs font-mono text-amber-300 font-bold tracking-wider">
@@ -293,16 +293,14 @@ const AgentRank = () => {
               </div>
               <button 
                 onClick={fetchRankings} disabled={isRefreshing}
-                className="p-1.5 bg-white/[0.06] rounded-full active:scale-90 transition-all border border-white/[0.06]"
+                className="p-1.5 bg-white/[0.06] rounded-full active:scale-90 transition-all border border-white/10"
               >
-                <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 text-white/75 ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain"
         style={{ WebkitOverflowScrolling: 'touch', paddingBottom: currentUserAgency ? '80px' : 'var(--content-bottom-padding)' }}
       >
