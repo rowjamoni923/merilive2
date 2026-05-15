@@ -5442,6 +5442,48 @@ export type Database = {
         }
         Relationships: []
       }
+      helper_payment_visibility_log: {
+        Row: {
+          active_helper_count: number
+          country_code: string | null
+          country_count: number
+          final_count: number
+          global_count: number
+          id: number
+          legacy_count: number
+          notes: Json | null
+          occurred_at: string
+          stage: string
+          user_id: string | null
+        }
+        Insert: {
+          active_helper_count?: number
+          country_code?: string | null
+          country_count?: number
+          final_count?: number
+          global_count?: number
+          id?: number
+          legacy_count?: number
+          notes?: Json | null
+          occurred_at?: string
+          stage: string
+          user_id?: string | null
+        }
+        Update: {
+          active_helper_count?: number
+          country_code?: string | null
+          country_count?: number
+          final_count?: number
+          global_count?: number
+          id?: number
+          legacy_count?: number
+          notes?: Json | null
+          occurred_at?: string
+          stage?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       helper_topup_requests: {
         Row: {
           admin_notes: string | null
@@ -15658,6 +15700,10 @@ export type Database = {
             }
             Returns: Json
           }
+      diagnose_helper_payment_visibility: {
+        Args: { _country_code: string }
+        Returns: Json
+      }
       distribute_period_rewards: {
         Args: { p_category: string; p_period_type: string }
         Returns: number
@@ -16258,6 +16304,19 @@ export type Database = {
           _details?: Json
           _target_id?: string
           _target_type?: string
+        }
+        Returns: undefined
+      }
+      log_helper_payment_visibility: {
+        Args: {
+          _active_helper_count?: number
+          _country_code: string
+          _country_count?: number
+          _final_count?: number
+          _global_count?: number
+          _legacy_count?: number
+          _notes?: Json
+          _stage: string
         }
         Returns: undefined
       }
