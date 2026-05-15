@@ -1728,29 +1728,29 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Host Invite Link Card */}
-            <Card className="agency-premium-card bg-gradient-to-br from-info-50 to-info-50">
+            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a2540] via-[#0f3a6b] to-[#081a30]">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-info-100 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-info-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <LinkIcon className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-info-800">Host Invite Link</h3>
-                    <p className="text-xs text-info-600">Share to recruit new hosts</p>
+                    <h3 className="font-semibold text-white">Host Invite Link</h3>
+                    <p className="text-xs text-white/70">Share to recruit new hosts</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copyHostJoinLink}
                     variant="outline" 
-                    className="flex-1 border-info-300 text-info-700"
+                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
                   </Button>
                   <Button 
                     onClick={shareHostJoinLink}
- className="flex-1 bg-info-500 hover:bg-info-600 text-white"
+                    className="flex-1 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-lg"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
