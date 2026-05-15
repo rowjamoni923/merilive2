@@ -2063,8 +2063,19 @@ const FaceVerification = () => {
                     )}
                   </div>
 
+                  {/* Toggle for detailed troubleshooting checklist */}
+                  <button
+                    type="button"
+                    onClick={() => setTroubleshootOpen(v => !v)}
+                    className="mt-2 w-full flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 py-1 rounded-md hover:bg-slate-100/60"
+                    aria-expanded={troubleshootOpen}
+                  >
+                    {troubleshootOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    {troubleshootOpen ? 'Hide details' : 'Show troubleshooting'}
+                  </button>
+
                   {/* Step-specific live troubleshooting checklist */}
-                  {(() => {
+                  {troubleshootOpen && (() => {
                     const stepId = (faceInstructions[currentInstruction]?.id ?? 'center') as string;
                     const hint = (liveDiag.hint || '').toLowerCase();
                     const c = calibrationRef.current;
