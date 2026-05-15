@@ -2356,7 +2356,7 @@ const FaceVerification = () => {
           </Button>
           <Button
             variant="outline"
-            className="w-full h-11 rounded-xl border-cyan-300/40 bg-white/5 text-white hover:bg-white/10 text-sm font-medium leading-5"
+            className="w-full h-11 rounded-xl border-cyan-400 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 hover:text-cyan-900 text-sm font-semibold leading-5 shadow-sm"
             onClick={runNeutralCalibration}
             disabled={!cameraReady || neutralCalibrating}
           >
@@ -2373,14 +2373,14 @@ const FaceVerification = () => {
             )}
           </Button>
           {neutralCalib && neutralCalib.capturedAt > 0 && !neutralCalibrating && (
-            <p className="text-[11px] text-center text-cyan-100/80 leading-5">
+            <p className="text-[11px] text-center text-slate-700 leading-5 font-medium">
               Tuned for you · baseline {neutralCalib.baselineYaw.toFixed(1)}° / {neutralCalib.baselinePitch.toFixed(1)}° ·
               turn ±{neutralCalib.turnYaw.toFixed(0)}° · tilt ±{neutralCalib.tiltPitch.toFixed(0)}°
             </p>
           )}
           <Button
             variant="outline"
-            className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 rounded-xl"
+            className="w-full h-11 rounded-xl border-amber-400 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-900 text-sm font-semibold shadow-sm"
             onClick={stopFaceCamera}
           >
             {localizedMsg.cancel}
