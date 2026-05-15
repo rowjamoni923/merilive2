@@ -1590,18 +1590,21 @@ const AdminSupportTickets = () => {
                                 : "bg-muted/40 text-foreground rounded-2xl rounded-bl-sm border border-border/20"
                             )}>
                               {/* Image attachment */}
-                              {(msg as any).attachment_url && (msg as any).attachment_type === 'image' && (
-                                <img
-                                  src={(msg as any).attachment_url}
-                                  alt="Attachment"
-                                  className="max-w-full rounded-xl max-h-56 object-cover cursor-pointer mb-1.5 hover:opacity-90 transition-opacity shadow-sm"
-                                  onClick={() => window.open((msg as any).attachment_url, '_blank')}
-                                />
-                              )}
+                              {(msg as any).attachment_url && (msg as any).attachment_type === 'image' && (() => {
+                                const resolvedUrl = signedAttachmentUrls[msg.id] || (msg as any).attachment_url;
+                                return (
+                                  <img
+                                    src={resolvedUrl}
+                                    alt="Attachment"
+                                    className="max-w-full rounded-xl max-h-56 object-cover cursor-pointer mb-1.5 hover:opacity-90 transition-opacity shadow-sm"
+                                    onClick={() => window.open(resolvedUrl, '_blank')}
+                                  />
+                                );
+                              })()}
                               {/* Voice attachment */}
                               {(msg as any).attachment_url && (msg as any).attachment_type === 'voice' && (
                                 <div className="mb-1.5">
-                                  <audio controls src={(msg as any).attachment_url} className="w-full max-w-[220px] h-7" />
+                                  <audio controls src={signedAttachmentUrls[msg.id] || (msg as any).attachment_url} className="w-full max-w-[220px] h-7" />
                                   {(msg as any).voice_transcript && (
                                     <p className="text-[9px] mt-0.5 opacity-60 italic">📝 "{(msg as any).voice_transcript}"</p>
                                   )}
