@@ -2475,8 +2475,8 @@ const FaceVerification = () => {
                   setPhotoFile(null); setPhotoPreview(null); setUserPhotoFile(null); setUserPhotoPreview(null);
                   setUserPhotoStep(true); setVideoFile(null); setVideoPreview(null); setHostPhotos([]); setHostPhotosPreviews([]);
                   setFaceVerificationVideo(null); setFaceVerified(false); setVerificationStarted(false);
-                  setCurrentInstruction(0); setInstructionsCompleted(faceInstructions.map(() => false));
-                  setVerificationRecording(false); setVerificationTime(0); setVerificationFailed(false);
+                  setCurrentInstruction(0); setInstructionsCompleted(faceInstructions.map(() => false)); instructionsCompletedRef.current = faceInstructions.map(() => false);
+                  setVerificationRecording(false); setVerificationTime(0); setVerificationFailed(false); setFaceManualReviewRequired(false);
                   setCameraReady(false); setCurrentStep(1); setFullName(""); setAge(""); setLanguage("");
                   setRejectionReason(null); setVerificationStatus('unverified');
                 }}
