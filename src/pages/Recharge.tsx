@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { PRICE_BUTTON_CLASS } from "@/lib/priceButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useToast } from "@/hooks/use-toast";
@@ -2983,15 +2984,8 @@ const Recharge = () => {
                       {/* Price Button */}
                       <button
                         onClick={handlePurchaseClick}
-                        disabled={playStoreProcessing || stripeProcessing}
-                        className={cn(
-                          "w-full py-2.5 rounded-xl text-center font-bold text-[13px] transition-all",
-                          "bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 text-white",
-                          "border border-white/20",
-                          "shadow-[0_6px_20px_-4px_rgba(147,51,234,0.55)]",
-                          "hover:shadow-[0_8px_28px_-4px_rgba(147,51,234,0.7)] hover:brightness-110",
-                          isCardProcessing && "opacity-50 cursor-not-allowed"
-                        )}
+                        disabled={playStoreProcessing || stripeProcessing || isCardProcessing}
+                        className={PRICE_BUTTON_CLASS}
                       >
                         {isCardProcessing ? (
                           <span className="flex items-center justify-center gap-1">
