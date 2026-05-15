@@ -127,7 +127,7 @@ const ShopItemCard = ({
       {item.is_featured && (
         <div className="absolute top-2 right-2 z-10">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/40">
-            <Zap className="w-3.5 h-3.5 text-white" />
+            <Zap className="w-3.5 h-3.5 text-on-dark" />
           </div>
         </div>
       )}
@@ -136,7 +136,7 @@ const ShopItemCard = ({
       {owned && (
         <div className="absolute top-2 left-2 z-10">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/40">
-            <Check className="w-3.5 h-3.5 text-white" />
+            <Check className="w-3.5 h-3.5 text-on-dark" />
           </div>
         </div>
       )}
@@ -187,15 +187,15 @@ const ShopItemCard = ({
       {/* Item Info */}
       <div className="px-3 pb-3 space-y-2">
         {/* Name */}
-        <p className="text-slate-800 text-sm font-semibold truncate text-center">{item.name}</p>
+        <p className="text-heading text-sm font-semibold truncate text-center">{item.name}</p>
 
         {/* Price with diamond icon */}
         <div className="flex items-center justify-center gap-1.5">
           <Diamond3DIcon size={14} />
-          <span className="text-slate-800 text-xs font-bold">
+          <span className="text-heading text-xs font-bold">
             {item.price_diamonds.toLocaleString()}
             {item.duration_days && (
-              <span className="text-slate-500 font-normal">/{item.duration_days}day</span>
+              <span className="text-body font-normal">/{item.duration_days}day</span>
             )}
           </span>
         </div>
@@ -214,7 +214,7 @@ const ShopItemCard = ({
         ) : (
           <button
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
-            className="w-full py-2 rounded-full text-xs font-bold text-white transition-all active:scale-95"
+            className="w-full py-2 rounded-full text-xs font-bold text-on-dark transition-all active:scale-95"
             style={{
               background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
               boxShadow: '0 6px 18px rgba(147,51,234,0.45), inset 0 1px 0 rgba(255,255,255,0.20)',
@@ -495,12 +495,12 @@ const Shop = () => {
             size="icon"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="text-slate-700 hover:bg-amber-100/60 w-9 h-9 rounded-full"
+            className="text-heading hover:bg-amber-100/60 w-9 h-9 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
 
-          <h1 className="text-lg font-bold text-slate-800 tracking-wide">My Store</h1>
+          <h1 className="text-lg font-bold text-heading tracking-wide">My Store</h1>
 
           <div className="flex items-center gap-2">
             <div
@@ -511,7 +511,7 @@ const Shop = () => {
               }}
             >
               <Diamond3DIcon size={14} />
-              <span className="text-slate-800 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
+              <span className="text-heading text-sm font-bold">{userDiamonds.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -533,7 +533,7 @@ const Shop = () => {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`rounded-full flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-5 py-2 text-sm font-semibold transition-all duration-300 ${
-                    isActive ? 'text-white' : 'text-slate-700'
+                    isActive ? 'text-on-dark' : 'text-heading'
                   }`}
                   style={isActive ? {
                     background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
@@ -569,7 +569,7 @@ const Shop = () => {
             >
               <ShoppingBag className="w-10 h-10 text-amber-600/60" />
             </div>
-            <p className="text-slate-500 text-sm">No items in this category</p>
+            <p className="text-body text-sm">No items in this category</p>
           </div>
         ) : (
           <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3`}>
@@ -604,7 +604,7 @@ const Shop = () => {
           {selectedItem && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-slate-800 text-center text-lg font-bold">
+                <DialogTitle className="text-heading text-center text-lg font-bold">
                   {selectedItem.name}
                 </DialogTitle>
               </DialogHeader>
@@ -660,7 +660,7 @@ const Shop = () => {
                 </div>
 
                 {selectedItem.description && (
-                  <p className="text-slate-600 text-sm text-center">{selectedItem.description}</p>
+                  <p className="text-body text-sm text-center">{selectedItem.description}</p>
                 )}
 
                 {/* Info Row */}
@@ -669,7 +669,7 @@ const Shop = () => {
                     className="rounded-xl p-3 text-center"
                     style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(217,182,107,0.3)' }}
                   >
-                    <p className="text-slate-500 text-xs mb-1">Price</p>
+                    <p className="text-body text-xs mb-1">Price</p>
                     <div className="flex items-center justify-center gap-1.5">
                       <Diamond3DIcon size={16} />
                       <span className="text-amber-700 font-bold">{selectedItem.price_diamonds.toLocaleString()}</span>
@@ -679,10 +679,10 @@ const Shop = () => {
                     className="rounded-xl p-3 text-center"
                     style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(217,182,107,0.3)' }}
                   >
-                    <p className="text-slate-500 text-xs mb-1">
+                    <p className="text-body text-xs mb-1">
                       {selectedItem.duration_days ? 'Duration' : 'Min Level'}
                     </p>
-                    <p className="text-slate-800 font-bold">
+                    <p className="text-heading font-bold">
                       {selectedItem.duration_days ? `${selectedItem.duration_days} Days` : `Lv.${selectedItem.min_level}`}
                     </p>
                   </div>
@@ -707,7 +707,7 @@ const Shop = () => {
                 ) : !canAfford(selectedItem.price_diamonds) ? (
                   <button 
                     onClick={() => navigate("/recharge")}
-                    className="w-full py-3 rounded-full font-bold text-slate-800 transition-all active:scale-95"
+                    className="w-full py-3 rounded-full font-bold text-heading transition-all active:scale-95"
                     style={{
                       background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                       boxShadow: '0 4px 20px rgba(245,158,11,0.4)',
@@ -719,7 +719,7 @@ const Shop = () => {
                   <button
                     onClick={() => handlePurchase(selectedItem)}
                     disabled={purchasing}
-                    className="w-full py-3 rounded-full font-bold text-slate-800 transition-all active:scale-95 disabled:opacity-50"
+                    className="w-full py-3 rounded-full font-bold text-heading transition-all active:scale-95 disabled:opacity-50"
                     style={{
                       background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
                       boxShadow: '0 4px 25px rgba(168,85,247,0.5), inset 0 1px 0 rgba(255,255,255,0.15)',

@@ -348,7 +348,7 @@ const AgentWallet = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-success-500 to-success-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-success-500 to-success-600 text-on-dark safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -365,14 +365,14 @@ const AgentWallet = () => {
         {/* Balance Cards */}
         <div className="mx-4 mt-4 space-y-3">
         {/* Coins Balance */}
-        <div className="bg-gradient-to-br from-success-500 to-success-600 rounded-2xl p-5 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-success-500 to-success-600 rounded-2xl p-5 text-on-dark shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Wallet className="w-5 h-5" />
-            <span className="text-slate-700 text-sm">Diamond Balance</span>
+            <span className="text-heading text-sm">Diamond Balance</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold">{diamondBalance.toLocaleString()}</span>
-            <span className="text-slate-700">Diamonds</span>
+            <span className="text-heading">Diamonds</span>
           </div>
 
           {/* Action Buttons */}
@@ -386,7 +386,7 @@ const AgentWallet = () => {
             </Button>
             <Button 
               variant="outline"
-              className="border-warning-200/60 text-slate-800 bg-transparent hover:bg-white/10"
+              className="border-warning-200/60 text-heading bg-transparent hover:bg-white/10"
               onClick={() => navigate("/transfer-history")}
             >
               <History className="w-4 h-4 mr-2" />
@@ -396,16 +396,16 @@ const AgentWallet = () => {
         </div>
 
         {/* Beans/Income Balance */}
-        <div className="bg-gradient-to-br from-warning-500 to-warning-500 rounded-2xl p-5 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-warning-500 to-warning-500 rounded-2xl p-5 text-on-dark shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Gem className="w-5 h-5" />
-            <span className="text-slate-700 text-sm">Income Balance (Beans)</span>
+            <span className="text-heading text-sm">Income Balance (Beans)</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold">{beansBalance.toLocaleString()}</span>
-            <span className="text-slate-700">Beans</span>
+            <span className="text-heading">Beans</span>
           </div>
-          <p className="text-slate-600 text-xs mt-1">Commission earnings from hosts</p>
+          <p className="text-body text-xs mt-1">Commission earnings from hosts</p>
 
           <Button 
             onClick={() => setShowExchange(true)}
@@ -465,7 +465,7 @@ const AgentWallet = () => {
                       <Gem className="w-4 h-4" />
                       <span>{amount.toLocaleString()}</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">→ 🪙 {amount.toLocaleString()}</p>
+                    <p className="text-xs text-body mt-1">→ 🪙 {amount.toLocaleString()}</p>
                   </button>
                 ))}
               </div>
@@ -518,7 +518,7 @@ const AgentWallet = () => {
         </div>
         
         {transfers.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-body">
             <Send className="w-12 h-12 mx-auto mb-2 opacity-30" />
             <p>No transfers yet</p>
           </div>
@@ -536,7 +536,7 @@ const AgentWallet = () => {
                   <p className="font-medium text-sm">
                     {tx.receiver_name || "Unknown User"}
                   </p>
-                  <p className="text-xs text-gray-500">{formatDate(tx.created_at)}</p>
+                  <p className="text-xs text-body">{formatDate(tx.created_at)}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm text-warning-600">
@@ -563,7 +563,7 @@ const AgentWallet = () => {
           <div className="p-4 space-y-4 overflow-y-auto">
             {/* Current Balance */}
             <div className="bg-gray-50 rounded-xl p-3">
-              <p className="text-sm text-gray-600">Available Coins</p>
+              <p className="text-sm text-body">Available Coins</p>
               <div className="flex items-center gap-1 mt-1">
                 <span className="text-warning-500">🪙</span>
                 <span className="font-bold text-lg">{diamondBalance.toLocaleString()}</span>
@@ -602,7 +602,7 @@ const AgentWallet = () => {
             {/* Search Results */}
             {searchResults.length > 0 && (
               <div className="border rounded-xl overflow-hidden">
-                <p className="text-xs text-gray-500 px-3 py-2 bg-gray-50">Select a user:</p>
+                <p className="text-xs text-body px-3 py-2 bg-gray-50">Select a user:</p>
                 {searchResults.map((user) => (
                   <button
                     key={user.id}
@@ -622,7 +622,7 @@ const AgentWallet = () => {
                           <CheckCircle2 className="w-4 h-4 text-info-500 inline ml-1" />
                         )}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">UID: {user.app_uid || user.id.slice(0, 8)}</p>
+                      <p className="text-xs text-body truncate">UID: {user.app_uid || user.id.slice(0, 8)}</p>
                     </div>
                     {user.is_host && (
                       <Badge variant="secondary" className="text-xs">Host</Badge>
@@ -739,7 +739,7 @@ const AgentWallet = () => {
               />
               {parseInt(exchangeAmount) > 0 && (
                 <div className="flex items-center gap-2 mt-2 p-2 bg-success-50 rounded-lg">
-                  <span className="text-sm text-gray-600">You will receive:</span>
+                  <span className="text-sm text-body">You will receive:</span>
                   <span className="text-warning-500">🪙</span>
                   <span className="font-bold text-success-600">
                     {parseInt(exchangeAmount).toLocaleString()} Coins
