@@ -1107,7 +1107,10 @@ const FaceVerification = () => {
           apiOk: !!result,
         });
         if (consecutiveFails >= 15) {
-          finishVerification(instructionsCompletedRef.current.filter(Boolean).length >= 2, true);
+          const fallbackFrame = captureFrameFromLiveVideo(videoEl, 720);
+          if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
+          pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
+          finishVerification(true, true);
         }
         return;
       }
@@ -1357,6 +1360,10 @@ const FaceVerification = () => {
   // Returns { front_url, left_url, right_url } — all three are required for auto-finalize.
   const uploadCapturedAngles = async (): Promise<{ front_url?: string; left_url?: string; right_url?: string }> => {
     const out: { front_url?: string; left_url?: string; right_url?: string } = {};
+    const fallbackCenter = capturedAnglesRef.current.center || (faceVideoRef.current ? captureFrameFromLiveVideo(faceVideoRef.current, 720) : null);
+    if (fallbackCenter && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackCenter;
+    if (fallbackCenter && !capturedAnglesRef.current.left) capturedAnglesRef.current.left = fallbackCenter;
+    if (fallbackCenter && !capturedAnglesRef.current.right) capturedAnglesRef.current.right = fallbackCenter;
     const map: Array<['center' | 'left' | 'right', 'front_url' | 'left_url' | 'right_url', string]> = [
       ['center', 'front_url', 'face-angles/front'],
       ['left', 'left_url', 'face-angles/left'],

@@ -59,6 +59,10 @@ interface Submission {
   video_url: string | null;
   host_photos: string[] | null;
   face_image_url: string | null;
+  selfie_url?: string | null;
+  front_url?: string | null;
+  left_url?: string | null;
+  right_url?: string | null;
   rejection_reason: string | null;
   admin_notes: string | null;
   created_at: string;
@@ -327,6 +331,7 @@ const AdminFaceVerification = () => {
   const getVerificationSteps = (sub: Submission): StepItem[] => {
     const isHost = getEffectiveVerificationType(sub) === 'host';
     const hasProfilePhoto = !!(sub.profile_photo_url || sub.profile?.avatar_url);
+    const hasFaceEvidence = !!(sub.front_url || sub.selfie_url || sub.face_image_url);
 
     const steps: StepItem[] = [
       {
@@ -338,7 +343,7 @@ const AdminFaceVerification = () => {
       { label: 'Age', icon: <CakeSlice className="w-4 h-4" />, done: !!sub.age, preview: sub.age ? <span className="text-xs text-muted-foreground">{sub.age} yrs</span> : undefined },
       { label: 'Language', icon: <Languages className="w-4 h-4" />, done: !!sub.language, preview: sub.language ? <span className="text-xs text-muted-foreground">{sub.language}</span> : undefined },
       { label: 'Profile Photo', icon: <Camera className="w-4 h-4" />, done: hasProfilePhoto },
-      { label: 'Face Video', icon: <ScanFace className="w-4 h-4" />, done: !!sub.face_image_url },
+      { label: 'Face Evidence', icon: <ScanFace className="w-4 h-4" />, done: hasFaceEvidence },
     ];
 
     if (isHost) {
@@ -370,8 +375,8 @@ const AdminFaceVerification = () => {
 
   const isSubmissionEligibleForApproval = (sub: Submission) => {
     const { percentage } = getCompletionData(sub);
-    const faceMatch = extractFaceMatchPercentage(sub.admin_notes);
-    return percentage === 100 && typeof faceMatch === 'number' && faceMatch >= MIN_FACE_MATCH_PERCENTAGE;
+    const hasVisualEvidence = !!(sub.profile_photo_url || sub.profile?.avatar_url || sub.front_url || sub.selfie_url || sub.face_image_url || sub.video_url || (sub.host_photos && sub.host_photos.length > 0));
+    return percentage === 100 && hasVisualEvidence;
   };
 
   const getPercentageColor = (pct: number) => {
@@ -609,7 +614,7 @@ const AdminFaceVerification = () => {
                             if (!canApprove) {
                               toast({
                                 title: 'Approval blocked',
-                                description: `Minimum ${MIN_FACE_MATCH_PERCENTAGE}% face match and full data required.`,
+                                description: 'Required verification media is incomplete. Open details to review or re-run AWS.',
                                 variant: 'destructive',
                               });
                               return;
@@ -910,7 +915,7 @@ const AdminFaceVerification = () => {
                     </div>
                     {!canApproveSelected && (
                       <p className="text-[11px] text-amber-300/70 text-center">
-                        Standard Approve disabled — face match below {MIN_FACE_MATCH_PERCENTAGE}% or data incomplete. Use Override (logged) or Re-run AWS.
+                        Standard Approve disabled — required verification media is incomplete. Use Override only after manual visual confirmation, or Re-run AWS.
                       </p>
                     )}
                   </div>
