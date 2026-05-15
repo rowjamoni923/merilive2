@@ -122,6 +122,24 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Premium price-button tokens (single source of truth for monetary CTAs)
+        price: {
+          from: "hsl(var(--price-from))",
+          via: "hsl(var(--price-via))",
+          to: "hsl(var(--price-to))",
+          foreground: "hsl(var(--price-foreground))",
+          ring: "hsl(var(--price-ring))",
+          border: "hsl(var(--price-border))",
+        },
+      },
+      backgroundImage: {
+        "gradient-price": "var(--gradient-price)",
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-gold": "var(--gradient-gold)",
+      },
+      boxShadow: {
+        price: "var(--shadow-price)",
+        "price-hover": "var(--shadow-price-hover)",
       },
       borderRadius: {
         lg: "var(--radius)",
