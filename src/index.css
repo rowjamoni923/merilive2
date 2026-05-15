@@ -904,6 +904,27 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     box-shadow: var(--shadow-elevated);
   }
 
+  /* ───── Premium Surface utilities (deep dark cards) ───── */
+  .surface-indigo  { background: var(--surface-indigo);  color: #fff; box-shadow: var(--shadow-surface); border: 1px solid var(--surface-border); }
+  .surface-emerald { background: var(--surface-emerald); color: #fff; box-shadow: var(--shadow-surface); border: 1px solid var(--surface-border); }
+  .surface-amber   { background: var(--surface-amber);   color: #fff; box-shadow: var(--shadow-surface); border: 1px solid var(--surface-border); }
+  .surface-amber-warm { background: var(--surface-amber-warm); color: #fff; box-shadow: var(--shadow-surface); border: 1px solid var(--surface-border); }
+  .surface-sky     { background: var(--surface-sky);     color: #fff; box-shadow: var(--shadow-surface); border: 1px solid var(--surface-border); }
+  .surface-rose    { background: var(--surface-rose);    color: #fff; box-shadow: var(--shadow-surface); border: 1px solid var(--surface-border); }
+  .surface-parent  { background: var(--surface-parent);  color: #fff; box-shadow: var(--shadow-surface); border: 1px solid var(--surface-border); }
+
+  /* Inner tiles for premium surfaces (badges, mini-stats, icon chips) */
+  .surface-tile {
+    background: var(--surface-tile);
+    border: 1px solid var(--surface-border);
+    backdrop-filter: blur(8px);
+  }
+  .surface-tile-strong {
+    background: var(--surface-tile-strong);
+    border: 1px solid var(--surface-border);
+    backdrop-filter: blur(8px);
+  }
+
   .shadow-pink {
     box-shadow: var(--shadow-pink);
   }
