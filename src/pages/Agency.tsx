@@ -192,11 +192,11 @@ const Agency = () => {
               </div>
               <div>
                 <h2 className="text-xl font-bold">Become an Agency Owner</h2>
-                <p className="text-slate-700 text-sm">Manage hosts & earn commission</p>
+                <p className="text-white/85 text-sm">Manage hosts & earn commission</p>
               </div>
             </div>
             
-            <p className="text-slate-600 text-sm">
+            <p className="text-white/80 text-sm">
               Create your own agency or join an existing one to start earning from host commissions.
             </p>
           </div>
@@ -209,7 +209,7 @@ const Agency = () => {
         >
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-info-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/25">
-              <Building2 className="w-7 h-7 text-slate-800" />
+              <Building2 className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-lg text-gray-800">Create Agency</h3>
@@ -226,7 +226,7 @@ const Agency = () => {
         >
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-gradient-to-br from-success-500 to-success-600 rounded-2xl flex items-center justify-center shadow-lg shadow-success-500/25">
-              <UserPlus className="w-7 h-7 text-slate-800" />
+              <UserPlus className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-lg text-gray-800">Join Agency</h3>
@@ -297,7 +297,7 @@ const Agency = () => {
         <div className="bg-gradient-to-br from-success-50 to-success-50 rounded-2xl p-5 shadow-lg border border-success-200 space-y-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-success-500 to-success-600 rounded-xl flex items-center justify-center shadow-lg">
-              <BadgeDollarSign className="w-6 h-6 text-slate-800" />
+              <BadgeDollarSign className="w-6 h-6 text-white" />
             </div>
             <div>
               <h4 className="font-bold text-gray-800">Become a Payroll Helper</h4>

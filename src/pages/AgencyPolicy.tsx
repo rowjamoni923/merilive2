@@ -226,9 +226,9 @@ const AgencyPolicy = () => {
         <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 flex-shrink-0">
           <div className="flex items-center justify-between h-14 px-4">
             <button onClick={() => navigate(-1)} className="p-2 -ml-2">
-              <ArrowLeft className="w-5 h-5 text-slate-800" />
+              <ArrowLeft className="w-5 h-5 text-white" />
             </button>
-            <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <h1 className="text-lg font-bold text-white flex items-center gap-2">
               <FileText className="w-5 h-5" />
               Agency Policy
             </h1>
@@ -283,9 +283,9 @@ const AgencyPolicy = () => {
             onClick={() => navigate(-1)}
             className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-800" />
+            <ArrowLeft className="w-5 h-5 text-white" />
           </button>
-          <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <h1 className="text-lg font-bold text-white flex items-center gap-2">
             <FileText className="w-5 h-5" />
             Agency Policy
           </h1>
@@ -333,11 +333,11 @@ const AgencyPolicy = () => {
                     <DollarSign className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-slate-700 text-xs uppercase tracking-wide">Exchange Rate</p>
+                    <p className="text-white/80 text-xs uppercase tracking-wide">Exchange Rate</p>
                     <p className="text-xl font-bold">{exchangeRate.rate?.toLocaleString()} Beans = $1 USD</p>
                   </div>
                 </div>
-                <Badge className="bg-white/20 text-slate-800 border-0">
+                <Badge className="bg-white/20 text-white border-0">
                   <Zap className="w-3 h-3 mr-1" />
                   Official
                 </Badge>
@@ -370,7 +370,7 @@ const AgencyPolicy = () => {
                 <FileText className="w-3.5 h-3.5 mr-0.5" />
                 More
                 {dynamicSections.length > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[9px] bg-brand-600 text-slate-800 border-0">
+                  <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[9px] bg-brand-600 text-white border-0">
                     {dynamicSections.length}
                   </Badge>
                 )}
@@ -623,7 +623,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Important Warning */}
- <Card className="border-0 shadow-md bg-gradient-to-br from-danger-500 to-danger-600 text-slate-900">
+ <Card className="border-0 shadow-md bg-gradient-to-br from-danger-500 to-danger-600 text-white">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shrink-0">
@@ -631,7 +631,7 @@ const AgencyPolicy = () => {
                     </div>
                     <div>
                       <h3 className="font-bold mb-1">Important Warning</h3>
-                      <p className="text-sm text-slate-700">
+                      <p className="text-sm text-white/90">
                         If you use fake photos or change identity, AI will detect it and your account 
                         will be permanently blocked. All diamonds will be confiscated!
                       </p>
@@ -814,14 +814,14 @@ const AgencyPolicy = () => {
                   return (
                     <Card key={section.section_key} className="border-0 shadow-md overflow-hidden">
                       {/* Gradient Header */}
-                      <div className={`bg-gradient-to-r ${visual.gradient} p-4 text-slate-800`}>
+                      <div className={`bg-gradient-to-r ${visual.gradient} p-4 text-white`}>
                         <div className="flex items-center gap-3">
                           <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                             {visual.icon}
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-base truncate">{section.section_title}</h3>
-                            <p className="text-[11px] text-slate-700 capitalize">
+                            <p className="text-[11px] text-white/80 capitalize">
                               {section.section_key.replace(/_/g, " ")}
                             </p>
                           </div>
