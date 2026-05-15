@@ -252,6 +252,17 @@ video::-ms-media-controls {
     /* Light theme gradients */
     --gradient-primary: linear-gradient(135deg, hsl(330 85% 55%) 0%, hsl(270 70% 55%) 50%, hsl(220 80% 55%) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%) 0%, hsl(35 90% 55%) 50%, hsl(25 85% 50%) 100%);
+
+    /* Premium price-button tokens (light theme parity) */
+    --price-from: 243 75% 55%;
+    --price-via: 270 75% 55%;
+    --price-to: 292 84% 60%;
+    --price-foreground: 0 0% 100%;
+    --price-ring: 270 95% 65%;
+    --price-border: 0 0% 100%;
+    --gradient-price: linear-gradient(90deg, hsl(var(--price-from)) 0%, hsl(var(--price-via)) 50%, hsl(var(--price-to)) 100%);
+    --shadow-price: 0 6px 20px -4px hsl(var(--price-via) / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.2);
+    --shadow-price-hover: 0 10px 28px -6px hsl(var(--price-via) / 0.65), inset 0 1px 0 hsl(0 0% 100% / 0.24);
     
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
