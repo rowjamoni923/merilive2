@@ -920,10 +920,11 @@ const FaceVerification = () => {
     setVerificationRecording(true);
     setCurrentInstruction(0);
     currentInstructionRef.current = 0;
-    const freshCompleted = [false, false, false, false, false];
+    const freshCompleted = faceInstructions.map(() => false);
     setInstructionsCompleted(freshCompleted);
     instructionsCompletedRef.current = freshCompleted;
     setVerificationFailed(false);
+    setFaceManualReviewRequired(false);
     setVerificationTime(0);
     setScanningStatus('idle');
       poseHistoryRef.current = [];
@@ -968,11 +969,12 @@ const FaceVerification = () => {
       
       mediaRecorder.start();
       
-      // Overall verification window: derived from calibrated per-step window
-      // (noisy cameras get longer time). 5 steps × stepWindowSec, padded for
-      // calibration phase + capture latency. Min 45s, max 90s.
+      // Overall verification window: 3 essential liveness poses × stepWindowSec,
+      // padded for calibration/capture latency. This avoids users getting stuck
+      // on fragile up/down pitch detection while still capturing front/left/right
+      // images for Rekognition + manual admin review.
       const calib = calibrationRef.current;
-      const overallSec = Math.min(90, Math.max(45,
+      const overallSec = Math.min(75, Math.max(35,
         Math.round(calib.stepWindowSec * faceInstructions.length + 10)
       ));
       let elapsed = 0;
@@ -1014,8 +1016,6 @@ const FaceVerification = () => {
     const dp = pose.pitch - c.baselinePitch;
     if (instrId === 'left') return (horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
     if (instrId === 'right') return -(horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
-    if (instrId === 'up') return (verticalFirstTiltSignRef.current ?? -1) * dp > c.tiltPitch;
-    if (instrId === 'down') return -(verticalFirstTiltSignRef.current ?? -1) * dp > c.tiltPitch;
     return evaluatePose(instrId, pose, c);
   };
 
