@@ -2488,7 +2488,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-14 bg-transparent border-0 text-slate-900 font-semibold tracking-wide placeholder:text-slate-500 placeholder:font-normal placeholder:tracking-normal rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2739,7 +2739,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-indigo-500/40 to-purple-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Mail className="w-5 h-5 text-indigo-400/70" /></div>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" className="h-13 bg-transparent border-0 text-slate-900 font-semibold tracking-wide placeholder:text-slate-500 placeholder:font-normal placeholder:tracking-normal rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
@@ -2747,7 +2747,7 @@ const Auth = () => {
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-indigo-500/40 to-purple-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-indigo-400/70" /></div>
-                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="h-13 bg-transparent border-0 text-slate-900 font-semibold tracking-wide placeholder:text-slate-500 placeholder:font-normal placeholder:tracking-normal rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
@@ -2806,8 +2806,8 @@ const Auth = () => {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{selectedCountry.flag}</span>
-                      <span className="text-slate-800 font-semibold">{selectedCountry.code}</span>
-                      <span className="text-slate-500 text-sm">{selectedCountry.name}</span>
+                      <span className="text-slate-900 font-bold tracking-tight">{selectedCountry.code}</span>
+                      <span className="text-slate-700 text-sm font-medium">{selectedCountry.name}</span>
                     </div>
                     <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${showCountryPicker ? 'rotate-180' : ''}`} />
                   </button>
@@ -2856,9 +2856,9 @@ const Auth = () => {
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/50 via-emerald-500/50 to-green-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                   <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
- <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-slate-200">
+                    <div className="pl-4 pr-3 flex items-center gap-1.5 border-r border-slate-200">
                       <span className="text-lg">{selectedCountry.flag}</span>
-                      <span className="text-emerald-700 font-semibold text-sm">{selectedCountryCode}</span>
+                      <span className="text-emerald-800 font-bold text-sm tracking-tight">{selectedCountryCode}</span>
                     </div>
                     <Input
                       type="tel"
@@ -2868,7 +2868,7 @@ const Auth = () => {
                         setPhoneNumber(value);
                       }}
                       placeholder="1XXXXXXXXX"
-                      className="h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className="h-14 bg-transparent border-0 text-slate-900 font-semibold tracking-wide placeholder:text-slate-500 placeholder:font-normal placeholder:tracking-normal rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                       autoFocus={!showCountryPicker}
                     />
                   </div>
