@@ -187,15 +187,15 @@ const ShopItemCard = ({
       {/* Item Info */}
       <div className="px-3 pb-3 space-y-2">
         {/* Name */}
-        <p className="text-white text-sm font-semibold truncate text-center drop-shadow-sm">{item.name}</p>
+        <p className="text-slate-800 text-sm font-semibold truncate text-center">{item.name}</p>
 
         {/* Price with diamond icon */}
         <div className="flex items-center justify-center gap-1.5">
           <Diamond3DIcon size={14} />
-          <span className="text-white/90 text-xs font-bold">
+          <span className="text-slate-800 text-xs font-bold">
             {item.price_diamonds.toLocaleString()}
             {item.duration_days && (
-              <span className="text-white/55 font-normal">/{item.duration_days}day</span>
+              <span className="text-slate-500 font-normal">/{item.duration_days}day</span>
             )}
           </span>
         </div>
