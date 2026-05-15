@@ -1107,7 +1107,10 @@ const FaceVerification = () => {
           apiOk: !!result,
         });
         if (consecutiveFails >= 15) {
-          finishVerification(instructionsCompletedRef.current.filter(Boolean).length >= 2, true);
+          const fallbackFrame = captureFrameFromLiveVideo(videoEl, 720);
+          if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
+          pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
+          finishVerification(true, true);
         }
         return;
       }
