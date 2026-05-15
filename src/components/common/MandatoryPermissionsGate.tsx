@@ -29,6 +29,7 @@ import {
   openNativeAppPermissionSettings,
   canRequestAgain,
 } from '@/utils/nativePermissions';
+import { permLog } from '@/utils/permissionDebugLog';
 
 const REQUIRED_KEYS = ['camera', 'microphone', 'notifications'] as const;
 type Status = { camera: boolean; microphone: boolean; location: boolean; notifications: boolean };
@@ -52,16 +53,23 @@ export function MandatoryPermissionsGate() {
     if (!mounted.current) return;
     setStatus(s);
     setCanPrompt(c);
+    permLog('gate.refresh', { status: s, canPrompt: c });
     if (allRequiredGranted(s)) {
       setShow(false);
       try { localStorage.setItem('meri_permissions_granted', '1'); } catch { /* noop */ }
     } else {
       setShow(true);
+      const stillMissing = REQUIRED_KEYS.filter((k) => !s[k]);
+      const permanent = stillMissing.filter((k) => !c[k]);
+      if (permanent.length > 0) {
+        permLog('gate.permanentDenyDetected', { permanent, missing: stillMissing });
+      }
     }
   }, []);
 
   useEffect(() => {
     mounted.current = true;
+    permLog('gate.mount', { native: isNativeApp() });
     if (!isNativeApp()) return;
     refresh();
 
@@ -70,7 +78,10 @@ export function MandatoryPermissionsGate() {
       try {
         const { App } = await import('@capacitor/app');
         const sub = await App.addListener('appStateChange', (st) => {
-          if (st.isActive) refresh();
+          if (st.isActive) {
+            permLog('gate.resume');
+            refresh();
+          }
         });
         removeResume = () => sub.remove();
       } catch { /* noop */ }
@@ -84,9 +95,11 @@ export function MandatoryPermissionsGate() {
 
   const handleAllow = useCallback(async () => {
     if (busy) return;
+    permLog('gate.allowTap');
     setBusy(true);
     try {
-      await requestAllPermissions();
+      const result = await requestAllPermissions();
+      permLog('gate.allowDone', { result });
     } finally {
       await refresh();
       if (mounted.current) setBusy(false);
@@ -94,6 +107,7 @@ export function MandatoryPermissionsGate() {
   }, [busy, refresh]);
 
   const handleOpenSettings = useCallback(async () => {
+    permLog('gate.openSettings');
     await openNativeAppPermissionSettings();
   }, []);
 

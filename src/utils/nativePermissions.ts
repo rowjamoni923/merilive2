@@ -5,6 +5,7 @@
 
 import { registerPlugin } from '@capacitor/core';
 import { isNativeApp as detectNativeApp } from '@/utils/nativeUtils';
+import { permLog } from '@/utils/permissionDebugLog';
 
 interface MeriPermissionsStatus {
   camera: boolean;
@@ -30,13 +31,20 @@ const MeriPermissions = registerPlugin<MeriPermissionsPlugin>('MeriPermissions')
 
 /** Per-permission "can the system dialog still be shown?" flags. */
 export const canRequestAgain = async (): Promise<MeriPermissionsStatus> => {
+  permLog('canRequest.start', { native: isNativeApp() });
   if (!isNativeApp()) {
-    return { camera: true, microphone: true, location: true, notifications: true };
+    const fallback = { camera: true, microphone: true, location: true, notifications: true };
+    permLog('canRequest.result', { ...fallback, source: 'web-fallback' });
+    return fallback;
   }
   try {
-    return await MeriPermissions.canRequestAgain();
-  } catch {
-    return { camera: true, microphone: true, location: true, notifications: true };
+    const r = await MeriPermissions.canRequestAgain();
+    permLog('canRequest.result', { ...r, source: 'native' });
+    return r;
+  } catch (err) {
+    const fallback = { camera: true, microphone: true, location: true, notifications: true };
+    permLog('canRequest.result', { ...fallback, source: 'native-error', error: String(err) });
+    return fallback;
   }
 };
 
@@ -48,22 +56,27 @@ export const isNativeApp = (): boolean => {
 // CAMERA PERMISSION - Native dialog, no browser
 // =====================================================
 export const requestCameraPermission = async (): Promise<boolean> => {
+  permLog('requestCamera.start', { native: isNativeApp() });
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestCamera();
+      permLog('requestCamera.result', { granted: permission.camera, all: permission });
       return permission.camera;
     } catch (error) {
+      permLog('requestCamera.error', { error: String(error) });
       console.error('Native camera permission error:', error);
       return false;
     }
   }
-  
+
   // Web fallback - uses browser's native permission dialog
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     stream.getTracks().forEach(track => track.stop());
+    permLog('requestCamera.result', { granted: true, source: 'web' });
     return true;
-  } catch {
+  } catch (e) {
+    permLog('requestCamera.result', { granted: false, source: 'web', error: String(e) });
     return false;
   }
 };
@@ -72,21 +85,26 @@ export const requestCameraPermission = async (): Promise<boolean> => {
 // MICROPHONE PERMISSION - Native dialog, no browser
 // =====================================================
 export const requestMicrophonePermission = async (): Promise<boolean> => {
+  permLog('requestMic.start', { native: isNativeApp() });
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestMicrophone();
+      permLog('requestMic.result', { granted: permission.microphone, all: permission });
       return permission.microphone;
     } catch (error) {
+      permLog('requestMic.error', { error: String(error) });
       console.error('Native microphone permission error:', error);
       return false;
     }
   }
-  
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     stream.getTracks().forEach(track => track.stop());
+    permLog('requestMic.result', { granted: true, source: 'web' });
     return true;
-  } catch {
+  } catch (e) {
+    permLog('requestMic.result', { granted: false, source: 'web', error: String(e) });
     return false;
   }
 };
@@ -95,11 +113,14 @@ export const requestMicrophonePermission = async (): Promise<boolean> => {
 // LOCATION PERMISSION - Native dialog, no browser
 // =====================================================
 export const requestLocationPermission = async (): Promise<boolean> => {
+  permLog('requestLocation.start', { native: isNativeApp() });
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestLocation();
+      permLog('requestLocation.result', { granted: permission.location, all: permission });
       return permission.location;
     } catch (error) {
+      permLog('requestLocation.error', { error: String(error) });
       console.error('Native location permission error:', error);
       return false;
     }
@@ -108,8 +129,8 @@ export const requestLocationPermission = async (): Promise<boolean> => {
   // Web fallback
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
-      () => resolve(true),
-      () => resolve(false),
+      () => { permLog('requestLocation.result', { granted: true, source: 'web' }); resolve(true); },
+      (e) => { permLog('requestLocation.result', { granted: false, source: 'web', error: String(e?.message || e) }); resolve(false); },
       { timeout: 5000 }
     );
   });
@@ -119,11 +140,14 @@ export const requestLocationPermission = async (): Promise<boolean> => {
 // NOTIFICATION PERMISSION - Native dialog, no browser
 // =====================================================
 export const requestNotificationPermission = async (): Promise<boolean> => {
+  permLog('requestNotif.start', { native: isNativeApp() });
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestNotifications();
+      permLog('requestNotif.result', { granted: permission.notifications, all: permission });
       return permission.notifications;
     } catch (error) {
+      permLog('requestNotif.error', { error: String(error) });
       console.error('Native notification permission error:', error);
       return false;
     }
@@ -132,8 +156,10 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   // Web fallback
   if ('Notification' in window) {
     const result = await Notification.requestPermission();
+    permLog('requestNotif.result', { granted: result === 'granted', source: 'web', state: result });
     return result === 'granted';
   }
+  permLog('requestNotif.result', { granted: false, source: 'web', reason: 'unsupported' });
   return false;
 };
 
@@ -153,10 +179,15 @@ export const checkPermissionStatus = async (): Promise<{
     notifications: false,
   };
 
+  permLog('check.start', { native: isNativeApp() });
+
   if (isNativeApp()) {
     try {
-      return await MeriPermissions.checkAllPermissions();
+      const r = await MeriPermissions.checkAllPermissions();
+      permLog('check.result', { ...r, source: 'native' });
+      return r;
     } catch (error) {
+      permLog('check.result', { ...status, source: 'native-error', error: String(error) });
       console.error('Error checking permissions:', error);
     }
   } else {
@@ -177,6 +208,7 @@ export const checkPermissionStatus = async (): Promise<{
     } catch { /* ignore */ }
     
     status.notifications = 'Notification' in window && Notification.permission === 'granted';
+    permLog('check.result', { ...status, source: 'web' });
   }
 
   return status;
@@ -191,16 +223,19 @@ export const requestAllPermissions = async (): Promise<{
   location: boolean;
   notifications: boolean;
 }> => {
+  permLog('requestAll.start', { native: isNativeApp() });
   console.log('📱 Requesting all native permissions...');
   if (isNativeApp()) {
     try {
       const permissions = await MeriPermissions.requestAll();
+      permLog('requestAll.result', { ...permissions, source: 'native' });
       if (permissions.notifications) {
         const { PushNotifications } = await import('@capacitor/push-notifications');
         await PushNotifications.register().catch(() => undefined);
       }
       return permissions;
     } catch (error) {
+      permLog('requestAll.error', { error: String(error) });
       console.error('Native permission request-all error:', error);
     }
   }
@@ -212,12 +247,14 @@ export const requestAllPermissions = async (): Promise<{
     requestNotificationPermission(),
   ]);
 
+  permLog('requestAll.result', { camera, microphone, location, notifications, source: 'web' });
   console.log('✅ Permissions result:', { camera, microphone, location, notifications });
   
   return { camera, microphone, location, notifications };
 };
 
 export const openNativeAppPermissionSettings = async (): Promise<void> => {
+  permLog('openSettings.invoke', { native: isNativeApp() });
   if (!isNativeApp()) return;
   await MeriPermissions.openAppSettings();
 };
