@@ -119,12 +119,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { userId, title, body, imageUrl, data = {}, type = 'general', target }: PushNotificationRequest = await req.json();
+    const { userId, userIds, title, body, imageUrl, data = {}, type = 'general', target }: PushNotificationRequest = await req.json();
     const shouldPersistFallback = String(data.persist_fallback ?? 'true') !== 'false';
 
     const isBroadcast = target && ['all', 'android', 'ios'].includes(target);
+    const isMultiUser = Array.isArray(userIds) && userIds.length > 0;
     
-    console.log(`[Push] ${isBroadcast ? 'Broadcasting' : 'Sending'} notification: ${title}`);
+    console.log(`[Push] ${isBroadcast ? 'Broadcasting' : isMultiUser ? `Multi-user (${userIds!.length})` : 'Sending'} notification: ${title}`);
 
     // Build query for device tokens
     let query = supabase
@@ -132,8 +133,10 @@ const handler = async (req: Request): Promise<Response> => {
       .select("token, platform, user_id")
       .eq("is_active", true);
 
-    // Filter by user or platform
-    if (!isBroadcast && userId) {
+    // Filter by user(s) or platform
+    if (isMultiUser) {
+      query = query.in("user_id", userIds!);
+    } else if (!isBroadcast && userId) {
       query = query.eq("user_id", userId);
     } else if (target === 'android') {
       query = query.eq("platform", "android");
