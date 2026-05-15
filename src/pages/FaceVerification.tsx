@@ -953,9 +953,11 @@ const FaceVerification = () => {
         ? 'video/webm;codecs=vp9' 
         : MediaRecorder.isTypeSupported('video/webm') 
           ? 'video/webm' 
-          : 'video/mp4';
+          : '';
       
-      const mediaRecorder = new MediaRecorder(faceStream, { mimeType });
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(faceStream, { mimeType })
+        : new MediaRecorder(faceStream);
       faceRecorderRef.current = mediaRecorder;
       
       mediaRecorder.ondataavailable = (e) => {
@@ -963,7 +965,7 @@ const FaceVerification = () => {
       };
       
       mediaRecorder.onstop = () => {
-        const blob = new Blob(faceChunksRef.current, { type: mimeType });
+        const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
         setFaceVerificationVideo(blob);
       };
       
@@ -1310,6 +1312,7 @@ const FaceVerification = () => {
     setFaceVerified(false);
     setScanningStatus('idle');
     setPoseHistory([]);
+    poseHistoryRef.current = [];
     setLiveDiag(null); setCalibrating(false);
     if (poseCheckIntervalRef.current) {
       clearInterval(poseCheckIntervalRef.current);
@@ -2025,7 +2028,7 @@ const FaceVerification = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute left-3 right-3 bottom-[120px] pointer-events-auto max-h-[42%] overflow-y-auto"
+                className="absolute left-3 right-3 bottom-3 pointer-events-auto max-h-[30%] overflow-y-auto"
               >
                 <div className={`rounded-2xl backdrop-blur-xl px-3.5 py-3 border shadow-lg ${
                   liveDiag.severity === 'ok'
