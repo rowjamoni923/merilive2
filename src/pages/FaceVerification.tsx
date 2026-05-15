@@ -201,7 +201,6 @@ const FaceVerification = () => {
   const [verificationFailed, setVerificationFailed] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [scanningStatus, setScanningStatus] = useState<'idle' | 'scanning' | 'pass' | 'fail'>('idle');
-  const [poseHistory, setPoseHistory] = useState<{yaw:number,pitch:number}[]>([]);
   const poseHistoryRef = useRef<{yaw:number,pitch:number}[]>([]);
   const [failedAttempts, setFailedAttempts] = useState(0);
   // Live diagnostics — shown to the user during scanning so they understand
@@ -928,7 +927,6 @@ const FaceVerification = () => {
     setVerificationFailed(false);
     setVerificationTime(0);
     setScanningStatus('idle');
-    setPoseHistory([]);
       poseHistoryRef.current = [];
     setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
@@ -1157,7 +1155,6 @@ const FaceVerification = () => {
 
       // Track pose history for anti-spoof (photos have zero variance)
       poseHistoryRef.current = [...poseHistoryRef.current.slice(-20), { yaw: pose.yaw, pitch: pose.pitch }];
-      setPoseHistory(poseHistoryRef.current);
       
       // Check current instruction using LIVE calibration
       const calib = calibrationRef.current;
@@ -1311,7 +1308,6 @@ const FaceVerification = () => {
     setFaceVerificationVideo(null);
     setFaceVerified(false);
     setScanningStatus('idle');
-    setPoseHistory([]);
     poseHistoryRef.current = [];
     setLiveDiag(null); setCalibrating(false);
     if (poseCheckIntervalRef.current) {
