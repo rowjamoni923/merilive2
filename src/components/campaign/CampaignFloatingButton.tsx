@@ -667,8 +667,8 @@ function CampaignFloatingButton() {
                     <img
                       src={campaign.banner_image_url}
                       alt=""
-                      className="absolute left-1/2 top-1/2 block h-[116%] w-[116%] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-full object-cover"
-                      style={{ objectPosition: '50% 50%', transformOrigin: 'center center' }}
+                      className="absolute inset-0 m-auto block h-full w-full object-contain"
+                      style={{ objectPosition: 'center center', padding: '4px' }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
