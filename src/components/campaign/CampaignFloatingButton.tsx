@@ -4,6 +4,7 @@
  * Payment methods shown inline (no navigation to /recharge).
  */
 import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Wallet, Globe, Copy, Check, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
