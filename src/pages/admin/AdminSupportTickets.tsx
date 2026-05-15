@@ -92,6 +92,16 @@ const isAiSummarySupportMessage = (content?: string) =>
 
 const ADMIN_TICKETS_FETCH_LIMIT = 120;
 const ADMIN_RT_REFRESH_DEBOUNCE_MS = 280;
+const SUPPORT_ATTACHMENT_BUCKET = 'support-attachments';
+
+const extractSupportAttachmentPath = (value?: string | null) => {
+  if (!value) return null;
+  const marker = `/${SUPPORT_ATTACHMENT_BUCKET}/`;
+  const markerIndex = value.indexOf(marker);
+  if (markerIndex >= 0) return decodeURIComponent(value.slice(markerIndex + marker.length).split('?')[0]);
+  if (!/^https?:\/\//i.test(value)) return value;
+  return null;
+};
 
 const AdminSupportTickets = () => {
   const { toast } = useToast();
@@ -144,6 +154,7 @@ const AdminSupportTickets = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
+  const [signedAttachmentUrls, setSignedAttachmentUrls] = useState<Record<string, string>>({});
   // Voice-to-text
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
@@ -327,6 +338,16 @@ const AdminSupportTickets = () => {
       // ✅ Hide ALL AI-generated messages: summaries, category headers, AI conversation logs
       const msgs = (data || []).filter((m: any) => !shouldHideMessage(m.content));
       setMessages(msgs);
+
+      const signedEntries = await Promise.all(msgs
+        .filter((m: any) => m.attachment_url)
+        .map(async (m: any) => {
+          const path = extractSupportAttachmentPath(m.attachment_url);
+          if (!path) return [m.id, m.attachment_url] as const;
+          const { data: signed } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).createSignedUrl(path, 60 * 60);
+          return [m.id, signed?.signedUrl || m.attachment_url] as const;
+        }));
+      if (signedEntries.length) setSignedAttachmentUrls(Object.fromEntries(signedEntries));
 
       // Auto-translate ALL non-admin user messages to Bengali for admin view
       const untranslatedMsgs = msgs.filter(
@@ -667,11 +688,8 @@ const AdminSupportTickets = () => {
     try {
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `admin/${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from('support-attachments').upload(path, file);
+      const { error: uploadError } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).upload(path, file);
       if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from('support-attachments').getPublicUrl(path);
-      const imageUrl = urlData.publicUrl;
       const supportName = await getCurrentSupportName();
 
       const { error: msgError } = await supabase.from('support_messages').insert({
@@ -680,7 +698,7 @@ const AdminSupportTickets = () => {
         sender_type: 'admin',
         content: replyMessage.trim() || '📷 Image',
         is_read: false,
-        attachment_url: imageUrl,
+        attachment_url: path,
         attachment_type: 'image',
         support_admin_name: supportName,
       } as any);
