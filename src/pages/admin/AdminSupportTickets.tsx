@@ -449,7 +449,7 @@ const AdminSupportTickets = () => {
 
     setSending(true);
     try {
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
+      const adminSession = getAdminSession();
       
       // Translate admin reply to user's language if needed
       let translatedContent = "";
@@ -481,7 +481,7 @@ const AdminSupportTickets = () => {
       const { data: meRow } = await supabase
         .from('admin_users')
         .select('support_display_name, display_name')
-        .eq('user_id', user?.id ?? '')
+        .eq('id', adminSession?.admin_id ?? '')
         .maybeSingle();
       const supportName = ((meRow as any)?.support_display_name?.trim() || (meRow as any)?.display_name) ?? null;
 
@@ -489,7 +489,7 @@ const AdminSupportTickets = () => {
         .from('support_messages')
         .insert({
           ticket_id: selectedTicket.id,
-          sender_id: user?.id,
+          sender_id: null,
           sender_type: 'admin',
           content: replyMessage.trim(),
           is_read: false,
@@ -619,7 +619,6 @@ const AdminSupportTickets = () => {
         return;
       }
 
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const rewardParts = [];
       if (beansAmount > 0) rewardParts.push(`${beansAmount.toLocaleString()} Beans`);
       if (diamondsAmount > 0) rewardParts.push(`${diamondsAmount.toLocaleString()} Diamonds`);
@@ -629,7 +628,7 @@ const AdminSupportTickets = () => {
 
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
-        sender_id: user?.id,
+        sender_id: null,
         sender_type: 'admin',
         content: `🎁 Compensation: ${rewardParts.join(' + ')} has been adjusted.`,
         is_read: false,
@@ -680,10 +679,9 @@ const AdminSupportTickets = () => {
       const { data: urlData } = supabase.storage.from('support-attachments').getPublicUrl(path);
       const imageUrl = urlData.publicUrl;
 
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const { error: msgError } = await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
-        sender_id: user?.id,
+        sender_id: null,
         sender_type: 'admin',
         content: replyMessage.trim() || '📷 Image',
         is_read: false,
@@ -902,7 +900,6 @@ const AdminSupportTickets = () => {
       if (ticketError) throw ticketError;
 
       // Send resolution message with reward info
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const rewardParts = [];
       if (beansAmount > 0) rewardParts.push(`${beansAmount.toLocaleString()} Beans`);
       if (diamondsAmount > 0) rewardParts.push(`${diamondsAmount.toLocaleString()} Diamonds`);
@@ -916,7 +913,7 @@ const AdminSupportTickets = () => {
 
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
-        sender_id: user?.id,
+        sender_id: null,
         sender_type: 'admin',
         content: resolveContent,
         is_read: false,
