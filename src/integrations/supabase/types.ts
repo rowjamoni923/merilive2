@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_agent: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       account_lockouts: {
         Row: {
           failed_attempts: number | null
