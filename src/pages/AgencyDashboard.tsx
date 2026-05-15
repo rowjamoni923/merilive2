@@ -936,10 +936,10 @@ const AgencyDashboard = () => {
             <div className="mx-3 mt-2">
               <div className={`rounded-2xl p-3 border shadow-xl ${
                 daysRemaining <= 5 
-                  ? 'bg-gradient-to-r from-[#3d0a14] via-[#7a0f24] to-[#2e0810] border-rose-400/20' 
+                  ? 'surface-rose border-rose-400/20' 
                   : daysRemaining <= 10 
-                    ? 'bg-gradient-to-r from-[#3d2a07] via-[#7a5410] to-[#2e1f05] border-amber-400/20'
-                    : 'bg-gradient-to-r from-[#0a2540] via-[#0f3a6b] to-[#081a30] border-sky-400/20'
+                    ? 'surface-amber border-amber-400/20'
+                    : 'surface-sky border-sky-400/20'
               }`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-sm border border-white/10">
@@ -978,7 +978,7 @@ const AgencyDashboard = () => {
       {/* Pending Host Requests */}
       {pendingHosts.length > 0 && (
         <div className="mx-3 mt-2">
-          <div className="rounded-2xl bg-gradient-to-r from-[#3d2a07] via-[#7a5410] to-[#2e1f05] border border-amber-400/20 p-3 shadow-xl">
+          <div className="rounded-2xl surface-amber border border-amber-400/20 p-3 shadow-xl">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10">
                 <Bell className="w-4 h-4 text-amber-200" />
@@ -1252,7 +1252,7 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-[#0a2540] via-[#1a1145] to-[#0f0a2e] border border-white/10 rounded-2xl p-3 cursor-pointer hover:shadow-xl transition-all active:scale-[0.98] shadow-lg"
+          className="surface-parent border border-white/10 rounded-2xl p-3 cursor-pointer hover:shadow-xl transition-all active:scale-[0.98] shadow-lg"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -1476,7 +1476,7 @@ const AgencyDashboard = () => {
 
             {/* Performance Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e]">
+              <Card className="overflow-hidden relative surface-indigo">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
                     <Gift className="w-5 h-5 text-white" />
@@ -1488,7 +1488,7 @@ const AgencyDashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a3d2e] via-[#0f6b4a] to-[#0a2e22]">
+              <Card className="overflow-hidden relative surface-emerald">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
                     <Users className="w-5 h-5 text-white" />
@@ -1500,7 +1500,7 @@ const AgencyDashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d1f0a] via-[#7a3d10] to-[#2e1707]">
+              <Card className="overflow-hidden relative surface-amber-warm">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
                     <Clock className="w-5 h-5 text-white" />
@@ -1512,7 +1512,7 @@ const AgencyDashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d2a07] via-[#8a5a10] to-[#2e1f05]">
+              <Card className="overflow-hidden relative surface-amber">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
                     <Crown className="w-5 h-5 text-amber-200" />
@@ -1726,7 +1726,7 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Host Invite Link Card */}
-            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a2540] via-[#0f3a6b] to-[#081a30]">
+            <Card className="overflow-hidden relative surface-sky">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
@@ -1768,7 +1768,7 @@ const AgencyDashboard = () => {
 
           {/* Sub-Agents Tab */}
           <TabsContent value="subagents" className="mt-4 space-y-4">
-            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d2a07] via-[#7a5410] to-[#2e1f05]">
+            <Card className="overflow-hidden relative surface-amber">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
@@ -1897,7 +1897,7 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e]">
+            <Card className="overflow-hidden relative surface-indigo">
               <CardContent className="p-4">
                 <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                   <Award className="w-5 h-5 text-amber-300" />
@@ -2039,7 +2039,7 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a3d2e] via-[#0f6b4a] to-[#0a2e22]">
+            <Card className="overflow-hidden relative surface-emerald">
               <CardContent className="p-4">
                 <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-emerald-300" />
@@ -2086,7 +2086,7 @@ const AgencyDashboard = () => {
               </DialogHeader>
               
               <div className="space-y-4 mt-4">
-                <div className="bg-gradient-to-br from-[#3d2a07] via-[#7a5410] to-[#2e1f05] rounded-2xl p-6 text-center border border-amber-400/20 shadow-xl">
+                <div className="surface-amber rounded-2xl p-6 text-center border border-amber-400/20 shadow-xl">
                   <div className="w-16 h-16 mx-auto bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 border border-white/10">
                     <Clock className="w-8 h-8 text-amber-200" />
                   </div>
@@ -2146,7 +2146,7 @@ const AgencyDashboard = () => {
           
           {parentAgency && (
             <div className="space-y-4 mt-4">
-              <div className="bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e] rounded-2xl p-4 border border-white/10 shadow-xl">
+              <div className="surface-indigo rounded-2xl p-4 border border-white/10 shadow-xl">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg">
                     <Building2 className="w-7 h-7 text-white" />
