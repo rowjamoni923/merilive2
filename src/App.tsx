@@ -165,6 +165,7 @@ const PolicyDetail = lazy(() => import("./pages/PolicyDetail"));
 const GoogleLibraryOrderRules = lazy(() => import("./pages/GoogleLibraryOrderRules"));
 const About = lazy(() => import("./pages/About"));
 const PublicContact = lazy(() => import("./pages/PublicContact"));
+const SyncTest = lazy(() => import("./pages/SyncTest"));
 const HostTransferHistory = lazy(() => import("./pages/HostTransferHistory"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
