@@ -197,7 +197,7 @@ const PublicPrivacyPolicy = () => (
       </section>
 
       <section>
-        <h2 className="text-lg font-bold mb-2">9. Children's Privacy</h2>
+        <h2 className="text-lg font-bold mb-2">11. Children's Privacy</h2>
         <p>
           MeriLive is not intended for children under 18 years of age. We do not knowingly collect
           personal information from children under 18. If we discover that a child under 18 has
@@ -206,7 +206,7 @@ const PublicPrivacyPolicy = () => (
       </section>
 
       <section>
-        <h2 className="text-lg font-bold mb-2">10. Third-Party Services</h2>
+        <h2 className="text-lg font-bold mb-2">12. Third-Party Services</h2>
         <p>Our app integrates with the following third-party services:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Google Sign-In:</strong> For authentication (governed by Google's Privacy Policy)</li>
@@ -217,7 +217,7 @@ const PublicPrivacyPolicy = () => (
       </section>
 
       <section>
-        <h2 className="text-lg font-bold mb-2">11. Permissions Summary</h2>
+        <h2 className="text-lg font-bold mb-2">13. Permissions Summary</h2>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse border border-gray-300 text-xs">
             <thead>
@@ -240,7 +240,7 @@ const PublicPrivacyPolicy = () => (
       </section>
 
       <section>
-        <h2 className="text-lg font-bold mb-2">12. Changes to This Policy</h2>
+        <h2 className="text-lg font-bold mb-2">14. Changes to This Policy</h2>
         <p>
           We may update this Privacy Policy from time to time. We will notify you of any changes
           by posting the new Privacy Policy on this page and updating the "Last Updated" date.
@@ -249,7 +249,7 @@ const PublicPrivacyPolicy = () => (
       </section>
 
       <section>
-        <h2 className="text-lg font-bold mb-2">13. Contact Us</h2>
+        <h2 className="text-lg font-bold mb-2">15. Contact Us</h2>
         <p>If you have any questions about this Privacy Policy, please contact us:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Email:</strong> support@merilive.com</li>
