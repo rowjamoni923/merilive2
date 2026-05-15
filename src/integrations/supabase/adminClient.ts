@@ -108,16 +108,31 @@ const adminFetch: typeof fetch = (input, init) => {
       const j = JSON.parse(bodyText);
       parsedMsg = j.message || j.error || j.msg || bodyText;
     } catch { /* not json */ }
-    const isRpc = url.includes('/rest/v1/rpc/');
     const path = url.replace(SUPABASE_URL, '').split('?')[0];
-    const authIssue = isRpc && [400, 401, 403].includes(resp.status) &&
+    const isRpc = url.includes('/rest/v1/rpc/');
+    const isAuthStatus = [400, 401, 403].includes(resp.status);
+    const sessionExpired = isAuthStatus &&
       /not authorized|unauthorized|invalid.*session|session.*expired|jwt/i.test(parsedMsg);
+    const accessDenied = isAuthStatus &&
+      /access denied|admin only|permission denied|forbidden|insufficient/i.test(parsedMsg);
+    const missingToken = isRpc && !token && isAuthStatus;
 
-    // Admin auth is custom x-admin-token based. If a stale/missing admin token
-    // triggers an RPC rejection, do not show noisy error toasts across the app;
-    // clear the stale session and let the admin guard route back to login.
-    if (isRpc && (!token || authIssue)) {
-      if (authIssue) {
+    // Surface clear toast + log for ANY admin auth / access-denied failure.
+    if (sessionExpired || accessDenied || missingToken) {
+      recordAdminError({
+        kind: isRpc ? 'rpc' : 'rest',
+        label: `${method} ${path}`,
+        status: resp.status,
+        message: missingToken
+          ? 'No admin session token — please log in again'
+          : sessionExpired
+            ? `Admin session expired: ${String(parsedMsg).slice(0, 160)}`
+            : `Access denied: ${String(parsedMsg).slice(0, 160)}`,
+        detail: bodyText.slice(0, 1000),
+        url,
+      });
+
+      if (sessionExpired || missingToken) {
         clearAdminSession();
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('admin-session-change'));
