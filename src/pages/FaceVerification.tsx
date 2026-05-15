@@ -844,6 +844,69 @@ const FaceVerification = () => {
     }
   };
 
+  // ── Short neutral-pose calibration ──────────────────────────────────────
+  // Hold a neutral, forward-facing pose for ~3 seconds. Collected samples
+  // feed `calibrateThresholds`, the resulting baseline + adaptive thresholds
+  // are cached and used as the starting point for the next verification run,
+  // so users with off-axis cameras / glasses don't have to fight defaults.
+  const runNeutralCalibration = async () => {
+    if (!cameraReady || !faceVideoRef.current) {
+      toast({ title: 'Camera not ready', description: 'Please wait for the preview, then try again.', variant: 'destructive' });
+      return;
+    }
+    if (neutralCalibrating) return;
+    neutralAbortRef.current = false;
+    setNeutralCalibrating(true);
+    setNeutralProgress(0);
+    const TARGET = 12;          // ~3s at 250ms cadence
+    const samples: PoseSample[] = [];
+    let consecutiveNoFace = 0;
+    try {
+      while (samples.length < TARGET && !neutralAbortRef.current) {
+        const videoEl = faceVideoRef.current;
+        if (!videoEl) break;
+        const frame = captureFrameFromLiveVideo(videoEl);
+        if (frame) {
+          const res = await checkFacePose(frame);
+          if (res?.faceDetected) {
+            samples.push({ yaw: res.pose.yaw, pitch: res.pose.pitch });
+            setNeutralProgress(samples.length / TARGET);
+            consecutiveNoFace = 0;
+          } else {
+            consecutiveNoFace++;
+            if (consecutiveNoFace >= 8) {
+              throw new Error('No face detected. Center your face in the frame and retry.');
+            }
+          }
+        }
+        await new Promise(r => setTimeout(r, 250));
+      }
+      if (neutralAbortRef.current) {
+        setNeutralCalibrating(false);
+        setNeutralProgress(0);
+        return;
+      }
+      if (samples.length < 6) {
+        throw new Error('Not enough samples captured. Please try again with steady lighting.');
+      }
+      const calib = calibrateThresholds(samples);
+      calibrationRef.current = calib;
+      saveCalibration(calib);
+      setNeutralCalib(calib);
+      pushDebug({ kind: 'calib_done', calibration: { ...calib }, samples: samples.length, source: 'neutral_mode' });
+      toast({
+        title: 'Calibration saved',
+        description: `Baseline yaw ${calib.baselineYaw.toFixed(1)}°, pitch ${calib.baselinePitch.toFixed(1)}°. Thresholds tuned for your camera.`,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Calibration failed';
+      toast({ title: 'Calibration failed', description: msg, variant: 'destructive' });
+    } finally {
+      setNeutralCalibrating(false);
+      setNeutralProgress(0);
+    }
+  };
+
   // Start face verification recording with REAL liveness checking
   const startFaceVerification = async () => {
     if (!cameraReady || !faceStream) {
