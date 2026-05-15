@@ -138,7 +138,7 @@ Deno.test({ name: "admin x-admin-token unlocks every dashboard RPC", ignore: !CA
   }
 });
 
-Deno.test("missing x-admin-token is correctly rejected by guarded RPC", async () => {
+Deno.test({ name: "missing x-admin-token is correctly rejected by guarded RPC", ignore: !CAN_RUN }, async () => {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/rpc/get_admin_analytics_chart_data`,
     {
