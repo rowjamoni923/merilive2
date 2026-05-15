@@ -1398,6 +1398,7 @@ const FaceVerification = () => {
     if (hostPhotos.length !== 3) missing.push("host_photos");
     if (!faceVerificationVideo) missing.push("face_video");
     if (!faceVerified) missing.push("face_verification");
+    if (faceManualReviewRequired) missing.push("manual_face_review");
 
     return missing;
   };
@@ -1503,6 +1504,8 @@ const FaceVerification = () => {
           user_id: userId,
           verification_type: 'face',
           status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
+          admin_notes: faceManualReviewRequired ? 'Manual review required: liveness captured but AI/pose detection could not safely auto-approve.' : null,
+          ai_analysis: faceManualReviewRequired ? { manual_review_required: true, reason: 'client_pose_partial_or_antispoof_uncertain' } : null,
           face_image_url: videoUrl,
           selfie_url: angleUrls.front_url || videoUrl || 'pending://no-image',
           front_url: angleUrls.front_url ?? null,
@@ -1522,7 +1525,7 @@ const FaceVerification = () => {
       // → service_auto_finalize_face_verification handles gender swap + is_host + status='approved'.
       let autoApproved = false;
       let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
-      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+      if (!faceManualReviewRequired && submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
         if (result?.autoFinalize?.success) {
           autoApproved = true;
@@ -1535,7 +1538,7 @@ const FaceVerification = () => {
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
-        description: autoMessage,
+        description: faceManualReviewRequired ? "Your verification is in admin manual review." : autoMessage,
       });
       navigate('/profile');
       return;
