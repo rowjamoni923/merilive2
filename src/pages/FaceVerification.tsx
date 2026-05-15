@@ -67,6 +67,7 @@ import {
   calibrateThresholds,
   evaluatePose,
   type PoseCalibration,
+  type PoseSample,
 } from "@/lib/face-pose";
 
 const CALIB_STORAGE_KEY = 'face_verify_pose_calibration_v1';
