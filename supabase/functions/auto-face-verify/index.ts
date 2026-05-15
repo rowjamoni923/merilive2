@@ -672,7 +672,10 @@ serve(async (req) => {
     // ★ NO AUTO-APPROVE — All submissions stay as "pending" for manual admin review
     // We only save AI analysis notes to help admin make the decision
     const detectedGenderLabel = detectedGender === "female" ? "Female" : detectedGender === "male" ? "Male" : "Unknown";
-    const adminNotes = `AI Analysis (pending admin review): Face Match: ${faceMatchPercentage.toFixed(1)}% (min ${MIN_FACE_MATCH_PERCENTAGE}%). Gender detected: ${detectedGenderLabel} (${(gender?.Confidence || 0).toFixed(1)}%), Confidence: ${confidence.toFixed(1)}%, Age: ${ageRange?.Low}-${ageRange?.High}${warnings.length > 0 ? `, Warnings: ${warnings.join(", ")}` : ""}`;
+    const adminNotes = [
+      borderlineMatchWarning,
+      `AI Analysis (pending admin review): Face Match: ${faceMatchPercentage.toFixed(1)}% (min ${MIN_FACE_MATCH_PERCENTAGE}%). Gender detected: ${detectedGenderLabel} (${(gender?.Confidence || 0).toFixed(1)}%), Confidence: ${confidence.toFixed(1)}%, Age: ${ageRange?.Low}-${ageRange?.High}${warnings.length > 0 ? `, Warnings: ${warnings.join(", ")}` : ""}`,
+    ].filter(Boolean).join(" | ");
 
     if (submissionId) {
       // Update submission with AI analysis but keep status as "pending"
@@ -680,12 +683,13 @@ serve(async (req) => {
         .from("face_verification_submissions")
         .update({
           admin_notes: adminNotes,
+          confidence_score: faceMatchPercentage,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId);
     }
 
-    console.log(`[auto-face-verify] Submission ${submissionId} — saved AI analysis, awaiting manual admin review. Match: ${faceMatchPercentage.toFixed(1)}%`);
+    console.log(`[auto-face-verify] Submission ${submissionId} — saved AI analysis, awaiting manual admin review. Match: ${faceMatchPercentage.toFixed(1)}%${borderlineMatchWarning ? " [BORDERLINE]" : ""}`);
 
     return new Response(JSON.stringify({
       approved: false,
