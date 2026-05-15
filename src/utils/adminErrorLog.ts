@@ -19,6 +19,7 @@ export interface AdminErrorEntry {
   message: string;        // server message / parsed error
   detail?: string;        // raw body / stack snippet
   url?: string;
+  silent?: boolean;       // internal/security failures: log in memory only, no toast/console noise
 }
 
 const RING: AdminErrorEntry[] = [];
@@ -45,6 +46,8 @@ export function recordAdminError(entry: Omit<AdminErrorEntry, 'ts'>) {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(ADMIN_ERROR_LOG_EVENT));
   }
+
+  if (full.silent) return;
 
   // Console
   // eslint-disable-next-line no-console

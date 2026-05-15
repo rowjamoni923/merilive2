@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import BlogPage from "@/pages/BlogPage";
 import { Navigate, useLocation } from "react-router-dom";
 import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
-import { grantAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
+import { grantAdminAccess, revokeAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 
 /**
@@ -67,6 +67,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         const token = getAdminSessionToken();
         if (!token) {
           clearAdminSession();
+          revokeAdminAccess();
           setIsAuthorized(false);
         } else {
           setIsAuthorized(true);
@@ -101,11 +102,16 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
               setIsAuthorized(true);
             }
           } else if (mounted) {
+            clearAdminSession();
+            revokeAdminAccess();
             setIsAuthorized(false);
           }
         } catch (e) {
           console.warn('[AdminAccessGuard] token validation failed/timed out', e);
-          if (mounted && !getAdminSession()) setIsAuthorized(false);
+          if (mounted && !getAdminSession()) {
+            revokeAdminAccess();
+            setIsAuthorized(false);
+          }
         }
       })();
     }
@@ -114,7 +120,10 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     const handler = () => {
       const session = getAdminSession();
       if (session) setIsAuthorized(true);
-      else if (!isLoginRoute()) setIsAuthorized(false);
+      else {
+        revokeAdminAccess();
+        setIsAuthorized(false);
+      }
     };
     window.addEventListener('storage', handler);
     window.addEventListener('admin-session-change', handler);
