@@ -1400,11 +1400,11 @@ export default function AdminLayout() {
         adminSupabase.from('helper_upgrade_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
         adminSupabase.from('helper_topup_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
         adminSupabase.from('helper_applications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending').eq('verification_type', 'host'),
+        adminSupabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).in('status', ['pending', 'submitted', 'under_review']).eq('verification_type', 'host'),
         adminSupabase.from('agency_withdrawals').select('*', { count: 'exact', head: true }).in('status', ['pending', 'processing']),
         adminSupabase.from('helper_message_replies').select('*', { count: 'exact', head: true }).eq('sender_type', 'helper').eq('is_read', false),
         adminSupabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('category', 'live_chat').in('status', ['open', 'pending']),
-        adminSupabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending').eq('verification_type', 'face'),
+        adminSupabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).in('status', ['pending', 'submitted', 'under_review']).eq('verification_type', 'face'),
       ]);
 
       // Batch 2: Extended section counts
