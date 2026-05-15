@@ -37,68 +37,46 @@ const AdminUserHub = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-
-      const [usersRes, bannedRes, verifiedRes, activeRes, onlineRes, newRes, hostsRes, faceRes] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_blocked', true),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_face_verified', true),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('updated_at', yesterday.toISOString()),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_online', true),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_host', true),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_face_verified', true),
-      ]);
-
+      // Pkg36: single server-side aggregation RPC (bypasses 500-row REST cap, no 8-roundtrip cost)
+      const { data, error } = await supabase.rpc("admin_user_stats");
+      if (error) throw error;
+      const s = (data || {}) as Record<string, number>;
       setStats({
-        totalUsers: usersRes.count || 0,
-        verifiedUsers: verifiedRes.count || 0,
-        bannedUsers: bannedRes.count || 0,
-        activeToday: activeRes.count || 0,
-        onlineNow: onlineRes.count || 0,
-        newToday: newRes.count || 0,
-        hosts: hostsRes.count || 0,
-        faceVerified: faceRes.count || 0,
+        totalUsers: Number(s.total || 0),
+        verifiedUsers: Number(s.face_verified || 0),
+        bannedUsers: Number(s.blocked || 0),
+        activeToday: Number(s.active_today || 0),
+        onlineNow: Number(s.online || 0),
+        newToday: Number(s.today || 0),
+        hosts: Number(s.hosts || 0),
+        faceVerified: Number(s.face_verified || 0),
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchStats", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchStats", message: formatAdminError(error) });
     }
   }, []);
 
   const fetchCountryStats = useCallback(async () => {
     try {
       setIsLoadingCountries(true);
-      // Fetch users grouped by country using raw query approach
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('country_name, country_code, country_flag')
-        .not('country_name', 'is', null);
-
+      // Pkg36: server-side aggregation via admin_country_distribution RPC
+      // (replaces direct profiles SELECT that hit the 500-row admin cap on 3,656 profiles)
+      const adminId = getCurrentAdminId();
+      if (!adminId) {
+        setCountryStats([]);
+        return;
+      }
+      const { data, error } = await supabase.rpc("admin_country_distribution", { _admin_id: adminId });
       if (error) throw error;
-
-      // Group by country client-side
-      const countryMap = new Map<string, CountryData>();
-      (data || []).forEach((profile: any) => {
-        const key = profile.country_code || profile.country_name || 'Unknown';
-        if (countryMap.has(key)) {
-          countryMap.get(key)!.count++;
-        } else {
-          countryMap.set(key, {
-            country_name: profile.country_name,
-            country_code: profile.country_code,
-            country_flag: profile.country_flag,
-            count: 1,
-          });
-        }
-      });
-
-      const sorted = Array.from(countryMap.values()).sort((a, b) => b.count - a.count);
-      setCountryStats(sorted);
+      const rows = (data || []).map((r: any) => ({
+        country_name: r.country_name,
+        country_code: r.country_code,
+        country_flag: r.country_flag,
+        count: Number(r.total ?? 0),
+      })) as CountryData[];
+      setCountryStats(rows);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchCountryStats", message: formatAdminError(error)});
+      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchCountryStats", message: formatAdminError(error) });
     } finally {
       setIsLoadingCountries(false);
     }
