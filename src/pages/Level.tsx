@@ -412,18 +412,17 @@ const Level = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "rounded-3xl p-6 shadow-2xl overflow-hidden relative",
+              "rounded-3xl p-6 shadow-xl overflow-hidden relative ring-1 ring-white/10",
               levelType === 'host' 
-                ? "bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-rose-500/20" 
-                : "bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-indigo-500/20"
+                ? "bg-gradient-to-br from-[#3a0f2e] via-[#5b1452] to-[#2a0a3a]" 
+                : "bg-gradient-to-br from-[#0f1d3a] via-[#241452] to-[#0a1430]"
             )}
-            style={{
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.1)'
-            }}
           >
+            {/* Subtle sheen */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/[0.06] pointer-events-none" />
+
             {/* Animated Background */}
-            <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <motion.div 
                 animate={{ 
                   x: [0, 50, 0],
@@ -433,7 +432,7 @@ const Level = () => {
                 transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
                 className={cn(
                   "absolute w-64 h-64 rounded-full blur-3xl opacity-30",
-                  levelType === 'host' ? "bg-pink-400" : "bg-blue-400"
+                  levelType === 'host' ? "bg-fuchsia-500" : "bg-indigo-500"
                 )}
                 style={{ top: '-50%', right: '-20%' }}
               />
@@ -444,22 +443,22 @@ const Level = () => {
                 {/* Level Type Badge - Auto-determined */}
                 <div className="mb-3">
                   <span className={cn(
-                    "px-3 py-1 rounded-full text-xs font-semibold",
+                    "px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm",
                     levelType === 'host' 
-                      ? "bg-pink-500/40 text-pink-100 border border-pink-400/30" 
-                      : "bg-blue-500/40 text-blue-100 border border-blue-400/30"
+                      ? "bg-fuchsia-500/25 text-white border border-fuchsia-300/30" 
+                      : "bg-indigo-500/25 text-white border border-indigo-300/30"
                   )}>
                     {levelType === 'host' ? '👸 Host Level' : '💎 User Level'}
                   </span>
                 </div>
                 {/* Level Display */}
                 <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-lg text-slate-500 font-medium">Level</span>
+                  <span className="text-lg text-white/70 font-medium">Level</span>
                   <motion.span 
                     key={currentLevel}
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-6xl font-black bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent drop-shadow-sm"
+                    className="text-6xl font-black bg-gradient-to-br from-amber-300 via-orange-400 to-rose-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(251,146,60,0.35)]"
                   >
                     {currentLevel}
                   </motion.span>
@@ -468,28 +467,25 @@ const Level = () => {
                 {/* Progress Section */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-slate-600 font-medium flex items-center gap-1.5">
+                    <span className="text-white/85 font-medium flex items-center gap-1.5">
                       <span className={cn(
-                        "px-2 py-0.5 rounded-full text-xs",
-                        levelType === 'host' ? "bg-pink-500/40" : "bg-blue-500/40"
+                        "px-2 py-0.5 rounded-full text-xs font-semibold text-white",
+                        levelType === 'host' ? "bg-fuchsia-500/40 border border-fuchsia-300/30" : "bg-indigo-500/40 border border-indigo-300/30"
                       )}>
                         Lv{currentLevel}
                       </span>
-                      <Diamond className="w-3.5 h-3.5 text-amber-400" />
-                      <span className="text-amber-300">{formatNumber(currentDiamonds)}</span>
+                      <Diamond className="w-3.5 h-3.5 text-amber-300" />
+                      <span className="text-amber-200 font-semibold">{formatNumber(currentDiamonds)}</span>
                     </span>
-                    <span className="text-slate-600 text-xs">Lv{getNextLevelData().level}</span>
+                    <span className="text-white/65 text-xs font-medium">Lv{getNextLevelData().level}</span>
                   </div>
                   <div className="relative">
                     <Progress 
                       value={getProgress()} 
-                      className={cn(
-                        "h-3 rounded-full",
-                        levelType === 'host' ? "bg-pink-900/50" : "bg-blue-900/50"
-                      )}
+                      className="h-3 rounded-full bg-white/10"
                     />
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full pointer-events-none"
                       animate={{ x: ['-100%', '100%'] }}
                       transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
                     />
@@ -499,7 +495,7 @@ const Level = () => {
                 {/* Next Level Info */}
                 <p className={cn(
                   "text-sm font-medium",
-                  levelType === 'host' ? "text-pink-300" : "text-blue-300"
+                  levelType === 'host' ? "text-fuchsia-200" : "text-indigo-200"
                 )}>
                   {levelType === 'host' 
                     ? `Earn ${formatNumber(diamondsToNextLevel())} more to level up` 
@@ -507,8 +503,6 @@ const Level = () => {
                   }
                 </p>
               </div>
-              
-              {/* Level Icon - Dynamic from Admin Panel */}
               <motion.div 
                 className="w-28 h-28 relative"
                 animate={{ 
