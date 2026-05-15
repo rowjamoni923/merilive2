@@ -50,6 +50,23 @@ const LIVE_CHAT_KEYWORDS = ["live chat", "live agent", "real agent", "talk to ad
 // Bangladesh time: 9:00 AM - 5:00 PM (UTC+6)
 const SUPPORT_START_UTC = 3; // 9 AM BDT = 3 AM UTC
 const SUPPORT_END_UTC = 11; // 5 PM BDT = 11 AM UTC
+const SUPPORT_ATTACHMENT_BUCKET = "support-attachments";
+
+const extractSupportAttachmentPath = (value?: string | null) => {
+  if (!value) return null;
+  const marker = `/${SUPPORT_ATTACHMENT_BUCKET}/`;
+  const markerIndex = value.indexOf(marker);
+  if (markerIndex >= 0) return decodeURIComponent(value.slice(markerIndex + marker.length).split("?")[0]);
+  if (!/^https?:\/\//i.test(value)) return value;
+  return null;
+};
+
+const getSupportAttachmentDisplayUrl = async (value?: string | null) => {
+  const path = extractSupportAttachmentPath(value);
+  if (!path) return value || undefined;
+  const { data } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).createSignedUrl(path, 60 * 60);
+  return data?.signedUrl || value || undefined;
+};
 
 /** Check if live chat is currently within business hours */
 export const isLiveChatOnline = () => {
@@ -242,14 +259,14 @@ const AISupportChat = ({
             setWaitingForAdmin(false);
             // User always sees English only — translated_content is the English version
             const displayContent = newMsg.translated_content || newMsg.content;
-            setMessages(prev => [...prev, {
+            getSupportAttachmentDisplayUrl(newMsg.attachment_url).then((attachmentUrl) => setMessages(prev => [...prev, {
               id: newMsg.id,
               role: "admin",
               content: displayContent,
               timestamp: new Date(newMsg.created_at),
-              attachmentUrl: newMsg.attachment_url,
+              attachmentUrl,
               attachmentType: newMsg.attachment_type,
-            }]);
+            }]));
             supabase.from("support_messages").update({ is_read: true }).eq("id", newMsg.id).then(() => {});
           }
         }
@@ -272,17 +289,17 @@ const AISupportChat = ({
   }, [liveChatTicketId]);
 
   // Upload file to support-attachments bucket
-  const uploadFile = async (file: File, type: "image" | "voice"): Promise<string | null> => {
+  const uploadFile = async (file: File, type: "image" | "voice"): Promise<{ path: string; previewUrl: string } | null> => {
     if (!userId) return null;
     const ext = type === "voice" ? "webm" : file.name.split('.').pop() || "jpg";
     const path = `${userId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("support-attachments").upload(path, file);
+    const { error } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).upload(path, file);
     if (error) {
       console.error("Upload error:", error);
       return null;
     }
-    const { data: urlData } = supabase.storage.from("support-attachments").getPublicUrl(path);
-    return urlData.publicUrl;
+    const { data: signed } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).createSignedUrl(path, 60 * 60);
+    return { path, previewUrl: signed?.signedUrl || path };
   };
 
   // Handle image selection
@@ -300,15 +317,15 @@ const AISupportChat = ({
 
     setIsUploading(true);
     try {
-      const url = await uploadFile(file, "image");
-      if (!url) throw new Error("Upload failed");
+      const uploaded = await uploadFile(file, "image");
+      if (!uploaded) throw new Error("Upload failed");
 
       const userMessage: Message = {
         id: `user-${Date.now()}`,
         role: "user",
         content: "📷 Sent an image",
         timestamp: new Date(),
-        attachmentUrl: url,
+        attachmentUrl: uploaded.previewUrl,
         attachmentType: "image",
       };
       setMessages(prev => [...prev, userMessage]);
@@ -320,7 +337,7 @@ const AISupportChat = ({
           sender_id: userId,
           sender_type: "user",
           content: "📷 Sent an image",
-          attachment_url: url,
+          attachment_url: uploaded.path,
           attachment_type: "image",
         } as any);
       }
