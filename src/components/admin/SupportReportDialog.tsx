@@ -45,20 +45,12 @@ export function SupportReportDialog({
     if (!open) return;
     setReason("");
     (async () => {
-      const { data } = await adminSupabase.rpc("admin_get_my_admin_user" as any).single();
-      // Fallback: read direct
-      const { data: admin } = await adminSupabase
-        .from("admin_users")
-        .select("support_display_name")
-        .eq("id", (data as any)?.id ?? "")
-        .maybeSingle();
-      setMyName((admin as any)?.support_display_name ?? "");
-    })().catch(() => {
-      // Try simpler path: select all (RLS allows owner; sub-admin can't see others)
-      adminSupabase.from("admin_users").select("id, support_display_name").limit(50).then(({ data }) => {
-        const me = (data ?? []).find((r: any) => r.support_display_name !== undefined);
-        setMyName(me?.support_display_name ?? "");
-      });
+      const { data, error } = await adminSupabase.rpc("admin_get_my_admin_user" as any).maybeSingle();
+      if (error) throw error;
+      setMyName((data as any)?.support_display_name ?? "");
+    })().catch((error) => {
+      console.warn("Could not load support display name", error);
+      setMyName("");
     });
   }, [open]);
 

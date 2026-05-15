@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { 
   MessageCircle, Search, Loader2, Send, Clock, CheckCircle, 
@@ -52,7 +51,7 @@ interface SupportTicket {
 interface SupportMessage {
   id: string;
   ticket_id: string;
-  sender_id: string;
+  sender_id: string | null;
   sender_type: string;
   content: string;
   is_read: boolean;
@@ -164,6 +163,12 @@ const AdminSupportTickets = () => {
 
   const endSingleFlight = (key: string) => {
     inFlightActionsRef.current.delete(key);
+  };
+
+  const getCurrentSupportName = async () => {
+    const { data, error } = await supabase.rpc("admin_get_my_admin_user" as any).maybeSingle();
+    if (error) throw error;
+    return ((data as any)?.support_display_name?.trim() || (data as any)?.display_name || null) as string | null;
   };
 
   useEffect(() => {
@@ -449,8 +454,6 @@ const AdminSupportTickets = () => {
 
     setSending(true);
     try {
-      const adminSession = getAdminSession();
-      
       // Translate admin reply to user's language if needed
       let translatedContent = "";
       
@@ -478,12 +481,7 @@ const AdminSupportTickets = () => {
 
       // Insert reply message with translation
       // Snapshot the admin's chosen support display name for this reply
-      const { data: meRow } = await supabase
-        .from('admin_users')
-        .select('support_display_name, display_name')
-        .eq('id', adminSession?.admin_id ?? '')
-        .maybeSingle();
-      const supportName = ((meRow as any)?.support_display_name?.trim() || (meRow as any)?.display_name) ?? null;
+      const supportName = await getCurrentSupportName();
 
       const { error: msgError } = await supabase
         .from('support_messages')
@@ -508,12 +506,6 @@ const AdminSupportTickets = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', selectedTicket.id);
-
-      // Send in-app notification to user about support reply
-      const notifContent = (translatedContent || replyMessage.trim()).substring(0, 120);
-      await adminSendNotification(selectedTicket.user_id, '💬 Support Reply', `Support team replied: "${notifContent}${notifContent.length >= 120 ? '...' : ''}"`, 'support_reply').then(() => {
-        console.log("📨 Support reply notification sent");
-      }).catch(e => console.warn("Notification insert failed:", e));
 
       // Send email notification (fire-and-forget, don't block UI)
       supabase.functions.invoke("send-support-reply-email", {
@@ -626,12 +618,14 @@ const AdminSupportTickets = () => {
         rewardParts.push(`${agencyBeansMode === "deduct" ? "-" : "+"}${agencyBeansAmount.toLocaleString()} Agency Beans (${userAgency.name})`);
       }
 
+      const supportName = await getCurrentSupportName();
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
         sender_id: null,
         sender_type: 'admin',
         content: `🎁 Compensation: ${rewardParts.join(' + ')} has been adjusted.`,
         is_read: false,
+        support_admin_name: supportName,
       });
 
       // Send notification to user about compensation
@@ -678,6 +672,7 @@ const AdminSupportTickets = () => {
 
       const { data: urlData } = supabase.storage.from('support-attachments').getPublicUrl(path);
       const imageUrl = urlData.publicUrl;
+      const supportName = await getCurrentSupportName();
 
       const { error: msgError } = await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
@@ -687,6 +682,7 @@ const AdminSupportTickets = () => {
         is_read: false,
         attachment_url: imageUrl,
         attachment_type: 'image',
+        support_admin_name: supportName,
       } as any);
 
       if (msgError) throw msgError;
@@ -911,12 +907,14 @@ const AdminSupportTickets = () => {
         ? `✅ Ticket resolved.\n🎁 Reward: ${rewardParts.join(' + ')} has been adjusted.`
         : `✅ Ticket has been resolved. Thank you for contacting support.`;
 
+      const supportName = await getCurrentSupportName();
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
         sender_id: null,
         sender_type: 'admin',
         content: resolveContent,
         is_read: false,
+        support_admin_name: supportName,
       });
 
       // Send notification to user about ticket resolution + reward
