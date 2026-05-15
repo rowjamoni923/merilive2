@@ -178,8 +178,8 @@ const ShopItemCard = ({
             />
           )
         ) : (
-          <div className="w-16 h-16 rounded-2xl bg-white/[0.06] flex items-center justify-center border border-white/10">
-            <Shield className="w-10 h-10 text-white/40" strokeWidth={1.5} />
+          <div className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40">
+            <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
           </div>
         )}
       </div>
