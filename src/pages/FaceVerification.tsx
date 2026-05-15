@@ -202,6 +202,7 @@ const FaceVerification = () => {
   const [cameraReady, setCameraReady] = useState(false);
   const [scanningStatus, setScanningStatus] = useState<'idle' | 'scanning' | 'pass' | 'fail'>('idle');
   const [poseHistory, setPoseHistory] = useState<{yaw:number,pitch:number}[]>([]);
+  const poseHistoryRef = useRef<{yaw:number,pitch:number}[]>([]);
   const [failedAttempts, setFailedAttempts] = useState(0);
   // Live diagnostics — shown to the user during scanning so they understand
   // exactly why the current step is not passing yet.
