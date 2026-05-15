@@ -629,8 +629,14 @@ const App = () => {
     if (Capacitor.isNativePlatform()) {
       initWebViewPerformance();
     }
-    
+
     preloadCoreRoutes();
+
+    // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
+    import('@/utils/registerImageCacheSW').then(m => {
+      m.registerImageCacheSW().then(() => m.warmAppImageCache());
+    }).catch(() => {});
+
     // Defer SVGA prewarm to idle
     if (typeof (window as any).requestIdleCallback === 'function') {
       const idleId = (window as any).requestIdleCallback(() => prewarmSVGA(), { timeout: 3000 });
