@@ -1994,7 +1994,7 @@ const FaceVerification = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute left-3 right-3 bottom-[120px]"
+                className="absolute left-3 right-3 bottom-[120px] pointer-events-auto max-h-[42%] overflow-y-auto"
               >
                 <div className={`rounded-2xl backdrop-blur-xl px-3.5 py-3 border shadow-lg ${
                   liveDiag.severity === 'ok'
