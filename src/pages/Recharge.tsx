@@ -654,6 +654,22 @@ const Recharge = () => {
 
       if (combinedMethodsData.length === 0) {
         console.log('[Recharge] No payment methods found for country:', userCountryCode);
+        // Breadcrumb: leave a server-side trace so admins can later run
+        // diagnose_helper_payment_visibility() to see exactly where rows dropped.
+        try {
+          await (supabase as any).rpc('log_helper_payment_visibility', {
+            _country_code: userCountryCode,
+            _stage: 'empty_combined',
+            _legacy_count: legacyNormalized.length,
+            _country_count: countryNormalized.length,
+            _global_count: globalNormalized.length,
+            _active_helper_count: 0,
+            _final_count: 0,
+            _notes: { source: 'Recharge.tsx', path: window.location.pathname },
+          });
+        } catch (logErr) {
+          console.warn('[Recharge] visibility log failed (non-fatal):', logErr);
+        }
         setHelperPaymentMethods([]);
         return;
       }
