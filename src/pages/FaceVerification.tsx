@@ -217,6 +217,17 @@ const FaceVerification = () => {
   const calibrationRef = useRef<PoseCalibration>(loadCachedCalibration() ?? DEFAULT_CALIB);
   const calibSamplesRef = useRef<{ yaw: number; pitch: number }[]>([]);
   const [calibrating, setCalibrating] = useState(false);
+  // ── Short neutral-pose calibration mode ────────────────────────────────
+  // Lets the user explicitly capture their resting head position before
+  // running the multi-step liveness check. Samples ~12 frames over ~3s,
+  // computes baseline yaw/pitch + adaptive thresholds, persists to the
+  // same cache the verification flow reads on mount.
+  const [neutralCalibrating, setNeutralCalibrating] = useState(false);
+  const [neutralProgress, setNeutralProgress] = useState(0);
+  const [neutralCalib, setNeutralCalib] = useState<PoseCalibration | null>(
+    () => loadCachedCalibration()
+  );
+  const neutralAbortRef = useRef(false);
   // ── Debug log: ring buffer of every poll tick + lifecycle event. Surfaced
   // as a downloadable JSON report on failure so the user / support can see
   // exactly which threshold (yaw/pitch/eyes/no-face) blocked verification
