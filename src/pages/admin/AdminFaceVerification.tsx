@@ -385,11 +385,59 @@ const AdminFaceVerification = () => {
 
   const isVideoUrl = (url: string) => /\.(webm|mp4|mov|avi|ogg)(\?|$)/i.test(url);
 
-  const MIN_FACE_MATCH_PERCENTAGE = 90;
+  // Sync with edge function auto-face-verify (MIN_FACE_MATCH_PERCENTAGE = 76)
+  const MIN_FACE_MATCH_PERCENTAGE = 76;
   const extractFaceMatchPercentage = (notes?: string | null) => {
     if (!notes) return null;
     const match = notes.match(/Face\s*Match:\s*([0-9]+(?:\.[0-9]+)?)%/i);
     return match ? Number(match[1]) : null;
+  };
+
+  // Re-run AWS analysis (admin-only edge function)
+  const handleRerunAws = async (submissionId: string) => {
+    if (processing || actionInFlightRef.current) return;
+    actionInFlightRef.current = true;
+    setProcessing(true);
+    try {
+      const adminToken = localStorage.getItem('admin_session_token') || '';
+      const projectId = (import.meta as any).env?.VITE_SUPABASE_PROJECT_ID;
+      const url = `https://${projectId}.supabase.co/functions/v1/admin-rerun-face-verify`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ submissionId }),
+      });
+      const data = await res.json();
+      if (!res.ok || data?.error) throw new Error(data?.error || 'Re-run failed');
+      toast({
+        title: data.ok ? '✅ AWS Re-run Complete' : '⚠️ Re-run Note Saved',
+        description: typeof data.faceMatchPercentage === 'number'
+          ? `Match: ${data.faceMatchPercentage.toFixed(1)}% • Faces: ${data.facesDetected} • Gender: ${data.gender || 'N/A'}`
+          : (data.error || 'See admin notes'),
+      });
+      fetchSubmissions();
+    } catch (e: any) {
+      toast({ title: 'Re-run failed', description: e.message || 'Unknown error', variant: 'destructive' });
+    } finally {
+      setProcessing(false);
+      actionInFlightRef.current = false;
+    }
+  };
+
+  // Manual override approve — bypasses face-match threshold (admin takes responsibility)
+  const handleManualOverrideApprove = async (sub: Submission, asRole: 'host' | 'user') => {
+    const reason = prompt(
+      `⚠️ MANUAL OVERRIDE\n\nFace match is below ${MIN_FACE_MATCH_PERCENTAGE}% but you are approving anyway.\nProvide a reason (logged in admin_notes):`,
+      'Manual approval — verified visually by admin',
+    );
+    if (!reason || !reason.trim()) return;
+    await processSubmissionAction({
+      submission: sub,
+      action: 'approve',
+      approveAs: asRole,
+      setGender: asRole === 'host' ? 'female' : 'male',
+      reason: `[OVERRIDE] ${reason.trim()}`,
+    });
   };
 
   const autoApprovedSubmissions = submissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto'));
@@ -792,40 +840,108 @@ const AdminFaceVerification = () => {
 
                 {/* Action Buttons */}
                 {selectedSubmission.status === 'pending' && (
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      disabled={processing || !canApproveSelected}
-                      onClick={() => {
-                        if (!canApproveSelected) {
-                          toast({
-                            title: 'Approval blocked',
-                            description: `Minimum ${MIN_FACE_MATCH_PERCENTAGE}% face match and full data required.`,
-                            variant: 'destructive',
+                  <div className="space-y-2 pt-4">
+                    <div className="flex gap-3">
+                      <Button
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        disabled={processing || !canApproveSelected}
+                        onClick={() => {
+                          if (!canApproveSelected) return;
+                          processSubmissionAction({
+                            submission: selectedSubmission,
+                            action: 'approve',
+                            approveAs: selectedSubmission.verification_type === 'host' ? 'host' : 'user',
+                            setGender: selectedSubmission.profile?.gender === 'female' ? 'female' : selectedSubmission.verification_type === 'host' ? 'female' : 'male',
                           });
-                          return;
-                        }
-                        processSubmissionAction({
+                        }}
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1"
+                        disabled={processing}
+                        onClick={() => processSubmissionAction({
                           submission: selectedSubmission,
-                          action: 'approve',
-                          approveAs: selectedSubmission.verification_type === 'host' ? 'host' : 'user',
-                          setGender: selectedSubmission.profile?.gender === 'female' ? 'female' : selectedSubmission.verification_type === 'host' ? 'female' : 'male',
-                        });
-                      }}
+                          action: 'reject',
+                          reason: actionReason,
+                        })}
+                      >
+                        <XCircle className="w-4 h-4 mr-2" /> Reject
+                      </Button>
+                    </div>
+                    {/* Manual Override + Re-run row */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 border-amber-500/50 text-amber-300 hover:bg-amber-500/10"
+                        disabled={processing}
+                        onClick={() => handleRerunAws(selectedSubmission.id)}
+                      >
+                        {processing ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-2" />}
+                        Re-run AWS
+                      </Button>
+                      {!canApproveSelected && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-pink-500/50 text-pink-300 hover:bg-pink-500/10"
+                            disabled={processing}
+                            onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
+                          >
+                            ⚠️ Override → Host
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
+                            disabled={processing}
+                            onClick={() => handleManualOverrideApprove(selectedSubmission, 'user')}
+                          >
+                            ⚠️ Override → User
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    {!canApproveSelected && (
+                      <p className="text-[11px] text-amber-300/70 text-center">
+                        Standard Approve disabled — face match below {MIN_FACE_MATCH_PERCENTAGE}% or data incomplete. Use Override (logged) or Re-run AWS.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Rejected → allow re-open via override approve */}
+                {selectedSubmission.status === 'rejected' && (
+                  <div className="flex gap-2 pt-4 border-t border-slate-700">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 border-amber-500/50 text-amber-300 hover:bg-amber-500/10"
+                      disabled={processing}
+                      onClick={() => handleRerunAws(selectedSubmission.id)}
                     >
-                      <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
+                      <RefreshCw className="w-3 h-3 mr-2" /> Re-run AWS
                     </Button>
                     <Button
-                      variant="destructive"
-                      className="flex-1"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 border-pink-500/50 text-pink-300 hover:bg-pink-500/10"
                       disabled={processing}
-                      onClick={() => processSubmissionAction({
-                        submission: selectedSubmission,
-                        action: 'reject',
-                        reason: actionReason,
-                      })}
+                      onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
                     >
-                      <XCircle className="w-4 h-4 mr-2" /> Reject
+                      ⚠️ Re-open → Host
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
+                      disabled={processing}
+                      onClick={() => handleManualOverrideApprove(selectedSubmission, 'user')}
+                    >
+                      ⚠️ Re-open → User
                     </Button>
                   </div>
                 )}
