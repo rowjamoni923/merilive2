@@ -1154,7 +1154,8 @@ const FaceVerification = () => {
       }
 
       // Track pose history for anti-spoof (photos have zero variance)
-      setPoseHistory(prev => [...prev.slice(-20), { yaw: pose.yaw, pitch: pose.pitch }]);
+      poseHistoryRef.current = [...poseHistoryRef.current.slice(-20), { yaw: pose.yaw, pitch: pose.pitch }];
+      setPoseHistory(poseHistoryRef.current);
       
       // Check current instruction using LIVE calibration
       const calib = calibrationRef.current;
@@ -1162,7 +1163,15 @@ const FaceVerification = () => {
       const instruction = faceInstructions[instrIdx];
       
       if (instruction && !instructionsCompletedRef.current[instrIdx]) {
-        const passed = evaluatePose(instruction.id, pose, calib);
+        const dy = pose.yaw - calib.baselineYaw;
+        const dp = pose.pitch - calib.baselinePitch;
+        if (instruction.id === 'left' && horizontalFirstTurnSignRef.current == null && Math.abs(dy) > 6) {
+          horizontalFirstTurnSignRef.current = Math.sign(dy) || 1;
+        }
+        if (instruction.id === 'up' && verticalFirstTiltSignRef.current == null && Math.abs(dp) > 5) {
+          verticalFirstTiltSignRef.current = Math.sign(dp) || -1;
+        }
+        const passed = evaluateAdaptivePose(instruction.id, pose, calib);
         const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen, calib);
         setLiveDiag({
           faceDetected: true, eyesOpen: result.eyesOpen,
@@ -1239,16 +1248,17 @@ const FaceVerification = () => {
     
     if (success) {
       // Anti-spoof check: verify pose variance (photos have near-zero variance)
-      if (poseHistory.length >= 3) {
-        const yaws = poseHistory.map(p => p.yaw);
-        const pitches = poseHistory.map(p => p.pitch);
+      const collectedPoseHistory = poseHistoryRef.current;
+      if (collectedPoseHistory.length >= 3) {
+        const yaws = collectedPoseHistory.map(p => p.yaw);
+        const pitches = collectedPoseHistory.map(p => p.pitch);
         const yawVariance = Math.max(...yaws) - Math.min(...yaws);
         const pitchVariance = Math.max(...pitches) - Math.min(...pitches);
         
         if (yawVariance < 5 && pitchVariance < 5) {
           // Suspiciously static — likely a photo
           console.log('[FaceVerify] ⚠️ Anti-spoof: pose too static, likely photo');
-          pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: poseHistory.length });
+          pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: collectedPoseHistory.length });
           setVerificationFailed(true);
           setFailedAttempts(prev => prev + 1);
           buildAndStoreDebugReport('antispoof');
