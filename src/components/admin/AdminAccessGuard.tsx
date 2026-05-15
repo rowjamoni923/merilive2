@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import BlogPage from "@/pages/BlogPage";
 import { Navigate, useLocation } from "react-router-dom";
 import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
-import { hasAdminAccessFlag, hasOwnerAccessFlag, grantAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
+import { grantAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 
 /**
@@ -12,9 +12,9 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
  * Now uses the dedicated admin session (independent from user app auth).
  *
  * Logic:
- * 1. URL has `?access=<token>` → validate token via edge function, set flags, allow login page
- * 2. Has admin session → allow admin panel
- * 3. On /admin/auth or /admin/login → always render the login page (regardless of session)
+ * 1. URL has `?access=<token>` → validate token via edge function, set tab-scoped flag, allow login page
+ * 2. Has admin session AND this tab came from a secret link → allow admin panel
+ * 3. Direct /admin/auth or /admin/login without a secret link → show BlogPage
  * 4. Otherwise → show BlogPage (no admin panel hint)
  */
 
@@ -101,7 +101,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
           }
         } catch (e) {
           console.warn('[AdminAccessGuard] token validation failed/timed out', e);
-          // Fall back: if user already had a flag from a previous valid visit, keep it.
+          if (mounted && !getAdminSession()) setIsAuthorized(false);
         }
       })();
     }
