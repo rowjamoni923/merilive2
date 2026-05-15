@@ -679,10 +679,9 @@ const AdminSupportTickets = () => {
       const { data: urlData } = supabase.storage.from('support-attachments').getPublicUrl(path);
       const imageUrl = urlData.publicUrl;
 
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const { error: msgError } = await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
-        sender_id: user?.id,
+        sender_id: null,
         sender_type: 'admin',
         content: replyMessage.trim() || '📷 Image',
         is_read: false,
@@ -901,7 +900,6 @@ const AdminSupportTickets = () => {
       if (ticketError) throw ticketError;
 
       // Send resolution message with reward info
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const rewardParts = [];
       if (beansAmount > 0) rewardParts.push(`${beansAmount.toLocaleString()} Beans`);
       if (diamondsAmount > 0) rewardParts.push(`${diamondsAmount.toLocaleString()} Diamonds`);
@@ -915,7 +913,7 @@ const AdminSupportTickets = () => {
 
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
-        sender_id: user?.id,
+        sender_id: null,
         sender_type: 'admin',
         content: resolveContent,
         is_read: false,
