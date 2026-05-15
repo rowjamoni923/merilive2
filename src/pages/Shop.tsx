@@ -145,9 +145,9 @@ const ShopItemCard = ({
       <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div
-          className="absolute inset-0 opacity-50"
+          className="absolute inset-0 opacity-60"
           style={{
-            background: 'radial-gradient(circle at center, rgba(168,85,247,0.18) 0%, transparent 70%)',
+            background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.0) 70%)',
           }}
         />
 
