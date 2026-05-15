@@ -2272,7 +2272,7 @@ const FaceVerification = () => {
                       · Step {currentInstruction + 1}/{faceInstructions.length}: {faceInstructions[currentInstruction]?.direction}
                     </span>
                   </div>
-                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(90, Math.max(45, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
+                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(75, Math.max(35, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
                 </div>
               </div>
             )}
@@ -2475,7 +2475,7 @@ const FaceVerification = () => {
                   setPhotoFile(null); setPhotoPreview(null); setUserPhotoFile(null); setUserPhotoPreview(null);
                   setUserPhotoStep(true); setVideoFile(null); setVideoPreview(null); setHostPhotos([]); setHostPhotosPreviews([]);
                   setFaceVerificationVideo(null); setFaceVerified(false); setVerificationStarted(false);
-                  setCurrentInstruction(0); setInstructionsCompleted([false, false, false, false, false]);
+                  setCurrentInstruction(0); setInstructionsCompleted(faceInstructions.map(() => false));
                   setVerificationRecording(false); setVerificationTime(0); setVerificationFailed(false);
                   setCameraReady(false); setCurrentStep(1); setFullName(""); setAge(""); setLanguage("");
                   setRejectionReason(null); setVerificationStatus('unverified');
