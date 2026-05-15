@@ -508,7 +508,6 @@ const AdminSupportTickets = () => {
         .from('support_messages')
         .insert({
           ticket_id: selectedTicket.id,
-          sender_id: null,
           sender_type: 'admin',
           content: replyMessage.trim(),
           is_read: false,
@@ -642,7 +641,6 @@ const AdminSupportTickets = () => {
       const supportName = await getCurrentSupportName();
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
-        sender_id: null,
         sender_type: 'admin',
         content: `🎁 Compensation: ${rewardParts.join(' + ')} has been adjusted.`,
         is_read: false,
@@ -694,7 +692,6 @@ const AdminSupportTickets = () => {
 
       const { error: msgError } = await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
-        sender_id: null,
         sender_type: 'admin',
         content: replyMessage.trim() || '📷 Image',
         is_read: false,
@@ -928,7 +925,6 @@ const AdminSupportTickets = () => {
       const supportName = await getCurrentSupportName();
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
-        sender_id: null,
         sender_type: 'admin',
         content: resolveContent,
         is_read: false,
