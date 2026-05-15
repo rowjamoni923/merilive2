@@ -2986,9 +2986,10 @@ const Recharge = () => {
                         disabled={playStoreProcessing || stripeProcessing}
                         className={cn(
                           "w-full py-2.5 rounded-xl text-center font-bold text-[13px] transition-all",
-                          "bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-600 text-slate-800",
-                          "shadow-[0_4px_16px_-3px_rgba(147,51,234,0.5)]",
-                          "hover:shadow-[0_6px_24px_-3px_rgba(147,51,234,0.6)] hover:brightness-110",
+                          "bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 text-white",
+                          "border border-white/20",
+                          "shadow-[0_6px_20px_-4px_rgba(147,51,234,0.55)]",
+                          "hover:shadow-[0_8px_28px_-4px_rgba(147,51,234,0.7)] hover:brightness-110",
                           isCardProcessing && "opacity-50 cursor-not-allowed"
                         )}
                       >
