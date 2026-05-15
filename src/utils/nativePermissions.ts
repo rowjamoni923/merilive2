@@ -5,6 +5,7 @@
 
 import { registerPlugin } from '@capacitor/core';
 import { isNativeApp as detectNativeApp } from '@/utils/nativeUtils';
+import { permLog } from '@/utils/permissionDebugLog';
 
 interface MeriPermissionsStatus {
   camera: boolean;
