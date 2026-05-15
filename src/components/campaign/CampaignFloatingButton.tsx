@@ -4,6 +4,7 @@
  * Payment methods shown inline (no navigation to /recharge).
  */
 import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Wallet, Globe, Copy, Check, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -95,6 +96,13 @@ function CampaignFloatingButton() {
   const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
   const appState = useAppState();
+  const location = useLocation();
+  // Profile page has wallet/beans cards stacked above bottom-nav — push the
+  // floating button higher so the 150% bonus pill never overlaps "MY BEANS".
+  const isProfileRoute = location.pathname.startsWith('/profile');
+  const bottomOffset = isProfileRoute
+    ? 'calc(var(--bottom-nav-height, 64px) + 240px)'
+    : 'calc(var(--bottom-nav-height, 64px) + 110px)';
 
   useEffect(() => {
     (async () => {
@@ -565,7 +573,7 @@ function CampaignFloatingButton() {
             exit={{ scale: 0, opacity: 0 }}
             className="fixed z-[45] flex flex-col items-center"
             style={{
-              bottom: 'calc(var(--bottom-nav-height, 64px) + 110px)',
+              bottom: bottomOffset,
               right: '12px',
               perspective: '600px',
             }}
