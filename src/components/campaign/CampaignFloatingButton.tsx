@@ -593,19 +593,11 @@ function CampaignFloatingButton() {
             </motion.div>
 
             {/* 3D floating + tilting wrapper */}
-            <motion.div
-              animate={{
-                y: [0, -8, 0],
-                rotateY: [-12, 12, -12],
-                rotateX: [4, -4, 4],
-              }}
-              transition={{
-                y: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' },
-                rotateY: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
-                rotateX: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
-              }}
-              style={{ transformStyle: 'preserve-3d' }}
-            >
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ y: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' } }}
+                style={{ transformStyle: 'preserve-3d' }}
+              >
               {/* Soft ground shadow */}
               <motion.div
                 className="absolute left-1/2 -translate-x-1/2 rounded-full blur-md"
@@ -662,7 +654,7 @@ function CampaignFloatingButton() {
 
                 {/* Image disc with bevel */}
                 <div
-                  className="absolute inset-[5px] rounded-full overflow-hidden flex items-center justify-center"
+                  className="absolute inset-[3px] rounded-full overflow-hidden flex items-center justify-center"
                   style={{
                     border: '1.5px solid rgba(255,255,255,0.6)',
                     background: campaign.banner_image_url
@@ -675,8 +667,8 @@ function CampaignFloatingButton() {
                     <img
                       src={campaign.banner_image_url}
                       alt=""
-                      className="block w-full h-full object-cover rounded-full"
-                      style={{ objectPosition: 'center center' }}
+                      className="absolute left-1/2 top-1/2 block h-[116%] w-[116%] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-full object-cover"
+                      style={{ objectPosition: '50% 50%', transformOrigin: 'center center' }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
