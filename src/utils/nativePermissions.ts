@@ -21,9 +21,24 @@ interface MeriPermissionsPlugin {
   requestNotifications(): Promise<MeriPermissionsStatus>;
   requestAll(): Promise<MeriPermissionsStatus>;
   openAppSettings(): Promise<void>;
+  /** Whether the system will still show its native permission dialog
+   *  for each alias (false = permanently denied; only Settings can fix). */
+  canRequestAgain(): Promise<MeriPermissionsStatus>;
 }
 
 const MeriPermissions = registerPlugin<MeriPermissionsPlugin>('MeriPermissions');
+
+/** Per-permission "can the system dialog still be shown?" flags. */
+export const canRequestAgain = async (): Promise<MeriPermissionsStatus> => {
+  if (!isNativeApp()) {
+    return { camera: true, microphone: true, location: true, notifications: true };
+  }
+  try {
+    return await MeriPermissions.canRequestAgain();
+  } catch {
+    return { camera: true, microphone: true, location: true, notifications: true };
+  }
+};
 
 export const isNativeApp = (): boolean => {
   return detectNativeApp();
