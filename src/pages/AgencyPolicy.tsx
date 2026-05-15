@@ -112,12 +112,23 @@ const sectionVisuals: Record<string, { icon: React.ReactNode; gradient: string; 
  privacy: { icon: <Shield className="w-5 h-5" />, gradient:"from-slate-500 to-slate-700", iconBg:"bg-slate-100", iconColor:"text-slate-600" },
 };
 
-const tierColors: Record<string, string> = {
-  "A1": "from-warning-400 to-warning-600",
-  "A2": "from-gray-300 to-gray-500",
-  "A3": "from-warning-400 to-warning-500",
-  "A4": "from-info-400 to-info-500",
-  "A5": "from-brand-500 to-brand-500"
+// Premium tier styling — keyed by level_code OR lowercased name
+const tierStyles: Record<string, string> = {
+  bronze:   "from-[#7a3f1d] via-[#a85a2a] to-[#c97a3f]",
+  silver:   "from-[#5a6470] via-[#8a93a0] to-[#b8c0cc]",
+  gold:     "from-[#8a5a10] via-[#c8961a] to-[#f0c75a]",
+  platinum: "from-[#3a4a5c] via-[#6b7d92] to-[#a8b8c8]",
+  diamond:  "from-[#1e3a5c] via-[#3a6ea8] to-[#7ab8e8]",
+  a1: "from-[#7a3f1d] via-[#a85a2a] to-[#c97a3f]",
+  a2: "from-[#5a6470] via-[#8a93a0] to-[#b8c0cc]",
+  a3: "from-[#8a5a10] via-[#c8961a] to-[#f0c75a]",
+  a4: "from-[#3a4a5c] via-[#6b7d92] to-[#a8b8c8]",
+  a5: "from-[#1e3a5c] via-[#3a6ea8] to-[#7ab8e8]",
+};
+const getTierStyle = (tier: { level?: string; name?: string }) => {
+  const k = (tier.level || "").toLowerCase();
+  const n = (tier.name || "").toLowerCase();
+  return tierStyles[k] || tierStyles[n] || "from-slate-600 via-slate-700 to-slate-800";
 };
 
 // STRUCTURED keys handled by their own dedicated cards/tabs
