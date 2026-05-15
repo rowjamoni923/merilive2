@@ -333,13 +333,13 @@ const AgentRank = () => {
                         {isFirst ? '🥇' : isSecond ? '🥈' : '🥉'}
                       </div>
                       <div className="flex items-center justify-center gap-1">
-                        <Gem className="w-3.5 h-3.5 text-cyan-400" />
-                        <span className={`text-sm font-black ${isFirst ? 'text-yellow-300' : 'text-cyan-300'}`}>
+                        <Gem className="w-3.5 h-3.5 text-cyan-300" />
+                        <span className="text-sm font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
                           {formatNumber(reward.reward_coins)}
                         </span>
                       </div>
                       {reward.reward_badge && (
-                        <p className="text-[9px] text-white/60 mt-1 truncate font-medium">{reward.reward_badge}</p>
+                        <p className="text-[9px] text-white/80 mt-1 truncate font-medium">{reward.reward_badge}</p>
                       )}
                     </div>
                   </div>
