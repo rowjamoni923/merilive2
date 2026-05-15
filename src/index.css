@@ -448,6 +448,142 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   pointer-events: none !important;
 }
 
+/* ============================================
+   PROFESSIONAL TEXT TOKEN SYSTEM (Chamet-style)
+   Single source of truth for ALL text across the app.
+   Use semantic classes (.text-display / .text-heading / .text-body /
+   .text-label / .text-caption / .text-muted-pro / .text-on-dark /
+   .text-on-gold / .text-link / .text-money / .text-danger-pro /
+   .text-success-pro) instead of raw text-white / text-gray-* / text-slate-*.
+   Scoped OUT of admin panel and games (they keep their own systems).
+   ============================================ */
+:root {
+  /* Hierarchical text tones tuned for the Pearl-cream luxury bg */
+  --text-display:    222 40% 12%;   /* Almost-black for headlines */
+  --text-heading:    222 35% 18%;   /* Page section titles */
+  --text-body:       222 25% 24%;   /* Default body copy */
+  --text-label:      222 18% 36%;   /* Form labels, eyebrows */
+  --text-muted-pro:  222 12% 50%;   /* Secondary / helper text */
+  --text-caption:    222 10% 58%;   /* Smallest meta text */
+  --text-link:       330 85% 48%;   /* Inline links — brand pink */
+  --text-money:      35 92% 38%;    /* Diamond / coins / beans amounts */
+  --text-danger-pro: 0 78% 48%;     /* Errors, destructive copy */
+  --text-success-pro: 152 72% 32%;  /* Success / completed */
+  /* On-dark surfaces (live rooms, party, modals on glass) */
+  --text-on-dark:        0 0% 100%;
+  --text-on-dark-muted:  0 0% 78%;
+  --text-on-dark-faint:  0 0% 62%;
+  /* On-gold surfaces (CTA buttons, premium chips) */
+  --text-on-gold:        20 30% 12%;
+}
+
+@layer components {
+  body:not([data-admin-active="true"]) :is(
+    .text-display, .text-heading, .text-body, .text-label,
+    .text-caption, .text-muted-pro, .text-link, .text-money,
+    .text-danger-pro, .text-success-pro,
+    .text-on-dark, .text-on-dark-muted, .text-on-dark-faint, .text-on-gold
+  ) {
+    font-family: 'Inter', 'Poppins', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .text-display {
+    color: hsl(var(--text-display));
+    font-weight: 800;
+    letter-spacing: -0.022em;
+    line-height: 1.15;
+  }
+  .text-heading {
+    color: hsl(var(--text-heading));
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+  .text-body {
+    color: hsl(var(--text-body));
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    line-height: 1.5;
+  }
+  .text-label {
+    color: hsl(var(--text-label));
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+    text-transform: none;
+  }
+  .text-caption {
+    color: hsl(var(--text-caption));
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.005em;
+    line-height: 1.4;
+  }
+  .text-muted-pro {
+    color: hsl(var(--text-muted-pro));
+    font-weight: 500;
+    letter-spacing: -0.003em;
+  }
+  .text-link {
+    color: hsl(var(--text-link));
+    font-weight: 600;
+    text-decoration: none;
+    transition: color .15s ease;
+  }
+  .text-link:hover { color: hsl(var(--text-link) / 0.8); }
+
+  .text-money {
+    color: hsl(var(--text-money));
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .text-danger-pro  { color: hsl(var(--text-danger-pro));  font-weight: 600; }
+  .text-success-pro { color: hsl(var(--text-success-pro)); font-weight: 600; }
+
+  /* On dark surfaces (live, party, video overlays) */
+  .text-on-dark {
+    color: hsl(var(--text-on-dark));
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  }
+  .text-on-dark-muted {
+    color: hsl(var(--text-on-dark-muted));
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.30);
+  }
+  .text-on-dark-faint {
+    color: hsl(var(--text-on-dark-faint));
+    font-weight: 500;
+  }
+  .text-on-gold {
+    color: hsl(var(--text-on-gold));
+    font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+
+  /* Eyebrow / pill label (above section titles) */
+  .text-eyebrow {
+    color: hsl(var(--text-label));
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  /* Numeric counter (followers, level, gifts count) */
+  .text-counter {
+    color: hsl(var(--text-display));
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
