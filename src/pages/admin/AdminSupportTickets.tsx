@@ -618,12 +618,14 @@ const AdminSupportTickets = () => {
         rewardParts.push(`${agencyBeansMode === "deduct" ? "-" : "+"}${agencyBeansAmount.toLocaleString()} Agency Beans (${userAgency.name})`);
       }
 
+      const supportName = await getCurrentSupportName();
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
         sender_id: null,
         sender_type: 'admin',
         content: `🎁 Compensation: ${rewardParts.join(' + ')} has been adjusted.`,
         is_read: false,
+        support_admin_name: supportName,
       });
 
       // Send notification to user about compensation
@@ -670,6 +672,7 @@ const AdminSupportTickets = () => {
 
       const { data: urlData } = supabase.storage.from('support-attachments').getPublicUrl(path);
       const imageUrl = urlData.publicUrl;
+      const supportName = await getCurrentSupportName();
 
       const { error: msgError } = await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
@@ -679,6 +682,7 @@ const AdminSupportTickets = () => {
         is_read: false,
         attachment_url: imageUrl,
         attachment_type: 'image',
+        support_admin_name: supportName,
       } as any);
 
       if (msgError) throw msgError;
@@ -903,12 +907,14 @@ const AdminSupportTickets = () => {
         ? `✅ Ticket resolved.\n🎁 Reward: ${rewardParts.join(' + ')} has been adjusted.`
         : `✅ Ticket has been resolved. Thank you for contacting support.`;
 
+      const supportName = await getCurrentSupportName();
       await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
         sender_id: null,
         sender_type: 'admin',
         content: resolveContent,
         is_read: false,
+        support_admin_name: supportName,
       });
 
       // Send notification to user about ticket resolution + reward
