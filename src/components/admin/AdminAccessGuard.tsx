@@ -52,11 +52,13 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       if (!mounted) return;
       if (isLoginRoute()) {
         // STRICT: secret link mandatory every visit. Allowed only if:
-        //  - URL has ?access=<token> (will be validated below), OR
+        //  - URL has ?access=<token> AND edge validation succeeds, OR
         //  - User already has an active admin session (post-login refresh)
         // Persistent localStorage flag alone is NOT enough — must come via secret link.
-        if (session || accessToken) {
+        if (session) {
           setIsAuthorized(true);
+        } else if (accessToken) {
+          setIsAuthorized(null);
         } else {
           setIsAuthorized(false);
         }
@@ -70,8 +72,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
           setIsAuthorized(true);
         }
       } else if (accessToken) {
-        // Came via secret link but not yet logged in → allow (will redirect to /admin/auth).
-        setIsAuthorized(true);
+        // Came via secret link but not yet logged in → wait for validation.
+        setIsAuthorized(null);
       } else {
         setIsAuthorized(false);
       }
@@ -98,6 +100,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
               setHasValidToken(true);
               setIsAuthorized(true);
             }
+          } else if (mounted) {
+            setIsAuthorized(false);
           }
         } catch (e) {
           console.warn('[AdminAccessGuard] token validation failed/timed out', e);
