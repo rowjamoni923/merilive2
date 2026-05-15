@@ -111,9 +111,21 @@ export const useSingleDeviceSession = (userId: string | null) => {
   
   // ✅ LOGIN GRACE PERIOD: Prevent ANY logout for 30 seconds after fresh login
   const loginGraceUntil = useRef<number>(0);
+  // ✅ RECONNECT GRACE PERIOD: After airplane-mode / network drop, suppress
+  // any forceLogout for 15s so stale realtime replays or a half-open RPC
+  // can't kick a perfectly valid device.
+  const reconnectGraceUntil = useRef<number>(0);
+  const RECONNECT_GRACE_MS = 15_000;
 
   const isInGracePeriod = useCallback(() => {
-    return Date.now() < loginGraceUntil.current;
+    const now = Date.now();
+    return now < loginGraceUntil.current || now < reconnectGraceUntil.current;
+  }, []);
+
+  const armReconnectGrace = useCallback((reason: string) => {
+    reconnectGraceUntil.current = Date.now() + RECONNECT_GRACE_MS;
+    console.log(`[SingleDevice] 🛡️ Reconnect grace armed (${reason}) for ${RECONNECT_GRACE_MS / 1000}s`);
+    recordSessionEvent('grace.start', { reason, durationMs: RECONNECT_GRACE_MS });
   }, []);
 
   const resetErrorBackoff = useCallback(() => {
@@ -231,11 +243,18 @@ export const useSingleDeviceSession = (userId: string | null) => {
       if (data === true) {
         recordSessionEvent('check.valid');
         resetErrorBackoff();
-      } else {
-        recordSessionEvent('check.invalid', { sessionId: sessionId.current, userId });
+        return true;
       }
-
-      return data === true;
+      // ✅ Only an EXPLICIT false from the RPC means "another device won".
+      // null/undefined/anything else = treat as still valid (defensive — a
+      // half-open response after airplane-mode toggle must not log us out).
+      if (data === false) {
+        recordSessionEvent('check.invalid', { sessionId: sessionId.current, userId });
+        return false;
+      }
+      console.warn('[SingleDevice] Unexpected check_session_valid response, treating as valid:', data);
+      recordSessionEvent('check.error', { sessionId: sessionId.current }, `unexpected_response:${JSON.stringify(data)}`);
+      return true;
     } catch (error) {
       console.error('[SingleDevice] Session check failed:', error);
       recordSessionEvent('check.error', { sessionId: sessionId.current }, String((error as Error)?.message || error));
@@ -391,8 +410,15 @@ export const useSingleDeviceSession = (userId: string | null) => {
     const immediateCheck = async () => {
       if (isLoggingOut.current || !isRegistered.current) return;
       
-      // ✅ Skip check during grace period
+      // ✅ Skip check during grace period (login OR reconnect)
       if (isInGracePeriod()) return;
+
+      // ✅ Don't run a session check while offline — a failed RPC just adds
+      // backoff, but a stale-cached "false" response could cause a wrong logout.
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        console.log('[SingleDevice] 📴 Offline — skipping immediate check');
+        return;
+      }
       
       const isValid = await checkSessionValid();
       if (!isValid) {
@@ -415,7 +441,23 @@ export const useSingleDeviceSession = (userId: string | null) => {
       }
     };
 
+    // ✅ Network drop / airplane-mode handling
+    const handleOffline = () => {
+      console.log('[SingleDevice] 📴 Network offline');
+      recordSessionEvent('check.error', { sessionId: sessionId.current }, 'network_offline');
+    };
+    const handleOnline = () => {
+      console.log('[SingleDevice] 📶 Network back online — arming reconnect grace');
+      armReconnectGrace('online');
+      // Defer the post-reconnect verification until grace expires + small buffer.
+      setTimeout(() => {
+        if (!isLoggingOut.current) immediateCheck();
+      }, RECONNECT_GRACE_MS + 1_000);
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     let removeNativeListener: (() => void) | null = null;
 
@@ -423,7 +465,12 @@ export const useSingleDeviceSession = (userId: string | null) => {
       import('@capacitor/app').then(({ App: CapApp }) => {
         CapApp.addListener('appStateChange', ({ isActive }) => {
           if (isActive) {
-            immediateCheck();
+            // Coming back to foreground — also treat as a soft reconnect so
+            // any websocket replay during the wake-up gets ignored.
+            armReconnectGrace('app_resume');
+            setTimeout(() => {
+              if (!isLoggingOut.current) immediateCheck();
+            }, RECONNECT_GRACE_MS + 1_000);
           }
         }).then(listener => {
           removeNativeListener = () => listener.remove();
@@ -433,9 +480,11 @@ export const useSingleDeviceSession = (userId: string | null) => {
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
       if (removeNativeListener) removeNativeListener();
     };
-  }, [userId, checkSessionValid, forceLogout, isInGracePeriod]);
+  }, [userId, checkSessionValid, forceLogout, isInGracePeriod, armReconnectGrace]);
 
   return {
     sessionId: sessionId.current,
