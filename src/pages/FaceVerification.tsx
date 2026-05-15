@@ -1892,8 +1892,12 @@ const FaceVerification = () => {
                 </div>
               </div>
             </motion.div>
-            <h3 className="text-xl font-bold text-slate-800 mt-6 mb-2">Scan Complete!</h3>
-            <p className="text-green-300 text-sm">All {faceInstructions.length} liveness checks passed</p>
+            <h3 className="text-xl font-bold text-slate-800 mt-6 mb-2">
+              {faceManualReviewRequired ? 'Ready for Admin Review' : 'Scan Complete!'}
+            </h3>
+            <p className="text-green-300 text-sm text-center px-4">
+              {faceManualReviewRequired ? 'AI could not safely auto-approve, but your scan can be submitted for manual review' : `All ${faceInstructions.length} liveness checks passed`}
+            </p>
             <div className="flex gap-1 mt-3">
               {instructionsCompleted.map((_, idx) => (
                 <div key={idx} className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
@@ -2364,7 +2368,7 @@ const FaceVerification = () => {
           {neutralCalib && neutralCalib.capturedAt > 0 && !neutralCalibrating && (
             <p className="text-[11px] text-center text-slate-700 leading-5 font-medium">
               Tuned for you · baseline {neutralCalib.baselineYaw.toFixed(1)}° / {neutralCalib.baselinePitch.toFixed(1)}° ·
-              turn ±{neutralCalib.turnYaw.toFixed(0)}° · tilt ±{neutralCalib.tiltPitch.toFixed(0)}°
+              turn ±{neutralCalib.turnYaw.toFixed(0)}°
             </p>
           )}
           <Button
