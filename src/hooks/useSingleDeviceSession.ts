@@ -226,8 +226,24 @@ export const useSingleDeviceSession = (userId: string | null) => {
     try {
       // Set manual logout flag so App.tsx allows the sign-out
       localStorage.setItem('meri_manual_logout', 'true');
+      // Surface a clear toast so the user understands why they were kicked.
+      try {
+        const { toast } = await import('sonner');
+        toast.error('Signed out — your account is now active on another device.', {
+          duration: 6000,
+        });
+      } catch { /* noop */ }
       clearSessionId();
-      await supabase.auth.signOut({ scope: 'local' });
+      // GLOBAL scope = invalidate refresh token server-side too, so the
+      // device cannot silently re-hydrate the session after this logout.
+      await supabase.auth.signOut({ scope: 'global' }).catch(async () => {
+        // Fall back to local-only sign out if the global call fails (offline).
+        await supabase.auth.signOut({ scope: 'local' });
+      });
+      // Hard redirect to /auth on native so any in-memory React state is wiped.
+      try {
+        window.location.replace('/auth');
+      } catch { /* noop */ }
     } catch (error) {
       console.error('[SingleDevice] Force logout error:', error);
     }
