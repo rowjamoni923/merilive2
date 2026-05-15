@@ -431,15 +431,15 @@ const Index = () => {
               <div className="absolute top-2.5 left-2">
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-[0_2px_12px_rgba(239,68,68,0.5)]">
                   <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                  <span className="text-[10px] font-extrabold text-white tracking-wider">LIVE</span>
+                  <span className="text-[10px] font-extrabold text-on-dark tracking-wider">LIVE</span>
                 </div>
               </div>
               {/* Viewer Count */}
               {(user.viewerCount ?? 0) > 0 && (
                 <div className="absolute top-2.5 right-2">
                   <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
-                    <Eye className="w-3 h-3 text-white" />
-                    <span className="text-[10px] text-white font-bold">{user.viewerCount}</span>
+                    <Eye className="w-3 h-3 text-on-dark" />
+                    <span className="text-[10px] text-on-dark font-bold">{user.viewerCount}</span>
                   </div>
                 </div>
               )}
@@ -462,7 +462,7 @@ const Index = () => {
           {(user.is_verified || user.is_face_verified) && (
             <div className="absolute top-2.5 right-2">
               <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center shadow-[0_2px_10px_rgba(59,130,246,0.5)] border border-white/30">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-3 h-3 text-on-dark" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
@@ -488,7 +488,7 @@ const Index = () => {
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-[13px] truncate" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
+                <p className="text-on-dark font-bold text-[13px] truncate" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
                   {user.display_name || user.username || "User"}
                 </p>
                 
@@ -560,7 +560,7 @@ const Index = () => {
               boxShadow: '0 2px 6px -2px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
             }}
           >
-            <Search className="w-[18px] h-[18px] text-slate-700" strokeWidth={2.5} />
+            <Search className="w-[18px] h-[18px] text-heading" strokeWidth={2.5} />
           </button>
 
           {/* Sub Tabs - Centered */}
@@ -582,7 +582,7 @@ const Index = () => {
                   }}
                   className={cn(
                     "px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 touch-manipulation flex items-center gap-1",
-                    isActive ? "text-white shadow-md" : "text-slate-500 hover:text-slate-800"
+                    isActive ? "text-on-dark shadow-md" : "text-muted-pro hover:text-slate-800"
                   )}
                   style={isActive ? { background: gradients[tab] } : undefined}
                 >
@@ -618,8 +618,8 @@ const Index = () => {
                   className={cn(
                     "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap active:scale-95 touch-manipulation border",
                     selectedCountry === country.code
-                      ? "text-white shadow-md border-transparent"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      ? "text-on-dark shadow-md border-transparent"
+                      : "bg-white text-heading border-slate-200 hover:bg-slate-50"
                   )}
                   style={selectedCountry === country.code ? { background: 'linear-gradient(to right, #ec4899, #a855f7)' } : undefined}
                 >
@@ -673,16 +673,16 @@ const Index = () => {
           <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
             {/* Text content only - no icons */}
             <div className="text-center relative z-10">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">
+              <h3 className="text-lg font-bold text-display mb-2">
                 {subTab === "live" ? "No Live Streams" : "No Hosts Available"}
               </h3>
-              <p className="text-sm text-slate-500 max-w-[220px]">
+              <p className="text-sm text-muted-pro max-w-[220px]">
                 {getEmptyMessage()}
               </p>
             </div>
 
             {/* Refresh hint */}
-            <p className="mt-4 text-xs text-slate-500">
+            <p className="mt-4 text-xs text-muted-pro">
               Pull down to refresh
             </p>
           </div>

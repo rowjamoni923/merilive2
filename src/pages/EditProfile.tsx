@@ -374,13 +374,13 @@ const EditProfile = () => {
             onClick={() => navigate(-1)}
             className="w-10 h-10 rounded-xl bg-white/80 border border-amber-200/60 flex items-center justify-center active:scale-95 transition-transform shadow-sm"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-800" />
+            <ArrowLeft className="w-5 h-5 text-heading" />
           </button>
-          <h1 className="text-lg font-bold text-slate-800">My Profile</h1>
+          <h1 className="text-lg font-bold text-heading">My Profile</h1>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+            className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-on-dark font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -408,7 +408,7 @@ const EditProfile = () => {
                   <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-full opacity-75 blur-sm animate-pulse" />
                   <Avatar className="relative w-28 h-28 ring-4 ring-amber-200 shadow-2xl">
                     <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-3xl font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-on-dark text-3xl font-bold">
                       {displayName?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -417,7 +417,7 @@ const EditProfile = () => {
                     {uploading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <Camera className="w-4 h-4 text-slate-800" />
+                      <Camera className="w-4 h-4 text-heading" />
                     )}
                   </div>
                 </div>
@@ -431,9 +431,9 @@ const EditProfile = () => {
                 />
               </label>
             </div>
-            <h2 className="mt-4 text-xl font-bold text-slate-800">{displayName || "Set Nickname"}</h2>
+            <h2 className="mt-4 text-xl font-bold text-heading">{displayName || "Set Nickname"}</h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-slate-600">ID: {profile?.app_uid || "N/A"}</span>
+              <span className="text-sm text-body">ID: {profile?.app_uid || "N/A"}</span>
               <button onClick={copyId} className="p-1 hover:bg-amber-100 rounded transition-colors">
                 <Copy className="w-3.5 h-3.5 text-purple-400" />
               </button>
@@ -457,16 +457,16 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center">
                   <Camera className="w-5 h-5 text-purple-400" />
                 </div>
-                <span className="font-medium text-slate-800">My Avatar</span>
+                <span className="font-medium text-heading">My Avatar</span>
               </div>
               <div className="flex items-center gap-3">
                 <Avatar className="w-9 h-9 ring-2 ring-purple-500/30">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-xs">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-on-dark text-xs">
                     {displayName?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <ChevronRight className="w-5 h-5 text-slate-600" />
+                <ChevronRight className="w-5 h-5 text-body" />
               </div>
               <input
                 type="file"
@@ -486,11 +486,11 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-600/30 to-pink-600/30 flex items-center justify-center">
                   <Image className="w-5 h-5 text-fuchsia-400" />
                 </div>
-                <span className="font-medium text-slate-800">My Poster</span>
+                <span className="font-medium text-heading">My Poster</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-600">Upload photos</span>
-                <ChevronRight className="w-5 h-5 text-slate-600" />
+                <span className="text-sm text-body">Upload photos</span>
+                <ChevronRight className="w-5 h-5 text-body" />
               </div>
             </button>
 
@@ -503,12 +503,12 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-600/30 flex items-center justify-center">
                   <Hash className="w-5 h-5 text-blue-400" />
                 </div>
-                <span className="font-medium text-slate-800">ID</span>
+                <span className="font-medium text-heading">ID</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-600 font-mono">{profile?.app_uid || "N/A"}</span>
+                <span className="text-sm text-body font-mono">{profile?.app_uid || "N/A"}</span>
                 <div className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full">
-                  <span className="text-xs font-semibold text-slate-800">Copy</span>
+                  <span className="text-xs font-semibold text-heading">Copy</span>
                 </div>
               </div>
             </button>
@@ -521,17 +521,17 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600/30 to-purple-600/30 flex items-center justify-center">
                       <User className="w-5 h-5 text-violet-400" />
                     </div>
-                    <span className="font-medium text-slate-800">Nickname</span>
+                    <span className="font-medium text-heading">Nickname</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-600 truncate max-w-[120px]">{displayName || "Set nickname"}</span>
-                    <ChevronRight className="w-5 h-5 text-slate-600" />
+                    <span className="text-sm text-body truncate max-w-[120px]">{displayName || "Set nickname"}</span>
+                    <ChevronRight className="w-5 h-5 text-body" />
                   </div>
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                 <SheetHeader>
-                  <SheetTitle className="text-slate-800 text-center">Edit Nickname</SheetTitle>
+                  <SheetTitle className="text-heading text-center">Edit Nickname</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                   <Input
@@ -539,9 +539,9 @@ const EditProfile = () => {
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Enter your nickname"
                     maxLength={20}
-                    className="h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600"
+                    className="h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600"
                   />
-                  <p className="text-xs text-slate-600 text-center">{displayName.length}/20 characters</p>
+                  <p className="text-xs text-body text-center">{displayName.length}/20 characters</p>
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
                     onClick={handleSave}
@@ -561,14 +561,14 @@ const EditProfile = () => {
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600/30 to-pink-600/30 flex items-center justify-center">
                     <User className="w-5 h-5 text-rose-400" />
                   </div>
-                  <span className="font-medium text-slate-800">Gender</span>
+                  <span className="font-medium text-heading">Gender</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-sm font-medium ${profile.gender.toLowerCase() === "female" ? "text-pink-400" : "text-blue-400"}`}>
                     {profile.gender.toLowerCase() === "female" ? "👩 Female" : "👨 Male"}
                   </span>
                   <div className="px-2 py-1 bg-white/5 rounded-full">
-                    <Lock className="w-3.5 h-3.5 text-slate-600" />
+                    <Lock className="w-3.5 h-3.5 text-body" />
                   </div>
                 </div>
               </div>
@@ -581,17 +581,17 @@ const EditProfile = () => {
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600/30 to-pink-600/30 flex items-center justify-center">
                         <User className="w-5 h-5 text-rose-400" />
                       </div>
-                      <span className="font-medium text-slate-800">Gender</span>
+                      <span className="font-medium text-heading">Gender</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-amber-400 animate-pulse">⚠️ Required</span>
-                      <ChevronRight className="w-5 h-5 text-slate-600" />
+                      <ChevronRight className="w-5 h-5 text-body" />
                     </div>
                   </button>
                 </SheetTrigger>
                 <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                   <SheetHeader>
-                    <SheetTitle className="text-slate-800 text-center">Select Gender (One-time only)</SheetTitle>
+                    <SheetTitle className="text-heading text-center">Select Gender (One-time only)</SheetTitle>
                   </SheetHeader>
                   <p className="text-center text-xs text-amber-400 mt-2">
                     ⚠️ This selection cannot be changed later
@@ -618,12 +618,12 @@ const EditProfile = () => {
                       className={`flex-1 py-5 rounded-2xl border-2 transition-all ${
                         gender === "Male" 
                           ? "bg-blue-600/20 border-blue-500 text-blue-400" 
-                          : "border-amber-200/40 hover:border-amber-200/60 text-slate-500"
+                          : "border-amber-200/40 hover:border-amber-200/60 text-muted-pro"
                       }`}
                     >
                       <span className="text-2xl mb-2 block">👨</span>
                       <p className="font-semibold">Male</p>
-                      <p className="text-[10px] mt-1 text-slate-600">User Account</p>
+                      <p className="text-[10px] mt-1 text-body">User Account</p>
                     </button>
                     <button
                       onClick={async () => {
@@ -646,7 +646,7 @@ const EditProfile = () => {
                       className={`flex-1 py-5 rounded-2xl border-2 transition-all ${
                         gender === "Female" 
                           ? "bg-pink-600/20 border-pink-500 text-pink-400" 
-                          : "border-amber-200/40 hover:border-amber-200/60 text-slate-500"
+                          : "border-amber-200/40 hover:border-amber-200/60 text-muted-pro"
                       }`}
                     >
                       <span className="text-2xl mb-2 block">👩</span>
@@ -656,7 +656,7 @@ const EditProfile = () => {
                       </p>
                     </button>
                   </div>
-                  <p className="text-center text-xs text-slate-600 mt-4">
+                  <p className="text-center text-xs text-body mt-4">
                     Selecting Female will automatically convert to Host account
                   </p>
                 </SheetContent>
@@ -671,17 +671,17 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600/30 to-orange-600/30 flex items-center justify-center">
                       <Star className="w-5 h-5 text-amber-400" />
                     </div>
-                    <span className="font-medium text-slate-800">Age</span>
+                    <span className="font-medium text-heading">Age</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-600">{age || "Not set"}</span>
-                    <ChevronRight className="w-5 h-5 text-slate-600" />
+                    <span className="text-sm text-body">{age || "Not set"}</span>
+                    <ChevronRight className="w-5 h-5 text-body" />
                   </div>
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                 <SheetHeader>
-                  <SheetTitle className="text-slate-800 text-center">Enter Age</SheetTitle>
+                  <SheetTitle className="text-heading text-center">Enter Age</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                   <Input
@@ -691,7 +691,7 @@ const EditProfile = () => {
                     placeholder="Enter your age"
                     min={18}
                     max={100}
-                    className="h-14 rounded-xl bg-white border-amber-200/60 text-slate-800 text-center text-2xl placeholder:text-slate-600"
+                    className="h-14 rounded-xl bg-white border-amber-200/60 text-heading text-center text-2xl placeholder:text-slate-600"
                   />
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
@@ -710,13 +710,13 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600/30 to-green-600/30 flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-emerald-400" />
                 </div>
-                <span className="font-medium text-slate-800">Region</span>
+                <span className="font-medium text-heading">Region</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-600">
+                <span className="text-sm text-body">
                   {profile?.country_flag || "🌍"} {profile?.country_name || "Unknown"}
                 </span>
-                <ChevronRight className="w-5 h-5 text-slate-600" />
+                <ChevronRight className="w-5 h-5 text-body" />
               </div>
             </div>
 
@@ -731,8 +731,8 @@ const EditProfile = () => {
                   )}
                 </div>
                 <div>
-                  <span className="font-medium text-slate-800">Hide Location</span>
-                  <p className="text-xs text-slate-600 mt-0.5">Others won't see your location</p>
+                  <span className="font-medium text-heading">Hide Location</span>
+                  <p className="text-xs text-body mt-0.5">Others won't see your location</p>
                 </div>
               </div>
               <Switch
@@ -766,17 +766,17 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-600/30 to-blue-600/30 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-cyan-400" />
                     </div>
-                    <span className="font-medium text-slate-800">Language</span>
+                    <span className="font-medium text-heading">Language</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-purple-400">{language}</span>
-                    <ChevronRight className="w-5 h-5 text-slate-600" />
+                    <ChevronRight className="w-5 h-5 text-body" />
                   </div>
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                 <SheetHeader>
-                  <SheetTitle className="text-slate-800 text-center">Select Language</SheetTitle>
+                  <SheetTitle className="text-heading text-center">Select Language</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 grid grid-cols-2 gap-3">
                   {["Bengali", "English", "Hindi", "Arabic", "Spanish", "Chinese"].map((lang) => (
@@ -785,8 +785,8 @@ const EditProfile = () => {
                       onClick={() => setLanguage(lang)}
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         language === lang 
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-amber-200/40"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-on-dark shadow-lg shadow-purple-500/25" 
+                          : "bg-slate-100 text-heading hover:bg-slate-200 border border-amber-200/40"
                       }`}
                     >
                       {lang}
@@ -804,25 +804,25 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-violet-600/30 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-purple-400" />
                     </div>
-                    <span className="font-medium text-slate-800">Second Language</span>
+                    <span className="font-medium text-heading">Second Language</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-purple-400">{secondLanguage || "None"}</span>
-                    <ChevronRight className="w-5 h-5 text-slate-600" />
+                    <ChevronRight className="w-5 h-5 text-body" />
                   </div>
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                 <SheetHeader>
-                  <SheetTitle className="text-slate-800 text-center">Select Second Language</SheetTitle>
+                  <SheetTitle className="text-heading text-center">Select Second Language</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 grid grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto pb-4">
                   <button
                     onClick={() => setSecondLanguage("")}
                     className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                       !secondLanguage 
-                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-amber-200/40"
+                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-on-dark shadow-lg shadow-purple-500/25" 
+                        : "bg-slate-100 text-heading hover:bg-slate-200 border border-amber-200/40"
                     }`}
                   >
                     None
@@ -833,8 +833,8 @@ const EditProfile = () => {
                       onClick={() => setSecondLanguage(lang)}
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         secondLanguage === lang 
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-amber-200/40"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-on-dark shadow-lg shadow-purple-500/25" 
+                          : "bg-slate-100 text-heading hover:bg-slate-200 border border-amber-200/40"
                       }`}
                     >
                       {lang}
@@ -853,7 +853,7 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600/30 to-violet-600/30 flex items-center justify-center">
                   <Hash className="w-5 h-5 text-indigo-400" />
                 </div>
-                <span className="font-medium text-slate-800">Tags</span>
+                <span className="font-medium text-heading">Tags</span>
               </div>
               <div className="flex items-center gap-2">
                 {tags.length > 0 ? (
@@ -861,12 +861,12 @@ const EditProfile = () => {
                     {tags.slice(0, 2).map(tag => (
                       <span key={tag} className="text-xs bg-purple-600/30 text-purple-300 px-2 py-0.5 rounded-full">{tag}</span>
                     ))}
-                    {tags.length > 2 && <span className="text-xs text-slate-600">+{tags.length - 2}</span>}
+                    {tags.length > 2 && <span className="text-xs text-body">+{tags.length - 2}</span>}
                   </div>
                 ) : (
-                  <span className="text-sm text-slate-600">Add tags</span>
+                  <span className="text-sm text-body">Add tags</span>
                 )}
-                <ChevronRight className="w-5 h-5 text-slate-600" />
+                <ChevronRight className="w-5 h-5 text-body" />
               </div>
             </button>
 
@@ -878,19 +878,19 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600/30 to-emerald-600/30 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5 text-teal-400" />
                     </div>
-                    <span className="font-medium text-slate-800">Self-introduction</span>
+                    <span className="font-medium text-heading">Self-introduction</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-600 truncate max-w-[100px]">
+                    <span className="text-sm text-body truncate max-w-[100px]">
                       {bio ? bio.slice(0, 15) + "..." : "Write about..."}
                     </span>
-                    <ChevronRight className="w-5 h-5 text-slate-600" />
+                    <ChevronRight className="w-5 h-5 text-body" />
                   </div>
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl h-[400px]">
                 <SheetHeader>
-                  <SheetTitle className="text-slate-800 text-center">Self-introduction</SheetTitle>
+                  <SheetTitle className="text-heading text-center">Self-introduction</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                   <Textarea
@@ -899,9 +899,9 @@ const EditProfile = () => {
                     placeholder="Write something about yourself..."
                     maxLength={200}
                     rows={5}
-                    className="rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600 resize-none"
+                    className="rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600 resize-none"
                   />
-                  <p className="text-xs text-slate-600 text-center">{bio.length}/200 characters</p>
+                  <p className="text-xs text-body text-center">{bio.length}/200 characters</p>
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
                     onClick={handleSave}
@@ -922,13 +922,13 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600/30 to-yellow-600/30 flex items-center justify-center">
                   <Palette className="w-5 h-5 text-amber-400" />
                 </div>
-                <span className="font-medium text-slate-800">Cosmetics</span>
+                <span className="font-medium text-heading">Cosmetics</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                  <Sparkles className="w-4 h-4 text-slate-800" />
+                  <Sparkles className="w-4 h-4 text-heading" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-600" />
+                <ChevronRight className="w-5 h-5 text-body" />
               </div>
             </button>
           </div>
@@ -950,13 +950,13 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/30 to-indigo-600/30 flex items-center justify-center">
                   <Mail className="w-5 h-5 text-blue-400" />
                 </div>
-                <span className="font-medium text-slate-800">Email</span>
+                <span className="font-medium text-heading">Email</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-600 truncate max-w-[140px]">
+                <span className="text-sm text-body truncate max-w-[140px]">
                   {userEmail || "Add email"}
                 </span>
-                <ChevronRight className="w-5 h-5 text-slate-600" />
+                <ChevronRight className="w-5 h-5 text-body" />
               </div>
             </button>
 
@@ -969,13 +969,13 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600/30 to-emerald-600/30 flex items-center justify-center">
                   <Phone className="w-5 h-5 text-green-400" />
                 </div>
-                <span className="font-medium text-slate-800">Phone</span>
+                <span className="font-medium text-heading">Phone</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-600">
+                <span className="text-sm text-body">
                   {phone ? phone.replace(/(\d{3})(\d{4})(\d+)/, "$1****$3") : "Add phone"}
                 </span>
-                <ChevronRight className="w-5 h-5 text-slate-600" />
+                <ChevronRight className="w-5 h-5 text-body" />
               </div>
             </button>
           </div>
@@ -997,11 +997,11 @@ const EditProfile = () => {
                   <Lock className="w-5 h-5 text-indigo-400" />
                 </div>
                 <div className="text-left">
-                  <span className="font-medium text-slate-800 block">Change Password</span>
-                  <span className="text-xs text-slate-600">Secure your account</span>
+                  <span className="font-medium text-heading block">Change Password</span>
+                  <span className="text-xs text-body">Secure your account</span>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-slate-600" />
+              <ChevronRight className="w-5 h-5 text-body" />
             </button>
           </div>
 
@@ -1012,11 +1012,11 @@ const EditProfile = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-20 blur-xl" />
             <div className="relative flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/50 to-pink-600/50 flex items-center justify-center backdrop-blur-sm border border-amber-200/40">
-                <Shield className="w-7 h-7 text-slate-800" />
+                <Shield className="w-7 h-7 text-heading" />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-slate-800 text-lg">Keep Your Account Safe</p>
-                <p className="text-slate-700 text-sm mt-0.5">
+                <p className="font-bold text-heading text-lg">Keep Your Account Safe</p>
+                <p className="text-heading text-sm mt-0.5">
                   Add phone & password for better security
                 </p>
               </div>
@@ -1029,20 +1029,20 @@ const EditProfile = () => {
       <Dialog open={showPhoneModal} onOpenChange={setShowPhoneModal}>
         <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
+            <DialogTitle className="text-heading text-center flex items-center justify-center gap-2">
               <Phone className="w-5 h-5 text-green-400" />
               Add Phone Number
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
-              <Label className="text-sm text-slate-700">Phone Number</Label>
+              <Label className="text-sm text-heading">Phone Number</Label>
               <Input
                 type="tel"
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
                 placeholder="+880 1XXXXXXXXX"
-                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600"
+                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600"
               />
             </div>
             <Button 
@@ -1062,39 +1062,39 @@ const EditProfile = () => {
       <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
         <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
+            <DialogTitle className="text-heading text-center flex items-center justify-center gap-2">
               <Lock className="w-5 h-5 text-indigo-400" />
               Change Password
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
-              <Label className="text-sm text-slate-700">New Password</Label>
+              <Label className="text-sm text-heading">New Password</Label>
               <div className="relative mt-2">
                 <Input
                   type={showNewPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600 pr-12"
+                  className="h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600 pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
-                  {showNewPassword ? <EyeOff className="w-5 h-5 text-slate-600" /> : <Eye className="w-5 h-5 text-slate-600" />}
+                  {showNewPassword ? <EyeOff className="w-5 h-5 text-body" /> : <Eye className="w-5 h-5 text-body" />}
                 </button>
               </div>
             </div>
             <div>
-              <Label className="text-sm text-slate-700">Confirm Password</Label>
+              <Label className="text-sm text-heading">Confirm Password</Label>
               <Input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
-                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600"
+                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600"
               />
             </div>
             <Button 
@@ -1114,38 +1114,38 @@ const EditProfile = () => {
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
         <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
+            <DialogTitle className="text-heading text-center flex items-center justify-center gap-2">
               <Mail className="w-5 h-5 text-blue-400" />
               Link Email Account
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
-              <Label className="text-sm text-slate-700">Email Address</Label>
+              <Label className="text-sm text-heading">Email Address</Label>
               <Input
                 type="email"
                 value={linkEmail}
                 onChange={(e) => setLinkEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600"
+                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600"
               />
             </div>
             <div>
-              <Label className="text-sm text-slate-700">Set Password</Label>
+              <Label className="text-sm text-heading">Set Password</Label>
               <div className="relative mt-2">
                 <Input
                   type={showLinkPassword ? "text" : "password"}
                   value={linkPassword}
                   onChange={(e) => setLinkPassword(e.target.value)}
                   placeholder="Create a password"
-                  className="h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600 pr-12"
+                  className="h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600 pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowLinkPassword(!showLinkPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
-                  {showLinkPassword ? <EyeOff className="w-5 h-5 text-slate-600" /> : <Eye className="w-5 h-5 text-slate-600" />}
+                  {showLinkPassword ? <EyeOff className="w-5 h-5 text-body" /> : <Eye className="w-5 h-5 text-body" />}
                 </button>
               </div>
             </div>
