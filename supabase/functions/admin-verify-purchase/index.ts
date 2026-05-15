@@ -37,14 +37,21 @@ Deno.serve(async (req) => {
 
     let adminUser: { id: string; role: string } | null = null;
     if (adminToken) {
-      const { data } = await adminSupabase
+      const { data: sessionRow } = await adminSupabase
         .from("admin_sessions")
-        .select("admin_users!inner(id, role, is_active)")
+        .select("admin_user_id")
         .eq("session_token", adminToken)
         .gt("expires_at", new Date().toISOString())
         .maybeSingle();
-      const row = (data as any)?.admin_users;
-      if (row?.is_active) adminUser = { id: row.id, role: row.role };
+      if (sessionRow?.admin_user_id) {
+        const { data } = await adminSupabase
+          .from("admin_users")
+          .select("id, role")
+          .eq("id", sessionRow.admin_user_id)
+          .eq("is_active", true)
+          .maybeSingle();
+        adminUser = data;
+      }
     }
 
     if (!adminUser && authHeader?.startsWith("Bearer ")) {
