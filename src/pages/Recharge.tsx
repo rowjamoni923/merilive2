@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { PRICE_BUTTON_CLASS } from "@/lib/priceButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useToast } from "@/hooks/use-toast";
