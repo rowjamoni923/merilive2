@@ -362,96 +362,99 @@ const Tags = () => {
         </div>
       </div>
 
-      {/* Selected Tags Preview */}
-      {selectedTags.length > 0 && (
-        <div className="px-4 py-3 bg-white/70 border-b border-amber-200/60">
-          <p className="text-sm text-slate-600 mb-2">
-            Selected Tags: {selectedTags.length}/15
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {selectedTags.map(tagName => (
-              <button
-                key={tagName}
-                onClick={() => toggleTag(tagName)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs rounded-full font-medium shadow-sm"
-              >
-                <span>{getTagIcon(tagName)}</span>
-                <span>{tagName}</span>
-                <span className="ml-0.5 opacity-80">×</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tag Categories */}
-      <div className="pb-8">
-        {tagCategories.map((category) => {
-          const isExpanded = expandedCategory === category.name || expandedCategory === null;
-          const selectedCount = category.tags.filter(t => selectedTags.includes(t.name)).length;
-          return (
-            <div key={category.name} className="border-b border-amber-200/40">
-              {/* Category Header */}
-              <button
-                onClick={() => setExpandedCategory(
-                  expandedCategory === category.name ? null : category.name
-                )}
-                className="w-full px-4 py-4 flex items-center justify-between hover:bg-amber-50/60 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center text-xl bg-gradient-to-br shadow-sm",
-                    category.color
-                  )}>
-                    <span className="drop-shadow-sm">{category.icon}</span>
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold text-slate-800 text-base">{category.name}</h3>
-                    <p className="text-xs text-slate-500">
-                      {selectedCount} selected
-                    </p>
-                  </div>
-                </div>
-                <svg
-                  className={cn(
-                    "w-5 h-5 text-slate-400 transition-transform",
-                    expandedCategory === category.name && "rotate-180"
-                  )}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+      {/* Scrollable area */}
+      <div className="flex-1 overflow-y-auto overscroll-contain">
+        {/* Selected Tags Preview */}
+        {selectedTags.length > 0 && (
+          <div className="px-4 py-3 bg-white/70 border-b border-amber-200/60">
+            <p className="text-sm text-slate-700 mb-2 font-medium">
+              Selected Tags: {selectedTags.length}/15
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {selectedTags.map(tagName => (
+                <button
+                  key={tagName}
+                  onClick={() => toggleTag(tagName)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs rounded-full font-semibold shadow-sm"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {/* Tags Grid */}
-              {isExpanded && (
-                <div className="px-4 pb-4 flex flex-wrap gap-2">
-                  {category.tags.map((tag) => {
-                    const isSelected = selectedTags.includes(tag.name);
-                    return (
-                      <button
-                        key={tag.name}
-                        onClick={() => toggleTag(tag.name)}
-                        className={cn(
-                          "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 active:scale-95 touch-manipulation border",
-                          isSelected
-                            ? `bg-gradient-to-r ${category.color} text-white border-transparent shadow-md`
-                            : "bg-white text-slate-700 border-amber-200/60 hover:border-pink-300 hover:bg-pink-50/40"
-                        )}
-                      >
-                        <span className="text-base">{tag.icon}</span>
-                        <span>{tag.name}</span>
-                        {isSelected && <Check className="w-3.5 h-3.5 ml-0.5" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                  <span>{getTagIcon(tagName)}</span>
+                  <span>{tagName}</span>
+                  <span className="ml-0.5 opacity-90">×</span>
+                </button>
+              ))}
             </div>
-          );
-        })}
+          </div>
+        )}
+
+        {/* Tag Categories */}
+        <div className="pb-24">
+          {tagCategories.map((category) => {
+            const isExpanded = expandedCategory === category.name || expandedCategory === null;
+            const selectedCount = category.tags.filter(t => selectedTags.includes(t.name)).length;
+            return (
+              <div key={category.name} className="border-b border-amber-200/40">
+                {/* Category Header */}
+                <button
+                  onClick={() => setExpandedCategory(
+                    expandedCategory === category.name ? null : category.name
+                  )}
+                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-amber-50/60 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center text-xl bg-gradient-to-br shadow-sm",
+                      category.color
+                    )}>
+                      <span className="drop-shadow-sm">{category.icon}</span>
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-semibold text-slate-800 text-base">{category.name}</h3>
+                      <p className="text-xs text-slate-600">
+                        {selectedCount} selected
+                      </p>
+                    </div>
+                  </div>
+                  <svg
+                    className={cn(
+                      "w-5 h-5 text-slate-500 transition-transform",
+                      expandedCategory === category.name && "rotate-180"
+                    )}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Tags Grid */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 flex flex-wrap gap-2">
+                    {category.tags.map((tag) => {
+                      const isSelected = selectedTags.includes(tag.name);
+                      return (
+                        <button
+                          key={tag.name}
+                          onClick={() => toggleTag(tag.name)}
+                          className={cn(
+                            "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 active:scale-95 touch-manipulation border",
+                            isSelected
+                              ? `bg-gradient-to-r ${category.color} text-white border-transparent shadow-md`
+                              : "bg-white text-slate-800 border-slate-300 hover:border-pink-400 hover:bg-pink-50"
+                          )}
+                        >
+                          <span className="text-base">{tag.icon}</span>
+                          <span>{tag.name}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 ml-0.5" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
