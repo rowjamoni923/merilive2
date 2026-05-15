@@ -1136,6 +1136,7 @@ const App = () => {
                 <Route path="/agency-policy" element={<AgencyPolicy />} />
                 <Route path="/policies-benefits" element={<PoliciesAndBenefits />} />
                 <Route path="/helper-policy" element={<AgencyPolicy />} />
+                <Route path="/sync-test" element={<SyncTest />} />
                 
                 {/* ============================================= */}
                 {/* PROTECTED ROUTES - Authentication required */}
