@@ -309,7 +309,7 @@ const AgentRank = () => {
           <div className="px-4 pt-4 pb-2">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-yellow-400" />
-              <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-white/80 uppercase tracking-wider">
                 {periodType === 'weekly' ? 'Weekly' : 'Monthly'} Rewards
               </h2>
             </div>
@@ -339,7 +339,7 @@ const AgentRank = () => {
                         </span>
                       </div>
                       {reward.reward_badge && (
-                        <p className="text-[9px] text-slate-400 mt-1 truncate font-medium">{reward.reward_badge}</p>
+                        <p className="text-[9px] text-white/60 mt-1 truncate font-medium">{reward.reward_badge}</p>
                       )}
                     </div>
                   </div>
@@ -407,7 +407,7 @@ const AgentRank = () => {
                   </div>
 
                   {/* Name */}
-                  <p className={`text-slate-800 font-bold text-center truncate w-full ${isChamp ? 'text-sm' : 'text-xs'}`}>
+                  <p className={`text-white font-bold text-center truncate w-full ${isChamp ? 'text-sm' : 'text-xs'}`}>
                     {entry.agency_name?.slice(0, isChamp ? 14 : 10)}
                   </p>
 
@@ -459,8 +459,8 @@ const AgentRank = () => {
             </div>
           ) : restRankings.length === 0 && top3.length === 0 ? (
             <div className="text-center py-16">
-              <Trophy className="w-14 h-14 mx-auto text-slate-800/10 mb-3" />
-              <p className="text-slate-500 text-sm font-medium">No rankings available yet</p>
+              <Trophy className="w-14 h-14 mx-auto text-white/15 mb-3" />
+              <p className="text-white/65 text-sm font-medium">No rankings available yet</p>
             </div>
           ) : (
             restRankings.map((agency, i) => {
@@ -475,7 +475,7 @@ const AgentRank = () => {
                 >
                   {/* Rank Number */}
                   <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.06]">
-                    <span className="text-sm font-black text-slate-500">{agency.rank_position}</span>
+                    <span className="text-sm font-black text-white/85">{agency.rank_position}</span>
                   </div>
                   
                   {/* Avatar */}
@@ -491,10 +491,10 @@ const AgentRank = () => {
                   
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-slate-800 font-semibold text-[13px] truncate">{agency.agency_name}</p>
+                    <p className="text-white font-semibold text-[13px] truncate">{agency.agency_name}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <Users className="w-3 h-3 text-slate-500" />
-                      <span className="text-[11px] text-slate-500 font-medium">{agency.total_hosts} hosts</span>
+                      <Users className="w-3 h-3 text-white/60" />
+                      <span className="text-[11px] text-white/60 font-medium">{agency.total_hosts} hosts</span>
                     </div>
                   </div>
                   
@@ -530,17 +530,17 @@ const AgentRank = () => {
         >
           <div className="flex items-center gap-3 px-4 py-2.5">
             <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center">
-              <span className="text-sm font-black text-slate-800">#{currentUserAgency.rank_position}</span>
+              <span className="text-sm font-black text-white">#{currentUserAgency.rank_position}</span>
             </div>
             <Avatar className="w-9 h-9 border border-amber-200/60">
               <AvatarImage src={currentUserAgency.owner_avatar || currentUserAgency.logo_url || undefined} />
-              <AvatarFallback className="bg-white/10 text-slate-800 font-bold text-xs">
+              <AvatarFallback className="bg-white/10 text-white font-bold text-xs">
                 {currentUserAgency.agency_name?.slice(0, 2)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-slate-800 font-bold text-sm truncate">{currentUserAgency.agency_name}</p>
-              <p className="text-slate-500 text-[10px]">Your Agency</p>
+              <p className="text-white font-bold text-sm truncate">{currentUserAgency.agency_name}</p>
+              <p className="text-white/75 text-[10px]">Your Agency</p>
             </div>
             <div className="flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-full">
               <Gem className="w-3.5 h-3.5 text-cyan-300" />
@@ -554,7 +554,7 @@ const AgentRank = () => {
       <Drawer open={showRules} onOpenChange={setShowRules}>
         <DrawerContent className="border-white/[0.08]" style={{ background: 'linear-gradient(180deg, #1a0a2e, #0d0619)' }}>
           <DrawerHeader>
-            <DrawerTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
+            <DrawerTitle className="text-white text-center flex items-center justify-center gap-2">
               <Shield className="w-5 h-5 text-purple-400" />
               Ranking Rules
             </DrawerTitle>
@@ -562,10 +562,10 @@ const AgentRank = () => {
           <div className="px-6 pb-8 space-y-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-4">
               <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-                <h3 className="text-slate-800 font-bold text-sm flex items-center gap-2 mb-2">
+                <h3 className="text-white font-bold text-sm flex items-center gap-2 mb-2">
                   <Trophy className="w-4 h-4 text-yellow-400" /> How Rankings Work
                 </h3>
-                <ul className="space-y-1.5 text-xs text-slate-500">
+                <ul className="space-y-1.5 text-xs text-white/70">
                   <li>• Rankings based on total agency income</li>
                   <li>• Weekly resets every Sunday at 23:59 UTC</li>
                   <li>• Monthly resets on the last day of each month</li>
@@ -573,20 +573,20 @@ const AgentRank = () => {
                 </ul>
               </div>
               <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-                <h3 className="text-slate-800 font-bold text-sm flex items-center gap-2 mb-2">
+                <h3 className="text-white font-bold text-sm flex items-center gap-2 mb-2">
                   <Gift className="w-4 h-4 text-cyan-400" /> Rewards
                 </h3>
-                <ul className="space-y-1.5 text-xs text-slate-500">
+                <ul className="space-y-1.5 text-xs text-white/70">
                   <li>• Distributed automatically at period end</li>
                   <li>• Credited to agency owner's diamond balance</li>
                   <li>• Minimum income requirements may apply</li>
                 </ul>
               </div>
               <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-                <h3 className="text-slate-800 font-bold text-sm flex items-center gap-2 mb-2">
+                <h3 className="text-white font-bold text-sm flex items-center gap-2 mb-2">
                   <Wifi className="w-4 h-4 text-emerald-400" /> Real-time Updates
                 </h3>
-                <p className="text-xs text-slate-500">Rankings update in real-time as transactions occur.</p>
+                <p className="text-xs text-white/70">Rankings update in real-time as transactions occur.</p>
               </div>
             </div>
           </div>
