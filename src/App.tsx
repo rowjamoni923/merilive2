@@ -362,7 +362,10 @@ const NetworkStatusBar = lazy(lazyRetry(() => import("@/components/common/Networ
 
 const NotificationSettings = lazy(lazyRetry(() => import("./pages/settings/NotificationSettings")));
 const GlobalScreenSecurity = lazy(lazyRetry(() => import("@/components/common/GlobalScreenSecurity")));
-const AndroidBackButtonHandler = lazy(lazyRetry(() => import("@/components/common/AndroidBackButtonHandler").then(m => ({ default: m.AndroidBackButtonHandler }))));
+// EAGER import: must be active from cold start so the very first hardware
+// back press never falls through to the system default (which would exit the app).
+import { AndroidBackButtonHandler } from "@/components/common/AndroidBackButtonHandler";
+import { MandatoryPermissionsGate } from "@/components/common/MandatoryPermissionsGate";
 const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScreen")));
 import ScrollToTop from "@/components/common/ScrollToTop";
 
