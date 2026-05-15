@@ -1685,9 +1685,9 @@ const AgencyDashboard = () => {
                     >
                       <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                         index === 0 ? 'bg-warning-100 text-warning-700' :
-                        index === 1 ? 'bg-gray-100 text-gray-700' :
-                        index === 2 ? 'bg-warning-100 text-warning-700' :
-                        'bg-muted text-muted-foreground'
+                        index === 1 ? 'bg-muted text-foreground/80' :
+                        index === 2 ? 'bg-warning-50 text-warning-600' :
+                        'bg-muted/60 text-muted-foreground'
                       }`}>
                         {index + 1}
                       </span>
@@ -1877,7 +1877,7 @@ const AgencyDashboard = () => {
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span className="font-mono">{sa.agency_code}</span>
                             <span>•</span>
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{sa.level || 'A1'}</Badge>
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-foreground/80 border-border">{sa.level || 'A1'}</Badge>
                             <span>•</span>
                             <span>{sa.total_hosts || 0} Hosts</span>
                           </div>
