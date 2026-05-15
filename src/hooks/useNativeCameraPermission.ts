@@ -242,10 +242,10 @@ export function useNativeCameraPermission() {
     streamRequestInFlight = (async () => {
       console.log('[Camera] Getting stream, includeAudio:', includeAudio);
 
-      const permResult = await requestCameraPermission({ includeMicrophone: includeAudio });
-      if (!permResult.granted) {
-        throw new Error(permResult.error || 'Camera permission not granted');
-      }
+      // IMPORTANT: the real stream request must happen directly from the user's
+      // tap/click path. A separate permission probe before this can break the
+      // Android WebView gesture chain and leave verification with a black or
+      // unusable stream.
 
       // Full HD camera — NO aspectRatio constraint to avoid zoom/crop on Android WebView
       // The display layer (CSS object-fit:cover) handles full-screen fill
@@ -271,6 +271,8 @@ export function useNativeCameraPermission() {
           audio: includeAudio,
         },
       ];
+
+      let lastError: any = null;
 
       for (let i = 0; i < constraintOptions.length; i++) {
         try {
@@ -300,15 +302,26 @@ export function useNativeCameraPermission() {
 
           globalPermissionGranted = true;
           if (includeAudio) globalMicrophoneGranted = true;
+          permissionDeniedCount = 0;
+          setPermissionGranted(true);
 
           return stream;
         } catch (err: any) {
+          lastError = err;
           console.warn(`[Camera] Attempt ${i + 1} failed:`, err?.name, err?.message);
           continue;
         }
       }
 
-      throw new Error('Unable to access camera with any settings.');
+      setPermissionGranted(false);
+      if (lastError?.name === 'NotAllowedError') {
+        permissionDeniedCount++;
+        throw new Error('Camera permission denied. Enable from Settings > Apps > MeriLive > Permissions.');
+      }
+      if (lastError?.name === 'NotFoundError') throw new Error('No camera found on this device.');
+      if (lastError?.name === 'NotReadableError') throw new Error('Camera is being used by another app.');
+      if (lastError?.name === 'TimeoutError') throw new Error('Camera stream request timed out. Please try again.');
+      throw new Error(lastError?.message || 'Unable to access camera with any settings.');
     })();
 
     try {
