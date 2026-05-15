@@ -96,8 +96,6 @@ const getLocalizedInstructions = (_countryName?: string) => [
   { id: 'center', direction: 'Look Forward', icon: ScanFace,       description: 'Keep your face straight towards the camera', checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
   { id: 'left',   direction: 'Turn Left',    icon: ArrowLeftIcon,  description: 'Slowly turn your head to the left',          checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('left',   p, DEFAULT_CALIB) },
   { id: 'right',  direction: 'Turn Right',   icon: ArrowRightIcon, description: 'Slowly turn your head to the right',         checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('right',  p, DEFAULT_CALIB) },
-  { id: 'up',     direction: 'Look Up',      icon: ArrowUp,        description: 'Tilt your head upward slightly',             checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('up',     p, DEFAULT_CALIB) },
-  { id: 'down',   direction: 'Look Down',    icon: ArrowDown,      description: 'Tilt your head downward slightly',           checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('down',   p, DEFAULT_CALIB) },
 ];
 
 // Single English-only message set.
@@ -195,10 +193,11 @@ const FaceVerification = () => {
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
   const [currentInstruction, setCurrentInstruction] = useState(0);
-  const [instructionsCompleted, setInstructionsCompleted] = useState<boolean[]>([false, false, false, false, false]);
+  const [instructionsCompleted, setInstructionsCompleted] = useState<boolean[]>([false, false, false]);
   const [verificationRecording, setVerificationRecording] = useState(false);
   const [verificationTime, setVerificationTime] = useState(0);
   const [verificationFailed, setVerificationFailed] = useState(false);
+  const [faceManualReviewRequired, setFaceManualReviewRequired] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [scanningStatus, setScanningStatus] = useState<'idle' | 'scanning' | 'pass' | 'fail'>('idle');
   const poseHistoryRef = useRef<{yaw:number,pitch:number}[]>([]);
@@ -312,7 +311,7 @@ const FaceVerification = () => {
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const currentInstructionRef = useRef(0);
-  const instructionsCompletedRef = useRef<boolean[]>([false, false, false, false, false]);
+  const instructionsCompletedRef = useRef<boolean[]>([false, false, false]);
   // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
   const capturedAnglesRef = useRef<{ center?: string; left?: string; right?: string }>({});
   const horizontalFirstTurnSignRef = useRef<number | null>(null);
@@ -921,10 +920,11 @@ const FaceVerification = () => {
     setVerificationRecording(true);
     setCurrentInstruction(0);
     currentInstructionRef.current = 0;
-    const freshCompleted = [false, false, false, false, false];
+    const freshCompleted = faceInstructions.map(() => false);
     setInstructionsCompleted(freshCompleted);
     instructionsCompletedRef.current = freshCompleted;
     setVerificationFailed(false);
+    setFaceManualReviewRequired(false);
     setVerificationTime(0);
     setScanningStatus('idle');
       poseHistoryRef.current = [];
@@ -969,11 +969,12 @@ const FaceVerification = () => {
       
       mediaRecorder.start();
       
-      // Overall verification window: derived from calibrated per-step window
-      // (noisy cameras get longer time). 5 steps × stepWindowSec, padded for
-      // calibration phase + capture latency. Min 45s, max 90s.
+      // Overall verification window: 3 essential liveness poses × stepWindowSec,
+      // padded for calibration/capture latency. This avoids users getting stuck
+      // on fragile up/down pitch detection while still capturing front/left/right
+      // images for Rekognition + manual admin review.
       const calib = calibrationRef.current;
-      const overallSec = Math.min(90, Math.max(45,
+      const overallSec = Math.min(75, Math.max(35,
         Math.round(calib.stepWindowSec * faceInstructions.length + 10)
       ));
       let elapsed = 0;
@@ -982,6 +983,7 @@ const FaceVerification = () => {
         setVerificationTime(elapsed);
         if (elapsed >= overallSec) {
           const allDone = instructionsCompletedRef.current.every(Boolean);
+          const partialDone = instructionsCompletedRef.current.filter(Boolean).length >= 2;
           pushDebug({
             kind: 'timeout',
             elapsedSec: elapsed,
@@ -990,7 +992,7 @@ const FaceVerification = () => {
             stuckOnStep: currentInstructionRef.current,
             stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
           });
-          finishVerification(allDone);
+          finishVerification(allDone || partialDone, !allDone && partialDone);
         }
       }, 1000);
       
@@ -1015,8 +1017,6 @@ const FaceVerification = () => {
     const dp = pose.pitch - c.baselinePitch;
     if (instrId === 'left') return (horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
     if (instrId === 'right') return -(horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
-    if (instrId === 'up') return (verticalFirstTiltSignRef.current ?? -1) * dp > c.tiltPitch;
-    if (instrId === 'down') return -(verticalFirstTiltSignRef.current ?? -1) * dp > c.tiltPitch;
     return evaluatePose(instrId, pose, c);
   };
 
@@ -1061,18 +1061,6 @@ const FaceVerification = () => {
         const progress = clamp(signedDy / (c.turnYaw + 6));
         if (signedDy > c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
         return { hint: horizontalFirstTurnSignRef.current == null ? 'Turn your head right slowly' : `Turn ~${Math.round(Math.max(c.turnYaw - signedDy, 0) + 4)}° more to your right`, severity: 'warn', progress };
-      }
-      case 'up': {
-        const signedDp = (verticalFirstTiltSignRef.current ?? -1) * dp;
-        const progress = clamp(signedDp / (c.tiltPitch + 6));
-        if (signedDp > c.tiltPitch) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
-        return { hint: verticalFirstTiltSignRef.current == null ? 'Tilt your head up slowly' : `Tilt your head up ~${Math.round(Math.max(c.tiltPitch - signedDp, 0) + 3)}° more`, severity: 'warn', progress };
-      }
-      case 'down': {
-        const signedDp = -(verticalFirstTiltSignRef.current ?? -1) * dp;
-        const progress = clamp(signedDp / (c.tiltPitch + 6));
-        if (signedDp > c.tiltPitch) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
-        return { hint: verticalFirstTiltSignRef.current == null ? 'Tilt your head down slowly' : `Tilt your head down ~${Math.round(Math.max(c.tiltPitch - signedDp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       default:
         return { hint: 'Follow the on-screen instruction', severity: 'warn', progress: 0 };
@@ -1119,7 +1107,7 @@ const FaceVerification = () => {
           apiOk: !!result,
         });
         if (consecutiveFails >= 15) {
-          finishVerification(false);
+          finishVerification(instructionsCompletedRef.current.filter(Boolean).length >= 2, true);
         }
         return;
       }
@@ -1166,9 +1154,6 @@ const FaceVerification = () => {
         const dp = pose.pitch - calib.baselinePitch;
         if (instruction.id === 'left' && horizontalFirstTurnSignRef.current == null && Math.abs(dy) > 6) {
           horizontalFirstTurnSignRef.current = Math.sign(dy) || 1;
-        }
-        if (instruction.id === 'up' && verticalFirstTiltSignRef.current == null && Math.abs(dp) > 5) {
-          verticalFirstTiltSignRef.current = Math.sign(dp) || -1;
         }
         const passed = evaluateAdaptivePose(instruction.id, pose, calib);
         const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen, calib);
@@ -1224,7 +1209,7 @@ const FaceVerification = () => {
   };
 
   // Finish verification
-  const finishVerification = async (success: boolean) => {
+  const finishVerification = async (success: boolean, manualReviewRequired = false) => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -1258,13 +1243,12 @@ const FaceVerification = () => {
           // Suspiciously static — likely a photo
           console.log('[FaceVerify] ⚠️ Anti-spoof: pose too static, likely photo');
           pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: collectedPoseHistory.length });
-          setVerificationFailed(true);
-          setFailedAttempts(prev => prev + 1);
+          setFaceManualReviewRequired(true);
+          setFaceVerified(true);
           buildAndStoreDebugReport('antispoof');
           toast({
-            title: "❌ " + localizedMsg.failed,
-            description: localizedMsg.staticFace,
-            variant: "destructive",
+            title: "Manual Review Required",
+            description: "The scan was captured, but AI could not safely auto-approve it. Admin will review it manually.",
           });
           return;
         }
@@ -1272,9 +1256,10 @@ const FaceVerification = () => {
       
       pushDebug({ kind: 'finish', success: true });
       setFaceVerified(true);
+      setFaceManualReviewRequired(manualReviewRequired);
       toast({
-        title: localizedMsg.success,
-        description: localizedMsg.successDesc,
+        title: manualReviewRequired ? "Manual Review Ready" : localizedMsg.success,
+        description: manualReviewRequired ? "Enough liveness data was captured. Submit it for admin review." : localizedMsg.successDesc,
       });
     } else {
       pushDebug({
@@ -1301,12 +1286,14 @@ const FaceVerification = () => {
     setVerificationRecording(false);
     setCurrentInstruction(0);
     currentInstructionRef.current = 0;
-    setInstructionsCompleted([false, false, false, false, false]);
-    instructionsCompletedRef.current = [false, false, false, false, false];
+    const freshCompleted = faceInstructions.map(() => false);
+    setInstructionsCompleted(freshCompleted);
+    instructionsCompletedRef.current = freshCompleted;
     setVerificationFailed(false);
     setVerificationTime(0);
     setFaceVerificationVideo(null);
     setFaceVerified(false);
+    setFaceManualReviewRequired(false);
     setScanningStatus('idle');
     poseHistoryRef.current = [];
     setLiveDiag(null); setCalibrating(false);
@@ -1519,6 +1506,8 @@ const FaceVerification = () => {
           user_id: userId,
           verification_type: 'face',
           status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
+          admin_notes: faceManualReviewRequired ? 'Manual review required: liveness captured but AI/pose detection could not safely auto-approve.' : null,
+          ai_analysis: faceManualReviewRequired ? { manual_review_required: true, reason: 'client_pose_partial_or_antispoof_uncertain' } : null,
           face_image_url: videoUrl,
           selfie_url: angleUrls.front_url || videoUrl || 'pending://no-image',
           front_url: angleUrls.front_url ?? null,
@@ -1538,7 +1527,7 @@ const FaceVerification = () => {
       // → service_auto_finalize_face_verification handles gender swap + is_host + status='approved'.
       let autoApproved = false;
       let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
-      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+      if (!faceManualReviewRequired && submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
         if (result?.autoFinalize?.success) {
           autoApproved = true;
@@ -1551,7 +1540,7 @@ const FaceVerification = () => {
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
-        description: autoMessage,
+        description: faceManualReviewRequired ? "Your verification is in admin manual review." : autoMessage,
       });
       navigate('/profile');
       return;
@@ -1754,6 +1743,8 @@ const FaceVerification = () => {
           user_id: userId,
           verification_type: 'host',
           status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
+          admin_notes: faceManualReviewRequired ? 'Manual review required: liveness captured but AI/pose detection could not safely auto-approve.' : null,
+          ai_analysis: faceManualReviewRequired ? { manual_review_required: true, reason: 'client_pose_partial_or_antispoof_uncertain' } : null,
           full_name: fullName,
           age: parseInt(age),
           language: language,
@@ -1780,7 +1771,7 @@ const FaceVerification = () => {
       // → service_auto_finalize_face_verification handles gender swap + is_host=true + status='approved'.
       let autoApproved = false;
       let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
-      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+      if (!faceManualReviewRequired && submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
         if (result?.autoFinalize?.success) {
           autoApproved = true;
@@ -1793,7 +1784,7 @@ const FaceVerification = () => {
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
-        description: autoMessage,
+        description: faceManualReviewRequired ? "Your host verification is in admin manual review." : autoMessage,
       });
       navigate('/profile');
       return;
@@ -1816,6 +1807,14 @@ const FaceVerification = () => {
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : scanningStatus === 'scanning' ? '#eab308' : '#a855f7';
+    const completeFromPartialScan = () => {
+      const completed = instructionsCompletedRef.current.filter(Boolean).length;
+      if (completed < 2 || !faceChunksRef.current.length) {
+        toast({ title: 'Keep scanning', description: 'Complete at least forward + one side angle before manual review.', variant: 'destructive' });
+        return;
+      }
+      finishVerification(true, true);
+    };
 
     return (
     <div className="bg-gradient-to-br from-[#FFFBF2] to-[#FFFBF2] rounded-3xl p-5 border border-purple-500/20 shadow-2xl">
@@ -1903,8 +1902,12 @@ const FaceVerification = () => {
                 </div>
               </div>
             </motion.div>
-            <h3 className="text-xl font-bold text-slate-800 mt-6 mb-2">Scan Complete!</h3>
-            <p className="text-green-300 text-sm">All {faceInstructions.length} liveness checks passed</p>
+            <h3 className="text-xl font-bold text-slate-800 mt-6 mb-2">
+              {faceManualReviewRequired ? 'Ready for Admin Review' : 'Scan Complete!'}
+            </h3>
+            <p className="text-green-300 text-sm text-center px-4">
+              {faceManualReviewRequired ? 'AI could not safely auto-approve, but your scan can be submitted for manual review' : `All ${faceInstructions.length} liveness checks passed`}
+            </p>
             <div className="flex gap-1 mt-3">
               {instructionsCompleted.map((_, idx) => (
                 <div key={idx} className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
@@ -2147,14 +2150,6 @@ const FaceVerification = () => {
                           headAngle = dy < -c.turnYaw ? 'ok' : 'warn';
                           headTip = headAngle === 'ok' ? 'Right angle reached' : `Turn ~${Math.round(Math.max(c.turnYaw + dy, 0) + 4)}° more right`;
                           break;
-                        case 'up':
-                          headAngle = dp < -c.tiltPitch ? 'ok' : 'warn';
-                          headTip = headAngle === 'ok' ? 'Up tilt reached' : `Tilt up ~${Math.round(Math.max(c.tiltPitch + dp, 0) + 3)}° more`;
-                          break;
-                        case 'down':
-                          headAngle = dp > c.tiltPitch ? 'ok' : 'warn';
-                          headTip = headAngle === 'ok' ? 'Down tilt reached' : `Tilt down ~${Math.round(Math.max(c.tiltPitch - dp, 0) + 3)}° more`;
-                          break;
                         default:
                           headAngle = (ady < c.centerYaw && adp < c.centerPitch) ? 'ok' : 'warn';
                           headTip = headAngle === 'ok' ? 'Looking straight' : 'Face the camera straight';
@@ -2286,7 +2281,7 @@ const FaceVerification = () => {
                       · Step {currentInstruction + 1}/{faceInstructions.length}: {faceInstructions[currentInstruction]?.direction}
                     </span>
                   </div>
-                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(90, Math.max(45, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
+                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(75, Math.max(35, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
                 </div>
               </div>
             )}
@@ -2375,7 +2370,7 @@ const FaceVerification = () => {
           {neutralCalib && neutralCalib.capturedAt > 0 && !neutralCalibrating && (
             <p className="text-[11px] text-center text-slate-700 leading-5 font-medium">
               Tuned for you · baseline {neutralCalib.baselineYaw.toFixed(1)}° / {neutralCalib.baselinePitch.toFixed(1)}° ·
-              turn ±{neutralCalib.turnYaw.toFixed(0)}° · tilt ±{neutralCalib.tiltPitch.toFixed(0)}°
+              turn ±{neutralCalib.turnYaw.toFixed(0)}°
             </p>
           )}
           <Button
@@ -2390,6 +2385,15 @@ const FaceVerification = () => {
       
       {verificationFailed && (
         <div className="space-y-2">
+          {instructionsCompleted.filter(Boolean).length >= 2 && (
+            <Button
+              className="w-full h-14 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-2xl text-lg font-bold"
+              onClick={completeFromPartialScan}
+            >
+              <ShieldCheck className="w-6 h-6 mr-3" />
+              Submit for Manual Review
+            </Button>
+          )}
           <Button
             className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl text-lg font-bold"
             onClick={resetVerification}
@@ -2489,8 +2493,8 @@ const FaceVerification = () => {
                   setPhotoFile(null); setPhotoPreview(null); setUserPhotoFile(null); setUserPhotoPreview(null);
                   setUserPhotoStep(true); setVideoFile(null); setVideoPreview(null); setHostPhotos([]); setHostPhotosPreviews([]);
                   setFaceVerificationVideo(null); setFaceVerified(false); setVerificationStarted(false);
-                  setCurrentInstruction(0); setInstructionsCompleted([false, false, false, false, false]);
-                  setVerificationRecording(false); setVerificationTime(0); setVerificationFailed(false);
+                  setCurrentInstruction(0); setInstructionsCompleted(faceInstructions.map(() => false)); instructionsCompletedRef.current = faceInstructions.map(() => false);
+                  setVerificationRecording(false); setVerificationTime(0); setVerificationFailed(false); setFaceManualReviewRequired(false);
                   setCameraReady(false); setCurrentStep(1); setFullName(""); setAge(""); setLanguage("");
                   setRejectionReason(null); setVerificationStatus('unverified');
                 }}

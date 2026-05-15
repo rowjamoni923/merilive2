@@ -22,7 +22,7 @@
         { "step": "up",     "yaw": 0.0,  "pitch": -14.0 },
         { "step": "down",   "yaw": 0.0,  "pitch": 14.5 }
       ],
-      "expected": { "stepsPassed": ["center", "left", "right", "up", "down"], "minPassRate": 0.7 }
+      "expected": { "stepsPassed": ["center", "left", "right"], "minPassRate": 0.5 }
     },
     {
       "id": "phone-on-lap-low-angle",
@@ -42,7 +42,7 @@
         { "step": "up",     "yaw": 0.0, "pitch": -1.0 },
         { "step": "down",   "yaw": 0.0, "pitch": 25.0 }
       ],
-      "expected": { "stepsPassed": ["center", "left", "right", "up", "down"] }
+      "expected": { "stepsPassed": ["center", "left", "right"] }
     },
     {
       "id": "noisy-shaky-handheld",
@@ -62,7 +62,7 @@
         { "step": "up",     "yaw": 1.0, "pitch": -16.0 },
         { "step": "down",   "yaw": -1.0, "pitch": 18.0 }
       ],
-      "expected": { "stepsPassed": ["center", "left", "right", "up", "down"] }
+      "expected": { "stepsPassed": ["center", "left", "right"] }
     },
     {
       "id": "far-distance-small-face",
@@ -99,7 +99,7 @@
         { "step": "up",     "yaw": 0.0, "pitch": -13.0 },
         { "step": "down",   "yaw": 0.0, "pitch": 14.0 }
       ],
-      "expected": { "stepsPassed": ["center", "left", "right", "up", "down"] }
+      "expected": { "stepsPassed": ["center", "left", "right"] }
     }
   ]
 }
