@@ -1089,7 +1089,7 @@ const AgencyDashboard = () => {
 
       {/* Earnings Card - Compact */}
       <div className="mx-4 mt-2">
- <Card className="bg-gradient-to-br from-warning-500 via-warning-500 to-danger-500 border-0 text-white overflow-hidden relative">
+        <Card className="surface-amber-warm border-0 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
           
@@ -1101,48 +1101,48 @@ const AgencyDashboard = () => {
                 className="flex items-center gap-2 text-left hover:opacity-90 transition-opacity"
                 aria-label="View commission history"
               >
-                <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                  <Coins className="w-5 h-5" />
+                <div className="w-9 h-9 bg-white/15 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/10">
+                  <Coins className="w-5 h-5 text-white" />
                 </div>
                 <div>
- <p className="text-white/80 text-[10px] uppercase tracking-wide flex items-center gap-1">
+                  <p className="text-white/75 text-[10px] uppercase tracking-wide flex items-center gap-1 font-medium">
                     Total Beans <ChevronRight className="w-3 h-3" />
                   </p>
-                  <p className="text-xl font-bold">{fmtNum(agencyBeansBalance)}</p>
- <p className="text-[9px] text-white/85">Tap to view commission history</p>
+                  <p className="text-xl font-bold text-white tracking-tight">{fmtNum(agencyBeansBalance)}</p>
+                  <p className="text-[9px] text-white/65">Tap to view commission history</p>
                 </div>
               </button>
-              <div className="text-right bg-white/20 backdrop-blur-sm rounded-lg p-2">
- <p className="text-white/80 text-[10px] flex items-center gap-0.5 justify-end">
+              <div className="text-right bg-white/15 backdrop-blur-sm rounded-lg p-2 border border-white/10">
+                <p className="text-white/75 text-[10px] flex items-center gap-0.5 justify-end font-medium">
                   <DollarSign className="w-2.5 h-2.5" />
                   USD Value
                 </p>
-                <p className="text-lg font-bold text-success-200">
+                <p className="text-lg font-bold text-white tracking-tight">
                   ${usdValue.toFixed(2)}
                 </p>
               </div>
             </div>
 
             {/* Local Currency Value - Compact */}
- <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 mb-1.5 border border-slate-200/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 mb-1.5 border border-white/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm">{localCurrency.flag}</span>
- <span className="text-xs text-white/80">{localCurrency.code} Value</span>
+                  <span className="text-xs text-white/75 font-medium">{localCurrency.code} Value</span>
                 </div>
-                <span className="text-sm font-bold text-info-200">
+                <span className="text-sm font-bold text-white tracking-tight">
                   {localCurrency.symbol}{localValue.toFixed(2)}
                 </span>
               </div>
             </div>
             
             {/* Exchange Rate Info - Compact */}
- <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 flex items-center justify-between mb-2 border border-slate-200/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 flex items-center justify-between mb-2 border border-white/10">
               <div className="flex items-center gap-1.5">
- <ArrowRightLeft className="w-3 h-3 text-white/70" />
- <span className="text-xs text-white/80">Exchange Rate</span>
+                <ArrowRightLeft className="w-3 h-3 text-white/65" />
+                <span className="text-xs text-white/75 font-medium">Exchange Rate</span>
               </div>
-              <span className="text-[10px] font-semibold">
+              <span className="text-[10px] font-semibold text-white/85">
                 {fmtNum(coinsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}
               </span>
             </div>
