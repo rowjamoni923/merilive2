@@ -160,6 +160,7 @@ const AgencyPolicy = lazy(() => import("./pages/AgencyPolicy"));
 const PoliciesAndBenefits = lazy(() => import("./pages/PoliciesAndBenefits"));
 const PublicPolicies = lazy(() => import("./pages/PublicPolicies"));
 const PublicPrivacyPolicy = lazy(() => import("./pages/PublicPrivacyPolicy"));
+const PublicAccountDeletion = lazy(() => import("./pages/PublicAccountDeletion"));
 const PolicyDetail = lazy(() => import("./pages/PolicyDetail"));
 const GoogleLibraryOrderRules = lazy(() => import("./pages/GoogleLibraryOrderRules"));
 const About = lazy(() => import("./pages/About"));
