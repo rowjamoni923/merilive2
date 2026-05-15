@@ -1340,7 +1340,10 @@ const FaceVerification = () => {
   // Convert dataURL → Blob for storage upload
   const dataUrlToBlob = (dataUrl: string): Blob | null => {
     try {
-      const [meta, b64] = dataUrl.split(',');
+      const isDataUrl = dataUrl.startsWith('data:');
+      const [meta, b64Raw] = isDataUrl ? dataUrl.split(',') : ['data:image/jpeg;base64', dataUrl];
+      const b64 = (b64Raw || '').trim();
+      if (!b64) return null;
       const mime = /data:(.*?);base64/.exec(meta || '')?.[1] || 'image/jpeg';
       const bin = atob(b64 || '');
       const len = bin.length;
