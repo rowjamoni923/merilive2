@@ -16,6 +16,7 @@ const ADMIN_SESSION_KEY = 'merilive-admin-session';
 const ADMIN_SESSION_VERSION = 'v2';
 const APPROVED_DEVICES_KEY = 'merilive-admin-approved-devices';
 const ADMIN_TOKEN_KEY = 'merilive-admin-token';
+const ADMIN_SECRET_LINK_SESSION_KEY = 'meri_admin_link_token';
 
 const hasWindow = () => typeof window !== 'undefined';
 
@@ -86,6 +87,9 @@ export const saveAdminSession = (session: Omit<AdminSession, 'version' | 'signed
       const json = JSON.stringify(full);
       window.localStorage.setItem(ADMIN_SESSION_KEY, json);
       window.sessionStorage.setItem(ADMIN_SESSION_KEY, json);
+      if (session.session_token && session.session_token.length >= 16) {
+        window.localStorage.setItem(ADMIN_TOKEN_KEY, session.session_token);
+      }
     } catch (e) {
       console.warn('[adminSession] Failed to save', e);
     }
@@ -99,6 +103,12 @@ export const saveAdminSession = (session: Omit<AdminSession, 'version' | 'signed
 export const getAdminSession = (): AdminSession | null => {
   if (!hasWindow()) return null;
   try {
+    // Every browser tab must be opened from the secret admin link before it can
+    // reuse an existing admin session. Owners still bypass device approval in
+    // the RPC, but not the secret-link gate.
+    if (!window.sessionStorage.getItem(ADMIN_SECRET_LINK_SESSION_KEY)) {
+      return null;
+    }
     const raw =
       window.sessionStorage.getItem(ADMIN_SESSION_KEY) ||
       window.localStorage.getItem(ADMIN_SESSION_KEY);
