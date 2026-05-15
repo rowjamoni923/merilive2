@@ -1740,6 +1740,8 @@ const FaceVerification = () => {
           user_id: userId,
           verification_type: 'host',
           status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
+          admin_notes: faceManualReviewRequired ? 'Manual review required: liveness captured but AI/pose detection could not safely auto-approve.' : null,
+          ai_analysis: faceManualReviewRequired ? { manual_review_required: true, reason: 'client_pose_partial_or_antispoof_uncertain' } : null,
           full_name: fullName,
           age: parseInt(age),
           language: language,
@@ -1766,7 +1768,7 @@ const FaceVerification = () => {
       // → service_auto_finalize_face_verification handles gender swap + is_host=true + status='approved'.
       let autoApproved = false;
       let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
-      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+      if (!faceManualReviewRequired && submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
         if (result?.autoFinalize?.success) {
           autoApproved = true;
@@ -1779,7 +1781,7 @@ const FaceVerification = () => {
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
-        description: autoMessage,
+        description: faceManualReviewRequired ? "Your host verification is in admin manual review." : autoMessage,
       });
       navigate('/profile');
       return;
