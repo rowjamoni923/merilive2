@@ -73,7 +73,7 @@ export default function AdminHostSearch() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  // Realtime: auto-refresh search results when profiles change
+  // Realtime push (Pkg37): instant invalidation, no polling
   const refreshSearch = useCallback(() => {
     if (searched && searchQuery.trim()) handleSearch();
   }, [searched, searchQuery]);
