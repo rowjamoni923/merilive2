@@ -15,6 +15,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { clearAdminSession, getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
 import { recordAdminError } from '@/utils/adminErrorLog';
+import { revokeAdminAccess } from '@/utils/adminAccessStorage';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
@@ -63,6 +64,7 @@ function forceAdminLogout(): void {
   if (adminLogoutInProgress) return;
   adminLogoutInProgress = true;
   clearAdminSession();
+  revokeAdminAccess();
   window.dispatchEvent(new CustomEvent('admin-session-change'));
   if (window.location.pathname.startsWith('/admin')) {
     window.history.replaceState(null, '', '/');
