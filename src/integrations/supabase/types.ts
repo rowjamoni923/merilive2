@@ -15511,6 +15511,13 @@ export type Database = {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
       }
+      bump_sync_test: {
+        Args: never
+        Returns: {
+          server_time: string
+          version: number
+        }[]
+      }
       calculate_commission: {
         Args: { _amount: number; _rate: number }
         Returns: number
