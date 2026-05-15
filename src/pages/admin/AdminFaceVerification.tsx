@@ -51,7 +51,7 @@ interface Submission {
   id: string;
   user_id: string;
   verification_type: 'user' | 'host';
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'submitted' | 'under_review' | 'approved' | 'rejected';
   full_name: string | null;
   age: number | null;
   language: string | null;
@@ -304,6 +304,8 @@ const AdminFaceVerification = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'submitted':
+      case 'under_review':
       case 'pending': return <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
       case 'approved': return <Badge className="bg-green-500/20 text-green-300 border border-green-500/30"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</Badge>;
       case 'rejected': return <Badge className="bg-red-500/20 text-red-300 border border-red-500/30"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
@@ -449,11 +451,12 @@ const AdminFaceVerification = () => {
     if (activeTab === 'auto_approved') {
       return matchesSearch && sub.status === 'approved' && sub.admin_notes?.toLowerCase().includes('auto');
     }
-    const matchesTab = activeTab === 'all' || sub.status === activeTab;
+    const isPendingReview = ['pending', 'submitted', 'under_review'].includes(sub.status);
+    const matchesTab = activeTab === 'all' || sub.status === activeTab || (activeTab === 'pending' && isPendingReview);
     return matchesSearch && matchesTab;
   });
 
-  const pendingCount = submissions.filter(s => s.status === 'pending').length;
+  const pendingCount = submissions.filter(s => ['pending', 'submitted', 'under_review'].includes(s.status)).length;
   const approvedCount = submissions.filter(s => s.status === 'approved').length;
   const autoApprovedCount = autoApprovedSubmissions.length;
   const rejectedCount = submissions.filter(s => s.status === 'rejected').length;
