@@ -1127,6 +1127,8 @@ const App = () => {
                 <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
                 <Route path="/privacy-policy" element={<PublicPrivacyPolicy />} />
                 <Route path="/terms" element={<PublicPrivacyPolicy />} />
+                <Route path="/account-deletion" element={<PublicAccountDeletion />} />
+                <Route path="/delete-account" element={<Navigate to="/account-deletion" replace />} />
                 <Route path="/google-library-order-rules" element={<GoogleLibraryOrderRules />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<PublicContact />} />
