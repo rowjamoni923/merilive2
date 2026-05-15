@@ -342,9 +342,9 @@ const Tags = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
+    <div className="flex flex-col h-[100dvh] bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/85 backdrop-blur-lg border-b border-amber-200/60">
+      <div className="shrink-0 bg-white/85 backdrop-blur-lg border-b border-amber-200/60">
         <div className="flex items-center justify-between px-4 h-14 safe-area-top">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-700 hover:bg-amber-100/60">
             <ArrowLeft className="w-5 h-5" />
