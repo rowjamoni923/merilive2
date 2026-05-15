@@ -929,9 +929,12 @@ const FaceVerification = () => {
     setVerificationTime(0);
     setScanningStatus('idle');
     setPoseHistory([]);
+      poseHistoryRef.current = [];
     setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
+      horizontalFirstTurnSignRef.current = null;
+      verticalFirstTiltSignRef.current = null;
     // Reset debug log for this attempt
     debugLogRef.current = [];
     sessionStartRef.current = Date.now();
@@ -1003,6 +1006,20 @@ const FaceVerification = () => {
     }
   };
 
+  const evaluateAdaptivePose = (
+    instrId: string,
+    pose: { yaw: number; pitch: number },
+    c: PoseCalibration,
+  ): boolean => {
+    const dy = pose.yaw - c.baselineYaw;
+    const dp = pose.pitch - c.baselinePitch;
+    if (instrId === 'left') return (horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
+    if (instrId === 'right') return -(horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
+    if (instrId === 'up') return (verticalFirstTiltSignRef.current ?? -1) * dp > c.tiltPitch;
+    if (instrId === 'down') return -(verticalFirstTiltSignRef.current ?? -1) * dp > c.tiltPitch;
+    return evaluatePose(instrId, pose, c);
+  };
+
   // Compute a precise, user-facing hint about why the current step is not
   // yet passing. Uses the live calibration so deltas are measured from the
   // user's natural pose, not absolute zero.
@@ -1034,24 +1051,28 @@ const FaceVerification = () => {
         return { hint: `Level your head (tilt ${dp > 0 ? 'up' : 'down'} ~${Math.round(adp - c.centerPitch + 4)}°)`, severity: 'warn', progress };
       }
       case 'left': {
-        const progress = clamp(dy / (c.turnYaw + 6));
-        if (dy > c.turnYaw) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
-        return { hint: `Turn ~${Math.round(Math.max(c.turnYaw - dy, 0) + 4)}° more to your left`, severity: 'warn', progress };
+        const signedDy = (horizontalFirstTurnSignRef.current ?? 1) * dy;
+        const progress = clamp(signedDy / (c.turnYaw + 6));
+        if (signedDy > c.turnYaw) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
+        return { hint: horizontalFirstTurnSignRef.current == null ? 'Turn your head left slowly' : `Turn ~${Math.round(Math.max(c.turnYaw - signedDy, 0) + 4)}° more to your left`, severity: 'warn', progress };
       }
       case 'right': {
-        const progress = clamp(-dy / (c.turnYaw + 6));
-        if (dy < -c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
-        return { hint: `Turn ~${Math.round(Math.max(c.turnYaw + dy, 0) + 4)}° more to your right`, severity: 'warn', progress };
+        const signedDy = -(horizontalFirstTurnSignRef.current ?? 1) * dy;
+        const progress = clamp(signedDy / (c.turnYaw + 6));
+        if (signedDy > c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
+        return { hint: horizontalFirstTurnSignRef.current == null ? 'Turn your head right slowly' : `Turn ~${Math.round(Math.max(c.turnYaw - signedDy, 0) + 4)}° more to your right`, severity: 'warn', progress };
       }
       case 'up': {
-        const progress = clamp(-dp / (c.tiltPitch + 6));
-        if (dp < -c.tiltPitch) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
-        return { hint: `Tilt your head up ~${Math.round(Math.max(c.tiltPitch + dp, 0) + 3)}° more`, severity: 'warn', progress };
+        const signedDp = (verticalFirstTiltSignRef.current ?? -1) * dp;
+        const progress = clamp(signedDp / (c.tiltPitch + 6));
+        if (signedDp > c.tiltPitch) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
+        return { hint: verticalFirstTiltSignRef.current == null ? 'Tilt your head up slowly' : `Tilt your head up ~${Math.round(Math.max(c.tiltPitch - signedDp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       case 'down': {
-        const progress = clamp(dp / (c.tiltPitch + 6));
-        if (dp > c.tiltPitch) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
-        return { hint: `Tilt your head down ~${Math.round(Math.max(c.tiltPitch - dp, 0) + 3)}° more`, severity: 'warn', progress };
+        const signedDp = -(verticalFirstTiltSignRef.current ?? -1) * dp;
+        const progress = clamp(signedDp / (c.tiltPitch + 6));
+        if (signedDp > c.tiltPitch) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
+        return { hint: verticalFirstTiltSignRef.current == null ? 'Tilt your head down slowly' : `Tilt your head down ~${Math.round(Math.max(c.tiltPitch - signedDp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       default:
         return { hint: 'Follow the on-screen instruction', severity: 'warn', progress: 0 };
