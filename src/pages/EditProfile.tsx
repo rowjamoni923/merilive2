@@ -786,7 +786,7 @@ const EditProfile = () => {
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         language === lang 
                           ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-white hover:bg-slate-200 border border-amber-200/40"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-amber-200/40"
                       }`}
                     >
                       {lang}
@@ -822,7 +822,7 @@ const EditProfile = () => {
                     className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                       !secondLanguage 
                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                        : "bg-slate-100 text-white hover:bg-slate-200 border border-amber-200/40"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-amber-200/40"
                     }`}
                   >
                     None
@@ -834,7 +834,7 @@ const EditProfile = () => {
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         secondLanguage === lang 
                           ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-white hover:bg-slate-200 border border-amber-200/40"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-amber-200/40"
                       }`}
                     >
                       {lang}
