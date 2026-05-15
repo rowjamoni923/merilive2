@@ -1770,29 +1770,29 @@ const AgencyDashboard = () => {
 
           {/* Sub-Agents Tab */}
           <TabsContent value="subagents" className="mt-4 space-y-4">
-            <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
+            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d2a07] via-[#7a5410] to-[#2e1f05]">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-warning-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/10">
+                    <LinkIcon className="w-5 h-5 text-amber-200" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-warning-800">Referral Link</h3>
-                    <p className="text-xs text-warning-600">Share to add sub-agents</p>
+                    <h3 className="font-semibold text-white">Referral Link</h3>
+                    <p className="text-xs text-white/70">Share to add sub-agents</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copySubAgentLink}
                     variant="outline" 
-                    className="flex-1 border-warning-300 text-warning-700"
+                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
                   </Button>
                   <Button 
                     onClick={shareSubAgentLink}
- className="flex-1 bg-warning-500 hover:bg-warning-600 text-white"
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
