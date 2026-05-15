@@ -859,7 +859,7 @@ const EditProfile = () => {
                 {tags.length > 0 ? (
                   <div className="flex gap-1">
                     {tags.slice(0, 2).map(tag => (
-                      <span key={tag} className="text-xs bg-purple-600/30 text-purple-300 px-2 py-0.5 rounded-full">{tag}</span>
+                      <span key={tag} className="text-xs font-semibold bg-gradient-to-r from-pink-500 to-rose-500 text-white px-2.5 py-0.5 rounded-full shadow-sm">{tag}</span>
                     ))}
                     {tags.length > 2 && <span className="text-xs text-body">+{tags.length - 2}</span>}
                   </div>
