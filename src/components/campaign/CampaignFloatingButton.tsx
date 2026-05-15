@@ -656,19 +656,21 @@ function CampaignFloatingButton() {
                 <div
                   className="absolute inset-[3px] rounded-full overflow-hidden flex items-center justify-center"
                   style={{
-                    border: '1.5px solid rgba(255,255,255,0.6)',
+                    border: campaign.banner_image_url ? 'none' : '1.5px solid rgba(255,255,255,0.6)',
                     background: campaign.banner_image_url
-                      ? 'radial-gradient(circle at 30% 25%, #ffffff 0%, #fff7ed 80%)'
+                      ? 'transparent'
                       : 'radial-gradient(circle at 30% 25%, #2a1645 0%, #0a0612 80%)',
-                    boxShadow: 'inset 0 -4px 10px rgba(0,0,0,0.18), inset 0 3px 8px rgba(255,255,255,0.55)',
+                    boxShadow: campaign.banner_image_url
+                      ? 'none'
+                      : 'inset 0 -4px 10px rgba(0,0,0,0.18), inset 0 3px 8px rgba(255,255,255,0.55)',
                   }}
                 >
                   {campaign.banner_image_url ? (
                     <img
                       src={campaign.banner_image_url}
                       alt=""
-                      className="absolute inset-0 m-auto block h-full w-full object-contain"
-                      style={{ objectPosition: 'center center', padding: '4px' }}
+                      className="absolute inset-0 block h-full w-full scale-[1.18] object-cover"
+                      style={{ objectPosition: 'center center' }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
