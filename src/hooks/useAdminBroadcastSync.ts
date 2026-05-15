@@ -161,6 +161,31 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
 
 let globalChannel: ReturnType<typeof supabase.channel> | null = null;
 let mountCount = 0;
+let killSwitchChecked = false;
+let killSwitchEnabled = true;
+
+// Per-topic client-side dedupe: ignore repeat events on the same topic
+// within this window (server already throttles to 500ms; client adds
+// belt-and-suspenders to absorb retries / multiple bumps).
+const TOPIC_DEDUPE_MS = 400;
+const lastTopicAt = new Map<string, number>();
+
+async function checkKillSwitch(): Promise<boolean> {
+  if (killSwitchChecked) return killSwitchEnabled;
+  try {
+    const { data } = await supabase
+      .from('app_settings')
+      .select('setting_value')
+      .eq('setting_key', 'realtime_admin_broadcast_enabled')
+      .maybeSingle();
+    const v = (data as any)?.setting_value;
+    killSwitchEnabled = v === true || v === 'true' || v === undefined || v === null;
+  } catch {
+    killSwitchEnabled = true; // fail-open: don't break sync if check fails
+  }
+  killSwitchChecked = true;
+  return killSwitchEnabled;
+}
 
 export function useAdminBroadcastSync() {
   const qc = useQueryClient();
@@ -169,8 +194,16 @@ export function useAdminBroadcastSync() {
 
   useEffect(() => {
     mountCount += 1;
+    let cancelled = false;
 
-    if (!globalChannel) {
+    (async () => {
+      const enabled = await checkKillSwitch();
+      if (!enabled) {
+        console.warn('[AdminBroadcastSync] 🛑 Disabled via app_settings kill switch');
+        return;
+      }
+      if (cancelled || globalChannel) return;
+
       globalChannel = supabase
         .channel('admin-broadcast-global')
         .on(
@@ -180,6 +213,13 @@ export function useAdminBroadcastSync() {
             const row = (payload.new ?? payload.old) as BroadcastRow | undefined;
             if (!row?.topic) return;
             const topic = row.topic;
+
+            // Client-side dedupe
+            const now = Date.now();
+            const last = lastTopicAt.get(topic) ?? 0;
+            if (now - last < TOPIC_DEDUPE_MS) return;
+            lastTopicAt.set(topic, now);
+
             const eventType = (row.last_event ?? payload.eventType ?? 'UPDATE').toUpperCase();
 
             try {
@@ -205,9 +245,10 @@ export function useAdminBroadcastSync() {
           }
         )
         .subscribe();
-    }
+    })();
 
     return () => {
+      cancelled = true;
       mountCount = Math.max(0, mountCount - 1);
       if (mountCount === 0 && globalChannel) {
         try {
