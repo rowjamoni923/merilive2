@@ -410,8 +410,15 @@ export const useSingleDeviceSession = (userId: string | null) => {
     const immediateCheck = async () => {
       if (isLoggingOut.current || !isRegistered.current) return;
       
-      // ✅ Skip check during grace period
+      // ✅ Skip check during grace period (login OR reconnect)
       if (isInGracePeriod()) return;
+
+      // ✅ Don't run a session check while offline — a failed RPC just adds
+      // backoff, but a stale-cached "false" response could cause a wrong logout.
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        console.log('[SingleDevice] 📴 Offline — skipping immediate check');
+        return;
+      }
       
       const isValid = await checkSessionValid();
       if (!isValid) {
@@ -434,7 +441,23 @@ export const useSingleDeviceSession = (userId: string | null) => {
       }
     };
 
+    // ✅ Network drop / airplane-mode handling
+    const handleOffline = () => {
+      console.log('[SingleDevice] 📴 Network offline');
+      recordSessionEvent('check.error', { sessionId: sessionId.current }, 'network_offline');
+    };
+    const handleOnline = () => {
+      console.log('[SingleDevice] 📶 Network back online — arming reconnect grace');
+      armReconnectGrace('online');
+      // Defer the post-reconnect verification until grace expires + small buffer.
+      setTimeout(() => {
+        if (!isLoggingOut.current) immediateCheck();
+      }, RECONNECT_GRACE_MS + 1_000);
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     let removeNativeListener: (() => void) | null = null;
 
@@ -442,7 +465,12 @@ export const useSingleDeviceSession = (userId: string | null) => {
       import('@capacitor/app').then(({ App: CapApp }) => {
         CapApp.addListener('appStateChange', ({ isActive }) => {
           if (isActive) {
-            immediateCheck();
+            // Coming back to foreground — also treat as a soft reconnect so
+            // any websocket replay during the wake-up gets ignored.
+            armReconnectGrace('app_resume');
+            setTimeout(() => {
+              if (!isLoggingOut.current) immediateCheck();
+            }, RECONNECT_GRACE_MS + 1_000);
           }
         }).then(listener => {
           removeNativeListener = () => listener.remove();
@@ -452,9 +480,11 @@ export const useSingleDeviceSession = (userId: string | null) => {
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
       if (removeNativeListener) removeNativeListener();
     };
-  }, [userId, checkSessionValid, forceLogout, isInGracePeriod]);
+  }, [userId, checkSessionValid, forceLogout, isInGracePeriod, armReconnectGrace]);
 
   return {
     sessionId: sessionId.current,
