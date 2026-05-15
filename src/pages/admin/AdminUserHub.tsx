@@ -7,6 +7,7 @@ import {
   Sparkles, Eye, UserPlus
 } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 import AdminUserManagement from "./AdminUserManagement";
 import { recordAdminError } from "@/utils/adminErrorLog";
