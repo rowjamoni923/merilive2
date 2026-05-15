@@ -21,24 +21,10 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    const adminToken = req.headers.get("x-admin-token");
+    if (!authHeader?.startsWith("Bearer ") && !adminToken) {
       return new Response(
         JSON.stringify({ success: false, error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Verify the caller is an admin
-    const supabaseAuth = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -49,12 +35,35 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: adminUser } = await adminSupabase
-      .from("admin_users")
-      .select("id, role")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .maybeSingle();
+    let adminUser: { id: string; role: string } | null = null;
+    if (adminToken) {
+      const { data } = await adminSupabase
+        .from("admin_sessions")
+        .select("admin_users!inner(id, role, is_active)")
+        .eq("session_token", adminToken)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+      const row = (data as any)?.admin_users;
+      if (row?.is_active) adminUser = { id: row.id, role: row.role };
+    }
+
+    if (!adminUser && authHeader?.startsWith("Bearer ")) {
+      const supabaseAuth = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+      if (!userError && user) {
+        const { data } = await adminSupabase
+          .from("admin_users")
+          .select("id, role")
+          .eq("user_id", user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        adminUser = data;
+      }
+    }
 
     if (!adminUser) {
       return new Response(
