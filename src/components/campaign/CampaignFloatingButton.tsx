@@ -573,7 +573,7 @@ function CampaignFloatingButton() {
             exit={{ scale: 0, opacity: 0 }}
             className="fixed z-[45] flex flex-col items-center"
             style={{
-              bottom: 'calc(var(--bottom-nav-height, 64px) + 110px)',
+              bottom: bottomOffset,
               right: '12px',
               perspective: '600px',
             }}
