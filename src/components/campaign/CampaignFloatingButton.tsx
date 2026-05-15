@@ -675,7 +675,7 @@ function CampaignFloatingButton() {
                     <img
                       src={campaign.banner_image_url}
                       alt=""
-                      className="w-full h-full object-contain p-1"
+                      className="w-full h-full object-cover rounded-full"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
