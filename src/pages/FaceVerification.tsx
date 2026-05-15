@@ -397,7 +397,7 @@ const FaceVerification = () => {
     if (latestSubmission?.status === 'approved') {
       setVerificationStatus('verified');
       setRejectionReason(null);
-    } else if (latestSubmission?.status === 'pending') {
+    } else if (latestSubmission?.status === 'pending' || latestSubmission?.status === 'submitted') {
       setVerificationStatus('submitted');
       setRejectionReason(null);
     } else if (latestSubmission?.status === 'rejected') {
