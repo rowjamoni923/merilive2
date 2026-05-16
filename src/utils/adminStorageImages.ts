@@ -2,7 +2,7 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJheWpkbHZ1dXJzY3h1Y2F0YmJhaCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzc1MjY0MTIzLCJleHAiOjIwOTA4NDAxMjN9.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const inFlightSignedUrls = new Map<string, Promise<string | null>>();
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
@@ -127,9 +127,11 @@ const applyResolvedSrc = (el: AdminMediaElement, resolved: string) => {
 };
 
 const resolveElementSrc = async (el: AdminMediaElement, defaultBucket?: string) => {
+  const current = getElementSrc(el) || "";
+  if (el.dataset.adminResolvedSrc && current === el.dataset.adminResolvedSrc) return;
   const original = el.dataset.adminOriginalSrc || getElementSrc(el) || "";
   if (!original || original.startsWith("data:") || original.startsWith("blob:") || !isAdminStorageReference(original)) return;
-  if (el.dataset.adminResolvedSrc === original || el.dataset.adminResolving === "true") return;
+  if (el.dataset.adminResolving === "true") return;
 
   el.dataset.adminOriginalSrc = original;
   el.dataset.adminResolving = "true";
