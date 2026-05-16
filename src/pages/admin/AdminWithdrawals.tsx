@@ -789,7 +789,7 @@ export default function AdminWithdrawals() {
                                   title="View helper payment screenshot"
                                   onClick={(e) => { e.stopPropagation(); imageViewer.openImage(proof); }}
                                 >
-                                  <img src={proof} alt="Helper proof" className="w-full h-full object-cover" loading="lazy" />
+                                  <img src={proof} alt="Helper proof" className="w-full h-full object-cover" loading="lazy" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                                 </button>
                               );
                             })()}
@@ -994,8 +994,7 @@ export default function AdminWithdrawals() {
                           <img 
                             src={helperPaymentScreenshot} 
                             alt="Helper payment proof" 
-                            className="w-full max-h-64 object-contain bg-slate-800"
-                          />
+                            className="w-full max-h-64 object-contain bg-slate-800" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                         </div>
                         <p className="text-xs text-purple-300 text-center mt-1">Click to view full size</p>
                       </div>

@@ -320,7 +320,7 @@ export default function AdminPushBroadcast() {
                 <Label className="flex items-center gap-2"><ImagePlus className="h-4 w-4 text-green-400" />Notification Image (Optional)</Label>
                 {imagePreview ? (
                   <div className="relative inline-block">
-                    <img src={imagePreview} alt="Preview" className="w-full max-w-sm h-auto rounded-lg border border-gray-600 object-cover max-h-48" />
+                    <img src={imagePreview} alt="Preview" className="w-full max-w-sm h-auto rounded-lg border border-gray-600 object-cover max-h-48" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                     <button onClick={removeImage} className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
                       <X className="h-3 w-3 text-white" />
                     </button>
@@ -353,7 +353,7 @@ export default function AdminPushBroadcast() {
                       )}
                       <p className="text-gray-500 text-xs mt-1">now</p>
                     </div>
-                    {imagePreview && <img src={imagePreview} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-gray-700" />}
+                    {imagePreview && <img src={imagePreview} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-gray-700" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />}
                   </div>
                 </div>
               </div>

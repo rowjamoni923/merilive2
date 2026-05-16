@@ -64,7 +64,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
       alt={alt}
       loading="lazy"
       decoding="async"
-      onLoad={() => setLoaded(true)}
+      onLoad={() = onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}> setLoaded(true)}
       onError={() => setLoaded(true)}
       style={sizeStyle}
       className={cn(

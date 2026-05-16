@@ -155,8 +155,7 @@ export const ColorMatrixEditor = ({ value, onChange, previewUrl }: Props) => {
                   <img
                     src={previewUrl}
                     alt="original"
-                    className="w-24 h-24 rounded-lg object-cover"
-                  />
+                    className="w-24 h-24 rounded-lg object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   <p className="text-[10px] text-muted-foreground mt-1">Original</p>
                 </div>
                 <div className="text-center">
@@ -164,8 +163,7 @@ export const ColorMatrixEditor = ({ value, onChange, previewUrl }: Props) => {
                     src={previewUrl}
                     alt="filtered"
                     className="w-24 h-24 rounded-lg object-cover"
-                    style={{ filter: "url(#liveBeautyMatrix)" }}
-                  />
+                    style={{ filter: "url(#liveBeautyMatrix)" }} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   <p className="text-[10px] text-fuchsia-400 mt-1">With filter</p>
                 </div>
               </div>

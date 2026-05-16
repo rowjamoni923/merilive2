@@ -191,7 +191,7 @@ const AdminNobleSubscriptions = () => {
             >
               <div className="flex items-center gap-3">
                 {card.crown_url ? (
-                  <img src={card.crown_url} alt="" className="w-10 h-10 object-contain" />
+                  <img src={card.crown_url} alt="" className="w-10 h-10 object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                 ) : (
                   <Crown className="w-8 h-8" style={{ color: card.badge_color || '#FFD700' }} />
                 )}
