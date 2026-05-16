@@ -500,15 +500,15 @@ const EditProfile = () => {
               className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-600/30 flex items-center justify-center">
-                  <Hash className="w-5 h-5 text-blue-400" />
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <Hash className="w-5 h-5 text-blue-600" />
                 </div>
                 <span className="font-medium text-heading">ID</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-body font-mono">{profile?.app_uid || "N/A"}</span>
-                <div className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full">
-                  <span className="text-xs font-semibold text-heading">Copy</span>
+                <div className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-sm">
+                  <span className="text-xs font-semibold text-white">Copy</span>
                 </div>
               </div>
             </button>
