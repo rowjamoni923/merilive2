@@ -912,63 +912,21 @@ export default function AdminUserManagement() {
   const fetchFaceSubmissions = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('face_verification_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('admin_list_face_verification_paginated', {
+        _status: null,
+        _search: null,
+        _limit: 500,
+        _offset: 0,
+      });
 
       if (error) throw error;
 
-      // Fetch profiles separately since no FK constraint exists
-      const userIds = [...new Set((data || []).map((s: any) => s.user_id).filter(Boolean))];
-      let profileMap: Record<string, any> = {};
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, app_uid, gender, is_host')
-          .in('id', userIds);
-        if (profiles) {
-          profiles.forEach((p: any) => { profileMap[p.id] = p; });
-        }
-      }
-
-      const dataWithProfiles = (data || []).map((s: any) => ({
+      const rows = (((data as any) || {}).rows || []) as any[];
+      const enriched = rows.map((s: any) => ({
         ...s,
-        profile: profileMap[s.user_id] || null,
-      }));
-
-      const hostUserIds = dataWithProfiles
-        .filter((s: any) => s.verification_type === 'host')
-        .map((s: any) => s.user_id);
-
-      let agencyMap: Record<string, { agency_name: string; agency_code: string }> = {};
-      if (hostUserIds.length > 0) {
-        const { data: agencyData } = await supabase
-          .from('agency_hosts')
-          .select('host_id, agency_id')
-          .in('host_id', hostUserIds)
-          .eq('status', 'active');
-
-        if (agencyData && agencyData.length > 0) {
-          const agencyIds = [...new Set(agencyData.map((ah: any) => ah.agency_id).filter(Boolean))];
-          const { data: agencies } = await supabase
-            .from('agencies')
-            .select('id, name, agency_code')
-            .in('id', agencyIds);
-          const agencyLookup: Record<string, any> = {};
-          if (agencies) agencies.forEach((a: any) => { agencyLookup[a.id] = a; });
-          agencyData.forEach((ah: any) => {
-            const ag = agencyLookup[ah.agency_id];
-            if (ag) {
-              agencyMap[ah.host_id] = { agency_name: ag.name, agency_code: ag.agency_code };
-            }
-          });
-        }
-      }
-
-      const enriched = dataWithProfiles.map((s: any) => ({
-        ...s,
-        agency_info: agencyMap[s.user_id] || null,
+        status: normalizeFaceStatus(s.status),
+        profile: s.profile && s.profile.id ? s.profile : null,
+        agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
 
       setFaceSubmissions(enriched);
