@@ -435,13 +435,13 @@ const EditProfile = () => {
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-body">ID: {profile?.app_uid || "N/A"}</span>
               <button onClick={copyId} className="p-1 hover:bg-amber-100 rounded transition-colors">
-                <Copy className="w-3.5 h-3.5 text-purple-400" />
+                <Copy className="w-3.5 h-3.5 text-purple-600" />
               </button>
             </div>
             {profile?.is_host && (
               <div className="mt-3 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-300/60 rounded-full">
-                <Crown className="w-3.5 h-3.5 text-amber-400" />
-                <span className="text-xs font-semibold text-amber-400">Host Account</span>
+                <Crown className="w-3.5 h-3.5 text-amber-600" />
+                <span className="text-xs font-semibold text-amber-600">Host Account</span>
               </div>
             )}
           </div>
@@ -518,8 +518,8 @@ const EditProfile = () => {
               <SheetTrigger asChild>
                 <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600/30 to-purple-600/30 flex items-center justify-center">
-                      <User className="w-5 h-5 text-violet-400" />
+                    <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+                      <User className="w-5 h-5 text-violet-600" />
                     </div>
                     <span className="font-medium text-heading">Nickname</span>
                   </div>
@@ -558,13 +558,13 @@ const EditProfile = () => {
               // Gender already selected - show as read-only
               <div className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600/30 to-pink-600/30 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center">
                     <User className="w-5 h-5 text-rose-400" />
                   </div>
                   <span className="font-medium text-heading">Gender</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm font-medium ${profile.gender.toLowerCase() === "female" ? "text-pink-400" : "text-blue-400"}`}>
+                  <span className={`text-sm font-medium ${profile.gender.toLowerCase() === "female" ? "text-pink-600" : "text-blue-600"}`}>
                     {profile.gender.toLowerCase() === "female" ? "👩 Female" : "👨 Male"}
                   </span>
                   <div className="px-2 py-1 bg-white/5 rounded-full">
@@ -578,7 +578,7 @@ const EditProfile = () => {
                 <SheetTrigger asChild>
                   <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600/30 to-pink-600/30 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center">
                         <User className="w-5 h-5 text-rose-400" />
                       </div>
                       <span className="font-medium text-heading">Gender</span>
@@ -617,7 +617,7 @@ const EditProfile = () => {
                       }}
                       className={`flex-1 py-5 rounded-2xl border-2 transition-all ${
                         gender === "Male" 
-                          ? "bg-blue-600/20 border-blue-500 text-blue-400" 
+                          ? "bg-blue-600/20 border-blue-500 text-blue-600" 
                           : "border-amber-200/40 hover:border-amber-200/60 text-muted-pro"
                       }`}
                     >
@@ -645,7 +645,7 @@ const EditProfile = () => {
                       }}
                       className={`flex-1 py-5 rounded-2xl border-2 transition-all ${
                         gender === "Female" 
-                          ? "bg-pink-600/20 border-pink-500 text-pink-400" 
+                          ? "bg-pink-600/20 border-pink-500 text-pink-600" 
                           : "border-amber-200/40 hover:border-amber-200/60 text-muted-pro"
                       }`}
                     >
@@ -668,8 +668,8 @@ const EditProfile = () => {
               <SheetTrigger asChild>
                 <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600/30 to-orange-600/30 flex items-center justify-center">
-                      <Star className="w-5 h-5 text-amber-400" />
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                      <Star className="w-5 h-5 text-amber-600" />
                     </div>
                     <span className="font-medium text-heading">Age</span>
                   </div>
@@ -707,8 +707,8 @@ const EditProfile = () => {
             {/* Region */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600/30 to-green-600/30 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-emerald-400" />
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-emerald-600" />
                 </div>
                 <span className="font-medium text-heading">Region</span>
               </div>
@@ -723,11 +723,11 @@ const EditProfile = () => {
             {/* Hide Location Toggle */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600/30 to-orange-600/30 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
                   {hideLocation ? (
-                    <EyeOff className="w-5 h-5 text-red-400" />
+                    <EyeOff className="w-5 h-5 text-red-600" />
                   ) : (
-                    <Eye className="w-5 h-5 text-orange-400" />
+                    <Eye className="w-5 h-5 text-orange-600" />
                   )}
                 </div>
                 <div>
@@ -763,13 +763,13 @@ const EditProfile = () => {
               <SheetTrigger asChild>
                 <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-600/30 to-blue-600/30 flex items-center justify-center">
-                      <Globe className="w-5 h-5 text-cyan-400" />
+                    <div className="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center">
+                      <Globe className="w-5 h-5 text-cyan-600" />
                     </div>
                     <span className="font-medium text-heading">Language</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-purple-400">{language}</span>
+                    <span className="text-sm text-purple-600">{language}</span>
                     <ChevronRight className="w-5 h-5 text-body" />
                   </div>
                 </button>
@@ -801,13 +801,13 @@ const EditProfile = () => {
               <SheetTrigger asChild>
                 <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-violet-600/30 flex items-center justify-center">
-                      <Globe className="w-5 h-5 text-purple-400" />
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <Globe className="w-5 h-5 text-purple-600" />
                     </div>
                     <span className="font-medium text-heading">Second Language</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-purple-400">{secondLanguage || "None"}</span>
+                    <span className="text-sm text-purple-600">{secondLanguage || "None"}</span>
                     <ChevronRight className="w-5 h-5 text-body" />
                   </div>
                 </button>
@@ -850,8 +850,8 @@ const EditProfile = () => {
               className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600/30 to-violet-600/30 flex items-center justify-center">
-                  <Hash className="w-5 h-5 text-indigo-400" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                  <Hash className="w-5 h-5 text-indigo-600" />
                 </div>
                 <span className="font-medium text-heading">Tags</span>
               </div>
@@ -875,8 +875,8 @@ const EditProfile = () => {
               <SheetTrigger asChild>
                 <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600/30 to-emerald-600/30 flex items-center justify-center">
-                      <MessageCircle className="w-5 h-5 text-teal-400" />
+                    <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5 text-teal-600" />
                     </div>
                     <span className="font-medium text-heading">Self-introduction</span>
                   </div>
@@ -919,8 +919,8 @@ const EditProfile = () => {
               className="w-full flex items-center justify-between px-4 py-4 active:bg-amber-50/70"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600/30 to-yellow-600/30 flex items-center justify-center">
-                  <Palette className="w-5 h-5 text-amber-400" />
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <Palette className="w-5 h-5 text-amber-600" />
                 </div>
                 <span className="font-medium text-heading">Cosmetics</span>
               </div>
@@ -947,8 +947,8 @@ const EditProfile = () => {
               className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/30 to-indigo-600/30 flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-blue-400" />
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-blue-600" />
                 </div>
                 <span className="font-medium text-heading">Email</span>
               </div>
@@ -966,8 +966,8 @@ const EditProfile = () => {
               className="w-full flex items-center justify-between px-4 py-4 active:bg-amber-50/70"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600/30 to-emerald-600/30 flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-green-400" />
+                <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-green-600" />
                 </div>
                 <span className="font-medium text-heading">Phone</span>
               </div>
@@ -993,8 +993,8 @@ const EditProfile = () => {
               className="w-full flex items-center justify-between px-4 py-4 active:bg-amber-50/70"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600/30 to-purple-600/30 flex items-center justify-center">
-                  <Lock className="w-5 h-5 text-indigo-400" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-indigo-600" />
                 </div>
                 <div className="text-left">
                   <span className="font-medium text-heading block">Change Password</span>
@@ -1030,7 +1030,7 @@ const EditProfile = () => {
         <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-heading text-center flex items-center justify-center gap-2">
-              <Phone className="w-5 h-5 text-green-400" />
+              <Phone className="w-5 h-5 text-green-600" />
               Add Phone Number
             </DialogTitle>
           </DialogHeader>
@@ -1063,7 +1063,7 @@ const EditProfile = () => {
         <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-heading text-center flex items-center justify-center gap-2">
-              <Lock className="w-5 h-5 text-indigo-400" />
+              <Lock className="w-5 h-5 text-indigo-600" />
               Change Password
             </DialogTitle>
           </DialogHeader>
@@ -1115,7 +1115,7 @@ const EditProfile = () => {
         <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-heading text-center flex items-center justify-center gap-2">
-              <Mail className="w-5 h-5 text-blue-400" />
+              <Mail className="w-5 h-5 text-blue-600" />
               Link Email Account
             </DialogTitle>
           </DialogHeader>
