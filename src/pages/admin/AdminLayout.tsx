@@ -77,6 +77,7 @@ import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRoutePrefetch";
+import { installAdminMediaAutoResolver } from "@/utils/adminStorageImages";
 
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -1315,7 +1316,11 @@ export default function AdminLayout() {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.body.setAttribute('data-admin-active', 'true');
-    return () => { document.body.removeAttribute('data-admin-active'); };
+    const uninstallMediaResolver = installAdminMediaAutoResolver();
+    return () => {
+      document.body.removeAttribute('data-admin-active');
+      uninstallMediaResolver();
+    };
   }, []);
 
   useEffect(() => {
