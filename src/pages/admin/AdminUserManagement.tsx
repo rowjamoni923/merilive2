@@ -537,11 +537,19 @@ export default function AdminUserManagement() {
     if (!startSingleFlight(actionKey)) return;
     setActionLoading(true);
     try {
-      const { error: rpcError } = await supabase.rpc('admin_update_user_gender', {
+      const { data: genderData, error: rpcError } = await supabase.rpc('admin_update_user_gender', {
         _user_id: userId,
         _gender: toHost ? 'female' : 'male',
       });
       if (rpcError) throw rpcError;
+      if ((genderData as any)?.pending) {
+        toast.success('⏳ Submitted for Owner Approval — conversion queued.');
+        fetchFaceSubmissions();
+        return;
+      }
+      if ((genderData as any)?.success === false) {
+        throw new Error((genderData as any)?.error || 'Gender update failed');
+      }
       await supabase.from('face_verification_submissions').update({
         status: 'approved',
         verification_type: toHost ? 'host' : 'face',
