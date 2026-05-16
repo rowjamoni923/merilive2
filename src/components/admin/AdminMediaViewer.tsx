@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ExternalLink, Image as ImageIcon, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -11,9 +11,14 @@ export const isAdminVideoUrl = (src?: string | null) => {
   if (!src) return false;
   try {
     const url = new URL(src);
+    // Captured face-angle stills were historically uploaded as JPEG blobs with
+    // a .webm filename, so extension-only detection renders them as broken video.
+    if (url.pathname.includes("/face-angles/")) return false;
     return VIDEO_EXT_RE.test(url.pathname);
   } catch {
-    return VIDEO_EXT_RE.test(src.split("?")[0] || src);
+    const clean = src.split("?")[0] || src;
+    if (clean.includes("/face-angles/")) return false;
+    return VIDEO_EXT_RE.test(clean);
   }
 };
 
@@ -64,6 +69,10 @@ export function AdminMediaFrame({
   const [failed, setFailed] = useState(false);
   const mediaKind = kind === "auto" ? (isAdminVideoUrl(src) ? "video" : "image") : kind;
   const videoType = useMemo(() => (src ? getVideoMimeType(src) : undefined), [src]);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
 
   if (!src) {
     return (
