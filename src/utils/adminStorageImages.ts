@@ -231,8 +231,9 @@ const resolveElementSrc = async (el: AdminMediaElement, defaultBucket?: string) 
 };
 
 export const installAdminMediaAutoResolver = () => {
+  if (typeof window === "undefined" || typeof document === "undefined") return () => {};
   const resolverWindow = window as AdminMediaResolverWindow;
-  if (typeof document === "undefined" || resolverWindow.__adminMediaAutoResolverInstalled) return () => {};
+  if (resolverWindow.__adminMediaAutoResolverInstalled) return () => {};
   resolverWindow.__adminMediaAutoResolverInstalled = true;
 
   const scan = (root: ParentNode = document) => {
