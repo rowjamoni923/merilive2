@@ -214,11 +214,12 @@ interface AdminMediaDialogProps {
   src?: string | null;
   title?: string;
   kind?: AdminMediaKind;
+  bucket?: string;
   poster?: string | null;
   onOpenChange: (open: boolean) => void;
 }
 
-export function AdminMediaDialog({ open, src, title = "Media Preview", kind = "auto", poster, onOpenChange }: AdminMediaDialogProps) {
+export function AdminMediaDialog({ open, src, title = "Media Preview", kind = "auto", bucket = "face-verification", poster, onOpenChange }: AdminMediaDialogProps) {
   const mediaKind = kind === "auto" ? (isAdminVideoUrl(src) ? "video" : "image") : kind;
 
   return (
