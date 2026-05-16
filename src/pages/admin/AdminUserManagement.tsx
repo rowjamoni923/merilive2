@@ -1343,6 +1343,11 @@ export default function AdminUserManagement() {
   const pendingFaceCount = faceCounts.pending;
   const approvedFaceCount = faceCounts.manual_approved;
   const rejectedFaceCount = faceCounts.manual_rejected;
+  const allFaceCounts = countFaceReviewBuckets(faceSubmissions, (s) => s.status, (s) => s.admin_notes);
+  const autoApprovedFaceSubmissions = faceSubmissions.filter((s) => isFaceApproved(s) && isFaceAutoReviewed(s));
+  const autoRejectedFaceSubmissions = faceSubmissions.filter((s) => isFaceRejected(s) && isFaceAutoReviewed(s));
+  const autoApprovedFaceCount = allFaceCounts.auto_approved;
+  const autoRejectedFaceCount = allFaceCounts.auto_rejected;
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
@@ -1384,18 +1389,18 @@ export default function AdminUserManagement() {
           <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
             <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Verified
-            {faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto')).length > 0 && (
+            {autoApprovedFaceCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                {faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto')).length}
+                {autoApprovedFaceCount}
               </span>
             )}
           </TabsTrigger>
           <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
             <XCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Reject
-            {faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto')).length > 0 && (
+            {autoRejectedFaceCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                {faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto')).length}
+                {autoRejectedFaceCount}
               </span>
             )}
           </TabsTrigger>
