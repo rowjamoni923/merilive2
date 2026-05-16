@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
+import { fetchHostApplicationStatusCounts } from "@/pages/admin/hostApplicationsStatusCounts";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -134,51 +135,8 @@ export default function AdminHostApplications() {
 
   const fetchStatusCounts = async () => {
     try {
-      const q = searchQuery.trim();
-
-      // When a search query is active, counts MUST reflect the filtered set
-      // so the Pending/Approved/Rejected stat cards match the visible list.
-      // We run 3 parallel head-only counts with the same ilike filter that
-      // fetchApplications uses, so the badges always stay in sync.
-      if (q) {
-        const base = () => {
-          let qb = supabase
-            .from('face_verification_submissions')
-            .select('id', { count: 'exact', head: true })
-            .ilike('full_name', `%${q}%`);
-          return qb;
-        };
-
-        const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-          base().not('status', 'in', '(approved,rejected)'),
-          base().eq('status', 'approved'),
-          base().eq('status', 'rejected'),
-        ]);
-
-        setStatusCounts({
-          pending: pendingRes.count || 0,
-          under_review: 0,
-          approved: approvedRes.count || 0,
-          rejected: rejectedRes.count || 0,
-        });
-        return;
-      }
-
-      // No search → fast single-roundtrip RPC for global counts.
-      const { data, error } = await supabase.rpc('admin_face_verification_stats');
-      if (error) throw error;
-      const s = (data || {}) as {
-        pending?: number;
-        under_review?: number;
-        approved?: number;
-        rejected?: number;
-      };
-      setStatusCounts({
-        pending: Number(s.pending || 0),
-        under_review: 0,
-        approved: Number(s.approved || 0),
-        rejected: Number(s.rejected || 0),
-      });
+      const counts = await fetchHostApplicationStatusCounts(supabase as any, searchQuery);
+      setStatusCounts(counts);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingStatusCounts", message: formatAdminError(error)});
     }
