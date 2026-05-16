@@ -2013,7 +2013,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <XCircle className="w-6 h-6 text-orange-500" />
                   <div>
-                    <p className="text-lg font-bold text-orange-600">{faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto')).length}</p>
+                    <p className="text-lg font-bold text-orange-600">{autoRejectedFaceCount}</p>
                     <p className="text-xs text-orange-600/80">Auto Rejected</p>
                   </div>
                 </div>
@@ -2024,7 +2024,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-6 h-6 text-red-500" />
                   <div>
-                    <p className="text-lg font-bold text-red-600">{faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto') && s.admin_notes?.toLowerCase().includes('face match')).length}</p>
+                    <p className="text-lg font-bold text-red-600">{autoRejectedFaceSubmissions.filter(s => s.admin_notes?.toLowerCase().includes('face match')).length}</p>
                     <p className="text-xs text-red-600/80">Face Mismatch</p>
                   </div>
                 </div>
@@ -2035,7 +2035,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <ScanFace className="w-6 h-6 text-yellow-600" />
                   <div>
-                    <p className="text-lg font-bold text-yellow-600">{faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto') && !s.admin_notes?.toLowerCase().includes('face match')).length}</p>
+                    <p className="text-lg font-bold text-yellow-600">{autoRejectedFaceSubmissions.filter(s => !s.admin_notes?.toLowerCase().includes('face match')).length}</p>
                     <p className="text-xs text-yellow-600/80">Other Reasons</p>
                   </div>
                 </div>
@@ -2060,9 +2060,7 @@ export default function AdminUserManagement() {
 
           {/* Auto Rejected Grid */}
           {(() => {
-            const autoRejected = faceSubmissions.filter(s => 
-              s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto')
-            ).filter(s => {
+            const autoRejected = autoRejectedFaceSubmissions.filter(s => {
               if (!appSearchQuery) return true;
               const q = appSearchQuery.toLowerCase();
               return s.full_name?.toLowerCase().includes(q) || s.profile?.app_uid?.includes(q) || s.profile?.display_name?.toLowerCase().includes(q);
