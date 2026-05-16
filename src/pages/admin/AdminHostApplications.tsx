@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { invalidateStatusCountsCache } from "@/lib/admin/statusCounts";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 import { fetchHostApplicationStatusCounts } from "@/pages/admin/hostApplicationsStatusCounts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -121,21 +123,32 @@ export default function AdminHostApplications() {
 
   const pageSize = 20;
 
+  // Debounce search input so typing doesn't fire a count + list query per keystroke.
+  const debouncedSearch = useDebouncedValue(searchQuery, 350);
+
+  // Reset to page 1 whenever the effective filter/search changes.
+  useEffect(() => { setCurrentPage(1); }, [filterStatus, debouncedSearch]);
+
   useEffect(() => {
     fetchApplications();
     fetchStatusCounts();
     fetchPendingHostsWithoutSubmission();
-  }, [currentPage, filterStatus, searchQuery]);
+  }, [currentPage, filterStatus, debouncedSearch]);
 
   useAdminRealtime(['face_verification_submissions', 'profiles'], () => {
+    invalidateStatusCountsCache('face_verification_submissions');
     fetchApplications();
-    fetchStatusCounts();
+    fetchStatusCounts(true);
     fetchPendingHostsWithoutSubmission();
   });
 
-  const fetchStatusCounts = async () => {
+  const fetchStatusCounts = async (force = false) => {
     try {
-      const counts = await fetchHostApplicationStatusCounts(supabase as any, searchQuery);
+      const counts = await fetchHostApplicationStatusCounts(
+        supabase as any,
+        debouncedSearch,
+        force,
+      );
       setStatusCounts(counts);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingStatusCounts", message: formatAdminError(error)});
