@@ -92,10 +92,12 @@ export function AdminMediaFrame({
           className={cn("h-full w-full bg-background object-contain", mediaClassName)}
           onError={() => setFailed(true)}
           onLoadedData={() => setFailed(false)}
-          webkit-playsinline="true"
-          x5-video-player-type="h5"
-          x5-video-player-fullscreen="false"
           controlsList="nodownload"
+          {...({
+            "webkit-playsinline": "true",
+            "x5-video-player-type": "h5",
+            "x5-video-player-fullscreen": "false",
+          } as Record<string, string>)}
         >
           {videoType ? <source src={src} type={videoType} /> : <source src={src} />}
         </video>
