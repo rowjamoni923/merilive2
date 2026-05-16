@@ -22,7 +22,25 @@ const AvatarImage = React.forwardRef<
   const [imgSrc, setImgSrc] = React.useState(src);
   
   React.useEffect(() => {
-    setImgSrc(src);
+    let cancelled = false;
+    if (!src || typeof window === 'undefined' || !window.location.pathname.startsWith('/admin')) {
+      setImgSrc(src);
+      return;
+    }
+
+    setImgSrc(undefined);
+    import('@/utils/adminStorageImages')
+      .then(({ resolveAdminStorageImageUrl }) => resolveAdminStorageImageUrl(src, 'avatars'))
+      .then((resolved) => {
+        if (!cancelled) setImgSrc(resolved || undefined);
+      })
+      .catch(() => {
+        if (!cancelled) setImgSrc(src);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [src]);
   
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
