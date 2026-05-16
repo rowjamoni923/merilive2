@@ -105,25 +105,28 @@ export function AdminMediaFrame({
     );
   }
 
-  const ImageShell = onOpen ? "button" : "div";
+  const image = (
+    <img
+      key={src}
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      className={cn("h-full w-full object-contain", mediaClassName)}
+      onError={() => setFailed(true)}
+      onLoad={() => setFailed(false)}
+    />
+  );
+
+  if (!onOpen) {
+    return <div className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", className)}>{image}</div>;
+  }
 
   return (
-    <ImageShell
-      {...(onOpen ? { type: "button", onClick: onOpen } : {})}
-      className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", onOpen && "cursor-zoom-in", className)}
-    >
-      <img
-        key={src}
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        referrerPolicy="no-referrer"
-        className={cn("h-full w-full object-contain", mediaClassName)}
-        onError={() => setFailed(true)}
-        onLoad={() => setFailed(false)}
-      />
-    </ImageShell>
+    <button type="button" onClick={onOpen} className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20 cursor-zoom-in", className)}>
+      {image}
+    </button>
   );
 }
 
