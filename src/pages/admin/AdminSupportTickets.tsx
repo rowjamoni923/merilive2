@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 import { useToast } from "@/hooks/use-toast";
 import { 
   MessageCircle, Search, Loader2, Send, Clock, CheckCircle, 
