@@ -153,7 +153,7 @@ const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAA
 type AdminMediaElement = HTMLImageElement | HTMLVideoElement | HTMLAudioElement | HTMLSourceElement;
 
 const getElementSrc = (el: AdminMediaElement) => {
-  if (el instanceof HTMLImageElement) return el.currentSrc || el.src || el.getAttribute("src");
+  if (el instanceof HTMLImageElement) return el.getAttribute("src") || el.currentSrc || el.src;
   return el.getAttribute("src") || ("src" in el ? String((el as HTMLVideoElement | HTMLAudioElement).src || "") : "");
 };
 
