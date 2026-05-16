@@ -1246,11 +1246,17 @@ const AdminFaceVerification = () => {
                         actionInFlightRef.current = true;
                         setProcessing(true);
                         try {
-                          const { error } = await supabase.rpc('admin_process_face_verification', {
-                            _submission_id: selectedSubmission.id, _action: 'approve', _reason: actionReason || null, _approve_as: 'host', _set_gender: 'female'
+                          const { data, error } = await supabase.rpc('admin_process_face_verification', {
+                            _submission_id: selectedSubmission.id, _action: 'approve', _reason: actionReason?.trim() || null, _approve_as: 'host', _set_gender: 'female'
                           });
                           if (error) throw error;
-                          toast({ title: "✅ Approved as Host!", description: "ID successfully converted to Host" });
+                          if ((data as any)?.pending) {
+                            toast({ title: "⏳ Submitted for Owner Approval", description: "Host conversion queued for owner approval." });
+                          } else if ((data as any)?.success === false) {
+                            throw new Error((data as any)?.error || 'Failed to approve');
+                          } else {
+                            toast({ title: "✅ Approved as Host!", description: "ID successfully converted to Host" });
+                          }
                           setShowActionModal(false); setShowDetailModal(false); setActionReason(""); fetchSubmissions();
                         } catch (error: any) {
                           toast({ title: "Error", description: error.message || "Failed to process", variant: "destructive" });
