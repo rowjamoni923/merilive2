@@ -338,7 +338,7 @@ export default function UserSupportTool() {
     setActionLoading(true);
     try {
       if (faceVerification?.id) {
-        const { error } = await supabase.rpc("admin_process_face_verification", {
+        const { data, error } = await supabase.rpc("admin_process_face_verification", {
           _submission_id: faceVerification.id,
           _action: "approve",
           _reason: "Manually approved by admin via Support Tool",
@@ -346,12 +346,19 @@ export default function UserSupportTool() {
           _set_gender: selectedUser.gender || (selectedUser.is_host ? "female" : "male"),
         });
         if (error) throw error;
+        if ((data as any)?.pending) {
+          toast.success("⏳ Submitted for Owner Approval");
+          await refreshUser();
+          return;
+        }
+        if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed');
       } else {
-        const { error } = await supabase.rpc("admin_toggle_face_verification", {
+        const { data, error } = await supabase.rpc("admin_toggle_face_verification", {
           _user_id: selectedUser.id,
           _verified: true,
         });
         if (error) throw error;
+        if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed');
       }
 
       emitInstantAdminSync(["profiles", "face_verification_submissions"]);
