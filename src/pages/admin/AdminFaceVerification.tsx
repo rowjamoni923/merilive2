@@ -502,13 +502,29 @@ const AdminFaceVerification = () => {
 
   // Single source of truth for what the user can currently see (after search).
   // Counters are derived from the SAME pool the list uses, so badges always match
-  // the visible rows regardless of search input.
-  const q = searchQuery.trim().toLowerCase();
-  const matchesSearch = (sub: Submission) =>
-    !q
-    || !!sub.profile?.display_name?.toLowerCase().includes(q)
-    || !!sub.profile?.app_uid?.includes(searchQuery.trim())
-    || !!sub.full_name?.toLowerCase().includes(q);
+  // the visible rows regardless of search input. Search is applied BEFORE the tab
+  // bucket filter, so typing a query narrows results within the active tab.
+  //
+  // Match rules (case-insensitive, whitespace-trimmed):
+  //   • display_name contains query
+  //   • full_name contains query
+  //   • app_uid contains query (digits only typed by admin)
+  //   • user_id (uuid) starts-with query — handy for direct lookups
+  const qRaw = searchQuery.trim();
+  const q = qRaw.toLowerCase();
+  const matchesSearch = (sub: Submission) => {
+    if (!q) return true;
+    const name = sub.profile?.display_name?.toLowerCase() ?? '';
+    const fullName = sub.full_name?.toLowerCase() ?? '';
+    const uid = sub.profile?.app_uid ?? '';
+    const userId = sub.user_id?.toLowerCase() ?? '';
+    return (
+      name.includes(q)
+      || fullName.includes(q)
+      || uid.includes(qRaw)
+      || userId.startsWith(q)
+    );
+  };
 
   const visiblePool = submissions.filter(matchesSearch);
 
