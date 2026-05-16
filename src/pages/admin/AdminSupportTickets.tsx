@@ -365,10 +365,8 @@ const AdminSupportTickets = () => {
       const signedEntries = await Promise.all(msgs
         .filter((m: any) => m.attachment_url)
         .map(async (m: any) => {
-          const path = extractSupportAttachmentPath(m.attachment_url);
-          if (!path) return [m.id, m.attachment_url] as const;
-          const { data: signed } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).createSignedUrl(path, 60 * 60);
-          return [m.id, signed?.signedUrl || m.attachment_url] as const;
+          const signed = await resolveAdminStorageImageUrl(m.attachment_url, SUPPORT_ATTACHMENT_BUCKET);
+          return [m.id, signed || m.attachment_url] as const;
         }));
       if (signedEntries.length) setSignedAttachmentUrls(Object.fromEntries(signedEntries));
 

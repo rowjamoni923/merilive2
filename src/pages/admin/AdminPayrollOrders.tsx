@@ -170,7 +170,7 @@ const AdminPayrollOrders = () => {
       // Transform helper orders
       const helperOrders: PayrollOrder[] = await Promise.all((helperOrdersData || []).map(async (order) => {
         const paymentDetails = order.payment_details as PaymentDetails | null;
-        const signedProof = await resolveAdminStorageImageUrl(order.user_payment_proof);
+        const signedProof = await resolveAdminStorageImageUrl(order.user_payment_proof, 'payment-proofs');
         return {
           ...order,
           user_payment_proof: signedProof,
@@ -185,7 +185,7 @@ const AdminPayrollOrders = () => {
         const helperTransactionId = paymentDetails?.helper_transaction_id || null;
         const helperPaymentScreenshot = paymentDetails?.helper_payment_screenshot || null;
         const helperPaymentNotes = paymentDetails?.helper_notes || null;
-        const signedProof = await resolveAdminStorageImageUrl(helperPaymentScreenshot);
+        const signedProof = await resolveAdminStorageImageUrl(helperPaymentScreenshot, 'helper-screenshots');
 
         return {
           id: aw.id,
