@@ -1238,7 +1238,7 @@ const AdminShop = () => {
                   </Suspense>
                 );
                 if (isLottie(url)) return <UniversalAnimationPlayer src={url} className="w-full h-full" loop autoPlay muted={false} />;
-                if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline />;
+                if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;
                 return <img src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" />;
               })()}
             </div>
