@@ -4,6 +4,10 @@ interface MediaSubmission {
   profile_photo_url?: string | null;
   face_image_url?: string | null;
   video_url?: string | null;
+  selfie_url?: string | null;
+  front_url?: string | null;
+  left_url?: string | null;
+  right_url?: string | null;
   host_photos?: string[] | null;
 }
 
@@ -18,6 +22,11 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
   const profilePhoto = useAdminSignedUrl(submission.profile_photo_url, "face-verification");
   const faceMedia = useAdminSignedUrl(submission.face_image_url, "face-verification");
   const introVideo = useAdminSignedUrl(submission.video_url, "face-verification");
+  const angleMedia = useAdminSignedUrls([
+    submission.front_url || submission.selfie_url,
+    submission.left_url,
+    submission.right_url,
+  ], "face-verification").filter(Boolean);
   const hostPhotos = useAdminSignedUrls(submission.host_photos || [], "face-verification");
 
   return (
@@ -51,6 +60,21 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
           <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
           <div className="rounded-lg overflow-hidden border border-slate-200 bg-black">
             <video src={introVideo} controls playsInline muted className="w-full max-h-64 object-contain" />
+          </div>
+        </div>
+      )}
+
+      {angleMedia.length > 0 && (
+        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+          <p className="text-xs font-semibold text-purple-600 mb-2">🔐 Manual Face Angles ({angleMedia.length})</p>
+          <div className="grid grid-cols-3 gap-2">
+            {angleMedia.map((url, idx) => (
+              VIDEO_RE.test(url) ? (
+                <video key={idx} src={url} controls playsInline muted className="w-full aspect-square rounded-lg object-cover bg-black border border-slate-200" />
+              ) : (
+                <img key={idx} src={url} alt={`Face angle ${idx + 1}`} className="w-full aspect-square rounded-lg object-cover border border-slate-200" />
+              )
+            ))}
           </div>
         </div>
       )}

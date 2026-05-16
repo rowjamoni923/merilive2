@@ -933,6 +933,25 @@ const AdminFaceVerification = () => {
                   );
                 })()}
 
+                {([resolvedMedia.front_url || resolvedMedia.selfie_url || selectedSubmission.front_url || selectedSubmission.selfie_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2 text-purple-300">
+                      <Camera className="w-5 h-5" /> Manual Face Angles
+                    </h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      {([resolvedMedia.front_url || resolvedMedia.selfie_url || selectedSubmission.front_url || selectedSubmission.selfie_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
+                        <div key={index} className="rounded-xl overflow-hidden border-2 border-slate-600 bg-black">
+                          {isVideoUrl(url) ? (
+                            <video src={url} controls muted playsInline className="w-full aspect-square object-cover" />
+                          ) : (
+                            <img src={url} alt={`Face angle ${index + 1}`} className="w-full aspect-square object-cover cursor-pointer" onClick={() => setExpandedPhoto(url)} />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Host Photos */}
                 {selectedSubmission.host_photos && selectedSubmission.host_photos.length > 0 && (
                   <div className="space-y-3">

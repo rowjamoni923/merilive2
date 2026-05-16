@@ -3,6 +3,11 @@ import { getAdminSessionToken } from "@/utils/adminSession";
 
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
+const KNOWN_STORAGE_BUCKETS = new Set([
+  'face-verification', 'host-verification', 'avatars', 'payment-proofs', 'payment-screenshots',
+  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
+  'app-assets', 'assets', 'banners', 'banners-media', 'branding', 'chat-media', 'content-media',
+]);
 
 const extractStoragePath = (value: string, defaultBucket = "payment-proofs") => {
   const raw = value.trim();
@@ -15,6 +20,10 @@ const extractStoragePath = (value: string, defaultBucket = "payment-proofs") => 
     return { bucket: decodeURIComponent(match[1]), path: decodeURIComponent(match[2]) };
   } catch {
     const withoutSlash = raw.replace(/^\/+/, "");
+    const [firstSegment, ...rest] = withoutSlash.split('/');
+    if (KNOWN_STORAGE_BUCKETS.has(firstSegment) && rest.length > 0) {
+      return { bucket: firstSegment, path: rest.join('/') };
+    }
     if (withoutSlash.startsWith(`${defaultBucket}/`)) {
       return { bucket: defaultBucket, path: withoutSlash.slice(defaultBucket.length + 1) };
     }
@@ -33,7 +42,7 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
   if (cached && cached.expiresAt > Date.now()) return cached.url;
 
   const adminToken = getAdminSessionToken();
-  if (adminToken && ['face-verification', 'host-verification'].includes(storagePath.bucket)) {
+  if (adminToken) {
     const { data } = await adminSupabase.functions.invoke('admin-sign-storage-url', {
       body: { bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 },
     });
