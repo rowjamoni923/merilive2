@@ -194,5 +194,7 @@ export async function fetchFilteredStatusCounts(
 
   // No RPC fallback configured → run the same 3 filtered counts with empty q
   // (which becomes an `ilike '%%'` matching everything).
-  return fetchFilteredStatusCounts(client, { ...opts, searchQuery: " " });
+  return fetchFilteredStatusCounts(client, { ...opts, searchQuery: " ", forceRefresh: true });
+  }
 }
+
