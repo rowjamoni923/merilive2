@@ -500,14 +500,22 @@ const AdminFaceVerification = () => {
   const isRejected = (s: Submission) => s.status === 'rejected';
   const isPendingBucket = (s: Submission) => !isApproved(s) && !isRejected(s);
 
-  const autoApprovedSubmissions = submissions.filter(s => isApproved(s) && s.admin_notes?.toLowerCase().includes('auto'));
-  const filteredSubmissions = submissions.filter(sub => {
-    const q = searchQuery.trim().toLowerCase();
-    const matchesSearch = !q
-      || sub.profile?.display_name?.toLowerCase().includes(q)
-      || sub.profile?.app_uid?.includes(searchQuery.trim())
-      || sub.full_name?.toLowerCase().includes(q);
-    if (!matchesSearch) return false;
+  // Single source of truth for what the user can currently see (after search).
+  // Counters are derived from the SAME pool the list uses, so badges always match
+  // the visible rows regardless of search input.
+  const q = searchQuery.trim().toLowerCase();
+  const matchesSearch = (sub: Submission) =>
+    !q
+    || !!sub.profile?.display_name?.toLowerCase().includes(q)
+    || !!sub.profile?.app_uid?.includes(searchQuery.trim())
+    || !!sub.full_name?.toLowerCase().includes(q);
+
+  const visiblePool = submissions.filter(matchesSearch);
+
+  const autoApprovedSubmissions = visiblePool.filter(
+    (s) => isApproved(s) && s.admin_notes?.toLowerCase().includes('auto'),
+  );
+  const filteredSubmissions = visiblePool.filter((sub) => {
     if (activeTab === 'auto_approved') {
       return isApproved(sub) && sub.admin_notes?.toLowerCase().includes('auto');
     }
@@ -518,10 +526,10 @@ const AdminFaceVerification = () => {
     return false;
   });
 
-  const pendingCount = submissions.filter(isPendingBucket).length;
-  const approvedCount = submissions.filter(isApproved).length;
+  const pendingCount = visiblePool.filter(isPendingBucket).length;
+  const approvedCount = visiblePool.filter(isApproved).length;
   const autoApprovedCount = autoApprovedSubmissions.length;
-  const rejectedCount = submissions.filter(isRejected).length;
+  const rejectedCount = visiblePool.filter(isRejected).length;
 
   if (loading) {
     return (
@@ -555,7 +563,7 @@ const AdminFaceVerification = () => {
           { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, bg: 'rgba(6,182,212,0.15)', border: 'rgba(6,182,212,0.3)', iconBg: 'rgba(6,182,212,0.3)', iconColor: '#22d3ee', textColor: '#67e8f9', subColor: 'rgba(34,211,238,0.8)' },
           { label: 'Approved', count: approvedCount, icon: CheckCircle2, bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', iconBg: 'rgba(34,197,94,0.3)', iconColor: '#4ade80', textColor: '#86efac', subColor: 'rgba(74,222,128,0.8)' },
           { label: 'Rejected', count: rejectedCount, icon: XCircle, bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', iconBg: 'rgba(239,68,68,0.3)', iconColor: '#f87171', textColor: '#fca5a5', subColor: 'rgba(248,113,113,0.8)' },
-          { label: 'Total', count: submissions.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
+          { label: 'Total', count: visiblePool.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
         ].map(({ label, count, icon: Icon, bg, border, iconBg, iconColor, textColor, subColor }) => (
           <div key={label} className="rounded-xl p-4 shadow-md" style={{ background: bg, border: `1px solid ${border}` }}>
             <div className="flex items-center gap-3">
