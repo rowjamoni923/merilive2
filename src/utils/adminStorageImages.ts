@@ -3,6 +3,10 @@ import { getAdminSessionToken } from "@/utils/adminSession";
 
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
+const PRIVATE_STORAGE_BUCKETS = new Set([
+  'face-verification', 'host-verification', 'payment-proofs', 'payment-screenshots',
+  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings', 'chat-media',
+]);
 const KNOWN_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'avatars', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
@@ -44,6 +48,7 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
   const adminToken = getAdminSessionToken();
   if (adminToken) {
     const { data } = await adminSupabase.functions.invoke('admin-sign-storage-url', {
+      headers: { 'x-admin-token': adminToken },
       body: { bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 },
     });
 
@@ -57,7 +62,7 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
     .from(storagePath.bucket)
     .createSignedUrl(storagePath.path, 60 * 60);
 
-  if (error || !data?.signedUrl) return value;
+  if (error || !data?.signedUrl) return PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) ? null : value;
   signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
   return data.signedUrl;
 };
