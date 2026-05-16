@@ -500,14 +500,22 @@ const AdminFaceVerification = () => {
   const isRejected = (s: Submission) => s.status === 'rejected';
   const isPendingBucket = (s: Submission) => !isApproved(s) && !isRejected(s);
 
-  const autoApprovedSubmissions = submissions.filter(s => isApproved(s) && s.admin_notes?.toLowerCase().includes('auto'));
-  const filteredSubmissions = submissions.filter(sub => {
-    const q = searchQuery.trim().toLowerCase();
-    const matchesSearch = !q
-      || sub.profile?.display_name?.toLowerCase().includes(q)
-      || sub.profile?.app_uid?.includes(searchQuery.trim())
-      || sub.full_name?.toLowerCase().includes(q);
-    if (!matchesSearch) return false;
+  // Single source of truth for what the user can currently see (after search).
+  // Counters are derived from the SAME pool the list uses, so badges always match
+  // the visible rows regardless of search input.
+  const q = searchQuery.trim().toLowerCase();
+  const matchesSearch = (sub: Submission) =>
+    !q
+    || !!sub.profile?.display_name?.toLowerCase().includes(q)
+    || !!sub.profile?.app_uid?.includes(searchQuery.trim())
+    || !!sub.full_name?.toLowerCase().includes(q);
+
+  const visiblePool = submissions.filter(matchesSearch);
+
+  const autoApprovedSubmissions = visiblePool.filter(
+    (s) => isApproved(s) && s.admin_notes?.toLowerCase().includes('auto'),
+  );
+  const filteredSubmissions = visiblePool.filter((sub) => {
     if (activeTab === 'auto_approved') {
       return isApproved(sub) && sub.admin_notes?.toLowerCase().includes('auto');
     }
@@ -518,10 +526,10 @@ const AdminFaceVerification = () => {
     return false;
   });
 
-  const pendingCount = submissions.filter(isPendingBucket).length;
-  const approvedCount = submissions.filter(isApproved).length;
+  const pendingCount = visiblePool.filter(isPendingBucket).length;
+  const approvedCount = visiblePool.filter(isApproved).length;
   const autoApprovedCount = autoApprovedSubmissions.length;
-  const rejectedCount = submissions.filter(isRejected).length;
+  const rejectedCount = visiblePool.filter(isRejected).length;
 
   if (loading) {
     return (
