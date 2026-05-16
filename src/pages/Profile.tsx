@@ -534,7 +534,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           // Agency wallet_balance (for agency owners) - wallet_balance is the source of truth
           isOwnProfileCheck && user && profileData?.is_agency_owner ? supabase.from("agencies").select("id, wallet_balance, diamond_balance").eq("owner_id", user.id).eq("is_active", true).maybeSingle() : { data: null },
           // Face verification pending check
-          isOwnProfileCheck && user && !profileData?.is_face_verified ? supabase.from("face_verification_submissions").select("id", { count: 'exact', head: true }).eq("user_id", user.id).eq("status", "pending") : { count: 0 },
+          isOwnProfileCheck && user && !profileData?.is_face_verified ? supabase.from("face_verification_submissions").select("id", { count: 'exact', head: true }).eq("user_id", user.id).in("status", ["pending", "submitted"]) : { count: 0 },
         ]);
 
         if (!isMounted) return;
@@ -700,7 +700,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               setFaceVerificationPending(false);
               // Also refresh profile to get is_face_verified update
               void fetchData();
-            } else if (payload?.status === 'pending') {
+            } else if (payload?.status === 'pending' || payload?.status === 'submitted') {
               setFaceVerificationPending(true);
             } else if (payload?.status === 'rejected') {
               setFaceVerificationPending(false);
@@ -2730,8 +2730,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 </div>
 
                 {!canCustomize && (
-                  <div className="bg-white rounded-xl p-3 border border-amber-200">
-                    <p className="text-body text-xs text-center">🔒 Reach Level {minCustomLevel} or higher to customize your rate</p>
+                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-3 border border-emerald-200">
+                    <p className="text-emerald-800 text-xs text-center font-medium">
+                      ✨ Your call price is set automatically based on your level — no action needed.
+                    </p>
+                    <p className="text-emerald-700 text-[11px] text-center mt-1">
+                      Reach Level {minCustomLevel} to unlock custom pricing.
+                    </p>
                   </div>
                 )}
 
@@ -2852,13 +2857,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   })()}
                 </div>
 
- <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-on-dark font-semibold text-base">
-                  {savingCallRate ? (
- <div className="flex items-center gap-2"><div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />Saving...</div>
-                  ) : (
-                    <div className="flex items-center gap-2"><PhoneCall className="w-5 h-5" />Save Price</div>
-                  )}
-                </Button>
+ {canCustomize ? (
+                  <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-on-dark font-semibold text-base">
+                    {savingCallRate ? (
+                      <div className="flex items-center gap-2"><div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />Saving...</div>
+                    ) : (
+                      <div className="flex items-center gap-2"><PhoneCall className="w-5 h-5" />Save Price</div>
+                    )}
+                  </Button>
+                ) : (
+                  <Button onClick={() => setShowCallPriceModal(false)} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-on-dark font-semibold text-base">
+                    Got it
+                  </Button>
+                )}
               </div>
             );
           })()}
