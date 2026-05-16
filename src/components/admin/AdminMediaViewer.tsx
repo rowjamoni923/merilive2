@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ExternalLink, Image as ImageIcon, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 export type AdminMediaKind = "auto" | "image" | "video";
 
@@ -11,9 +12,14 @@ export const isAdminVideoUrl = (src?: string | null) => {
   if (!src) return false;
   try {
     const url = new URL(src);
+    // Captured face-angle stills were historically uploaded as JPEG blobs with
+    // a .webm filename, so extension-only detection renders them as broken video.
+    if (url.pathname.includes("/face-angles/")) return false;
     return VIDEO_EXT_RE.test(url.pathname);
   } catch {
-    return VIDEO_EXT_RE.test(src.split("?")[0] || src);
+    const clean = src.split("?")[0] || src;
+    if (clean.includes("/face-angles/")) return false;
+    return VIDEO_EXT_RE.test(clean);
   }
 };
 
@@ -62,8 +68,34 @@ export function AdminMediaFrame({
   autoPlay = false,
 }: AdminMediaFrameProps) {
   const [failed, setFailed] = useState(false);
-  const mediaKind = kind === "auto" ? (isAdminVideoUrl(src) ? "video" : "image") : kind;
-  const videoType = useMemo(() => (src ? getVideoMimeType(src) : undefined), [src]);
+  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+  const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
+  const mediaKind = kind === "auto" ? (isAdminVideoUrl(displaySrc || src) ? "video" : "image") : kind;
+  const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
+
+  useEffect(() => {
+    setFailed(false);
+    if (!src) {
+      setDisplaySrc(null);
+      return;
+    }
+    let cancelled = false;
+    setDisplaySrc(null);
+    setDisplayPoster(poster || null);
+    (async () => {
+      const [resolved, resolvedPoster] = await Promise.all([
+        resolveAdminStorageImageUrl(src, "face-verification"),
+        resolveAdminStorageImageUrl(poster, "face-verification"),
+      ]);
+      if (!cancelled) {
+        setDisplaySrc(resolved || src);
+        setDisplayPoster(resolvedPoster || poster || null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [src, poster]);
 
   if (!src) {
     return (
@@ -73,12 +105,20 @@ export function AdminMediaFrame({
     );
   }
 
+  if (!displaySrc) {
+    return (
+      <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
+        <ImageIcon className="mr-2 h-4 w-4 animate-pulse" /> Loading media
+      </div>
+    );
+  }
+
   if (failed) {
     return (
       <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-center", className)}>
         <AlertTriangle className="h-5 w-5 text-destructive" />
         <p className="text-sm font-medium text-foreground">Media could not be loaded in this browser.</p>
-        <a href={src} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
+        <a href={displaySrc} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
           Open original <ExternalLink className="h-3 w-3" />
         </a>
       </div>
@@ -89,13 +129,13 @@ export function AdminMediaFrame({
     return (
       <div className={cn("overflow-hidden rounded-lg border border-border bg-background", className)}>
         <video
-          key={src}
+          key={displaySrc}
           controls
           playsInline
           preload="metadata"
           muted={autoPlay}
           autoPlay={autoPlay}
-          poster={poster || undefined}
+          poster={displayPoster || undefined}
           className={cn("h-full w-full bg-background object-contain", mediaClassName)}
           onError={() => setFailed(true)}
           onLoadedData={() => setFailed(false)}
@@ -106,7 +146,7 @@ export function AdminMediaFrame({
             "x5-video-player-fullscreen": "false",
           } as Record<string, string>)}
         >
-          {videoType ? <source src={src} type={videoType} /> : <source src={src} />}
+          {videoType ? <source src={displaySrc} type={videoType} /> : <source src={displaySrc} />}
         </video>
       </div>
     );
@@ -115,7 +155,7 @@ export function AdminMediaFrame({
   const image = (
     <img
       key={src}
-      src={src}
+      src={displaySrc}
       alt={alt}
       loading="lazy"
       decoding="async"
