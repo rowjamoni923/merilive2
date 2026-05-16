@@ -2730,8 +2730,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 </div>
 
                 {!canCustomize && (
-                  <div className="bg-white rounded-xl p-3 border border-amber-200">
-                    <p className="text-body text-xs text-center">🔒 Reach Level {minCustomLevel} or higher to customize your rate</p>
+                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-3 border border-emerald-200">
+                    <p className="text-emerald-800 text-xs text-center font-medium">
+                      ✨ Your call price is set automatically based on your level — no action needed.
+                    </p>
+                    <p className="text-emerald-700 text-[11px] text-center mt-1">
+                      Reach Level {minCustomLevel} to unlock custom pricing.
+                    </p>
                   </div>
                 )}
 
