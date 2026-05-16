@@ -3120,6 +3120,7 @@ export default function AdminUserManagement() {
                   </div>
                 </div>
               </div>
+              <HostApplicationDetailMedia application={selectedApplication} />
               {selectedApplication.status === "pending" && (
                 <div className="flex gap-2">
                   <Button className="flex-1 bg-green-500 hover:bg-green-600" onClick={handleApproveApplication} disabled={actionLoading}>
