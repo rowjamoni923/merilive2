@@ -2322,49 +2322,8 @@ export default function AdminUserManagement() {
                           </div>
                         </div>
 
-                        {/* Profile Photo */}
-                        {submission.profile_photo_url && (
-                          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                            <p className="text-xs font-semibold text-purple-600 mb-2">📷 Profile Photo</p>
-                            <img src={submission.profile_photo_url} alt="Profile" className="w-24 h-24 rounded-xl object-cover border-2 border-purple-300" />
-                          </div>
-                        )}
+                        <FaceSubmissionMediaBlocks submission={submission} />
 
-                        {/* Face Image / Liveness Video */}
-                        {submission.face_image_url && (
-                          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                            <p className="text-xs font-semibold text-purple-600 mb-2">🔍 Face Verification</p>
-                            <div className="rounded-lg overflow-hidden border border-slate-200 bg-black">
-                              {/\.(webm|mp4|mov|avi|ogg)(\?|$)/i.test(submission.face_image_url) ? (
-                                <video src={submission.face_image_url} controls playsInline muted className="w-full max-h-64 object-contain" />
-                              ) : (
-                                <img src={submission.face_image_url} alt="Face" className="w-full max-h-64 object-contain" />
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Verification Video */}
-                        {submission.video_url && submission.video_url !== submission.face_image_url && (
-                          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                            <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
-                            <div className="rounded-lg overflow-hidden border border-slate-200 bg-black">
-                              <video src={submission.video_url} controls playsInline muted className="w-full max-h-64 object-contain" />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Host Photos */}
-                        {submission.host_photos && submission.host_photos.length > 0 && (
-                          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                            <p className="text-xs font-semibold text-purple-600 mb-2">🖼️ Host Photos ({submission.host_photos.length})</p>
-                            <div className="flex gap-2 overflow-x-auto pb-1">
-                              {submission.host_photos.map((photo: string, idx: number) => (
-                                <img key={idx} src={photo} alt={`Host ${idx + 1}`} className="w-20 h-20 rounded-lg object-cover border-2 border-slate-300 flex-shrink-0" />
-                              ))}
-                            </div>
-                          </div>
-                        )}
 
                         {/* Inline Approve/Reject Buttons */}
                         {submission.status === 'pending' && (
