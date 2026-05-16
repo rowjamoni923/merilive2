@@ -137,7 +137,51 @@ const AdminFaceVerification = () => {
   const [approveGender, setApproveGender] = useState<'female' | 'male'>('male');
   const [processing, setProcessing] = useState(false);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
+  const [resolvedMedia, setResolvedMedia] = useState<{
+    profile_photo_url?: string | null;
+    video_url?: string | null;
+    face_image_url?: string | null;
+    front_url?: string | null;
+    left_url?: string | null;
+    right_url?: string | null;
+    selfie_url?: string | null;
+    host_photos?: string[];
+  }>({});
   const actionInFlightRef = useRef(false);
+
+  // Resolve private storage URLs → signed URLs whenever a submission is opened
+  useEffect(() => {
+    if (!selectedSubmission) {
+      setResolvedMedia({});
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const sub = selectedSubmission;
+      const [profile_photo_url, video_url, face_image_url, front_url, left_url, right_url, selfie_url, ...hostPhotos] = await Promise.all([
+        resolveAdminStorageImageUrl(sub.profile_photo_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.video_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.face_image_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.front_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.left_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.right_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.selfie_url, 'face-verification'),
+        ...((sub.host_photos || []).map((u) => resolveAdminStorageImageUrl(u, 'face-verification'))),
+      ]);
+      if (cancelled) return;
+      setResolvedMedia({
+        profile_photo_url,
+        video_url,
+        face_image_url,
+        front_url,
+        left_url,
+        right_url,
+        selfie_url,
+        host_photos: hostPhotos.map((u) => u || ''),
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [selectedSubmission]);
 
   const fetchSubmissions = async () => {
     let fastTimeoutId: number | null = null;
