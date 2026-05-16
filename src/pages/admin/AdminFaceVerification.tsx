@@ -878,7 +878,7 @@ const AdminFaceVerification = () => {
                       <h4 className="font-semibold flex items-center gap-2 text-purple-300">
                         <ScanFace className="w-5 h-5" /> Face Verification
                       </h4>
-                      <AdminMediaFrame src={url} alt="Face verification" className="border-2 border-purple-500/30 bg-black" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                      <AdminMediaFrame src={url} alt="Face verification" className="border-2 border-purple-500/30 bg-background" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                     </div>
                   );
                 })()}
@@ -915,7 +915,7 @@ const AdminFaceVerification = () => {
                       <h4 className="font-semibold flex items-center gap-2 text-purple-300">
                         <Video className="w-5 h-5" /> Verification Video
                       </h4>
-                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="border-2 border-purple-500/30 bg-black" mediaClassName="max-h-80" />
+                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="border-2 border-purple-500/30 bg-background" mediaClassName="max-h-80" />
                     </div>
                   );
                 })()}
@@ -927,7 +927,7 @@ const AdminFaceVerification = () => {
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {([resolvedMedia.front_url || resolvedMedia.selfie_url || selectedSubmission.front_url || selectedSubmission.selfie_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
-                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-square border-2 border-slate-600 bg-black" mediaClassName="object-cover" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-square border-2 border-border bg-background" mediaClassName="object-cover" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                       ))}
                     </div>
                   </div>
