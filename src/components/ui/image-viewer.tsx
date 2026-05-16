@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X, ZoomIn, ZoomOut, Download } from "lucide-react";
+import { X, ZoomIn, ZoomOut } from "lucide-react";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 interface ImageViewerProps {
   src: string | null;
@@ -11,6 +12,30 @@ interface ImageViewerProps {
 
 export const ImageViewer = ({ src, alt = "Image", open, onClose }: ImageViewerProps) => {
   const [scale, setScale] = useState(1);
+  const [displaySrc, setDisplaySrc] = useState<string | null>(src);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!src) {
+      setDisplaySrc(null);
+      return;
+    }
+    if (typeof window === "undefined" || !window.location.pathname.startsWith("/admin")) {
+      setDisplaySrc(src);
+      return;
+    }
+    setDisplaySrc(null);
+    resolveAdminStorageImageUrl(src, "payment-screenshots")
+      .then((resolved) => {
+        if (!cancelled) setDisplaySrc(resolved || null);
+      })
+      .catch(() => {
+        if (!cancelled) setDisplaySrc(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
 
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.5, 4));
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.5, 0.5));
@@ -45,13 +70,17 @@ export const ImageViewer = ({ src, alt = "Image", open, onClose }: ImageViewerPr
 
         {/* Image */}
         <div className="flex items-center justify-center w-full h-full overflow-auto p-4">
-          <img
-            src={src}
-            alt={alt}
-            className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
-            style={{ transform: `scale(${scale})` }}
-            draggable={false}
-          />
+          {displaySrc ? (
+            <img
+              src={displaySrc}
+              alt={alt}
+              className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
+              style={{ transform: `scale(${scale})` }}
+              draggable={false}
+            />
+          ) : (
+            <div className="text-sm text-white/70">Loading image</div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
