@@ -87,11 +87,18 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
+import { bucketOfStatus, countStatusBuckets } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission['status'] => {
+  const normalized = String(status || 'pending').trim().toLowerCase();
+  return ['pending', 'submitted', 'under_review', 'approved', 'rejected'].includes(normalized)
+    ? normalized as FaceVerificationSubmission['status']
+    : 'pending';
+};
 // Helper to parse verification details from admin_notes
 function parseVerificationDetails(adminNotes: string | null) {
   if (!adminNotes) return null;
