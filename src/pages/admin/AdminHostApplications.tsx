@@ -270,7 +270,7 @@ export default function AdminHostApplications() {
       toast.success(`${finalRole === 'host' ? '🎤 Host' : '👤 User'} approved!`);
       setShowDetailDialog(false);
       setAdminNotes("");
-      fetchApplications();
+      invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorApproving", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
@@ -299,7 +299,7 @@ export default function AdminHostApplications() {
       setShowDetailDialog(false);
       setRejectionReason("");
       setAdminNotes("");
-      fetchApplications();
+      invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) {
       toast.error((error as any)?.message || "Operation failed");
     } finally {
@@ -317,7 +317,7 @@ export default function AdminHostApplications() {
         .eq("id", app.id);
       if (error) throw error;
       toast.success("Review started");
-      fetchApplications();
+      invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) { toast.error((error as any)?.message || "Operation failed"); } finally { guardEnd(`review-${app.id}`); }
   };
 
