@@ -86,7 +86,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true, signedUrl: data.signedUrl }), {
+    const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
+    const MIME: Record<string, string> = {
+      mp4: "video/mp4", m4v: "video/mp4", mov: "video/quicktime", qt: "video/quicktime",
+      webm: "video/webm", ogv: "video/ogg", ogg: "video/ogg",
+      mkv: "video/x-matroska", avi: "video/x-msvideo",
+      "3gp": "video/3gpp", "3gpp": "video/3gpp", "3g2": "video/3gpp2",
+      mpg: "video/mpeg", mpeg: "video/mpeg", hevc: "video/mp4", ts: "video/mp2t",
+      m3u8: "application/vnd.apple.mpegurl", mpd: "application/dash+xml",
+      jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif",
+      webp: "image/webp", avif: "image/avif", svg: "image/svg+xml", bmp: "image/bmp",
+      heic: "image/heic", heif: "image/heif",
+      mp3: "audio/mpeg", wav: "audio/wav", aac: "audio/aac", flac: "audio/flac", m4a: "audio/mp4",
+      pdf: "application/pdf",
+    };
+    const contentType = MIME[ext];
+
+    // Best-effort: backfill stored mimetype so storage serves the correct Content-Type header.
+    if (contentType) {
+      try {
+        await supabase
+          .schema("storage")
+          .from("objects")
+          .update({ metadata: { mimetype: contentType } as any })
+          .eq("bucket_id", bucket)
+          .eq("name", path)
+          .or("metadata->>mimetype.is.null,metadata->>mimetype.eq.application/octet-stream,metadata->>mimetype.eq.application/json");
+      } catch (_) { /* non-fatal */ }
+    }
+
+    return new Response(JSON.stringify({ success: true, signedUrl: data.signedUrl, contentType: contentType || null }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

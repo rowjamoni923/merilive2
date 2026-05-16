@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export type AdminMediaKind = "auto" | "image" | "video";
 
-const VIDEO_EXT_RE = /\.(mp4|m4v|mov|webm|ogg|ogv|avi|mkv|3gp|3gpp)(?:$|[?#])/i;
+const VIDEO_EXT_RE = /\.(mp4|m4v|mov|qt|webm|ogg|ogv|avi|mkv|3gp|3gpp|3g2|mpg|mpeg|hevc|ts|m3u8|mpd)(?:$|[?#])/i;
 
 export const isAdminVideoUrl = (src?: string | null) => {
   if (!src) return false;
@@ -25,11 +25,18 @@ const getVideoMimeType = (src: string) => {
       return src.split("?")[0].toLowerCase();
     }
   })();
-  if (clean.endsWith(".mp4") || clean.endsWith(".m4v")) return "video/mp4";
+  if (clean.endsWith(".mp4") || clean.endsWith(".m4v") || clean.endsWith(".hevc")) return "video/mp4";
   if (clean.endsWith(".webm")) return "video/webm";
   if (clean.endsWith(".ogg") || clean.endsWith(".ogv")) return "video/ogg";
-  if (clean.endsWith(".mov")) return "video/quicktime";
+  if (clean.endsWith(".mov") || clean.endsWith(".qt")) return "video/quicktime";
   if (clean.endsWith(".3gp") || clean.endsWith(".3gpp")) return "video/3gpp";
+  if (clean.endsWith(".3g2")) return "video/3gpp2";
+  if (clean.endsWith(".mkv")) return "video/x-matroska";
+  if (clean.endsWith(".avi")) return "video/x-msvideo";
+  if (clean.endsWith(".mpg") || clean.endsWith(".mpeg")) return "video/mpeg";
+  if (clean.endsWith(".ts")) return "video/mp2t";
+  if (clean.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
+  if (clean.endsWith(".mpd")) return "application/dash+xml";
   return undefined;
 };
 
