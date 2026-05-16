@@ -34,8 +34,9 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
 
 /** Canonical status → bucket mapping. */
 export function bucketOfStatus(status: string | null | undefined): StatusBucket {
-  if (status === "approved") return "approved";
-  if (status === "rejected") return "rejected";
+  const normalized = String(status || "").trim().toLowerCase();
+  if (normalized === "approved") return "approved";
+  if (normalized === "rejected") return "rejected";
   return "pending";
 }
 
