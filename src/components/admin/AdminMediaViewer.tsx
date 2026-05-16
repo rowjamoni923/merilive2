@@ -75,11 +75,13 @@ export function AdminMediaFrame({
   const [resolutionFailed, setResolutionFailed] = useState(false);
   const isPrivateStorage = isPrivateAdminStorageReference(src, bucket);
   const rawKind = kind === "auto" ? (isAdminVideoUrl(displaySrc || src) ? "video" : "image") : kind;
-  const mediaKind = failed && rawKind === "video" && isPrivateStorage ? "image" : rawKind;
+  const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
+  const mediaKind = rawKind;
   const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
 
   useEffect(() => {
     setFailed(false);
+    setImageFallbackFailed(false);
     if (!src) {
       setDisplaySrc(null);
       return;
@@ -130,7 +132,7 @@ export function AdminMediaFrame({
   }
 
   if (failed) {
-    if (rawKind === "video" && isPrivateStorage && displaySrc) {
+    if (rawKind === "video" && isPrivateStorage && displaySrc && !imageFallbackFailed) {
       return (
         <div className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", className)}>
           <img
@@ -141,7 +143,7 @@ export function AdminMediaFrame({
             decoding="async"
             referrerPolicy="no-referrer"
             className={cn("h-full w-full object-contain", mediaClassName)}
-            onError={() => setResolutionFailed(true)}
+            onError={() => setImageFallbackFailed(true)}
           />
         </div>
       );
