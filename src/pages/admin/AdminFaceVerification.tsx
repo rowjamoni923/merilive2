@@ -207,15 +207,9 @@ const AdminFaceVerification = () => {
 
       // Pkg9 hardening: single server-side RPC replaces direct table SELECT +
       // N+1 client joins (profile/agency). Server enforces is_active_admin_session.
-      const statusParam = activeTab === 'all' || activeTab === 'auto_approved'
-        ? null
-        : activeTab === 'pending'
-          ? null
-          : activeTab;
-
       const { data, error } = await supabase.rpc(
         'admin_list_face_verification_paginated',
-        { _status: statusParam, _search: qRaw || null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
+        { _status: null, _search: null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
       );
 
       if (error) throw error;
