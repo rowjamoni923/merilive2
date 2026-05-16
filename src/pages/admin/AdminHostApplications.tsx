@@ -743,7 +743,7 @@ export default function AdminHostApplications() {
                   {sel.video_url ? (
                     <div className="mt-3 max-w-sm mx-auto">
                       <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-black border border-white/10 shadow-xl">
-                        <AdminMediaFrame src={sel.video_url} alt="Introduction video" kind="video" poster={sel.profile_photo_url} className="h-full w-full border-0 bg-black" mediaClassName="object-contain" />
+                        <AdminMediaFrame src={sel.video_url} alt="Introduction video" kind="video" poster={sel.profile_photo_url} className="h-full w-full border-0 bg-background" mediaClassName="object-contain" />
                       </div>
                     </div>
                   ) : (
