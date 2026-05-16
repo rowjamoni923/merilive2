@@ -6,7 +6,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJh
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const failedSignedUrlCache = new Map<string, number>();
 const inFlightSignedUrls = new Map<string, Promise<string | null>>();
-const LEGACY_ADMIN_TOKEN_KEYS = ['admin_session_token'];
+const LEGACY_ADMIN_TOKEN_KEYS = ['merilive-admin-token', 'admin_session_token'];
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
 export interface AdminStoragePath {
   bucket: string;
