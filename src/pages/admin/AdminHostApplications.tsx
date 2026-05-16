@@ -249,14 +249,25 @@ export default function AdminHostApplications() {
       const isHost = finalRole === 'host';
       const targetGender = isHost ? 'female' : 'male';
 
-      const { error: processError } = await supabase.rpc('admin_process_face_verification', {
+      const { data: processData, error: processError } = await supabase.rpc('admin_process_face_verification', {
         _submission_id: selectedApplication.id,
         _action: 'approve',
         _approve_as: finalRole,
         _set_gender: targetGender,
-        _reason: adminNotes || null,
+        _reason: adminNotes?.trim() || null,
       });
       if (processError) throw processError;
+
+      if ((processData as any)?.pending) {
+        toast.success('⏳ Submitted for Owner Approval');
+        setShowDetailDialog(false);
+        setAdminNotes("");
+        invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
+        return;
+      }
+      if ((processData as any)?.success === false) {
+        throw new Error((processData as any)?.error || 'Approval failed');
+      }
 
       await supabase.functions.invoke('send-app-notification', {
         body: {
