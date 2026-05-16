@@ -226,7 +226,7 @@ export default function AdminBranding() {
         <img
           src={settings.background_url}
           alt="Background"
-          className={className} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+          className={className} />
       );
     }
 
@@ -302,7 +302,7 @@ export default function AdminBranding() {
                       <img 
                         src={settings.logo_image_url} 
                         alt="Logo" 
-                        className="w-20 h-20 object-contain rounded-lg border bg-muted" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        className="w-20 h-20 object-contain rounded-lg border bg-muted" />
                       <button
                         onClick={removeLogo}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
@@ -512,7 +512,7 @@ export default function AdminBranding() {
                     <img 
                       src={settings.logo_image_url} 
                       alt="Logo" 
-                      className="w-32 h-32 object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="w-32 h-32 object-contain" />
                   ) : (
                     <div className="flex flex-col items-center">
                       {/* Premium Primary Text */}

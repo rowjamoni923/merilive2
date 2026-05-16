@@ -1279,7 +1279,7 @@ const AdminHelperManagement = () => {
                           src={selectedApp.payment_screenshot_url || selectedApp.payment_details?.screenshot_url}
                           alt="Payment Screenshot"
                           className="w-full max-h-64 object-contain rounded-lg border border-slate-700 cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() = onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}> {
+                          onClick={() => {
                             const url = selectedApp.payment_screenshot_url || selectedApp.payment_details?.screenshot_url;
                             if (url) imageViewer.openImage(url);
                           }}

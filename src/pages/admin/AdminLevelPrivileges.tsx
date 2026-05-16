@@ -720,7 +720,7 @@ const AdminLevelPrivileges = () => {
                       <img 
                         src={editingAnimation.icon_url} 
                         alt={`Level ${editingAnimation.level}`}
-                        className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        className="w-full h-full object-contain" />
                     ) : (
                       <span className="text-3xl font-bold text-white/40">
                         {editingAnimation.level}

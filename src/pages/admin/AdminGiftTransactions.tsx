@@ -292,7 +292,7 @@ export default function AdminGiftTransactions() {
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           {t.gift?.icon_url && !t.gift.icon_url.endsWith('.svga') && (
-                            <img src={t.gift.icon_url} alt="" className="w-5 h-5 object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                            <img src={t.gift.icon_url} alt="" className="w-5 h-5 object-contain" />
                           )}
                           {t.gift?.icon_url?.endsWith('.svga') && (
                             <span className="text-base">🎁</span>

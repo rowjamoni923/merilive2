@@ -440,7 +440,7 @@ export default function AdminRechargeCampaigns() {
               <Card key={c.id} className={`relative overflow-hidden transition-all ${!c.is_active ? "opacity-60" : ""}`}>
                 {c.banner_image_url && (
                   <div className="h-32 bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden">
-                    <img src={c.banner_image_url} alt={c.campaign_name} className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <img src={c.banner_image_url} alt={c.campaign_name} className="w-full h-full object-cover" />
                   </div>
                 )}
 
@@ -870,7 +870,7 @@ export default function AdminRechargeCampaigns() {
                 </h3>
                 {form.banner_image_url && (
                   <div className="rounded-lg overflow-hidden border h-32 relative group">
-                    <img src={form.banner_image_url} alt="Banner" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <img src={form.banner_image_url} alt="Banner" className="w-full h-full object-cover" />
                     <Button
                       variant="destructive"
                       size="sm"

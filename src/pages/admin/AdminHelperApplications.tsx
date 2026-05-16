@@ -675,7 +675,7 @@ const AdminHelperApplications = () => {
                           src={selectedApp.payment_screenshot_url} 
                           alt="Payment Screenshot" 
                           className="w-full h-auto max-h-48 object-contain rounded-lg border cursor-pointer"
-                          onClick={() = onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}> imageViewer.openImage(selectedApp.payment_screenshot_url!)}
+                          onClick={() => imageViewer.openImage(selectedApp.payment_screenshot_url!)}
                         />
                       </div>
                     </div>
@@ -732,7 +732,7 @@ const AdminHelperApplications = () => {
                                   src={selectedApp.id_card_front_url}
                                   alt="ID Front" 
                                   className="w-full h-32 object-cover rounded-lg border border-amber-500/30 cursor-pointer"
-                                  onClick={() = onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}> imageViewer.openImage(selectedApp.id_card_front_url!)}
+                                  onClick={() => imageViewer.openImage(selectedApp.id_card_front_url!)}
                                 />
                                 <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                   <ExternalLink className="w-5 h-5 text-white" />
@@ -748,7 +748,7 @@ const AdminHelperApplications = () => {
                                   src={selectedApp.id_card_back_url}
                                   alt="ID Back" 
                                   className="w-full h-32 object-cover rounded-lg border border-amber-500/30 cursor-pointer"
-                                  onClick={() = onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}> imageViewer.openImage(selectedApp.id_card_back_url!)}
+                                  onClick={() => imageViewer.openImage(selectedApp.id_card_back_url!)}
                                 />
                                 <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                   <ExternalLink className="w-5 h-5 text-white" />

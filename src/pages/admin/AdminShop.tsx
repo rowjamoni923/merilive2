@@ -883,9 +883,9 @@ const AdminShop = () => {
                       ) : formData.file_type === 'video' ? (
                         <video src={previewFile} className="w-full h-full object-contain" controls autoPlay muted loop />
                       ) : formData.file_type === 'gif' ? (
-                        <img src={previewFile} alt="Preview" className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        <img src={previewFile} alt="Preview" className="w-full h-full object-contain" />
                       ) : (
-                        <img src={previewFile} alt="Preview" className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        <img src={previewFile} alt="Preview" className="w-full h-full object-contain" />
                       )}
                     </div>
                     <Button
@@ -1106,7 +1106,7 @@ const AdminShop = () => {
                       <img
                         src={formData.preview_url}
                         alt="Preview"
-                        className="w-24 h-24 rounded-lg object-cover border border-white/20" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        className="w-24 h-24 rounded-lg object-cover border border-white/20" />
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, preview_url: "" })}
@@ -1238,7 +1238,7 @@ const AdminShop = () => {
                 );
                 if (isLottie(url)) return <UniversalAnimationPlayer src={url} className="w-full h-full" loop autoPlay muted={false} />;
                 if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;
-                return <img src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />;
+                return <img src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" />;
               })()}
             </div>
           </div>

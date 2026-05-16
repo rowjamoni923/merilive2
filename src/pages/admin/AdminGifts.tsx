@@ -1072,7 +1072,7 @@ export default function AdminGifts() {
                             autoPlay={true}
                           />
                         ) : (
-                          <img src={formData.icon_url} alt="Icon" className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                          <img src={formData.icon_url} alt="Icon" className="w-full h-full object-contain" />
                         )
                       ) : (
                         <span className="text-4xl md:text-5xl">{formData.icon_url}</span>
@@ -1271,7 +1271,7 @@ export default function AdminGifts() {
                           autoPlay={true}
                         />
                       ) : formData.animation_url.endsWith('.gif') || formData.animation_url.endsWith('.png') || formData.animation_url.endsWith('.webp') ? (
-                        <img src={formData.animation_url} alt="Animation" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        <img src={formData.animation_url} alt="Animation" className="w-full h-full object-cover" />
                       ) : formData.animation_url.endsWith('.mp4') || formData.animation_url.endsWith('.webm') ? (
                         <video 
                           src={formData.animation_url} 
@@ -1578,9 +1578,9 @@ export default function AdminGifts() {
                 if (isSVGA(url)) return <UniversalAnimationPlayer src={url} type="svga" className="w-full h-full" loop autoPlay muted={false} />;
                 if (isLottie(url)) return <UniversalAnimationPlayer src={url} type="lottie" className="w-full h-full" loop autoPlay muted={false} />;
                 if (isVideoOrGif(url)) return url.endsWith('.gif') 
-                  ? <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  ? <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />
                   : <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;
-                return <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />;
+                return <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />;
               })()}
             </div>
           </div>

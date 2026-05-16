@@ -261,7 +261,7 @@ const AdminOnboardingSlides = () => {
               />
               {form.image_url && (
                 <div className="mt-2 w-full h-40 rounded-lg overflow-hidden bg-muted">
-                  <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>

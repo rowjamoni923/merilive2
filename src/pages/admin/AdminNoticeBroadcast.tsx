@@ -445,7 +445,7 @@ const AdminNoticeBroadcast = () => {
                 <div className="mt-1.5 flex flex-wrap gap-2">
                   {imageUrls.map((url, idx) => (
                     <div key={idx} className="relative inline-block">
-                      <img src={url} alt={`Notice ${idx + 1}`} className="h-24 w-24 rounded-lg border border-border object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      <img src={url} alt={`Notice ${idx + 1}`} className="h-24 w-24 rounded-lg border border-border object-cover" />
                       <button
                         onClick={() => setImageUrls(prev => prev.filter((_, i) => i !== idx))}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-white rounded-full flex items-center justify-center hover:bg-destructive/80"
@@ -646,7 +646,7 @@ const AdminNoticeBroadcast = () => {
                                 return urls.length > 0 ? (
                                   <div className="flex flex-wrap gap-1.5 mb-2">
                                     {urls.map((url, idx) => (
-                                      <img key={idx} src={url} alt={`Notice ${idx+1}`} className="rounded-lg h-20 w-20 object-cover border border-border" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                                      <img key={idx} src={url} alt={`Notice ${idx+1}`} className="rounded-lg h-20 w-20 object-cover border border-border" />
                                     ))}
                                   </div>
                                 ) : null;
@@ -742,7 +742,7 @@ const AdminNoticeBroadcast = () => {
                   {imageUrls.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {imageUrls.map((url, idx) => (
-                        <img key={idx} src={url} alt={`Notice ${idx + 1}`} className="rounded-lg h-24 w-24 object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        <img key={idx} src={url} alt={`Notice ${idx + 1}`} className="rounded-lg h-24 w-24 object-cover" />
                       ))}
                     </div>
                   )}

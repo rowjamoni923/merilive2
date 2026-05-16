@@ -560,7 +560,7 @@ export default function AdminGameSettings() {
                                 alt={game.game_name}
                                 className="w-full h-full object-contain absolute inset-0"
                                 loading="lazy"
-                                onLoad={(e) = onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}> {
+                                onLoad={(e) => {
                                   // Show image once loaded
                                   (e.target as HTMLImageElement).style.opacity = '1';
                                 }}
@@ -1049,7 +1049,7 @@ export default function AdminGameSettings() {
                         <img 
                           src={editingGame.logo_url} 
                           alt="Game Logo" 
-                          className="w-12 h-12 rounded-lg object-cover border" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                          className="w-12 h-12 rounded-lg object-cover border" />
                         <span className="text-xs text-muted-foreground truncate max-w-[200px]">{editingGame.logo_url}</span>
                       </div>
                     )}
@@ -1248,7 +1248,7 @@ export default function AdminGameSettings() {
                           <img 
                             src={newGame.logo_url} 
                             alt="Game Logo Preview" 
-                            className="w-12 h-12 rounded-lg object-cover border" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                            className="w-12 h-12 rounded-lg object-cover border" />
                           <span className="text-xs text-muted-foreground truncate max-w-[200px]">{newGame.logo_url}</span>
                         </div>
                       )}

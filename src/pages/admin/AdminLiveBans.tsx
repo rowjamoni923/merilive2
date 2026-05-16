@@ -589,7 +589,7 @@ export default function AdminLiveBans() {
                                 <img
                                   src={ban.profiles?.avatar_url || '/placeholder.svg'}
                                   alt=""
-                                  className="w-8 h-8 rounded-full" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                                  className="w-8 h-8 rounded-full" />
                                 <div>
                                   <p className="font-medium text-sm">{ban.profiles?.display_name || 'Unknown'}</p>
                                   <p className="text-xs text-muted-foreground">{ban.profiles?.uid}</p>

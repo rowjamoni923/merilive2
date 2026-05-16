@@ -451,7 +451,7 @@ const AdminTopupPaymentMethods = () => {
               <div className="flex items-center gap-3">
                 <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
                   {formData.icon_url ? (
-                    <img src={formData.icon_url} alt="logo" className="w-16 h-16 object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <img src={formData.icon_url} alt="logo" className="w-16 h-16 object-cover" />
                   ) : (
                     <CreditCard className="w-7 h-7 text-slate-500" />
                   )}

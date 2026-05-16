@@ -336,7 +336,7 @@ export function CampaignPopupPreview({
               {/* Banner image */}
               {bannerImageUrl && (
                 <div className="h-16 overflow-hidden">
-                  <img src={bannerImageUrl} alt="" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  <img src={bannerImageUrl} alt="" className="w-full h-full object-cover" />
                 </div>
               )}
 

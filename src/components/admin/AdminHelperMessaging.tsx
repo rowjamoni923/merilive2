@@ -524,7 +524,7 @@ const AdminHelperMessaging = () => {
                   <div className="flex flex-wrap gap-2">
                     {attachments.map((url, i) => (
                       <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-border group">
-                        <img src={url} alt="" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        <img src={url} alt="" className="w-full h-full object-cover" />
                         <button
                           onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
                           className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl-lg p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -660,7 +660,7 @@ const AdminHelperMessaging = () => {
                           <img 
                             src={reply.screenshot_url} 
                             alt="Screenshot" 
-                            className="mt-1 max-w-full h-auto max-h-40 rounded-lg border" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                            className="mt-1 max-w-full h-auto max-h-40 rounded-lg border" />
                         </div>
                       )}
                     </div>

@@ -122,7 +122,7 @@ const AdminVerifiedBadges = () => {
                 {/* Preview */}
                 <div className="flex items-center justify-center h-24 rounded-lg border-2 border-dashed border-muted bg-muted/30">
                   {currentUrl ? (
-                    <img src={currentUrl} alt={label} className="max-h-20 max-w-20 object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <img src={currentUrl} alt={label} className="max-h-20 max-w-20 object-contain" />
                   ) : (
                     <div className="text-center text-muted-foreground">
                       <ImageIcon className="w-8 h-8 mx-auto mb-1 opacity-40" />

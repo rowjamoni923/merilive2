@@ -350,7 +350,7 @@ const AdminEntryBars = () => {
                     <img 
                       src={item.preview_url} 
                       alt={item.name} 
-                      className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="w-full h-full object-cover" />
                   ) : item.animation_url ? (
                     <div className="w-full h-full">
                       <UniversalAnimationPlayer
@@ -580,7 +580,7 @@ const AdminEntryBars = () => {
                     <img 
                       src={formData.preview_url} 
                       alt="Thumbnail"
-                      className="h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="h-full object-contain" />
                   </div>
                 )}
               </div>

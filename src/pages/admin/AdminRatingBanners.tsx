@@ -141,7 +141,7 @@ export default function AdminRatingBanners() {
           {banners.map((b) => (
             <Card key={b.id} className="overflow-hidden">
               <div className="aspect-[3/4] bg-muted overflow-hidden">
-                <img src={b.image_url} alt={b.title} className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                <img src={b.image_url} alt={b.title} className="w-full h-full object-cover" />
               </div>
               <CardContent className="p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
@@ -188,7 +188,7 @@ export default function AdminRatingBanners() {
                 </label>
               </div>
               {form.image_url && (
-                <img src={form.image_url} alt="preview" className="mt-2 max-h-48 rounded-md border" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                <img src={form.image_url} alt="preview" className="mt-2 max-h-48 rounded-md border" />
               )}
             </div>
             <div>

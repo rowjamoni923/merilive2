@@ -281,7 +281,7 @@ const AdminNobleCards = () => {
                   {item.animation_url ? (
                     <UniversalAnimationPlayer src={item.animation_url} className="w-full h-full" loop autoPlay />
                   ) : item.preview_url ? (
-                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" />
                   ) : (
                     <CreditCard className="h-12 w-12 text-rose-500" />
                   )}

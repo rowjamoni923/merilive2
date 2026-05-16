@@ -320,7 +320,7 @@ const AdminChatBubbles = () => {
                       autoPlay
                     />
                   ) : item.preview_url ? (
-                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" />
                   ) : (
                     <MessageCircle className="h-12 w-12 text-muted-foreground" />
                   )}
