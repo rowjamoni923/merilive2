@@ -10,7 +10,7 @@ export function useAdminSignedUrl(
   value: string | null | undefined,
   bucket: string = "face-verification",
 ): string | null {
-  const [url, setUrl] = useState<string | null>(value || null);
+  const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!value) {
@@ -18,10 +18,10 @@ export function useAdminSignedUrl(
       return;
     }
     let cancelled = false;
-    setUrl(value); // optimistic so we don't flash empty
+    setUrl(null);
     (async () => {
       const resolved = await resolveAdminStorageImageUrl(value, bucket);
-      if (!cancelled) setUrl(resolved || value);
+      if (!cancelled) setUrl(resolved);
     })();
     return () => {
       cancelled = true;
@@ -39,7 +39,7 @@ export function useAdminSignedUrls(
   bucket: string = "face-verification",
 ): string[] {
   const key = (values || []).join("|");
-  const [urls, setUrls] = useState<string[]>(() => (values || []).map((v) => v || ""));
+  const [urls, setUrls] = useState<string[]>([]);
 
   useEffect(() => {
     const list = values || [];
@@ -48,12 +48,12 @@ export function useAdminSignedUrls(
       return;
     }
     let cancelled = false;
-    setUrls(list.map((v) => v || ""));
+    setUrls([]);
     (async () => {
       const resolved = await Promise.all(
         list.map((v) => resolveAdminStorageImageUrl(v, bucket)),
       );
-      if (!cancelled) setUrls(resolved.map((u, i) => u || list[i] || ""));
+      if (!cancelled) setUrls(resolved.filter((u): u is string => Boolean(u)));
     })();
     return () => {
       cancelled = true;
