@@ -358,7 +358,7 @@ const AdminFaceVerification = () => {
       case 'pending': return <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
       case 'approved': return <Badge className="bg-green-500/20 text-green-300 border border-green-500/30"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</Badge>;
       case 'rejected': return <Badge className="bg-red-500/20 text-red-300 border border-red-500/30"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
+      default: return <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
     }
   };
 
