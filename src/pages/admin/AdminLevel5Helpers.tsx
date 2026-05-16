@@ -1244,7 +1244,7 @@ const AdminLevel5Helpers = () => {
                     <img 
                       src={selectedWithdrawal.payment_screenshot_url} 
                       alt="Payment proof" 
-                      className="w-full object-cover max-h-64" />
+                      className="w-full object-cover max-h-64" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   </div>
                 </div>
               )}

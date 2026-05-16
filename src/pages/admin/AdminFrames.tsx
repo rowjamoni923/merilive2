@@ -589,7 +589,7 @@ const AdminFrames = () => {
                           alt={frame.name}
                           loading="lazy"
                           decoding="async"
-                          className="w-full h-full object-contain" />
+                          className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                       );
                     }
 

@@ -564,7 +564,7 @@ const AdminHelperRequests = () => {
                     <img 
                       src={selectedRequest.payment_proof_url} 
                       alt="Payment Proof" 
-                      className="w-full max-h-60 object-contain rounded-lg border cursor-pointer hover:opacity-90" />
+                      className="w-full max-h-60 object-contain rounded-lg border cursor-pointer hover:opacity-90" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   </a>
                 </div>
               )}

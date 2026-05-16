@@ -748,7 +748,7 @@ const AdminPaymentGateways = () => {
                               <img 
                                 src={gateway.logo_url} 
                                 alt={gateway.name} 
-                                className="w-full h-full object-cover" />
+                                className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                             ) : (
                               getGatewayIcon(gateway.gateway_code)
                             )}

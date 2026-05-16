@@ -428,7 +428,7 @@ const AdminHelperOrders = () => {
                   <img 
                     src={selectedOrder.user_payment_proof} 
                     alt="Payment proof"
-                    className="w-full rounded-lg border" />
+                    className="w-full rounded-lg border" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                 </div>
               )}
 

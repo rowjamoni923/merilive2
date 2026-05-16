@@ -148,7 +148,7 @@ const GiftFrameDialog = ({
               <img
                 src={framePreviewUrl}
                 alt={frameName}
-                className="w-12 h-12 rounded object-contain bg-black/20" />
+                className="w-12 h-12 rounded object-contain bg-black/20" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
             ) : (
               <div className="w-12 h-12 rounded bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs">
                 Frame

@@ -284,7 +284,7 @@ export default function AdminPermanentBan() {
                     <img
                       src={searchedUser.avatar_url || "/placeholder.svg"}
                       className="h-10 w-10 rounded-full object-cover"
-                      alt="" />
+                      alt="" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                     <div className="flex-1">
                       <div className="font-semibold">{searchedUser.display_name}</div>
                       <div className="text-xs text-muted-foreground">
@@ -411,7 +411,7 @@ export default function AdminPermanentBan() {
                         <img
                           src={b.avatar_url || "/placeholder.svg"}
                           className="h-10 w-10 rounded-full object-cover"
-                          alt="" />
+                          alt="" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium truncate">{b.display_name || b.user_id}</div>
                           <div className="text-xs text-muted-foreground truncate">{b.ban_reason}</div>

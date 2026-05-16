@@ -410,7 +410,7 @@ const AdminRewardsManagement = () => {
                           <img
                             src={firstRechargeConfig.banner_image_url}
                             alt="Banner Preview"
-                            className="w-full h-32 object-cover" />
+                            className="w-full h-32 object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                           <Button
                             size="sm"
                             variant="destructive"

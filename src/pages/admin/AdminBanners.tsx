@@ -318,7 +318,7 @@ export default function AdminBanners() {
                     <img 
                       src={banner.image_url} 
                       alt={banner.title}
-                      className="w-full h-auto object-contain rounded-lg" />
+                      className="w-full h-auto object-contain rounded-lg" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   ) : (
                     <div className="flex items-center justify-between px-4 h-16">
                       <div>
@@ -427,7 +427,7 @@ export default function AdminBanners() {
                   <img 
                     src={formData.image_url} 
                     alt="Banner Preview"
-                    className="w-full h-auto object-contain rounded-xl" />
+                    className="w-full h-auto object-contain rounded-xl" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                 </div>
               ) : (
                 <div 

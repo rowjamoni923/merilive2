@@ -433,7 +433,7 @@ const AdminLevelTiers = () => {
                     <img 
                       src={editingTier.icon_url} 
                       alt="Icon" 
-                      className="w-16 h-16 rounded-xl object-cover border-2 border-purple-200" />
+                      className="w-16 h-16 rounded-xl object-cover border-2 border-purple-200" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   ) : (
                     <div 
                       className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl border-2 border-dashed border-slate-300"
@@ -482,7 +482,7 @@ const AdminLevelTiers = () => {
                     <img 
                       src={editingTier.animation_url} 
                       alt="Animation" 
-                      className="w-16 h-16 rounded-xl object-cover border-2 border-pink-200" />
+                      className="w-16 h-16 rounded-xl object-cover border-2 border-pink-200" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   ) : (
                     <div className="w-16 h-16 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300 bg-slate-50">
                       <Image className="w-6 h-6 text-slate-400" />
@@ -588,7 +588,7 @@ const AdminLevelTiers = () => {
                     <img 
                       src={editingTier.animation_url || editingTier.icon_url || ''} 
                       alt="Preview"
-                      className="w-14 h-14 rounded-xl object-cover shadow-lg" />
+                      className="w-14 h-14 rounded-xl object-cover shadow-lg" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   ) : (
                     <div 
                       className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shadow-lg"

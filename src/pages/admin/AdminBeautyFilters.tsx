@@ -712,7 +712,7 @@ const ItemGrid = ({
                   const mpPreview = mpKey ? MEDIAPIPE_PREVIEW_MAP[mpKey] : null;
                   const previewSrc = mpPreview || item.preview_url;
                   if (previewSrc) {
-                    return <img src={previewSrc} alt={item.name} className="w-full h-full object-cover rounded-xl" loading="lazy" />;
+                    return <img src={previewSrc} alt={item.name} className="w-full h-full object-cover rounded-xl" loading="lazy" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />;
                   }
                   return <div className="text-fuchsia-400">{getFileTypeIcon(item.filter_type)}</div>;
                 })()}
