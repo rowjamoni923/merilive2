@@ -50,6 +50,15 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+
+const normalizeFaceVerificationStatus = (status?: string | null): Submission['status'] => {
+  const normalized = String(status || 'pending').trim().toLowerCase();
+  if (normalized === 'approved' || normalized === 'rejected' || normalized === 'submitted' || normalized === 'under_review') {
+    return normalized;
+  }
+  return 'pending';
+};
+
 interface Submission {
   id: string;
   user_id: string;
@@ -210,6 +219,7 @@ const AdminFaceVerification = () => {
 
       const enriched: Submission[] = rows.map((s) => ({
         ...s,
+        status: normalizeFaceVerificationStatus(s.status),
         // RPC returns profile as a jsonb object; normalize null → undefined
         profile: s.profile && s.profile.id ? s.profile : undefined,
         agency_info: s.agency_name
