@@ -534,7 +534,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           // Agency wallet_balance (for agency owners) - wallet_balance is the source of truth
           isOwnProfileCheck && user && profileData?.is_agency_owner ? supabase.from("agencies").select("id, wallet_balance, diamond_balance").eq("owner_id", user.id).eq("is_active", true).maybeSingle() : { data: null },
           // Face verification pending check
-          isOwnProfileCheck && user && !profileData?.is_face_verified ? supabase.from("face_verification_submissions").select("id", { count: 'exact', head: true }).eq("user_id", user.id).eq("status", "pending") : { count: 0 },
+          isOwnProfileCheck && user && !profileData?.is_face_verified ? supabase.from("face_verification_submissions").select("id", { count: 'exact', head: true }).eq("user_id", user.id).in("status", ["pending", "submitted"]) : { count: 0 },
         ]);
 
         if (!isMounted) return;
