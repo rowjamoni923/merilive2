@@ -656,10 +656,12 @@ export default function AdminHostApplications() {
                 <div className="h-28 bg-gradient-to-r from-rose-600/40 via-pink-600/40 to-fuchsia-600/40" />
                 <div className="absolute -bottom-10 left-6 flex items-end gap-4">
                   <div className="relative">
-                    <img
+                    <AdminMediaFrame
                       src={sel.profile_photo_url || sel.profile?.avatar_url || ''}
-                      alt=""
-                      className="w-20 h-20 rounded-2xl object-cover border-4 border-slate-800 shadow-xl"
+                      alt="Profile"
+                      kind="image"
+                      className="w-20 h-20 rounded-2xl border-4 border-slate-800 shadow-xl"
+                      mediaClassName="object-cover"
                     />
                     <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-800 ${
                       sel.status === 'approved' ? 'bg-emerald-400' : sel.status === 'rejected' ? 'bg-rose-400' : 'bg-amber-400'
@@ -702,12 +704,7 @@ export default function AdminHostApplications() {
                   <SectionHeader icon={Camera} title="Profile Photo" />
                   {sel.profile_photo_url ? (
                     <div className="mt-3">
-                      <img
-                        src={sel.profile_photo_url}
-                        alt="Profile"
-                        className="w-40 h-40 md:w-48 md:h-48 rounded-2xl object-cover border-2 border-white/10 cursor-pointer hover:border-pink-500/40 transition-all shadow-lg"
-                        onClick={() => setExpandedPhoto(sel.profile_photo_url!)}
-                      />
+                      <AdminMediaFrame src={sel.profile_photo_url} alt="Profile" kind="image" className="w-40 h-40 md:w-48 md:h-48 rounded-2xl border-2 border-white/10 hover:border-pink-500/40 transition-all shadow-lg" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(sel.profile_photo_url!)} />
                     </div>
                   ) : (
                     <EmptyState icon={Camera} text="No profile photo uploaded" />
@@ -723,12 +720,7 @@ export default function AdminHostApplications() {
                     <div className="grid grid-cols-3 md:grid-cols-4 gap-3 mt-3">
                       {sel.host_photos.map((photo, idx) => (
                         <div key={idx} className="relative group/photo aspect-square">
-                          <img
-                            src={photo}
-                            alt={`Photo ${idx + 1}`}
-                            className="w-full h-full rounded-xl object-cover border border-white/10 group-hover/photo:border-pink-500/40 transition-all cursor-pointer"
-                            onClick={() => setExpandedPhoto(photo)}
-                          />
+                          <AdminMediaFrame src={photo} alt={`Photo ${idx + 1}`} kind="image" className="h-full w-full rounded-xl border border-white/10 group-hover/photo:border-pink-500/40 transition-all" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(photo)} />
                           <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/30 transition-all rounded-xl flex items-center justify-center">
                             <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
                           </div>
@@ -751,12 +743,7 @@ export default function AdminHostApplications() {
                   {sel.video_url ? (
                     <div className="mt-3 max-w-sm mx-auto">
                       <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-black border border-white/10 shadow-xl">
-                        <video
-                          src={sel.video_url}
-                          controls
-                          className="w-full h-full object-contain"
-                          poster={sel.profile_photo_url || undefined}
-                        />
+                        <AdminMediaFrame src={sel.video_url} alt="Introduction video" kind="video" poster={sel.profile_photo_url} className="h-full w-full border-0 bg-black" mediaClassName="object-contain" />
                       </div>
                     </div>
                   ) : (
@@ -772,29 +759,12 @@ export default function AdminHostApplications() {
                   <div className="grid grid-cols-2 gap-4 mt-3">
                     <div>
                       <p className="text-white/40 text-xs mb-2 font-medium">Profile Photo</p>
-                      <img
-                        src={sel.profile_photo_url || sel.profile?.avatar_url || ''}
-                        alt="Profile"
-                        className="w-full aspect-square rounded-xl object-cover border border-white/10"
-                      />
+                      <AdminMediaFrame src={sel.profile_photo_url || sel.profile?.avatar_url || ''} alt="Profile" kind="image" className="w-full aspect-square rounded-xl border border-white/10" mediaClassName="object-cover" />
                     </div>
                     <div>
                       <p className="text-white/40 text-xs mb-2 font-medium">Face Capture</p>
                       {sel.face_image_url ? (
-                        sel.face_image_url.match(/\.(webm|mp4|mov|avi)$/i) ? (
-                          <video
-                            src={sel.face_image_url}
-                            controls
-                            className="w-full aspect-square rounded-xl object-cover border border-white/10"
-                          />
-                        ) : (
-                          <img
-                            src={sel.face_image_url}
-                            alt="Face"
-                            className="w-full aspect-square rounded-xl object-cover border border-white/10 cursor-pointer hover:border-emerald-500/40 transition-all"
-                            onClick={() => setExpandedPhoto(sel.face_image_url!)}
-                          />
-                        )
+                        <AdminMediaFrame src={sel.face_image_url} alt="Face" className="w-full aspect-square rounded-xl border border-white/10 hover:border-emerald-500/40 transition-all" mediaClassName="object-cover" onOpen={!isAdminVideoUrl(sel.face_image_url) ? () => setExpandedPhoto(sel.face_image_url!) : undefined} />
                       ) : (
                         <div className="w-full aspect-square bg-white/5 rounded-xl flex flex-col items-center justify-center text-white/30 border border-dashed border-white/10">
                           <Camera className="w-10 h-10 mb-2" />
