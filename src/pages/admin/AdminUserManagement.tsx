@@ -3165,11 +3165,11 @@ export default function AdminUserManagement() {
                       {selectedFaceSubmission.verification_type === 'host' ? 'Host' : 'User'}
                     </Badge>
                     <Badge className={
-                      selectedFaceSubmission.status === 'pending' ? "bg-amber-500/20 text-amber-300" :
-                      selectedFaceSubmission.status === 'approved' ? "bg-green-500/20 text-green-300" :
+                      isFacePendingBucket(selectedFaceSubmission) ? "bg-amber-500/20 text-amber-300" :
+                      isFaceApproved(selectedFaceSubmission) ? "bg-green-500/20 text-green-300" :
                       "bg-red-500/20 text-red-300"
                     }>
-                      {selectedFaceSubmission.status === 'pending' ? 'Pending' : selectedFaceSubmission.status === 'approved' ? 'Approved' : 'Rejected'}
+                      {isFacePendingBucket(selectedFaceSubmission) ? 'Pending' : isFaceApproved(selectedFaceSubmission) ? 'Approved' : 'Rejected'}
                     </Badge>
                   </div>
                 </div>
@@ -3178,7 +3178,7 @@ export default function AdminUserManagement() {
               <FaceSubmissionModalMedia submission={selectedFaceSubmission} />
 
 
-              {selectedFaceSubmission.status === 'pending' && (
+              {isFacePendingBucket(selectedFaceSubmission) && (
                 <div className="flex gap-2">
                   <Button className="flex-1 bg-green-500 hover:bg-green-600" onClick={() => { setFaceActionType('approve'); setShowFaceActionModal(true); }}>
                     <CheckCircle className="w-4 h-4 mr-2" />
