@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { FaceSubmissionMediaBlocks, FaceSubmissionModalMedia } from "@/components/admin/FaceSubmissionMediaBlocks";
+import { AdminMediaFrame } from "@/components/admin/AdminMediaViewer";
+import { useAdminSignedUrl } from "@/hooks/useAdminSignedUrl";
 import { motion } from "framer-motion";
 import {
   Users,
