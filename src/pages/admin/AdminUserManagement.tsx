@@ -120,11 +120,11 @@ function HostApplicationDetailMedia({ application }: { application: HostApplicat
     <div className="grid gap-3 md:grid-cols-2">
       <div className="space-y-2">
         <p className="text-xs font-medium text-slate-400">Application Photo</p>
-        <AdminMediaFrame src={photoUrl || application.photo_url} alt="Application photo" kind="image" className="aspect-square border-slate-700 bg-slate-950" mediaClassName="object-cover" />
+        <AdminMediaFrame src={photoUrl || application.photo_url} alt="Application photo" kind="image" className="aspect-square border-border bg-background" mediaClassName="object-cover" />
       </div>
       <div className="space-y-2">
         <p className="text-xs font-medium text-slate-400">Intro Video</p>
-        <AdminMediaFrame src={videoUrl || application.video_url} alt="Intro video" kind="video" poster={photoUrl || application.photo_url} className="aspect-square border-slate-700 bg-slate-950" />
+        <AdminMediaFrame src={videoUrl || application.video_url} alt="Intro video" kind="video" poster={photoUrl || application.photo_url} className="aspect-square border-border bg-background" />
       </div>
     </div>
   );
