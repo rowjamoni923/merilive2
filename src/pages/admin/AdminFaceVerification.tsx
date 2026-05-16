@@ -342,6 +342,8 @@ const AdminFaceVerification = () => {
       if (error) throw error;
       if ((data as any)?.pending) {
         toast({ title: "⏳ Submitted for Owner Approval", description: "Revoke request queued for owner approval." });
+      } else if ((data as any)?.success === false) {
+        throw new Error((data as any)?.error || 'Failed to remove');
       } else {
         toast({ title: "✅ Verification Removed", description: "User can now re-verify" });
       }
