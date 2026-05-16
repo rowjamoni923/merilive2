@@ -61,38 +61,131 @@ export const clearAdminStorageImageCache = () => {
 
 export const resolveAdminStorageImageUrl = async (value?: string | null, defaultBucket = "payment-proofs") => {
   if (!value) return null;
-  const storagePath = extractStoragePath(value, defaultBucket);
+  const storagePath = extractAdminStoragePath(value, defaultBucket);
   if (!storagePath) return value;
 
   const cacheKey = `${storagePath.bucket}/${storagePath.path}`;
   const cached = signedUrlCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.url;
 
-  const adminToken = getAdminSessionToken();
-  if (adminToken) {
-    const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'x-admin-token': adminToken,
-      },
-      body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
-    }).catch(() => null);
-    const data = resp?.ok ? await resp.json().catch(() => null) : null;
+  const inFlight = inFlightSignedUrls.get(cacheKey);
+  if (inFlight) return inFlight;
 
-    if ((data as any)?.signedUrl) {
-      signedUrlCache.set(cacheKey, { url: (data as any).signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-      return (data as any).signedUrl;
+  const signPromise = (async () => {
+    const adminToken = getAdminSessionToken();
+    if (adminToken) {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'x-admin-token': adminToken,
+        },
+        body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
+      }).catch(() => null);
+      const signed = resp?.ok ? await resp.json().catch(() => null) : null;
+
+      if ((signed as any)?.signedUrl) {
+        signedUrlCache.set(cacheKey, { url: (signed as any).signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+        return (signed as any).signedUrl as string;
+      }
     }
+
+    const { data, error } = await adminSupabase.storage
+      .from(storagePath.bucket)
+      .createSignedUrl(storagePath.path, 60 * 60);
+
+    if (error || !data?.signedUrl) return PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) ? null : value;
+    signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+    return data.signedUrl;
+  })().finally(() => {
+    inFlightSignedUrls.delete(cacheKey);
+  });
+
+  inFlightSignedUrls.set(cacheKey, signPromise);
+  return signPromise;
+};
+
+const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
+type AdminMediaElement = HTMLImageElement | HTMLVideoElement | HTMLAudioElement | HTMLSourceElement;
+
+const getElementSrc = (el: AdminMediaElement) => {
+  if (el instanceof HTMLImageElement) return el.currentSrc || el.src || el.getAttribute("src");
+  return el.getAttribute("src") || ("src" in el ? String((el as HTMLVideoElement | HTMLAudioElement).src || "") : "");
+};
+
+const applyResolvedSrc = (el: AdminMediaElement, resolved: string) => {
+  if (el instanceof HTMLImageElement) {
+    el.src = resolved;
+    return;
+  }
+  el.setAttribute("src", resolved);
+  const parent = el instanceof HTMLSourceElement ? el.parentElement : el;
+  if (parent instanceof HTMLVideoElement || parent instanceof HTMLAudioElement) parent.load();
+};
+
+const resolveElementSrc = async (el: AdminMediaElement, defaultBucket?: string) => {
+  const original = el.dataset.adminOriginalSrc || getElementSrc(el) || "";
+  if (!original || original.startsWith("data:") || original.startsWith("blob:") || !isAdminStorageReference(original)) return;
+  if (el.dataset.adminResolvedSrc === original || el.dataset.adminResolving === "true") return;
+
+  el.dataset.adminOriginalSrc = original;
+  el.dataset.adminResolving = "true";
+  if (el instanceof HTMLImageElement && isPrivateAdminStorageReference(original, defaultBucket)) {
+    el.src = TRANSPARENT_PIXEL;
   }
 
-  const { data, error } = await adminSupabase.storage
-    .from(storagePath.bucket)
-    .createSignedUrl(storagePath.path, 60 * 60);
+  const resolved = await resolveAdminStorageImageUrl(original, defaultBucket || "face-verification").catch(() => null);
+  delete el.dataset.adminResolving;
 
-  if (error || !data?.signedUrl) return PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) ? null : value;
-  signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-  return data.signedUrl;
+  if (resolved) {
+    el.dataset.adminResolvedSrc = resolved;
+    applyResolvedSrc(el, resolved);
+  }
+};
+
+export const installAdminMediaAutoResolver = () => {
+  if (typeof document === "undefined" || (window as any).__adminMediaAutoResolverInstalled) return () => {};
+  (window as any).__adminMediaAutoResolverInstalled = true;
+
+  const scan = (root: ParentNode = document) => {
+    root.querySelectorAll?.("img[src], video[src], audio[src], source[src]").forEach((node) => {
+      if (node instanceof HTMLImageElement || node instanceof HTMLVideoElement || node instanceof HTMLAudioElement || node instanceof HTMLSourceElement) {
+        void resolveElementSrc(node);
+      }
+    });
+  };
+
+  const onError = (event: Event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement || target instanceof HTMLVideoElement || target instanceof HTMLAudioElement || target instanceof HTMLSourceElement) {
+      void resolveElementSrc(target);
+    }
+  };
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach((node) => {
+        if (!(node instanceof Element)) return;
+        if (node.matches("img[src], video[src], audio[src], source[src]")) void resolveElementSrc(node as AdminMediaElement);
+        scan(node);
+      });
+      if (mutation.type === "attributes" && mutation.target instanceof Element) {
+        const node = mutation.target;
+        if (node.matches("img[src], video[src], audio[src], source[src]")) void resolveElementSrc(node as AdminMediaElement);
+      }
+    }
+  });
+
+  scan();
+  document.addEventListener("error", onError, true);
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
+
+  return () => {
+    document.removeEventListener("error", onError, true);
+    observer.disconnect();
+    (window as any).__adminMediaAutoResolverInstalled = false;
+  };
 };
