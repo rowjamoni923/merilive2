@@ -1006,18 +1006,16 @@ const EditProfile = () => {
           </div>
 
           {/* Security Notice Banner */}
-          <div className="relative overflow-hidden rounded-2xl p-5">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-20 blur-xl" />
+          <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-700 shadow-xl ring-1 ring-white/10">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.18),transparent_55%)] pointer-events-none" />
             <div className="relative flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-lg">
+              <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-sm border border-white/30 shadow-lg shrink-0">
                 <Shield className="w-7 h-7 text-white" />
               </div>
-              <div className="flex-1">
-                <p className="font-bold text-white text-lg drop-shadow">Keep Your Account Safe</p>
-                <p className="text-white/90 text-sm mt-0.5 drop-shadow">
-                  Add phone & password for better security
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-white text-lg leading-tight">Keep Your Account Safe</p>
+                <p className="text-white/85 text-sm mt-1 leading-snug">
+                  Add phone &amp; password for better security
                 </p>
               </div>
             </div>
