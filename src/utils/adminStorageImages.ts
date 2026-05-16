@@ -192,6 +192,17 @@ const applyResolvedSrc = (el: AdminMediaElement, resolved: string) => {
   if (parent instanceof HTMLVideoElement || parent instanceof HTMLAudioElement) parent.load();
 };
 
+const resolveVideoPoster = async (video: HTMLVideoElement) => {
+  const originalPoster = video.dataset.adminOriginalPoster || video.getAttribute("poster") || "";
+  if (!originalPoster || originalPoster.startsWith("data:") || originalPoster.startsWith("blob:") || !isAdminStorageReference(originalPoster)) return;
+  if (video.dataset.adminPosterResolving === "true") return;
+  video.dataset.adminOriginalPoster = originalPoster;
+  video.dataset.adminPosterResolving = "true";
+  const resolved = await resolveAdminStorageImageUrl(originalPoster, inferDefaultBucketForElement(video)).catch(() => null);
+  delete video.dataset.adminPosterResolving;
+  if (resolved) video.setAttribute("poster", resolved);
+};
+
 const resolveElementSrc = async (el: AdminMediaElement, defaultBucket?: string) => {
   const current = getElementSrc(el) || "";
   if (el.dataset.adminResolvedSrc && current === el.dataset.adminResolvedSrc) return;
@@ -225,6 +236,9 @@ export const installAdminMediaAutoResolver = () => {
         void resolveElementSrc(node);
       }
     });
+    root.querySelectorAll?.("video[poster]").forEach((node) => {
+      if (node instanceof HTMLVideoElement) void resolveVideoPoster(node);
+    });
   };
 
   const onError = (event: Event) => {
@@ -239,18 +253,20 @@ export const installAdminMediaAutoResolver = () => {
       mutation.addedNodes.forEach((node) => {
         if (!(node instanceof Element)) return;
         if (node.matches("img[src], video[src], audio[src], source[src]")) void resolveElementSrc(node as AdminMediaElement);
+        if (node instanceof HTMLVideoElement && node.matches("video[poster]")) void resolveVideoPoster(node);
         scan(node);
       });
       if (mutation.type === "attributes" && mutation.target instanceof Element) {
         const node = mutation.target;
         if (node.matches("img[src], video[src], audio[src], source[src]")) void resolveElementSrc(node as AdminMediaElement);
+        if (node instanceof HTMLVideoElement && node.matches("video[poster]")) void resolveVideoPoster(node);
       }
     }
   });
 
   scan();
   document.addEventListener("error", onError, true);
-  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src", "poster"] });
 
   return () => {
     document.removeEventListener("error", onError, true);
