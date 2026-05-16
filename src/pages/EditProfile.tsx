@@ -982,8 +982,8 @@ const EditProfile = () => {
 
           {/* Account Security Section */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-b border-amber-200/40">
-              <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+            <div className="px-4 py-3 bg-slate-50 border-b border-amber-200/40">
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Account Security
               </p>
             </div>
