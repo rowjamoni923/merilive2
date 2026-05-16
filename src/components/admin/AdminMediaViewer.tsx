@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ExternalLink, Image as ImageIcon, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 export type AdminMediaKind = "auto" | "image" | "video";
 
@@ -67,17 +68,39 @@ export function AdminMediaFrame({
   autoPlay = false,
 }: AdminMediaFrameProps) {
   const [failed, setFailed] = useState(false);
-  const mediaKind = kind === "auto" ? (isAdminVideoUrl(src) ? "video" : "image") : kind;
-  const videoType = useMemo(() => (src ? getVideoMimeType(src) : undefined), [src]);
+  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+  const mediaKind = kind === "auto" ? (isAdminVideoUrl(displaySrc || src) ? "video" : "image") : kind;
+  const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
 
   useEffect(() => {
     setFailed(false);
+    if (!src) {
+      setDisplaySrc(null);
+      return;
+    }
+    let cancelled = false;
+    setDisplaySrc(null);
+    (async () => {
+      const resolved = await resolveAdminStorageImageUrl(src, "face-verification");
+      if (!cancelled) setDisplaySrc(resolved || src);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [src]);
 
   if (!src) {
     return (
       <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-muted-foreground", className)}>
         <ImageIcon className="mr-2 h-4 w-4" /> No media
+      </div>
+    );
+  }
+
+  if (!displaySrc) {
+    return (
+      <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
+        <ImageIcon className="mr-2 h-4 w-4 animate-pulse" /> Loading media
       </div>
     );
   }
@@ -98,7 +121,7 @@ export function AdminMediaFrame({
     return (
       <div className={cn("overflow-hidden rounded-lg border border-border bg-background", className)}>
         <video
-          key={src}
+          key={displaySrc}
           controls
           playsInline
           preload="metadata"
@@ -115,7 +138,7 @@ export function AdminMediaFrame({
             "x5-video-player-fullscreen": "false",
           } as Record<string, string>)}
         >
-          {videoType ? <source src={src} type={videoType} /> : <source src={src} />}
+          {videoType ? <source src={displaySrc} type={videoType} /> : <source src={displaySrc} />}
         </video>
       </div>
     );
@@ -124,7 +147,7 @@ export function AdminMediaFrame({
   const image = (
     <img
       key={src}
-      src={src}
+      src={displaySrc}
       alt={alt}
       loading="lazy"
       decoding="async"
