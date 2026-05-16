@@ -926,7 +926,7 @@ const EditProfile = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                  <Sparkles className="w-4 h-4 text-heading" />
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <ChevronRight className="w-5 h-5 text-body" />
               </div>
