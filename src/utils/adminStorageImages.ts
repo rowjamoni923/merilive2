@@ -6,6 +6,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJh
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const failedSignedUrlCache = new Map<string, number>();
 const inFlightSignedUrls = new Map<string, Promise<string | null>>();
+const LEGACY_ADMIN_TOKEN_KEYS = ['merilive-admin-token', 'admin_session_token'];
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
 export interface AdminStoragePath {
   bucket: string;
@@ -90,14 +91,25 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   const cached = signedUrlCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.url;
 
-  const failedUntil = failedSignedUrlCache.get(cacheKey);
+  let adminToken = getAdminSessionToken();
+  if (!adminToken && typeof window !== "undefined") {
+    for (const key of LEGACY_ADMIN_TOKEN_KEYS) {
+      const legacy = window.localStorage.getItem(key);
+      if (legacy && legacy.length >= 16) {
+        adminToken = legacy;
+        break;
+      }
+    }
+  }
+
+  const failureCacheKey = `${cacheKey}::${adminToken ? 'admin' : 'no-admin'}`;
+  const failedUntil = failedSignedUrlCache.get(failureCacheKey);
   if (failedUntil && failedUntil > Date.now()) return null;
 
   const inFlight = inFlightSignedUrls.get(cacheKey);
   if (inFlight) return inFlight;
 
   const signPromise = (async () => {
-    const adminToken = getAdminSessionToken();
     if (adminToken) {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
         method: 'POST',
@@ -116,6 +128,12 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
         signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
         return signedUrl;
       }
+
+      failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
+    }
+
+    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
+      return null;
     }
 
     const { data, error } = await adminSupabase.storage
@@ -123,7 +141,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       .createSignedUrl(storagePath.path, 60 * 60);
 
     if (error || !data?.signedUrl) {
-      failedSignedUrlCache.set(cacheKey, Date.now() + 5 * 60 * 1000);
+      failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
       return null;
     }
     signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
