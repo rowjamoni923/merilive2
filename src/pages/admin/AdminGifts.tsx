@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { getAdminSession } from "@/utils/adminSession";
+
 import { toast } from "sonner";
 import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
 import Lottie from "lottie-react";
@@ -373,64 +373,29 @@ export default function AdminGifts() {
         publicUrl = await uploadToR2Multipart(file, 'gifts', (pct) => setUploadProgress(pct));
         console.log('[Upload] R2 multipart upload completed:', publicUrl);
       } else {
-        // Upload to Supabase Storage
+        // Upload to Supabase Storage via adminClient (carries x-admin-token for RLS)
         const fileName = `${type}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `gifts/${fileName}`;
 
-        // Get the current session for auth
-        const __as2 = getAdminSession(); const session = __as2?.admin_id ? ({ user: { id: __as2.admin_id } } as any) : null;
-        if (!session?.access_token) {
-          throw new Error('Not authenticated. Please login again.');
-        }
+        setUploadProgress(10);
+        const { error: uploadError } = await supabase.storage
+          .from('gifts')
+          .upload(fileName, file, {
+            upsert: true,
+            contentType: file.type || 'application/octet-stream',
+          });
+        setUploadProgress(90);
 
-        // Upload with XMLHttpRequest for progress tracking
-        const uploadPromise = new Promise<boolean>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          
-          xhr.upload.addEventListener('progress', (event) => {
-            if (event.lengthComputable) {
-              const progress = Math.round((event.loaded / event.total) * 100);
-              setUploadProgress(progress);
-            }
-          });
-          
-          xhr.addEventListener('load', () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              resolve(true);
-            } else {
-              recordAdminError({ kind: "rpc", label: "AdminGifts.UploadXHR", message: `XHR failed: ${xhr.status} - ${xhr.responseText}` });
-              reject(new Error(`Upload failed: ${xhr.status}`));
-            }
-          });
-          
-          xhr.addEventListener('error', () => {
-            reject(new Error('Network error during upload'));
-          });
-          
-          xhr.addEventListener('timeout', () => {
-            reject(new Error('Upload timeout'));
-          });
-          
-          // Set timeout based on file size (1MB = 10 seconds, max 10 minutes)
-          xhr.timeout = Math.min(Math.max(file.size / (1024 * 1024) * 10000, 60000), 600000);
-          
-          xhr.open('POST', `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/chat-media/${filePath}`);
-          xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
-          xhr.setRequestHeader('x-upsert', 'true');
-          xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-          xhr.send(file);
-        });
-        
-        const success = await uploadPromise;
-        if (!success) {
-          throw new Error('Upload failed');
+        if (uploadError) {
+          recordAdminError({ kind: "rpc", label: "AdminGifts.UploadStorage", message: formatAdminError(uploadError) });
+          throw uploadError;
         }
 
         const { data: { publicUrl: supabaseUrl } } = supabase.storage
-          .from('chat-media')
-          .getPublicUrl(filePath);
-        
+          .from('gifts')
+          .getPublicUrl(fileName);
+
         publicUrl = supabaseUrl;
+        setUploadProgress(100);
         console.log('[Upload] Supabase upload completed:', publicUrl);
       }
 
