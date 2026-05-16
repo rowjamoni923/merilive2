@@ -492,24 +492,36 @@ const AdminFaceVerification = () => {
     });
   };
 
-  const autoApprovedSubmissions = submissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto'));
+  // Bulletproof bucketing: every submission lands in EXACTLY one of pending / approved / rejected.
+  // Anything that is not explicitly approved or rejected counts as pending (submitted, pending,
+  // under_review, applied, or any future intermediate status). This guarantees a host who just
+  // applied always shows up in the Pending tab — never silently in "All" only.
+  const isApproved = (s: Submission) => s.status === 'approved';
+  const isRejected = (s: Submission) => s.status === 'rejected';
+  const isPendingBucket = (s: Submission) => !isApproved(s) && !isRejected(s);
+
+  const autoApprovedSubmissions = submissions.filter(s => isApproved(s) && s.admin_notes?.toLowerCase().includes('auto'));
   const filteredSubmissions = submissions.filter(sub => {
-    const matchesSearch =
-      sub.profile?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.profile?.app_uid?.includes(searchQuery) ||
-      sub.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch = !q
+      || sub.profile?.display_name?.toLowerCase().includes(q)
+      || sub.profile?.app_uid?.includes(searchQuery.trim())
+      || sub.full_name?.toLowerCase().includes(q);
+    if (!matchesSearch) return false;
     if (activeTab === 'auto_approved') {
-      return matchesSearch && sub.status === 'approved' && sub.admin_notes?.toLowerCase().includes('auto');
+      return isApproved(sub) && sub.admin_notes?.toLowerCase().includes('auto');
     }
-    const isPendingReview = ['pending', 'submitted', 'under_review'].includes(sub.status);
-    const matchesTab = activeTab === 'all' || sub.status === activeTab || (activeTab === 'pending' && isPendingReview);
-    return matchesSearch && matchesTab;
+    if (activeTab === 'pending') return isPendingBucket(sub);
+    if (activeTab === 'approved') return isApproved(sub);
+    if (activeTab === 'rejected') return isRejected(sub);
+    if (activeTab === 'all') return true;
+    return false;
   });
 
-  const pendingCount = submissions.filter(s => ['pending', 'submitted', 'under_review'].includes(s.status)).length;
-  const approvedCount = submissions.filter(s => s.status === 'approved').length;
+  const pendingCount = submissions.filter(isPendingBucket).length;
+  const approvedCount = submissions.filter(isApproved).length;
   const autoApprovedCount = autoApprovedSubmissions.length;
-  const rejectedCount = submissions.filter(s => s.status === 'rejected').length;
+  const rejectedCount = submissions.filter(isRejected).length;
 
   if (loading) {
     return (
