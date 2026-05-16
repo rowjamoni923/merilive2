@@ -3196,35 +3196,8 @@ export default function AdminUserManagement() {
                 </div>
               </div>
               
-              {selectedFaceSubmission.face_image_url && (
-                <div className="rounded-lg overflow-hidden border border-slate-700">
-                  {/\.(webm|mp4|mov|avi|ogg)(\?|$)/i.test(selectedFaceSubmission.face_image_url) ? (
-                    <video 
-                      src={selectedFaceSubmission.face_image_url} 
-                      controls 
-                      autoPlay 
-                      muted
-                      playsInline
-                      className="w-full h-64 object-contain bg-black"
-                    />
-                  ) : (
-                    <img src={selectedFaceSubmission.face_image_url} alt="Face" className="w-full h-64 object-cover" />
-                  )}
-                </div>
-              )}
+              <FaceSubmissionModalMedia submission={selectedFaceSubmission} />
 
-              {selectedFaceSubmission.video_url && selectedFaceSubmission.video_url !== selectedFaceSubmission.face_image_url && (
-                <div className="rounded-lg overflow-hidden border border-slate-700">
-                  <video 
-                    src={selectedFaceSubmission.video_url} 
-                    controls 
-                    autoPlay 
-                    muted
-                    playsInline
-                    className="w-full h-64 object-contain bg-black"
-                  />
-                </div>
-              )}
 
               {selectedFaceSubmission.status === 'pending' && (
                 <div className="flex gap-2">
