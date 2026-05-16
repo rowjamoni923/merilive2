@@ -7,6 +7,7 @@ const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const failedSignedUrlCache = new Map<string, number>();
 const inFlightSignedUrls = new Map<string, Promise<string | null>>();
 const LEGACY_ADMIN_TOKEN_KEYS = ['merilive-admin-token', 'admin_session_token'];
+const ADMIN_SESSION_KEYS = ['merilive-admin-session'];
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
 export interface AdminStoragePath {
   bucket: string;
@@ -75,6 +76,31 @@ export const clearAdminStorageImageCache = () => {
 
 const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
 
+const readStorageValue = (storage: Storage | undefined, key: string) => {
+  try { return storage?.getItem(key) || ''; } catch { return ''; }
+};
+
+const resolveStoredAdminToken = () => {
+  const token = getAdminSessionToken();
+  if (token) return token;
+  if (typeof window === "undefined") return '';
+  for (const store of [window.localStorage, window.sessionStorage]) {
+    for (const key of LEGACY_ADMIN_TOKEN_KEYS) {
+      const direct = readStorageValue(store, key);
+      if (direct && direct.length >= 16) return direct;
+    }
+    for (const key of ADMIN_SESSION_KEYS) {
+      const raw = readStorageValue(store, key);
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw) as { session_token?: string };
+        if (parsed?.session_token && parsed.session_token.length >= 16) return parsed.session_token;
+      } catch { /* ignore */ }
+    }
+  }
+  return '';
+};
+
 const buildStorageCandidates = (value: string, defaultBucket?: string): AdminStoragePath[] => {
   const explicit = extractAdminStoragePath(value);
   if (explicit) return [explicit];
@@ -91,16 +117,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   const cached = signedUrlCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.url;
 
-  let adminToken = getAdminSessionToken();
-  if (!adminToken && typeof window !== "undefined") {
-    for (const key of LEGACY_ADMIN_TOKEN_KEYS) {
-      const legacy = window.localStorage.getItem(key);
-      if (legacy && legacy.length >= 16) {
-        adminToken = legacy;
-        break;
-      }
-    }
-  }
+  const adminToken = resolveStoredAdminToken();
 
   const failureCacheKey = `${cacheKey}::${adminToken ? 'admin' : 'no-admin'}`;
   const failedUntil = failedSignedUrlCache.get(failureCacheKey);
