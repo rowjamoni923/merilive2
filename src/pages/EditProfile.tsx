@@ -454,8 +454,8 @@ const EditProfile = () => {
             {/* My Avatar */}
             <label className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-amber-50/70 cursor-pointer">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-purple-400" />
+                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                  <Camera className="w-5 h-5 text-purple-600" />
                 </div>
                 <span className="font-medium text-heading">My Avatar</span>
               </div>
