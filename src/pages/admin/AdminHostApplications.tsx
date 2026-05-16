@@ -89,7 +89,8 @@ interface HostSubmission {
 
 const statusConfig: Record<string, { bg: string; text: string; icon: any; label: string }> = {
   pending: { bg: "bg-amber-500/15", text: "text-amber-400", icon: Clock, label: "Pending" },
-  under_review: { bg: "bg-sky-500/15", text: "text-sky-400", icon: Eye, label: "Review" },
+  submitted: { bg: "bg-amber-500/15", text: "text-amber-400", icon: Clock, label: "Pending" },
+  under_review: { bg: "bg-amber-500/15", text: "text-amber-400", icon: Clock, label: "Pending" },
   approved: { bg: "bg-emerald-500/15", text: "text-emerald-400", icon: CheckCircle, label: "Approved" },
   rejected: { bg: "bg-rose-500/15", text: "text-rose-400", icon: XCircle, label: "Rejected" },
 };
@@ -144,7 +145,7 @@ export default function AdminHostApplications() {
       };
       setStatusCounts({
         pending: Number(s.pending || 0),
-        under_review: Number(s.under_review || 0),
+        under_review: 0,
         approved: Number(s.approved || 0),
         rejected: Number(s.rejected || 0),
       });
@@ -190,10 +191,10 @@ export default function AdminHostApplications() {
           profile:profiles!face_verification_submissions_user_id_fkey(
             display_name, app_uid, avatar_url, gender, is_host
           )
-        `, { count: "exact" })
-        .neq("status", "rejected");
+        `, { count: "exact" });
 
-      if (filterStatus !== "all") query = query.eq("status", filterStatus);
+      if (filterStatus === "pending") query = query.not("status", "in", "(approved,rejected)");
+      else if (filterStatus !== "all") query = query.eq("status", filterStatus);
       if (searchQuery) query = query.ilike("full_name", `%${searchQuery}%`);
 
       const from = (currentPage - 1) * pageSize;
