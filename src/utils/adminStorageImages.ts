@@ -1,6 +1,8 @@
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
 const PRIVATE_STORAGE_BUCKETS = new Set([
@@ -47,10 +49,17 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
 
   const adminToken = getAdminSessionToken();
   if (adminToken) {
-    const { data } = await adminSupabase.functions.invoke('admin-sign-storage-url', {
-      headers: { 'x-admin-token': adminToken },
-      body: { bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 },
-    });
+    const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'x-admin-token': adminToken,
+      },
+      body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
+    }).catch(() => null);
+    const data = resp?.ok ? await resp.json().catch(() => null) : null;
 
     if ((data as any)?.signedUrl) {
       signedUrlCache.set(cacheKey, { url: (data as any).signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
