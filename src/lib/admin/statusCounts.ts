@@ -23,6 +23,13 @@ export type StatusCounts = {
   under_review: number;
   approved: number;
   rejected: number;
+  auto_approved?: number;
+  auto_rejected?: number;
+  manual_pending?: number;
+  manual_approved?: number;
+  manual_rejected?: number;
+  manual_total?: number;
+  total?: number;
 };
 
 export const EMPTY_STATUS_COUNTS: StatusCounts = {
@@ -38,6 +45,57 @@ export function bucketOfStatus(status: string | null | undefined): StatusBucket 
   if (normalized === "approved") return "approved";
   if (normalized === "rejected") return "rejected";
   return "pending";
+}
+
+export function isAutoFaceReview(status: string | null | undefined, adminNotes: string | null | undefined): boolean {
+  const bucket = bucketOfStatus(status);
+  const notes = String(adminNotes || "").toLowerCase();
+  if (bucket === "approved") {
+    return notes.includes("[auto]")
+      || notes.includes("auto-approved")
+      || notes.includes("auto approved")
+      || notes.includes("service_auto_finalize_face_verification")
+      || notes.includes("rekognition thresholds passed");
+  }
+  if (bucket === "rejected") {
+    return notes.includes("auto-rejected")
+      || notes.includes("auto rejected")
+      || notes.includes("auto-reject")
+      || notes.includes("auto rejected by ai");
+  }
+  return false;
+}
+
+export function countFaceReviewBuckets<T>(
+  rows: readonly T[],
+  getStatus: (row: T) => string | null | undefined,
+  getAdminNotes: (row: T) => string | null | undefined,
+): Required<StatusCounts> {
+  const out: Required<StatusCounts> = {
+    ...EMPTY_STATUS_COUNTS,
+    auto_approved: 0,
+    auto_rejected: 0,
+    manual_pending: 0,
+    manual_approved: 0,
+    manual_rejected: 0,
+    manual_total: 0,
+    total: rows.length,
+  };
+
+  for (const row of rows) {
+    const status = getStatus(row);
+    const bucket = bucketOfStatus(status);
+    const auto = isAutoFaceReview(status, getAdminNotes(row));
+    out[bucket]++;
+    if (bucket === "pending") out.manual_pending++;
+    else if (bucket === "approved" && auto) out.auto_approved++;
+    else if (bucket === "approved") out.manual_approved++;
+    else if (bucket === "rejected" && auto) out.auto_rejected++;
+    else if (bucket === "rejected") out.manual_rejected++;
+  }
+
+  out.manual_total = out.manual_pending + out.manual_approved + out.manual_rejected;
+  return out;
 }
 
 /** Count status buckets for an in-memory list of rows. */

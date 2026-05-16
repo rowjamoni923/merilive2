@@ -87,7 +87,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
-import { bucketOfStatus, countStatusBuckets } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -245,6 +245,9 @@ interface FaceVerificationSubmission {
   face_image_url: string | null;
   rejection_reason: string | null;
   admin_notes: string | null;
+  status_bucket?: 'pending' | 'approved' | 'rejected';
+  is_auto_reviewed?: boolean | null;
+  review_source?: 'auto' | 'manual' | string | null;
   created_at: string;
   reviewed_at: string | null;
   profile?: {
@@ -1314,6 +1317,7 @@ export default function AdminUserManagement() {
   const isFaceApproved = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'approved';
   const isFaceRejected = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'rejected';
   const isFacePendingBucket = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'pending';
+  const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
 
   const faceQueryRaw = faceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
@@ -1329,16 +1333,21 @@ export default function AdminUserManagement() {
 
   const filteredFaceSubmissions = faceVisiblePool.filter(sub => {
     if (faceActiveTab === 'pending') return isFacePendingBucket(sub);
-    if (faceActiveTab === 'approved') return isFaceApproved(sub);
-    if (faceActiveTab === 'rejected') return isFaceRejected(sub);
-    if (faceActiveTab === 'all') return true;
+    if (faceActiveTab === 'approved') return isFaceApproved(sub) && !isFaceAutoReviewed(sub);
+    if (faceActiveTab === 'rejected') return isFaceRejected(sub) && !isFaceAutoReviewed(sub);
+    if (faceActiveTab === 'all') return isFacePendingBucket(sub) || !isFaceAutoReviewed(sub);
     return false;
   });
 
-  const faceCounts = countStatusBuckets(faceVisiblePool, (s) => s.status);
+  const faceCounts = countFaceReviewBuckets(faceVisiblePool, (s) => s.status, (s) => s.admin_notes);
   const pendingFaceCount = faceCounts.pending;
-  const approvedFaceCount = faceCounts.approved;
-  const rejectedFaceCount = faceCounts.rejected;
+  const approvedFaceCount = faceCounts.manual_approved;
+  const rejectedFaceCount = faceCounts.manual_rejected;
+  const allFaceCounts = countFaceReviewBuckets(faceSubmissions, (s) => s.status, (s) => s.admin_notes);
+  const autoApprovedFaceSubmissions = faceSubmissions.filter((s) => isFaceApproved(s) && isFaceAutoReviewed(s));
+  const autoRejectedFaceSubmissions = faceSubmissions.filter((s) => isFaceRejected(s) && isFaceAutoReviewed(s));
+  const autoApprovedFaceCount = allFaceCounts.auto_approved;
+  const autoRejectedFaceCount = allFaceCounts.auto_rejected;
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
@@ -1380,18 +1389,18 @@ export default function AdminUserManagement() {
           <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
             <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Verified
-            {faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto')).length > 0 && (
+            {autoApprovedFaceCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                {faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto')).length}
+                {autoApprovedFaceCount}
               </span>
             )}
           </TabsTrigger>
           <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
             <XCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Reject
-            {faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto')).length > 0 && (
+            {autoRejectedFaceCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                {faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto')).length}
+                {autoRejectedFaceCount}
               </span>
             )}
           </TabsTrigger>
@@ -1844,7 +1853,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <Shield className="w-6 h-6 text-cyan-500" />
                   <div>
-                    <p className="text-lg font-bold text-cyan-600">{faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto')).length}</p>
+                    <p className="text-lg font-bold text-cyan-600">{autoApprovedFaceCount}</p>
                     <p className="text-xs text-cyan-600/80">Auto Verified</p>
                   </div>
                 </div>
@@ -1855,7 +1864,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <Crown className="w-6 h-6 text-pink-500" />
                   <div>
-                    <p className="text-lg font-bold text-pink-600">{faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto') && s.verification_type === 'host').length}</p>
+                    <p className="text-lg font-bold text-pink-600">{autoApprovedFaceSubmissions.filter(s => s.verification_type === 'host').length}</p>
                     <p className="text-xs text-pink-600/80">Auto Host</p>
                   </div>
                 </div>
@@ -1866,7 +1875,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <User className="w-6 h-6 text-blue-500" />
                   <div>
-                    <p className="text-lg font-bold text-blue-600">{faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto') && s.verification_type !== 'host').length}</p>
+                    <p className="text-lg font-bold text-blue-600">{autoApprovedFaceSubmissions.filter(s => s.verification_type !== 'host').length}</p>
                     <p className="text-xs text-blue-600/80">Auto User</p>
                   </div>
                 </div>
@@ -1891,9 +1900,7 @@ export default function AdminUserManagement() {
 
           {/* Auto Verified Grid */}
           {(() => {
-            const autoApproved = faceSubmissions.filter(s => 
-              s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto')
-            ).filter(s => {
+            const autoApproved = autoApprovedFaceSubmissions.filter(s => {
               if (autoVerifiedFilter === 'host') return s.verification_type === 'host';
               if (autoVerifiedFilter === 'user') return s.verification_type !== 'host';
               return true;
@@ -2006,7 +2013,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <XCircle className="w-6 h-6 text-orange-500" />
                   <div>
-                    <p className="text-lg font-bold text-orange-600">{faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto')).length}</p>
+                    <p className="text-lg font-bold text-orange-600">{autoRejectedFaceCount}</p>
                     <p className="text-xs text-orange-600/80">Auto Rejected</p>
                   </div>
                 </div>
@@ -2017,7 +2024,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-6 h-6 text-red-500" />
                   <div>
-                    <p className="text-lg font-bold text-red-600">{faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto') && s.admin_notes?.toLowerCase().includes('face match')).length}</p>
+                    <p className="text-lg font-bold text-red-600">{autoRejectedFaceSubmissions.filter(s => s.admin_notes?.toLowerCase().includes('face match')).length}</p>
                     <p className="text-xs text-red-600/80">Face Mismatch</p>
                   </div>
                 </div>
@@ -2028,7 +2035,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <ScanFace className="w-6 h-6 text-yellow-600" />
                   <div>
-                    <p className="text-lg font-bold text-yellow-600">{faceSubmissions.filter(s => s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto') && !s.admin_notes?.toLowerCase().includes('face match')).length}</p>
+                    <p className="text-lg font-bold text-yellow-600">{autoRejectedFaceSubmissions.filter(s => !s.admin_notes?.toLowerCase().includes('face match')).length}</p>
                     <p className="text-xs text-yellow-600/80">Other Reasons</p>
                   </div>
                 </div>
@@ -2053,9 +2060,7 @@ export default function AdminUserManagement() {
 
           {/* Auto Rejected Grid */}
           {(() => {
-            const autoRejected = faceSubmissions.filter(s => 
-              s.status === 'rejected' && s.admin_notes?.toLowerCase().includes('auto')
-            ).filter(s => {
+            const autoRejected = autoRejectedFaceSubmissions.filter(s => {
               if (!appSearchQuery) return true;
               const q = appSearchQuery.toLowerCase();
               return s.full_name?.toLowerCase().includes(q) || s.profile?.app_uid?.includes(q) || s.profile?.display_name?.toLowerCase().includes(q);
