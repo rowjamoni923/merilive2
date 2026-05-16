@@ -299,6 +299,8 @@ const AdminFaceVerification = () => {
         });
         // Restore — submission was not actually changed
         setSubmissions(previousSubmissions);
+      } else if ((data as any)?.success === false) {
+        throw new Error((data as any)?.error || 'Failed to process');
       } else {
         toast({
           title: action === 'approve' ? '✅ Approved!' : '❌ Rejected!',
