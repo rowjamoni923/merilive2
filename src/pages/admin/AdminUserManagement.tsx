@@ -208,7 +208,7 @@ interface FaceVerificationSubmission {
   id: string;
   user_id: string;
   verification_type: 'user' | 'host';
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'submitted' | 'under_review' | 'approved' | 'rejected';
   full_name: string | null;
   age: number | null;
   language: string | null;
@@ -1310,18 +1310,33 @@ export default function AdminUserManagement() {
     agency.agency_code?.toLowerCase().includes(blockSearchQuery.toLowerCase())
   );
 
-  const filteredFaceSubmissions = faceSubmissions.filter(sub => {
-    const matchesSearch = 
-      sub.profile?.display_name?.toLowerCase().includes(faceSearchQuery.toLowerCase()) ||
-      sub.profile?.app_uid?.includes(faceSearchQuery) ||
-      sub.full_name?.toLowerCase().includes(faceSearchQuery.toLowerCase());
-    
-    const matchesTab = faceActiveTab === 'all' || sub.status === faceActiveTab;
-    
-    return matchesSearch && matchesTab;
+  const isFaceApproved = (s: FaceVerificationSubmission) => s.status === 'approved';
+  const isFaceRejected = (s: FaceVerificationSubmission) => s.status === 'rejected';
+  const isFacePendingBucket = (s: FaceVerificationSubmission) => !isFaceApproved(s) && !isFaceRejected(s);
+
+  const faceQueryRaw = faceSearchQuery.trim();
+  const faceQuery = faceQueryRaw.toLowerCase();
+  const faceVisiblePool = faceSubmissions.filter(sub => {
+    if (!faceQuery) return true;
+    return (
+      sub.profile?.display_name?.toLowerCase().includes(faceQuery) ||
+      sub.profile?.app_uid?.includes(faceQueryRaw) ||
+      sub.full_name?.toLowerCase().includes(faceQuery) ||
+      sub.user_id?.toLowerCase().startsWith(faceQuery)
+    );
   });
 
-  const pendingFaceCount = faceSubmissions.filter(s => s.status === 'pending').length;
+  const filteredFaceSubmissions = faceVisiblePool.filter(sub => {
+    if (faceActiveTab === 'pending') return isFacePendingBucket(sub);
+    if (faceActiveTab === 'approved') return isFaceApproved(sub);
+    if (faceActiveTab === 'rejected') return isFaceRejected(sub);
+    if (faceActiveTab === 'all') return true;
+    return false;
+  });
+
+  const pendingFaceCount = faceVisiblePool.filter(isFacePendingBucket).length;
+  const approvedFaceCount = faceVisiblePool.filter(isFaceApproved).length;
+  const rejectedFaceCount = faceVisiblePool.filter(isFaceRejected).length;
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
