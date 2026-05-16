@@ -72,7 +72,7 @@ export const clearAdminStorageImageCache = () => {
 const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
 
 const buildStorageCandidates = (value: string, defaultBucket?: string): AdminStoragePath[] => {
-  const explicit = extractAdminStoragePath(value, defaultBucket);
+  const explicit = extractAdminStoragePath(value);
   if (explicit) return [explicit];
 
   const cleanPath = value.trim().replace(/^\/+/, "");
@@ -165,7 +165,7 @@ const inferDefaultBucketForElement = (el: AdminMediaElement) => {
     el.getAttribute("class"),
     el.closest('[data-admin-media-bucket]')?.getAttribute('data-admin-media-bucket'),
     typeof window !== "undefined" ? window.location.pathname : "",
-  ].filter(Boolean).join(" ').toLowerCase();
+  ].filter(Boolean).join(" ").toLowerCase();
 
   const explicitBucket = el.closest('[data-admin-media-bucket]')?.getAttribute('data-admin-media-bucket');
   if (explicitBucket && KNOWN_STORAGE_BUCKETS.has(explicitBucket)) return explicitBucket;
