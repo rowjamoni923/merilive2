@@ -2,9 +2,14 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const inFlightSignedUrls = new Map<string, Promise<string | null>>();
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
+export interface AdminStoragePath {
+  bucket: string;
+  path: string;
+}
 const PRIVATE_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings', 'chat-media',
@@ -15,7 +20,7 @@ const KNOWN_STORAGE_BUCKETS = new Set([
   'app-assets', 'assets', 'banners', 'banners-media', 'branding', 'chat-media', 'content-media',
 ]);
 
-const extractStoragePath = (value: string, defaultBucket = "payment-proofs") => {
+export const extractAdminStoragePath = (value: string, defaultBucket?: string): AdminStoragePath | null => {
   const raw = value.trim();
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return null;
 
@@ -30,48 +35,159 @@ const extractStoragePath = (value: string, defaultBucket = "payment-proofs") => 
     if (KNOWN_STORAGE_BUCKETS.has(firstSegment) && rest.length > 0) {
       return { bucket: firstSegment, path: rest.join('/') };
     }
-    if (withoutSlash.startsWith(`${defaultBucket}/`)) {
+    if (defaultBucket && withoutSlash.startsWith(`${defaultBucket}/`)) {
       return { bucket: defaultBucket, path: withoutSlash.slice(defaultBucket.length + 1) };
     }
-    if (!withoutSlash.includes("://")) return { bucket: defaultBucket, path: withoutSlash };
+    if (defaultBucket && !withoutSlash.includes("://")) return { bucket: defaultBucket, path: withoutSlash };
     return null;
   }
 };
 
+export const isAdminStorageReference = (value?: string | null) => {
+  if (!value) return false;
+  return !!extractAdminStoragePath(value);
+};
+
+export const isPrivateAdminStorageReference = (value?: string | null, defaultBucket?: string) => {
+  if (!value) return false;
+  const storagePath = extractAdminStoragePath(value, defaultBucket);
+  return !!storagePath && PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket);
+};
+
+export const clearAdminStorageImageCache = () => {
+  signedUrlCache.clear();
+  inFlightSignedUrls.clear();
+};
+
 export const resolveAdminStorageImageUrl = async (value?: string | null, defaultBucket = "payment-proofs") => {
   if (!value) return null;
-  const storagePath = extractStoragePath(value, defaultBucket);
+  const storagePath = extractAdminStoragePath(value, defaultBucket);
   if (!storagePath) return value;
 
   const cacheKey = `${storagePath.bucket}/${storagePath.path}`;
   const cached = signedUrlCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.url;
 
-  const adminToken = getAdminSessionToken();
-  if (adminToken) {
-    const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'x-admin-token': adminToken,
-      },
-      body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
-    }).catch(() => null);
-    const data = resp?.ok ? await resp.json().catch(() => null) : null;
+  const inFlight = inFlightSignedUrls.get(cacheKey);
+  if (inFlight) return inFlight;
 
-    if ((data as any)?.signedUrl) {
-      signedUrlCache.set(cacheKey, { url: (data as any).signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-      return (data as any).signedUrl;
+  const signPromise = (async () => {
+    const adminToken = getAdminSessionToken();
+    if (adminToken) {
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'x-admin-token': adminToken,
+        },
+        body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
+      }).catch(() => null);
+      const signed = resp?.ok ? await resp.json().catch(() => null) : null;
+
+      if ((signed as any)?.signedUrl) {
+        signedUrlCache.set(cacheKey, { url: (signed as any).signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+        return (signed as any).signedUrl as string;
+      }
     }
+
+    const { data, error } = await adminSupabase.storage
+      .from(storagePath.bucket)
+      .createSignedUrl(storagePath.path, 60 * 60);
+
+    if (error || !data?.signedUrl) return PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) ? null : value;
+    signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+    return data.signedUrl;
+  })().finally(() => {
+    inFlightSignedUrls.delete(cacheKey);
+  });
+
+  inFlightSignedUrls.set(cacheKey, signPromise);
+  return signPromise;
+};
+
+const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
+type AdminMediaElement = HTMLImageElement | HTMLVideoElement | HTMLAudioElement | HTMLSourceElement;
+
+const getElementSrc = (el: AdminMediaElement) => {
+  if (el instanceof HTMLImageElement) return el.currentSrc || el.src || el.getAttribute("src");
+  return el.getAttribute("src") || ("src" in el ? String((el as HTMLVideoElement | HTMLAudioElement).src || "") : "");
+};
+
+const applyResolvedSrc = (el: AdminMediaElement, resolved: string) => {
+  if (el instanceof HTMLImageElement) {
+    el.src = resolved;
+    return;
+  }
+  el.setAttribute("src", resolved);
+  const parent = el instanceof HTMLSourceElement ? el.parentElement : el;
+  if (parent instanceof HTMLVideoElement || parent instanceof HTMLAudioElement) parent.load();
+};
+
+const resolveElementSrc = async (el: AdminMediaElement, defaultBucket?: string) => {
+  const current = getElementSrc(el) || "";
+  if (el.dataset.adminResolvedSrc && current === el.dataset.adminResolvedSrc) return;
+  const original = el.dataset.adminOriginalSrc || getElementSrc(el) || "";
+  if (!original || original.startsWith("data:") || original.startsWith("blob:") || !isAdminStorageReference(original)) return;
+  if (el.dataset.adminResolving === "true") return;
+
+  el.dataset.adminOriginalSrc = original;
+  el.dataset.adminResolving = "true";
+  if (el instanceof HTMLImageElement && isPrivateAdminStorageReference(original, defaultBucket)) {
+    el.src = TRANSPARENT_PIXEL;
   }
 
-  const { data, error } = await adminSupabase.storage
-    .from(storagePath.bucket)
-    .createSignedUrl(storagePath.path, 60 * 60);
+  const resolved = await resolveAdminStorageImageUrl(original, defaultBucket || "face-verification").catch(() => null);
+  delete el.dataset.adminResolving;
 
-  if (error || !data?.signedUrl) return PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) ? null : value;
-  signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-  return data.signedUrl;
+  if (resolved) {
+    el.dataset.adminResolvedSrc = resolved;
+    applyResolvedSrc(el, resolved);
+  }
+};
+
+export const installAdminMediaAutoResolver = () => {
+  if (typeof document === "undefined" || (window as any).__adminMediaAutoResolverInstalled) return () => {};
+  (window as any).__adminMediaAutoResolverInstalled = true;
+
+  const scan = (root: ParentNode = document) => {
+    root.querySelectorAll?.("img[src], video[src], audio[src], source[src]").forEach((node) => {
+      if (node instanceof HTMLImageElement || node instanceof HTMLVideoElement || node instanceof HTMLAudioElement || node instanceof HTMLSourceElement) {
+        void resolveElementSrc(node);
+      }
+    });
+  };
+
+  const onError = (event: Event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement || target instanceof HTMLVideoElement || target instanceof HTMLAudioElement || target instanceof HTMLSourceElement) {
+      void resolveElementSrc(target);
+    }
+  };
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach((node) => {
+        if (!(node instanceof Element)) return;
+        if (node.matches("img[src], video[src], audio[src], source[src]")) void resolveElementSrc(node as AdminMediaElement);
+        scan(node);
+      });
+      if (mutation.type === "attributes" && mutation.target instanceof Element) {
+        const node = mutation.target;
+        if (node.matches("img[src], video[src], audio[src], source[src]")) void resolveElementSrc(node as AdminMediaElement);
+      }
+    }
+  });
+
+  scan();
+  document.addEventListener("error", onError, true);
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
+
+  return () => {
+    document.removeEventListener("error", onError, true);
+    observer.disconnect();
+    (window as any).__adminMediaAutoResolverInstalled = false;
+  };
 };
