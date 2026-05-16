@@ -89,7 +89,8 @@ interface HostSubmission {
 
 const statusConfig: Record<string, { bg: string; text: string; icon: any; label: string }> = {
   pending: { bg: "bg-amber-500/15", text: "text-amber-400", icon: Clock, label: "Pending" },
-  under_review: { bg: "bg-sky-500/15", text: "text-sky-400", icon: Eye, label: "Review" },
+  submitted: { bg: "bg-amber-500/15", text: "text-amber-400", icon: Clock, label: "Pending" },
+  under_review: { bg: "bg-amber-500/15", text: "text-amber-400", icon: Clock, label: "Pending" },
   approved: { bg: "bg-emerald-500/15", text: "text-emerald-400", icon: CheckCircle, label: "Approved" },
   rejected: { bg: "bg-rose-500/15", text: "text-rose-400", icon: XCircle, label: "Rejected" },
 };
@@ -144,7 +145,7 @@ export default function AdminHostApplications() {
       };
       setStatusCounts({
         pending: Number(s.pending || 0),
-        under_review: Number(s.under_review || 0),
+        under_review: 0,
         approved: Number(s.approved || 0),
         rejected: Number(s.rejected || 0),
       });
@@ -190,10 +191,10 @@ export default function AdminHostApplications() {
           profile:profiles!face_verification_submissions_user_id_fkey(
             display_name, app_uid, avatar_url, gender, is_host
           )
-        `, { count: "exact" })
-        .neq("status", "rejected");
+        `, { count: "exact" });
 
-      if (filterStatus !== "all") query = query.eq("status", filterStatus);
+      if (filterStatus === "pending") query = query.not("status", "in", "(approved,rejected)");
+      else if (filterStatus !== "all") query = query.eq("status", filterStatus);
       if (searchQuery) query = query.ilike("full_name", `%${searchQuery}%`);
 
       const from = (currentPage - 1) * pageSize;
@@ -321,6 +322,8 @@ export default function AdminHostApplications() {
 
   const totalPages = Math.ceil(totalApplications / pageSize);
 
+  const isPendingStatus = (status: string) => status !== 'approved' && status !== 'rejected';
+
   const getStatusBadge = (status: string) => {
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
@@ -400,7 +403,7 @@ export default function AdminHostApplications() {
                 Host Application Management
               </h1>
               <p className="text-white/70 text-sm mt-1.5">
-                {statusCounts.pending + statusCounts.under_review + statusCounts.approved + statusCounts.rejected} submissions
+                {statusCounts.pending + statusCounts.approved + statusCounts.rejected} submissions
                 {pendingHostsCount > 0 && <span className="text-orange-400 font-semibold"> • {pendingHostsCount} awaiting verification</span>}
               </p>
             </div>
@@ -420,7 +423,6 @@ export default function AdminHostApplications() {
       <div className="grid grid-cols-4 gap-2 md:gap-3">
         {[
           { key: 'pending', icon: Clock, color: 'amber', label: 'Pending' },
-          { key: 'under_review', icon: Eye, color: 'sky', label: 'Review' },
           { key: 'approved', icon: CheckCircle, color: 'emerald', label: 'Approved' },
           { key: 'rejected', icon: XCircle, color: 'rose', label: 'Rejected' },
         ].map(({ key, icon: Icon, color, label }) => {
@@ -462,7 +464,6 @@ export default function AdminHostApplications() {
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="under_review">Review</SelectItem>
             <SelectItem value="approved">Approved</SelectItem>
             <SelectItem value="rejected">Rejected</SelectItem>
           </SelectContent>

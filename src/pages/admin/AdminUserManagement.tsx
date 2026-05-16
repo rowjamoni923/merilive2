@@ -208,7 +208,7 @@ interface FaceVerificationSubmission {
   id: string;
   user_id: string;
   verification_type: 'user' | 'host';
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'submitted' | 'under_review' | 'approved' | 'rejected';
   full_name: string | null;
   age: number | null;
   language: string | null;
@@ -1310,18 +1310,33 @@ export default function AdminUserManagement() {
     agency.agency_code?.toLowerCase().includes(blockSearchQuery.toLowerCase())
   );
 
-  const filteredFaceSubmissions = faceSubmissions.filter(sub => {
-    const matchesSearch = 
-      sub.profile?.display_name?.toLowerCase().includes(faceSearchQuery.toLowerCase()) ||
-      sub.profile?.app_uid?.includes(faceSearchQuery) ||
-      sub.full_name?.toLowerCase().includes(faceSearchQuery.toLowerCase());
-    
-    const matchesTab = faceActiveTab === 'all' || sub.status === faceActiveTab;
-    
-    return matchesSearch && matchesTab;
+  const isFaceApproved = (s: FaceVerificationSubmission) => s.status === 'approved';
+  const isFaceRejected = (s: FaceVerificationSubmission) => s.status === 'rejected';
+  const isFacePendingBucket = (s: FaceVerificationSubmission) => !isFaceApproved(s) && !isFaceRejected(s);
+
+  const faceQueryRaw = faceSearchQuery.trim();
+  const faceQuery = faceQueryRaw.toLowerCase();
+  const faceVisiblePool = faceSubmissions.filter(sub => {
+    if (!faceQuery) return true;
+    return (
+      sub.profile?.display_name?.toLowerCase().includes(faceQuery) ||
+      sub.profile?.app_uid?.includes(faceQueryRaw) ||
+      sub.full_name?.toLowerCase().includes(faceQuery) ||
+      sub.user_id?.toLowerCase().startsWith(faceQuery)
+    );
   });
 
-  const pendingFaceCount = faceSubmissions.filter(s => s.status === 'pending').length;
+  const filteredFaceSubmissions = faceVisiblePool.filter(sub => {
+    if (faceActiveTab === 'pending') return isFacePendingBucket(sub);
+    if (faceActiveTab === 'approved') return isFaceApproved(sub);
+    if (faceActiveTab === 'rejected') return isFaceRejected(sub);
+    if (faceActiveTab === 'all') return true;
+    return false;
+  });
+
+  const pendingFaceCount = faceVisiblePool.filter(isFacePendingBucket).length;
+  const approvedFaceCount = faceVisiblePool.filter(isFaceApproved).length;
+  const rejectedFaceCount = faceVisiblePool.filter(isFaceRejected).length;
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
@@ -2172,7 +2187,7 @@ export default function AdminUserManagement() {
                     <Clock className="w-5 h-5" style={{ color: '#fbbf24' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#fcd34d' }}>{faceSubmissions.filter(s => s.status === 'pending').length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#fcd34d' }}>{pendingFaceCount}</p>
                     <p className="text-sm" style={{ color: 'rgba(251,191,36,0.8)' }}>Pending</p>
                   </div>
                 </div>
@@ -2185,7 +2200,7 @@ export default function AdminUserManagement() {
                     <CheckCircle className="w-5 h-5" style={{ color: '#4ade80' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#86efac' }}>{faceSubmissions.filter(s => s.status === 'approved').length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#86efac' }}>{approvedFaceCount}</p>
                     <p className="text-sm" style={{ color: 'rgba(74,222,128,0.8)' }}>Approved</p>
                   </div>
                 </div>
@@ -2198,7 +2213,7 @@ export default function AdminUserManagement() {
                     <XCircle className="w-5 h-5" style={{ color: '#f87171' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#fca5a5' }}>{faceSubmissions.filter(s => s.status === 'rejected').length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#fca5a5' }}>{rejectedFaceCount}</p>
                     <p className="text-sm" style={{ color: 'rgba(248,113,113,0.8)' }}>Rejected</p>
                   </div>
                 </div>
@@ -2211,7 +2226,7 @@ export default function AdminUserManagement() {
                     <ScanFace className="w-5 h-5" style={{ color: '#c084fc' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#d8b4fe' }}>{faceSubmissions.length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#d8b4fe' }}>{faceVisiblePool.length}</p>
                     <p className="text-sm" style={{ color: 'rgba(192,132,252,0.8)' }}>Total</p>
                   </div>
                 </div>
@@ -2242,8 +2257,12 @@ export default function AdminUserManagement() {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="approved" className="data-[state=active]:bg-green-500 data-[state=active]:text-white text-slate-700">Approved</TabsTrigger>
-              <TabsTrigger value="rejected" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700">Rejected</TabsTrigger>
+              <TabsTrigger value="approved" className="relative data-[state=active]:bg-green-500 data-[state=active]:text-white text-slate-700">Approved
+                {approvedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{approvedFaceCount}</span>}
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="relative data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700">Rejected
+                {rejectedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{rejectedFaceCount}</span>}
+              </TabsTrigger>
               <TabsTrigger value="all" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700">All</TabsTrigger>
             </TabsList>
 
@@ -2282,11 +2301,11 @@ export default function AdminUserManagement() {
                                 {submission.verification_type === 'host' ? 'Host' : 'User'}
                               </Badge>
                               <Badge className={
-                                submission.status === 'pending' ? "bg-amber-100 text-amber-700" :
-                                submission.status === 'approved' ? "bg-green-100 text-green-700" :
+                                isFacePendingBucket(submission) ? "bg-amber-100 text-amber-700" :
+                                isFaceApproved(submission) ? "bg-green-100 text-green-700" :
                                 "bg-red-100 text-red-700"
                               }>
-                                {submission.status === 'pending' ? 'Pending' : submission.status === 'approved' ? 'Approved' : 'Rejected'}
+                                {isFacePendingBucket(submission) ? 'Pending' : isFaceApproved(submission) ? 'Approved' : 'Rejected'}
                               </Badge>
                             </div>
                             <p className="text-xs text-slate-500">UID: {submission.profile?.app_uid}</p>
@@ -2327,7 +2346,7 @@ export default function AdminUserManagement() {
 
 
                         {/* Inline Approve/Reject Buttons */}
-                        {submission.status === 'pending' && (
+                        {isFacePendingBucket(submission) && (
                           <div className="flex gap-2">
                             <Button 
                               className="flex-1 bg-green-500 hover:bg-green-600 text-white"
@@ -3146,11 +3165,11 @@ export default function AdminUserManagement() {
                       {selectedFaceSubmission.verification_type === 'host' ? 'Host' : 'User'}
                     </Badge>
                     <Badge className={
-                      selectedFaceSubmission.status === 'pending' ? "bg-amber-500/20 text-amber-300" :
-                      selectedFaceSubmission.status === 'approved' ? "bg-green-500/20 text-green-300" :
+                      isFacePendingBucket(selectedFaceSubmission) ? "bg-amber-500/20 text-amber-300" :
+                      isFaceApproved(selectedFaceSubmission) ? "bg-green-500/20 text-green-300" :
                       "bg-red-500/20 text-red-300"
                     }>
-                      {selectedFaceSubmission.status === 'pending' ? 'Pending' : selectedFaceSubmission.status === 'approved' ? 'Approved' : 'Rejected'}
+                      {isFacePendingBucket(selectedFaceSubmission) ? 'Pending' : isFaceApproved(selectedFaceSubmission) ? 'Approved' : 'Rejected'}
                     </Badge>
                   </div>
                 </div>
@@ -3159,7 +3178,7 @@ export default function AdminUserManagement() {
               <FaceSubmissionModalMedia submission={selectedFaceSubmission} />
 
 
-              {selectedFaceSubmission.status === 'pending' && (
+              {isFacePendingBucket(selectedFaceSubmission) && (
                 <div className="flex gap-2">
                   <Button className="flex-1 bg-green-500 hover:bg-green-600" onClick={() => { setFaceActionType('approve'); setShowFaceActionModal(true); }}>
                     <CheckCircle className="w-4 h-4 mr-2" />
