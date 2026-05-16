@@ -1168,7 +1168,7 @@ export default function AdminBalanceDeduction() {
                     <div className="relative">
                       <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center overflow-hidden">
                         {result.avatar ? (
-                          <img src={result.avatar} alt="" className="w-full h-full object-cover" />
+                          <img src={result.avatar} alt="" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                         ) : (
                           getTypeIcon(result.type)
                         )}

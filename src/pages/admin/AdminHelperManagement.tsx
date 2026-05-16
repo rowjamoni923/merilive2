@@ -1282,8 +1282,7 @@ const AdminHelperManagement = () => {
                           onClick={() => {
                             const url = selectedApp.payment_screenshot_url || selectedApp.payment_details?.screenshot_url;
                             if (url) imageViewer.openImage(url);
-                          }}
-                        />
+                          }} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                         <div className="absolute bottom-2 right-2 bg-black/70 px-2 py-1 rounded text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
                           Click to view full size
                         </div>

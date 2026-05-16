@@ -836,7 +836,7 @@ const AdminPartyBackgrounds = () => {
             {/* Preview */}
             {formData.image_url && (
               <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-                <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                 <Button
                   variant="destructive"
                   size="icon"
@@ -940,7 +940,7 @@ const AdminPartyBackgrounds = () => {
             {/* Current Image Preview */}
             {formData.image_url && (
               <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-                <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                 <Button
                   variant="destructive"
                   size="icon"

@@ -1596,8 +1596,7 @@ const AdminSupportTickets = () => {
                                     src={resolvedUrl}
                                     alt="Attachment"
                                     className="max-w-full rounded-xl max-h-56 object-cover cursor-pointer mb-1.5 hover:opacity-90 transition-opacity shadow-sm"
-                                    onClick={() => window.open(resolvedUrl, '_blank')}
-                                  />
+                                    onClick={() => window.open(resolvedUrl, '_blank')} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                                 );
                               })()}
                               {/* Voice attachment */}

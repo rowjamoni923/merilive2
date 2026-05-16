@@ -414,8 +414,7 @@ const AdminReels = () => {
                       <img 
                         src={reel.thumbnail_url} 
                         alt="" 
-                        className="w-full h-full object-cover"
-                      />
+                        className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Video className="w-8 h-8 text-muted-foreground" />

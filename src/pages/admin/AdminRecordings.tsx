@@ -356,8 +356,7 @@ export default function AdminRecordings() {
                         <img
                           src={recording.thumbnail_url}
                           alt="Recording thumbnail"
-                          className="w-full h-full object-cover"
-                        />
+                          className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Video className="w-10 h-10 text-slate-600" />

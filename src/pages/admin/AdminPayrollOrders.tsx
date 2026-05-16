@@ -789,8 +789,7 @@ const AdminPayrollOrders = () => {
                       <img 
                         src={selectedOrder.user_payment_proof} 
                         alt="Payment Proof" 
-                        className="w-full h-48 object-cover"
-                      />
+                        className="w-full h-48 object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Eye className="w-8 h-8 text-white" />
                       </div>
@@ -888,8 +887,7 @@ const AdminPayrollOrders = () => {
             <img 
               src={selectedOrder.user_payment_proof} 
               alt="Payment Proof Full" 
-              className="w-full h-auto"
-            />
+              className="w-full h-auto" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
           )}
         </DialogContent>
       </Dialog>

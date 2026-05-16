@@ -65,7 +65,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
       loading="lazy"
       decoding="async"
       onLoad={() => setLoaded(true)}
-      onError={() => setLoaded(true)}
+      onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; setLoaded(true); }}
       style={sizeStyle}
       className={cn(
         'object-cover transition-opacity duration-300',

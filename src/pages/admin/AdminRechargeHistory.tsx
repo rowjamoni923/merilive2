@@ -793,8 +793,7 @@ const AdminRechargeHistory = () => {
                     src={selectedRecord.user_payment_proof} 
                     alt="Payment proof" 
                     className="w-full rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity" 
-                    onClick={() => imageViewer.openImage(selectedRecord.user_payment_proof!)}
-                  />
+                    onClick={() => imageViewer.openImage(selectedRecord.user_payment_proof!)} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                 </div>
               )}
             </div>
