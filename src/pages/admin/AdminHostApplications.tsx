@@ -892,14 +892,7 @@ export default function AdminHostApplications() {
         </DialogContent>
       </Dialog>
 
-      {/* Expanded Photo Viewer */}
-      <Dialog open={!!expandedPhoto} onOpenChange={() => setExpandedPhoto(null)}>
-        <DialogContent className="bg-black/95 border-white/10 max-w-3xl p-1">
-          {expandedPhoto && (
-            <img src={expandedPhoto} alt="Expanded" className="w-full rounded-lg" />
-          )}
-        </DialogContent>
-      </Dialog>
+      <AdminMediaDialog open={!!expandedPhoto} onOpenChange={(open) => !open && setExpandedPhoto(null)} src={expandedPhoto} title="Expanded Photo" kind="image" />
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
