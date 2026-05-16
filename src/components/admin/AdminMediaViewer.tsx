@@ -70,6 +70,7 @@ export function AdminMediaFrame({
   const [failed, setFailed] = useState(false);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
+  const [resolutionFailed, setResolutionFailed] = useState(false);
   const mediaKind = kind === "auto" ? (isAdminVideoUrl(displaySrc || src) ? "video" : "image") : kind;
   const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
 
@@ -81,15 +82,17 @@ export function AdminMediaFrame({
     }
     let cancelled = false;
     setDisplaySrc(null);
-    setDisplayPoster(poster || null);
+    setDisplayPoster(null);
+    setResolutionFailed(false);
     (async () => {
       const [resolved, resolvedPoster] = await Promise.all([
         resolveAdminStorageImageUrl(src, "face-verification"),
         resolveAdminStorageImageUrl(poster, "face-verification"),
       ]);
       if (!cancelled) {
-        setDisplaySrc(resolved || src);
-        setDisplayPoster(resolvedPoster || poster || null);
+        setDisplaySrc(resolved);
+        setDisplayPoster(resolvedPoster || null);
+        setResolutionFailed(!resolved);
       }
     })();
     return () => {
@@ -101,6 +104,15 @@ export function AdminMediaFrame({
     return (
       <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-muted-foreground", className)}>
         <ImageIcon className="mr-2 h-4 w-4" /> No media
+      </div>
+    );
+  }
+
+  if (resolutionFailed) {
+    return (
+      <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-center", className)}>
+        <AlertTriangle className="h-5 w-5 text-destructive" />
+        <p className="text-sm font-medium text-foreground">Media could not be signed for admin preview.</p>
       </div>
     );
   }
