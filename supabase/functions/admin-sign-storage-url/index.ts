@@ -1,11 +1,11 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ALLOWED_BUCKETS = new Set(["face-verification", "host-verification"]);
+const DENIED_BUCKETS = new Set(["system", "vault"]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -57,9 +57,23 @@ Deno.serve(async (req) => {
     const path = String(body.path || "").replace(/^\/+/, "");
     const expiresIn = Math.min(Math.max(Number(body.expiresIn || 3600), 60), 3600);
 
-    if (!ALLOWED_BUCKETS.has(bucket) || !path || path.includes("..")) {
+    if (!bucket || DENIED_BUCKETS.has(bucket) || !path || path.includes("..")) {
       return new Response(JSON.stringify({ success: false, error: "Invalid storage path" }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: bucketRow } = await supabase
+      .schema("storage")
+      .from("buckets")
+      .select("id")
+      .eq("id", bucket)
+      .maybeSingle();
+
+    if (!bucketRow) {
+      return new Response(JSON.stringify({ success: false, error: "Bucket not found" }), {
+        status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
