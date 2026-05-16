@@ -27,7 +27,10 @@ const FALLBACK_SIGNING_BUCKETS = [
   'chat-media', 'live-recordings', 'app-assets', 'app-icons', 'assets', 'banners',
   'banners-media', 'branding', 'content-media', 'payment-logos', 'posters', 'reels',
 ];
-const RAW_FILE_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:\/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|mp3|wav|m4a|pdf)(?:[?#].*)?$/i;
+const RAW_FILE_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|mp3|wav|m4a|pdf)(?:[?#].*)?$/i;
+
+type AdminSignStorageResponse = { signedUrl?: string };
+type AdminMediaResolverWindow = Window & { __adminMediaAutoResolverInstalled?: boolean };
 
 export const extractAdminStoragePath = (value: string, defaultBucket?: string): AdminStoragePath | null => {
   const raw = value.trim();
@@ -108,9 +111,10 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       }).catch(() => null);
       const signed = resp?.ok ? await resp.json().catch(() => null) : null;
 
-      if ((signed as any)?.signedUrl) {
-        signedUrlCache.set(cacheKey, { url: (signed as any).signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-        return (signed as any).signedUrl as string;
+      const signedUrl = (signed as AdminSignStorageResponse | null)?.signedUrl;
+      if (signedUrl) {
+        signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+        return signedUrl;
       }
     }
 
@@ -227,8 +231,9 @@ const resolveElementSrc = async (el: AdminMediaElement, defaultBucket?: string) 
 };
 
 export const installAdminMediaAutoResolver = () => {
-  if (typeof document === "undefined" || (window as any).__adminMediaAutoResolverInstalled) return () => {};
-  (window as any).__adminMediaAutoResolverInstalled = true;
+  const resolverWindow = window as AdminMediaResolverWindow;
+  if (typeof document === "undefined" || resolverWindow.__adminMediaAutoResolverInstalled) return () => {};
+  resolverWindow.__adminMediaAutoResolverInstalled = true;
 
   const scan = (root: ParentNode = document) => {
     root.querySelectorAll?.("img[src], video[src], audio[src], source[src]").forEach((node) => {
@@ -271,6 +276,6 @@ export const installAdminMediaAutoResolver = () => {
   return () => {
     document.removeEventListener("error", onError, true);
     observer.disconnect();
-    (window as any).__adminMediaAutoResolverInstalled = false;
+    resolverWindow.__adminMediaAutoResolverInstalled = false;
   };
 };
