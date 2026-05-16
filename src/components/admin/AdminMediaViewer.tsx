@@ -69,6 +69,7 @@ export function AdminMediaFrame({
 }: AdminMediaFrameProps) {
   const [failed, setFailed] = useState(false);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
+  const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
   const mediaKind = kind === "auto" ? (isAdminVideoUrl(displaySrc || src) ? "video" : "image") : kind;
   const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
 
@@ -80,14 +81,21 @@ export function AdminMediaFrame({
     }
     let cancelled = false;
     setDisplaySrc(null);
+    setDisplayPoster(poster || null);
     (async () => {
-      const resolved = await resolveAdminStorageImageUrl(src, "face-verification");
-      if (!cancelled) setDisplaySrc(resolved || src);
+      const [resolved, resolvedPoster] = await Promise.all([
+        resolveAdminStorageImageUrl(src, "face-verification"),
+        resolveAdminStorageImageUrl(poster, "face-verification"),
+      ]);
+      if (!cancelled) {
+        setDisplaySrc(resolved || src);
+        setDisplayPoster(resolvedPoster || poster || null);
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [src]);
+  }, [src, poster]);
 
   if (!src) {
     return (
@@ -110,7 +118,7 @@ export function AdminMediaFrame({
       <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-center", className)}>
         <AlertTriangle className="h-5 w-5 text-destructive" />
         <p className="text-sm font-medium text-foreground">Media could not be loaded in this browser.</p>
-        <a href={src} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
+        <a href={displaySrc} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
           Open original <ExternalLink className="h-3 w-3" />
         </a>
       </div>
@@ -127,7 +135,7 @@ export function AdminMediaFrame({
           preload="metadata"
           muted={autoPlay}
           autoPlay={autoPlay}
-          poster={poster || undefined}
+          poster={displayPoster || undefined}
           className={cn("h-full w-full bg-background object-contain", mediaClassName)}
           onError={() => setFailed(true)}
           onLoadedData={() => setFailed(false)}
