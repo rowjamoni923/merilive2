@@ -2857,13 +2857,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   })()}
                 </div>
 
- <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-on-dark font-semibold text-base">
-                  {savingCallRate ? (
- <div className="flex items-center gap-2"><div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />Saving...</div>
-                  ) : (
-                    <div className="flex items-center gap-2"><PhoneCall className="w-5 h-5" />Save Price</div>
-                  )}
-                </Button>
+ {canCustomize ? (
+                  <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-on-dark font-semibold text-base">
+                    {savingCallRate ? (
+                      <div className="flex items-center gap-2"><div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />Saving...</div>
+                    ) : (
+                      <div className="flex items-center gap-2"><PhoneCall className="w-5 h-5" />Save Price</div>
+                    )}
+                  </Button>
+                ) : (
+                  <Button onClick={() => setShowCallPriceModal(false)} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-on-dark font-semibold text-base">
+                    Got it
+                  </Button>
+                )}
               </div>
             );
           })()}
