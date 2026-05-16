@@ -1580,7 +1580,7 @@ export default function AdminGifts() {
                 if (isLottie(url)) return <UniversalAnimationPlayer src={url} type="lottie" className="w-full h-full" loop autoPlay muted={false} />;
                 if (isVideoOrGif(url)) return url.endsWith('.gif') 
                   ? <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />
-                  : <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline />;
+                  : <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;
                 return <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />;
               })()}
             </div>
