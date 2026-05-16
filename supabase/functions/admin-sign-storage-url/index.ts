@@ -64,19 +64,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: bucketRow } = await supabase
-      .schema("storage")
-      .from("buckets")
-      .select("id")
-      .eq("id", bucket)
-      .maybeSingle();
-
-    if (!bucketRow) {
-      return new Response(JSON.stringify({ success: false, error: "Bucket not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // NOTE: We intentionally do NOT pre-validate via storage.buckets — the
+    // `storage` schema is not exposed via PostgREST, so the lookup always
+    // returns null and rejected every real bucket. createSignedUrl below will
+    // surface a precise error if the bucket truly does not exist.
 
     const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
     if (error || !data?.signedUrl) {
