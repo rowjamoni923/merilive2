@@ -50,6 +50,15 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+
+const normalizeFaceVerificationStatus = (status?: string | null): Submission['status'] => {
+  const normalized = String(status || 'pending').trim().toLowerCase();
+  if (normalized === 'approved' || normalized === 'rejected' || normalized === 'submitted' || normalized === 'under_review') {
+    return normalized;
+  }
+  return 'pending';
+};
+
 interface Submission {
   id: string;
   user_id: string;
@@ -198,9 +207,15 @@ const AdminFaceVerification = () => {
 
       // Pkg9 hardening: single server-side RPC replaces direct table SELECT +
       // N+1 client joins (profile/agency). Server enforces is_active_admin_session.
+      const statusParam = activeTab === 'all' || activeTab === 'auto_approved'
+        ? null
+        : activeTab === 'pending'
+          ? null
+          : activeTab;
+
       const { data, error } = await supabase.rpc(
         'admin_list_face_verification_paginated',
-        { _status: null, _search: null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
+        { _status: statusParam, _search: qRaw || null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
       );
 
       if (error) throw error;
@@ -210,6 +225,7 @@ const AdminFaceVerification = () => {
 
       const enriched: Submission[] = rows.map((s) => ({
         ...s,
+        status: normalizeFaceVerificationStatus(s.status),
         // RPC returns profile as a jsonb object; normalize null → undefined
         profile: s.profile && s.profile.id ? s.profile : undefined,
         agency_info: s.agency_name
