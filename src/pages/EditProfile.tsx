@@ -1011,12 +1011,12 @@ const EditProfile = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-20 blur-xl" />
             <div className="relative flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/50 to-pink-600/50 flex items-center justify-center backdrop-blur-sm border border-amber-200/40">
-                <Shield className="w-7 h-7 text-heading" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-lg">
+                <Shield className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-heading text-lg">Keep Your Account Safe</p>
-                <p className="text-heading text-sm mt-0.5">
+                <p className="font-bold text-white text-lg drop-shadow">Keep Your Account Safe</p>
+                <p className="text-white/90 text-sm mt-0.5 drop-shadow">
                   Add phone & password for better security
                 </p>
               </div>

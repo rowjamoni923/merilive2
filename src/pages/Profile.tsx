@@ -2146,7 +2146,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </Badge>
                     )}
                     {item.rightText && (
-                      <span className="text-xs text-on-dark-muted font-medium">{item.rightText}</span>
+                      <span className="text-xs text-slate-600 font-semibold">{item.rightText}</span>
                     )}
                     {item.hasNotification && (
                       <span className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
