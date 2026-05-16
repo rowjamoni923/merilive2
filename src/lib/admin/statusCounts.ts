@@ -85,7 +85,10 @@ export function countFaceReviewBuckets<T>(
   for (const row of rows) {
     const status = getStatus(row);
     const bucket = bucketOfStatus(status);
-    const auto = isAutoFaceReview(status, getAdminNotes(row));
+    const explicitAuto = typeof row === "object" && row !== null && "is_auto_reviewed" in row
+      ? Boolean((row as { is_auto_reviewed?: boolean | null }).is_auto_reviewed)
+      : false;
+    const auto = explicitAuto || isAutoFaceReview(status, getAdminNotes(row));
     out[bucket]++;
     if (bucket === "pending") out.manual_pending++;
     else if (bucket === "approved" && auto) out.auto_approved++;
