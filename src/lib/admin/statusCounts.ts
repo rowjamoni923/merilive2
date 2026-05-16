@@ -87,7 +87,40 @@ export type FilteredCountOptions = {
    * single roundtrip). Omit to always run the 3 filtered counts.
    */
   globalStatsRpc?: string;
+  /**
+   * Cache TTL in ms. Subsequent calls with the same (table, column, query)
+   * within this window return the cached counts instead of hitting the DB.
+   * Default: 15 seconds. Pass 0 to disable caching.
+   */
+  cacheTtlMs?: number;
+  /** Force a fresh fetch and overwrite any cached entry. */
+  forceRefresh?: boolean;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// In-memory TTL cache + in-flight dedupe so rapid keystrokes (even when the
+// caller forgets to debounce) collapse into a single network request.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type CacheEntry = { at: number; value: StatusCounts };
+const COUNT_CACHE = new Map<string, CacheEntry>();
+const IN_FLIGHT = new Map<string, Promise<StatusCounts>>();
+const DEFAULT_TTL_MS = 15_000;
+
+function cacheKey(opts: FilteredCountOptions): string {
+  return `${opts.table}::${opts.searchColumn}::${(opts.searchQuery || "").trim().toLowerCase()}::${opts.globalStatsRpc || ""}`;
+}
+
+/** Invalidate all cached status-count entries (e.g. after a mutation). */
+export function invalidateStatusCountsCache(table?: string): void {
+  if (!table) {
+    COUNT_CACHE.clear();
+    return;
+  }
+  for (const key of COUNT_CACHE.keys()) {
+    if (key.startsWith(`${table}::`)) COUNT_CACHE.delete(key);
+  }
+}
 
 /**
  * Fetch Pending / Approved / Rejected counts that are guaranteed to match the
@@ -103,7 +136,29 @@ export async function fetchFilteredStatusCounts(
   opts: FilteredCountOptions,
 ): Promise<StatusCounts> {
   const q = (opts.searchQuery || "").trim();
+  const ttl = opts.cacheTtlMs ?? DEFAULT_TTL_MS;
+  const key = cacheKey(opts);
 
+  if (!opts.forceRefresh && ttl > 0) {
+    const hit = COUNT_CACHE.get(key);
+    if (hit && Date.now() - hit.at < ttl) return hit.value;
+  }
+  const pending = IN_FLIGHT.get(key);
+  if (pending && !opts.forceRefresh) return pending;
+
+  const run = (async (): Promise<StatusCounts> => {
+    const result = await doFetch();
+    if (ttl > 0) COUNT_CACHE.set(key, { at: Date.now(), value: result });
+    return result;
+  })();
+  IN_FLIGHT.set(key, run);
+  try {
+    return await run;
+  } finally {
+    IN_FLIGHT.delete(key);
+  }
+
+  async function doFetch(): Promise<StatusCounts> {
   if (q) {
     const base = () =>
       client
