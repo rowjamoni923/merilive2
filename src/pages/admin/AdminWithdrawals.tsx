@@ -245,7 +245,7 @@ export default function AdminWithdrawals() {
         const enrichedData = await Promise.all(data.map(async (w) => {
           const paymentDetails = (w.payment_details as PaymentDetails | null) || null;
           const rawProof = w.helper_payment_screenshot || paymentDetails?.helper_payment_screenshot || null;
-          const signedProof = await resolveAdminStorageImageUrl(rawProof);
+          const signedProof = await resolveAdminStorageImageUrl(rawProof, 'helper-screenshots');
 
           return {
             ...w,

@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 import { useToast } from "@/hooks/use-toast";
 import { 
   MessageCircle, Search, Loader2, Send, Clock, CheckCircle, 
@@ -365,10 +366,8 @@ const AdminSupportTickets = () => {
       const signedEntries = await Promise.all(msgs
         .filter((m: any) => m.attachment_url)
         .map(async (m: any) => {
-          const path = extractSupportAttachmentPath(m.attachment_url);
-          if (!path) return [m.id, m.attachment_url] as const;
-          const { data: signed } = await supabase.storage.from(SUPPORT_ATTACHMENT_BUCKET).createSignedUrl(path, 60 * 60);
-          return [m.id, signed?.signedUrl || m.attachment_url] as const;
+          const signed = await resolveAdminStorageImageUrl(m.attachment_url, SUPPORT_ATTACHMENT_BUCKET);
+          return [m.id, signed || m.attachment_url] as const;
         }));
       if (signedEntries.length) setSignedAttachmentUrls(Object.fromEntries(signedEntries));
 
