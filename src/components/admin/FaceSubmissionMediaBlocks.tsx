@@ -1,4 +1,3 @@
-import { useAdminSignedUrl, useAdminSignedUrls } from "@/hooks/useAdminSignedUrl";
 import { AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
 
 interface MediaSubmission {
@@ -18,15 +17,15 @@ interface MediaSubmission {
  * signed-URL helper so private storage buckets render correctly in admin.
  */
 export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSubmission }) {
-  const profilePhoto = useAdminSignedUrl(submission.profile_photo_url, "face-verification");
-  const faceMedia = useAdminSignedUrl(submission.face_image_url, "face-verification");
-  const introVideo = useAdminSignedUrl(submission.video_url, "face-verification");
-  const angleMedia = useAdminSignedUrls([
+  const profilePhoto = submission.profile_photo_url || null;
+  const faceMedia = submission.face_image_url && !submission.face_image_url.startsWith("admin-approved://") ? submission.face_image_url : null;
+  const introVideo = submission.video_url || null;
+  const angleMedia = [
     submission.front_url || submission.selfie_url,
     submission.left_url,
     submission.right_url,
-  ], "face-verification").filter(Boolean);
-  const hostPhotos = useAdminSignedUrls(submission.host_photos || [], "face-verification");
+  ].filter((url): url is string => Boolean(url));
+  const hostPhotos = (submission.host_photos || []).filter(Boolean);
 
   return (
     <>
@@ -46,7 +45,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
       {faceMedia && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🔍 Face Verification</p>
-          <AdminMediaFrame src={faceMedia} alt="Face" className="bg-background" mediaClassName="max-h-64" />
+          <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" className="bg-background" mediaClassName="max-h-64" />
         </div>
       )}
 
@@ -91,8 +90,8 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
 
 /** Compact face media renderer for the modal view (bigger frames). */
 export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubmission }) {
-  const faceMedia = useAdminSignedUrl(submission.face_image_url, "face-verification");
-  const introVideo = useAdminSignedUrl(submission.video_url, "face-verification");
+  const faceMedia = submission.face_image_url && !submission.face_image_url.startsWith("admin-approved://") ? submission.face_image_url : null;
+  const introVideo = submission.video_url || null;
 
   return (
     <>
