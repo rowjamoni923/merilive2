@@ -50,6 +50,7 @@ interface AdminMediaFrameProps {
   src?: string | null;
   alt: string;
   kind?: AdminMediaKind;
+  bucket?: string;
   poster?: string | null;
   className?: string;
   mediaClassName?: string;
@@ -61,6 +62,7 @@ export function AdminMediaFrame({
   src,
   alt,
   kind = "auto",
+  bucket = "face-verification",
   poster,
   className,
   mediaClassName,
@@ -71,7 +73,7 @@ export function AdminMediaFrame({
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
-  const isPrivateStorage = isPrivateAdminStorageReference(src, "face-verification");
+  const isPrivateStorage = isPrivateAdminStorageReference(src, bucket);
   const rawKind = kind === "auto" ? (isAdminVideoUrl(displaySrc || src) ? "video" : "image") : kind;
   const mediaKind = failed && rawKind === "video" && isPrivateStorage ? "image" : rawKind;
   const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
@@ -88,19 +90,19 @@ export function AdminMediaFrame({
     setResolutionFailed(false);
     (async () => {
       const [resolved, resolvedPoster] = await Promise.all([
-        resolveAdminStorageImageUrl(src, "face-verification"),
-        resolveAdminStorageImageUrl(poster, "face-verification"),
+        resolveAdminStorageImageUrl(src, bucket),
+        resolveAdminStorageImageUrl(poster, bucket),
       ]);
       if (!cancelled) {
         setDisplaySrc(resolved);
         setDisplayPoster(resolvedPoster || null);
-        setResolutionFailed(!resolved || (isPrivateAdminStorageReference(src, "face-verification") && resolved === src));
+        setResolutionFailed(!resolved || (isPrivateAdminStorageReference(src, bucket) && resolved === src));
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [src, poster]);
+  }, [src, poster, bucket]);
 
   if (!src) {
     return (
@@ -232,6 +234,7 @@ export function AdminMediaDialog({ open, src, title = "Media Preview", kind = "a
           src={src}
           alt={title}
           kind={mediaKind}
+          bucket={bucket}
           poster={poster}
           autoPlay={mediaKind === "video"}
           className="max-h-[82dvh] w-full border-0 bg-background"
