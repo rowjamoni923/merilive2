@@ -87,7 +87,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
-import { bucketOfStatus, countStatusBuckets } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -245,6 +245,9 @@ interface FaceVerificationSubmission {
   face_image_url: string | null;
   rejection_reason: string | null;
   admin_notes: string | null;
+  status_bucket?: 'pending' | 'approved' | 'rejected';
+  is_auto_reviewed?: boolean | null;
+  review_source?: 'auto' | 'manual' | string | null;
   created_at: string;
   reviewed_at: string | null;
   profile?: {
