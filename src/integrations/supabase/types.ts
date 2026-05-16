@@ -15956,6 +15956,14 @@ export type Database = {
         Returns: Json
       }
       expire_noble_subscriptions: { Args: never; Returns: number }
+      face_verification_is_auto_reviewed: {
+        Args: { _admin_notes: string; _status: string }
+        Returns: boolean
+      }
+      face_verification_status_bucket: {
+        Args: { _status: string }
+        Returns: string
+      }
       finalize_first_minute_earnings: {
         Args: { p_call_id: string }
         Returns: undefined
