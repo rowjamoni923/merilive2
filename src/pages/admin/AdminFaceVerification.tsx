@@ -1182,14 +1182,7 @@ const AdminFaceVerification = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Expanded Photo Modal */}
-      <Dialog open={!!expandedPhoto} onOpenChange={() => setExpandedPhoto(null)}>
-        <DialogContent className="max-w-3xl bg-black/95 border-slate-700 p-2">
-          {expandedPhoto && (
-            <img src={expandedPhoto} alt="Expanded" className="w-full h-auto max-h-[85vh] object-contain rounded-lg" />
-          )}
-        </DialogContent>
-      </Dialog>
+      <AdminMediaDialog open={!!expandedPhoto} onOpenChange={(open) => !open && setExpandedPhoto(null)} src={expandedPhoto} title="Expanded Photo" kind="image" />
 
       {/* Action Modal */}
       <Dialog open={showActionModal} onOpenChange={setShowActionModal}>
