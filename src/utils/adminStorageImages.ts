@@ -54,7 +54,7 @@ export const extractAdminStoragePath = (value: string, defaultBucket?: string): 
 
 export const isAdminStorageReference = (value?: string | null, defaultBucket?: string) => {
   if (!value) return false;
-  return !!extractAdminStoragePath(value, defaultBucket) || RAW_FILE_PATH_RE.test(value.trim());
+  return !!extractAdminStoragePath(value) || RAW_FILE_PATH_RE.test(value.trim());
 };
 
 export const isPrivateAdminStorageReference = (value?: string | null, defaultBucket?: string) => {
@@ -197,7 +197,7 @@ const resolveElementSrc = async (el: AdminMediaElement, defaultBucket?: string) 
   if (el.dataset.adminResolvedSrc && current === el.dataset.adminResolvedSrc) return;
   const original = el.dataset.adminOriginalSrc || getElementSrc(el) || "";
   const bucket = defaultBucket || inferDefaultBucketForElement(el);
-  if (!original || original.startsWith("data:") || original.startsWith("blob:") || !isAdminStorageReference(original, bucket)) return;
+  if (!original || original.startsWith("data:") || original.startsWith("blob:") || !isAdminStorageReference(original)) return;
   if (el.dataset.adminResolving === "true") return;
 
   el.dataset.adminOriginalSrc = original;
