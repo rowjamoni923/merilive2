@@ -1853,7 +1853,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <Shield className="w-6 h-6 text-cyan-500" />
                   <div>
-                    <p className="text-lg font-bold text-cyan-600">{faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto')).length}</p>
+                    <p className="text-lg font-bold text-cyan-600">{autoApprovedFaceCount}</p>
                     <p className="text-xs text-cyan-600/80">Auto Verified</p>
                   </div>
                 </div>
@@ -1864,7 +1864,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <Crown className="w-6 h-6 text-pink-500" />
                   <div>
-                    <p className="text-lg font-bold text-pink-600">{faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto') && s.verification_type === 'host').length}</p>
+                    <p className="text-lg font-bold text-pink-600">{autoApprovedFaceSubmissions.filter(s => s.verification_type === 'host').length}</p>
                     <p className="text-xs text-pink-600/80">Auto Host</p>
                   </div>
                 </div>
@@ -1875,7 +1875,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <User className="w-6 h-6 text-blue-500" />
                   <div>
-                    <p className="text-lg font-bold text-blue-600">{faceSubmissions.filter(s => s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto') && s.verification_type !== 'host').length}</p>
+                    <p className="text-lg font-bold text-blue-600">{autoApprovedFaceSubmissions.filter(s => s.verification_type !== 'host').length}</p>
                     <p className="text-xs text-blue-600/80">Auto User</p>
                   </div>
                 </div>
@@ -1900,9 +1900,7 @@ export default function AdminUserManagement() {
 
           {/* Auto Verified Grid */}
           {(() => {
-            const autoApproved = faceSubmissions.filter(s => 
-              s.status === 'approved' && s.admin_notes?.toLowerCase().includes('auto')
-            ).filter(s => {
+            const autoApproved = autoApprovedFaceSubmissions.filter(s => {
               if (autoVerifiedFilter === 'host') return s.verification_type === 'host';
               if (autoVerifiedFilter === 'user') return s.verification_type !== 'host';
               return true;
