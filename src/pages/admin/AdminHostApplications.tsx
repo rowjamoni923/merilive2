@@ -196,7 +196,7 @@ export default function AdminHostApplications() {
 
       if (filterStatus === "pending") query = query.not("status", "in", "(approved,rejected)");
       else if (filterStatus !== "all") query = query.eq("status", filterStatus);
-      if (searchQuery) query = query.ilike("full_name", `%${searchQuery}%`);
+      if (debouncedSearch) query = query.ilike("full_name", `%${debouncedSearch}%`);
 
       const from = (currentPage - 1) * pageSize;
       const { data, error, count } = await query
