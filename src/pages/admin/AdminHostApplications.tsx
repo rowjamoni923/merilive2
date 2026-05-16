@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { invalidateStatusCountsCache } from "@/lib/admin/statusCounts";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 import { fetchHostApplicationStatusCounts } from "@/pages/admin/hostApplicationsStatusCounts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -121,21 +123,32 @@ export default function AdminHostApplications() {
 
   const pageSize = 20;
 
+  // Debounce search input so typing doesn't fire a count + list query per keystroke.
+  const debouncedSearch = useDebouncedValue(searchQuery, 350);
+
+  // Reset to page 1 whenever the effective filter/search changes.
+  useEffect(() => { setCurrentPage(1); }, [filterStatus, debouncedSearch]);
+
   useEffect(() => {
     fetchApplications();
     fetchStatusCounts();
     fetchPendingHostsWithoutSubmission();
-  }, [currentPage, filterStatus, searchQuery]);
+  }, [currentPage, filterStatus, debouncedSearch]);
 
   useAdminRealtime(['face_verification_submissions', 'profiles'], () => {
+    invalidateStatusCountsCache('face_verification_submissions');
     fetchApplications();
-    fetchStatusCounts();
+    fetchStatusCounts(true);
     fetchPendingHostsWithoutSubmission();
   });
 
-  const fetchStatusCounts = async () => {
+  const fetchStatusCounts = async (force = false) => {
     try {
-      const counts = await fetchHostApplicationStatusCounts(supabase as any, searchQuery);
+      const counts = await fetchHostApplicationStatusCounts(
+        supabase as any,
+        debouncedSearch,
+        force,
+      );
       setStatusCounts(counts);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingStatusCounts", message: formatAdminError(error)});
@@ -183,7 +196,7 @@ export default function AdminHostApplications() {
 
       if (filterStatus === "pending") query = query.not("status", "in", "(approved,rejected)");
       else if (filterStatus !== "all") query = query.eq("status", filterStatus);
-      if (searchQuery) query = query.ilike("full_name", `%${searchQuery}%`);
+      if (debouncedSearch) query = query.ilike("full_name", `%${debouncedSearch}%`);
 
       const from = (currentPage - 1) * pageSize;
       const { data, error, count } = await query
@@ -257,7 +270,7 @@ export default function AdminHostApplications() {
       toast.success(`${finalRole === 'host' ? '🎤 Host' : '👤 User'} approved!`);
       setShowDetailDialog(false);
       setAdminNotes("");
-      fetchApplications();
+      invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorApproving", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
@@ -286,7 +299,7 @@ export default function AdminHostApplications() {
       setShowDetailDialog(false);
       setRejectionReason("");
       setAdminNotes("");
-      fetchApplications();
+      invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) {
       toast.error((error as any)?.message || "Operation failed");
     } finally {
@@ -304,7 +317,7 @@ export default function AdminHostApplications() {
         .eq("id", app.id);
       if (error) throw error;
       toast.success("Review started");
-      fetchApplications();
+      invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) { toast.error((error as any)?.message || "Operation failed"); } finally { guardEnd(`review-${app.id}`); }
   };
 
