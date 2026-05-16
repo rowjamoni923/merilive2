@@ -1311,9 +1311,9 @@ export default function AdminUserManagement() {
     agency.agency_code?.toLowerCase().includes(blockSearchQuery.toLowerCase())
   );
 
-  const isFaceApproved = (s: FaceVerificationSubmission) => s.status === 'approved';
-  const isFaceRejected = (s: FaceVerificationSubmission) => s.status === 'rejected';
-  const isFacePendingBucket = (s: FaceVerificationSubmission) => !isFaceApproved(s) && !isFaceRejected(s);
+  const isFaceApproved = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'approved';
+  const isFaceRejected = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'rejected';
+  const isFacePendingBucket = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'pending';
 
   const faceQueryRaw = faceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
@@ -1335,9 +1335,10 @@ export default function AdminUserManagement() {
     return false;
   });
 
-  const pendingFaceCount = faceVisiblePool.filter(isFacePendingBucket).length;
-  const approvedFaceCount = faceVisiblePool.filter(isFaceApproved).length;
-  const rejectedFaceCount = faceVisiblePool.filter(isFaceRejected).length;
+  const faceCounts = countStatusBuckets(faceVisiblePool, (s) => s.status);
+  const pendingFaceCount = faceCounts.pending;
+  const approvedFaceCount = faceCounts.approved;
+  const rejectedFaceCount = faceCounts.rejected;
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
