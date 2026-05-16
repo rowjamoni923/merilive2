@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { FaceSubmissionMediaBlocks, FaceSubmissionModalMedia } from "@/components/admin/FaceSubmissionMediaBlocks";
+import { AdminMediaFrame } from "@/components/admin/AdminMediaViewer";
+import { useAdminSignedUrl } from "@/hooks/useAdminSignedUrl";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -108,6 +110,24 @@ function parseVerificationDetails(adminNotes: string | null) {
     reasonCode: reason ? reason[1] : null,
     warnings: warnings ? warnings[1].split(', ') : [],
   };
+}
+
+function HostApplicationDetailMedia({ application }: { application: HostApplication }) {
+  const photoUrl = useAdminSignedUrl(application.photo_url, "host-verification");
+  const videoUrl = useAdminSignedUrl(application.video_url, "host-verification");
+
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-slate-400">Application Photo</p>
+        <AdminMediaFrame src={photoUrl || application.photo_url} alt="Application photo" kind="image" className="aspect-square border-border bg-background" mediaClassName="object-cover" />
+      </div>
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-slate-400">Intro Video</p>
+        <AdminMediaFrame src={videoUrl || application.video_url} alt="Intro video" kind="video" poster={photoUrl || application.photo_url} className="aspect-square border-border bg-background" />
+      </div>
+    </div>
+  );
 }
 
 // Helper to check verification steps completion
@@ -3100,6 +3120,7 @@ export default function AdminUserManagement() {
                   </div>
                 </div>
               </div>
+              <HostApplicationDetailMedia application={selectedApplication} />
               {selectedApplication.status === "pending" && (
                 <div className="flex gap-2">
                   <Button className="flex-1 bg-green-500 hover:bg-green-600" onClick={handleApproveApplication} disabled={actionLoading}>
