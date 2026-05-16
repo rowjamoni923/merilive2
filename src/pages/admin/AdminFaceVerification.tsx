@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
-import { bucketOfStatus, countStatusBuckets } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview } from "@/lib/admin/statusCounts";
 import { 
   ScanFace, 
   Search, 
@@ -77,6 +77,9 @@ interface Submission {
   right_url?: string | null;
   rejection_reason: string | null;
   admin_notes: string | null;
+  status_bucket?: 'pending' | 'approved' | 'rejected';
+  is_auto_reviewed?: boolean | null;
+  review_source?: 'auto' | 'manual' | string | null;
   created_at: string;
   reviewed_at: string | null;
   is_duplicate_face: boolean | null;
@@ -537,26 +540,28 @@ const AdminFaceVerification = () => {
 
   const visiblePool = submissions.filter(matchesSearch);
 
-  const autoApprovedSubmissions = visiblePool.filter(
-    (s) => isApproved(s) && s.admin_notes?.toLowerCase().includes('auto'),
-  );
+  const isAutoReviewed = (s: Submission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
   const filteredSubmissions = visiblePool.filter((sub) => {
     if (activeTab === 'auto_approved') {
-      return isApproved(sub) && sub.admin_notes?.toLowerCase().includes('auto');
+      return isApproved(sub) && isAutoReviewed(sub);
+    }
+    if (activeTab === 'auto_rejected') {
+      return isRejected(sub) && isAutoReviewed(sub);
     }
     if (activeTab === 'pending') return isPendingBucket(sub);
-    if (activeTab === 'approved') return isApproved(sub);
-    if (activeTab === 'rejected') return isRejected(sub);
+    if (activeTab === 'approved') return isApproved(sub) && !isAutoReviewed(sub);
+    if (activeTab === 'rejected') return isRejected(sub) && !isAutoReviewed(sub);
     if (activeTab === 'all') return true;
     return false;
   });
 
-  // Shared counter — guaranteed to be in sync with bucketOfStatus elsewhere.
-  const visibleCounts = countStatusBuckets(visiblePool, (s) => s.status);
+  // Shared counter — guaranteed to be in sync with server bucket rules.
+  const visibleCounts = countFaceReviewBuckets(visiblePool, (s) => s.status, (s) => s.admin_notes);
   const pendingCount = visibleCounts.pending;
-  const approvedCount = visibleCounts.approved;
-  const autoApprovedCount = autoApprovedSubmissions.length;
-  const rejectedCount = visibleCounts.rejected;
+  const approvedCount = visibleCounts.manual_approved;
+  const autoApprovedCount = visibleCounts.auto_approved;
+  const rejectedCount = visibleCounts.manual_rejected;
+  const autoRejectedCount = visibleCounts.auto_rejected;
 
   if (loading) {
     return (
@@ -584,12 +589,13 @@ const AdminFaceVerification = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         {[
           { label: 'Pending', count: pendingCount, icon: Clock, bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', iconBg: 'rgba(245,158,11,0.3)', iconColor: '#fbbf24', textColor: '#fcd34d', subColor: 'rgba(251,191,36,0.8)' },
           { label: 'Auto Approved', count: autoApprovedCount, icon: Shield, bg: 'rgba(6,182,212,0.15)', border: 'rgba(6,182,212,0.3)', iconBg: 'rgba(6,182,212,0.3)', iconColor: '#22d3ee', textColor: '#67e8f9', subColor: 'rgba(34,211,238,0.8)' },
           { label: 'Approved', count: approvedCount, icon: CheckCircle2, bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', iconBg: 'rgba(34,197,94,0.3)', iconColor: '#4ade80', textColor: '#86efac', subColor: 'rgba(74,222,128,0.8)' },
           { label: 'Rejected', count: rejectedCount, icon: XCircle, bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', iconBg: 'rgba(239,68,68,0.3)', iconColor: '#f87171', textColor: '#fca5a5', subColor: 'rgba(248,113,113,0.8)' },
+          { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.3)', iconBg: 'rgba(249,115,22,0.3)', iconColor: '#fb923c', textColor: '#fdba74', subColor: 'rgba(251,146,60,0.8)' },
           { label: 'Total', count: visiblePool.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
         ].map(({ label, count, icon: Icon, bg, border, iconBg, iconColor, textColor, subColor }) => (
           <div key={label} className="rounded-xl p-4 shadow-md" style={{ background: bg, border: `1px solid ${border}` }}>
@@ -638,7 +644,7 @@ const AdminFaceVerification = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 w-full max-w-lg">
+        <TabsList className="grid grid-cols-6 w-full max-w-2xl">
           <TabsTrigger value="pending" className="relative">
             Pending
             {pendingCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{pendingCount}</span>}
@@ -646,6 +652,10 @@ const AdminFaceVerification = () => {
           <TabsTrigger value="auto_approved" className="relative text-xs">
             Auto Approved
             {autoApprovedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-cyan-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{autoApprovedCount}</span>}
+          </TabsTrigger>
+          <TabsTrigger value="auto_rejected" className="relative text-xs">
+            Auto Rejected
+            {autoRejectedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{autoRejectedCount}</span>}
           </TabsTrigger>
           <TabsTrigger value="approved">Approved</TabsTrigger>
           <TabsTrigger value="rejected">Rejected</TabsTrigger>
