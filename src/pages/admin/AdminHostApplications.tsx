@@ -721,7 +721,7 @@ export default function AdminHostApplications() {
                       {sel.host_photos.map((photo, idx) => (
                         <div key={idx} className="relative group/photo aspect-square">
                           <AdminMediaFrame src={photo} alt={`Photo ${idx + 1}`} kind="image" className="h-full w-full rounded-xl border border-white/10 group-hover/photo:border-pink-500/40 transition-all" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(photo)} />
-                          <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/30 transition-all rounded-xl flex items-center justify-center">
+                          <div className="pointer-events-none absolute inset-0 bg-background/0 group-hover/photo:bg-background/30 transition-all rounded-xl flex items-center justify-center">
                             <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
                           </div>
                           <span className="absolute bottom-1.5 right-1.5 text-[10px] text-white/60 bg-black/50 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
@@ -742,7 +742,7 @@ export default function AdminHostApplications() {
                   <SectionHeader icon={Video} title="Introduction Video" />
                   {sel.video_url ? (
                     <div className="mt-3 max-w-sm mx-auto">
-                      <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-black border border-white/10 shadow-xl">
+                      <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-background border border-white/10 shadow-xl">
                         <AdminMediaFrame src={sel.video_url} alt="Introduction video" kind="video" poster={sel.profile_photo_url} className="h-full w-full border-0 bg-background" mediaClassName="object-contain" />
                       </div>
                     </div>
