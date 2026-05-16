@@ -338,7 +338,51 @@ export default function AdminHostApplications() {
     });
   };
 
-  const sel = selectedApplication;
+  // Resolve private storage URLs → signed URLs whenever the selected application changes
+  const [resolvedMedia, setResolvedMedia] = useState<{
+    profile_photo_url?: string | null;
+    video_url?: string | null;
+    face_image_url?: string | null;
+    host_photos?: string[];
+  }>({});
+
+  useEffect(() => {
+    if (!selectedApplication) {
+      setResolvedMedia({});
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const a = selectedApplication;
+      const [profile_photo_url, video_url, face_image_url, ...hostPhotos] = await Promise.all([
+        resolveAdminStorageImageUrl(a.profile_photo_url, 'face-verification'),
+        resolveAdminStorageImageUrl(a.video_url, 'face-verification'),
+        resolveAdminStorageImageUrl(a.face_image_url, 'face-verification'),
+        ...((a.host_photos || []).map((u) => resolveAdminStorageImageUrl(u, 'face-verification'))),
+      ]);
+      if (cancelled) return;
+      setResolvedMedia({
+        profile_photo_url,
+        video_url,
+        face_image_url,
+        host_photos: hostPhotos.map((u) => u || ''),
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [selectedApplication]);
+
+  const sel = useMemo(() => {
+    if (!selectedApplication) return null;
+    return {
+      ...selectedApplication,
+      profile_photo_url: resolvedMedia.profile_photo_url ?? selectedApplication.profile_photo_url,
+      video_url: resolvedMedia.video_url ?? selectedApplication.video_url,
+      face_image_url: resolvedMedia.face_image_url ?? selectedApplication.face_image_url,
+      host_photos: (resolvedMedia.host_photos && resolvedMedia.host_photos.length === (selectedApplication.host_photos?.length || 0))
+        ? resolvedMedia.host_photos.map((u, i) => u || (selectedApplication.host_photos?.[i] ?? ''))
+        : selectedApplication.host_photos,
+    };
+  }, [selectedApplication, resolvedMedia]);
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
