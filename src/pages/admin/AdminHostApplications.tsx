@@ -322,6 +322,8 @@ export default function AdminHostApplications() {
 
   const totalPages = Math.ceil(totalApplications / pageSize);
 
+  const isPendingStatus = (status: string) => status !== 'approved' && status !== 'rejected';
+
   const getStatusBadge = (status: string) => {
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
@@ -401,7 +403,7 @@ export default function AdminHostApplications() {
                 Host Application Management
               </h1>
               <p className="text-white/70 text-sm mt-1.5">
-                {statusCounts.pending + statusCounts.under_review + statusCounts.approved + statusCounts.rejected} submissions
+                {statusCounts.pending + statusCounts.approved + statusCounts.rejected} submissions
                 {pendingHostsCount > 0 && <span className="text-orange-400 font-semibold"> • {pendingHostsCount} awaiting verification</span>}
               </p>
             </div>
@@ -421,7 +423,6 @@ export default function AdminHostApplications() {
       <div className="grid grid-cols-4 gap-2 md:gap-3">
         {[
           { key: 'pending', icon: Clock, color: 'amber', label: 'Pending' },
-          { key: 'under_review', icon: Eye, color: 'sky', label: 'Review' },
           { key: 'approved', icon: CheckCircle, color: 'emerald', label: 'Approved' },
           { key: 'rejected', icon: XCircle, color: 'rose', label: 'Rejected' },
         ].map(({ key, icon: Icon, color, label }) => {
@@ -463,7 +464,6 @@ export default function AdminHostApplications() {
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="under_review">Review</SelectItem>
             <SelectItem value="approved">Approved</SelectItem>
             <SelectItem value="rejected">Rejected</SelectItem>
           </SelectContent>
