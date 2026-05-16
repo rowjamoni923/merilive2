@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AdminMediaDialog, AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -435,7 +436,7 @@ const AdminFaceVerification = () => {
     return new Date(dateString).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
-  const isVideoUrl = (url: string) => /\.(webm|mp4|mov|avi|ogg)(\?|$)/i.test(url);
+  const isVideoUrl = isAdminVideoUrl;
 
   // Sync with edge function auto-face-verify (MIN_FACE_MATCH_PERCENTAGE = 76)
   const MIN_FACE_MATCH_PERCENTAGE = 76;
