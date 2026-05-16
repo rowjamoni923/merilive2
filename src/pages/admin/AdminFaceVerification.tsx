@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 import { 
   ScanFace, 
   Search, 
@@ -136,7 +137,51 @@ const AdminFaceVerification = () => {
   const [approveGender, setApproveGender] = useState<'female' | 'male'>('male');
   const [processing, setProcessing] = useState(false);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
+  const [resolvedMedia, setResolvedMedia] = useState<{
+    profile_photo_url?: string | null;
+    video_url?: string | null;
+    face_image_url?: string | null;
+    front_url?: string | null;
+    left_url?: string | null;
+    right_url?: string | null;
+    selfie_url?: string | null;
+    host_photos?: string[];
+  }>({});
   const actionInFlightRef = useRef(false);
+
+  // Resolve private storage URLs → signed URLs whenever a submission is opened
+  useEffect(() => {
+    if (!selectedSubmission) {
+      setResolvedMedia({});
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const sub = selectedSubmission;
+      const [profile_photo_url, video_url, face_image_url, front_url, left_url, right_url, selfie_url, ...hostPhotos] = await Promise.all([
+        resolveAdminStorageImageUrl(sub.profile_photo_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.video_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.face_image_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.front_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.left_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.right_url, 'face-verification'),
+        resolveAdminStorageImageUrl(sub.selfie_url, 'face-verification'),
+        ...((sub.host_photos || []).map((u) => resolveAdminStorageImageUrl(u, 'face-verification'))),
+      ]);
+      if (cancelled) return;
+      setResolvedMedia({
+        profile_photo_url,
+        video_url,
+        face_image_url,
+        front_url,
+        left_url,
+        right_url,
+        selfie_url,
+        host_photos: hostPhotos.map((u) => u || ''),
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [selectedSubmission]);
 
   const fetchSubmissions = async () => {
     let fastTimeoutId: number | null = null;
@@ -765,21 +810,24 @@ const AdminFaceVerification = () => {
                 </div>
 
                 {/* Face Verification */}
-                {selectedSubmission.face_image_url && !selectedSubmission.face_image_url.startsWith('admin-approved://') && (
-                  <div className="space-y-3">
-                    <h4 className="font-semibold flex items-center gap-2 text-purple-300">
-                      <ScanFace className="w-5 h-5" /> Face Verification
-                    </h4>
-                    <div className="flex justify-center rounded-xl overflow-hidden border-2 border-purple-500/30 bg-black">
-                      {isVideoUrl(selectedSubmission.face_image_url) ? (
-                        <video src={selectedSubmission.face_image_url} controls autoPlay muted playsInline crossOrigin="anonymous" className="w-full max-h-80 object-contain"
-                          onError={(e) => { const v = e.currentTarget; if (v.crossOrigin) { v.removeAttribute('crossorigin'); v.load(); } }} />
-                      ) : (
-                        <img src={selectedSubmission.face_image_url} alt="Face" className="max-h-80 object-contain cursor-pointer" onClick={() => setExpandedPhoto(selectedSubmission.face_image_url)} />
-                      )}
+                {selectedSubmission.face_image_url && !selectedSubmission.face_image_url.startsWith('admin-approved://') && (() => {
+                  const url = resolvedMedia.face_image_url || selectedSubmission.face_image_url;
+                  return (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold flex items-center gap-2 text-purple-300">
+                        <ScanFace className="w-5 h-5" /> Face Verification
+                      </h4>
+                      <div className="flex justify-center rounded-xl overflow-hidden border-2 border-purple-500/30 bg-black">
+                        {isVideoUrl(url) ? (
+                          <video src={url} controls autoPlay muted playsInline crossOrigin="anonymous" className="w-full max-h-80 object-contain"
+                            onError={(e) => { const v = e.currentTarget; if (v.crossOrigin) { v.removeAttribute('crossorigin'); v.load(); } }} />
+                        ) : (
+                          <img src={url} alt="Face" className="max-h-80 object-contain cursor-pointer" onClick={() => setExpandedPhoto(url)} />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* No-media notice (legacy / empty submissions) */}
                 {!selectedSubmission.profile_photo_url
@@ -793,31 +841,37 @@ const AdminFaceVerification = () => {
                 )}
 
                 {/* Profile Photo */}
-                {selectedSubmission.profile_photo_url && (
-                  <div className="space-y-3">
-                    <h4 className="font-semibold flex items-center gap-2 text-purple-300">
-                      <Camera className="w-5 h-5" /> Profile Photo
-                    </h4>
-                    <div className="flex justify-center">
-                      <img src={selectedSubmission.profile_photo_url} alt="Profile"
-                        className="w-40 h-40 rounded-2xl object-cover border-2 border-purple-500/30 cursor-pointer hover:scale-105 transition-transform"
-                        onClick={() => setExpandedPhoto(selectedSubmission.profile_photo_url)} />
+                {selectedSubmission.profile_photo_url && (() => {
+                  const url = resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url;
+                  return (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold flex items-center gap-2 text-purple-300">
+                        <Camera className="w-5 h-5" /> Profile Photo
+                      </h4>
+                      <div className="flex justify-center">
+                        <img src={url} alt="Profile"
+                          className="w-40 h-40 rounded-2xl object-cover border-2 border-purple-500/30 cursor-pointer hover:scale-105 transition-transform"
+                          onClick={() => setExpandedPhoto(url)} />
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Verification Video */}
-                {selectedSubmission.video_url && selectedSubmission.video_url !== selectedSubmission.face_image_url && (
-                  <div className="space-y-3">
-                    <h4 className="font-semibold flex items-center gap-2 text-purple-300">
-                      <Video className="w-5 h-5" /> Verification Video
-                    </h4>
-                    <div className="rounded-xl overflow-hidden border-2 border-purple-500/30 bg-black">
-                      <video src={selectedSubmission.video_url} controls autoPlay muted playsInline crossOrigin="anonymous" className="w-full max-h-80 object-contain"
-                        onError={(e) => { const v = e.currentTarget; if (v.crossOrigin) { v.removeAttribute('crossorigin'); v.load(); } }} />
+                {selectedSubmission.video_url && selectedSubmission.video_url !== selectedSubmission.face_image_url && (() => {
+                  const url = resolvedMedia.video_url || selectedSubmission.video_url;
+                  return (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold flex items-center gap-2 text-purple-300">
+                        <Video className="w-5 h-5" /> Verification Video
+                      </h4>
+                      <div className="rounded-xl overflow-hidden border-2 border-purple-500/30 bg-black">
+                        <video src={url} controls autoPlay muted playsInline crossOrigin="anonymous" className="w-full max-h-80 object-contain"
+                          onError={(e) => { const v = e.currentTarget; if (v.crossOrigin) { v.removeAttribute('crossorigin'); v.load(); } }} />
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Host Photos */}
                 {selectedSubmission.host_photos && selectedSubmission.host_photos.length > 0 && (
@@ -826,14 +880,17 @@ const AdminFaceVerification = () => {
                       <ImagePlus className="w-5 h-5" /> Host Photos ({selectedSubmission.host_photos.length})
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
-                      {selectedSubmission.host_photos.map((photo, index) => (
-                        <div key={index} className="relative group">
-                          <img src={photo} alt={`Host photo ${index + 1}`}
-                            className="aspect-square rounded-xl object-cover border-2 border-slate-600 cursor-pointer hover:border-purple-500/50 transition-colors"
-                            onClick={() => setExpandedPhoto(photo)} />
-                          <span className="absolute top-1 left-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">{index + 1}</span>
-                        </div>
-                      ))}
+                      {selectedSubmission.host_photos.map((photo, index) => {
+                        const url = resolvedMedia.host_photos?.[index] || photo;
+                        return (
+                          <div key={index} className="relative group">
+                            <img src={url} alt={`Host photo ${index + 1}`}
+                              className="aspect-square rounded-xl object-cover border-2 border-slate-600 cursor-pointer hover:border-purple-500/50 transition-colors"
+                              onClick={() => setExpandedPhoto(url)} />
+                            <span className="absolute top-1 left-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">{index + 1}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
