@@ -700,7 +700,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               setFaceVerificationPending(false);
               // Also refresh profile to get is_face_verified update
               void fetchData();
-            } else if (payload?.status === 'pending') {
+            } else if (payload?.status === 'pending' || payload?.status === 'submitted') {
               setFaceVerificationPending(true);
             } else if (payload?.status === 'rejected') {
               setFaceVerificationPending(false);
