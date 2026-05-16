@@ -46,14 +46,14 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
       {faceMedia && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🔍 Face Verification</p>
-          <AdminMediaFrame src={faceMedia} alt="Face" className="bg-black" mediaClassName="max-h-64" />
+          <AdminMediaFrame src={faceMedia} alt="Face" className="bg-background" mediaClassName="max-h-64" />
         </div>
       )}
 
       {introVideo && introVideo !== faceMedia && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
-          <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" poster={profilePhoto} className="bg-black" mediaClassName="max-h-64" />
+          <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" poster={profilePhoto} className="bg-background" mediaClassName="max-h-64" />
         </div>
       )}
 
@@ -62,7 +62,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
           <p className="text-xs font-semibold text-purple-600 mb-2">🔐 Manual Face Angles ({angleMedia.length})</p>
           <div className="grid grid-cols-3 gap-2">
             {angleMedia.map((url, idx) => (
-              <AdminMediaFrame key={idx} src={url} alt={`Face angle ${idx + 1}`} className="aspect-square bg-black" mediaClassName="object-cover" />
+              <AdminMediaFrame key={idx} src={url} alt={`Face angle ${idx + 1}`} className="aspect-square bg-background" mediaClassName="object-cover" />
             ))}
           </div>
         </div>
@@ -97,11 +97,11 @@ export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubm
   return (
     <>
       {faceMedia && (
-        <AdminMediaFrame src={faceMedia} alt="Face" className="bg-black" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
+        <AdminMediaFrame src={faceMedia} alt="Face" className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
       )}
 
       {introVideo && introVideo !== faceMedia && (
-        <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" className="bg-black" mediaClassName="h-64" />
+        <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" className="bg-background" mediaClassName="h-64" />
       )}
     </>
   );
