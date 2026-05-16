@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { getAdminSession } from "@/utils/adminSession";
+
 import { toast } from "sonner";
 import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
 import Lottie from "lottie-react";
