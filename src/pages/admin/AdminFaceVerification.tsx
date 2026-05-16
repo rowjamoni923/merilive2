@@ -493,24 +493,17 @@ const AdminFaceVerification = () => {
     });
   };
 
-  // Bulletproof bucketing: every submission lands in EXACTLY one of pending / approved / rejected.
-  // Anything that is not explicitly approved or rejected counts as pending (submitted, pending,
-  // under_review, applied, or any future intermediate status). This guarantees a host who just
-  // applied always shows up in the Pending tab — never silently in "All" only.
-  const isApproved = (s: Submission) => s.status === 'approved';
-  const isRejected = (s: Submission) => s.status === 'rejected';
-  const isPendingBucket = (s: Submission) => !isApproved(s) && !isRejected(s);
+  // Bucketing is delegated to the shared admin status-count module so this page
+  // stays in lock-step with AdminHostApplications & friends: every status maps
+  // to exactly one of pending / approved / rejected (anything not explicitly
+  // approved/rejected falls into pending).
+  const isApproved = (s: Submission) => bucketOfStatus(s.status) === "approved";
+  const isRejected = (s: Submission) => bucketOfStatus(s.status) === "rejected";
+  const isPendingBucket = (s: Submission) => bucketOfStatus(s.status) === "pending";
 
   // Single source of truth for what the user can currently see (after search).
-  // Counters are derived from the SAME pool the list uses, so badges always match
-  // the visible rows regardless of search input. Search is applied BEFORE the tab
-  // bucket filter, so typing a query narrows results within the active tab.
-  //
-  // Match rules (case-insensitive, whitespace-trimmed):
-  //   • display_name contains query
-  //   • full_name contains query
-  //   • app_uid contains query (digits only typed by admin)
-  //   • user_id (uuid) starts-with query — handy for direct lookups
+  // Counters are derived from the SAME pool the list uses, so badges always
+  // match the visible rows regardless of search input.
   const qRaw = searchQuery.trim();
   const q = qRaw.toLowerCase();
   const matchesSearch = (sub: Submission) => {
@@ -543,10 +536,12 @@ const AdminFaceVerification = () => {
     return false;
   });
 
-  const pendingCount = visiblePool.filter(isPendingBucket).length;
-  const approvedCount = visiblePool.filter(isApproved).length;
+  // Shared counter — guaranteed to be in sync with bucketOfStatus elsewhere.
+  const visibleCounts = countStatusBuckets(visiblePool, (s) => s.status);
+  const pendingCount = visibleCounts.pending;
+  const approvedCount = visibleCounts.approved;
   const autoApprovedCount = autoApprovedSubmissions.length;
-  const rejectedCount = visiblePool.filter(isRejected).length;
+  const rejectedCount = visibleCounts.rejected;
 
   if (loading) {
     return (
