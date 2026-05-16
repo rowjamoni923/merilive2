@@ -2301,11 +2301,11 @@ export default function AdminUserManagement() {
                                 {submission.verification_type === 'host' ? 'Host' : 'User'}
                               </Badge>
                               <Badge className={
-                                submission.status === 'pending' ? "bg-amber-100 text-amber-700" :
-                                submission.status === 'approved' ? "bg-green-100 text-green-700" :
+                                isFacePendingBucket(submission) ? "bg-amber-100 text-amber-700" :
+                                isFaceApproved(submission) ? "bg-green-100 text-green-700" :
                                 "bg-red-100 text-red-700"
                               }>
-                                {submission.status === 'pending' ? 'Pending' : submission.status === 'approved' ? 'Approved' : 'Rejected'}
+                                {isFacePendingBucket(submission) ? 'Pending' : isFaceApproved(submission) ? 'Approved' : 'Rejected'}
                               </Badge>
                             </div>
                             <p className="text-xs text-slate-500">UID: {submission.profile?.app_uid}</p>
@@ -2346,7 +2346,7 @@ export default function AdminUserManagement() {
 
 
                         {/* Inline Approve/Reject Buttons */}
-                        {submission.status === 'pending' && (
+                        {isFacePendingBucket(submission) && (
                           <div className="flex gap-2">
                             <Button 
                               className="flex-1 bg-green-500 hover:bg-green-600 text-white"
