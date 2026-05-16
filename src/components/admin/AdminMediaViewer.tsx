@@ -105,12 +105,12 @@ export function AdminMediaFrame({
     );
   }
 
+  const ImageShell = onOpen ? "button" : "div";
+
   return (
-    <button
-      type="button"
-      onClick={onOpen}
+    <ImageShell
+      {...(onOpen ? { type: "button", onClick: onOpen } : {})}
       className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", onOpen && "cursor-zoom-in", className)}
-      disabled={!onOpen}
     >
       <img
         key={src}
@@ -123,7 +123,7 @@ export function AdminMediaFrame({
         onError={() => setFailed(true)}
         onLoad={() => setFailed(false)}
       />
-    </button>
+    </ImageShell>
   );
 }
 
