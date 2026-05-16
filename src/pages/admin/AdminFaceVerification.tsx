@@ -595,6 +595,30 @@ const AdminFaceVerification = () => {
         ))}
       </div>
 
+      {/* Status legend */}
+      <div className="rounded-lg border border-border/50 bg-card/40 p-4 text-sm">
+        <div className="font-semibold text-foreground mb-2 flex items-center gap-2">
+          <ScanFace className="w-4 h-4 text-primary" /> Status Legend — How hosts are bucketed
+        </div>
+        <ul className="grid gap-2 md:grid-cols-3">
+          <li className="flex gap-2">
+            <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
+            <span className="text-muted-foreground">Host has submitted face verification but admin has not yet approved or rejected. Anything not Approved/Rejected lives here.</span>
+          </li>
+          <li className="flex gap-2">
+            <Badge className="bg-green-500/20 text-green-300 border border-green-500/30 shrink-0"><CheckCircle2 className="w-3 h-3 mr-1" />Approved</Badge>
+            <span className="text-muted-foreground">Admin (or auto-approval, when threshold met) accepted the submission. Host gains <code>is_host=true</code> and can go live.</span>
+          </li>
+          <li className="flex gap-2">
+            <Badge className="bg-red-500/20 text-red-300 border border-red-500/30 shrink-0"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>
+            <span className="text-muted-foreground">Admin declined the submission with a reason. Host stays a regular user and must resubmit to re-enter Pending.</span>
+          </li>
+        </ul>
+        <div className="mt-2 text-xs text-muted-foreground/80">
+          Auto Approved is a sub-view of Approved (admin_notes contains "auto"). Search and tab counters always reflect what is visible in the list.
+        </div>
+      </div>
+
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
