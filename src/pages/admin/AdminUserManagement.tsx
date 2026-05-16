@@ -2187,7 +2187,7 @@ export default function AdminUserManagement() {
                     <Clock className="w-5 h-5" style={{ color: '#fbbf24' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#fcd34d' }}>{faceSubmissions.filter(s => s.status === 'pending').length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#fcd34d' }}>{pendingFaceCount}</p>
                     <p className="text-sm" style={{ color: 'rgba(251,191,36,0.8)' }}>Pending</p>
                   </div>
                 </div>
@@ -2200,7 +2200,7 @@ export default function AdminUserManagement() {
                     <CheckCircle className="w-5 h-5" style={{ color: '#4ade80' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#86efac' }}>{faceSubmissions.filter(s => s.status === 'approved').length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#86efac' }}>{approvedFaceCount}</p>
                     <p className="text-sm" style={{ color: 'rgba(74,222,128,0.8)' }}>Approved</p>
                   </div>
                 </div>
@@ -2213,7 +2213,7 @@ export default function AdminUserManagement() {
                     <XCircle className="w-5 h-5" style={{ color: '#f87171' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#fca5a5' }}>{faceSubmissions.filter(s => s.status === 'rejected').length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#fca5a5' }}>{rejectedFaceCount}</p>
                     <p className="text-sm" style={{ color: 'rgba(248,113,113,0.8)' }}>Rejected</p>
                   </div>
                 </div>
@@ -2226,7 +2226,7 @@ export default function AdminUserManagement() {
                     <ScanFace className="w-5 h-5" style={{ color: '#c084fc' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#d8b4fe' }}>{faceSubmissions.length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#d8b4fe' }}>{faceVisiblePool.length}</p>
                     <p className="text-sm" style={{ color: 'rgba(192,132,252,0.8)' }}>Total</p>
                   </div>
                 </div>
@@ -2257,8 +2257,12 @@ export default function AdminUserManagement() {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="approved" className="data-[state=active]:bg-green-500 data-[state=active]:text-white text-slate-700">Approved</TabsTrigger>
-              <TabsTrigger value="rejected" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700">Rejected</TabsTrigger>
+              <TabsTrigger value="approved" className="relative data-[state=active]:bg-green-500 data-[state=active]:text-white text-slate-700">Approved
+                {approvedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{approvedFaceCount}</span>}
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="relative data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700">Rejected
+                {rejectedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{rejectedFaceCount}</span>}
+              </TabsTrigger>
               <TabsTrigger value="all" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700">All</TabsTrigger>
             </TabsList>
 
