@@ -2,9 +2,14 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJheWpkbHZ1dXJzY3h1Y2F0YmJhaCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzc1MjY0MTIzLCJleHAiOjIwOTA4NDAxMjN9.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const inFlightSignedUrls = new Map<string, Promise<string | null>>();
 const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
+export interface AdminStoragePath {
+  bucket: string;
+  path: string;
+}
 const PRIVATE_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings', 'chat-media',
@@ -15,7 +20,7 @@ const KNOWN_STORAGE_BUCKETS = new Set([
   'app-assets', 'assets', 'banners', 'banners-media', 'branding', 'chat-media', 'content-media',
 ]);
 
-const extractStoragePath = (value: string, defaultBucket = "payment-proofs") => {
+export const extractAdminStoragePath = (value: string, defaultBucket?: string): AdminStoragePath | null => {
   const raw = value.trim();
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return null;
 
@@ -30,12 +35,28 @@ const extractStoragePath = (value: string, defaultBucket = "payment-proofs") => 
     if (KNOWN_STORAGE_BUCKETS.has(firstSegment) && rest.length > 0) {
       return { bucket: firstSegment, path: rest.join('/') };
     }
-    if (withoutSlash.startsWith(`${defaultBucket}/`)) {
+    if (defaultBucket && withoutSlash.startsWith(`${defaultBucket}/`)) {
       return { bucket: defaultBucket, path: withoutSlash.slice(defaultBucket.length + 1) };
     }
-    if (!withoutSlash.includes("://")) return { bucket: defaultBucket, path: withoutSlash };
+    if (defaultBucket && !withoutSlash.includes("://")) return { bucket: defaultBucket, path: withoutSlash };
     return null;
   }
+};
+
+export const isAdminStorageReference = (value?: string | null) => {
+  if (!value) return false;
+  return !!extractAdminStoragePath(value);
+};
+
+export const isPrivateAdminStorageReference = (value?: string | null, defaultBucket?: string) => {
+  if (!value) return false;
+  const storagePath = extractAdminStoragePath(value, defaultBucket);
+  return !!storagePath && PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket);
+};
+
+export const clearAdminStorageImageCache = () => {
+  signedUrlCache.clear();
+  inFlightSignedUrls.clear();
 };
 
 export const resolveAdminStorageImageUrl = async (value?: string | null, defaultBucket = "payment-proofs") => {
