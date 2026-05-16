@@ -299,13 +299,23 @@ export default function AdminHostApplications() {
     if (!guardStart(`reject-${selectedApplication.id}`)) return;
     setActionLoading(true);
     try {
-      const { error } = await supabase
-        .from("face_verification_submissions")
-        .update({ status: "rejected", rejection_reason: rejectionReason, admin_notes: adminNotes || null })
-        .eq("id", selectedApplication.id);
+      const { data, error } = await supabase.rpc('admin_process_face_verification', {
+        _submission_id: selectedApplication.id,
+        _action: 'reject',
+        _reason: rejectionReason.trim() || 'Rejected by admin',
+        _approve_as: 'host',
+        _set_gender: null,
+      });
       if (error) throw error;
 
-      toast.success("Application rejected");
+      if ((data as any)?.pending) {
+        toast.success('⏳ Submitted for Owner Approval');
+      } else if ((data as any)?.success === false) {
+        throw new Error((data as any)?.error || 'Rejection failed');
+      } else {
+        toast.success("Application rejected");
+      }
+
       setShowRejectDialog(false);
       setShowDetailDialog(false);
       setRejectionReason("");
