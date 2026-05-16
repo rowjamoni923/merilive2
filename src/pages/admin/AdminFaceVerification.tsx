@@ -299,6 +299,8 @@ const AdminFaceVerification = () => {
         });
         // Restore — submission was not actually changed
         setSubmissions(previousSubmissions);
+      } else if ((data as any)?.success === false) {
+        throw new Error((data as any)?.error || 'Failed to process');
       } else {
         toast({
           title: action === 'approve' ? '✅ Approved!' : '❌ Rejected!',
@@ -340,6 +342,8 @@ const AdminFaceVerification = () => {
       if (error) throw error;
       if ((data as any)?.pending) {
         toast({ title: "⏳ Submitted for Owner Approval", description: "Revoke request queued for owner approval." });
+      } else if ((data as any)?.success === false) {
+        throw new Error((data as any)?.error || 'Failed to remove');
       } else {
         toast({ title: "✅ Verification Removed", description: "User can now re-verify" });
       }
@@ -1246,11 +1250,17 @@ const AdminFaceVerification = () => {
                         actionInFlightRef.current = true;
                         setProcessing(true);
                         try {
-                          const { error } = await supabase.rpc('admin_process_face_verification', {
-                            _submission_id: selectedSubmission.id, _action: 'approve', _reason: actionReason || null, _approve_as: 'host', _set_gender: 'female'
+                          const { data, error } = await supabase.rpc('admin_process_face_verification', {
+                            _submission_id: selectedSubmission.id, _action: 'approve', _reason: actionReason?.trim() || null, _approve_as: 'host', _set_gender: 'female'
                           });
                           if (error) throw error;
-                          toast({ title: "✅ Approved as Host!", description: "ID successfully converted to Host" });
+                          if ((data as any)?.pending) {
+                            toast({ title: "⏳ Submitted for Owner Approval", description: "Host conversion queued for owner approval." });
+                          } else if ((data as any)?.success === false) {
+                            throw new Error((data as any)?.error || 'Failed to approve');
+                          } else {
+                            toast({ title: "✅ Approved as Host!", description: "ID successfully converted to Host" });
+                          }
                           setShowActionModal(false); setShowDetailModal(false); setActionReason(""); fetchSubmissions();
                         } catch (error: any) {
                           toast({ title: "Error", description: error.message || "Failed to process", variant: "destructive" });
@@ -1279,11 +1289,17 @@ const AdminFaceVerification = () => {
                         actionInFlightRef.current = true;
                         setProcessing(true);
                         try {
-                          const { error } = await supabase.rpc('admin_process_face_verification', {
-                            _submission_id: selectedSubmission.id, _action: 'approve', _reason: actionReason || null, _approve_as: 'user', _set_gender: 'male'
+                          const { data, error } = await supabase.rpc('admin_process_face_verification', {
+                            _submission_id: selectedSubmission.id, _action: 'approve', _reason: actionReason?.trim() || null, _approve_as: 'user', _set_gender: 'male'
                           });
                           if (error) throw error;
-                          toast({ title: "✅ Approved as User!", description: "ID successfully converted to User" });
+                          if ((data as any)?.pending) {
+                            toast({ title: "⏳ Submitted for Owner Approval", description: "User conversion queued for owner approval." });
+                          } else if ((data as any)?.success === false) {
+                            throw new Error((data as any)?.error || 'Failed to approve');
+                          } else {
+                            toast({ title: "✅ Approved as User!", description: "ID successfully converted to User" });
+                          }
                           setShowActionModal(false); setShowDetailModal(false); setActionReason(""); fetchSubmissions();
                         } catch (error: any) {
                           toast({ title: "Error", description: error.message || "Failed to process", variant: "destructive" });

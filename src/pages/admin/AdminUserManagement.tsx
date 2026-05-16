@@ -537,11 +537,19 @@ export default function AdminUserManagement() {
     if (!startSingleFlight(actionKey)) return;
     setActionLoading(true);
     try {
-      const { error: rpcError } = await supabase.rpc('admin_update_user_gender', {
+      const { data: genderData, error: rpcError } = await supabase.rpc('admin_update_user_gender', {
         _user_id: userId,
         _gender: toHost ? 'female' : 'male',
       });
       if (rpcError) throw rpcError;
+      if ((genderData as any)?.pending) {
+        toast.success('⏳ Submitted for Owner Approval — conversion queued.');
+        fetchFaceSubmissions();
+        return;
+      }
+      if ((genderData as any)?.success === false) {
+        throw new Error((genderData as any)?.error || 'Gender update failed');
+      }
       await supabase.from('face_verification_submissions').update({
         status: 'approved',
         verification_type: toHost ? 'host' : 'face',
@@ -813,26 +821,34 @@ export default function AdminUserManagement() {
 
       if (appError) throw appError;
 
-      const { error: profileError } = await supabase.rpc('admin_update_user_gender', {
+      const { data: genderData, error: profileError } = await supabase.rpc('admin_update_user_gender', {
         _user_id: selectedApplication.user_id,
         _gender: 'female',
       });
+      if (profileError) throw profileError;
 
-      if (!profileError) {
-        const { error: faceVerifyError } = await supabase.rpc('admin_toggle_face_verification', {
-          _user_id: selectedApplication.user_id,
-          _verified: true,
-        });
-        if (faceVerifyError) throw faceVerifyError;
-
-        const { error: verifyError } = await supabase
-          .from("profiles")
-          .update({ is_verified: true })
-          .eq("id", selectedApplication.user_id);
-        if (verifyError) throw verifyError;
+      if ((genderData as any)?.pending) {
+        toast.success('⏳ Submitted for Owner Approval — host application queued.');
+        setShowAppDetailDialog(false);
+        setAdminNotes("");
+        fetchApplications();
+        return;
+      }
+      if ((genderData as any)?.success === false) {
+        throw new Error((genderData as any)?.error || 'Gender update failed');
       }
 
-      if (profileError) throw profileError;
+      const { error: faceVerifyError } = await supabase.rpc('admin_toggle_face_verification', {
+        _user_id: selectedApplication.user_id,
+        _verified: true,
+      });
+      if (faceVerifyError) throw faceVerifyError;
+
+      const { error: verifyError } = await supabase
+        .from("profiles")
+        .update({ is_verified: true })
+        .eq("id", selectedApplication.user_id);
+      if (verifyError) throw verifyError;
 
       toast.success("Application approved!");
       setShowAppDetailDialog(false);
