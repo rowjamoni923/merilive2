@@ -78,6 +78,17 @@ export const clearAdminStorageImageCache = () => {
   objectUrlCache.clear();
 };
 
+// Clear caches whenever the admin session is established/refreshed, so any
+// prior "no admin token" failures don't poison subsequent image loads.
+if (typeof window !== "undefined") {
+  window.addEventListener("admin-session-change", () => {
+    signedUrlCache.clear();
+    failedSignedUrlCache.clear();
+    inFlightSignedUrls.clear();
+  });
+}
+
+
 const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
 
 const readStorageValue = (storage: Storage | undefined, key: string) => {
@@ -269,7 +280,11 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       return resolvedUrl;
     }
 
-    failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
+    // Only poison the cache when we actually had an admin token and the
+    // server-side path failed. Without a token the failure is just "admin
+    // session not loaded yet" — cache only briefly so the next attempt
+    // (after the token is set) retries immediately.
+    failedSignedUrlCache.set(failureCacheKey, Date.now() + (adminToken ? 15 * 1000 : 2 * 1000));
     return null;
   })().finally(() => {
     inFlightSignedUrls.delete(cacheKey);
