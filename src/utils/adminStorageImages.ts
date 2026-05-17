@@ -97,14 +97,14 @@ const extractTokenFromStoredValue = (raw: string) => {
 
 const resolveStoredAdminToken = () => {
   if (typeof window === "undefined") return '';
+  const activeToken = getAdminSessionToken();
+  if (activeToken) return activeToken;
   for (const store of [window.sessionStorage, window.localStorage]) {
     for (const key of ADMIN_SESSION_KEYS) {
       const tokenFromSession = extractTokenFromStoredValue(readStorageValue(store, key));
       if (tokenFromSession) return tokenFromSession;
     }
   }
-  const token = getAdminSessionToken();
-  if (token) return token;
   for (const store of [window.sessionStorage, window.localStorage]) {
     for (const key of LEGACY_ADMIN_TOKEN_KEYS) {
       const direct = extractTokenFromStoredValue(readStorageValue(store, key));
@@ -154,15 +154,6 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   if (inFlight) return inFlight;
 
   const signPromise = (async () => {
-    const { data, error } = await adminSupabase.storage
-      .from(storagePath.bucket)
-      .createSignedUrl(storagePath.path, 60 * 60);
-
-    if (!error && data?.signedUrl) {
-      signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-      return data.signedUrl;
-    }
-
     if (adminToken) {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
         method: 'POST',
@@ -181,8 +172,15 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
         signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
         return signedUrl;
       }
+    }
 
-      failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
+    const { data, error } = await adminSupabase.storage
+      .from(storagePath.bucket)
+      .createSignedUrl(storagePath.path, 60 * 60);
+
+    if (!error && data?.signedUrl) {
+      signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+      return data.signedUrl;
     }
 
     failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
@@ -199,7 +197,10 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
   if (!value) return null;
   const raw = value.trim();
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return value;
-  if (isAlreadySignedStorageUrl(raw)) return raw;
+  if (isAlreadySignedStorageUrl(raw)) {
+    const signedPath = extractAdminStoragePath(raw, defaultBucket);
+    if (!signedPath || !PRIVATE_STORAGE_BUCKETS.has(signedPath.bucket)) return raw;
+  }
 
   const candidates = buildStorageCandidates(raw, defaultBucket);
   if (!candidates.length) return value;
