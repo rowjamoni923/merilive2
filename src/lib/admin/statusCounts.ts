@@ -39,12 +39,45 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
   rejected: 0,
 };
 
+/** Every status string the admin pages know how to bucket. */
+export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
+  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified",
+  "rejected", "auto_rejected", "auto-rejected",
+  "pending", "submitted", "under_review", "applied", "in_review", "reviewing",
+]);
+
+/** True when the raw status is a value the bucketing logic explicitly recognizes. */
+export function isKnownStatus(status: string | null | undefined): boolean {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (!normalized) return false;
+  return KNOWN_STATUSES.has(normalized);
+}
+
 /** Canonical status → bucket mapping. */
 export function bucketOfStatus(status: string | null | undefined): StatusBucket {
   const normalized = String(status || "").trim().toLowerCase();
   if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified"].includes(normalized)) return "approved";
   if (["rejected", "auto_rejected", "auto-rejected"].includes(normalized)) return "rejected";
   return "pending";
+}
+
+/**
+ * Log (once per status value per session) when a row carries a status that
+ * isn't in KNOWN_STATUSES. Such rows fall into the `pending` bucket by default,
+ * which could silently hide approve/reject mismatches — surface them instead.
+ */
+const _warnedUnknownStatuses = new Set<string>();
+export function warnUnknownStatus(
+  source: string,
+  status: string | null | undefined,
+  context?: Record<string, unknown>,
+): void {
+  const raw = String(status ?? "");
+  const key = `${source}::${raw.trim().toLowerCase()}`;
+  if (_warnedUnknownStatuses.has(key)) return;
+  _warnedUnknownStatuses.add(key);
+  // eslint-disable-next-line no-console
+  console.warn(`[admin/status-mismatch] ${source}: unrecognized status "${raw}" — defaulted to "pending" bucket.`, context || {});
 }
 
 export function isAutoFaceReview(status: string | null | undefined, adminNotes: string | null | undefined): boolean {

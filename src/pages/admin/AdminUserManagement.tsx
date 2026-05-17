@@ -87,7 +87,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
-import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -2345,6 +2345,17 @@ export default function AdminUserManagement() {
                               }>
                                 {isFacePendingBucket(submission) ? 'Pending' : isFaceApproved(submission) ? 'Approved' : 'Rejected'}
                               </Badge>
+                              {!isKnownStatus(submission.status) && (() => {
+                                warnUnknownStatus("AdminUserManagement.FaceVerify", submission.status, { id: submission.id, user_id: submission.user_id });
+                                return (
+                                  <Badge
+                                    className="bg-amber-100 text-amber-800 border border-amber-300"
+                                    title={`Raw status "${String(submission.status ?? "")}" is unrecognized — defaulted to Pending bucket. Please check.`}
+                                  >
+                                    ⚠ Status mismatch: {String(submission.status ?? "—")}
+                                  </Badge>
+                                );
+                              })()}
                             </div>
                             <p className="text-xs text-slate-500">UID: {submission.profile?.app_uid}</p>
                             {submission.agency_info && (

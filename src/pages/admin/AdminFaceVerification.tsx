@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
-import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
 import { 
   ScanFace, 
   Search, 
@@ -729,6 +729,17 @@ const AdminFaceVerification = () => {
                           )}
                           {getTypeBadge(getEffectiveVerificationType(submission))}
                           {getStatusBadge(submission.status)}
+                          {!isKnownStatus(submission.status) && (() => {
+                            warnUnknownStatus("AdminFaceVerification", submission.status, { id: submission.id, user_id: submission.user_id });
+                            return (
+                              <Badge
+                                className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px]"
+                                title={`Raw status "${String(submission.status ?? "")}" is unrecognized — defaulted to Pending bucket. Please check.`}
+                              >
+                                ⚠ Status mismatch: {String(submission.status ?? "—")}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           UID: {submission.profile?.app_uid} • {formatDate(submission.created_at)}
