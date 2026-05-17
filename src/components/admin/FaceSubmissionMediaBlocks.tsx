@@ -40,10 +40,15 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
   // Selfie only used as last-resort face media if no front_url AND no face clip.
   const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
   const faceMedia = angleMedia[0] || faceClip || selfieFallback;
+  // Real liveness recording (face-videos/*.webm). Show separately whenever it
+  // is distinct from the main face frame AND the intro video, so admins never
+  // miss the actual scan recording when 3-angle stills are also captured.
+  const livenessClip = faceClip && faceClip !== faceMedia && faceClip !== introVideo ? faceClip : null;
   const hostPhotos = (submission.host_photos || []).filter(isRenderableFaceMediaUrl);
   const profilePhotoUrl = useAdminSignedUrl(profilePhoto, "face-verification") || profilePhoto;
   const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
   const introVideoUrl = useAdminSignedUrl(introVideo, "face-verification") || introVideo;
+  const livenessClipUrl = useAdminSignedUrl(livenessClip, "face-verification") || livenessClip;
   const resolvedAngleMedia = useAdminSignedUrls(angleMedia, "face-verification");
   const resolvedHostPhotos = useAdminSignedUrls(hostPhotos, "face-verification");
 
