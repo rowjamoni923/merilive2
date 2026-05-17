@@ -87,7 +87,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
-import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
