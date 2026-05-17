@@ -1385,9 +1385,13 @@ const FaceVerification = () => {
     for (const [angle, field, folder] of map) {
       const dataUrl = capturedAnglesRef.current[angle];
       if (!dataUrl) continue;
-      const blob = dataUrlToBlob(dataUrl);
-      if (!blob) continue;
-      const url = await uploadFile(blob, folder);
+      const rawBlob = dataUrlToBlob(dataUrl);
+      if (!rawBlob) continue;
+      // ★ Force JPEG identity — captureFrameFromLiveVideo() always emits JPEG bytes,
+      //   so wrap as a real File with .jpg name + image/jpeg type. This prevents the
+      //   historical .webm extension drift in face_verification_submissions.front/left/right_url.
+      const jpegFile = new File([rawBlob], `${angle}.jpg`, { type: 'image/jpeg' });
+      const url = await uploadFile(jpegFile, folder);
       if (url) out[field] = url;
     }
     return out;
