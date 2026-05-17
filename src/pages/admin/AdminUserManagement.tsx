@@ -931,16 +931,27 @@ export default function AdminUserManagement() {
   const fetchFaceSubmissions = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('admin_list_face_verification_paginated', {
-        _status: null,
-        _search: null,
-        _limit: 500,
-        _offset: 0,
-      });
+      const rows: any[] = [];
+      const pageSize = 500;
+      let offset = 0;
+      let total = Number.POSITIVE_INFINITY;
+      for (let page = 0; page < 50 && rows.length < total; page += 1) {
+        const { data, error } = await supabase.rpc('admin_list_face_verification_paginated', {
+          _status: null,
+          _search: null,
+          _limit: pageSize,
+          _offset: offset,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const rows = (((data as any) || {}).rows || []) as any[];
+        const payload = ((data as any) || {});
+        const pageRows = (payload.rows || []) as any[];
+        rows.push(...pageRows);
+        total = Number(payload.total ?? rows.length);
+        offset += pageRows.length;
+        if (pageRows.length < pageSize) break;
+      }
       const enriched = rows.map((s: any) => ({
         ...s,
         status: normalizeFaceStatus(s.status),
