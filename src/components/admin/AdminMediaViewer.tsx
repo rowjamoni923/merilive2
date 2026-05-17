@@ -46,6 +46,37 @@ const getVideoMimeType = (src: string) => {
   return undefined;
 };
 
+const getImageMimeType = (src: string) => {
+  const clean = (() => {
+    try {
+      return new URL(src).pathname.toLowerCase();
+    } catch {
+      return src.split("?")[0].toLowerCase();
+    }
+  })();
+  if (clean.endsWith(".jpg") || clean.endsWith(".jpeg")) return "image/jpeg";
+  if (clean.endsWith(".png")) return "image/png";
+  if (clean.endsWith(".webp")) return "image/webp";
+  if (clean.endsWith(".gif")) return "image/gif";
+  if (clean.endsWith(".avif")) return "image/avif";
+  if (clean.endsWith(".heic")) return "image/heic";
+  if (clean.endsWith(".heif")) return "image/heif";
+  return undefined;
+};
+
+const objectUrlMimeTypes = new Map<string, string>();
+
+const resolveBlobMimeType = async (url: string) => {
+  if (!url.startsWith("blob:")) return "";
+  const cached = objectUrlMimeTypes.get(url);
+  if (cached) return cached;
+  const response = await fetch(url).catch(() => null);
+  const blob = await response?.blob().catch(() => null);
+  const type = blob?.type || "";
+  if (type) objectUrlMimeTypes.set(url, type);
+  return type;
+};
+
 interface AdminMediaFrameProps {
   src?: string | null;
   alt: string;
@@ -78,6 +109,18 @@ export function AdminMediaFrame({
   const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
   const mediaKind = rawKind;
   const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
+
+  useEffect(() => {
+    if (kind !== "auto" || !displaySrc?.startsWith("blob:")) return;
+    let cancelled = false;
+    resolveBlobMimeType(displaySrc).then((mime) => {
+      if (cancelled || !mime) return;
+      if (mime.startsWith("video/")) setImageFallbackFailed(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [displaySrc, kind]);
 
   useEffect(() => {
     setFailed(false);
@@ -132,7 +175,7 @@ export function AdminMediaFrame({
   }
 
   if (failed) {
-    if (rawKind === "video" && isPrivateStorage && displaySrc && !imageFallbackFailed) {
+    if ((rawKind === "video" || getImageMimeType(src || "")) && isPrivateStorage && displaySrc && !imageFallbackFailed) {
       return (
         <div className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", className)}>
           <img
