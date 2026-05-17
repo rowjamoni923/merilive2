@@ -1027,6 +1027,20 @@ const AdminFaceVerification = () => {
                   </div>
                 </div>
 
+                {/* Debug Panel — shows raw URL, parsed bucket/path, signed URL, HTTP status */}
+                <FaceVerificationDebugPanel
+                  items={[
+                    { label: "profile_photo_url", raw: selectedSubmission.profile_photo_url },
+                    { label: "face_image_url", raw: selectedSubmission.face_image_url },
+                    { label: "video_url", raw: selectedSubmission.video_url },
+                    { label: "front_url", raw: selectedSubmission.front_url },
+                    { label: "left_url", raw: selectedSubmission.left_url },
+                    { label: "right_url", raw: selectedSubmission.right_url },
+                    { label: "selfie_url", raw: selectedSubmission.selfie_url },
+                    ...(selectedSubmission.host_photos || []).map((u, i) => ({ label: `host_photos[${i}]`, raw: u })),
+                  ]}
+                />
+
                 {/* Face Verification */}
                 {selectedSubmission.face_image_url && !selectedSubmission.face_image_url.startsWith('admin-approved://') && (() => {
                   const url = resolvedMedia.face_image_url || selectedSubmission.face_image_url;
