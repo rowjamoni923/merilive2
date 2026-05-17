@@ -97,14 +97,14 @@ const extractTokenFromStoredValue = (raw: string) => {
 
 const resolveStoredAdminToken = () => {
   if (typeof window === "undefined") return '';
+  const activeToken = getAdminSessionToken();
+  if (activeToken) return activeToken;
   for (const store of [window.sessionStorage, window.localStorage]) {
     for (const key of ADMIN_SESSION_KEYS) {
       const tokenFromSession = extractTokenFromStoredValue(readStorageValue(store, key));
       if (tokenFromSession) return tokenFromSession;
     }
   }
-  const token = getAdminSessionToken();
-  if (token) return token;
   for (const store of [window.sessionStorage, window.localStorage]) {
     for (const key of LEGACY_ADMIN_TOKEN_KEYS) {
       const direct = extractTokenFromStoredValue(readStorageValue(store, key));
