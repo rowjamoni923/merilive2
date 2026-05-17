@@ -33,7 +33,7 @@ const FALLBACK_SIGNING_BUCKETS = [
 ];
 const RAW_FILE_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|mp3|wav|m4a|pdf)(?:[?#].*)?$/i;
 
-type AdminSignStorageResponse = { signedUrl?: string };
+type AdminSignStorageResponse = { success?: boolean; signedUrl?: string; contentType?: string | null; error?: string };
 type AdminMediaResolverWindow = Window & { __adminMediaAutoResolverInstalled?: boolean };
 
 export const extractAdminStoragePath = (value: string, defaultBucket?: string): AdminStoragePath | null => {
@@ -154,6 +154,18 @@ const downloadAdminStorageObjectUrl = async (storagePath: AdminStoragePath) => {
   return objectUrl;
 };
 
+const materializeSignedStorageUrl = async (signedUrl: string, contentType?: string | null) => {
+  const response = await fetch(signedUrl, { cache: "no-store", credentials: "omit" }).catch(() => null);
+  if (!response?.ok) return null;
+
+  const blob = await response.blob();
+  const resolvedType = contentType || response.headers.get("content-type") || blob.type || "";
+  const typedBlob = resolvedType && blob.type !== resolvedType ? new Blob([blob], { type: resolvedType }) : blob;
+  const objectUrl = URL.createObjectURL(typedBlob);
+  objectUrlCache.add(objectUrl);
+  return objectUrl;
+};
+
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   const adminToken = resolveStoredAdminToken();
   const cacheKey = `${adminToken || 'anon'}::${storagePath.bucket}/${storagePath.path}`;
@@ -168,14 +180,6 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   if (inFlight) return inFlight;
 
   const signPromise = (async () => {
-    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
-      const objectUrl = await downloadAdminStorageObjectUrl(storagePath).catch(() => null);
-      if (objectUrl) {
-        signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
-        return objectUrl;
-      }
-    }
-
     if (adminToken) {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
         method: 'POST',
@@ -191,8 +195,20 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
 
       const signedUrl = (signed as AdminSignStorageResponse | null)?.signedUrl;
       if (signedUrl) {
-        signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-        return signedUrl;
+        const privateBlobUrl = PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)
+          ? await materializeSignedStorageUrl(signedUrl, (signed as AdminSignStorageResponse | null)?.contentType).catch(() => null)
+          : null;
+        const resolvedUrl = privateBlobUrl || signedUrl;
+        signedUrlCache.set(cacheKey, { url: resolvedUrl, expiresAt: Date.now() + (privateBlobUrl ? 20 : 55) * 60 * 1000 });
+        return resolvedUrl;
+      }
+    }
+
+    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
+      const objectUrl = await downloadAdminStorageObjectUrl(storagePath).catch(() => null);
+      if (objectUrl) {
+        signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
+        return objectUrl;
       }
     }
 
@@ -201,8 +217,12 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       .createSignedUrl(storagePath.path, 60 * 60);
 
     if (!error && data?.signedUrl) {
-      signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-      return data.signedUrl;
+      const privateBlobUrl = PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)
+        ? await materializeSignedStorageUrl(data.signedUrl).catch(() => null)
+        : null;
+      const resolvedUrl = privateBlobUrl || data.signedUrl;
+      signedUrlCache.set(cacheKey, { url: resolvedUrl, expiresAt: Date.now() + (privateBlobUrl ? 20 : 55) * 60 * 1000 });
+      return resolvedUrl;
     }
 
     failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
