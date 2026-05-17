@@ -723,7 +723,7 @@ const AdminFaceVerification = () => {
 
         <TabsContent value={activeTab} className="mt-4">
           {filteredSubmissions.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12" data-testid="empty-state">
               <ScanFace className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">No submissions found</p>
             </div>
@@ -736,7 +736,7 @@ const AdminFaceVerification = () => {
                 const mediaStatus = getSubmissionMediaStatus(submission);
 
                 return (
-                  <div key={submission.id} className="bg-card border rounded-xl p-3 space-y-3">
+                  <div key={submission.id} data-testid="submission-card" data-submission-id={submission.id} data-status={String(submission.status ?? "")} className="bg-card border rounded-xl p-3 space-y-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-10 h-10 border border-border">
                         <AvatarImage src={submission.profile?.avatar_url} />
