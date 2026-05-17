@@ -80,22 +80,38 @@ const readStorageValue = (storage: Storage | undefined, key: string) => {
   try { return storage?.getItem(key) || ''; } catch { return ''; }
 };
 
+const extractTokenFromStoredValue = (raw: string) => {
+  if (!raw) return '';
+  if (raw.length >= 16 && !raw.trim().startsWith('{')) return raw;
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const candidates = [parsed.session_token, parsed.sessionToken, parsed.admin_token, parsed.token];
+    const found = candidates.find((v): v is string => typeof v === 'string' && v.length >= 16);
+    return found || '';
+  } catch {
+    const match = raw.match(/"(?:session_token|sessionToken|admin_token|token)"\s*:\s*"([^"]{16,})"/);
+    return match?.[1] || '';
+  }
+};
+
 const resolveStoredAdminToken = () => {
   const token = getAdminSessionToken();
   if (token) return token;
   if (typeof window === "undefined") return '';
   for (const store of [window.localStorage, window.sessionStorage]) {
     for (const key of LEGACY_ADMIN_TOKEN_KEYS) {
-      const direct = readStorageValue(store, key);
-      if (direct && direct.length >= 16) return direct;
+      const direct = extractTokenFromStoredValue(readStorageValue(store, key));
+      if (direct) return direct;
     }
     for (const key of ADMIN_SESSION_KEYS) {
-      const raw = readStorageValue(store, key);
-      if (!raw) continue;
-      try {
-        const parsed = JSON.parse(raw) as { session_token?: string };
-        if (parsed?.session_token && parsed.session_token.length >= 16) return parsed.session_token;
-      } catch { /* ignore */ }
+      const tokenFromSession = extractTokenFromStoredValue(readStorageValue(store, key));
+      if (tokenFromSession) return tokenFromSession;
+    }
+    for (let i = 0; i < (store?.length || 0); i += 1) {
+      const key = store?.key(i) || '';
+      if (!/admin|meri/i.test(key)) continue;
+      const tokenFromAnyAdminKey = extractTokenFromStoredValue(readStorageValue(store, key));
+      if (tokenFromAnyAdminKey) return tokenFromAnyAdminKey;
     }
   }
   return '';
@@ -113,11 +129,10 @@ const buildStorageCandidates = (value: string, defaultBucket?: string): AdminSto
 };
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
-  const cacheKey = `${storagePath.bucket}/${storagePath.path}`;
+  const adminToken = resolveStoredAdminToken();
+  const cacheKey = `${adminToken || 'anon'}::${storagePath.bucket}/${storagePath.path}`;
   const cached = signedUrlCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) return cached.url;
-
-  const adminToken = resolveStoredAdminToken();
 
   const failureCacheKey = `${cacheKey}::${adminToken ? 'admin' : 'no-admin'}`;
   const failedUntil = failedSignedUrlCache.get(failureCacheKey);
