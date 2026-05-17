@@ -132,8 +132,8 @@ interface StepItem {
   preview?: React.ReactNode;
 }
 
-const FACE_VERIFICATION_CACHE_KEY = 'admin_face_verification_cache_v2';
-const FACE_VERIFICATION_FETCH_LIMIT = 200;
+const FACE_VERIFICATION_CACHE_KEY = 'admin_face_verification_cache_v3';
+const FACE_VERIFICATION_FETCH_LIMIT = 500;
 const ADMIN_FAST_LOADING_TIMEOUT_MS = 900;
 
 const AdminFaceVerification = () => {
@@ -226,15 +226,24 @@ const AdminFaceVerification = () => {
 
       // Pkg9 hardening: single server-side RPC replaces direct table SELECT +
       // N+1 client joins (profile/agency). Server enforces is_active_admin_session.
-      const { data, error } = await supabase.rpc(
-        'admin_list_face_verification_paginated',
-        { _status: null, _search: null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
-      );
+      const rows: any[] = [];
+      let offset = 0;
+      let total = Number.POSITIVE_INFINITY;
+      for (let page = 0; page < 50 && rows.length < total; page += 1) {
+        const { data, error } = await supabase.rpc(
+          'admin_list_face_verification_paginated',
+          { _status: null, _search: null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: offset }
+        );
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const payload = (data as any) || {};
-      const rows = (payload.rows || []) as any[];
+        const payload = (data as any) || {};
+        const pageRows = (payload.rows || []) as any[];
+        rows.push(...pageRows);
+        total = Number(payload.total ?? rows.length);
+        offset += pageRows.length;
+        if (pageRows.length < FACE_VERIFICATION_FETCH_LIMIT) break;
+      }
 
       const enriched: Submission[] = rows.map((s) => ({
         ...s,
