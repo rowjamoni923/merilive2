@@ -105,7 +105,10 @@ export function AdminMediaFrame({
   const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
   const isPrivateStorage = isPrivateAdminStorageReference(src, bucket);
-  const rawKind = kind === "auto" ? (isAdminVideoUrl(displaySrc || src) ? "video" : "image") : kind;
+  const [blobMimeType, setBlobMimeType] = useState("");
+  const rawKind = kind === "auto"
+    ? (blobMimeType.startsWith("video/") || isAdminVideoUrl(src) || (!!displaySrc && !displaySrc.startsWith("blob:") && isAdminVideoUrl(displaySrc)) ? "video" : "image")
+    : kind;
   const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
   const mediaKind = rawKind;
   const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
@@ -115,7 +118,7 @@ export function AdminMediaFrame({
     let cancelled = false;
     resolveBlobMimeType(displaySrc).then((mime) => {
       if (cancelled || !mime) return;
-      if (mime.startsWith("video/")) setImageFallbackFailed(false);
+      setBlobMimeType(mime);
     });
     return () => {
       cancelled = true;
@@ -125,6 +128,7 @@ export function AdminMediaFrame({
   useEffect(() => {
     setFailed(false);
     setImageFallbackFailed(false);
+    setBlobMimeType("");
     if (!src) {
       setDisplaySrc(null);
       return;
