@@ -129,9 +129,11 @@ export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubm
   const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
   const faceMedia = faceAngles[0] || faceClip || selfieFallback;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
+  const livenessClip = faceClip && faceClip !== faceMedia && faceClip !== introVideo ? faceClip : null;
   const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
   const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
   const introVideoUrl = useAdminSignedUrl(introVideo, "face-verification") || introVideo;
+  const livenessClipUrl = useAdminSignedUrl(livenessClip, "face-verification") || livenessClip;
   const profilePhotoUrl = useAdminSignedUrl(profilePhoto, "face-verification") || profilePhoto;
 
   return (
@@ -140,7 +142,11 @@ export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubm
         <AdminMediaFrame src={faceMediaUrl} alt="Face" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
       )}
 
-      {introVideo && introVideo !== faceMedia && (
+      {livenessClip && (
+        <AdminMediaFrame src={livenessClipUrl} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName="h-64" />
+      )}
+
+      {introVideo && introVideo !== faceMedia && introVideo !== livenessClip && (
         <AdminMediaFrame src={introVideoUrl} alt="Verification video" kind="video" bucket="face-verification" className="bg-background" mediaClassName="h-64" />
       )}
     </>
