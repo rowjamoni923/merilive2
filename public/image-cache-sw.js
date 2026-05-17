@@ -2,7 +2,7 @@
  * Cache-first strategy for all images so banners/photos load in ~0ms after first view.
  * Scope: same-origin assets + Supabase storage URLs + common CDN image hosts.
  */
-const CACHE_NAME = 'meri-img-cache-v1';
+const CACHE_NAME = 'meri-img-cache-v2';
 const MAX_ENTRIES = 600;
 
 const IMG_HOST_RE = /(supabase\.co\/storage|supabase\.in\/storage|images?\.|cdn\.|cloudflarestorage|googleusercontent|cloudinary|imgur)/i;
