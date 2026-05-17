@@ -113,8 +113,9 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
 /** Compact face media renderer for the modal view (bigger frames). */
 export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubmission }) {
   const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
-  const faceAngles = [submission.front_url || submission.selfie_url, submission.left_url, submission.right_url].filter(isRenderableFaceMediaUrl);
-  const faceMedia = faceAngles[0] || faceClip;
+  const faceAngles = [submission.front_url, submission.left_url, submission.right_url].filter(isRenderableFaceMediaUrl);
+  const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
+  const faceMedia = faceAngles[0] || faceClip || selfieFallback;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
   const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
   const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
