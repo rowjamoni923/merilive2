@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, ExternalLink, Image as ImageIcon, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -21,29 +21,6 @@ export const isAdminVideoUrl = (src?: string | null) => {
     if (clean.includes("/face-angles/")) return false;
     return VIDEO_EXT_RE.test(clean);
   }
-};
-
-const getVideoMimeType = (src: string) => {
-  const clean = (() => {
-    try {
-      return new URL(src).pathname.toLowerCase();
-    } catch {
-      return src.split("?")[0].toLowerCase();
-    }
-  })();
-  if (clean.endsWith(".mp4") || clean.endsWith(".m4v") || clean.endsWith(".hevc")) return "video/mp4";
-  if (clean.endsWith(".webm")) return "video/webm";
-  if (clean.endsWith(".ogg") || clean.endsWith(".ogv")) return "video/ogg";
-  if (clean.endsWith(".mov") || clean.endsWith(".qt")) return "video/quicktime";
-  if (clean.endsWith(".3gp") || clean.endsWith(".3gpp")) return "video/3gpp";
-  if (clean.endsWith(".3g2")) return "video/3gpp2";
-  if (clean.endsWith(".mkv")) return "video/x-matroska";
-  if (clean.endsWith(".avi")) return "video/x-msvideo";
-  if (clean.endsWith(".mpg") || clean.endsWith(".mpeg")) return "video/mpeg";
-  if (clean.endsWith(".ts")) return "video/mp2t";
-  if (clean.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
-  if (clean.endsWith(".mpd")) return "application/dash+xml";
-  return undefined;
 };
 
 const getImageMimeType = (src: string) => {
@@ -112,7 +89,6 @@ export function AdminMediaFrame({
     : kind;
   const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
   const mediaKind = rawKind;
-  const videoType = useMemo(() => blobMimeType.startsWith("video/") ? blobMimeType : (displaySrc ? getVideoMimeType(displaySrc) : undefined), [blobMimeType, displaySrc]);
 
   useEffect(() => {
     if (!displaySrc?.startsWith("blob:")) {
