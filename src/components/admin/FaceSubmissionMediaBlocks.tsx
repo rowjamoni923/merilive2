@@ -75,7 +75,14 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
         </div>
       )}
 
-      {introVideo && introVideo !== faceMedia && (
+      {livenessClip && (
+        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+          <p className="text-xs font-semibold text-purple-600 mb-2">🎬 Face Liveness Recording</p>
+          <AdminMediaFrame src={livenessClipUrl} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName="max-h-64" />
+        </div>
+      )}
+
+      {introVideo && introVideo !== faceMedia && introVideo !== livenessClip && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
           <AdminMediaFrame src={introVideoUrl} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName="max-h-64" />
