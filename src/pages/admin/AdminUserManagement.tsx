@@ -95,9 +95,25 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
-  return ['pending', 'submitted', 'under_review', 'approved', 'rejected'].includes(normalized)
-    ? normalized as FaceVerificationSubmission['status']
-    : 'pending';
+  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
+  if (['rejected', 'auto_rejected', 'auto-rejected'].includes(normalized)) return 'rejected';
+  if (['pending', 'submitted', 'under_review'].includes(normalized)) return normalized as FaceVerificationSubmission['status'];
+  return 'pending';
+};
+
+const inferFaceReviewSource = (s: any): 'auto' | 'manual' => {
+  const status = String(s?.status || '').trim().toLowerCase();
+  const method = String(s?.verification_method || '').trim().toLowerCase();
+  const reviewSource = String(s?.review_source || '').trim().toLowerCase();
+  const notes = String(s?.admin_notes || '').toLowerCase();
+  if (
+    Boolean(s?.is_auto_reviewed) ||
+    reviewSource === 'auto' ||
+    method.startsWith('auto') ||
+    ['auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'auto_rejected', 'auto-rejected'].includes(status) ||
+    isAutoFaceReview(status, notes)
+  ) return 'auto';
+  return 'manual';
 };
 // Helper to parse verification details from admin_notes
 function parseVerificationDetails(adminNotes: string | null) {
@@ -928,6 +944,8 @@ export default function AdminUserManagement() {
       const enriched = rows.map((s: any) => ({
         ...s,
         status: normalizeFaceStatus(s.status),
+        is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
+        review_source: inferFaceReviewSource(s),
         profile: s.profile && s.profile.id ? s.profile : null,
         agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
@@ -1317,7 +1335,7 @@ export default function AdminUserManagement() {
   const isFaceApproved = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'approved';
   const isFaceRejected = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'rejected';
   const isFacePendingBucket = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'pending';
-  const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
+  const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || s.review_source === 'auto' || isAutoFaceReview(s.status, s.admin_notes);
 
   const faceQueryRaw = faceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
@@ -1335,7 +1353,7 @@ export default function AdminUserManagement() {
     if (faceActiveTab === 'pending') return isFacePendingBucket(sub);
     if (faceActiveTab === 'approved') return isFaceApproved(sub) && !isFaceAutoReviewed(sub);
     if (faceActiveTab === 'rejected') return isFaceRejected(sub) && !isFaceAutoReviewed(sub);
-    if (faceActiveTab === 'all') return isFacePendingBucket(sub) || !isFaceAutoReviewed(sub);
+    if (faceActiveTab === 'all') return true;
     return false;
   });
 
@@ -2270,7 +2288,9 @@ export default function AdminUserManagement() {
               <TabsTrigger value="rejected" className="relative data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700">Rejected
                 {rejectedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{rejectedFaceCount}</span>}
               </TabsTrigger>
-              <TabsTrigger value="all" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700">All</TabsTrigger>
+              <TabsTrigger value="all" className="relative data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700">All
+                {faceVisiblePool.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{faceVisiblePool.length}</span>}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value={faceActiveTab} className="mt-4">
