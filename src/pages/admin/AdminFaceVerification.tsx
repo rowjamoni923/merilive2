@@ -905,6 +905,33 @@ const AdminFaceVerification = () => {
 
             return (
               <div className="space-y-5">
+                {['pending', 'submitted', 'under_review'].includes(selectedSubmission.status) && (
+                  <div className="sticky top-0 z-20 rounded-xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur">
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        disabled={processing}
+                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: selectedSubmission.verification_type === 'host' ? 'host' : 'user' })}
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled={processing}
+                        onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
+                      >
+                        Host
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        disabled={processing}
+                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'reject', reason: actionReason })}
+                      >
+                        <XCircle className="w-4 h-4 mr-2" /> Reject
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* User Info */}
                 <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-xl">
                   <Avatar className="w-16 h-16 border-2 border-purple-500/30">
