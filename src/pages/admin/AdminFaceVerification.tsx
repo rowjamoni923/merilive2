@@ -1377,9 +1377,9 @@ const AdminFaceVerification = () => {
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     {/* Host Button */}
-                    <button disabled={processing || !selectedSubmission || !isSubmissionEligibleForApproval(selectedSubmission)}
+                    <button disabled={processing || !selectedSubmission}
                       onClick={async () => {
-                        if (!selectedSubmission || processing || actionInFlightRef.current || !isSubmissionEligibleForApproval(selectedSubmission)) return;
+                        if (!selectedSubmission || processing || actionInFlightRef.current) return;
                         actionInFlightRef.current = true;
                         setProcessing(true);
                         try {
@@ -1416,9 +1416,9 @@ const AdminFaceVerification = () => {
                     </button>
 
                     {/* User Button */}
-                    <button disabled={processing || !selectedSubmission || !isSubmissionEligibleForApproval(selectedSubmission)}
+                    <button disabled={processing || !selectedSubmission}
                       onClick={async () => {
-                        if (!selectedSubmission || processing || actionInFlightRef.current || !isSubmissionEligibleForApproval(selectedSubmission)) return;
+                        if (!selectedSubmission || processing || actionInFlightRef.current) return;
                         actionInFlightRef.current = true;
                         setProcessing(true);
                         try {
