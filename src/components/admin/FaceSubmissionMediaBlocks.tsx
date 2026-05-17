@@ -1,4 +1,10 @@
 import { AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
+// NOTE: main app (FaceVerification.tsx) writes the WEBM face-clip into both
+// `face_image_url` AND `selfie_url`, while `front_url/left_url/right_url` are
+// only populated when actual angle stills are captured. So we must NOT fall
+// back to selfie_url for the angle grid (it's a video, not a photo), and the
+// grid itself must render with kind="auto" so any stray video plays instead of
+// showing as a broken image.
 import { useAdminSignedUrl, useAdminSignedUrls } from "@/hooks/useAdminSignedUrl";
 
 interface MediaSubmission {
@@ -27,11 +33,13 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
   const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
   const angleMedia = [
-    submission.front_url || submission.selfie_url,
+    submission.front_url,
     submission.left_url,
     submission.right_url,
   ].filter(isRenderableFaceMediaUrl);
-  const faceMedia = angleMedia[0] || faceClip;
+  // Selfie only used as last-resort face media if no front_url AND no face clip.
+  const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
+  const faceMedia = angleMedia[0] || faceClip || selfieFallback;
   const hostPhotos = (submission.host_photos || []).filter(isRenderableFaceMediaUrl);
   const profilePhotoUrl = useAdminSignedUrl(profilePhoto, "face-verification") || profilePhoto;
   const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
@@ -74,7 +82,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
           <p className="text-xs font-semibold text-purple-600 mb-2">🔐 Manual Face Angles ({angleMedia.length})</p>
           <div className="grid grid-cols-3 gap-2">
             {angleMedia.map((url, idx) => (
-              <AdminMediaFrame key={idx} src={resolvedAngleMedia[idx] || url} alt={`Face angle ${idx + 1}`} bucket="face-verification" className="aspect-square bg-background" mediaClassName="object-cover" />
+              <AdminMediaFrame key={idx} src={resolvedAngleMedia[idx] || url} alt={`Face angle ${idx + 1}`} kind="auto" bucket="face-verification" className="aspect-square bg-background" mediaClassName="object-cover" />
             ))}
           </div>
         </div>
@@ -105,8 +113,9 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
 /** Compact face media renderer for the modal view (bigger frames). */
 export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubmission }) {
   const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
-  const faceAngles = [submission.front_url || submission.selfie_url, submission.left_url, submission.right_url].filter(isRenderableFaceMediaUrl);
-  const faceMedia = faceAngles[0] || faceClip;
+  const faceAngles = [submission.front_url, submission.left_url, submission.right_url].filter(isRenderableFaceMediaUrl);
+  const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
+  const faceMedia = faceAngles[0] || faceClip || selfieFallback;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
   const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
   const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
