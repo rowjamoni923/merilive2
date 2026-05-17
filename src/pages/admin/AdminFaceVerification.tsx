@@ -731,7 +731,6 @@ const AdminFaceVerification = () => {
               {filteredSubmissions.map((submission) => {
                 const { completed, total, percentage } = getCompletionData(submission);
                 const faceMatch = extractFaceMatchPercentage(submission.admin_notes);
-                const canApprove = isSubmissionEligibleForApproval(submission);
                 const mediaStatus = getSubmissionMediaStatus(submission);
 
                 return (
@@ -860,14 +859,6 @@ const AdminFaceVerification = () => {
                           className="flex-1"
                           disabled={processing}
                           onClick={() => {
-                            if (!canApprove) {
-                              toast({
-                                title: 'Approval blocked',
-                                description: 'Required verification media is incomplete. Open details to review or re-run AWS.',
-                                variant: 'destructive',
-                              });
-                              return;
-                            }
                             processSubmissionAction({
                               submission,
                               action: 'approve',
@@ -910,7 +901,6 @@ const AdminFaceVerification = () => {
           {selectedSubmission && (() => {
             const { steps, completed, total, percentage } = getCompletionData(selectedSubmission);
             const colors = getPercentageColor(percentage);
-            const canApproveSelected = isSubmissionEligibleForApproval(selectedSubmission);
 
             return (
               <div className="space-y-5">
