@@ -42,14 +42,18 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
 /** Canonical status → bucket mapping. */
 export function bucketOfStatus(status: string | null | undefined): StatusBucket {
   const normalized = String(status || "").trim().toLowerCase();
-  if (normalized === "approved") return "approved";
-  if (normalized === "rejected") return "rejected";
+  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified"].includes(normalized)) return "approved";
+  if (["rejected", "auto_rejected", "auto-rejected"].includes(normalized)) return "rejected";
   return "pending";
 }
 
 export function isAutoFaceReview(status: string | null | undefined, adminNotes: string | null | undefined): boolean {
   const bucket = bucketOfStatus(status);
+  const normalized = String(status || "").trim().toLowerCase();
   const notes = String(adminNotes || "").toLowerCase();
+  if (["auto_approved", "auto-approved", "auto_verified", "auto-verified", "auto_rejected", "auto-rejected"].includes(normalized)) {
+    return true;
+  }
   if (bucket === "approved") {
     return notes.includes("[auto]")
       || notes.includes("auto-approved")
@@ -85,8 +89,10 @@ export function countFaceReviewBuckets<T>(
   for (const row of rows) {
     const status = getStatus(row);
     const bucket = bucketOfStatus(status);
-    const explicitAuto = typeof row === "object" && row !== null && "is_auto_reviewed" in row
+    const explicitAuto = typeof row === "object" && row !== null
       ? Boolean((row as { is_auto_reviewed?: boolean | null }).is_auto_reviewed)
+        || String((row as { review_source?: string | null }).review_source || "").toLowerCase() === "auto"
+        || String((row as { verification_method?: string | null }).verification_method || "").toLowerCase().startsWith("auto")
       : false;
     const auto = explicitAuto || isAutoFaceReview(status, getAdminNotes(row));
     out[bucket]++;
