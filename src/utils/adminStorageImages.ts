@@ -213,31 +213,10 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   if (inFlight) return inFlight;
 
   const signPromise = (async () => {
+    // 1) Preferred path: ask the admin edge function for a signed URL. It uses
+    //    the service role, backfills correct Content-Type, and works even when
+    //    the user app has no Supabase auth session.
     if (adminToken) {
-      if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) && isFaceAngleStoragePath(storagePath.path)) {
-        const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'x-admin-token': adminToken,
-          },
-          body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, mode: 'download' }),
-        }).catch(() => null);
-
-        if (downloadResp?.ok) {
-          const blob = await downloadResp.blob().catch(() => null);
-          if (blob) {
-            const objectUrl = await createTypedObjectUrl(blob, downloadResp.headers.get('content-type')).catch(() => null);
-            if (objectUrl) {
-              signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
-              return objectUrl;
-            }
-          }
-        }
-      }
-
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
         method: 'POST',
         headers: {
@@ -249,43 +228,52 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
         body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
       }).catch(() => null);
       const signed = resp?.ok ? await resp.json().catch(() => null) : null;
-
       const signedUrl = (signed as AdminSignStorageResponse | null)?.signedUrl;
       if (signedUrl) {
-        const privateBlobUrl = PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) && isFaceAngleStoragePath(storagePath.path)
-          ? await materializeSignedStorageUrl(signedUrl, (signed as AdminSignStorageResponse | null)?.contentType).catch(() => null)
-          : null;
-        const resolvedUrl = privateBlobUrl || signedUrl;
-        signedUrlCache.set(cacheKey, { url: resolvedUrl, expiresAt: Date.now() + (privateBlobUrl ? 20 : 55) * 60 * 1000 });
-        return resolvedUrl;
+        signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+        return signedUrl;
       }
     }
 
-    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) && isFaceAngleStoragePath(storagePath.path)) {
-      const objectUrl = await downloadAdminStorageObjectUrl(storagePath).catch(() => null);
-      if (objectUrl) {
-        signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
-        return objectUrl;
-      }
-    }
-
+    // 2) Fallback: admin Supabase client (adminFetch attaches x-admin-token,
+    //    and `is_active_admin_session()` storage RLS allows read).
     const { data, error } = await adminSupabase.storage
       .from(storagePath.bucket)
       .createSignedUrl(storagePath.path, 60 * 60);
 
     if (!error && data?.signedUrl) {
-      const privateBlobUrl = PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) && isFaceAngleStoragePath(storagePath.path)
-        ? await materializeSignedStorageUrl(data.signedUrl).catch(() => null)
-        : null;
-      const resolvedUrl = privateBlobUrl || data.signedUrl;
-      signedUrlCache.set(cacheKey, { url: resolvedUrl, expiresAt: Date.now() + (privateBlobUrl ? 20 : 55) * 60 * 1000 });
-      return resolvedUrl;
+      signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+      return data.signedUrl;
     }
 
-    // Only poison the cache when we actually had an admin token and the
-    // server-side path failed. Without a token the failure is just "admin
-    // session not loaded yet" — cache only briefly so the next attempt
-    // (after the token is set) retries immediately.
+    // 3) Last resort for private buckets: download as a blob via the admin
+    //    edge function in "download" mode (service role). This succeeds even
+    //    when signed URLs cannot be fetched due to CORS / extension blockers.
+    if (adminToken && PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
+      const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'x-admin-token': adminToken,
+        },
+        body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, mode: 'download' }),
+      }).catch(() => null);
+      if (downloadResp?.ok) {
+        const blob = await downloadResp.blob().catch(() => null);
+        if (blob) {
+          const objectUrl = await createTypedObjectUrl(blob, downloadResp.headers.get('content-type')).catch(() => null);
+          if (objectUrl) {
+            signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
+            return objectUrl;
+          }
+        }
+      }
+    }
+
+    // Without an admin token the failure is "session not loaded yet" — cache
+    // briefly so the next attempt after login retries immediately.
     failedSignedUrlCache.set(failureCacheKey, Date.now() + (adminToken ? 15 * 1000 : 2 * 1000));
     return null;
   })().finally(() => {
