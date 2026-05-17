@@ -218,7 +218,10 @@ const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null, hint
 };
 
 const downloadAdminStoragePathAsObjectUrl = async (storagePath: AdminStoragePath, adminToken = resolveStoredAdminToken()) => {
-  if (!adminToken) return null;
+  if (!adminToken) {
+    console.warn('[AdminMedia] Missing admin session token while downloading storage media', { bucket: storagePath.bucket, path: storagePath.path });
+    return null;
+  }
   const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
     method: 'POST',
     headers: {
@@ -229,7 +232,10 @@ const downloadAdminStoragePathAsObjectUrl = async (storagePath: AdminStoragePath
     },
     body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, mode: 'download' }),
   }).catch(() => null);
-  if (!downloadResp?.ok) return null;
+  if (!downloadResp?.ok) {
+    console.warn('[AdminMedia] Download signing failed', { bucket: storagePath.bucket, path: storagePath.path, status: downloadResp?.status || 0 });
+    return null;
+  }
   const blob = await downloadResp.blob().catch(() => null);
   if (!blob) return null;
   return createTypedObjectUrl(blob, downloadResp.headers.get('content-type'), storagePath.path).catch(() => null);
@@ -279,6 +285,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
         },
         body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
       }).catch(() => null);
+      if (!resp?.ok) console.warn('[AdminMedia] Signed URL request failed', { bucket: storagePath.bucket, path: storagePath.path, status: resp?.status || 0 });
       const signed = resp?.ok ? await resp.json().catch(() => null) : null;
       const signedUrl = (signed as AdminSignStorageResponse | null)?.signedUrl;
       if (signedUrl) {
