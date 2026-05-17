@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
+import { resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
 import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
 import { 
   ScanFace, 
@@ -190,14 +190,14 @@ const AdminFaceVerification = () => {
     (async () => {
       const sub = selectedSubmission;
       const [profile_photo_url, video_url, face_image_url, front_url, left_url, right_url, selfie_url, ...hostPhotos] = await Promise.all([
-        resolveAdminStorageImageUrl(sub.profile_photo_url, 'face-verification'),
-        resolveAdminStorageImageUrl(sub.video_url, 'face-verification'),
-        resolveAdminStorageImageUrl(sub.face_image_url, 'face-verification'),
-        resolveAdminStorageImageUrl(sub.front_url, 'face-verification'),
-        resolveAdminStorageImageUrl(sub.left_url, 'face-verification'),
-        resolveAdminStorageImageUrl(sub.right_url, 'face-verification'),
-        resolveAdminStorageImageUrl(sub.selfie_url, 'face-verification'),
-        ...((sub.host_photos || []).map((u) => resolveAdminStorageImageUrl(u, 'face-verification'))),
+        resolveAdminStorageObjectUrl(sub.profile_photo_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(sub.video_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(sub.face_image_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(sub.front_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(sub.left_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(sub.right_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(sub.selfie_url, 'face-verification'),
+        ...((sub.host_photos || []).map((u) => resolveAdminStorageObjectUrl(u, 'face-verification'))),
       ]);
       if (cancelled) return;
       setResolvedMedia({
