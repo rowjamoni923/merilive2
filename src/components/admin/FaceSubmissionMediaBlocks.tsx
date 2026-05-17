@@ -104,17 +104,23 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
 
 /** Compact face media renderer for the modal view (bigger frames). */
 export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubmission }) {
-  const faceMedia = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
+  const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
+  const faceAngles = [submission.front_url || submission.selfie_url, submission.left_url, submission.right_url].filter(isRenderableFaceMediaUrl);
+  const faceMedia = faceAngles[0] || faceClip;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
+  const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
+  const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
+  const introVideoUrl = useAdminSignedUrl(introVideo, "face-verification") || introVideo;
+  const profilePhotoUrl = useAdminSignedUrl(profilePhoto, "face-verification") || profilePhoto;
 
   return (
     <>
       {faceMedia && (
-        <AdminMediaFrame src={faceMedia} alt="Face" poster={submission.profile_photo_url} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
+        <AdminMediaFrame src={faceMediaUrl} alt="Face" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
       )}
 
       {introVideo && introVideo !== faceMedia && (
-        <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" className="bg-background" mediaClassName="h-64" />
+        <AdminMediaFrame src={introVideoUrl} alt="Verification video" kind="video" bucket="face-verification" className="bg-background" mediaClassName="h-64" />
       )}
     </>
   );
