@@ -2306,7 +2306,7 @@ export default function AdminUserManagement() {
           </div>
 
           <Tabs value={faceActiveTab} onValueChange={setFaceActiveTab}>
-            <TabsList className="grid grid-cols-4 w-full max-w-md bg-slate-100 border border-slate-200">
+            <TabsList className="grid grid-cols-6 w-full max-w-3xl bg-slate-100 border border-slate-200">
               <TabsTrigger value="pending" className="relative data-[state=active]:bg-amber-500 data-[state=active]:text-white text-slate-700">
                 Pending
                 {pendingFaceCount > 0 && (
@@ -2314,6 +2314,12 @@ export default function AdminUserManagement() {
                     {pendingFaceCount}
                   </span>
                 )}
+              </TabsTrigger>
+              <TabsTrigger value="auto_approved" className="relative data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-700 text-xs">Auto Approved
+                {autoApprovedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-cyan-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{autoApprovedFaceCount}</span>}
+              </TabsTrigger>
+              <TabsTrigger value="auto_rejected" className="relative data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 text-xs">Auto Rejected
+                {autoRejectedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{autoRejectedFaceCount}</span>}
               </TabsTrigger>
               <TabsTrigger value="approved" className="relative data-[state=active]:bg-green-500 data-[state=active]:text-white text-slate-700">Approved
                 {approvedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{approvedFaceCount}</span>}
