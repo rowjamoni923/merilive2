@@ -46,6 +46,37 @@ const getVideoMimeType = (src: string) => {
   return undefined;
 };
 
+const getImageMimeType = (src: string) => {
+  const clean = (() => {
+    try {
+      return new URL(src).pathname.toLowerCase();
+    } catch {
+      return src.split("?")[0].toLowerCase();
+    }
+  })();
+  if (clean.endsWith(".jpg") || clean.endsWith(".jpeg")) return "image/jpeg";
+  if (clean.endsWith(".png")) return "image/png";
+  if (clean.endsWith(".webp")) return "image/webp";
+  if (clean.endsWith(".gif")) return "image/gif";
+  if (clean.endsWith(".avif")) return "image/avif";
+  if (clean.endsWith(".heic")) return "image/heic";
+  if (clean.endsWith(".heif")) return "image/heif";
+  return undefined;
+};
+
+const objectUrlMimeTypes = new Map<string, string>();
+
+const resolveBlobMimeType = async (url: string) => {
+  if (!url.startsWith("blob:")) return "";
+  const cached = objectUrlMimeTypes.get(url);
+  if (cached) return cached;
+  const response = await fetch(url).catch(() => null);
+  const blob = await response?.blob().catch(() => null);
+  const type = blob?.type || "";
+  if (type) objectUrlMimeTypes.set(url, type);
+  return type;
+};
+
 interface AdminMediaFrameProps {
   src?: string | null;
   alt: string;
@@ -74,14 +105,30 @@ export function AdminMediaFrame({
   const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
   const isPrivateStorage = isPrivateAdminStorageReference(src, bucket);
-  const rawKind = kind === "auto" ? (isAdminVideoUrl(displaySrc || src) ? "video" : "image") : kind;
+  const [blobMimeType, setBlobMimeType] = useState("");
+  const rawKind = kind === "auto"
+    ? (blobMimeType.startsWith("video/") || isAdminVideoUrl(src) || (!!displaySrc && !displaySrc.startsWith("blob:") && isAdminVideoUrl(displaySrc)) ? "video" : "image")
+    : kind;
   const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
   const mediaKind = rawKind;
-  const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
+  const videoType = useMemo(() => blobMimeType.startsWith("video/") ? blobMimeType : (displaySrc ? getVideoMimeType(displaySrc) : undefined), [blobMimeType, displaySrc]);
+
+  useEffect(() => {
+    if (kind !== "auto" || !displaySrc?.startsWith("blob:")) return;
+    let cancelled = false;
+    resolveBlobMimeType(displaySrc).then((mime) => {
+      if (cancelled || !mime) return;
+      setBlobMimeType(mime);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [displaySrc, kind]);
 
   useEffect(() => {
     setFailed(false);
     setImageFallbackFailed(false);
+    setBlobMimeType("");
     if (!src) {
       setDisplaySrc(null);
       return;
@@ -132,7 +179,7 @@ export function AdminMediaFrame({
   }
 
   if (failed) {
-    if (rawKind === "video" && isPrivateStorage && displaySrc && !imageFallbackFailed) {
+    if ((rawKind === "video" || getImageMimeType(src || "")) && isPrivateStorage && displaySrc && !imageFallbackFailed) {
       return (
         <div className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", className)}>
           <img

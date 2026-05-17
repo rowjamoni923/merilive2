@@ -14,7 +14,7 @@ export async function registerImageCacheSW(): Promise<void> {
   // Don't register on admin panel host (keeps admin tools cleanly cache-busted)
   try {
     const host = window.location.hostname;
-    if (host.startsWith('merilive.com') || host === 'merilive.com') {
+    if (window.location.pathname.startsWith('/admin') || host.startsWith('merilive.com') || host === 'merilive.com') {
       // admin host — skip
       return;
     }
