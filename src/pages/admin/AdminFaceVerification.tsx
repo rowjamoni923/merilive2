@@ -158,6 +158,7 @@ const AdminFaceVerification = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
+  const [mismatchOnly, setMismatchOnly] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -566,7 +567,10 @@ const AdminFaceVerification = () => {
     );
   };
 
-  const visiblePool = submissions.filter(matchesSearch);
+  const visiblePool = submissions
+    .filter(matchesSearch)
+    .filter((s) => (mismatchOnly ? !isKnownStatus(s.status) : true));
+  const mismatchCount = submissions.filter(matchesSearch).filter((s) => !isKnownStatus(s.status)).length;
 
   const isAutoReviewed = (s: Submission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
   const filteredSubmissions = visiblePool.filter((sub) => {
@@ -664,10 +668,28 @@ const AdminFaceVerification = () => {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Search by name or UID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+      {/* Search + Mismatch filter */}
+      <div className="flex flex-col md:flex-row gap-3 md:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search by name or UID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+        </div>
+        <button
+          type="button"
+          data-testid="mismatch-only-toggle"
+          aria-pressed={mismatchOnly}
+          onClick={() => setMismatchOnly((v) => !v)}
+          className={`inline-flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition-colors ${
+            mismatchOnly
+              ? 'bg-amber-500/20 border-amber-500/50 text-amber-200'
+              : 'bg-card/40 border-border/50 text-muted-foreground hover:text-foreground'
+          }`}
+          title="Show only submissions with an unknown/mismatched status"
+        >
+          <AlertTriangle className="w-4 h-4" />
+          Mismatch only
+          <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-100 text-[10px] font-bold">{mismatchCount}</span>
+        </button>
       </div>
 
       {/* Tabs */}

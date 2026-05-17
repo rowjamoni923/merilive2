@@ -366,6 +366,7 @@ export default function AdminUserManagement() {
   const [faceSubmissions, setFaceSubmissions] = useState<FaceVerificationSubmission[]>([]);
   const [faceSearchQuery, setFaceSearchQuery] = useState("");
   const [faceActiveTab, setFaceActiveTab] = useState("pending");
+  const [faceMismatchOnly, setFaceMismatchOnly] = useState(false);
   const [selectedFaceSubmission, setSelectedFaceSubmission] = useState<FaceVerificationSubmission | null>(null);
   const [showFaceDetailModal, setShowFaceDetailModal] = useState(false);
   const [showFaceActionModal, setShowFaceActionModal] = useState(false);
@@ -1350,7 +1351,7 @@ export default function AdminUserManagement() {
 
   const faceQueryRaw = faceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
-  const faceVisiblePool = faceSubmissions.filter(sub => {
+  const faceSearchMatches = faceSubmissions.filter(sub => {
     if (!faceQuery) return true;
     return (
       sub.profile?.display_name?.toLowerCase().includes(faceQuery) ||
@@ -1359,6 +1360,10 @@ export default function AdminUserManagement() {
       sub.user_id?.toLowerCase().startsWith(faceQuery)
     );
   });
+  const faceMismatchCount = faceSearchMatches.filter((s) => !isKnownStatus(s.status)).length;
+  const faceVisiblePool = faceMismatchOnly
+    ? faceSearchMatches.filter((s) => !isKnownStatus(s.status))
+    : faceSearchMatches;
 
   const filteredFaceSubmissions = faceVisiblePool.filter(sub => {
     if (faceActiveTab === 'pending') return isFacePendingBucket(sub);
@@ -2281,6 +2286,22 @@ export default function AdminUserManagement() {
                 className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
               />
             </div>
+            <button
+              type="button"
+              data-testid="face-mismatch-only-toggle"
+              aria-pressed={faceMismatchOnly}
+              onClick={() => setFaceMismatchOnly((v) => !v)}
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition-colors ${
+                faceMismatchOnly
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+              }`}
+              title="Show only submissions with an unknown/mismatched status"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              Mismatch only
+              <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-800 text-[10px] font-bold">{faceMismatchCount}</span>
+            </button>
           </div>
 
           <Tabs value={faceActiveTab} onValueChange={setFaceActiveTab}>
