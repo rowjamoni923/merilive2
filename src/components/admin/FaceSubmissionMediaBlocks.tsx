@@ -11,21 +11,26 @@ interface MediaSubmission {
   host_photos?: string[] | null;
 }
 
+const isRenderableFaceMediaUrl = (url?: string | null): url is string => {
+  const value = String(url || "").trim();
+  return Boolean(value) && !value.startsWith("admin-approved://") && !value.startsWith("pending://");
+};
+
 /**
  * Renders profile photo + face verification media + intro video + host photos
  * for a face_verification_submissions row. All URLs are resolved through
  * signed-URL helper so private storage buckets render correctly in admin.
  */
 export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSubmission }) {
-  const profilePhoto = submission.profile_photo_url || null;
-  const faceMedia = submission.face_image_url && !submission.face_image_url.startsWith("admin-approved://") ? submission.face_image_url : null;
-  const introVideo = submission.video_url || null;
+  const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
+  const faceMedia = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
+  const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
   const angleMedia = [
     submission.front_url || submission.selfie_url,
     submission.left_url,
     submission.right_url,
-  ].filter((url): url is string => Boolean(url));
-  const hostPhotos = (submission.host_photos || []).filter(Boolean);
+  ].filter(isRenderableFaceMediaUrl);
+  const hostPhotos = (submission.host_photos || []).filter(isRenderableFaceMediaUrl);
 
   return (
     <>
@@ -90,8 +95,8 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
 
 /** Compact face media renderer for the modal view (bigger frames). */
 export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubmission }) {
-  const faceMedia = submission.face_image_url && !submission.face_image_url.startsWith("admin-approved://") ? submission.face_image_url : null;
-  const introVideo = submission.video_url || null;
+  const faceMedia = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
+  const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
 
   return (
     <>
