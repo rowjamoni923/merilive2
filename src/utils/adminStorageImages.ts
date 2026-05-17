@@ -154,6 +154,15 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   if (inFlight) return inFlight;
 
   const signPromise = (async () => {
+    const { data, error } = await adminSupabase.storage
+      .from(storagePath.bucket)
+      .createSignedUrl(storagePath.path, 60 * 60);
+
+    if (!error && data?.signedUrl) {
+      signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+      return data.signedUrl;
+    }
+
     if (adminToken) {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
         method: 'POST',
@@ -176,16 +185,8 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
     }
 
-    const { data, error } = await adminSupabase.storage
-      .from(storagePath.bucket)
-      .createSignedUrl(storagePath.path, 60 * 60);
-
-    if (error || !data?.signedUrl) {
-      failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
-      return null;
-    }
-    signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
-    return data.signedUrl;
+    failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
+    return null;
   })().finally(() => {
     inFlightSignedUrls.delete(cacheKey);
   });
