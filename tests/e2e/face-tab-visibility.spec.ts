@@ -36,27 +36,74 @@ test.describe("Face verification — tab + Approve/Reject button visibility", ()
     }
   });
 
-  test("Approved tab: NO card has Approve or Reject buttons", async ({ page }) => {
+  test("Approved tab: every card is approved-bucket and shows NO Approve/Reject buttons", async ({ page }) => {
     await page.getByRole("tab", { name: "Approved" }).click();
     const cards = page.getByTestId("submission-card");
-    await expect(cards).toHaveCount(2); // a1, a2
+    await expect(cards).toHaveCount(2); // a1 (approved), a2 (auto_approved)
+    // Global guarantee: zero action buttons anywhere on the tab.
     await expect(page.getByTestId("approve-btn")).toHaveCount(0);
     await expect(page.getByTestId("reject-btn")).toHaveCount(0);
+    // Per-row guarantee: each card must be approved-bucket, raw status must be
+    // one of the approved set, the approved badge is the only visible badge,
+    // and Approve/Reject are absent on THIS card (not just globally).
+    const APPROVED_STATUSES = new Set([
+      "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified",
+    ]);
     const count = await cards.count();
     for (let i = 0; i < count; i++) {
-      await expect(cards.nth(i)).toHaveAttribute("data-bucket", "approved");
+      const card = cards.nth(i);
+      await expect(card).toHaveAttribute("data-bucket", "approved");
+      const status = (await card.getAttribute("data-status")) ?? "";
+      expect(APPROVED_STATUSES.has(status), `row ${i} has non-approved status "${status}"`).toBe(true);
+      await expect(card.locator(".badge-approved")).toBeVisible();
+      await expect(card.locator(".badge-pending")).toHaveCount(0);
+      await expect(card.locator(".badge-rejected")).toHaveCount(0);
+      expect(await card.getByTestId("approve-btn").count(), `Approve leaked on approved row ${i}`).toBe(0);
+      expect(await card.getByTestId("reject-btn").count(), `Reject leaked on approved row ${i}`).toBe(0);
     }
   });
 
-  test("Rejected tab: NO card has Approve or Reject buttons", async ({ page }) => {
+  test("Rejected tab: every card is rejected-bucket and shows NO Approve/Reject buttons", async ({ page }) => {
     await page.getByRole("tab", { name: "Rejected" }).click();
     const cards = page.getByTestId("submission-card");
-    await expect(cards).toHaveCount(2); // r1, r2
+    await expect(cards).toHaveCount(2); // r1 (rejected), r2 (auto_rejected)
     await expect(page.getByTestId("approve-btn")).toHaveCount(0);
     await expect(page.getByTestId("reject-btn")).toHaveCount(0);
+    const REJECTED_STATUSES = new Set([
+      "rejected", "auto_rejected", "auto-rejected",
+    ]);
     const count = await cards.count();
     for (let i = 0; i < count; i++) {
-      await expect(cards.nth(i)).toHaveAttribute("data-bucket", "rejected");
+      const card = cards.nth(i);
+      await expect(card).toHaveAttribute("data-bucket", "rejected");
+      const status = (await card.getAttribute("data-status")) ?? "";
+      expect(REJECTED_STATUSES.has(status), `row ${i} has non-rejected status "${status}"`).toBe(true);
+      await expect(card.locator(".badge-rejected")).toBeVisible();
+      await expect(card.locator(".badge-pending")).toHaveCount(0);
+      await expect(card.locator(".badge-approved")).toHaveCount(0);
+      expect(await card.getByTestId("approve-btn").count(), `Approve leaked on rejected row ${i}`).toBe(0);
+      expect(await card.getByTestId("reject-btn").count(), `Reject leaked on rejected row ${i}`).toBe(0);
+    }
+  });
+
+  test("Approved tab: pending and rejected rows are NOT rendered", async ({ page }) => {
+    await page.getByRole("tab", { name: "Approved" }).click();
+    // Cross-bucket leakage check by data-id from the fixture.
+    for (const id of ["p1", "p2", "p3", "r1", "r2"]) {
+      await expect(page.locator(`[data-testid="submission-card"][data-id="${id}"]`)).toHaveCount(0);
+    }
+    for (const id of ["a1", "a2"]) {
+      await expect(page.locator(`[data-testid="submission-card"][data-id="${id}"]`)).toHaveCount(1);
+    }
+  });
+
+  test("Rejected tab: pending and approved rows are NOT rendered", async ({ page }) => {
+    await page.getByRole("tab", { name: "Rejected" }).click();
+    for (const id of ["p1", "p2", "p3", "a1", "a2"]) {
+      await expect(page.locator(`[data-testid="submission-card"][data-id="${id}"]`)).toHaveCount(0);
+    }
+    for (const id of ["r1", "r2"]) {
+      await expect(page.locator(`[data-testid="submission-card"][data-id="${id}"]`)).toHaveCount(1);
     }
   });
 
