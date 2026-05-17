@@ -996,7 +996,7 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error } = await supabase.rpc('admin_process_face_verification', {
+      const { data, error } = await supabase.rpc('admin_process_face_verification', {
         _submission_id: submission.id,
         _action: faceActionType,
         _reason: faceActionReason || null,
@@ -1005,6 +1005,13 @@ export default function AdminUserManagement() {
       });
 
       if (error) throw error;
+      if ((data as any)?.pending) {
+        setFaceSubmissions(previousFaceSubmissions);
+        toast.success('⏳ Submitted for Owner Approval — decision queued.');
+        fetchFaceSubmissions();
+        return;
+      }
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to process');
 
       toast.success(faceActionType === 'approve' ? "✅ Approved!" : "❌ Rejected!");
       fetchFaceSubmissions();
@@ -2438,6 +2445,7 @@ export default function AdminUserManagement() {
                                 e.stopPropagation();
                                 setSelectedFaceSubmission(submission);
                                 setFaceActionType('approve');
+                                setFaceApproveAs(submission.verification_type === 'host' ? 'host' : 'user');
                                 setShowFaceActionModal(true);
                               }}
                             >
@@ -3264,7 +3272,7 @@ export default function AdminUserManagement() {
 
               {isFacePendingBucket(selectedFaceSubmission) && (
                 <div className="flex gap-2">
-                  <Button className="flex-1 bg-green-500 hover:bg-green-600" onClick={() => { setFaceActionType('approve'); setShowFaceActionModal(true); }}>
+                  <Button className="flex-1 bg-green-500 hover:bg-green-600" onClick={() => { setFaceActionType('approve'); setFaceApproveAs(selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user'); setShowFaceActionModal(true); }}>
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Approve
                   </Button>
