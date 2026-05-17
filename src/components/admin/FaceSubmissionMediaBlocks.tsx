@@ -45,7 +45,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
       {faceMedia && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🔍 Face Verification</p>
-          <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" className="bg-background" mediaClassName="max-h-64" />
+          <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" poster={profilePhoto} className="bg-background" mediaClassName="max-h-64" />
         </div>
       )}
 
@@ -96,7 +96,7 @@ export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubm
   return (
     <>
       {faceMedia && (
-        <AdminMediaFrame src={faceMedia} alt="Face" className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
+        <AdminMediaFrame src={faceMedia} alt="Face" poster={submission.profile_photo_url} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
       )}
 
       {introVideo && introVideo !== faceMedia && (

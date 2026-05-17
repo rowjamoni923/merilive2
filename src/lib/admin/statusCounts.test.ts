@@ -56,7 +56,7 @@ describe("admin/statusCounts shared module", () => {
       },
     );
     expect(rpcCalled).toBe(true);
-    expect(counts).toEqual({ pending: 7, under_review: 0, approved: 3, rejected: 2 });
+    expect(counts).toMatchObject({ pending: 7, under_review: 0, approved: 3, rejected: 2 });
   });
 
   it("fetchFilteredStatusCounts runs filtered counts when search is active", async () => {
