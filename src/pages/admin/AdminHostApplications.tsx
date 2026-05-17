@@ -528,7 +528,7 @@ export default function AdminHostApplications() {
                       </Avatar>
                       {/* Online-style status dot */}
                       <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-slate-900 ${
-                        app.status === 'pending' ? 'bg-amber-400' :
+                        (app.status === 'pending' || app.status === 'submitted') ? 'bg-amber-400' :
                         app.status === 'under_review' ? 'bg-sky-400' :
                         app.status === 'approved' ? 'bg-emerald-400' : 'bg-rose-400'
                       }`} />
@@ -797,7 +797,7 @@ export default function AdminHostApplications() {
                 </section>
 
                 {/* ---- Admin Notes ---- */}
-                {(sel.status === 'pending' || sel.status === 'under_review') && (
+                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
                   <>
                     <Separator className="bg-white/10" />
                     <section>
@@ -824,11 +824,11 @@ export default function AdminHostApplications() {
                 )}
 
                 {/* ---- Action Buttons ---- */}
-                {(sel.status === 'pending' || sel.status === 'under_review') && (
+                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
                   <div className="space-y-4 pt-2">
                     {/* Top row: Review + Reject */}
                     <div className="flex items-center gap-3">
-                      {sel.status === 'pending' && (
+                      {(sel.status === 'pending' || sel.status === 'submitted') && (
                         <Button
                           variant="outline"
                           onClick={() => handleMarkUnderReview(sel)}
