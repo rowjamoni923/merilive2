@@ -331,15 +331,12 @@ serve(async (req) => {
       })
       .eq("id", submissionId);
 
-    let autoResult: Record<string, unknown> | null = null;
-    if (!frontError && finalGender !== "unknown") {
-      const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
-        "service_auto_finalize_face_verification",
-        { p_submission_id: submissionId },
-      );
-      if (!rpcErr) autoResult = rpcData as Record<string, unknown>;
-      else console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
-    }
+    const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
+      "service_auto_finalize_face_verification",
+      { p_submission_id: submissionId },
+    );
+    const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
+    if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
 
     return new Response(
       JSON.stringify({
