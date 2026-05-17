@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ExternalLink, Image as ImageIcon, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
+import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
 
 export type AdminMediaKind = "auto" | "image" | "video";
 
@@ -146,8 +146,11 @@ export function AdminMediaFrame({
     setDisplayPoster(null);
     setResolutionFailed(false);
     (async () => {
+      const resolver = bucket === "face-verification" || bucket === "host-verification"
+        ? resolveAdminStorageObjectUrl
+        : resolveAdminStorageImageUrl;
       const [resolved, resolvedPoster] = await Promise.all([
-        resolveAdminStorageImageUrl(src, bucket),
+        resolver(src, bucket),
         resolveAdminStorageImageUrl(poster, bucket),
       ]);
       if (!cancelled) {
@@ -195,7 +198,7 @@ export function AdminMediaFrame({
   }
 
   if (failed) {
-    if ((rawKind === "video" || getImageMimeType(src || "")) && isPrivateStorage && displaySrc && !imageFallbackFailed) {
+    if (displaySrc && !displaySrc.startsWith("blob:") && !imageFallbackFailed && (rawKind === "video" || getImageMimeType(src || "") || bucket === "face-verification" || bucket === "host-verification")) {
       return (
         <div className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", className)}>
           <img
