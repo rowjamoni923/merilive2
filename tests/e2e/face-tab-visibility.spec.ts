@@ -150,3 +150,73 @@ test.describe("Face verification — tab + Approve/Reject button visibility", ()
     await expect(page.getByTestId("reject-btn")).toHaveCount(3);
   });
 });
+
+test.describe("Face verification — edge cases (empty/malformed status)", () => {
+  test("Pending tab with NO pending rows: empty state shown, ZERO action buttons", async ({ page }) => {
+    await page.goto(`${HARNESS_URL}?fixture=empty_pending`);
+    await page.getByRole("tab", { name: "Pending" }).click();
+    await expect(page.getByTestId("submission-card")).toHaveCount(0);
+    await expect(page.getByTestId("empty-state")).toBeVisible();
+    await expect(page.getByTestId("approve-btn")).toHaveCount(0);
+    await expect(page.getByTestId("reject-btn")).toHaveCount(0);
+    // Approved/Rejected tabs should still render their respective rows.
+    await page.getByRole("tab", { name: "Approved" }).click();
+    await expect(page.getByTestId("submission-card")).toHaveCount(1);
+    await expect(page.getByTestId("approve-btn")).toHaveCount(0);
+    await page.getByRole("tab", { name: "Rejected" }).click();
+    await expect(page.getByTestId("submission-card")).toHaveCount(1);
+    await expect(page.getByTestId("reject-btn")).toHaveCount(0);
+  });
+
+  test("Fully empty dataset: every tab shows empty state with no buttons", async ({ page }) => {
+    await page.goto(`${HARNESS_URL}?fixture=empty_all`);
+    for (const tab of ["Pending", "Approved", "Rejected", "All"]) {
+      await page.getByRole("tab", { name: tab }).click();
+      await expect(page.getByTestId("submission-card")).toHaveCount(0);
+      await expect(page.getByTestId("empty-state")).toBeVisible();
+      await expect(page.getByTestId("approve-btn")).toHaveCount(0);
+      await expect(page.getByTestId("reject-btn")).toHaveCount(0);
+    }
+  });
+
+  test("Malformed status flags fall into Pending and render correct buttons", async ({ page }) => {
+    await page.goto(`${HARNESS_URL}?fixture=bad_status`);
+    await page.getByRole("tab", { name: "Pending" }).click();
+    // b1 (null), b2 (""), b3 ("   "), b5 (numeric), b6 (garbage) → pending bucket.
+    // b4 ("APPROVED") normalizes via .toLowerCase() → approved bucket, must NOT show.
+    const cards = page.getByTestId("submission-card");
+    await expect(cards).toHaveCount(5);
+    const ids = await cards.evaluateAll(els => els.map(e => e.getAttribute("data-id")));
+    expect(ids.sort()).toEqual(["b1", "b2", "b3", "b5", "b6"]);
+    expect(ids).not.toContain("b4");
+    // Each malformed-status card MUST still expose Approve & Reject (admin must
+    // be able to clear bad rows).
+    const count = await cards.count();
+    for (let i = 0; i < count; i++) {
+      const card = cards.nth(i);
+      await expect(card).toHaveAttribute("data-bucket", "pending");
+      await expect(card.getByTestId("approve-btn")).toBeVisible();
+      await expect(card.getByTestId("reject-btn")).toBeVisible();
+    }
+  });
+
+  test("Mixed-case 'APPROVED' is normalized to Approved tab (no leak into Pending)", async ({ page }) => {
+    await page.goto(`${HARNESS_URL}?fixture=bad_status`);
+    await page.getByRole("tab", { name: "Approved" }).click();
+    const cards = page.getByTestId("submission-card");
+    await expect(cards).toHaveCount(1);
+    await expect(cards.first()).toHaveAttribute("data-id", "b4");
+    await expect(cards.first()).toHaveAttribute("data-bucket", "approved");
+    // No action buttons on Approved tab even for malformed source status.
+    await expect(page.getByTestId("approve-btn")).toHaveCount(0);
+    await expect(page.getByTestId("reject-btn")).toHaveCount(0);
+  });
+
+  test("Rejected tab with malformed dataset is empty (no false rejected rows)", async ({ page }) => {
+    await page.goto(`${HARNESS_URL}?fixture=bad_status`);
+    await page.getByRole("tab", { name: "Rejected" }).click();
+    await expect(page.getByTestId("submission-card")).toHaveCount(0);
+    await expect(page.getByTestId("empty-state")).toBeVisible();
+    await expect(page.getByTestId("reject-btn")).toHaveCount(0);
+  });
+});
