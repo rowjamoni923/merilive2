@@ -567,7 +567,10 @@ const AdminFaceVerification = () => {
     );
   };
 
-  const visiblePool = submissions.filter(matchesSearch);
+  const visiblePool = submissions
+    .filter(matchesSearch)
+    .filter((s) => (mismatchOnly ? !isKnownStatus(s.status) : true));
+  const mismatchCount = submissions.filter(matchesSearch).filter((s) => !isKnownStatus(s.status)).length;
 
   const isAutoReviewed = (s: Submission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
   const filteredSubmissions = visiblePool.filter((sub) => {
