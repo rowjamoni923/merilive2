@@ -161,16 +161,36 @@ const usefulMimeType = (type?: string | null) => {
 
 const sniffBlobMimeType = async (blob: Blob) => {
   const bytes = new Uint8Array(await blob.slice(0, 16).arrayBuffer());
+  if (bytes.length < 12) return "";
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
   if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png";
-  if (String.fromCharCode(...bytes.slice(0, 4)) === "RIFF") return "image/webp";
-  if (String.fromCharCode(...bytes.slice(4, 8)) === "ftyp") return "video/mp4";
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) return "image/gif";
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
+  if (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+    const brand = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]).toLowerCase();
+    if (brand.startsWith("qt")) return "video/quicktime";
+    if (brand === "heic" || brand === "heix" || brand === "mif1") return "image/heic";
+    return "video/mp4";
+  }
   if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) return "video/webm";
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) return "application/pdf";
   return "";
 };
 
-const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null) => {
-  const resolvedType = await sniffBlobMimeType(blob).catch(() => "") || usefulMimeType(blob.type) || usefulMimeType(hintedType);
+const faceBucketPathFallback = (path?: string | null) => {
+  const lower = (path || "").toLowerCase();
+  if (!lower) return "";
+  if (lower.includes("/face-videos/") || lower.includes("/liveness/") || lower.includes("/video/")) return "video/mp4";
+  if (lower.includes("/face-angles/") || lower.includes("/host-photos/") || lower.includes("/profile/") || lower.includes("/selfie")) return "image/jpeg";
+  return "";
+};
+
+const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null, hintedPath?: string | null) => {
+  const resolvedType = await sniffBlobMimeType(blob).catch(() => "")
+    || usefulMimeType(blob.type)
+    || usefulMimeType(hintedType)
+    || faceBucketPathFallback(hintedPath);
   const typedBlob = resolvedType && blob.type !== resolvedType ? new Blob([blob], { type: resolvedType }) : blob;
   const objectUrl = URL.createObjectURL(typedBlob);
   objectUrlCache.add(objectUrl);
