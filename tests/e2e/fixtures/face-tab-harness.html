@@ -75,7 +75,17 @@
       const fixtureKey = params.get("fixture") || "default";
       const FIXTURE = FIXTURES[fixtureKey] ?? FIXTURES.default;
 
+      function updateCounts() {
+        const counts = { pending: 0, approved: 0, rejected: 0, all: FIXTURE.length };
+        for (const r of FIXTURE) counts[bucketOfStatus(r.status)]++;
+        for (const key of Object.keys(counts)) {
+          const el = document.querySelector('[data-testid="tab-count-' + key + '"]');
+          if (el) el.textContent = String(counts[key]);
+        }
+      }
+
       function render(tab) {
+        updateCounts();
         const list = document.getElementById("list");
         const visible = FIXTURE.filter(r => {
           const b = bucketOfStatus(r.status);
