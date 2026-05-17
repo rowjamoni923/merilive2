@@ -115,11 +115,50 @@
         }
       }
 
+      // Action log so Playwright can introspect what was dispatched.
+      window.__ACTIONS__ = [];
+      let currentTab = "pending";
+
+      function recordAction(action, id) {
+        const row = FIXTURE.find(r => r.id === id);
+        const prev = row ? row.status : null;
+        const next = action === "approve" ? "approved" : "rejected";
+        if (row) row.status = next;
+        const entry = { action, id, prev, next, ts: Date.now() };
+        window.__ACTIONS__.push(entry);
+        const banner = document.getElementById("last-action");
+        banner.setAttribute("data-action", action);
+        banner.setAttribute("data-id", id);
+        banner.setAttribute("data-prev", String(prev ?? ""));
+        banner.setAttribute("data-next", next);
+        banner.textContent = `${action.toUpperCase()} → ${id} (${prev ?? "∅"} → ${next})`;
+        const log = document.getElementById("action-log");
+        log.appendChild(Object.assign(document.createElement("div"), {
+          className: "log-entry",
+          textContent: JSON.stringify(entry),
+        }));
+      }
+
+      document.getElementById("list").addEventListener("click", (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLElement)) return;
+        const id = t.getAttribute("data-id");
+        if (!id) return;
+        if (t.matches('[data-testid="approve-btn"]')) {
+          recordAction("approve", id);
+          render(currentTab);
+        } else if (t.matches('[data-testid="reject-btn"]')) {
+          recordAction("reject", id);
+          render(currentTab);
+        }
+      });
+
       document.querySelectorAll(".tab").forEach(btn => {
         btn.addEventListener("click", () => {
           document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", "false"));
           btn.setAttribute("aria-selected", "true");
-          render(btn.dataset.tab);
+          currentTab = btn.dataset.tab;
+          render(currentTab);
         });
       });
       render("pending");
