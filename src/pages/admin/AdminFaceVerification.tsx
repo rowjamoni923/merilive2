@@ -465,11 +465,6 @@ const AdminFaceVerification = () => {
     return { hasProfilePhoto, videoLabel, hasRequiredVideo };
   };
 
-  const isSubmissionEligibleForApproval = (sub: Submission) => {
-    const hasVisualEvidence = !!(sub.profile_photo_url || sub.profile?.avatar_url || sub.front_url || sub.selfie_url || sub.face_image_url || sub.video_url || (sub.host_photos && sub.host_photos.length > 0));
-    return hasVisualEvidence;
-  };
-
   const getPercentageColor = (pct: number) => {
     if (pct >= 100) return { bg: 'bg-green-500', text: 'text-green-400', track: 'bg-green-500/10', border: 'border-green-500/30' };
     if (pct >= 70) return { bg: 'bg-blue-500', text: 'text-blue-400', track: 'bg-blue-500/10', border: 'border-blue-500/30' };
