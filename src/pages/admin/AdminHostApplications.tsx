@@ -797,7 +797,7 @@ export default function AdminHostApplications() {
                 </section>
 
                 {/* ---- Admin Notes ---- */}
-                {(sel.status === 'pending' || sel.status === 'under_review') && (
+                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
                   <>
                     <Separator className="bg-white/10" />
                     <section>
