@@ -48,6 +48,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { getAdminSessionToken } from "@/utils/adminSession";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 
@@ -470,7 +471,8 @@ const AdminFaceVerification = () => {
     actionInFlightRef.current = true;
     setProcessing(true);
     try {
-      const adminToken = localStorage.getItem('admin_session_token') || '';
+      const adminToken = getAdminSessionToken();
+      if (!adminToken) throw new Error('Admin session token missing. Please reopen admin from the secret link.');
       const projectId = (import.meta as any).env?.VITE_SUPABASE_PROJECT_ID;
       const url = `https://${projectId}.supabase.co/functions/v1/admin-rerun-face-verify`;
       const res = await fetch(url, {
