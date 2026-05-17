@@ -189,13 +189,9 @@ export function AdminMediaFrame({
     );
   }
 
-  if ((kind === "auto" || kind === "video") && displaySrc.startsWith("blob:") && !blobMimeChecked) {
-    return (
-      <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
-        <ImageIcon className="mr-2 h-4 w-4 animate-pulse" /> Loading media
-      </div>
-    );
-  }
+  const effectiveMediaKind = displaySrc.startsWith("blob:") && blobMimeChecked && !blobMimeType
+    ? (kind === "video" ? "video" : kind === "image" ? "image" : rawKind)
+    : mediaKind;
 
   if (failed) {
     if (displaySrc && !displaySrc.startsWith("blob:") && !imageFallbackFailed && (rawKind === "video" || getImageMimeType(src || "") || bucket === "face-verification" || bucket === "host-verification")) {
@@ -225,7 +221,7 @@ export function AdminMediaFrame({
     );
   }
 
-  if (mediaKind === "video") {
+  if (effectiveMediaKind === "video") {
     return (
       <div className={cn("overflow-hidden rounded-lg border border-border bg-background", className)}>
         <video
@@ -253,7 +249,7 @@ export function AdminMediaFrame({
 
   const image = (
     <img
-      key={src}
+      key={displaySrc}
       src={displaySrc}
       alt={alt}
       loading="lazy"
