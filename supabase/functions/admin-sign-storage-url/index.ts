@@ -25,6 +25,43 @@ const usefulMimeType = (type?: string | null) => {
   return clean && clean !== "application/octet-stream" && clean !== "application/json" ? clean : "";
 };
 
+// Magic-byte sniff for the formats the face-verification flow actually emits.
+// Returns "" when bytes don't match anything we trust.
+const sniffMimeFromBytes = (bytes: Uint8Array): string => {
+  if (bytes.length < 12) return "";
+  // JPEG: FF D8 FF
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png";
+  // GIF
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) return "image/gif";
+  // RIFF....WEBP
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
+  // ISO BMFF (mp4/mov/heic): "....ftyp...."
+  if (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+    const brand = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]).toLowerCase();
+    if (brand.startsWith("qt")) return "video/quicktime";
+    if (brand === "heic" || brand === "heix" || brand === "mif1") return "image/heic";
+    return "video/mp4";
+  }
+  // EBML (webm/mkv): 1A 45 DF A3
+  if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) return "video/webm";
+  // %PDF
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) return "application/pdf";
+  return "";
+};
+
+// Hard fallback for face bucket — when neither metadata, nor extension, nor
+// sniff yields anything, default angle stills to JPG and recordings to MP4.
+const faceBucketFallback = (bucket: string, path: string): string => {
+  if (bucket !== "face-verification") return "";
+  const lower = path.toLowerCase();
+  if (lower.includes("/face-videos/") || lower.includes("/liveness/") || lower.includes("/video/")) return "video/mp4";
+  if (lower.includes("/face-angles/") || lower.includes("/host-photos/") || lower.includes("/profile/") || lower.includes("/selfie")) return "image/jpeg";
+  return "";
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
