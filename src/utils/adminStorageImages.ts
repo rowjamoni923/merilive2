@@ -181,9 +181,21 @@ const sniffBlobMimeType = async (blob: Blob) => {
 const faceBucketPathFallback = (path?: string | null) => {
   const lower = (path || "").toLowerCase();
   if (!lower) return "";
-  if (lower.includes("/face-videos/") || lower.includes("/liveness/") || lower.includes("/video/")) return "video/mp4";
+  if (lower.includes("/face-videos/") || lower.includes("/liveness/") || lower.includes("/video/") || lower.includes("/videos/")) return "video/mp4";
   if (lower.includes("/face-angles/") || lower.includes("/host-photos/") || lower.includes("/profile/") || lower.includes("/selfie")) return "image/jpeg";
   return "";
+};
+
+const shouldDownloadPrivateImageFirst = (storagePath: AdminStoragePath) => {
+  if (storagePath.bucket !== 'face-verification' && storagePath.bucket !== 'host-verification') return false;
+  const lower = storagePath.path.toLowerCase();
+  if (lower.includes('/face-videos/') || lower.includes('/videos/') || lower.includes('/video/') || lower.includes('/liveness/')) return false;
+  return lower.includes('/face-angles/')
+    || lower.includes('/host-photos/')
+    || lower.includes('/photos/')
+    || lower.includes('/profile/')
+    || lower.includes('/selfie')
+    || /\.(jpg|jpeg|png|webp|gif|avif|heic|heif)(?:$|[?#])/i.test(lower);
 };
 
 const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null, hintedPath?: string | null) => {
@@ -212,6 +224,35 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   if (inFlight) return inFlight;
 
   const signPromise = (async () => {
+    const downloadViaAdminFunction = async () => {
+      if (!adminToken || !PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) return null;
+      const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'x-admin-token': adminToken,
+        },
+        body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, mode: 'download' }),
+      }).catch(() => null);
+      if (!downloadResp?.ok) return null;
+      const blob = await downloadResp.blob().catch(() => null);
+      if (!blob) return null;
+      return createTypedObjectUrl(blob, downloadResp.headers.get('content-type'), storagePath.path).catch(() => null);
+    };
+
+    // Private face/host still images are often stored behind old public URLs or
+    // legacy .webm angle filenames. Downloading only images as typed blobs avoids
+    // black/broken thumbnails, while videos still use signed URLs for streaming.
+    if (shouldDownloadPrivateImageFirst(storagePath)) {
+      const objectUrl = await downloadViaAdminFunction();
+      if (objectUrl) {
+        signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
+        return objectUrl;
+      }
+    }
+
     // 1) Preferred path: ask the admin edge function for a signed URL. It uses
     //    the service role, backfills correct Content-Type, and works even when
     //    the user app has no Supabase auth session.
@@ -249,25 +290,10 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
     //    edge function in "download" mode (service role). This succeeds even
     //    when signed URLs cannot be fetched due to CORS / extension blockers.
     if (adminToken && PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
-      const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'x-admin-token': adminToken,
-        },
-        body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, mode: 'download' }),
-      }).catch(() => null);
-      if (downloadResp?.ok) {
-        const blob = await downloadResp.blob().catch(() => null);
-        if (blob) {
-          const objectUrl = await createTypedObjectUrl(blob, downloadResp.headers.get('content-type'), storagePath.path).catch(() => null);
-          if (objectUrl) {
-            signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
-            return objectUrl;
-          }
-        }
+      const objectUrl = await downloadViaAdminFunction();
+      if (objectUrl) {
+        signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
+        return objectUrl;
       }
     }
 

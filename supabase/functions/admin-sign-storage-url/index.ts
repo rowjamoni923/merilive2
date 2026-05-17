@@ -57,7 +57,7 @@ const sniffMimeFromBytes = (bytes: Uint8Array): string => {
 const faceBucketFallback = (bucket: string, path: string): string => {
   if (bucket !== "face-verification") return "";
   const lower = path.toLowerCase();
-  if (lower.includes("/face-videos/") || lower.includes("/liveness/") || lower.includes("/video/")) return "video/mp4";
+  if (lower.includes("/face-videos/") || lower.includes("/liveness/") || lower.includes("/video/") || lower.includes("/videos/")) return "video/mp4";
   if (lower.includes("/face-angles/") || lower.includes("/host-photos/") || lower.includes("/profile/") || lower.includes("/selfie")) return "image/jpeg";
   return "";
 };
