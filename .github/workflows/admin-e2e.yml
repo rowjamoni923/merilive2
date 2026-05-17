@@ -1,0 +1,37 @@
+name: Admin E2E (real page)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "src/pages/admin/AdminFaceVerification.tsx"
+      - "tests/e2e-admin/**"
+      - "playwright.e2e-admin.config.ts"
+
+jobs:
+  admin-e2e:
+    runs-on: ubuntu-latest
+    # Requires repo secrets E2E_ADMIN_TOKEN, E2E_ADMIN_ACCESS_TOKEN,
+    # SUPABASE_SERVICE_ROLE_KEY, E2E_BASE_URL. Without them the spec
+    # config registers no projects and the run is a no-op.
+    env:
+      E2E_ADMIN_TOKEN: ${{ secrets.E2E_ADMIN_TOKEN }}
+      E2E_ADMIN_ACCESS_TOKEN: ${{ secrets.E2E_ADMIN_ACCESS_TOKEN }}
+      E2E_ADMIN_IS_OWNER: ${{ secrets.E2E_ADMIN_IS_OWNER }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e:admin
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: admin-e2e-report
+          path: playwright-report/
+          retention-days: 7
