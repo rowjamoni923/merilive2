@@ -210,7 +210,7 @@ const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null, hint
 };
 
 const downloadAdminStoragePathAsObjectUrl = async (storagePath: AdminStoragePath, adminToken = resolveStoredAdminToken()) => {
-  if (!adminToken || !PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) return null;
+  if (!adminToken) return null;
   const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
     method: 'POST',
     headers: {

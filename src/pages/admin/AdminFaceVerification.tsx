@@ -834,6 +834,7 @@ const AdminFaceVerification = () => {
                                 alt={t.label}
                                 kind={t.kind}
                                 bucket="face-verification"
+                                poster={profilePhoto && (t.kind === 'video' || isAdminVideoUrl(t.src)) ? profilePhoto : undefined}
                                 className="w-full h-full"
                                 mediaClassName="object-cover w-full h-full"
                               />
@@ -904,6 +905,33 @@ const AdminFaceVerification = () => {
 
             return (
               <div className="space-y-5">
+                {['pending', 'submitted', 'under_review'].includes(selectedSubmission.status) && (
+                  <div className="sticky top-0 z-20 rounded-xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur">
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        disabled={processing}
+                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: selectedSubmission.verification_type === 'host' ? 'host' : 'user' })}
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled={processing}
+                        onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
+                      >
+                        Host
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        disabled={processing}
+                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'reject', reason: actionReason })}
+                      >
+                        <XCircle className="w-4 h-4 mr-2" /> Reject
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* User Info */}
                 <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-xl">
                   <Avatar className="w-16 h-16 border-2 border-purple-500/30">
@@ -1011,7 +1039,7 @@ const AdminFaceVerification = () => {
                       <h4 className="font-semibold flex items-center gap-2 text-purple-300">
                         <ScanFace className="w-5 h-5" /> Face Verification
                       </h4>
-                      <AdminMediaFrame src={url} alt="Face verification" className="border-2 border-purple-500/30 bg-background" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                      <AdminMediaFrame src={url} alt="Face verification" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="border-2 border-purple-500/30 bg-background" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                     </div>
                   );
                 })()}
@@ -1053,13 +1081,13 @@ const AdminFaceVerification = () => {
                   );
                 })()}
 
-                {([resolvedMedia.front_url || resolvedMedia.selfie_url || selectedSubmission.front_url || selectedSubmission.selfie_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).length > 0 && (
+                {([resolvedMedia.front_url || selectedSubmission.front_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).length > 0 && (
                   <div className="space-y-3">
                     <h4 className="font-semibold flex items-center gap-2 text-purple-300">
                       <Camera className="w-5 h-5" /> Manual Face Angles
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
-                      {([resolvedMedia.front_url || resolvedMedia.selfie_url || selectedSubmission.front_url || selectedSubmission.selfie_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
+                      {([resolvedMedia.front_url || selectedSubmission.front_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
                         <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-square border-2 border-border bg-background" mediaClassName="object-cover" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                       ))}
                     </div>
