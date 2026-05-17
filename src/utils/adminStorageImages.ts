@@ -348,29 +348,14 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
   return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : value;
 };
 
-export const resolveAdminStorageObjectUrl = async (value?: string | null, defaultBucket = "face-verification") => {
-  if (!value) return null;
-  const raw = value.trim();
-  if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return raw;
-  const adminToken = resolveStoredAdminToken();
-  const candidates = buildStorageCandidates(raw, defaultBucket);
-  for (const candidate of candidates) {
-    if (shouldStreamSignedStoragePath(candidate)) {
-      const signed = await signAdminStoragePath(candidate);
-      if (signed) return signed;
-    }
-
-    const cacheKey = `${adminToken || 'anon'}::download::${candidate.bucket}/${candidate.path}`;
-    const cached = signedUrlCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.url;
-    const objectUrl = await downloadAdminStoragePathAsObjectUrl(candidate, adminToken);
-    if (objectUrl) {
-      signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
-      return objectUrl;
-    }
-  }
-  return resolveAdminStorageImageUrl(value, defaultBucket);
-};
+/**
+ * SIMPLIFIED: For ALL admin media (images + videos), always return a signed
+ * Supabase Storage URL. The edge function backfills the correct Content-Type
+ * on storage objects so the browser renders them natively without any blob
+ * dance. This avoids the race conditions and broken-image flashes we saw with
+ * the previous blob-download path.
+ */
+export const resolveAdminStorageObjectUrl = resolveAdminStorageImageUrl;
 
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
