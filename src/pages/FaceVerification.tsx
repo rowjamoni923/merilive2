@@ -1317,15 +1317,28 @@ const FaceVerification = () => {
   };
 
   // Upload file to storage
+  const storageExtensionFor = (file: File | Blob) => {
+    const type = (file.type || '').split(';')[0].toLowerCase();
+    if (type === 'image/jpeg') return 'jpg';
+    if (type === 'image/png') return 'png';
+    if (type === 'image/webp') return 'webp';
+    if (type === 'video/mp4') return 'mp4';
+    if (type === 'video/webm') return 'webm';
+    if (file instanceof File) return file.name.split('.').pop() || 'bin';
+    return 'bin';
+  };
+
   const uploadFile = async (file: File | Blob, folder: string): Promise<string | null> => {
     if (!userId) return null;
+    if (!file.size) throw new Error(`Upload blocked: ${folder} file is empty.`);
     
-    const fileExt = file instanceof File ? file.name.split('.').pop() : 'webm';
+    const fileExt = storageExtensionFor(file);
     const fileName = `${userId}/${folder}/${Date.now()}.${fileExt}`;
+    const contentType = file.type || (fileExt === 'jpg' ? 'image/jpeg' : 'application/octet-stream');
     
     const { data, error } = await supabase.storage
       .from('face-verification')
-      .upload(fileName, file, { upsert: true });
+      .upload(fileName, file, { upsert: true, contentType });
     
     if (error) {
       console.error('Upload error:', error);
