@@ -159,8 +159,6 @@ const usefulMimeType = (type?: string | null) => {
   return clean && clean !== "application/octet-stream" && clean !== "application/json" ? clean : "";
 };
 
-const isFaceAngleStoragePath = (path: string) => /(?:^|\/)face-angles\//i.test(path);
-
 const sniffBlobMimeType = async (blob: Blob) => {
   const bytes = new Uint8Array(await blob.slice(0, 16).arrayBuffer());
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
@@ -179,25 +177,6 @@ const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null) => {
   return objectUrl;
 };
 
-const downloadAdminStorageObjectUrl = async (storagePath: AdminStoragePath) => {
-  const { data, error } = await adminSupabase.storage
-    .from(storagePath.bucket)
-    .download(storagePath.path);
-
-  if (error || !data) return null;
-  return createTypedObjectUrl(data);
-};
-
-const materializeSignedStorageUrl = async (signedUrl: string, contentType?: string | null) => {
-  const response = await fetch(signedUrl, { cache: "no-store", credentials: "omit" }).catch(() => null);
-  if (!response?.ok) return null;
-
-  const blob = await response.blob();
-  // The uploaded face-angle snapshots can have a .webm filename while the real
-  // object metadata is image/jpeg. Prefer the actual response/blob MIME over
-  // extension-derived hints so JPEG bytes are never forced into a video MIME.
-  return createTypedObjectUrl(blob, response.headers.get("content-type") || contentType);
-};
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   const adminToken = resolveStoredAdminToken();
