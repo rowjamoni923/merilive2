@@ -256,21 +256,6 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   if (inFlight) return inFlight;
 
   const signPromise = (async () => {
-    const downloadViaAdminFunction = async () => {
-      return downloadAdminStoragePathAsObjectUrl(storagePath, adminToken);
-    };
-
-    // Private face/host still images are often stored behind old public URLs or
-    // legacy .webm angle filenames. Downloading only images as typed blobs avoids
-    // black/broken thumbnails, while videos still use signed URLs for streaming.
-    if (shouldDownloadPrivateImageFirst(storagePath)) {
-      const objectUrl = await downloadViaAdminFunction();
-      if (objectUrl) {
-        signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
-        return objectUrl;
-      }
-    }
-
     // 1) Preferred path: ask the admin edge function for a signed URL. It uses
     //    the service role, backfills correct Content-Type, and works even when
     //    the user app has no Supabase auth session.
@@ -303,17 +288,6 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
     if (!error && data?.signedUrl) {
       signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
       return data.signedUrl;
-    }
-
-    // 3) Last resort for private buckets: download as a blob via the admin
-    //    edge function in "download" mode (service role). This succeeds even
-    //    when signed URLs cannot be fetched due to CORS / extension blockers.
-    if (adminToken && PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
-      const objectUrl = await downloadViaAdminFunction();
-      if (objectUrl) {
-        signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
-        return objectUrl;
-      }
     }
 
     // Without an admin token the failure is "session not loaded yet" — cache
