@@ -8,7 +8,8 @@ const failedSignedUrlCache = new Map<string, number>();
 const inFlightSignedUrls = new Map<string, Promise<string | null>>();
 const LEGACY_ADMIN_TOKEN_KEYS = ['merilive-admin-token', 'admin_session_token'];
 const ADMIN_SESSION_KEYS = ['merilive-admin-session'];
-const STORAGE_OBJECT_RE = /\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
+const STORAGE_OBJECT_RE = /\/storage\/v1\/(?:object|render\/image)\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
+const SIGNED_STORAGE_OBJECT_RE = /\/storage\/v1\/(?:object|render\/image)\/sign\//;
 export interface AdminStoragePath {
   bucket: string;
   path: string;
@@ -85,27 +86,29 @@ const extractTokenFromStoredValue = (raw: string) => {
   if (raw.length >= 16 && !raw.trim().startsWith('{')) return raw;
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    const candidates = [parsed.session_token, parsed.sessionToken, parsed.admin_token, parsed.token];
+    const candidates = [parsed.session_token, parsed.sessionToken, parsed.admin_token, parsed.adminToken, parsed.token];
     const found = candidates.find((v): v is string => typeof v === 'string' && v.length >= 16);
     return found || '';
   } catch {
-    const match = raw.match(/"(?:session_token|sessionToken|admin_token|token)"\s*:\s*"([^"]{16,})"/);
+    const match = raw.match(/"(?:session_token|sessionToken|admin_token|adminToken|token)"\s*:\s*"([^"]{16,})"/);
     return match?.[1] || '';
   }
 };
 
 const resolveStoredAdminToken = () => {
-  const token = getAdminSessionToken();
-  if (token) return token;
   if (typeof window === "undefined") return '';
-  for (const store of [window.localStorage, window.sessionStorage]) {
-    for (const key of LEGACY_ADMIN_TOKEN_KEYS) {
-      const direct = extractTokenFromStoredValue(readStorageValue(store, key));
-      if (direct) return direct;
-    }
+  for (const store of [window.sessionStorage, window.localStorage]) {
     for (const key of ADMIN_SESSION_KEYS) {
       const tokenFromSession = extractTokenFromStoredValue(readStorageValue(store, key));
       if (tokenFromSession) return tokenFromSession;
+    }
+  }
+  const token = getAdminSessionToken();
+  if (token) return token;
+  for (const store of [window.sessionStorage, window.localStorage]) {
+    for (const key of LEGACY_ADMIN_TOKEN_KEYS) {
+      const direct = extractTokenFromStoredValue(readStorageValue(store, key));
+      if (direct) return direct;
     }
     for (let i = 0; i < (store?.length || 0); i += 1) {
       const key = store?.key(i) || '';
@@ -115,6 +118,15 @@ const resolveStoredAdminToken = () => {
     }
   }
   return '';
+};
+
+const isAlreadySignedStorageUrl = (value: string) => {
+  try {
+    const url = new URL(value.trim());
+    return SIGNED_STORAGE_OBJECT_RE.test(url.pathname) && url.searchParams.has('token');
+  } catch {
+    return false;
+  }
 };
 
 const buildStorageCandidates = (value: string, defaultBucket?: string): AdminStoragePath[] => {
@@ -164,10 +176,6 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
     }
 
-    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
-      return null;
-    }
-
     const { data, error } = await adminSupabase.storage
       .from(storagePath.bucket)
       .createSignedUrl(storagePath.path, 60 * 60);
@@ -190,6 +198,7 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
   if (!value) return null;
   const raw = value.trim();
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return value;
+  if (isAlreadySignedStorageUrl(raw)) return raw;
 
   const candidates = buildStorageCandidates(raw, defaultBucket);
   if (!candidates.length) return value;
