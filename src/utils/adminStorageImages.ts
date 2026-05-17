@@ -262,7 +262,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       if (downloadResp?.ok) {
         const blob = await downloadResp.blob().catch(() => null);
         if (blob) {
-          const objectUrl = await createTypedObjectUrl(blob, downloadResp.headers.get('content-type')).catch(() => null);
+          const objectUrl = await createTypedObjectUrl(blob, downloadResp.headers.get('content-type'), storagePath.path).catch(() => null);
           if (objectUrl) {
             signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
             return objectUrl;
