@@ -33,11 +33,13 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
   const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
   const angleMedia = [
-    submission.front_url || submission.selfie_url,
+    submission.front_url,
     submission.left_url,
     submission.right_url,
   ].filter(isRenderableFaceMediaUrl);
-  const faceMedia = angleMedia[0] || faceClip;
+  // Selfie only used as last-resort face media if no front_url AND no face clip.
+  const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
+  const faceMedia = angleMedia[0] || faceClip || selfieFallback;
   const hostPhotos = (submission.host_photos || []).filter(isRenderableFaceMediaUrl);
   const profilePhotoUrl = useAdminSignedUrl(profilePhoto, "face-verification") || profilePhoto;
   const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
