@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { pathToFileURL } from "url";
+import { pathToFileURL, fileURLToPath } from "url";
 import path from "path";
 
 /**
@@ -13,6 +13,7 @@ import path from "path";
  * No admin auth, no Supabase, no Vite — runs against a static HTML fixture
  * so it's deterministic and CI-friendly.
  */
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const HARNESS_URL = pathToFileURL(
   path.resolve(__dirname, "fixtures/face-tab-harness.html"),
 ).toString();
