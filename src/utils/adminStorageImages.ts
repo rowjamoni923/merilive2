@@ -180,18 +180,10 @@ const materializeSignedStorageUrl = async (signedUrl: string, contentType?: stri
   if (!response?.ok) return null;
 
   const blob = await response.blob();
-  const usefulType = (type?: string | null) => {
-    const clean = (type || "").split(";")[0].trim().toLowerCase();
-    return clean && clean !== "application/octet-stream" && clean !== "application/json" ? clean : "";
-  };
   // The uploaded face-angle snapshots can have a .webm filename while the real
   // object metadata is image/jpeg. Prefer the actual response/blob MIME over
   // extension-derived hints so JPEG bytes are never forced into a video MIME.
-  const resolvedType = usefulType(response.headers.get("content-type")) || usefulType(blob.type) || usefulType(contentType);
-  const typedBlob = resolvedType && blob.type !== resolvedType ? new Blob([blob], { type: resolvedType }) : blob;
-  const objectUrl = URL.createObjectURL(typedBlob);
-  objectUrlCache.add(objectUrl);
-  return objectUrl;
+  return createTypedObjectUrl(blob, response.headers.get("content-type") || contentType);
 };
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
