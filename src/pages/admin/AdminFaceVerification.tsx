@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
+import { FaceVerificationDebugPanel } from "@/components/admin/FaceVerificationDebugPanel";
 import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
 import { 
   ScanFace, 
