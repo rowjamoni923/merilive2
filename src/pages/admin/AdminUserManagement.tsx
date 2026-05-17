@@ -944,6 +944,8 @@ export default function AdminUserManagement() {
       const enriched = rows.map((s: any) => ({
         ...s,
         status: normalizeFaceStatus(s.status),
+        is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
+        review_source: inferFaceReviewSource(s),
         profile: s.profile && s.profile.id ? s.profile : null,
         agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
@@ -1333,7 +1335,7 @@ export default function AdminUserManagement() {
   const isFaceApproved = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'approved';
   const isFaceRejected = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'rejected';
   const isFacePendingBucket = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'pending';
-  const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || isAutoFaceReview(s.status, s.admin_notes);
+  const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || s.review_source === 'auto' || isAutoFaceReview(s.status, s.admin_notes);
 
   const faceQueryRaw = faceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
@@ -1351,7 +1353,7 @@ export default function AdminUserManagement() {
     if (faceActiveTab === 'pending') return isFacePendingBucket(sub);
     if (faceActiveTab === 'approved') return isFaceApproved(sub) && !isFaceAutoReviewed(sub);
     if (faceActiveTab === 'rejected') return isFaceRejected(sub) && !isFaceAutoReviewed(sub);
-    if (faceActiveTab === 'all') return isFacePendingBucket(sub) || !isFaceAutoReviewed(sub);
+    if (faceActiveTab === 'all') return true;
     return false;
   });
 
