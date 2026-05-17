@@ -248,7 +248,7 @@ export async function fetchFilteredStatusCounts(
     // which makes a no-arg RPC call ambiguous in PostgREST.
     const { data, error } = await client.rpc(opts.globalStatsRpc, { _search: null });
     if (error) throw new Error(error.message);
-    const s = data || {};
+    const s = (data || {}) as StatusCounts;
     return {
       pending: Number(s.pending || 0),
       under_review: Number(s.under_review || 0),
