@@ -143,15 +143,36 @@ const buildStorageCandidates = (value: string, defaultBucket?: string): AdminSto
   return buckets.map((bucket) => ({ bucket, path: cleanPath }));
 };
 
+const usefulMimeType = (type?: string | null) => {
+  const clean = (type || "").split(";")[0].trim().toLowerCase();
+  return clean && clean !== "application/octet-stream" && clean !== "application/json" ? clean : "";
+};
+
+const sniffBlobMimeType = async (blob: Blob) => {
+  const bytes = new Uint8Array(await blob.slice(0, 16).arrayBuffer());
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png";
+  if (String.fromCharCode(...bytes.slice(0, 4)) === "RIFF") return "image/webp";
+  if (String.fromCharCode(...bytes.slice(4, 8)) === "ftyp") return "video/mp4";
+  if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) return "video/webm";
+  return "";
+};
+
+const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null) => {
+  const resolvedType = await sniffBlobMimeType(blob).catch(() => "") || usefulMimeType(blob.type) || usefulMimeType(hintedType);
+  const typedBlob = resolvedType && blob.type !== resolvedType ? new Blob([blob], { type: resolvedType }) : blob;
+  const objectUrl = URL.createObjectURL(typedBlob);
+  objectUrlCache.add(objectUrl);
+  return objectUrl;
+};
+
 const downloadAdminStorageObjectUrl = async (storagePath: AdminStoragePath) => {
   const { data, error } = await adminSupabase.storage
     .from(storagePath.bucket)
     .download(storagePath.path);
 
   if (error || !data) return null;
-  const objectUrl = URL.createObjectURL(data);
-  objectUrlCache.add(objectUrl);
-  return objectUrl;
+  return createTypedObjectUrl(data);
 };
 
 const materializeSignedStorageUrl = async (signedUrl: string, contentType?: string | null) => {
@@ -159,11 +180,10 @@ const materializeSignedStorageUrl = async (signedUrl: string, contentType?: stri
   if (!response?.ok) return null;
 
   const blob = await response.blob();
-  const resolvedType = contentType || response.headers.get("content-type") || blob.type || "";
-  const typedBlob = resolvedType && blob.type !== resolvedType ? new Blob([blob], { type: resolvedType }) : blob;
-  const objectUrl = URL.createObjectURL(typedBlob);
-  objectUrlCache.add(objectUrl);
-  return objectUrl;
+  // The uploaded face-angle snapshots can have a .webm filename while the real
+  // object metadata is image/jpeg. Prefer the actual response/blob MIME over
+  // extension-derived hints so JPEG bytes are never forced into a video MIME.
+  return createTypedObjectUrl(blob, response.headers.get("content-type") || contentType);
 };
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {

@@ -106,29 +106,37 @@ export function AdminMediaFrame({
   const [resolutionFailed, setResolutionFailed] = useState(false);
   const isPrivateStorage = isPrivateAdminStorageReference(src, bucket);
   const [blobMimeType, setBlobMimeType] = useState("");
+  const [blobMimeChecked, setBlobMimeChecked] = useState(false);
   const rawKind = kind === "auto"
-    ? (blobMimeType.startsWith("video/") || isAdminVideoUrl(src) || (!!displaySrc && !displaySrc.startsWith("blob:") && isAdminVideoUrl(displaySrc)) ? "video" : "image")
+    ? (blobMimeType.startsWith("video/") ? "video" : blobMimeType.startsWith("image/") ? "image" : (isAdminVideoUrl(src) || (!!displaySrc && !displaySrc.startsWith("blob:") && isAdminVideoUrl(displaySrc)) ? "video" : "image"))
     : kind;
   const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
   const mediaKind = rawKind;
   const videoType = useMemo(() => blobMimeType.startsWith("video/") ? blobMimeType : (displaySrc ? getVideoMimeType(displaySrc) : undefined), [blobMimeType, displaySrc]);
 
   useEffect(() => {
-    if (kind !== "auto" || !displaySrc?.startsWith("blob:")) return;
+    if (!displaySrc?.startsWith("blob:")) {
+      setBlobMimeChecked(false);
+      return;
+    }
     let cancelled = false;
+    setBlobMimeChecked(false);
     resolveBlobMimeType(displaySrc).then((mime) => {
-      if (cancelled || !mime) return;
+      if (cancelled) return;
       setBlobMimeType(mime);
+      setBlobMimeChecked(true);
+      if (mime.startsWith("video/") || mime.startsWith("image/")) setFailed(false);
     });
     return () => {
       cancelled = true;
     };
-  }, [displaySrc, kind]);
+  }, [displaySrc]);
 
   useEffect(() => {
     setFailed(false);
     setImageFallbackFailed(false);
     setBlobMimeType("");
+    setBlobMimeChecked(false);
     if (!src) {
       setDisplaySrc(null);
       return;
@@ -171,6 +179,14 @@ export function AdminMediaFrame({
   }
 
   if (!displaySrc) {
+    return (
+      <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
+        <ImageIcon className="mr-2 h-4 w-4 animate-pulse" /> Loading media
+      </div>
+    );
+  }
+
+  if ((kind === "auto" || kind === "video") && displaySrc.startsWith("blob:") && !blobMimeChecked) {
     return (
       <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
         <ImageIcon className="mr-2 h-4 w-4 animate-pulse" /> Loading media
