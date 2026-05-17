@@ -82,7 +82,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
           <p className="text-xs font-semibold text-purple-600 mb-2">🔐 Manual Face Angles ({angleMedia.length})</p>
           <div className="grid grid-cols-3 gap-2">
             {angleMedia.map((url, idx) => (
-              <AdminMediaFrame key={idx} src={resolvedAngleMedia[idx] || url} alt={`Face angle ${idx + 1}`} bucket="face-verification" className="aspect-square bg-background" mediaClassName="object-cover" />
+              <AdminMediaFrame key={idx} src={resolvedAngleMedia[idx] || url} alt={`Face angle ${idx + 1}`} kind="auto" bucket="face-verification" className="aspect-square bg-background" mediaClassName="object-cover" />
             ))}
           </div>
         </div>
