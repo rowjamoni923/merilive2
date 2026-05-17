@@ -740,6 +740,7 @@ const AdminFaceVerification = () => {
                               </Badge>
                             );
                           })()}
+                        </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           UID: {submission.profile?.app_uid} • {formatDate(submission.created_at)}
                         </p>
