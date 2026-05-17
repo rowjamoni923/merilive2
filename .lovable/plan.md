@@ -1,96 +1,85 @@
-# Premium / Luxurious App-Wide Polish Plan
+# Real Admin Face Verification — End-to-End Parity Test (Option A)
 
-Goal: Make every button feel premium, fix every unreadable text (white-on-white, dark-on-dark), zero "broken" looking pages. No regressions.
+Replace the static harness with a Playwright spec that drives the real `/admin/face-verification` page, against the real Supabase backend, with a dedicated seed of `face_verification_submissions` rows. Verifies badge counts on Pending/Approved/Rejected/All tabs equal the number of visible submission cards rendered by the live component.
 
-The earlier blind codemod replaced `text-white` → `text-slate-900` everywhere, which broke buttons that sit on dark gradients (we already had to repair Auth + 16 header pages by hand). So this round must be **systematic, not blind**.
-
----
-
-## Phase 1 — Root-of-tree fixes (one place, every Button benefits)
-
-Touch `src/components/ui/button.tsx` only:
-
-1. Add 4 premium variants used everywhere going forward:
-   - `luxury` — gold/amber gradient, soft inner highlight, deep shadow (for primary CTAs like "Start", "Recharge", "Buy")
-   - `premium` — brand→info gradient, glass border, subtle gold ring on hover (for secondary primaries like "Continue", "Save")
-   - `glass` — frosted white/10 with white border + white text (for buttons sitting on dark images: Auth, Live, Party)
-   - `outline-premium` — transparent + gold border + dark-foreground text on light, white text on dark (auto via CSS var)
-2. Upgrade the existing `default`, `destructive`, `secondary` so they have:
-   - subtle gradient background
-   - 1px translucent inner border (`shadow-[inset_0_1px_0_rgba(255,255,255,.15)]`)
-   - elevated drop-shadow on hover
-   - active:scale-[0.98] press feedback
-3. Standard height tokens: `h-9 / h-10 / h-12` mapped to `sm / default / lg`, all with `rounded-xl` for the premium look.
-
-Result: every existing `<Button>` instantly looks more premium without touching call sites. Pages that need the explicit luxury look just switch `variant="luxury"`.
-
-## Phase 2 — Two safe codemods
-
-Run on `src/` excluding `merilive_flutter/`, `android/`, `node_modules`, `dist`:
-
-1. **Readability codemod** — only fixes provably broken pairs:
-   - `text-white` on light background card (`bg-white`, `bg-card`, `bg-slate-50/100`) → `text-slate-900`
-   - `text-slate-{800,900}` on dark gradient (`bg-gradient-* from-(brand|info|success|warning|destructive|primary|purple|pink|rose|red|emerald|green|blue|indigo)-{500-900}`) → `text-white`
-   - `border-white` on light bg → `border-slate-200`
-   - `text-white` on `bg-white` button → `text-slate-900`
-   Each rewrite verified against surrounding 12 lines (no blind line-by-line replace).
-2. **Copy polish codemod** — string-only:
-   - Strip emoji from titles (`🎉`, `✅`, `🎁`, `❤️`) in dialog `<DialogTitle>` / toast `title:`
-   - Sentence-case button labels ("Phone Number" → "Continue with Phone", "Email" → "Continue with Email", "Start" → "Get Started", "Login" → "Sign In", "Submit" → "Confirm")
-   - Strip "..." from button labels, keep only on loading states
-
-## Phase 3 — Manual audit of top user-facing routes
-
-In this exact order (highest visibility first), audit each for: button variant upgrade, header contrast, balance card readability, modal text contrast, copy professionalism:
+## What gets added
 
 ```text
-1. /            (Home / Discover)
-2. /profile + /profile/:id
-3. /chat + chat list
-4. /recharge + /recharge-history
-5. /tasks + /vip
-6. /agency-dashboard + agency sub-routes
-7. /host-dashboard + helper dashboards
-8. /live + party room
-9. Settings, Notifications, Reports
-10. Auth flow (already partially done — finish remaining dialogs)
+tests/e2e-admin/
+  ├── face-verification-parity.spec.ts   ← the real-page spec
+  ├── fixtures/
+  │   └── seed.ts                        ← idempotent seed: insert 3+2+2 rows
+  └── helpers/
+      ├── adminSession.ts                ← inject x-admin-token + access flag into localStorage
+      └── supabaseAdmin.ts               ← service-role REST client (Node, test-only)
+playwright.e2e-admin.config.ts           ← separate project; only runs when env present
+package.json                              ← script: "test:e2e:admin"
 ```
 
-Per-route checklist:
-- Primary CTA → `variant="luxury"` or `variant="premium"`
-- Header back/icon buttons on dark gradient → `text-white`, subtitle `text-white/80`
-- Cards on white surfaces → `text-foreground` / `text-muted-foreground` only
-- No raw hex; only design tokens
-- Copy polished
+The existing `tests/e2e/` harness specs stay untouched — they remain fast smoke coverage. The new suite is opt-in (skipped when env not present) so CI without secrets is unaffected.
 
-## Phase 4 — Verification
+## Required secrets / environment
 
-- `npm run scan:dark` must stay clean against fresh baseline
-- `lovable-exec test` if any tests exist for those routes
-- Open Auth, Home, Profile, Recharge, Agency Dashboard, Host Dashboard, Live in preview — visual smoke check via screenshots
-- Re-baseline scanner once
+The spec is **skipped** unless ALL of these are present:
 
----
+- `E2E_ADMIN_TOKEN` — a real `admin_sessions.session_token` (7-day, issued by `admin_authenticate`) belonging to a test owner/sub-admin
+- `E2E_ADMIN_ACCESS_TOKEN` — the matching `gala-…` secret link token (so `/admin/*` route guards don't redirect)
+- `SUPABASE_SERVICE_ROLE_KEY` — used **only** in Node test-runner code to seed/cleanup rows; never shipped to the browser
+- `E2E_BASE_URL` — defaults to `http://localhost:5173`; in CI points at preview URL
 
-## Technical scope (for reference)
+You (the user) will need to add `E2E_ADMIN_TOKEN`, `E2E_ADMIN_ACCESS_TOKEN`, and `SUPABASE_SERVICE_ROLE_KEY` to Build Secrets / CI secrets. I'll prompt for each via `add_secret` once the plan is approved.
 
-- ~177 files in dark-token baseline; expect Phase 1+2 to drop it by ~40% and Phase 3 to clean the visible top routes
-- Estimated touch: `button.tsx` (rewrite), 2 codemod scripts, ~25–35 page/component files in Phase 3
-- No backend / DB / RLS / financial code touched
-- No removal of `dark-ok` markers added in earlier rounds (Auth gradient hero, history headers)
+## Seed contract
 
-## What I will NOT do
+`fixtures/seed.ts` (run in Playwright `globalSetup`):
 
-- Blind text-color regex across all files (caused the Auth break)
-- Touch admin panel `.admin-content` — already polished in Pkg3
-- Touch any flutter/android folders
-- Change feature behaviour, copy semantics, financial labels ("Beans", "Diamonds", "Host Earning" stay verbatim)
-- Modify gradient brand colors in `index.css` (those are admin-tunable tokens)
+1. Picks (or creates) 7 disposable `profiles` rows with `email LIKE 'e2e-face-%@test.local'`.
+2. Upserts 7 `face_verification_submissions` rows:
+   - 3 pending: `status IN ('pending','submitted', NULL→treated pending)`
+   - 2 approved: `status='approved'`, `status='auto_approved'`
+   - 2 rejected: `status='rejected'`, `status='auto_rejected'`
+3. `globalTeardown` deletes those rows by the same email tag so subsequent runs stay clean.
 
-## Confirm before I start
+This matches the `bucketOfStatus` rules already covered by the static harness so we're comparing apples to apples.
 
-Big questions:
+## Spec assertions
 
-1. **Scope** — OK to ship in 4 sequential reply turns (Phase 1 → 2 → 3 → 4), or do you want it ALL in one giant turn? One-turn = high credit cost + harder to review.
-2. **Variant default** — should `<Button>` with no `variant` prop become the new "premium" look automatically, or keep `default` flat and require explicit `variant="luxury"` on CTAs? (Auto = lazier upgrade everywhere; explicit = safer for Admin panel.)
-3. **Copy polish** — OK to rephrase button labels project-wide (e.g. "Phone Number" → "Continue with Phone", "Login" → "Sign In") or keep the exact strings the user wrote?
+`face-verification-parity.spec.ts`:
+
+1. Inject admin session into `localStorage` before navigation via `addInitScript` (keys: `merilive-admin-session`, `merilive-admin-access`).
+2. `page.goto('/admin/face-verification?search=e2e-face-')` — scoping by search keeps unrelated production-shape rows out of the visible pool.
+3. Wait for `[data-testid="submission-card"]` to appear OR `[data-testid="empty-state"]`.
+4. For each tab in `['pending','approved','rejected','all']`:
+   - Read badge count from the `TabsTrigger` Badge node.
+   - Click the tab; wait for tab content stable.
+   - Count visible `[data-testid="submission-card"]`.
+   - Assert `badge === cardCount`.
+5. Assert `pending + approved + rejected === all`.
+6. After Approve on one pending row → re-read all 4 badges → still equal to rendered counts (1/3/2/6 instead of 2/2/2/6 etc., adjusted for whichever row was acted on).
+
+## Source-code changes inside the app
+
+Minor, additive only — no behavior change:
+
+- Add `data-testid="submission-card"` to the rendered card root inside `AdminFaceVerification.tsx` (currently only on the mock harness).
+- Add `data-testid="tab-count-{value}"` to each `TabsTrigger`'s count Badge in `AdminFaceVerification.tsx`.
+- Add `data-testid="empty-state"` to the "No submissions" placeholder.
+
+These mirror the selectors the parity harness already uses, so the existing unit/static tests don't change.
+
+## CI
+
+New GitHub workflow `.github/workflows/admin-e2e.yml` runs `npm run test:e2e:admin` only when the three secrets are configured on the repo. Locally, `npm run test:e2e:admin` works once you `export` the three vars.
+
+## Out of scope
+
+- Does NOT touch business logic, RLS, RPC, or auto-approval flow.
+- Does NOT modify the existing static harness or its 5 specs.
+- Does NOT add a test-only login backdoor — uses a real session token issued by the normal admin auth path.
+
+## Approval gate
+
+Confirm and I'll:
+1. Prompt for the three secrets via `add_secret`.
+2. Add the testids to `AdminFaceVerification.tsx`.
+3. Create the new Playwright project + spec + seed + workflow.
