@@ -54,10 +54,25 @@ import { formatAdminError } from "@/utils/formatAdminError";
 
 const normalizeFaceVerificationStatus = (status?: string | null): Submission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
-  if (normalized === 'approved' || normalized === 'rejected' || normalized === 'submitted' || normalized === 'under_review') {
-    return normalized;
-  }
+  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
+  if (['rejected', 'auto_rejected', 'auto-rejected'].includes(normalized)) return 'rejected';
+  if (normalized === 'submitted' || normalized === 'under_review' || normalized === 'pending') return normalized;
   return 'pending';
+};
+
+const inferFaceReviewSource = (s: any): 'auto' | 'manual' => {
+  const status = String(s?.status || '').trim().toLowerCase();
+  const method = String(s?.verification_method || '').trim().toLowerCase();
+  const reviewSource = String(s?.review_source || '').trim().toLowerCase();
+  const notes = String(s?.admin_notes || '').toLowerCase();
+  if (
+    Boolean(s?.is_auto_reviewed) ||
+    reviewSource === 'auto' ||
+    method.startsWith('auto') ||
+    ['auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'auto_rejected', 'auto-rejected'].includes(status) ||
+    isAutoFaceReview(status, notes)
+  ) return 'auto';
+  return 'manual';
 };
 
 interface Submission {
@@ -224,6 +239,8 @@ const AdminFaceVerification = () => {
       const enriched: Submission[] = rows.map((s) => ({
         ...s,
         status: normalizeFaceVerificationStatus(s.status),
+        is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
+        review_source: inferFaceReviewSource(s),
         // RPC returns profile as a jsonb object; normalize null → undefined
         profile: s.profile && s.profile.id ? s.profile : undefined,
         agency_info: s.agency_name
