@@ -752,6 +752,60 @@ const AdminFaceVerification = () => {
                       </div>
                     </div>
 
+                    {(() => {
+                      // Inline media strip — admin sees every photo/video right in the list
+                      // for Pending / Approved / Rejected / Auto / All tabs without opening detail.
+                      const faceShot =
+                        submission.front_url
+                        || submission.selfie_url
+                        || (submission.face_image_url && !submission.face_image_url.startsWith('admin-approved://') ? submission.face_image_url : null);
+                      const profilePhoto =
+                        (submission.profile_photo_url && !submission.profile_photo_url.startsWith('admin-approved://') ? submission.profile_photo_url : null)
+                        || submission.profile?.avatar_url
+                        || null;
+                      const video = submission.video_url || null;
+                      const hostPhotos = (submission.host_photos || []).filter(Boolean).slice(0, 3);
+                      const angles = [submission.left_url, submission.right_url].filter(Boolean) as string[];
+                      const tiles: { src: string; label: string; kind: 'image' | 'video' | 'auto' }[] = [];
+                      if (profilePhoto) tiles.push({ src: profilePhoto, label: 'Profile', kind: 'image' });
+                      if (faceShot) tiles.push({ src: faceShot, label: 'Face', kind: 'auto' });
+                      if (video) tiles.push({ src: video, label: 'Video', kind: 'video' });
+                      hostPhotos.forEach((src, i) => tiles.push({ src, label: `Host ${i + 1}`, kind: 'image' }));
+                      angles.forEach((src, i) => tiles.push({ src, label: i === 0 ? 'Left' : 'Right', kind: 'auto' }));
+                      if (tiles.length === 0) {
+                        return (
+                          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+                            ⚠ No media attached to this submission
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" data-admin-media-bucket="face-verification">
+                          {tiles.map((t, idx) => (
+                            <button
+                              key={`${submission.id}-tile-${idx}`}
+                              type="button"
+                              onClick={() => { setSelectedSubmission(submission); setShowDetailModal(true); }}
+                              className="relative aspect-square rounded-lg overflow-hidden border border-border bg-background/40 hover:border-purple-400 transition-colors"
+                              title={t.label}
+                            >
+                              <AdminMediaFrame
+                                src={t.src}
+                                alt={t.label}
+                                kind={t.kind}
+                                bucket="face-verification"
+                                className="w-full h-full"
+                                mediaClassName="object-cover w-full h-full"
+                              />
+                              <span className="pointer-events-none absolute bottom-0 inset-x-0 bg-black/60 text-[10px] text-white px-1.5 py-0.5 truncate">
+                                {t.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
                     {submission.is_duplicate_face && (
                       <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/30">
                         <AlertTriangle className="w-4 h-4 text-destructive" />
