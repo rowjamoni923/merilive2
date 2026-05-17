@@ -2032,6 +2032,9 @@ export default function AdminUserManagement() {
                           </p>
                         </div>
                       </div>
+                      <div className="mt-3 space-y-3" data-admin-media-bucket="face-verification">
+                        <FaceSubmissionMediaBlocks submission={sub} />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -2207,6 +2210,9 @@ export default function AdminUserManagement() {
                             >
                               👤 User
                             </Button>
+                          </div>
+                          <div className="mt-3 space-y-3" data-admin-media-bucket="face-verification">
+                            <FaceSubmissionMediaBlocks submission={sub} />
                           </div>
                         </div>
                       </div>

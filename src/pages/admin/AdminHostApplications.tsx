@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AdminMediaDialog, AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
+import { FaceSubmissionMediaBlocks } from "@/components/admin/FaceSubmissionMediaBlocks";
 import {
   Dialog,
   DialogContent,
@@ -74,6 +75,10 @@ interface HostSubmission {
   video_url: string | null;
   host_photos: string[] | null;
   face_image_url: string | null;
+  selfie_url?: string | null;
+  front_url?: string | null;
+  left_url?: string | null;
+  right_url?: string | null;
   rejection_reason: string | null;
   admin_notes: string | null;
   created_at: string;
@@ -777,22 +782,8 @@ export default function AdminHostApplications() {
                 {/* ---- Face Verification ---- */}
                 <section>
                   <SectionHeader icon={Shield} title="Face Verification" />
-                  <div className="grid grid-cols-2 gap-4 mt-3">
-                    <div>
-                      <p className="text-white/40 text-xs mb-2 font-medium">Profile Photo</p>
-                      <AdminMediaFrame src={sel.profile_photo_url || sel.profile?.avatar_url || ''} alt="Profile" kind="image" className="w-full aspect-square rounded-xl border border-white/10" mediaClassName="object-cover" />
-                    </div>
-                    <div>
-                      <p className="text-white/40 text-xs mb-2 font-medium">Face Capture</p>
-                      {sel.face_image_url ? (
-                        <AdminMediaFrame src={sel.face_image_url} alt="Face" className="w-full aspect-square rounded-xl border border-white/10 hover:border-emerald-500/40 transition-all" mediaClassName="object-cover" onOpen={!isAdminVideoUrl(sel.face_image_url) ? () => setExpandedPhoto(sel.face_image_url!) : undefined} />
-                      ) : (
-                        <div className="w-full aspect-square bg-white/5 rounded-xl flex flex-col items-center justify-center text-white/30 border border-dashed border-white/10">
-                          <Camera className="w-10 h-10 mb-2" />
-                          <p className="text-xs">N/A</p>
-                        </div>
-                      )}
-                    </div>
+                  <div className="mt-3 space-y-3" data-admin-media-bucket="face-verification">
+                    <FaceSubmissionMediaBlocks submission={sel} />
                   </div>
                 </section>
 

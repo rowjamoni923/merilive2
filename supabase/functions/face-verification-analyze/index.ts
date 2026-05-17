@@ -331,14 +331,33 @@ serve(async (req) => {
       })
       .eq("id", submissionId);
 
-    let autoResult: Record<string, unknown> | null = null;
-    if (!frontError && finalGender !== "unknown") {
-      const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
-        "service_auto_finalize_face_verification",
-        { p_submission_id: submissionId },
-      );
-      if (!rpcErr) autoResult = rpcData as Record<string, unknown>;
-      else console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+    const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
+      "service_auto_finalize_face_verification",
+      { p_submission_id: submissionId },
+    );
+    const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
+    if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+
+    const autoReason = String(autoResult?.reason || "");
+    if (!autoResult?.success && ["invalid_face_count", "front_error", "underage", "face_occluded"].includes(autoReason)) {
+      const reasonText = autoReason === "invalid_face_count"
+        ? `Auto rejected: ${details.length === 0 ? "no face detected" : "multiple faces detected"}.`
+        : autoReason === "underage"
+          ? "Auto rejected: detected age appears under 18."
+          : autoReason === "face_occluded"
+            ? "Auto rejected: face appears occluded."
+            : `Auto rejected: ${String(autoResult?.detail || "front image failed")}.`;
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "rejected",
+          rejection_reason: reasonText,
+          reviewed_at: new Date().toISOString(),
+          admin_notes: `${summary}\n[auto-rejected] ${reasonText}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .eq("status", "submitted");
     }
 
     return new Response(
