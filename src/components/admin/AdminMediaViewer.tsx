@@ -170,7 +170,7 @@ export function AdminMediaFrame({
     : mediaKind;
 
   if (failed) {
-    if (displaySrc && !displaySrc.startsWith("blob:") && !imageFallbackFailed && (rawKind === "video" || getImageMimeType(src || "") || bucket === "face-verification" || bucket === "host-verification")) {
+    if (displaySrc && !imageFallbackFailed) {
       return (
         <div className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", className)}>
           <img
@@ -190,9 +190,11 @@ export function AdminMediaFrame({
       <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-center", className)}>
         <AlertTriangle className="h-5 w-5 text-destructive" />
         <p className="text-sm font-medium text-foreground">Media could not be loaded in this browser.</p>
-        <a href={displaySrc} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
-          Open original <ExternalLink className="h-3 w-3" />
-        </a>
+        {displaySrc && (
+          <a href={displaySrc} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
+            Open original <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
       </div>
     );
   }
