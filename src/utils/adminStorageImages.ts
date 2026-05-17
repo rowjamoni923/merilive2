@@ -32,6 +32,7 @@ const FALLBACK_SIGNING_BUCKETS = [
   'banners-media', 'branding', 'content-media', 'payment-logos', 'posters', 'reels',
 ];
 const RAW_FILE_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|mp3|wav|m4a|pdf)(?:[?#].*)?$/i;
+const VIDEO_FILE_RE = /\.(?:mp4|m4v|mov|qt|webm|ogg|ogv|avi|mkv|3gp|3gpp|3g2|mpg|mpeg|hevc|ts|m3u8|mpd)(?:$|[?#])/i;
 
 type AdminSignStorageResponse = { success?: boolean; signedUrl?: string; contentType?: string | null; error?: string };
 type AdminMediaResolverWindow = Window & { __adminMediaAutoResolverInstalled?: boolean };
@@ -198,6 +199,13 @@ const shouldDownloadPrivateImageFirst = (storagePath: AdminStoragePath) => {
     || /\.(jpg|jpeg|png|webp|gif|avif|heic|heif)(?:$|[?#])/i.test(lower);
 };
 
+const shouldStreamSignedStoragePath = (storagePath: AdminStoragePath) => {
+  const lower = storagePath.path.toLowerCase();
+  if (lower.includes('/face-videos/') || lower.includes('/videos/') || lower.includes('/video/') || lower.includes('/liveness/')) return true;
+  if (lower.includes('/face-angles/')) return false;
+  return VIDEO_FILE_RE.test(lower);
+};
+
 const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null, hintedPath?: string | null) => {
   const resolvedType = await sniffBlobMimeType(blob).catch(() => "")
     || usefulMimeType(blob.type)
@@ -340,6 +348,11 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
   const adminToken = resolveStoredAdminToken();
   const candidates = buildStorageCandidates(raw, defaultBucket);
   for (const candidate of candidates) {
+    if (shouldStreamSignedStoragePath(candidate)) {
+      const signed = await signAdminStoragePath(candidate);
+      if (signed) return signed;
+    }
+
     const cacheKey = `${adminToken || 'anon'}::download::${candidate.bucket}/${candidate.path}`;
     const cached = signedUrlCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) return cached.url;
