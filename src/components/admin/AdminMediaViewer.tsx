@@ -111,7 +111,7 @@ export function AdminMediaFrame({
     : kind;
   const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
   const mediaKind = rawKind;
-  const videoType = useMemo(() => (displaySrc ? getVideoMimeType(displaySrc) : undefined), [displaySrc]);
+  const videoType = useMemo(() => blobMimeType.startsWith("video/") ? blobMimeType : (displaySrc ? getVideoMimeType(displaySrc) : undefined), [blobMimeType, displaySrc]);
 
   useEffect(() => {
     if (kind !== "auto" || !displaySrc?.startsWith("blob:")) return;
