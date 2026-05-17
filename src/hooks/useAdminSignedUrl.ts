@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
+import { resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
 
 /**
  * Resolves a (possibly private) Supabase Storage URL/path into a signed URL
@@ -20,7 +20,10 @@ export function useAdminSignedUrl(
     let cancelled = false;
     setUrl(null);
     (async () => {
-      const resolved = await resolveAdminStorageImageUrl(value, bucket);
+      const resolver = bucket === "face-verification" || bucket === "host-verification"
+        ? resolveAdminStorageObjectUrl
+        : resolveAdminStorageImageUrl;
+      const resolved = await resolver(value, bucket);
       if (!cancelled) setUrl(resolved);
     })();
     return () => {
@@ -50,10 +53,13 @@ export function useAdminSignedUrls(
     let cancelled = false;
     setUrls([]);
     (async () => {
+      const resolver = bucket === "face-verification" || bucket === "host-verification"
+        ? resolveAdminStorageObjectUrl
+        : resolveAdminStorageImageUrl;
       const resolved = await Promise.all(
-        list.map((v) => resolveAdminStorageImageUrl(v, bucket)),
+        list.map((v) => resolver(v, bucket)),
       );
-      if (!cancelled) setUrls(resolved.filter((u): u is string => Boolean(u)));
+      if (!cancelled) setUrls(resolved.map((u) => u || ""));
     })();
     return () => {
       cancelled = true;
