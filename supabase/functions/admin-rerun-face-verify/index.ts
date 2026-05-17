@@ -80,7 +80,24 @@ async function rekognitionCall(
   return await res.json();
 }
 
-async function fetchImageBytes(url: string): Promise<Uint8Array> {
+function parseStorageUrl(url: string): { bucket: string; path: string } | null {
+  try {
+    const u = new URL(url);
+    const m = u.pathname.match(/\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/]+)\/(.+)$/);
+    if (!m) return null;
+    return { bucket: decodeURIComponent(m[1]), path: decodeURIComponent(m[2]) };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchImageBytes(url: string, supabaseAdmin: ReturnType<typeof createClient>): Promise<Uint8Array> {
+  const parsed = parseStorageUrl(url);
+  if (parsed) {
+    const { data, error } = await supabaseAdmin.storage.from(parsed.bucket).download(parsed.path);
+    if (error || !data) throw new Error(`storage download failed: ${error?.message || "no data"}`);
+    return new Uint8Array(await data.arrayBuffer());
+  }
   const r = await fetch(url);
   if (!r.ok) throw new Error(`Failed to fetch image: ${r.status}`);
   return new Uint8Array(await r.arrayBuffer());
@@ -126,7 +143,7 @@ serve(async (req) => {
 
     const { data: submission, error: subErr } = await supabaseAdmin
       .from("face_verification_submissions")
-      .select("id, user_id, profile_photo_url, face_image_url, video_url, host_photos, verification_type, admin_notes")
+      .select("id, user_id, profile_photo_url, face_image_url, selfie_url, front_url, left_url, right_url, video_url, host_photos, verification_type, admin_notes")
       .eq("id", submissionId)
       .maybeSingle();
 
@@ -136,10 +153,11 @@ serve(async (req) => {
       });
     }
 
-    // Pick the best "live face" image: face_image_url first, then host_photos[0], then video poster (skipped)
+    // Pick the best still image first. face_image_url is usually a video, while
+    // front/selfie are the captured still frames used by the auto analyzer.
     const liveFaceUrl: string | null =
-      submission.face_image_url && !String(submission.face_image_url).startsWith("admin-approved://")
-        ? submission.face_image_url
+      submission.front_url || submission.selfie_url
+        ? (submission.front_url || submission.selfie_url)
         : Array.isArray(submission.host_photos) && submission.host_photos.length > 0
           ? submission.host_photos[0]
           : null;
@@ -173,23 +191,7 @@ serve(async (req) => {
       });
     }
 
-    // Re-fetch live face bytes (may be a video URL → skip if not image)
-    const isImageUrl = (u: string) => /\.(jpe?g|png|webp|bmp)(\?|$)/i.test(u);
-    if (!isImageUrl(liveFaceUrl)) {
-      const note = `[Re-run @ ${new Date().toISOString()}] ⚠️ Live face is a video (${liveFaceUrl.split('/').pop()}) — AWS DetectFaces needs a still image. Use a host_photo or ask user to re-submit a photo.`;
-      await supabaseAdmin
-        .from("face_verification_submissions")
-        .update({
-          admin_notes: `${note}${submission.admin_notes ? "\n---\n" + submission.admin_notes : ""}`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", submissionId);
-      return new Response(JSON.stringify({ ok: false, error: "Live face is video, not image" }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const liveBytes = await fetchImageBytes(liveFaceUrl);
+    const liveBytes = await fetchImageBytes(liveFaceUrl, supabaseAdmin);
 
     // DetectFaces
     const detect = await rekognitionCall(
@@ -210,7 +212,7 @@ serve(async (req) => {
     let compareSummary = "no reference image";
     if (finalReferenceUrl) {
       try {
-        const refBytes = await fetchImageBytes(finalReferenceUrl);
+        const refBytes = await fetchImageBytes(finalReferenceUrl, supabaseAdmin);
         const cmp = await rekognitionCall(
           "CompareFaces",
           {
