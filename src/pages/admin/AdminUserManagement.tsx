@@ -95,9 +95,25 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
-  return ['pending', 'submitted', 'under_review', 'approved', 'rejected'].includes(normalized)
-    ? normalized as FaceVerificationSubmission['status']
-    : 'pending';
+  if (['approved', 'auto_approved', 'auto-approved', 'auto_verified', 'auto-verified'].includes(normalized)) return 'approved';
+  if (['rejected', 'auto_rejected', 'auto-rejected'].includes(normalized)) return 'rejected';
+  if (['pending', 'submitted', 'under_review'].includes(normalized)) return normalized as FaceVerificationSubmission['status'];
+  return 'pending';
+};
+
+const inferFaceReviewSource = (s: any): 'auto' | 'manual' => {
+  const status = String(s?.status || '').trim().toLowerCase();
+  const method = String(s?.verification_method || '').trim().toLowerCase();
+  const reviewSource = String(s?.review_source || '').trim().toLowerCase();
+  const notes = String(s?.admin_notes || '').toLowerCase();
+  if (
+    Boolean(s?.is_auto_reviewed) ||
+    reviewSource === 'auto' ||
+    method.startsWith('auto') ||
+    ['auto_approved', 'auto-approved', 'auto_verified', 'auto-verified', 'auto_rejected', 'auto-rejected'].includes(status) ||
+    isAutoFaceReview(status, notes)
+  ) return 'auto';
+  return 'manual';
 };
 // Helper to parse verification details from admin_notes
 function parseVerificationDetails(adminNotes: string | null) {
