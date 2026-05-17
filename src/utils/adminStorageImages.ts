@@ -402,7 +402,11 @@ const resolveVideoPoster = async (video: HTMLVideoElement) => {
   if (video.dataset.adminPosterResolving === "true") return;
   video.dataset.adminOriginalPoster = originalPoster;
   video.dataset.adminPosterResolving = "true";
-  const resolved = await resolveAdminStorageImageUrl(originalPoster, inferDefaultBucketForElement(video)).catch(() => null);
+  const bucket = inferDefaultBucketForElement(video);
+  const resolver = bucket === "face-verification" || bucket === "host-verification"
+    ? resolveAdminStorageObjectUrl
+    : resolveAdminStorageImageUrl;
+  const resolved = await resolver(originalPoster, bucket).catch(() => null);
   delete video.dataset.adminPosterResolving;
   if (resolved) video.setAttribute("poster", resolved);
 };
@@ -421,7 +425,10 @@ const resolveElementSrc = async (el: AdminMediaElement, defaultBucket?: string) 
     el.src = TRANSPARENT_PIXEL;
   }
 
-  const resolved = await resolveAdminStorageImageUrl(original, bucket).catch(() => null);
+  const resolver = bucket === "face-verification" || bucket === "host-verification"
+    ? resolveAdminStorageObjectUrl
+    : resolveAdminStorageImageUrl;
+  const resolved = await resolver(original, bucket).catch(() => null);
   delete el.dataset.adminResolving;
 
   if (resolved) {

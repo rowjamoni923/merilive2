@@ -423,7 +423,7 @@ const AdminFaceVerification = () => {
   const getVerificationSteps = (sub: Submission): StepItem[] => {
     const isHost = getEffectiveVerificationType(sub) === 'host';
     const hasProfilePhoto = !!(sub.profile_photo_url || sub.profile?.avatar_url);
-    const hasFaceEvidence = !!(sub.front_url || sub.selfie_url || sub.face_image_url);
+    const hasFaceEvidence = !!(sub.front_url || sub.left_url || sub.right_url || sub.selfie_url || sub.face_image_url || sub.video_url || (sub.host_photos && sub.host_photos.length > 0));
 
     const steps: StepItem[] = [
       {
@@ -441,7 +441,7 @@ const AdminFaceVerification = () => {
     if (isHost) {
       steps.push(
         { label: '10s Intro Video', icon: <Video className="w-4 h-4" />, done: !!sub.video_url },
-        { label: 'Host Photos', icon: <ImagePlus className="w-4 h-4" />, done: !!(sub.host_photos && sub.host_photos.length === 3), preview: sub.host_photos?.length ? <span className="text-xs text-muted-foreground">{sub.host_photos.length}/3 photos</span> : undefined },
+        { label: 'Host Photos', icon: <ImagePlus className="w-4 h-4" />, done: !!(sub.host_photos && sub.host_photos.length > 0), preview: sub.host_photos?.length ? <span className="text-xs text-muted-foreground">{sub.host_photos.length} photo{sub.host_photos.length > 1 ? 's' : ''}</span> : undefined },
       );
     }
 
@@ -460,7 +460,7 @@ const AdminFaceVerification = () => {
     const effectiveType = getEffectiveVerificationType(sub);
     const hasProfilePhoto = !!(sub.profile_photo_url || sub.profile?.avatar_url);
     const videoLabel = effectiveType === 'host' ? '10s Video' : 'Face Video';
-    const hasRequiredVideo = effectiveType === 'host' ? !!sub.video_url : !!sub.face_image_url;
+    const hasRequiredVideo = effectiveType === 'host' ? !!(sub.video_url || sub.face_image_url) : !!(sub.face_image_url || sub.video_url || sub.front_url || sub.selfie_url);
 
     return { hasProfilePhoto, videoLabel, hasRequiredVideo };
   };
@@ -731,7 +731,6 @@ const AdminFaceVerification = () => {
               {filteredSubmissions.map((submission) => {
                 const { completed, total, percentage } = getCompletionData(submission);
                 const faceMatch = extractFaceMatchPercentage(submission.admin_notes);
-                const canApprove = isSubmissionEligibleForApproval(submission);
                 const mediaStatus = getSubmissionMediaStatus(submission);
 
                 return (
@@ -860,14 +859,6 @@ const AdminFaceVerification = () => {
                           className="flex-1"
                           disabled={processing}
                           onClick={() => {
-                            if (!canApprove) {
-                              toast({
-                                title: 'Approval blocked',
-                                description: 'Required verification media is incomplete. Open details to review or re-run AWS.',
-                                variant: 'destructive',
-                              });
-                              return;
-                            }
                             processSubmissionAction({
                               submission,
                               action: 'approve',
@@ -910,7 +901,6 @@ const AdminFaceVerification = () => {
           {selectedSubmission && (() => {
             const { steps, completed, total, percentage } = getCompletionData(selectedSubmission);
             const colors = getPercentageColor(percentage);
-            const canApproveSelected = isSubmissionEligibleForApproval(selectedSubmission);
 
             return (
               <div className="space-y-5">
@@ -1112,7 +1102,6 @@ const AdminFaceVerification = () => {
                         className="flex-1 bg-green-600 hover:bg-green-700"
                         disabled={processing}
                         onClick={() => {
-                          if (!canApproveSelected) return;
                           processSubmissionAction({
                             submission: selectedSubmission,
                             action: 'approve',
@@ -1148,34 +1137,25 @@ const AdminFaceVerification = () => {
                         {processing ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-2" />}
                         Re-run AWS
                       </Button>
-                      {!canApproveSelected && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 border-pink-500/50 text-pink-300 hover:bg-pink-500/10"
-                            disabled={processing}
-                            onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
-                          >
-                            ⚠️ Override → Host
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
-                            disabled={processing}
-                            onClick={() => handleManualOverrideApprove(selectedSubmission, 'user')}
-                          >
-                            ⚠️ Override → User
-                          </Button>
-                        </>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 border-pink-500/50 text-pink-300 hover:bg-pink-500/10"
+                        disabled={processing}
+                        onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
+                      >
+                        Override → Host
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
+                        disabled={processing}
+                        onClick={() => handleManualOverrideApprove(selectedSubmission, 'user')}
+                      >
+                        Override → User
+                      </Button>
                     </div>
-                    {!canApproveSelected && (
-                      <p className="text-[11px] text-amber-300/70 text-center">
-                        Standard Approve disabled — required verification media is incomplete. Use Override only after manual visual confirmation, or Re-run AWS.
-                      </p>
-                    )}
                   </div>
                 )}
 
@@ -1387,9 +1367,9 @@ const AdminFaceVerification = () => {
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     {/* Host Button */}
-                    <button disabled={processing || !selectedSubmission || !isSubmissionEligibleForApproval(selectedSubmission)}
+                    <button disabled={processing || !selectedSubmission}
                       onClick={async () => {
-                        if (!selectedSubmission || processing || actionInFlightRef.current || !isSubmissionEligibleForApproval(selectedSubmission)) return;
+                        if (!selectedSubmission || processing || actionInFlightRef.current) return;
                         actionInFlightRef.current = true;
                         setProcessing(true);
                         try {
@@ -1426,9 +1406,9 @@ const AdminFaceVerification = () => {
                     </button>
 
                     {/* User Button */}
-                    <button disabled={processing || !selectedSubmission || !isSubmissionEligibleForApproval(selectedSubmission)}
+                    <button disabled={processing || !selectedSubmission}
                       onClick={async () => {
-                        if (!selectedSubmission || processing || actionInFlightRef.current || !isSubmissionEligibleForApproval(selectedSubmission)) return;
+                        if (!selectedSubmission || processing || actionInFlightRef.current) return;
                         actionInFlightRef.current = true;
                         setProcessing(true);
                         try {

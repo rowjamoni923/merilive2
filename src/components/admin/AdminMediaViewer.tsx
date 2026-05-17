@@ -146,12 +146,12 @@ export function AdminMediaFrame({
     setDisplayPoster(null);
     setResolutionFailed(false);
     (async () => {
-      const resolver = bucket === "face-verification" || bucket === "host-verification"
+      const resolver = bucket === "face-verification" || bucket === "host-verification" || isPrivateStorage
         ? resolveAdminStorageObjectUrl
         : resolveAdminStorageImageUrl;
       const [resolved, resolvedPoster] = await Promise.all([
         resolver(src, bucket),
-        resolveAdminStorageImageUrl(poster, bucket),
+        resolver(poster, bucket),
       ]);
       if (!cancelled) {
         setDisplaySrc(resolved);
@@ -230,6 +230,7 @@ export function AdminMediaFrame({
       <div className={cn("overflow-hidden rounded-lg border border-border bg-background", className)}>
         <video
           key={displaySrc}
+          src={displaySrc}
           controls
           playsInline
           preload="metadata"
@@ -245,9 +246,7 @@ export function AdminMediaFrame({
             "x5-video-player-type": "h5",
             "x5-video-player-fullscreen": "false",
           } as Record<string, string>)}
-        >
-          {videoType ? <source src={displaySrc} type={videoType} /> : <source src={displaySrc} />}
-        </video>
+        />
       </div>
     );
   }
