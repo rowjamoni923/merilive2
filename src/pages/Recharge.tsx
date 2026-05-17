@@ -3296,36 +3296,36 @@ const Recharge = () => {
           resetHelperPaymentForm();
         }
       }}>
-        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-[2rem] max-h-[85svh] overflow-y-auto overscroll-contain touch-pan-y p-0 mx-auto border border-amber-400/60 bg-[#140d03] shadow-[0_0_60px_-12px_rgba(251,191,36,0.45)]" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'env(safe-area-inset-bottom)' } as React.CSSProperties}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-[2rem] max-h-[85svh] overflow-y-auto overscroll-contain touch-pan-y p-0 mx-auto border border-amber-400/40 bg-gradient-to-b from-[#1a1208] via-[#0f0a04] to-[#0a0703] shadow-[0_0_60px_-12px_rgba(251,191,36,0.45)] text-amber-50" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'env(safe-area-inset-bottom)' } as React.CSSProperties}>
           {helperPaymentStep === "form" && selectedHelperMethod && selectedPackage && (
             <>
               <div className="px-4 pt-4 pb-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-purple-600" />
+                    <div className="w-9 h-9 rounded-xl bg-amber-400/15 ring-1 ring-amber-400/30 flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-amber-300" />
                     </div>
-                    <h3 className="text-base font-bold text-heading">Secure Payment</h3>
+                    <h3 className="text-base font-bold text-amber-50">Secure Payment</h3>
                   </div>
-                  <button type="button" onClick={resetHelperPaymentForm} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                    <X className="w-4 h-4 text-heading" />
+                  <button type="button" onClick={resetHelperPaymentForm} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center">
+                    <X className="w-4 h-4 text-amber-50" />
                   </button>
                 </div>
 
-                <p className="text-xs text-heading mb-3">
+                <p className="text-xs text-amber-100/80 mb-3">
                   Pay via {selectedHelperMethod.method_name} to receive {formatNumber(selectedPackage.coins)} diamonds
                 </p>
 
- <div className="rounded-2xl bg-white/5 border border-slate-200/10 p-3 mb-3">
+                <div className="rounded-2xl bg-white/[0.04] border border-amber-400/15 p-3 mb-3">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-semibold text-body uppercase tracking-wider">Amount</span>
-                    <span className="text-xl font-bold text-heading">
+                    <span className="text-xs font-semibold text-amber-200/70 uppercase tracking-wider">Amount</span>
+                    <span className="text-xl font-bold text-amber-50">
                       {selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-body">You'll receive</span>
-                    <span className="text-sm font-semibold text-heading">
+                    <span className="text-xs text-amber-100/70">You'll receive</span>
+                    <span className="text-sm font-semibold text-amber-50">
                       💎 {formatNumber(selectedPackage.coins)} Diamonds
                     </span>
                   </div>
@@ -3348,68 +3348,68 @@ const Recharge = () => {
                                   e.currentTarget.nextElementSibling?.classList.remove('hidden');
                                 }}
                               />
-                              <span className="hidden text-sm font-black text-amber-700">{paymentBrandFallback(selectedHelperMethod.method_name)}</span>
+                              <span className="hidden text-sm font-black text-amber-200">{paymentBrandFallback(selectedHelperMethod.method_name)}</span>
                             </>
                           ) : (
-                            <span className="text-sm font-black text-amber-700">{paymentBrandFallback(selectedHelperMethod.method_name)}</span>
+                            <span className="text-sm font-black text-amber-200">{paymentBrandFallback(selectedHelperMethod.method_name)}</span>
                           );
                         })()}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-heading">{selectedHelperMethod.method_name}</p>
-                        <p className="text-[10px] text-body">{selectedHelperMethod.additional_info?.gateway_type ? 'Merchant' : (selectedHelperMethod.account_name || selectedHelperMethod.method_name)}</p>
+                        <p className="text-sm font-bold text-amber-50">{selectedHelperMethod.method_name}</p>
+                        <p className="text-[10px] text-amber-100/65">{selectedHelperMethod.additional_info?.gateway_type ? 'Merchant' : (selectedHelperMethod.account_name || selectedHelperMethod.method_name)}</p>
                       </div>
                     </div>
                     {selectedHelperMethod.additional_info?.gateway_type && (
-                      <div className="px-3 py-1 rounded-full bg-amber-600/30 border border-amber-500/40 flex items-center gap-1">
+                      <div className="px-3 py-1 rounded-full bg-amber-500/25 border border-amber-400/50 flex items-center gap-1">
                         <span className="text-[10px]">⚡</span>
-                        <span className="text-[10px] font-bold text-amber-700 uppercase">Auto</span>
+                        <span className="text-[10px] font-bold text-amber-200 uppercase">Auto</span>
                       </div>
                     )}
                   </div>
 
- <div className="rounded-xl bg-slate-100/20 border border-slate-200/5 p-3">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-body mb-1">
+                  <div className="rounded-xl bg-black/30 border border-amber-400/15 p-3">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-amber-200/70 mb-1">
                       {selectedHelperMethod.method_name} Number
                     </p>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-lg font-bold text-heading tracking-wide break-all">
+                      <p className="text-lg font-bold text-amber-50 tracking-wide break-all">
                         {selectedHelperMethod.account_number}
                       </p>
                       <button
                         type="button"
                         onClick={() => copyToClipboard(selectedHelperMethod.account_number)}
-                        className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-600/30 border border-amber-500/30 text-amber-700 text-xs font-semibold"
+                        className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500/25 border border-amber-400/40 text-amber-100 hover:bg-amber-500/35 text-xs font-semibold"
                       >
                         <Copy className="w-3.5 h-3.5" />
                         Copy
                       </button>
                     </div>
                     {selectedHelperMethod.account_name && (
-                      <p className="mt-1 text-[11px] text-body">• Name: {selectedHelperMethod.account_name}</p>
+                      <p className="mt-1 text-[11px] text-amber-100/65">• Name: {selectedHelperMethod.account_name}</p>
                     )}
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-amber-400/20 bg-amber-900/20 p-3 mb-3">
+                <div className="rounded-2xl border border-amber-400/30 bg-amber-900/25 p-3 mb-3">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-base">⚠️</span>
-                    <p className="text-xs font-bold text-amber-700">
+                    <p className="text-xs font-bold text-amber-200">
                       {selectedHelperMethod.additional_info?.gateway_type ? 'Auto-Approve Notice' : 'Payment Notice'}
                     </p>
                   </div>
-                  <p className="text-[11px] leading-5 text-body">
-                    👉 You must send the <strong className="text-heading">exact amount shown below</strong>, including decimals.
+                  <p className="text-[11px] leading-5 text-amber-100/80">
+                    👉 You must send the <strong className="text-amber-50">exact amount shown below</strong>, including decimals.
                   </p>
-                  <p className="mt-1 text-[11px] text-heading">
-                    💰 Amount to send: <strong className="text-amber-700">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
+                  <p className="mt-1 text-[11px] text-amber-50">
+                    💰 Amount to send: <strong className="text-amber-200">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
                   </p>
                   {selectedHelperMethod.additional_info?.gateway_type ? (
-                    <p className="mt-1 text-[11px] text-emerald-600/90">
+                    <p className="mt-1 text-[11px] text-emerald-300">
                       ⚡ Enter your transaction ID below to verify via ZiniPay.
                     </p>
                   ) : (
-                    <p className="mt-1 text-[11px] text-body">
+                    <p className="mt-1 text-[11px] text-amber-100/70">
                       Helper will check your payment proof and approve it.
                     </p>
                   )}
@@ -3420,34 +3420,34 @@ const Recharge = () => {
                     type="button"
                     onClick={handleShowDifferentHelperNumber}
                     disabled={helperMethodPool.length <= 1}
- className="w-full rounded-xl bg-white/5 border border-slate-200/10 px-3 py-2.5 text-center text-[11px] font-medium text-heading mb-3 disabled:opacity-40"
+                    className="w-full rounded-xl bg-white/[0.04] border border-amber-400/15 hover:bg-white/[0.08] px-3 py-2.5 text-center text-[11px] font-medium text-amber-100 mb-3 disabled:opacity-40"
                   >
                     Show different number ({helperMethodCycleProgress.current}/{helperMethodCycleProgress.total})
                   </button>
                 )}
 
                 <div className="space-y-3">
-                  <div className="rounded-2xl border border-amber-400/20 bg-amber-500/8 p-4">
-                    <p className="text-xs font-bold text-amber-700 mb-2">{selectedHelperMethod.additional_info?.gateway_type ? 'Auto-Approve Notice' : 'Payment Notice'}</p>
+                  <div className="rounded-2xl border border-amber-400/25 bg-amber-500/[0.06] p-4">
+                    <p className="text-xs font-bold text-amber-200 mb-2">{selectedHelperMethod.additional_info?.gateway_type ? 'Auto-Approve Notice' : 'Payment Notice'}</p>
                     <p className="text-[13px] leading-6 text-amber-100/85">
-                      👉 You must send the <strong className="text-amber-700">exact amount</strong> shown above.
+                      👉 You must send the <strong className="text-amber-50">exact amount</strong> shown above.
                     </p>
-                    <p className="mt-2 text-[13px] leading-6 text-amber-100/65">
-                      💰 Amount to send: <strong className="text-yellow-700">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
+                    <p className="mt-2 text-[13px] leading-6 text-amber-100/75">
+                      💰 Amount to send: <strong className="text-amber-200">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
                     </p>
                     {selectedHelperMethod.additional_info?.gateway_type ? (
-                      <p className="mt-2 text-[12px] text-emerald-600/90">
+                      <p className="mt-2 text-[12px] text-emerald-300">
                         ⚡ Enter your transaction ID below to verify via ZiniPay.
                       </p>
                     ) : (
-                      <p className="mt-2 text-[12px] text-amber-100/55">
+                      <p className="mt-2 text-[12px] text-amber-100/65">
                         Helper will check your payment proof and approve it.
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <Label htmlFor="helperTransactionId" className="text-body font-semibold text-[10px] uppercase tracking-wider">
+                    <Label htmlFor="helperTransactionId" className="text-amber-200/80 font-semibold text-[10px] uppercase tracking-wider">
                       Transaction ID *
                     </Label>
                     <input
@@ -3457,7 +3457,7 @@ const Recharge = () => {
                       onChange={(e) => setHelperTransactionId(e.target.value)}
                       onInput={(e) => setHelperTransactionId((e.target as HTMLInputElement).value)}
                       placeholder="Enter your TrxID here"
- className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-slate-200/10 bg-white/5 text-heading placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+                      className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-amber-400/20 bg-black/30 text-amber-50 placeholder:text-amber-100/35 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
                       autoComplete="off"
                       inputMode="text"
                       style={{ userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
@@ -3465,34 +3465,34 @@ const Recharge = () => {
                   </div>
 
                   {selectedHelperMethod.instructions && (
- <div className="rounded-xl bg-white/5 border border-slate-200/10 p-3">
-                      <p className="text-[11px] text-amber-700/80 font-medium mb-1">📝 Note</p>
-                      <p className="text-xs text-body">{selectedHelperMethod.instructions}</p>
+                    <div className="rounded-xl bg-white/[0.04] border border-amber-400/15 p-3">
+                      <p className="text-[11px] text-amber-200 font-medium mb-1">📝 Note</p>
+                      <p className="text-xs text-amber-100/80">{selectedHelperMethod.instructions}</p>
                     </div>
                   )}
 
                   {!selectedHelperMethod.additional_info?.gateway_type && (
                     <div>
-                      <Label className="text-body text-[10px] uppercase tracking-wider font-semibold">Payment Screenshot *</Label>
+                      <Label className="text-amber-200/80 text-[10px] uppercase tracking-wider font-semibold">Payment Screenshot *</Label>
                       <div className="mt-1">
                         {helperPaymentProof ? (
- <div className="relative rounded-xl overflow-hidden border border-slate-200/10">
+                          <div className="relative rounded-xl overflow-hidden border border-amber-400/20">
                             <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" />
                             <button
                               onClick={() => setHelperPaymentProof(null)}
-                              className="absolute top-2 right-2 bg-red-500/80 text-heading p-1 rounded-full"
+                              className="absolute top-2 right-2 bg-red-500/80 text-white p-1 rounded-full"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
- <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-slate-200/15 rounded-xl cursor-pointer hover:bg-white/[0.02] transition-colors">
+                          <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-amber-400/25 rounded-xl cursor-pointer hover:bg-white/[0.04] transition-colors">
                             {uploadingHelperProof ? (
                               <div className="w-5 h-5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
                             ) : (
                               <>
-                                <Upload className="w-5 h-5 text-body mb-1" />
-                                <span className="text-xs text-body">Upload screenshot</span>
+                                <Upload className="w-5 h-5 text-amber-200/70 mb-1" />
+                                <span className="text-xs text-amber-100/70">Upload screenshot</span>
                               </>
                             )}
                             <input
@@ -3512,7 +3512,7 @@ const Recharge = () => {
                     type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleHelperPaymentSubmit(); }}
                     disabled={!helperTransactionId.trim() || helperPaymentProcessing}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-[#2d1a00] font-bold text-base shadow-lg transition-all disabled:opacity-40"
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-[#2d1a00] font-bold text-base shadow-[0_8px_24px_-6px_rgba(251,191,36,0.55)] hover:brightness-105 transition-all disabled:opacity-40"
                   >
                     {helperPaymentProcessing
                       ? 'Processing...'
@@ -3527,39 +3527,39 @@ const Recharge = () => {
 
           {helperPaymentStep === "processing" && (
             <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
-              <h3 className="text-lg font-bold text-heading mb-2">Sending to Helper</h3>
-              <p className="text-heading">Please wait while we notify the helper...</p>
+              <div className="w-16 h-16 mx-auto mb-4 border-4 border-amber-400/30 border-t-amber-300 rounded-full animate-spin" />
+              <h3 className="text-lg font-bold text-amber-50 mb-2">Sending to Helper</h3>
+              <p className="text-amber-100/75">Please wait while we notify the helper...</p>
             </div>
           )}
 
           {helperPaymentStep === "pending" && selectedPackage && (
-            <div className="text-center py-8">
-              <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                <Check className="w-10 h-10 text-green-500" />
+            <div className="text-center py-8 px-4">
+              <div className="w-20 h-20 mx-auto mb-4 bg-emerald-500/15 ring-1 ring-emerald-400/40 rounded-full flex items-center justify-center">
+                <Check className="w-10 h-10 text-emerald-300" />
               </div>
-              <h3 className="text-xl font-bold text-heading mb-2">Order Submitted!</h3>
-              <p className="text-heading mb-4">
+              <h3 className="text-xl font-bold text-amber-50 mb-2">Order Submitted!</h3>
+              <p className="text-amber-100/80 mb-4">
                 Helper has been notified and will process your order instantly.
               </p>
-              
-              <div className="bg-gradient-to-r from-orange-50 to-rose-50 rounded-2xl p-4 border border-orange-100 mb-6">
-                <div className="flex items-center justify-center gap-2 text-lg font-bold text-orange-600">
+
+              <div className="bg-gradient-to-r from-amber-500/15 to-amber-400/10 rounded-2xl p-4 border border-amber-400/25 mb-6">
+                <div className="flex items-center justify-center gap-2 text-lg font-bold text-amber-200">
                   <Diamond className="w-5 h-5" />
                   {formatNumber(selectedPackage.coins)} Diamonds
                 </div>
-                <p className="text-sm text-heading mt-1">Will be credited after helper approves</p>
+                <p className="text-sm text-amber-100/70 mt-1">Will be credited after helper approves</p>
               </div>
 
-              <div className="bg-blue-500/10 rounded-xl p-3 mb-6">
-                <p className="text-sm text-blue-600">
+              <div className="bg-sky-500/10 border border-sky-400/25 rounded-xl p-3 mb-6">
+                <p className="text-sm text-sky-200">
                   ⚡ Helper usually approves within 1-5 minutes. You'll get instant notification!
                 </p>
               </div>
 
               <Button
                 onClick={resetHelperPaymentForm}
-                className="w-full py-4 rounded-xl bg-white/10 text-body hover:bg-white/20"
+                className="w-full py-4 rounded-xl bg-white/10 text-amber-50 hover:bg-white/15"
               >
                 Close
               </Button>
