@@ -78,6 +78,17 @@ export const clearAdminStorageImageCache = () => {
   objectUrlCache.clear();
 };
 
+// Clear caches whenever the admin session is established/refreshed, so any
+// prior "no admin token" failures don't poison subsequent image loads.
+if (typeof window !== "undefined") {
+  window.addEventListener("admin-session-change", () => {
+    signedUrlCache.clear();
+    failedSignedUrlCache.clear();
+    inFlightSignedUrls.clear();
+  });
+}
+
+
 const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
 
 const readStorageValue = (storage: Storage | undefined, key: string) => {
