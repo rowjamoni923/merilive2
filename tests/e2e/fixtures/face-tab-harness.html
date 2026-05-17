@@ -22,10 +22,10 @@
   <body>
     <h1>Admin · Face Verification — Tab/Button Visibility</h1>
     <div class="tabs" role="tablist" aria-label="Face verification status">
-      <button class="tab" role="tab" data-tab="pending"  aria-selected="true">Pending</button>
-      <button class="tab" role="tab" data-tab="approved" aria-selected="false">Approved</button>
-      <button class="tab" role="tab" data-tab="rejected" aria-selected="false">Rejected</button>
-      <button class="tab" role="tab" data-tab="all"      aria-selected="false">All</button>
+      <button class="tab" role="tab" data-tab="pending"  aria-selected="true">Pending <span class="tab-count" data-testid="tab-count-pending"  data-tab="pending">0</span></button>
+      <button class="tab" role="tab" data-tab="approved" aria-selected="false">Approved <span class="tab-count" data-testid="tab-count-approved" data-tab="approved">0</span></button>
+      <button class="tab" role="tab" data-tab="rejected" aria-selected="false">Rejected <span class="tab-count" data-testid="tab-count-rejected" data-tab="rejected">0</span></button>
+      <button class="tab" role="tab" data-tab="all"      aria-selected="false">All <span class="tab-count" data-testid="tab-count-all"      data-tab="all">0</span></button>
     </div>
     <div id="last-action" data-testid="last-action" aria-live="polite" style="margin:8px 0; min-height:18px; font-weight:600;"></div>
     <div id="action-log" data-testid="action-log" hidden></div>
