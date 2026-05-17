@@ -197,7 +197,10 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
   if (!value) return null;
   const raw = value.trim();
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return value;
-  if (isAlreadySignedStorageUrl(raw)) return raw;
+  if (isAlreadySignedStorageUrl(raw)) {
+    const signedPath = extractAdminStoragePath(raw, defaultBucket);
+    if (!signedPath || !PRIVATE_STORAGE_BUCKETS.has(signedPath.bucket)) return raw;
+  }
 
   const candidates = buildStorageCandidates(raw, defaultBucket);
   if (!candidates.length) return value;
