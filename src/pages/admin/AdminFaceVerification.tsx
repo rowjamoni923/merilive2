@@ -423,7 +423,7 @@ const AdminFaceVerification = () => {
   const getVerificationSteps = (sub: Submission): StepItem[] => {
     const isHost = getEffectiveVerificationType(sub) === 'host';
     const hasProfilePhoto = !!(sub.profile_photo_url || sub.profile?.avatar_url);
-    const hasFaceEvidence = !!(sub.front_url || sub.selfie_url || sub.face_image_url);
+    const hasFaceEvidence = !!(sub.front_url || sub.left_url || sub.right_url || sub.selfie_url || sub.face_image_url || sub.video_url || (sub.host_photos && sub.host_photos.length > 0));
 
     const steps: StepItem[] = [
       {
@@ -441,7 +441,7 @@ const AdminFaceVerification = () => {
     if (isHost) {
       steps.push(
         { label: '10s Intro Video', icon: <Video className="w-4 h-4" />, done: !!sub.video_url },
-        { label: 'Host Photos', icon: <ImagePlus className="w-4 h-4" />, done: !!(sub.host_photos && sub.host_photos.length === 3), preview: sub.host_photos?.length ? <span className="text-xs text-muted-foreground">{sub.host_photos.length}/3 photos</span> : undefined },
+        { label: 'Host Photos', icon: <ImagePlus className="w-4 h-4" />, done: !!(sub.host_photos && sub.host_photos.length > 0), preview: sub.host_photos?.length ? <span className="text-xs text-muted-foreground">{sub.host_photos.length} photo{sub.host_photos.length > 1 ? 's' : ''}</span> : undefined },
       );
     }
 
@@ -460,7 +460,7 @@ const AdminFaceVerification = () => {
     const effectiveType = getEffectiveVerificationType(sub);
     const hasProfilePhoto = !!(sub.profile_photo_url || sub.profile?.avatar_url);
     const videoLabel = effectiveType === 'host' ? '10s Video' : 'Face Video';
-    const hasRequiredVideo = effectiveType === 'host' ? !!sub.video_url : !!sub.face_image_url;
+    const hasRequiredVideo = effectiveType === 'host' ? !!(sub.video_url || sub.face_image_url) : !!(sub.face_image_url || sub.video_url || sub.front_url || sub.selfie_url);
 
     return { hasProfilePhoto, videoLabel, hasRequiredVideo };
   };
