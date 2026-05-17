@@ -341,7 +341,7 @@ serve(async (req) => {
     const autoReason = String(autoResult?.reason || "");
     if (!autoResult?.success && ["invalid_face_count", "front_error", "underage", "face_occluded"].includes(autoReason)) {
       const reasonText = autoReason === "invalid_face_count"
-        ? `Auto rejected: ${v_face_count === 0 ? "no face detected" : "multiple faces detected"}.`
+        ? `Auto rejected: ${details.length === 0 ? "no face detected" : "multiple faces detected"}.`
         : autoReason === "underage"
           ? "Auto rejected: detected age appears under 18."
           : autoReason === "face_occluded"
