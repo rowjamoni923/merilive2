@@ -366,6 +366,7 @@ export default function AdminUserManagement() {
   const [faceSubmissions, setFaceSubmissions] = useState<FaceVerificationSubmission[]>([]);
   const [faceSearchQuery, setFaceSearchQuery] = useState("");
   const [faceActiveTab, setFaceActiveTab] = useState("pending");
+  const [faceMismatchOnly, setFaceMismatchOnly] = useState(false);
   const [selectedFaceSubmission, setSelectedFaceSubmission] = useState<FaceVerificationSubmission | null>(null);
   const [showFaceDetailModal, setShowFaceDetailModal] = useState(false);
   const [showFaceActionModal, setShowFaceActionModal] = useState(false);
