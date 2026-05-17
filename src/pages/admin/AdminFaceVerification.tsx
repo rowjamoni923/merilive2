@@ -577,8 +577,8 @@ const AdminFaceVerification = () => {
       return isRejected(sub) && isAutoReviewed(sub);
     }
     if (activeTab === 'pending') return isPendingBucket(sub);
-    if (activeTab === 'approved') return isApproved(sub) && !isAutoReviewed(sub);
-    if (activeTab === 'rejected') return isRejected(sub) && !isAutoReviewed(sub);
+    if (activeTab === 'approved') return isApproved(sub);
+    if (activeTab === 'rejected') return isRejected(sub);
     if (activeTab === 'all') return true;
     return false;
   });
@@ -586,9 +586,9 @@ const AdminFaceVerification = () => {
   // Shared counter — guaranteed to be in sync with server bucket rules.
   const visibleCounts = countFaceReviewBuckets(visiblePool, (s) => s.status, (s) => s.admin_notes);
   const pendingCount = visibleCounts.pending;
-  const approvedCount = visibleCounts.manual_approved;
+  const approvedCount = visibleCounts.approved;
   const autoApprovedCount = visibleCounts.auto_approved;
-  const rejectedCount = visibleCounts.manual_rejected;
+  const rejectedCount = visibleCounts.rejected;
   const autoRejectedCount = visibleCounts.auto_rejected;
 
   if (loading) {
@@ -685,9 +685,18 @@ const AdminFaceVerification = () => {
             Auto Rejected
             {autoRejectedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{autoRejectedCount}</span>}
           </TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="approved" className="relative">
+            Approved
+            {approvedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{approvedCount}</span>}
+          </TabsTrigger>
+          <TabsTrigger value="rejected" className="relative">
+            Rejected
+            {rejectedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{rejectedCount}</span>}
+          </TabsTrigger>
+          <TabsTrigger value="all" className="relative">
+            All
+            {visiblePool.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{visiblePool.length}</span>}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-4">
