@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AdminMediaDialog, AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
+import { FaceSubmissionMediaBlocks } from "@/components/admin/FaceSubmissionMediaBlocks";
 import {
   Dialog,
   DialogContent,
@@ -74,6 +75,10 @@ interface HostSubmission {
   video_url: string | null;
   host_photos: string[] | null;
   face_image_url: string | null;
+  selfie_url?: string | null;
+  front_url?: string | null;
+  left_url?: string | null;
+  right_url?: string | null;
   rejection_reason: string | null;
   admin_notes: string | null;
   created_at: string;
