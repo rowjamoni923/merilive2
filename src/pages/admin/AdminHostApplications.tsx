@@ -3,7 +3,7 @@ import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { invalidateStatusCountsCache } from "@/lib/admin/statusCounts";
-import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
+import { resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
 import { fetchHostApplicationStatusCounts } from "@/pages/admin/hostApplicationsStatusCounts";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -385,10 +385,10 @@ export default function AdminHostApplications() {
     (async () => {
       const a = selectedApplication;
       const [profile_photo_url, video_url, face_image_url, ...hostPhotos] = await Promise.all([
-        resolveAdminStorageImageUrl(a.profile_photo_url, 'face-verification'),
-        resolveAdminStorageImageUrl(a.video_url, 'face-verification'),
-        resolveAdminStorageImageUrl(a.face_image_url, 'face-verification'),
-        ...((a.host_photos || []).map((u) => resolveAdminStorageImageUrl(u, 'face-verification'))),
+        resolveAdminStorageObjectUrl(a.profile_photo_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(a.video_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(a.face_image_url, 'face-verification'),
+        ...((a.host_photos || []).map((u) => resolveAdminStorageObjectUrl(u, 'face-verification'))),
       ]);
       if (cancelled) return;
       setResolvedMedia({
