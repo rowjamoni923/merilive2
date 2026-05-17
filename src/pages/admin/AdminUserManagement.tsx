@@ -2288,7 +2288,9 @@ export default function AdminUserManagement() {
               <TabsTrigger value="rejected" className="relative data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700">Rejected
                 {rejectedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{rejectedFaceCount}</span>}
               </TabsTrigger>
-              <TabsTrigger value="all" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700">All</TabsTrigger>
+              <TabsTrigger value="all" className="relative data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700">All
+                {faceVisiblePool.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{faceVisiblePool.length}</span>}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value={faceActiveTab} className="mt-4">
