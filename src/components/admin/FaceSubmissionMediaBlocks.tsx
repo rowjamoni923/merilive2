@@ -40,10 +40,15 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
   // Selfie only used as last-resort face media if no front_url AND no face clip.
   const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
   const faceMedia = angleMedia[0] || faceClip || selfieFallback;
+  // Real liveness recording (face-videos/*.webm). Show separately whenever it
+  // is distinct from the main face frame AND the intro video, so admins never
+  // miss the actual scan recording when 3-angle stills are also captured.
+  const livenessClip = faceClip && faceClip !== faceMedia && faceClip !== introVideo ? faceClip : null;
   const hostPhotos = (submission.host_photos || []).filter(isRenderableFaceMediaUrl);
   const profilePhotoUrl = useAdminSignedUrl(profilePhoto, "face-verification") || profilePhoto;
   const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
   const introVideoUrl = useAdminSignedUrl(introVideo, "face-verification") || introVideo;
+  const livenessClipUrl = useAdminSignedUrl(livenessClip, "face-verification") || livenessClip;
   const resolvedAngleMedia = useAdminSignedUrls(angleMedia, "face-verification");
   const resolvedHostPhotos = useAdminSignedUrls(hostPhotos, "face-verification");
 
@@ -70,7 +75,14 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
         </div>
       )}
 
-      {introVideo && introVideo !== faceMedia && (
+      {livenessClip && (
+        <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+          <p className="text-xs font-semibold text-purple-600 mb-2">🎬 Face Liveness Recording</p>
+          <AdminMediaFrame src={livenessClipUrl} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName="max-h-64" />
+        </div>
+      )}
+
+      {introVideo && introVideo !== faceMedia && introVideo !== livenessClip && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
           <AdminMediaFrame src={introVideoUrl} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName="max-h-64" />
@@ -117,9 +129,11 @@ export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubm
   const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
   const faceMedia = faceAngles[0] || faceClip || selfieFallback;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
+  const livenessClip = faceClip && faceClip !== faceMedia && faceClip !== introVideo ? faceClip : null;
   const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
   const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
   const introVideoUrl = useAdminSignedUrl(introVideo, "face-verification") || introVideo;
+  const livenessClipUrl = useAdminSignedUrl(livenessClip, "face-verification") || livenessClip;
   const profilePhotoUrl = useAdminSignedUrl(profilePhoto, "face-verification") || profilePhoto;
 
   return (
@@ -128,7 +142,11 @@ export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubm
         <AdminMediaFrame src={faceMediaUrl} alt="Face" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
       )}
 
-      {introVideo && introVideo !== faceMedia && (
+      {livenessClip && (
+        <AdminMediaFrame src={livenessClipUrl} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName="h-64" />
+      )}
+
+      {introVideo && introVideo !== faceMedia && introVideo !== livenessClip && (
         <AdminMediaFrame src={introVideoUrl} alt="Verification video" kind="video" bucket="face-verification" className="bg-background" mediaClassName="h-64" />
       )}
     </>
