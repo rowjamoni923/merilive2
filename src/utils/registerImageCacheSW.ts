@@ -75,19 +75,19 @@ export async function warmAppImageCache(): Promise<void> {
 
     const safe = async (fn: () => Promise<any>) => { try { await fn(); } catch {} };
     queries.push(safe(async () => {
-      const { data } = await supabase.from('event_popup_banners').select('image_url, banner_image_url').eq('is_active', true).limit(20);
-      (data || []).forEach((r: any) => { push(r.image_url); push(r.banner_image_url); });
+      const { data } = await supabase.from('entry_banners').select('image_url, animation_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => { push(r.image_url); push(r.animation_url); });
     }));
     queries.push(safe(async () => {
-      const { data } = await (supabase as any).from('payment_banners').select('image_url').eq('is_active', true).limit(20);
+      const { data } = await supabase.from('rating_banners').select('image_url').eq('is_active', true).limit(20);
       (data || []).forEach((r: any) => push(r.image_url));
     }));
     queries.push(safe(async () => {
-      const { data } = await (supabase as any).from('topup_campaigns').select('banner_image_url, image_url').eq('is_active', true).limit(10);
-      (data || []).forEach((r: any) => { push(r.banner_image_url); push(r.image_url); });
+      const { data } = await supabase.from('recharge_campaigns').select('banner_image_url').eq('is_active', true).limit(10);
+      (data || []).forEach((r: any) => push(r.banner_image_url));
     }));
     queries.push(safe(async () => {
-      const { data } = await (supabase as any).from('app_banners').select('image_url').eq('is_active', true).limit(20);
+      const { data } = await supabase.from('banners').select('image_url').eq('is_active', true).limit(20);
       (data || []).forEach((r: any) => push(r.image_url));
     }));
 
