@@ -695,29 +695,29 @@ const AdminFaceVerification = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-6 w-full max-w-2xl">
-          <TabsTrigger value="pending" className="relative">
+          <TabsTrigger value="pending" className="relative" data-testid="tab-pending">
             Pending
-            {pendingCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{pendingCount}</span>}
+            <span data-testid="tab-count-pending" className={pendingCount > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{pendingCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="auto_approved" className="relative text-xs">
+          <TabsTrigger value="auto_approved" className="relative text-xs" data-testid="tab-auto_approved">
             Auto Approved
-            {autoApprovedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-cyan-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{autoApprovedCount}</span>}
+            <span data-testid="tab-count-auto_approved" className={autoApprovedCount > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-cyan-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{autoApprovedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="auto_rejected" className="relative text-xs">
+          <TabsTrigger value="auto_rejected" className="relative text-xs" data-testid="tab-auto_rejected">
             Auto Rejected
-            {autoRejectedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{autoRejectedCount}</span>}
+            <span data-testid="tab-count-auto_rejected" className={autoRejectedCount > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{autoRejectedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="approved" className="relative">
+          <TabsTrigger value="approved" className="relative" data-testid="tab-approved">
             Approved
-            {approvedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{approvedCount}</span>}
+            <span data-testid="tab-count-approved" className={approvedCount > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{approvedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="rejected" className="relative">
+          <TabsTrigger value="rejected" className="relative" data-testid="tab-rejected">
             Rejected
-            {rejectedCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{rejectedCount}</span>}
+            <span data-testid="tab-count-rejected" className={rejectedCount > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{rejectedCount}</span>
           </TabsTrigger>
-          <TabsTrigger value="all" className="relative">
+          <TabsTrigger value="all" className="relative" data-testid="tab-all">
             All
-            {visiblePool.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{visiblePool.length}</span>}
+            <span data-testid="tab-count-all" className={visiblePool.length > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{visiblePool.length}</span>
           </TabsTrigger>
         </TabsList>
 
