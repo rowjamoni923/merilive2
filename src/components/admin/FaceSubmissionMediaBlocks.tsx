@@ -1,4 +1,5 @@
 import { AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
+import { useAdminSignedUrl, useAdminSignedUrls } from "@/hooks/useAdminSignedUrl";
 
 interface MediaSubmission {
   profile_photo_url?: string | null;
@@ -23,14 +24,20 @@ const isRenderableFaceMediaUrl = (url?: string | null): url is string => {
  */
 export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSubmission }) {
   const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
-  const faceMedia = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
+  const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
   const angleMedia = [
     submission.front_url || submission.selfie_url,
     submission.left_url,
     submission.right_url,
   ].filter(isRenderableFaceMediaUrl);
+  const faceMedia = angleMedia[0] || faceClip;
   const hostPhotos = (submission.host_photos || []).filter(isRenderableFaceMediaUrl);
+  const profilePhotoUrl = useAdminSignedUrl(profilePhoto, "face-verification") || profilePhoto;
+  const faceMediaUrl = useAdminSignedUrl(faceMedia, "face-verification") || faceMedia;
+  const introVideoUrl = useAdminSignedUrl(introVideo, "face-verification") || introVideo;
+  const resolvedAngleMedia = useAdminSignedUrls(angleMedia, "face-verification");
+  const resolvedHostPhotos = useAdminSignedUrls(hostPhotos, "face-verification");
 
   return (
     <>
@@ -38,9 +45,10 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">📷 Profile Photo</p>
           <AdminMediaFrame
-            src={profilePhoto}
+            src={profilePhotoUrl}
             alt="Profile"
             kind="image"
+            bucket="face-verification"
             className="w-24 h-24 rounded-xl border-2 border-purple-300"
             mediaClassName="object-cover"
           />
@@ -50,14 +58,14 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
       {faceMedia && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🔍 Face Verification</p>
-          <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" poster={profilePhoto} className="bg-background" mediaClassName="max-h-64" />
+          <AdminMediaFrame src={faceMediaUrl} alt="Face" kind="auto" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName="max-h-64" />
         </div>
       )}
 
       {introVideo && introVideo !== faceMedia && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
-          <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" poster={profilePhoto} className="bg-background" mediaClassName="max-h-64" />
+          <AdminMediaFrame src={introVideoUrl} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhotoUrl} className="bg-background" mediaClassName="max-h-64" />
         </div>
       )}
 
@@ -66,7 +74,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
           <p className="text-xs font-semibold text-purple-600 mb-2">🔐 Manual Face Angles ({angleMedia.length})</p>
           <div className="grid grid-cols-3 gap-2">
             {angleMedia.map((url, idx) => (
-              <AdminMediaFrame key={idx} src={url} alt={`Face angle ${idx + 1}`} className="aspect-square bg-background" mediaClassName="object-cover" />
+              <AdminMediaFrame key={idx} src={resolvedAngleMedia[idx] || url} alt={`Face angle ${idx + 1}`} bucket="face-verification" className="aspect-square bg-background" mediaClassName="object-cover" />
             ))}
           </div>
         </div>
@@ -79,9 +87,10 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
             {hostPhotos.map((photo, idx) => (
               <AdminMediaFrame
                 key={idx}
-                src={photo}
+                src={resolvedHostPhotos[idx] || photo}
                 alt={`Host ${idx + 1}`}
                 kind="image"
+                bucket="face-verification"
                 className="w-20 h-20 rounded-lg border-2 border-slate-300 flex-shrink-0"
                 mediaClassName="object-cover"
               />
