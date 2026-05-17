@@ -55,7 +55,7 @@ const sniffMimeFromBytes = (bytes: Uint8Array): string => {
 // Hard fallback for face bucket — when neither metadata, nor extension, nor
 // sniff yields anything, default angle stills to JPG and recordings to MP4.
 const faceBucketFallback = (bucket: string, path: string): string => {
-  if (bucket !== "face-verification") return "";
+  if (bucket !== "face-verification" && bucket !== "host-verification") return "";
   const lower = path.toLowerCase();
   if (lower.includes("/face-videos/") || lower.includes("/liveness/") || lower.includes("/video/") || lower.includes("/videos/")) return "video/mp4";
   if (lower.includes("/face-angles/") || lower.includes("/host-photos/") || lower.includes("/profile/") || lower.includes("/selfie")) return "image/jpeg";
