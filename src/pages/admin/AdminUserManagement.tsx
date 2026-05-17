@@ -1366,6 +1366,8 @@ export default function AdminUserManagement() {
     : faceSearchMatches;
 
   const filteredFaceSubmissions = faceVisiblePool.filter(sub => {
+    if (faceActiveTab === 'auto_approved') return isFaceApproved(sub) && isFaceAutoReviewed(sub);
+    if (faceActiveTab === 'auto_rejected') return isFaceRejected(sub) && isFaceAutoReviewed(sub);
     if (faceActiveTab === 'pending') return isFacePendingBucket(sub);
     if (faceActiveTab === 'approved') return isFaceApproved(sub);
     if (faceActiveTab === 'rejected') return isFaceRejected(sub);
@@ -1377,11 +1379,10 @@ export default function AdminUserManagement() {
   const pendingFaceCount = faceCounts.pending;
   const approvedFaceCount = faceCounts.approved;
   const rejectedFaceCount = faceCounts.rejected;
-  const allFaceCounts = countFaceReviewBuckets(faceSubmissions, (s) => s.status, (s) => s.admin_notes);
   const autoApprovedFaceSubmissions = faceSubmissions.filter((s) => isFaceApproved(s) && isFaceAutoReviewed(s));
   const autoRejectedFaceSubmissions = faceSubmissions.filter((s) => isFaceRejected(s) && isFaceAutoReviewed(s));
-  const autoApprovedFaceCount = allFaceCounts.auto_approved;
-  const autoRejectedFaceCount = allFaceCounts.auto_rejected;
+  const autoApprovedFaceCount = faceCounts.auto_approved;
+  const autoRejectedFaceCount = faceCounts.auto_rejected;
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
