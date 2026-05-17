@@ -1,4 +1,10 @@
 import { AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
+// NOTE: main app (FaceVerification.tsx) writes the WEBM face-clip into both
+// `face_image_url` AND `selfie_url`, while `front_url/left_url/right_url` are
+// only populated when actual angle stills are captured. So we must NOT fall
+// back to selfie_url for the angle grid (it's a video, not a photo), and the
+// grid itself must render with kind="auto" so any stray video plays instead of
+// showing as a broken image.
 import { useAdminSignedUrl, useAdminSignedUrls } from "@/hooks/useAdminSignedUrl";
 
 interface MediaSubmission {
