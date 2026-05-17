@@ -261,7 +261,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       }
     }
 
-    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
+    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) && isFaceAngleStoragePath(storagePath.path)) {
       const objectUrl = await downloadAdminStorageObjectUrl(storagePath).catch(() => null);
       if (objectUrl) {
         signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
@@ -274,7 +274,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       .createSignedUrl(storagePath.path, 60 * 60);
 
     if (!error && data?.signedUrl) {
-      const privateBlobUrl = PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)
+      const privateBlobUrl = PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket) && isFaceAngleStoragePath(storagePath.path)
         ? await materializeSignedStorageUrl(data.signedUrl).catch(() => null)
         : null;
       const resolvedUrl = privateBlobUrl || data.signedUrl;
