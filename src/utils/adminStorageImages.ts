@@ -6,6 +6,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJh
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const failedSignedUrlCache = new Map<string, number>();
 const inFlightSignedUrls = new Map<string, Promise<string | null>>();
+const objectUrlCache = new Set<string>();
 const LEGACY_ADMIN_TOKEN_KEYS = ['merilive-admin-token', 'admin_session_token'];
 const ADMIN_SESSION_KEYS = ['merilive-admin-session'];
 const STORAGE_OBJECT_RE = /\/storage\/v1\/(?:object|render\/image)\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
@@ -73,6 +74,8 @@ export const clearAdminStorageImageCache = () => {
   signedUrlCache.clear();
   failedSignedUrlCache.clear();
   inFlightSignedUrls.clear();
+  objectUrlCache.forEach((url) => URL.revokeObjectURL(url));
+  objectUrlCache.clear();
 };
 
 const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
@@ -140,6 +143,17 @@ const buildStorageCandidates = (value: string, defaultBucket?: string): AdminSto
   return buckets.map((bucket) => ({ bucket, path: cleanPath }));
 };
 
+const downloadAdminStorageObjectUrl = async (storagePath: AdminStoragePath) => {
+  const { data, error } = await adminSupabase.storage
+    .from(storagePath.bucket)
+    .download(storagePath.path);
+
+  if (error || !data) return null;
+  const objectUrl = URL.createObjectURL(data);
+  objectUrlCache.add(objectUrl);
+  return objectUrl;
+};
+
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   const adminToken = resolveStoredAdminToken();
   const cacheKey = `${adminToken || 'anon'}::${storagePath.bucket}/${storagePath.path}`;
@@ -154,6 +168,14 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   if (inFlight) return inFlight;
 
   const signPromise = (async () => {
+    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
+      const objectUrl = await downloadAdminStorageObjectUrl(storagePath).catch(() => null);
+      if (objectUrl) {
+        signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
+        return objectUrl;
+      }
+    }
+
     if (adminToken) {
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
         method: 'POST',
