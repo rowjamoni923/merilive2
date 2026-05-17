@@ -824,11 +824,11 @@ export default function AdminHostApplications() {
                 )}
 
                 {/* ---- Action Buttons ---- */}
-                {(sel.status === 'pending' || sel.status === 'under_review') && (
+                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
                   <div className="space-y-4 pt-2">
                     {/* Top row: Review + Reject */}
                     <div className="flex items-center gap-3">
-                      {sel.status === 'pending' && (
+                      {(sel.status === 'pending' || sel.status === 'submitted') && (
                         <Button
                           variant="outline"
                           onClick={() => handleMarkUnderReview(sel)}
