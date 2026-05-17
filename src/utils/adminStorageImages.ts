@@ -176,10 +176,6 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
     }
 
-    if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
-      return null;
-    }
-
     const { data, error } = await adminSupabase.storage
       .from(storagePath.bucket)
       .createSignedUrl(storagePath.path, 60 * 60);
