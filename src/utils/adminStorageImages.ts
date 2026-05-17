@@ -280,7 +280,11 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       return resolvedUrl;
     }
 
-    failedSignedUrlCache.set(failureCacheKey, Date.now() + 15 * 1000);
+    // Only poison the cache when we actually had an admin token and the
+    // server-side path failed. Without a token the failure is just "admin
+    // session not loaded yet" — cache only briefly so the next attempt
+    // (after the token is set) retries immediately.
+    failedSignedUrlCache.set(failureCacheKey, Date.now() + (adminToken ? 15 * 1000 : 2 * 1000));
     return null;
   })().finally(() => {
     inFlightSignedUrls.delete(cacheKey);
