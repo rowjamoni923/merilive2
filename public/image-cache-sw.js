@@ -7,6 +7,7 @@ const MAX_ENTRIES = 600;
 
 const IMG_HOST_RE = /(supabase\.co\/storage|supabase\.in\/storage|images?\.|cdn\.|cloudflarestorage|googleusercontent|cloudinary|imgur)/i;
 const IMG_EXT_RE = /\.(png|jpe?g|webp|avif|gif|svg|ico)(\?|$)/i;
+const PRIVATE_STORAGE_RE = /\/storage\/v1\/.*\/(face-verification|host-verification|payment-proofs|payment-screenshots|helper-screenshots|rating-screenshots|support-attachments|live-recordings|chat-media)\//i;
 
 self.addEventListener('install', (e) => { self.skipWaiting(); });
 self.addEventListener('activate', (e) => {
@@ -38,8 +39,15 @@ self.addEventListener('fetch', (event) => {
   if (!isImageRequest(req)) return;
   // Skip range requests (videos sometimes share host)
   if (req.headers.get('range')) return;
+  if (PRIVATE_STORAGE_RE.test(req.url)) return;
 
   event.respondWith((async () => {
+    const client = event.clientId ? await self.clients.get(event.clientId).catch(() => null) : null;
+    if (client) {
+      try {
+        if (new URL(client.url).pathname.startsWith('/admin')) return fetch(req, { cache: 'no-store' });
+      } catch {}
+    }
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(req, { ignoreVary: true });
     if (cached) {
