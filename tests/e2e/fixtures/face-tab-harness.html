@@ -39,15 +39,39 @@
         if (["rejected","auto_rejected","auto-rejected"].includes(n)) return "rejected";
         return "pending";
       }
-      const FIXTURE = [
-        { id: "p1", name: "Pending Alice",    status: "pending" },
-        { id: "p2", name: "Submitted Bob",    status: "submitted" },
-        { id: "p3", name: "Unknown Carol",    status: "future_unknown" },
-        { id: "a1", name: "Approved Dave",    status: "approved" },
-        { id: "a2", name: "Auto-Approved Eve",status: "auto_approved" },
-        { id: "r1", name: "Rejected Frank",   status: "rejected" },
-        { id: "r2", name: "Auto-Rejected Gina",status: "auto_rejected" },
-      ];
+      const FIXTURES = {
+        default: [
+          { id: "p1", name: "Pending Alice",    status: "pending" },
+          { id: "p2", name: "Submitted Bob",    status: "submitted" },
+          { id: "p3", name: "Unknown Carol",    status: "future_unknown" },
+          { id: "a1", name: "Approved Dave",    status: "approved" },
+          { id: "a2", name: "Auto-Approved Eve",status: "auto_approved" },
+          { id: "r1", name: "Rejected Frank",   status: "rejected" },
+          { id: "r2", name: "Auto-Rejected Gina",status: "auto_rejected" },
+        ],
+        // No pending-bucket rows at all.
+        empty_pending: [
+          { id: "a1", name: "Approved Dave",    status: "approved" },
+          { id: "r1", name: "Rejected Frank",   status: "rejected" },
+        ],
+        // Completely empty dataset.
+        empty_all: [],
+        // Rows with malformed/edge status flags: null, "", whitespace, mixed case,
+        // numeric, unknown — all must safely fall into the pending bucket
+        // except mixed-case "APPROVED" which normalizes to approved.
+        bad_status: [
+          { id: "b1", name: "Null Status",      status: null },
+          { id: "b2", name: "Empty Status",     status: "" },
+          { id: "b3", name: "Whitespace",       status: "   " },
+          { id: "b4", name: "Mixed Case OK",    status: "APPROVED" },
+          { id: "b5", name: "Numeric",          status: 42 },
+          { id: "b6", name: "Garbage",          status: "wat_is_this" },
+        ],
+      };
+
+      const params = new URLSearchParams(location.search);
+      const fixtureKey = params.get("fixture") || "default";
+      const FIXTURE = FIXTURES[fixtureKey] ?? FIXTURES.default;
 
       function render(tab) {
         const list = document.getElementById("list");
@@ -60,6 +84,7 @@
         if (visible.length === 0) {
           const e = document.createElement("div");
           e.className = "empty";
+          e.setAttribute("data-testid", "empty-state");
           e.textContent = "No submissions found";
           list.appendChild(e);
           return;
@@ -71,7 +96,7 @@
           card.setAttribute("data-testid", "submission-card");
           card.setAttribute("data-id", sub.id);
           card.setAttribute("data-bucket", bucket);
-          card.setAttribute("data-status", sub.status ?? "");
+          card.setAttribute("data-status", sub.status == null ? "" : String(sub.status));
           card.innerHTML =
             '<strong>' + sub.name + '</strong>' +
             '<span class="badge badge-' + bucket + '">' + bucket + '</span>';
