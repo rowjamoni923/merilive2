@@ -115,7 +115,7 @@ export function AdminMediaFrame({
   const videoType = useMemo(() => blobMimeType.startsWith("video/") ? blobMimeType : (displaySrc ? getVideoMimeType(displaySrc) : undefined), [blobMimeType, displaySrc]);
 
   useEffect(() => {
-    if (kind !== "auto" || !displaySrc?.startsWith("blob:")) {
+    if (!displaySrc?.startsWith("blob:")) {
       setBlobMimeChecked(false);
       return;
     }
@@ -130,7 +130,7 @@ export function AdminMediaFrame({
     return () => {
       cancelled = true;
     };
-  }, [displaySrc, kind]);
+  }, [displaySrc]);
 
   useEffect(() => {
     setFailed(false);
@@ -186,7 +186,7 @@ export function AdminMediaFrame({
     );
   }
 
-  if (kind === "auto" && displaySrc.startsWith("blob:") && !blobMimeChecked) {
+  if ((kind === "auto" || kind === "video") && displaySrc.startsWith("blob:") && !blobMimeChecked) {
     return (
       <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
         <ImageIcon className="mr-2 h-4 w-4 animate-pulse" /> Loading media
