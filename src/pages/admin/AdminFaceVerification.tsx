@@ -834,6 +834,7 @@ const AdminFaceVerification = () => {
                                 alt={t.label}
                                 kind={t.kind}
                                 bucket="face-verification"
+                                poster={profilePhoto && (t.kind === 'video' || isAdminVideoUrl(t.src)) ? profilePhoto : undefined}
                                 className="w-full h-full"
                                 mediaClassName="object-cover w-full h-full"
                               />
@@ -1011,7 +1012,7 @@ const AdminFaceVerification = () => {
                       <h4 className="font-semibold flex items-center gap-2 text-purple-300">
                         <ScanFace className="w-5 h-5" /> Face Verification
                       </h4>
-                      <AdminMediaFrame src={url} alt="Face verification" className="border-2 border-purple-500/30 bg-background" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                      <AdminMediaFrame src={url} alt="Face verification" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="border-2 border-purple-500/30 bg-background" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                     </div>
                   );
                 })()}
@@ -1053,13 +1054,13 @@ const AdminFaceVerification = () => {
                   );
                 })()}
 
-                {([resolvedMedia.front_url || resolvedMedia.selfie_url || selectedSubmission.front_url || selectedSubmission.selfie_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).length > 0 && (
+                {([resolvedMedia.front_url || selectedSubmission.front_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).length > 0 && (
                   <div className="space-y-3">
                     <h4 className="font-semibold flex items-center gap-2 text-purple-300">
                       <Camera className="w-5 h-5" /> Manual Face Angles
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
-                      {([resolvedMedia.front_url || resolvedMedia.selfie_url || selectedSubmission.front_url || selectedSubmission.selfie_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
+                      {([resolvedMedia.front_url || selectedSubmission.front_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
                         <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-square border-2 border-border bg-background" mediaClassName="object-cover" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                       ))}
                     </div>
