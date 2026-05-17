@@ -131,6 +131,8 @@ Deno.serve(async (req) => {
     const storedContentType = usefulMimeType((objectRow?.metadata as Record<string, unknown> | null)?.mimetype as string | undefined);
     const contentType = storedContentType || extensionContentType;
 
+    const extFallback = faceBucketFallback(bucket, path);
+
     if (String(body.mode || "").trim().toLowerCase() === "download") {
       const { data: fileBlob, error: downloadError } = await supabase.storage.from(bucket).download(path);
       if (downloadError || !fileBlob) {
@@ -140,19 +142,24 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Sniff actual magic bytes — most trustworthy source of truth.
+      const head = new Uint8Array(await fileBlob.slice(0, 16).arrayBuffer().catch(() => new ArrayBuffer(0)));
+      const sniffed = sniffMimeFromBytes(head);
+      const resolvedType = sniffed
+        || storedContentType
+        || extensionContentType
+        || usefulMimeType(fileBlob.type)
+        || extFallback
+        || "application/octet-stream";
+
       return new Response(fileBlob, {
         headers: {
           ...corsHeaders,
-          "Content-Type": contentType || usefulMimeType(fileBlob.type) || "application/octet-stream",
+          "Content-Type": resolvedType,
           "Cache-Control": "private, max-age=120",
         },
       });
     }
-
-    // NOTE: We intentionally do NOT pre-validate via storage.buckets — the
-    // `storage` schema is not exposed via PostgREST, so the lookup always
-    // returns null and rejected every real bucket. createSignedUrl below will
-    // surface a precise error if the bucket truly does not exist.
 
     const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
     if (error || !data?.signedUrl) {
@@ -162,20 +169,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Best-effort: backfill stored mimetype so storage serves the correct Content-Type header.
-    if (extensionContentType) {
+    // Backfill stored mimetype non-destructively so storage serves correct Content-Type next time.
+    const backfillType = extensionContentType || extFallback;
+    if (backfillType && !storedContentType) {
       try {
+        const existingMeta = (objectRow?.metadata as Record<string, unknown> | null) || {};
         await supabase
           .schema("storage")
           .from("objects")
-          .update({ metadata: { mimetype: extensionContentType } as any })
+          .update({ metadata: { ...existingMeta, mimetype: backfillType } as any })
           .eq("bucket_id", bucket)
-          .eq("name", path)
-          .or("metadata->>mimetype.is.null,metadata->>mimetype.eq.application/octet-stream,metadata->>mimetype.eq.application/json");
+          .eq("name", path);
       } catch (_) { /* non-fatal */ }
     }
 
-    return new Response(JSON.stringify({ success: true, signedUrl: data.signedUrl, contentType: contentType || null }), {
+    return new Response(JSON.stringify({ success: true, signedUrl: data.signedUrl, contentType: contentType || extFallback || null }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
