@@ -209,6 +209,24 @@ const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null, hint
   return objectUrl;
 };
 
+const downloadAdminStoragePathAsObjectUrl = async (storagePath: AdminStoragePath, adminToken = resolveStoredAdminToken()) => {
+  if (!adminToken || !PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) return null;
+  const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'x-admin-token': adminToken,
+    },
+    body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, mode: 'download' }),
+  }).catch(() => null);
+  if (!downloadResp?.ok) return null;
+  const blob = await downloadResp.blob().catch(() => null);
+  if (!blob) return null;
+  return createTypedObjectUrl(blob, downloadResp.headers.get('content-type'), storagePath.path).catch(() => null);
+};
+
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   const adminToken = resolveStoredAdminToken();
@@ -225,21 +243,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
 
   const signPromise = (async () => {
     const downloadViaAdminFunction = async () => {
-      if (!adminToken || !PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) return null;
-      const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'x-admin-token': adminToken,
-        },
-        body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, mode: 'download' }),
-      }).catch(() => null);
-      if (!downloadResp?.ok) return null;
-      const blob = await downloadResp.blob().catch(() => null);
-      if (!blob) return null;
-      return createTypedObjectUrl(blob, downloadResp.headers.get('content-type'), storagePath.path).catch(() => null);
+      return downloadAdminStoragePathAsObjectUrl(storagePath, adminToken);
     };
 
     // Private face/host still images are often stored behind old public URLs or
