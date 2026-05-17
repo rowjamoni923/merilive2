@@ -1112,7 +1112,6 @@ const AdminFaceVerification = () => {
                         className="flex-1 bg-green-600 hover:bg-green-700"
                         disabled={processing}
                         onClick={() => {
-                          if (!canApproveSelected) return;
                           processSubmissionAction({
                             submission: selectedSubmission,
                             action: 'approve',
@@ -1148,34 +1147,25 @@ const AdminFaceVerification = () => {
                         {processing ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-2" />}
                         Re-run AWS
                       </Button>
-                      {!canApproveSelected && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 border-pink-500/50 text-pink-300 hover:bg-pink-500/10"
-                            disabled={processing}
-                            onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
-                          >
-                            ⚠️ Override → Host
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
-                            disabled={processing}
-                            onClick={() => handleManualOverrideApprove(selectedSubmission, 'user')}
-                          >
-                            ⚠️ Override → User
-                          </Button>
-                        </>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 border-pink-500/50 text-pink-300 hover:bg-pink-500/10"
+                        disabled={processing}
+                        onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
+                      >
+                        Override → Host
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 border-blue-500/50 text-blue-300 hover:bg-blue-500/10"
+                        disabled={processing}
+                        onClick={() => handleManualOverrideApprove(selectedSubmission, 'user')}
+                      >
+                        Override → User
+                      </Button>
                     </div>
-                    {!canApproveSelected && (
-                      <p className="text-[11px] text-amber-300/70 text-center">
-                        Standard Approve disabled — required verification media is incomplete. Use Override only after manual visual confirmation, or Re-run AWS.
-                      </p>
-                    )}
                   </div>
                 )}
 
