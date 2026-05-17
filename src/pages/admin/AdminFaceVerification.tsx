@@ -466,9 +466,8 @@ const AdminFaceVerification = () => {
   };
 
   const isSubmissionEligibleForApproval = (sub: Submission) => {
-    const { percentage } = getCompletionData(sub);
     const hasVisualEvidence = !!(sub.profile_photo_url || sub.profile?.avatar_url || sub.front_url || sub.selfie_url || sub.face_image_url || sub.video_url || (sub.host_photos && sub.host_photos.length > 0));
-    return percentage === 100 && hasVisualEvidence;
+    return hasVisualEvidence;
   };
 
   const getPercentageColor = (pct: number) => {
@@ -859,7 +858,7 @@ const AdminFaceVerification = () => {
                       <div className="flex gap-2">
                         <Button
                           className="flex-1"
-                          disabled={processing || !canApprove}
+                          disabled={processing}
                           onClick={() => {
                             if (!canApprove) {
                               toast({
@@ -1111,7 +1110,7 @@ const AdminFaceVerification = () => {
                     <div className="flex gap-3">
                       <Button
                         className="flex-1 bg-green-600 hover:bg-green-700"
-                        disabled={processing || !canApproveSelected}
+                        disabled={processing}
                         onClick={() => {
                           if (!canApproveSelected) return;
                           processSubmissionAction({
