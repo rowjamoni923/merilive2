@@ -201,6 +201,30 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
 
   const signPromise = (async () => {
     if (adminToken) {
+      if (PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket)) {
+        const downloadResp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'x-admin-token': adminToken,
+          },
+          body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, mode: 'download' }),
+        }).catch(() => null);
+
+        if (downloadResp?.ok) {
+          const blob = await downloadResp.blob().catch(() => null);
+          if (blob) {
+            const objectUrl = await createTypedObjectUrl(blob, downloadResp.headers.get('content-type')).catch(() => null);
+            if (objectUrl) {
+              signedUrlCache.set(cacheKey, { url: objectUrl, expiresAt: Date.now() + 20 * 60 * 1000 });
+              return objectUrl;
+            }
+          }
+        }
+      }
+
       const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
         method: 'POST',
         headers: {
