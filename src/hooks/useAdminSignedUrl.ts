@@ -59,7 +59,7 @@ export function useAdminSignedUrls(
       const resolved = await Promise.all(
         list.map((v) => resolver(v, bucket)),
       );
-      if (!cancelled) setUrls(resolved.filter((u): u is string => Boolean(u)));
+      if (!cancelled) setUrls(resolved.map((u) => u || ""));
     })();
     return () => {
       cancelled = true;
