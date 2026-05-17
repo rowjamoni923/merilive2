@@ -40,9 +40,11 @@ export interface AdminSession {
 export const getAdminSessionToken = (): string => {
   if (!hasWindow()) return '';
   try {
-    if (!window.sessionStorage.getItem(ADMIN_SECRET_LINK_SESSION_KEY)) {
-      return '';
-    }
+    // NOTE: We intentionally do NOT gate this on the secret-link sessionStorage key.
+    // That key is for INITIAL admin-panel access control; once the server has issued
+    // a valid session_token (stored in localStorage), every subsequent API call must
+    // send it as x-admin-token — otherwise private storage signing, RLS reads, and
+    // edge functions all fail after a tab close / hard refresh / bookmark entry.
     const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
     if (direct && direct.length >= 16) return direct;
     // Recovery: older sessions stored the server token only inside the session blob.
