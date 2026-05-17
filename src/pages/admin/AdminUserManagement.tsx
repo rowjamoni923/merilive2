@@ -1351,7 +1351,7 @@ export default function AdminUserManagement() {
 
   const faceQueryRaw = faceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
-  const faceVisiblePool = faceSubmissions.filter(sub => {
+  const faceSearchMatches = faceSubmissions.filter(sub => {
     if (!faceQuery) return true;
     return (
       sub.profile?.display_name?.toLowerCase().includes(faceQuery) ||
@@ -1360,6 +1360,10 @@ export default function AdminUserManagement() {
       sub.user_id?.toLowerCase().startsWith(faceQuery)
     );
   });
+  const faceMismatchCount = faceSearchMatches.filter((s) => !isKnownStatus(s.status)).length;
+  const faceVisiblePool = faceMismatchOnly
+    ? faceSearchMatches.filter((s) => !isKnownStatus(s.status))
+    : faceSearchMatches;
 
   const filteredFaceSubmissions = faceVisiblePool.filter(sub => {
     if (faceActiveTab === 'pending') return isFacePendingBucket(sub);
