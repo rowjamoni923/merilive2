@@ -190,53 +190,32 @@ export default function AdminHostApplications() {
   const fetchApplications = async () => {
     if (applications.length === 0) setLoading(true);
     try {
-      let query = supabase
-        .from("face_verification_submissions")
-        .select(`
-          *,
-          profile:profiles!face_verification_submissions_user_id_fkey(
-            display_name, app_uid, avatar_url, gender, is_host
-          )
-        `, { count: "exact" });
-
-      if (filterStatus === "pending") query = query.not("status", "in", "(approved,rejected)");
-      else if (filterStatus !== "all") query = query.eq("status", filterStatus);
-      if (debouncedSearch) query = query.ilike("full_name", `%${debouncedSearch}%`);
-
-      const from = (currentPage - 1) * pageSize;
-      const { data, error, count } = await query
-        .order("created_at", { ascending: false })
-        .range(from, from + pageSize - 1);
-
-      if (error) throw error;
-
-      const userIds = (data || []).map((s: any) => s.user_id);
-      let agencyMap: Record<string, { agency_name: string; agency_code: string }> = {};
-
-      if (userIds.length > 0) {
-        const { data: agencyData } = await supabase
-          .from('agency_hosts')
-          .select('host_id, agency:agencies!agency_hosts_agency_id_fkey(name, agency_code)')
-          .in('host_id', userIds)
-          .eq('status', 'active');
-
-        if (agencyData) {
-          agencyData.forEach((ah: any) => {
-            if (ah.agency) agencyMap[ah.host_id] = { agency_name: ah.agency.name, agency_code: ah.agency.agency_code };
-          });
-        }
+      const rows: any[] = [];
+      let offset = (currentPage - 1) * pageSize;
+      let total = Number.POSITIVE_INFINITY;
+      for (let page = 0; page < 8 && rows.length < pageSize && offset < total; page += 1) {
+        const { data, error } = await supabase.rpc('admin_list_face_verification_paginated', {
+          _status: filterStatus === 'all' ? null : filterStatus,
+          _search: debouncedSearch || null,
+          _limit: pageSize,
+          _offset: offset,
+        });
+        if (error) throw error;
+        const payload = (data as any) || {};
+        const pageRows = (payload.rows || []) as any[];
+        total = Number(payload.total ?? pageRows.length);
+        rows.push(...pageRows.filter((s) => String(s.profile?.gender || '').toLowerCase() === 'female'));
+        offset += pageRows.length;
+        if (pageRows.length < pageSize) break;
       }
 
-      // Filter to only show female users in Host Applications
-      const femaleOnly = (data || [])
-        .filter((s: any) => {
-          const gender = s.profile?.gender?.toLowerCase();
-          return gender === 'female';
-        })
-        .map((s: any) => ({ ...s, agency_info: agencyMap[s.user_id] || null }));
+      const femaleOnly = rows.slice(0, pageSize).map((s: any) => ({
+        ...s,
+        agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
+      }));
 
       setApplications(femaleOnly as HostSubmission[]);
-      setTotalApplications(femaleOnly.length);
+      setTotalApplications(total === Number.POSITIVE_INFINITY ? femaleOnly.length : total);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingHostApplications", message: formatAdminError(error)});
       toast.error("Failed to load applications");
