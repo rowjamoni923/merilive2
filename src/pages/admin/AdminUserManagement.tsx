@@ -2285,6 +2285,7 @@ export default function AdminUserManagement() {
                 onChange={(e) => setFaceSearchQuery(e.target.value)}
                 className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
               />
+            </div>
             <button
               type="button"
               data-testid="face-mismatch-only-toggle"
