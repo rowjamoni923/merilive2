@@ -718,14 +718,17 @@ const ProfileDetail = () => {
   }
 
   if (!profile) {
-    const handleLogoutAndReregister = async () => {
-      localStorage.setItem('meri_manual_logout', 'true');
-      localStorage.removeItem('meri_device_id');
-      localStorage.removeItem('meri_device_account');
-      localStorage.removeItem('meri_last_user');
-      localStorage.setItem('meri_manual_logout', 'true');
-      await supabase.auth.signOut({ scope: 'local' });
-      navigate('/auth');
+    const handleLogoutAndReregister = () => {
+      // INSTANT: flag + navigate, cleanup in background
+      try {
+        localStorage.setItem('meri_manual_logout', 'true');
+        localStorage.removeItem('meri_device_id');
+        localStorage.removeItem('meri_device_account');
+        localStorage.removeItem('meri_last_user');
+      } catch {}
+      navigate('/auth', { replace: true });
+      void supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+      void import('@/utils/nativeSessionStorage').then(({ clearNativeSession }) => clearNativeSession()).catch(() => {});
     };
 
     return (

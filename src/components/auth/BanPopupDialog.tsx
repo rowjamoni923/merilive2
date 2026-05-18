@@ -42,19 +42,14 @@ const BanPopupDialog = ({ open, reason, bannedUntil }: BanPopupDialogProps) => {
     return `Banned for ${days} day${days > 1 ? "s" : ""}`;
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (loggingOut) return;
     setLoggingOut(true);
-    try {
-      localStorage.setItem("meri_manual_logout", "true");
-      const { clearNativeSession } = await import("@/utils/nativeSessionStorage");
-      await clearNativeSession();
-      await supabase.auth.signOut({ scope: "local" });
-    } catch (e) {
-      console.warn("[BanPopupDialog] logout error", e);
-    } finally {
-      window.location.href = "/auth";
-    }
+    // INSTANT: flag + redirect, cleanup in background
+    try { localStorage.setItem("meri_manual_logout", "true"); } catch {}
+    window.location.replace("/auth");
+    void import("@/utils/nativeSessionStorage").then(({ clearNativeSession }) => clearNativeSession()).catch(() => {});
+    void supabase.auth.signOut({ scope: "local" }).catch(() => {});
   };
 
   return (
