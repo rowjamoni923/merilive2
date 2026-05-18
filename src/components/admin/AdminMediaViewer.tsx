@@ -220,6 +220,7 @@ export function AdminMediaFrame({
   }
 
   if (effectiveMediaKind === "video") {
+    const sourceType = blobMimeType || getVideoMimeType(displaySrc);
     return (
       <div className={cn("overflow-hidden rounded-lg border border-border bg-background", className)}>
         <video
@@ -240,7 +241,7 @@ export function AdminMediaFrame({
             "x5-video-player-fullscreen": "false",
           } as Record<string, string>)}
         >
-          <source src={displaySrc} type={blobMimeType || getVideoMimeType(displaySrc)} />
+          {sourceType ? <source src={displaySrc} type={sourceType} /> : <source src={displaySrc} />}
         </video>
       </div>
     );
