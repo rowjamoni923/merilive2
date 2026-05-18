@@ -196,29 +196,29 @@ const AdminHelperRequests = () => {
         
       } else {
         const req = selectedRequest as TopupRequest;
-        
-        // Update request status
-        await supabase
-          .from('helper_topup_requests')
-          .update({
-            status: 'approved',
-            admin_notes: adminNotes || null,
-            processed_at: new Date().toISOString(),
-            processed_by: user?.id
-          })
-          .eq('id', req.id);
-        
-        // Add coins to user
-        await supabase.rpc('admin_add_user_coins', {
-          _user_id: req.user_id,
-          _amount: req.coin_amount,
-          _note: `Manual top-up request #${req.id.slice(0, 8)}`
+        const usdNum = parseFloat(approveUsd);
+        if (!isFinite(usdNum) || usdNum <= 0) {
+          toast({ title: "Invalid amount", description: "Enter a valid USD amount to approve.", variant: "destructive" });
+          setProcessing(false);
+          guardEnd(`approve-${req.id}`);
+          return;
+        }
+
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc('admin_approve_helper_topup', {
+          _request_id: req.id,
+          _amount_usd: usdNum,
+          _admin_notes: adminNotes || null,
         });
-        
-        // Send notification
-        await adminSendNotification(req.user_id, 'Top-up Approved! 💎', `Your top-up of ${req.coin_amount.toLocaleString()} coins has been approved.`, 'topup_approved')
-        
-        toast({ title: "Approved!", description: `Top-up of ${req.coin_amount} coins approved.` });
+        if (rpcErr) throw rpcErr;
+        const res = rpcRes as any;
+        if (res && res.success === false) {
+          throw new Error(res.error || 'Approval failed');
+        }
+
+        const credited = res?.diamonds_credited ?? previewDiamonds;
+        await adminSendNotification(req.user_id, 'Top-up Approved! 💎', `Your top-up of ${Number(credited).toLocaleString()} diamonds has been approved.`, 'topup_approved')
+
+        toast({ title: "Approved!", description: `Credited ${Number(credited).toLocaleString()} 💎 for $${usdNum}.` });
       }
       
       setShowDetailModal(false);
