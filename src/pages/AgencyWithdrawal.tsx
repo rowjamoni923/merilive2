@@ -1788,6 +1788,12 @@ const AgencyWithdrawal = () => {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
+  // Auto Withdrawal Fee (admin-configurable, flat USD) — applies to ePay/USDT/Binance/Crypto auto methods
+  const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; enabled: boolean; methods: string[] }>({
+    flat_usd: 2,
+    enabled: true,
+    methods: ['epay', 'usdt', 'binance', 'crypto_auto'],
+  });
   
   // Form state
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -1834,14 +1840,28 @@ const AgencyWithdrawal = () => {
     return usd * coinsToUsdRate;
   };
 
+  // Is the current payment method an "auto" method (foreign agency auto-credit: ePay/USDT/Binance/Crypto)?
+  const isAutoMethod = (method?: string) => {
+    const m = (method ?? paymentMethod ?? '').toLowerCase();
+    return autoWithdrawalFee.enabled && autoWithdrawalFee.methods.includes(m);
+  };
+
   // Get withdrawal fee in USD based on tiered fee from DB (withdrawal_settings)
-  // Fee is calculated based on beans amount, matched against tiered ranges
+  // Fee is calculated based on beans amount, matched against tiered ranges.
+  // EXCEPTION: when paymentMethod is an auto method (ePay/USDT/Binance/Crypto) and
+  // admin enabled auto_withdrawal_fee, return that flat USD fee instead of the tiered fee.
   const getWithdrawalFeeUsd = (localAmountOverride?: number) => {
     const localAmount = localAmountOverride !== undefined ? localAmountOverride : parseFloat(amount || '0');
     const beansAmount = localToBeans(localAmount);
-    
+
+    // Auto method override (admin-controlled flat USD)
+    if (isAutoMethod()) {
+      return Math.max(0, Number(autoWithdrawalFee.flat_usd) || 0);
+    }
+
     // Below free limit = no fee
     if (beansAmount <= freeWithdrawalLimit) return 0;
+
     
     // Find matching tier from DB
     for (const tier of withdrawalFees) {
@@ -2147,6 +2167,27 @@ const AgencyWithdrawal = () => {
         if (ws.min_withdrawal) setMinWithdrawalBeans(ws.min_withdrawal);
         if (ws.coins_to_dollar_rate) setCoinsToUsdRate(ws.coins_to_dollar_rate);
       }
+
+      // Fetch Auto Withdrawal Fee (admin-set flat USD for ePay/USDT/Binance/Crypto)
+      const { data: awfData } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'auto_withdrawal_fee')
+        .maybeSingle();
+      if (awfData?.setting_value) {
+        const awf = typeof awfData.setting_value === 'string'
+          ? JSON.parse(awfData.setting_value)
+          : awfData.setting_value;
+        setAutoWithdrawalFee({
+          flat_usd: typeof awf.flat_usd === 'number' ? awf.flat_usd : 2,
+          enabled: awf.enabled !== false,
+          methods: Array.isArray(awf.methods) && awf.methods.length > 0
+            ? awf.methods.map((m: string) => m.toLowerCase())
+            : ['epay', 'usdt', 'binance', 'crypto_auto'],
+        });
+        console.log('[AgencyWithdrawal] Auto withdrawal fee from DB:', awf);
+      }
+
 
       // Fetch agency with beans_balance
       const { data: agencyData, error: agencyError } = await supabase
