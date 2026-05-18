@@ -15242,6 +15242,17 @@ export type Database = {
         Args: { _admin_id: string; _kind: string }
         Returns: Json
       }
+      admin_save_host_bonus_settings: {
+        Args: {
+          _beans_per_hour: number
+          _daily_reset_offset_minutes: number
+          _eligible_days: number
+          _is_active: boolean
+          _max_hours_per_day: number
+          _target_minutes: number
+        }
+        Returns: Json
+      }
       admin_send_notification: {
         Args: {
           _data?: Json
