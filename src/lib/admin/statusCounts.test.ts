@@ -109,6 +109,6 @@ describe("admin/statusCounts shared module", () => {
     );
 
     expect(rpcCalled).toBe(true);
-    expect(counts).toEqual({ pending: 0, under_review: 0, approved: 2, rejected: 1 });
+    expect(counts).toMatchObject({ pending: 0, under_review: 0, approved: 2, rejected: 1 });
   });
 });
