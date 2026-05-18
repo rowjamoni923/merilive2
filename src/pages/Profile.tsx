@@ -1366,11 +1366,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       onClick: async () => {
         if (!currentUser?.id) return;
         const confirmed = window.confirm("Are you sure you want to go offline? You will be logged out and won't receive calls or messages.");
-        if (confirmed) {
-          await goOfflineManually(currentUser.id);
-          await supabase.auth.signOut({ scope: 'local' });
-          navigate('/auth');
-        }
+        if (!confirmed) return;
+        // INSTANT: flag + navigate first, cleanup in background
+        try { localStorage.setItem('meri_manual_logout', 'true'); } catch {}
+        navigate('/auth', { replace: true });
+        void goOfflineManually(currentUser.id).catch(() => {});
+        void supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        void import('@/utils/nativeSessionStorage').then(({ clearNativeSession }) => clearNativeSession()).catch(() => {});
       }
     },
     // Messages always at top for all users
