@@ -32,6 +32,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { computeTopupApproval, usdToDiamonds } from "@/utils/traderWalletTopupRate";
 interface UpgradeRequest {
   id: string;
   user_id: string;
