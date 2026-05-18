@@ -317,7 +317,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                           boxShadow: '0 2px 8px rgba(251,191,36,0.1)',
                         }}
                       >
-                        Hosts: 10,000 🫘
+                        Hosts: {rewardAmounts.host_beans.toLocaleString()} 🫘
                       </span>
                       <span className="text-purple-400/40 text-xs">•</span>
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
@@ -328,7 +328,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                           boxShadow: '0 2px 8px rgba(139,92,246,0.1)',
                         }}
                       >
-                        Users: 5,000 💎
+                        Users: {rewardAmounts.user_diamonds.toLocaleString()} 💎
                       </span>
                     </div>
                   </div>
