@@ -214,7 +214,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
     }
   }, [userId]);
 
-  if (alreadyClaimed || !isEnabled) return null;
+  if (alreadyClaimed || !isEnabled || !rewardAmounts) return null;
 
   return (
     <>
