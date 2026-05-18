@@ -473,18 +473,20 @@ const Reels = () => {
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col overflow-hidden">
-      {/* Header - Clean Minimal */}
-      <div className="fixed top-0 left-0 right-0 z-50 safe-area-top">
-        <div className="px-4 pt-2.5 pb-12 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
-          <h1 className="text-white font-extrabold text-lg tracking-tight drop-shadow-lg">Reels</h1>
-          
+      {/* Header - Professional Minimal (TikTok-style) */}
+      <div className="fixed top-0 left-0 right-0 z-50 safe-area-top pointer-events-none">
+        <div className="px-4 pt-3 pb-10 flex items-center justify-between bg-gradient-to-b from-black/55 via-black/20 to-transparent">
+          <h1 className="text-white font-bold text-[17px] tracking-[-0.01em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] pointer-events-auto">
+            Reels
+          </h1>
+
           {currentUserId && (
             <button
               onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full px-3.5 py-1.5 text-[11px] font-semibold text-white border border-white/15 transition-all active:scale-95"
+              aria-label="Upload reel"
+              className="pointer-events-auto w-9 h-9 rounded-full bg-white/12 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/15 transition-all active:scale-90"
             >
-              <Plus className="w-3.5 h-3.5" />
-              Upload
+              <Plus className="w-[18px] h-[18px]" strokeWidth={2.5} />
             </button>
           )}
         </div>
