@@ -16,7 +16,7 @@ import { createClient } from '@supabase/supabase-js';
 import { clearAdminSession, getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
 import { recordAdminError } from '@/utils/adminErrorLog';
 import { revokeAdminAccess } from '@/utils/adminAccessStorage';
-import { fetchWithInstantRestCache } from '@/utils/instantRestCache';
+import { clearInstantRestCache, fetchWithInstantRestCache } from '@/utils/instantRestCache';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
@@ -137,6 +137,8 @@ const adminFetch: typeof fetch = (input, init) => {
   // Apply safety limit only on simple GET reads.
   if (method === 'GET' || method === 'HEAD') {
     url = applySafetyLimit(url);
+  } else {
+    clearInstantRestCache('admin');
   }
 
   // Helper to detect+log failures uniformly
