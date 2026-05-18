@@ -215,12 +215,24 @@ export function AdminMediaFrame({
     return (
       <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-center", className)}>
         <AlertTriangle className="h-5 w-5 text-destructive" />
-        <p className="text-sm font-medium text-foreground">Media could not be loaded in this browser.</p>
-        {displaySrc && (
-          <a href={displaySrc} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
-            Open original <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
+        <p className="text-sm font-medium text-foreground">
+          {effectiveMediaKind === "video" ? "Video could not be played." : "Media could not be loaded."}
+        </p>
+        {failReason && <p className="text-[11px] text-muted-foreground">{failReason}</p>}
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => { setFailed(false); setFailReason(""); setVideoLoading(true); setRetryNonce((n) => n + 1); }}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+          >
+            <RefreshCw className="h-3 w-3" /> Retry
+          </button>
+          {displaySrc && (
+            <a href={displaySrc} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground hover:opacity-90">
+              Open original <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+        </div>
       </div>
     );
   }
