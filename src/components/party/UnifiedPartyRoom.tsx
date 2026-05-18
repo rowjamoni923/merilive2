@@ -984,38 +984,21 @@ export function UnifiedPartyRoom({
         },
         async (payload) => {
           const newMsg = payload.new as any;
-          
-          // CRITICAL: Skip if already processed by ID
-          if (processedMsgIdsRef.current.has(newMsg.id)) {
-            console.log('[UnifiedPartyRoom] Skipping duplicate by ID:', newMsg.id);
-            return;
-          }
-          
-          // CRITICAL: Skip if this is our own pending message (optimistic update already showing)
-          // Check using sender + content combination
-          const msgKey = `${newMsg.user_id}-${newMsg.content}`;
-          if (pendingMessagesRef.current.has(msgKey)) {
-            console.log('[UnifiedPartyRoom] Skipping own pending message:', msgKey);
-            // Mark the real ID as processed but don't add duplicate
-            processedMsgIdsRef.current.add(newMsg.id);
-            return;
-          }
-          
+
+          // 1. Skip if we already processed this real id
+          if (processedMsgIdsRef.current.has(newMsg.id)) return;
           processedMsgIdsRef.current.add(newMsg.id);
-          
-          // Fetch sender info with avatar
+
+          // 2. Fetch sender info
           const { data: senderData } = await supabase
-      .from('profiles_public')
-      .select('display_name, user_level, avatar_url, is_host')
+            .from('profiles_public')
+            .select('display_name, user_level, avatar_url, is_host')
             .eq('id', newMsg.user_id)
             .single();
-          
-          const msgType = newMsg.message_type || 'text';
 
-          // Resolve sender's equipped designer chat bubble (cached + de-duped per user)
+          const msgType = newMsg.message_type || 'text';
           const bubbleUrl = await getEquippedBubble(newMsg.user_id);
 
-          // Add ONLY to unified messages (SAME format as Live Stream - ONE LINK)
           const unifiedMsg: RoomChatMessage = {
             id: newMsg.id,
             userId: newMsg.user_id,
@@ -1030,7 +1013,23 @@ export function UnifiedPartyRoom({
             type: msgType,
             bubbleUrl,
           };
-          setPremiumMessages(prev => [...prev.slice(-100), unifiedMsg]);
+
+          // 3. REPLACE-OR-APPEND dedupe: if an optimistic temp from same user with
+          // same content already exists, swap it in place (no duplicate bubble).
+          setPremiumMessages(prev => {
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            const tempIdx = prev.findIndex(m =>
+              typeof m.id === 'string' && m.id.startsWith('temp-')
+              && m.userId === newMsg.user_id
+              && m.message === newMsg.content
+            );
+            if (tempIdx >= 0) {
+              const copy = prev.slice();
+              copy[tempIdx] = { ...copy[tempIdx], ...unifiedMsg };
+              return copy;
+            }
+            return [...prev.slice(-100), unifiedMsg];
+          });
         }
       )
       .subscribe();
