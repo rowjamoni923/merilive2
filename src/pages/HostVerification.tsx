@@ -251,13 +251,15 @@ const HostVerification = () => {
         liveVideoRef.current.play();
       }
       
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-        ? 'video/webm;codecs=vp9' 
-        : MediaRecorder.isTypeSupported('video/webm') 
-          ? 'video/webm' 
-          : 'video/mp4';
+      const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+        ? 'video/mp4'
+        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+          ? 'video/webm;codecs=vp8,opus'
+          : MediaRecorder.isTypeSupported('video/webm')
+            ? 'video/webm'
+            : '';
       
-      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
       
@@ -266,8 +268,9 @@ const HostVerification = () => {
       };
       
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mimeType });
-        const file = new File([blob], 'verification-video.webm', { type: mimeType });
+        const type = mediaRecorder.mimeType || mimeType || 'video/webm';
+        const blob = new Blob(chunksRef.current, { type });
+        const file = new File([blob], `verification-video.${type.includes('mp4') ? 'mp4' : 'webm'}`, { type });
         setVideoFile(file);
         setVideoPreview(URL.createObjectURL(blob));
         stream.getTracks().forEach(track => track.stop());
@@ -384,15 +387,26 @@ const HostVerification = () => {
   };
 
   // Upload file to storage
+  const storageExtensionFor = (file: File) => {
+    const type = (file.type || '').split(';')[0].toLowerCase();
+    if (type === 'image/jpeg') return 'jpg';
+    if (type === 'image/png') return 'png';
+    if (type === 'image/webp') return 'webp';
+    if (type === 'video/mp4') return 'mp4';
+    if (type === 'video/webm') return 'webm';
+    return file.name.split('.').pop() || 'bin';
+  };
+
   const uploadFile = async (file: File, folder: string): Promise<string | null> => {
     if (!userId) return null;
     
-    const fileExt = file.name.split('.').pop();
+    const fileExt = storageExtensionFor(file);
     const fileName = `${userId}/${folder}/${Date.now()}.${fileExt}`;
+    const contentType = file.type || (fileExt === 'jpg' ? 'image/jpeg' : fileExt === 'mp4' ? 'video/mp4' : fileExt === 'webm' ? 'video/webm' : 'application/octet-stream');
     
     const { data, error } = await supabase.storage
       .from('host-verification')
-      .upload(fileName, file, { upsert: true });
+      .upload(fileName, file, { upsert: true, contentType });
     
     if (error) {
       console.error('Upload error:', error);
