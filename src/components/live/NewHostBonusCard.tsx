@@ -225,7 +225,7 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
                 </span>
               </div>
               <p className="text-purple-300/60 text-[9px]">
-                Day {state.program_day}/{state.program_days} · 10,000/hr · max 5h
+                Day {state.program_day}/{state.program_days} · {(hours[0]?.bonus_beans ?? 0).toLocaleString()}/hr · max {hours.length}h
               </p>
             </div>
           </div>
