@@ -957,7 +957,7 @@ export default function AdminUserManagement() {
       }
       const enriched = rows.map((s: any) => ({
         ...s,
-        status: normalizeFaceStatus(s.status),
+        status: normalizeFaceStatus(s.status ?? s.status_bucket),
         is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
         review_source: inferFaceReviewSource(s),
         profile: s.profile && s.profile.id ? s.profile : null,
@@ -1405,7 +1405,9 @@ export default function AdminUserManagement() {
     agency.agency_code?.toLowerCase().includes(blockSearchQuery.toLowerCase())
   );
 
-  const getFaceSubmissionBucket = (s: FaceVerificationSubmission) => s.status_bucket || bucketOfStatus(s.status);
+  // Button/tab visibility follows raw row status first. Older RPC buckets can be
+  // stale, which hid Approve/Reject for real pending submissions.
+  const getFaceSubmissionBucket = (s: FaceVerificationSubmission) => bucketOfStatus(s.status || s.status_bucket);
   const isFaceApproved = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'approved';
   const isFaceRejected = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'rejected';
   const isFacePendingBucket = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'pending';
@@ -1437,7 +1439,7 @@ export default function AdminUserManagement() {
     return false;
   });
 
-  const faceCounts = countFaceReviewBuckets(faceVisiblePool, (s) => s.status_bucket || s.status, (s) => s.admin_notes);
+  const faceCounts = countFaceReviewBuckets(faceVisiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes);
   const pendingFaceCount = faceCounts.pending;
   const approvedFaceCount = faceCounts.approved;
   const rejectedFaceCount = faceCounts.rejected;

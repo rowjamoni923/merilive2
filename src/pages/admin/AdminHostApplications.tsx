@@ -215,6 +215,7 @@ export default function AdminHostApplications() {
 
       const femaleOnly = rows.slice(0, pageSize).map((s: any) => ({
         ...s,
+        status: String(s.status ?? s.status_bucket ?? 'pending').trim().toLowerCase(),
         agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
 
@@ -418,11 +419,11 @@ export default function AdminHostApplications() {
   const totalPages = Math.ceil(totalApplications / pageSize);
 
   // A row is actionable whenever the submission itself is not already approved/rejected.
-  // We deliberately do NOT cross-check the profile's face_verification_status here:
-  // the list RPC does not return that column, so any check on it silently hid the
-  // Approve/Host/User/Reject buttons. Single source of truth = submission.status.
+  // We deliberately do NOT cross-check profile status or trust a stale RPC bucket:
+  // the original app showed buttons from the row status only, and stale buckets were
+  // the reason pending rows could render with no Approve/Reject buttons.
   const isPendingApplication = (app: HostSubmission) => {
-    const bucket = (app.status_bucket as string | undefined) || bucketOfStatus(app.status);
+    const bucket = bucketOfStatus(app.status || app.status_bucket);
     return bucket !== 'approved' && bucket !== 'rejected';
   };
 
