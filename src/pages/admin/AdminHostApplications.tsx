@@ -416,10 +416,14 @@ export default function AdminHostApplications() {
 
   const totalPages = Math.ceil(totalApplications / pageSize);
 
-  const isPendingApplication = (app: HostSubmission) => (
-    (app.status_bucket ? app.status_bucket : bucketOfStatus(app.status)) === 'pending'
-    && bucketOfStatus(app.profile?.face_verification_status) !== 'approved'
-  );
+  // A row is actionable whenever the submission itself is not already approved/rejected.
+  // We deliberately do NOT cross-check the profile's face_verification_status here:
+  // the list RPC does not return that column, so any check on it silently hid the
+  // Approve/Host/User/Reject buttons. Single source of truth = submission.status.
+  const isPendingApplication = (app: HostSubmission) => {
+    const bucket = (app.status_bucket as string | undefined) || bucketOfStatus(app.status);
+    return bucket !== 'approved' && bucket !== 'rejected';
+  };
 
   const getStatusBadge = (status: string) => {
     const config = statusConfig[status] || statusConfig.pending;
