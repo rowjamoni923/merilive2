@@ -1158,6 +1158,7 @@ const App = () => {
                 <Route path="/vip" element={<ProtectedRoute session={session}><VIP /></ProtectedRoute>} />
                 <Route path="/invitation" element={<ProtectedRoute session={session}><Invitation /></ProtectedRoute>} />
                 <Route path="/tasks" element={<ProtectedRoute session={session}><Tasks /></ProtectedRoute>} />
+                <Route path="/host-bonus-ledger" element={<ProtectedRoute session={session}><HostBonusLedger /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
                 <Route path="/settings/blacklist" element={<ProtectedRoute session={session}><Blacklist /></ProtectedRoute>} />
                 <Route path="/settings/privacy-policy" element={<ProtectedRoute session={session}><ContentPageView /></ProtectedRoute>} />
