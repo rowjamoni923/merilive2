@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, ExternalLink, Image as ImageIcon, Video } from "lucide-react";
+import { AlertTriangle, ExternalLink, Image as ImageIcon, Loader2, RefreshCw, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
@@ -93,6 +93,9 @@ export function AdminMediaFrame({
   autoPlay = false,
 }: AdminMediaFrameProps) {
   const [failed, setFailed] = useState(false);
+  const [failReason, setFailReason] = useState<string>("");
+  const [retryNonce, setRetryNonce] = useState(0);
+  const [videoLoading, setVideoLoading] = useState(true);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
@@ -129,6 +132,8 @@ export function AdminMediaFrame({
 
   useEffect(() => {
     setFailed(false);
+    setFailReason("");
+    setVideoLoading(true);
     setImageFallbackFailed(false);
     setBlobMimeType("");
     setBlobMimeChecked(false);
@@ -158,7 +163,7 @@ export function AdminMediaFrame({
     return () => {
       cancelled = true;
     };
-  }, [src, poster, bucket]);
+  }, [src, poster, bucket, retryNonce]);
 
   if (!src) {
     return (
@@ -179,8 +184,9 @@ export function AdminMediaFrame({
 
   if (!displaySrc) {
     return (
-      <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
-        <ImageIcon className="mr-2 h-4 w-4 animate-pulse" /> Loading media
+      <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        <span className="text-xs">Resolving signed media URL…</span>
       </div>
     );
   }
@@ -209,12 +215,24 @@ export function AdminMediaFrame({
     return (
       <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-center", className)}>
         <AlertTriangle className="h-5 w-5 text-destructive" />
-        <p className="text-sm font-medium text-foreground">Media could not be loaded in this browser.</p>
-        {displaySrc && (
-          <a href={displaySrc} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
-            Open original <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
+        <p className="text-sm font-medium text-foreground">
+          {effectiveMediaKind === "video" ? "Video could not be played." : "Media could not be loaded."}
+        </p>
+        {failReason && <p className="text-[11px] text-muted-foreground">{failReason}</p>}
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => { setFailed(false); setFailReason(""); setVideoLoading(true); setRetryNonce((n) => n + 1); }}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+          >
+            <RefreshCw className="h-3 w-3" /> Retry
+          </button>
+          {displaySrc && (
+            <a href={displaySrc} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground hover:opacity-90">
+              Open original <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+        </div>
       </div>
     );
   }
@@ -223,26 +241,39 @@ export function AdminMediaFrame({
     const sourceType = blobMimeType || getVideoMimeType(displaySrc);
     const canOpenOriginal = !displaySrc.startsWith("blob:");
     return (
-      <div className={cn("relative overflow-hidden rounded-lg border border-border bg-background", className)}>
+      <div className={cn("relative overflow-hidden rounded-lg border border-border bg-black", className)}>
         <video
-          key={displaySrc}
+          key={`${displaySrc}-${retryNonce}`}
           controls
           playsInline
           preload="metadata"
           muted={autoPlay}
           autoPlay={autoPlay}
           poster={displayPoster || undefined}
-          className={cn("h-full w-full bg-background object-contain", mediaClassName)}
-          onError={() => setFailed(true)}
-          onLoadedData={() => setFailed(false)}
-          onCanPlay={() => setFailed(false)}
+          className={cn("h-full w-full bg-black object-contain", mediaClassName)}
+          onError={(e) => {
+            const err = (e.currentTarget as HTMLVideoElement).error;
+            const code = err?.code;
+            const reason =
+              code === 1 ? "Playback aborted."
+              : code === 2 ? "Network error while loading video."
+              : code === 3 ? "Video is corrupted or cannot be decoded."
+              : code === 4 ? "Video format or MIME type not supported by this browser."
+              : "Unknown playback error.";
+            setFailReason(reason);
+            setVideoLoading(false);
+            setFailed(true);
+          }}
+          onLoadStart={() => { setVideoLoading(true); }}
+          onWaiting={() => { setVideoLoading(true); }}
+          onStalled={() => { setVideoLoading(true); }}
+          onLoadedData={() => { setFailed(false); setVideoLoading(false); }}
+          onCanPlay={() => { setFailed(false); setVideoLoading(false); }}
+          onPlaying={() => { setVideoLoading(false); }}
           controlsList="nodownload"
           ref={(el) => {
-            // Force the element to (re-)read sources whenever displaySrc changes.
-            // Without an explicit load() call, swapping the <source> child while the
-            // <video> is already mounted often leaves it stuck on the poster.
-            if (el && el.dataset.adminLoadedSrc !== displaySrc) {
-              el.dataset.adminLoadedSrc = displaySrc;
+            if (el && el.dataset.adminLoadedSrc !== `${displaySrc}-${retryNonce}`) {
+              el.dataset.adminLoadedSrc = `${displaySrc}-${retryNonce}`;
               try { el.load(); } catch { /* noop */ }
             }
           }}
@@ -253,20 +284,37 @@ export function AdminMediaFrame({
           } as Record<string, string>)}
         >
           {sourceType ? <source src={displaySrc} type={sourceType} /> : <source src={displaySrc} />}
-          {/* Some browsers refuse certain webm codecs — give them an untyped fallback too */}
           {sourceType && <source src={displaySrc} />}
         </video>
-        {canOpenOriginal && (
-          <a
-            href={displaySrc}
-            target="_blank"
-            rel="noreferrer"
-            className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
-            title="Open video in new tab"
-          >
-            <ExternalLink className="h-3 w-3" /> Open
-          </a>
+
+        {videoLoading && !failed && (
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 backdrop-blur-sm">
+            <Loader2 className="h-6 w-6 animate-spin text-white" />
+            <span className="text-[11px] font-medium text-white/90">Loading video…</span>
+          </div>
         )}
+
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => { setFailed(false); setFailReason(""); setVideoLoading(true); setRetryNonce((n) => n + 1); }}
+            className="inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
+            title="Reload video"
+          >
+            <RefreshCw className="h-3 w-3" /> Reload
+          </button>
+          {canOpenOriginal && (
+            <a
+              href={displaySrc}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
+              title="Open video in new tab"
+            >
+              <ExternalLink className="h-3 w-3" /> Open
+            </a>
+          )}
+        </div>
       </div>
     );
   }
