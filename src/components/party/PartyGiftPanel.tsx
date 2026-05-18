@@ -37,6 +37,26 @@ const defaultCategories: GiftCategory[] = [
   { id: "pro", name: "Pro", icon: "🚀" },
 ];
 
+const getAnimationTypeFromCoin = (coinValue: number): 'basic' | 'premium' | 'luxury' | 'legendary' => {
+  if (coinValue >= 10000) return 'legendary';
+  if (coinValue >= 1000) return 'luxury';
+  if (coinValue >= 100) return 'premium';
+  return 'basic';
+};
+
+const transformGiftsFromCache = (raw: ReturnType<typeof getCachedGifts>): GiftData[] =>
+  (raw || []).map((gift) => ({
+    id: gift.id,
+    name: gift.name,
+    emoji: '',
+    coins: gift.coin_value,
+    category: gift.category || 'wall',
+    animationType: getAnimationTypeFromCoin(gift.coin_value),
+    icon_url: gift.icon_url?.startsWith('http') ? gift.icon_url :
+              (gift.animation_url?.startsWith('http') ? gift.animation_url : null),
+    animation_url: gift.animation_url,
+  }));
+
 interface PartyGiftPanelProps {
   isOpen: boolean;
   onClose: () => void;
