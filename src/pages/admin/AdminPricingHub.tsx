@@ -935,6 +935,74 @@ export default function AdminPricingHub() {
               </Button>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Crown className="h-4 w-4 text-primary" /> Trader Wallet Top-up Rate
+              </CardTitle>
+              <CardDescription>
+                USD price per 100,000 diamonds when an admin approves a helper Trader Wallet
+                top-up request. Read by <code>get_trader_wallet_topup_rate()</code> and the
+                admin approve modal (`app_settings.trader_wallet_topup_rate.usd_per_100k_diamonds`).
+                Blank = no rate configured (approval will be blocked).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field
+                  label="USD per 100,000 💎"
+                  hint="e.g. 100 = $100 buys 100,000 diamonds for the helper's Trader Wallet"
+                >
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={NUM(traderWalletTopupRate)}
+                    onChange={(e) =>
+                      setTraderWalletTopupRate(
+                        e.target.value === "" ? "" : Number(e.target.value)
+                      )
+                    }
+                  />
+                </Field>
+              </div>
+              {traderWalletTopupRate !== "" && Number(traderWalletTopupRate) > 0 && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                  <div className="font-semibold text-primary">Live Calculation Preview</div>
+                  <div>
+                    • $10 USD →{" "}
+                    <strong>
+                      {Math.floor((10 / Number(traderWalletTopupRate)) * 100000).toLocaleString()} 💎
+                    </strong>
+                  </div>
+                  <div>
+                    • $100 USD →{" "}
+                    <strong>
+                      {Math.floor((100 / Number(traderWalletTopupRate)) * 100000).toLocaleString()} 💎
+                    </strong>
+                  </div>
+                </div>
+              )}
+              <Button
+                onClick={() =>
+                  saveSection(
+                    "trader_wallet_topup_rate",
+                    { usd_per_100k_diamonds: traderWalletTopupRate },
+                    "Trader Wallet top-up rate"
+                  )
+                }
+                disabled={
+                  saving === "trader_wallet_topup_rate" ||
+                  traderWalletTopupRate === "" ||
+                  Number(traderWalletTopupRate) <= 0
+                }
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saving === "trader_wallet_topup_rate" ? "Saving..." : "Save Top-up Rate"}
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
