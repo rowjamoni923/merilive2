@@ -234,7 +234,7 @@ const AdminFaceVerification = () => {
 
       const enriched: Submission[] = rows.map((s) => ({
         ...s,
-        status: normalizeFaceVerificationStatus(s.status),
+        status: normalizeFaceVerificationStatus(s.status ?? s.status_bucket),
         is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
         review_source: inferFaceReviewSource(s),
         // RPC returns profile as a jsonb object; normalize null → undefined
