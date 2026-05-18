@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 interface PremiumLiveStreamCardProps {
   id: string;
