@@ -851,9 +851,8 @@ const AdminFaceVerification = () => {
                     )}
 
                     {['pending', 'submitted', 'under_review'].includes(submission.status) && (
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <Button
-                          className="flex-1"
                           disabled={processing}
                           onClick={() => {
                             processSubmissionAction({
@@ -867,8 +866,21 @@ const AdminFaceVerification = () => {
                           <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
                         </Button>
                         <Button
+                          variant="outline"
+                          disabled={processing}
+                          onClick={() => processSubmissionAction({ submission, action: 'approve', approveAs: 'host', setGender: 'female' })}
+                        >
+                          <Mic className="w-4 h-4 mr-2" /> Host
+                        </Button>
+                        <Button
+                          variant="outline"
+                          disabled={processing}
+                          onClick={() => processSubmissionAction({ submission, action: 'approve', approveAs: 'user', setGender: 'male' })}
+                        >
+                          <User className="w-4 h-4 mr-2" /> User
+                        </Button>
+                        <Button
                           variant="destructive"
-                          className="flex-1"
                           disabled={processing}
                           onClick={() => processSubmissionAction({ submission, action: 'reject' })}
                         >
