@@ -304,6 +304,8 @@ export default function AdminHostApplications() {
         toast.success("Application rejected");
       }
 
+      const rejectedId = selectedApplication.id;
+      setApplications((prev) => prev.filter((a) => a.id !== rejectedId));
       setShowRejectDialog(false);
       setShowDetailDialog(false);
       setRejectionReason("");
