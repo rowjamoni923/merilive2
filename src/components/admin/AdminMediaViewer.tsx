@@ -163,7 +163,7 @@ export function AdminMediaFrame({
     return () => {
       cancelled = true;
     };
-  }, [src, poster, bucket]);
+  }, [src, poster, bucket, retryNonce]);
 
   if (!src) {
     return (
