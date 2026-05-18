@@ -232,6 +232,20 @@ export function AdminMediaFrame({
           {effectiveMediaKind === "video" ? "Video could not be played." : "Media could not be loaded."}
         </p>
         {failReason && <p className="text-[11px] text-muted-foreground">{failReason}</p>}
+        {effectiveMediaKind === "video" && (videoDuration > 0 || videoTime > 0) && (
+          <div className="flex w-full max-w-xs flex-col gap-1 pt-1">
+            <div className="flex items-center justify-between text-[11px] font-semibold tabular-nums text-foreground">
+              <span>Stopped at {formatMediaTime(videoTime)}</span>
+              <span className="text-muted-foreground">/ {formatMediaTime(videoDuration)}</span>
+            </div>
+            <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-destructive"
+                style={{ width: videoDuration > 0 ? `${Math.min(100, (videoTime / videoDuration) * 100)}%` : "0%" }}
+              />
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-2 pt-1">
           <button
             type="button"
