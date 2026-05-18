@@ -361,6 +361,14 @@ export function AdminMediaFrame({
         <div className="absolute top-2 right-2 flex items-center gap-1">
           <button
             type="button"
+            onClick={requestFullscreen}
+            className="inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
+            title="Fullscreen"
+          >
+            <Maximize2 className="h-3 w-3" /> Fullscreen
+          </button>
+          <button
+            type="button"
             onClick={() => { setFailed(false); setFailReason(""); setVideoLoading(true); setRetryNonce((n) => n + 1); }}
             className="inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
             title="Reload video"
