@@ -182,7 +182,18 @@ export default function AdminStreams() {
   }, []);
 
   const fetchStreams = useCallback(async () => {
-    if (streams.length === 0) setLoading(true);
+    // Always invalidate any previous filter's rows/stats BEFORE the new query
+    // so users never see stale data while the new filter is loading.
+    const cached = getAdminCache<LiveStream[]>(cacheKeyFor(statusFilter));
+    if (cached && cached.length) {
+      setStreams(cached);
+      calculateStatsFromStreams(cached);
+      setLoading(false);
+    } else {
+      setStreams([]);
+      setStats({ totalActive: 0, totalViewers: 0, totalGifts: 0, totalCoins: 0 });
+      setLoading(true);
+    }
     try {
       let query = supabase
         .from("live_streams")
@@ -201,6 +212,11 @@ export default function AdminStreams() {
 
       setStreams(formattedData);
       calculateStatsFromStreams(formattedData);
+      setAdminCache(cacheKeyFor(statusFilter), formattedData);
+
+      // Drop any selected stream that no longer belongs to the active result set.
+      setWatchingStream((prev) => (prev && !formattedData.some((s) => s.id === prev.id) ? null : prev));
+      setStopStreamDialog((prev) => (prev && !formattedData.some((s) => s.id === prev.streamId) ? null : prev));
     } catch (error) {
       console.error("Error fetching streams:", error);
       recordAdminError({ kind: "rpc", label: "AdminStreams.formattedData", message: formatAdminError(error) });
