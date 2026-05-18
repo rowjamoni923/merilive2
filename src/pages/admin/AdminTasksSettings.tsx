@@ -134,30 +134,98 @@ const AdminTasksSettings = () => {
     setBonusHourRows((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   };
 
+  // Auto add/remove hour rows to match max_hours_per_day
+  const reconcileHourRows = (maxHours: number) => {
+    const target = Math.max(1, Math.min(24, maxHours || 1));
+    setBonusHourRows((rows) => {
+      const current = [...rows].sort((a, b) => a.hour_number - b.hour_number);
+      if (current.length === target) return current;
+      if (current.length > target) {
+        // Trim extras from the end
+        return current.slice(0, target);
+      }
+      // Add new rows with sensible defaults (mirror last row's beans/target)
+      const last = current[current.length - 1];
+      const next = [...current];
+      for (let h = current.length + 1; h <= target; h++) {
+        next.push({
+          id: `new-${h}-${Date.now()}`,
+          hour_number: h,
+          target_minutes: last?.target_minutes ?? 60,
+          bonus_beans: last?.bonus_beans ?? 10000,
+          beans_per_hour: last?.bonus_beans ?? 10000,
+        });
+      }
+      return next;
+    });
+  };
+
   const saveBonusSettings = async () => {
     if (!bonusGlobals || bonusHourRows.length === 0) return;
     setSavingBonus(true);
     try {
-      // Sync ALL hour rows in parallel — shared globals applied to every row, per-row target_minutes/bonus_beans preserved
-      const results = await Promise.all(
-        bonusHourRows.map((row) =>
+      const maxHours = Math.max(1, Math.min(24, Number(bonusGlobals.max_hours_per_day) || 1));
+      const eligibleDays = Math.max(1, Number(bonusGlobals.eligible_days) || 1);
+      const resetOffset = Math.max(0, Math.min(1440, Number(bonusGlobals.daily_reset_offset_minutes) || 0));
+      const active = !!bonusGlobals.is_active;
+
+      // Normalize rows to hour_number 1..maxHours
+      const sorted = [...bonusHourRows].sort((a, b) => a.hour_number - b.hour_number).slice(0, maxHours);
+      const desired = sorted.map((r, idx) => ({ ...r, hour_number: idx + 1 }));
+
+      const toInsert = desired.filter((r) => r.id.startsWith('new-'));
+      const toUpdate = desired.filter((r) => !r.id.startsWith('new-'));
+
+      // Delete any persisted rows whose hour_number exceeds the new max
+      const { error: delErr } = await supabase
+        .from('new_host_live_bonus_settings' as any)
+        .delete()
+        .gt('hour_number', maxHours);
+      if (delErr) throw delErr;
+
+      // Update existing rows
+      const updateResults = await Promise.all(
+        toUpdate.map((row) =>
           supabase
             .from('new_host_live_bonus_settings' as any)
             .update({
+              hour_number: row.hour_number,
               target_minutes: Math.max(1, Math.min(60, Number(row.target_minutes) || 60)),
               bonus_beans: Math.max(0, Number(row.bonus_beans) || 0),
               beans_per_hour: Math.max(0, Number(row.bonus_beans) || 0),
-              max_hours_per_day: Math.max(1, Number(bonusGlobals.max_hours_per_day) || 1),
-              eligible_days: Math.max(1, Number(bonusGlobals.eligible_days) || 1),
-              daily_reset_offset_minutes: Math.max(0, Math.min(1440, Number(bonusGlobals.daily_reset_offset_minutes) || 0)),
-              is_active: !!bonusGlobals.is_active,
+              max_hours_per_day: maxHours,
+              eligible_days: eligibleDays,
+              daily_reset_offset_minutes: resetOffset,
+              is_active: active,
             })
             .eq('id', row.id)
         )
       );
-      const firstErr = results.find((r) => r.error)?.error;
-      if (firstErr) throw firstErr;
-      toast.success(`Saved ${bonusHourRows.length} hour rows`);
+      const updErr = updateResults.find((r) => r.error)?.error;
+      if (updErr) throw updErr;
+
+      // Insert new rows
+      if (toInsert.length > 0) {
+        const insertPayload = toInsert.map((row) => ({
+          hour_number: row.hour_number,
+          day_number: 1,
+          target_minutes: Math.max(1, Math.min(60, Number(row.target_minutes) || 60)),
+          bonus_beans: Math.max(0, Number(row.bonus_beans) || 0),
+          beans_per_hour: Math.max(0, Number(row.bonus_beans) || 0),
+          bonus_amount: Math.max(0, Number(row.bonus_beans) || 0),
+          max_hours_per_day: maxHours,
+          eligible_days: eligibleDays,
+          eligible_program_days: eligibleDays,
+          daily_reset_offset_minutes: resetOffset,
+          is_active: active,
+        }));
+        const { error: insErr } = await supabase
+          .from('new_host_live_bonus_settings' as any)
+          .insert(insertPayload);
+        if (insErr) throw insErr;
+      }
+
+      toast.success(`Saved ${desired.length} hour rows`);
       fetchBonusSettings();
     } catch (error) {
       console.error('Error saving bonus settings:', error);
