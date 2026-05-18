@@ -2,6 +2,7 @@ import { Eye, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 interface LiveStreamCardProps {
   id: string;
