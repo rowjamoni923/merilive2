@@ -102,6 +102,7 @@ export default function AdminPricingHub() {
     platform_fee_percent: "",
     helper_receives_percent: "",
   });
+  const [traderWalletTopupRate, setTraderWalletTopupRate] = useState<number | "">("");
 
   // Beans → Diamonds exchange (app_settings.coin_exchange)
   const [coinExchange, setCoinExchange] = useState<any>(null);
