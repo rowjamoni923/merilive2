@@ -555,12 +555,12 @@ const Reels = () => {
                   )}
                 </AnimatePresence>
 
-                {/* Right Side Actions - TikTok Premium Style */}
-                <div className="absolute right-2.5 flex flex-col items-center gap-5" style={{ bottom: 'calc(var(--bottom-nav-height, 56px) + 70px)' }}>
-                  {/* User Avatar with Follow Badge - TikTok Style */}
-                  <div className="mb-2">
+                {/* Right Side Actions - Professional TikTok Style */}
+                <div className="absolute right-2 flex flex-col items-center gap-[22px]" style={{ bottom: 'calc(var(--bottom-nav-height, 56px) + 80px)' }}>
+                  {/* User Avatar with Follow + Badge */}
+                  <div className="relative mb-1">
                     <button onClick={() => navigate(`/profile/${currentReel.user_id}`)} className="block">
-                      <div className="w-[50px] h-[50px] flex items-center justify-center">
+                      <div className="w-[48px] h-[48px] rounded-full ring-[2px] ring-white/95 overflow-hidden bg-black flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
                         <FramedAvatarWithPrivileges
                           userId={currentReel.user_id}
                           src={currentReel.user?.avatar_url || ''}
@@ -570,103 +570,103 @@ const Reels = () => {
                         />
                       </div>
                     </button>
+                    {!currentReel.is_following && currentReel.user_id !== currentUserId && (
+                      <button
+                        onClick={() => handleFollow(currentReel.user_id)}
+                        aria-label="Follow"
+                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[22px] h-[22px] rounded-full bg-rose-500 flex items-center justify-center shadow-[0_2px_8px_rgba(244,63,94,0.55)] border-[1.5px] border-black/10 active:scale-90 transition-transform"
+                      >
+                        <Plus className="w-[14px] h-[14px] text-white" strokeWidth={3} />
+                      </button>
+                    )}
                   </div>
 
-                  {/* Like - Heart with Glow */}
-                  <motion.button 
-                    onClick={() => handleLike(currentReel.id)} 
-                    className="flex flex-col items-center"
-                    whileTap={{ scale: 0.8 }}
+                  {/* Like */}
+                  <motion.button
+                    onClick={() => handleLike(currentReel.id)}
+                    className="flex flex-col items-center gap-1"
+                    whileTap={{ scale: 0.85 }}
                   >
-                    <motion.div
-                      animate={currentReel.is_liked ? { scale: [1, 1.3, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Heart 
+                    <motion.div animate={currentReel.is_liked ? { scale: [1, 1.35, 1] } : {}} transition={{ duration: 0.3 }}>
+                      <Heart
                         className={cn(
-                          "w-[30px] h-[30px] transition-all",
-                          currentReel.is_liked 
-                            ? "text-red-500 fill-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,0.7)]" 
-                            : "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
-                        )} 
+                          "w-[34px] h-[34px] transition-colors",
+                          currentReel.is_liked
+                            ? "text-rose-500 fill-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.6)]"
+                            : "text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
+                        )}
+                        strokeWidth={1.8}
                       />
                     </motion.div>
-                    <span className="text-white text-[11px] mt-1 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">
+                    <span className="text-white text-[11px] font-semibold tabular-nums drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                       {formatCount(currentReel.like_count)}
                     </span>
                   </motion.button>
 
                   {/* Comment */}
-                  <motion.button 
-                    onClick={() => openComments(currentReel.id)} 
-                    className="flex flex-col items-center"
-                    whileTap={{ scale: 0.8 }}
+                  <motion.button
+                    onClick={() => openComments(currentReel.id)}
+                    className="flex flex-col items-center gap-1"
+                    whileTap={{ scale: 0.85 }}
                   >
-                    <MessageCircle className="w-[30px] h-[30px] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" />
-                    <span className="text-white text-[11px] mt-1 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">
+                    <MessageCircle className="w-[32px] h-[32px] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" strokeWidth={1.8} />
+                    <span className="text-white text-[11px] font-semibold tabular-nums drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                       {formatCount(currentReel.comment_count)}
                     </span>
                   </motion.button>
 
+                  {/* Gift - consistent icon style */}
+                  {currentReel.user_id !== currentUserId && (
+                    <motion.button
+                      onClick={() => setShowGiftPanel(true)}
+                      className="flex flex-col items-center gap-1"
+                      whileTap={{ scale: 0.85 }}
+                    >
+                      <Gift className="w-[32px] h-[32px] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" strokeWidth={1.8} />
+                      <span className="text-white text-[11px] font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">Gift</span>
+                    </motion.button>
+                  )}
+
                   {/* Share */}
-                  <motion.button 
-                    onClick={() => handleShare(currentReel.id)} 
-                    className="flex flex-col items-center"
-                    whileTap={{ scale: 0.8 }}
+                  <motion.button
+                    onClick={() => handleShare(currentReel.id)}
+                    className="flex flex-col items-center gap-1"
+                    whileTap={{ scale: 0.85 }}
                   >
-                    <Share2 className="w-[28px] h-[28px] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" />
-                    <span className="text-white text-[11px] mt-1 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">
+                    <Share2 className="w-[30px] h-[30px] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" strokeWidth={1.8} />
+                    <span className="text-white text-[11px] font-semibold tabular-nums drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                       {formatCount(currentReel.share_count)}
                     </span>
                   </motion.button>
 
-                  {/* Gift - Premium Glowing Button */}
-                  {currentReel.user_id !== currentUserId && (
-                    <motion.button 
-                      onClick={() => setShowGiftPanel(true)} 
-                      className="flex flex-col items-center"
-                      whileTap={{ scale: 0.85 }}
-                    >
-                      <div className="relative">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 blur-md opacity-60 animate-pulse" />
-                        <div className="relative w-[44px] h-[44px] rounded-full bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 flex items-center justify-center shadow-[0_0_24px_rgba(236,72,153,0.45)] border border-white/25">
-                          <Gift className="w-5 h-5 text-white drop-shadow-sm" />
-                        </div>
-                      </div>
-                      <span className="text-white text-[11px] mt-1 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">Gift</span>
-                    </motion.button>
-                  )}
-
-                  {/* Mute - Glassmorphism */}
-                  <motion.button 
-                    onClick={toggleMute} 
+                  {/* More */}
+                  <motion.button
+                    onClick={() => setShowSettings(true)}
                     whileTap={{ scale: 0.85 }}
+                    aria-label="More options"
                   >
-                    <div className="w-[34px] h-[34px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/15 shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+                    <MoreVertical className="w-[26px] h-[26px] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" strokeWidth={2} />
+                  </motion.button>
+
+                  {/* Mute - small subtle */}
+                  <motion.button
+                    onClick={toggleMute}
+                    whileTap={{ scale: 0.85 }}
+                    aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  >
+                    <div className="w-[30px] h-[30px] rounded-full bg-black/35 backdrop-blur-md flex items-center justify-center border border-white/15">
                       {isMuted ? (
-                        <VolumeX className="w-[18px] h-[18px] text-white/90" />
+                        <VolumeX className="w-[16px] h-[16px] text-white" strokeWidth={2} />
                       ) : (
-                        <Volume2 className="w-[18px] h-[18px] text-white/90" />
+                        <Volume2 className="w-[16px] h-[16px] text-white" strokeWidth={2} />
                       )}
                     </div>
                   </motion.button>
 
-                  {/* Spinning Music Disc - TikTok Style */}
-                  <div className="w-[38px] h-[38px] rounded-full border-[2px] border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center animate-spin shadow-[0_0_10px_rgba(0,0,0,0.5)]" style={{ animationDuration: '4s' }}>
-                    <div className="w-[16px] h-[16px] rounded-full bg-gradient-to-br from-gray-700 to-gray-600 border border-gray-500/30" />
+                  {/* Spinning Music Disc */}
+                  <div className="w-[36px] h-[36px] rounded-full border-2 border-white/15 bg-gradient-to-br from-zinc-800 via-zinc-900 to-black flex items-center justify-center animate-spin shadow-[0_2px_8px_rgba(0,0,0,0.6)]" style={{ animationDuration: '5s' }}>
+                    <div className="w-[12px] h-[12px] rounded-full bg-gradient-to-br from-rose-400 to-fuchsia-500" />
                   </div>
-
-                  {/* More / Settings - 3 dot menu */}
-                  <motion.button
-                    onClick={() => setShowSettings(true)}
-                    className="flex flex-col items-center"
-                    whileTap={{ scale: 0.85 }}
-                    aria-label="More options"
-                  >
-                    <div className="w-[34px] h-[34px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/15 shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
-                      <MoreVertical className="w-[18px] h-[18px] text-white/90" />
-                    </div>
-                  </motion.button>
                 </div>
 
                 {/* Beans Earned Badge - Premium Gold */}
