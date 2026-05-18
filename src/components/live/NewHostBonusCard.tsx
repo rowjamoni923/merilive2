@@ -14,6 +14,7 @@ interface NewHostBonusCardProps {
 interface HourSlot {
   hour_number: number;
   bonus_beans: number;
+  target_minutes: number;
   minutes_accumulated: number;
   completed: boolean;
   claimed: boolean;
