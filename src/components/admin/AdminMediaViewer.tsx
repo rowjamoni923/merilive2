@@ -96,6 +96,8 @@ export function AdminMediaFrame({
   const [failReason, setFailReason] = useState<string>("");
   const [retryNonce, setRetryNonce] = useState(0);
   const [videoLoading, setVideoLoading] = useState(true);
+  const [videoTime, setVideoTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
