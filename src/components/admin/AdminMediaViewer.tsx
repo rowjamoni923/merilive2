@@ -41,6 +41,21 @@ const getImageMimeType = (src: string) => {
   return undefined;
 };
 
+const getVideoMimeType = (src: string) => {
+  const clean = (() => {
+    try {
+      return new URL(src).pathname.toLowerCase();
+    } catch {
+      return src.split("?")[0].toLowerCase();
+    }
+  })();
+  if (clean.endsWith(".mp4") || clean.endsWith(".m4v")) return "video/mp4";
+  if (clean.endsWith(".mov") || clean.endsWith(".qt")) return "video/quicktime";
+  if (clean.endsWith(".webm")) return "video/webm";
+  if (clean.endsWith(".ogg") || clean.endsWith(".ogv")) return "video/ogg";
+  return undefined;
+};
+
 const objectUrlMimeTypes = new Map<string, string>();
 
 const resolveBlobMimeType = async (url: string) => {
@@ -175,7 +190,7 @@ export function AdminMediaFrame({
     : mediaKind;
 
   if (failed) {
-    if (displaySrc && !imageFallbackFailed) {
+    if (displaySrc && !imageFallbackFailed && effectiveMediaKind !== "video") {
       return (
         <div className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", className)}>
           <img
@@ -209,7 +224,6 @@ export function AdminMediaFrame({
       <div className={cn("overflow-hidden rounded-lg border border-border bg-background", className)}>
         <video
           key={displaySrc}
-          src={displaySrc}
           controls
           playsInline
           preload="metadata"
@@ -225,7 +239,9 @@ export function AdminMediaFrame({
             "x5-video-player-type": "h5",
             "x5-video-player-fullscreen": "false",
           } as Record<string, string>)}
-        />
+        >
+          <source src={displaySrc} type={blobMimeType || getVideoMimeType(displaySrc)} />
+        </video>
       </div>
     );
   }
