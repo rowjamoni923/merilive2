@@ -15,6 +15,21 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupUrl, setPopupUrl] = useState("");
   const [popupTitle, setPopupTitle] = useState("");
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
+
+  // Preload every banner image into the browser cache so the swap is instant
+  // and the user never sees a half-rendered / progressively painted image.
+  useEffect(() => {
+    allBanners.forEach((b) => {
+      if (!b.image_url || loadedImages[b.id]) return;
+      const img = new Image();
+      try { (img as any).fetchPriority = 'high'; } catch {}
+      img.decoding = 'async';
+      img.onload = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
+      img.onerror = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
+      img.src = b.image_url;
+    });
+  }, [allBanners]);
 
   // Filter banners by date range
   const activeBanners = allBanners.filter((banner) => {
