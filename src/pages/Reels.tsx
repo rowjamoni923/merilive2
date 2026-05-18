@@ -473,18 +473,20 @@ const Reels = () => {
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col overflow-hidden">
-      {/* Header - Clean Minimal */}
-      <div className="fixed top-0 left-0 right-0 z-50 safe-area-top">
-        <div className="px-4 pt-2.5 pb-12 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
-          <h1 className="text-white font-extrabold text-lg tracking-tight drop-shadow-lg">Reels</h1>
-          
+      {/* Header - Professional Minimal (TikTok-style) */}
+      <div className="fixed top-0 left-0 right-0 z-50 safe-area-top pointer-events-none">
+        <div className="px-4 pt-3 pb-10 flex items-center justify-between bg-gradient-to-b from-black/55 via-black/20 to-transparent">
+          <h1 className="text-white font-bold text-[17px] tracking-[-0.01em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] pointer-events-auto">
+            Reels
+          </h1>
+
           {currentUserId && (
             <button
               onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full px-3.5 py-1.5 text-[11px] font-semibold text-white border border-white/15 transition-all active:scale-95"
+              aria-label="Upload reel"
+              className="pointer-events-auto w-9 h-9 rounded-full bg-white/12 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/15 transition-all active:scale-90"
             >
-              <Plus className="w-3.5 h-3.5" />
-              Upload
+              <Plus className="w-[18px] h-[18px]" strokeWidth={2.5} />
             </button>
           )}
         </div>
@@ -553,12 +555,12 @@ const Reels = () => {
                   )}
                 </AnimatePresence>
 
-                {/* Right Side Actions - TikTok Premium Style */}
-                <div className="absolute right-2.5 flex flex-col items-center gap-5" style={{ bottom: 'calc(var(--bottom-nav-height, 56px) + 70px)' }}>
-                  {/* User Avatar with Follow Badge - TikTok Style */}
-                  <div className="mb-2">
+                {/* Right Side Actions - Professional TikTok Style */}
+                <div className="absolute right-2 flex flex-col items-center gap-[22px]" style={{ bottom: 'calc(var(--bottom-nav-height, 56px) + 80px)' }}>
+                  {/* User Avatar with Follow + Badge */}
+                  <div className="relative mb-1">
                     <button onClick={() => navigate(`/profile/${currentReel.user_id}`)} className="block">
-                      <div className="w-[50px] h-[50px] flex items-center justify-center">
+                      <div className="w-[48px] h-[48px] rounded-full ring-[2px] ring-white/95 overflow-hidden bg-black flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
                         <FramedAvatarWithPrivileges
                           userId={currentReel.user_id}
                           src={currentReel.user?.avatar_url || ''}
@@ -568,103 +570,103 @@ const Reels = () => {
                         />
                       </div>
                     </button>
+                    {!currentReel.is_following && currentReel.user_id !== currentUserId && (
+                      <button
+                        onClick={() => handleFollow(currentReel.user_id)}
+                        aria-label="Follow"
+                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[22px] h-[22px] rounded-full bg-rose-500 flex items-center justify-center shadow-[0_2px_8px_rgba(244,63,94,0.55)] border-[1.5px] border-black/10 active:scale-90 transition-transform"
+                      >
+                        <Plus className="w-[14px] h-[14px] text-white" strokeWidth={3} />
+                      </button>
+                    )}
                   </div>
 
-                  {/* Like - Heart with Glow */}
-                  <motion.button 
-                    onClick={() => handleLike(currentReel.id)} 
-                    className="flex flex-col items-center"
-                    whileTap={{ scale: 0.8 }}
+                  {/* Like */}
+                  <motion.button
+                    onClick={() => handleLike(currentReel.id)}
+                    className="flex flex-col items-center gap-1"
+                    whileTap={{ scale: 0.85 }}
                   >
-                    <motion.div
-                      animate={currentReel.is_liked ? { scale: [1, 1.3, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Heart 
+                    <motion.div animate={currentReel.is_liked ? { scale: [1, 1.35, 1] } : {}} transition={{ duration: 0.3 }}>
+                      <Heart
                         className={cn(
-                          "w-[30px] h-[30px] transition-all",
-                          currentReel.is_liked 
-                            ? "text-red-500 fill-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,0.7)]" 
-                            : "text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
-                        )} 
+                          "w-[34px] h-[34px] transition-colors",
+                          currentReel.is_liked
+                            ? "text-rose-500 fill-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.6)]"
+                            : "text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
+                        )}
+                        strokeWidth={1.8}
                       />
                     </motion.div>
-                    <span className="text-white text-[11px] mt-1 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">
+                    <span className="text-white text-[11px] font-semibold tabular-nums drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                       {formatCount(currentReel.like_count)}
                     </span>
                   </motion.button>
 
                   {/* Comment */}
-                  <motion.button 
-                    onClick={() => openComments(currentReel.id)} 
-                    className="flex flex-col items-center"
-                    whileTap={{ scale: 0.8 }}
+                  <motion.button
+                    onClick={() => openComments(currentReel.id)}
+                    className="flex flex-col items-center gap-1"
+                    whileTap={{ scale: 0.85 }}
                   >
-                    <MessageCircle className="w-[30px] h-[30px] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" />
-                    <span className="text-white text-[11px] mt-1 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">
+                    <MessageCircle className="w-[32px] h-[32px] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" strokeWidth={1.8} />
+                    <span className="text-white text-[11px] font-semibold tabular-nums drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                       {formatCount(currentReel.comment_count)}
                     </span>
                   </motion.button>
 
+                  {/* Gift - consistent icon style */}
+                  {currentReel.user_id !== currentUserId && (
+                    <motion.button
+                      onClick={() => setShowGiftPanel(true)}
+                      className="flex flex-col items-center gap-1"
+                      whileTap={{ scale: 0.85 }}
+                    >
+                      <Gift className="w-[32px] h-[32px] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" strokeWidth={1.8} />
+                      <span className="text-white text-[11px] font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">Gift</span>
+                    </motion.button>
+                  )}
+
                   {/* Share */}
-                  <motion.button 
-                    onClick={() => handleShare(currentReel.id)} 
-                    className="flex flex-col items-center"
-                    whileTap={{ scale: 0.8 }}
+                  <motion.button
+                    onClick={() => handleShare(currentReel.id)}
+                    className="flex flex-col items-center gap-1"
+                    whileTap={{ scale: 0.85 }}
                   >
-                    <Share2 className="w-[28px] h-[28px] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" />
-                    <span className="text-white text-[11px] mt-1 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">
+                    <Share2 className="w-[30px] h-[30px] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" strokeWidth={1.8} />
+                    <span className="text-white text-[11px] font-semibold tabular-nums drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                       {formatCount(currentReel.share_count)}
                     </span>
                   </motion.button>
 
-                  {/* Gift - Premium Glowing Button */}
-                  {currentReel.user_id !== currentUserId && (
-                    <motion.button 
-                      onClick={() => setShowGiftPanel(true)} 
-                      className="flex flex-col items-center"
-                      whileTap={{ scale: 0.85 }}
-                    >
-                      <div className="relative">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 blur-md opacity-60 animate-pulse" />
-                        <div className="relative w-[44px] h-[44px] rounded-full bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 flex items-center justify-center shadow-[0_0_24px_rgba(236,72,153,0.45)] border border-white/25">
-                          <Gift className="w-5 h-5 text-white drop-shadow-sm" />
-                        </div>
-                      </div>
-                      <span className="text-white text-[11px] mt-1 font-bold drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">Gift</span>
-                    </motion.button>
-                  )}
-
-                  {/* Mute - Glassmorphism */}
-                  <motion.button 
-                    onClick={toggleMute} 
+                  {/* More */}
+                  <motion.button
+                    onClick={() => setShowSettings(true)}
                     whileTap={{ scale: 0.85 }}
+                    aria-label="More options"
                   >
-                    <div className="w-[34px] h-[34px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/15 shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+                    <MoreVertical className="w-[26px] h-[26px] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" strokeWidth={2} />
+                  </motion.button>
+
+                  {/* Mute - small subtle */}
+                  <motion.button
+                    onClick={toggleMute}
+                    whileTap={{ scale: 0.85 }}
+                    aria-label={isMuted ? 'Unmute' : 'Mute'}
+                  >
+                    <div className="w-[30px] h-[30px] rounded-full bg-black/35 backdrop-blur-md flex items-center justify-center border border-white/15">
                       {isMuted ? (
-                        <VolumeX className="w-[18px] h-[18px] text-white/90" />
+                        <VolumeX className="w-[16px] h-[16px] text-white" strokeWidth={2} />
                       ) : (
-                        <Volume2 className="w-[18px] h-[18px] text-white/90" />
+                        <Volume2 className="w-[16px] h-[16px] text-white" strokeWidth={2} />
                       )}
                     </div>
                   </motion.button>
 
-                  {/* Spinning Music Disc - TikTok Style */}
-                  <div className="w-[38px] h-[38px] rounded-full border-[2px] border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center animate-spin shadow-[0_0_10px_rgba(0,0,0,0.5)]" style={{ animationDuration: '4s' }}>
-                    <div className="w-[16px] h-[16px] rounded-full bg-gradient-to-br from-gray-700 to-gray-600 border border-gray-500/30" />
+                  {/* Spinning Music Disc */}
+                  <div className="w-[36px] h-[36px] rounded-full border-2 border-white/15 bg-gradient-to-br from-zinc-800 via-zinc-900 to-black flex items-center justify-center animate-spin shadow-[0_2px_8px_rgba(0,0,0,0.6)]" style={{ animationDuration: '5s' }}>
+                    <div className="w-[12px] h-[12px] rounded-full bg-gradient-to-br from-rose-400 to-fuchsia-500" />
                   </div>
-
-                  {/* More / Settings - 3 dot menu */}
-                  <motion.button
-                    onClick={() => setShowSettings(true)}
-                    className="flex flex-col items-center"
-                    whileTap={{ scale: 0.85 }}
-                    aria-label="More options"
-                  >
-                    <div className="w-[34px] h-[34px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/15 shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
-                      <MoreVertical className="w-[18px] h-[18px] text-white/90" />
-                    </div>
-                  </motion.button>
                 </div>
 
                 {/* Beans Earned Badge - Premium Gold */}
@@ -679,47 +681,35 @@ const Reels = () => {
                   </motion.div>
                 )}
 
-                {/* Bottom Info - Luxurious Gradient Overlay */}
+                {/* Bottom Info - Refined Editorial */}
                 <div className="absolute left-0 right-0 pointer-events-none" style={{ bottom: 'var(--bottom-nav-height, 56px)' }}>
-                  <div className="bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-20 pb-3 px-3.5">
-                    <div className="pointer-events-auto">
-                      {/* Username + Level + Verified */}
+                  <div className="bg-gradient-to-t from-black/85 via-black/45 to-transparent pt-24 pb-4 px-4">
+                    <div className="pointer-events-auto pr-16">
+                      {/* Username row */}
                       <div className="flex items-center gap-2 mb-2">
-                        <button onClick={() => navigate(`/profile/${currentReel.user_id}`)} className="flex items-center gap-1.5">
-                          <span className="text-white font-extrabold text-[14px] tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-                            @{currentReel.user?.display_name || 'User'}
-                          </span>
+                        <button
+                          onClick={() => navigate(`/profile/${currentReel.user_id}`)}
+                          className="text-white font-bold text-[15px] tracking-[-0.01em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] active:opacity-70"
+                        >
+                          @{currentReel.user?.display_name || 'User'}
                         </button>
-                        {currentReel.user?.app_uid && (
-                          <span className="text-white/70 text-[10px] font-bold drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
-                            ID {currentReel.user.app_uid}
-                          </span>
-                        )}
                         {currentReel.user?.is_verified && (
-                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center shadow-[0_0_8px_rgba(59,130,246,0.5)]">
-                            <span className="text-white text-[8px] font-bold">✓</span>
+                          <div className="w-[15px] h-[15px] rounded-full bg-sky-500 flex items-center justify-center shadow-[0_0_6px_rgba(14,165,233,0.5)]">
+                            <span className="text-white text-[9px] font-black leading-none">✓</span>
                           </div>
                         )}
                         <LevelBadge level={currentReel.user?.user_level || 1} size="sm" />
-                        {!currentReel.is_following && currentReel.user_id !== currentUserId && (
-                          <button
-                            onClick={() => handleFollow(currentReel.user_id)}
-                            className="px-3 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold active:scale-95 transition-all shadow-[0_2px_10px_rgba(244,63,94,0.35)]"
-                          >
-                            Follow
-                          </button>
-                        )}
                       </div>
 
-                      {/* Caption - with elegant fade */}
+                      {/* Caption */}
                       {currentReel.caption && (
-                        <p className="text-white/95 text-[12.5px] mb-2.5 line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] leading-[1.6] font-medium pr-14">
+                        <p className="text-white text-[13px] mb-3 line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] leading-snug">
                           {currentReel.caption}
                         </p>
                       )}
 
-                      {/* Music Ticker - Marquee Style */}
-                      <button 
+                      {/* Music Ticker */}
+                      <button
                         onClick={() => {
                           if (isHost) {
                             const soundData: Sound = {
@@ -733,22 +723,22 @@ const Reels = () => {
                             setShowUploadModal(true);
                           }
                         }}
-                        className="flex items-center gap-2 max-w-[70%] overflow-hidden"
+                        className="flex items-center gap-1.5 max-w-full overflow-hidden"
                       >
-                        <Music2 className="w-3.5 h-3.5 text-white/80 flex-shrink-0" />
-                        <div className="overflow-hidden">
-                          <motion.span 
-                            className="text-white/80 text-[11px] font-medium whitespace-nowrap inline-block"
-                            animate={{ x: [0, -120, 0] }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        <Music2 className="w-[13px] h-[13px] text-white/90 flex-shrink-0" />
+                        <div className="overflow-hidden flex-1">
+                          <motion.span
+                            className="text-white/90 text-[11.5px] font-medium whitespace-nowrap inline-block drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
+                            animate={{ x: [0, -140, 0] }}
+                            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
                           >
-                            {currentReel.sound_title || currentReel.music_title || 'Original Sound'} 
+                            {currentReel.sound_title || currentReel.music_title || 'Original Sound'}
                             {' · '}
                             {currentReel.sound_artist || currentReel.music_artist || currentReel.user?.display_name || 'Unknown'}
                           </motion.span>
                         </div>
                         {isHost && (
-                          <span className="text-pink-400 text-[10px] font-bold whitespace-nowrap flex-shrink-0 bg-pink-500/15 px-1.5 py-0.5 rounded-full border border-pink-500/20">Use</span>
+                          <span className="text-white text-[9.5px] font-bold whitespace-nowrap flex-shrink-0 bg-white/15 backdrop-blur-sm px-1.5 py-0.5 rounded">Use</span>
                         )}
                       </button>
                     </div>
