@@ -55,17 +55,29 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
       })
       .subscribe();
 
-    // Auto-refresh at 12:30 AM local time when tasks reset
+    // Auto-refresh at 12:30 AM Europe/London (server reset) — re-fetches eligibility too.
     const msUntilReset = getMsUntilNextReset();
     const resetTimer = setTimeout(() => {
-      console.log('[LiveTasks] Task day reset - refreshing');
+      console.log('[LiveTasks] Server day reset — refreshing');
       setProgress({});
       checkEligibilityAndFetch();
     }, msUntilReset);
 
-    return () => { 
+    // Hourly nudge: refresh at every wall-clock hour so live_minutes
+    // accumulation and "Today" labels stay current without polling.
+    let hourTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleHourly = () => {
+      hourTimer = setTimeout(() => {
+        fetchLiveTasks();
+        scheduleHourly();
+      }, getMsUntilNextHour());
+    };
+    scheduleHourly();
+
+    return () => {
       supabase.removeChannel(channel);
       clearTimeout(resetTimer);
+      if (hourTimer) clearTimeout(hourTimer);
     };
   }, [hostId]);
 
