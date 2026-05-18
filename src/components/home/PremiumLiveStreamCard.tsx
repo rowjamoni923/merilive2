@@ -156,29 +156,20 @@ export const PremiumLiveStreamCard = ({
         </div>
       )}
 
-      {/* Tags with slide-in animation */}
-      <AnimatePresence>
-        {tags.length > 0 && (
-          <div className="absolute top-12 left-3 flex flex-wrap gap-1 z-10">
-            {tags.slice(0, 2).map((tag, index) => (
-              <motion.div
-                key={tag}
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -20, opacity: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Badge
-                  variant="secondary"
-                  className="bg-white/20 backdrop-blur-sm text-white border-0 text-[10px] px-1.5 py-0"
-                >
-                  #{tag}
-                </Badge>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Tags */}
+      {tags.length > 0 && (
+        <div className="absolute top-12 left-3 flex flex-wrap gap-1 z-10">
+          {tags.slice(0, 2).map((tag) => (
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="bg-white/20 backdrop-blur-sm text-white border-0 text-[10px] px-1.5 py-0"
+            >
+              #{tag}
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* PK Battle Progress Bar */}
       {isPK && (
