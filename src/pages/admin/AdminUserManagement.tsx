@@ -957,7 +957,7 @@ export default function AdminUserManagement() {
       }
       const enriched = rows.map((s: any) => ({
         ...s,
-        status: normalizeFaceStatus(s.status),
+        status: normalizeFaceStatus(s.status ?? s.status_bucket),
         is_auto_reviewed: inferFaceReviewSource(s) === 'auto',
         review_source: inferFaceReviewSource(s),
         profile: s.profile && s.profile.id ? s.profile : null,
