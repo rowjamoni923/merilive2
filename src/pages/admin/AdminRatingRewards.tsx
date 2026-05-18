@@ -557,7 +557,7 @@ export default function AdminRatingRewards() {
                       </Badge>
                       {claim.status === 'approved' && (
                         <span className="text-[10px] text-emerald-400 font-medium">
-                          {claim.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'}
+                          {claim.reward_type === 'beans' ? `🫘 ${(claim.reward_amount ?? 0).toLocaleString()} Beans` : `💎 ${(claim.reward_amount ?? 0).toLocaleString()} Diamonds`}
                         </span>
                       )}
                       {(claim.status === 'approved' || claim.status === 'rejected') && claim.reviewer && (
