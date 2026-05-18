@@ -98,11 +98,7 @@ export const PremiumLiveStreamCard = ({
       {/* Stream Type Badge with Animation */}
       {isOnline && (
         <div className="absolute top-3 left-3 z-10">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="flex items-center gap-1"
-          >
+          <div className="flex items-center gap-1">
             <Badge className={cn(
               "border-0 gap-1 px-2 py-0.5 font-bold text-white shadow-lg",
               `bg-gradient-to-r ${streamBadge.color}`
@@ -117,18 +113,12 @@ export const PremiumLiveStreamCard = ({
             
             {/* VIP Badge */}
             {isVIP && (
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 border-0 text-white shadow-lg">
-                  <Crown className="w-3 h-3 mr-0.5" />
-                  VIP
-                </Badge>
-              </motion.div>
+              <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 border-0 text-white shadow-lg">
+                <Crown className="w-3 h-3 mr-0.5" />
+                VIP
+              </Badge>
             )}
-          </motion.div>
+          </div>
         </div>
       )}
 
