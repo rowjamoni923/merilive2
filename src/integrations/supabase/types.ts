@@ -5563,41 +5563,56 @@ export type Database = {
         Row: {
           admin_notes: string | null
           amount: number
+          amount_usd: number | null
+          coin_amount: number | null
           created_at: string | null
           helper_id: string
           id: string
+          notes: string | null
           payment_method: string | null
           payment_proof_url: string | null
           processed_at: string | null
           processed_by: string | null
           status: string | null
+          transaction_id: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           admin_notes?: string | null
           amount: number
+          amount_usd?: number | null
+          coin_amount?: number | null
           created_at?: string | null
           helper_id: string
           id?: string
+          notes?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
           processed_at?: string | null
           processed_by?: string | null
           status?: string | null
+          transaction_id?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           admin_notes?: string | null
           amount?: number
+          amount_usd?: number | null
+          coin_amount?: number | null
           created_at?: string | null
           helper_id?: string
           id?: string
+          notes?: string | null
           payment_method?: string | null
           payment_proof_url?: string | null
           processed_at?: string | null
           processed_by?: string | null
           status?: string | null
+          transaction_id?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -14181,6 +14196,14 @@ export type Database = {
         Returns: Json
       }
       admin_approve_helper: { Args: { _helper_id: string }; Returns: boolean }
+      admin_approve_helper_topup: {
+        Args: {
+          _admin_notes?: string
+          _amount_usd?: number
+          _request_id: string
+        }
+        Returns: Json
+      }
       admin_approve_pending_action: {
         Args: { _id: string; _notes?: string }
         Returns: Json
@@ -14629,15 +14652,20 @@ export type Database = {
         Returns: {
           admin_notes: string | null
           amount: number
+          amount_usd: number | null
+          coin_amount: number | null
           created_at: string | null
           helper_id: string
           id: string
+          notes: string | null
           payment_method: string | null
           payment_proof_url: string | null
           processed_at: string | null
           processed_by: string | null
           status: string | null
+          transaction_id: string | null
           updated_at: string | null
+          user_id: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -16297,6 +16325,7 @@ export type Database = {
           user_level: number
         }[]
       }
+      get_trader_wallet_topup_rate: { Args: never; Returns: Json }
       get_transfer_wallet_sources: {
         Args: { _user_id: string }
         Returns: {
