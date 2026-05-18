@@ -129,6 +129,7 @@ export default function AdminPricingHub() {
           "helper_fee_settings",
           "coin_exchange",
           "trader_wallet_topup_rate",
+          "auto_withdrawal_fee",
         ]);
       if (error) throw error;
 
