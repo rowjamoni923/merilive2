@@ -32,6 +32,9 @@ type BroadcastRow = {
 // Add more keys here as new screens get queries — the underlying
 // realtime push already arrives, this just wires it to the cache.
 const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
+  profiles: [['profile'], ['user-profile'], ['user-balance'], ['index-hosts-v4'], ['host-countries'], ['host-feed']],
+  face_verification_submissions: [['face-verification'], ['host-applications'], ['profile'], ['user-profile'], ['index-hosts-v4'], ['host-countries']],
+
   banners: [['banners'], ['active-banners'], ['home-banners']],
   popup_event_banners: [['popup-event-banners']],
   rating_banners: [['rating-banners']],
