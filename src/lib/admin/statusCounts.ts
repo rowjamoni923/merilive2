@@ -233,6 +233,26 @@ function cacheKey(opts: FilteredCountOptions): string {
   return `${opts.table}::${opts.searchColumn}::${(opts.searchQuery || "").trim().toLowerCase()}::${opts.globalStatsRpc || ""}`;
 }
 
+function normalizeStatusCounts(data: StatusCounts | Record<string, unknown>): StatusCounts {
+  const s = (data || {}) as StatusCounts;
+  return {
+    pending: Number(s.pending || 0),
+    under_review: Number(s.under_review || 0),
+    approved: Number(s.approved || 0),
+    rejected: Number(s.rejected || 0),
+    auto_approved: Number(s.auto_approved || 0),
+    auto_rejected: Number(s.auto_rejected || 0),
+    auto_host: Number(s.auto_host || 0),
+    auto_user: Number(s.auto_user || 0),
+    auto_face_verification: Number(s.auto_face_verification || 0),
+    manual_pending: Number(s.manual_pending || s.pending || 0),
+    manual_approved: Number(s.manual_approved || 0),
+    manual_rejected: Number(s.manual_rejected || 0),
+    manual_total: Number(s.manual_total || 0),
+    total: Number(s.total || 0),
+  };
+}
+
 /** Invalidate all cached status-count entries (e.g. after a mutation). */
 export function invalidateStatusCountsCache(table?: string): void {
   if (!table) {
