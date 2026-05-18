@@ -36,7 +36,7 @@ const getUrl = (input: RequestInfo | URL): string => {
 };
 
 const getHeaders = (input: RequestInfo | URL, init?: RequestInit): Headers => {
-  const headers = new Headers(input instanceof Request ? input.headers : undefined);
+  const headers = new Headers(typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined);
   if (init?.headers) new Headers(init.headers).forEach((value, key) => headers.set(key, value));
   return headers;
 };
@@ -129,7 +129,7 @@ export function fetchWithInstantRestCache(
   init: RequestInit | undefined,
   options: InstantRestCacheOptions,
 ): Promise<Response> {
-  const method = (init?.method || (input instanceof Request ? input.method : "GET") || "GET").toUpperCase();
+  const method = (init?.method || (typeof Request !== "undefined" && input instanceof Request ? input.method : "GET") || "GET").toUpperCase();
   const url = getUrl(input);
   const headers = getHeaders(input, init);
   const ttlMs = options.ttlMs ?? DEFAULT_TTL_MS;
