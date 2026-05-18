@@ -35,6 +35,8 @@ interface BonusSettings {
   beans_per_hour: number;
   max_hours_per_day: number;
   eligible_days: number;
+  target_minutes: number;
+  daily_reset_offset_minutes: number;
   is_active: boolean;
 }
 
