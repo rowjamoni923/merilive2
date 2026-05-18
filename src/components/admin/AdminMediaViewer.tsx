@@ -319,6 +319,7 @@ export function AdminMediaFrame({
           onPlaying={() => { setVideoLoading(false); }}
           controlsList="nodownload"
           ref={(el) => {
+            videoElRef.current = el;
             if (el && el.dataset.adminLoadedSrc !== `${displaySrc}-${retryNonce}`) {
               el.dataset.adminLoadedSrc = `${displaySrc}-${retryNonce}`;
               try { el.load(); } catch { /* noop */ }
