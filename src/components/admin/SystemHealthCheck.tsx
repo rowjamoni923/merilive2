@@ -65,20 +65,51 @@ export function SystemHealthCheck() {
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
+      // setting_value column is TEXT — JSON-parse when it looks like JSON so we
+      // can read nested keys (gift_commission.host_percent, withdrawal_settings.fees).
+      const parseMaybe = (v: any) => {
+        if (v == null) return v;
+        if (typeof v !== 'string') return v;
+        const t = v.trim();
+        if (!t) return v;
+        if (t.startsWith('{') || t.startsWith('[')) {
+          try { return JSON.parse(t); } catch { return v; }
+        }
+        return v;
+      };
+
       const settingsMap: Record<string, any> = {};
       (appSettings || []).forEach((s: any) => {
-        settingsMap[s.setting_key] = s.setting_value;
+        settingsMap[s.setting_key] = parseMaybe(s.setting_value);
       });
 
-      const hostPercent = settingsMap.host_percent || settingsMap.gift_commission?.host_percent;
-      
+      const giftComm = settingsMap.gift_commission || {};
+      const callRates = settingsMap.call_rates || {};
+      const withdrawalCfg = settingsMap.withdrawal_settings || {};
+      const beansRate = settingsMap.beans_to_usd_rate || {};
+      const hostPercent =
+        settingsMap.host_percent ??
+        giftComm.host_percent ??
+        callRates.host_commission_percent;
+
+      // "Platform Fee %" is sourced from withdrawal_settings.fees[] (tiered) — there
+      // is no flat platform_fee_percent key. Treat any of the supported shapes as configured.
+      const fees = withdrawalCfg.fees;
+      const platformFeeConfigured =
+        settingsMap.platform_fee_percent != null ||
+        (Array.isArray(fees) && fees.length > 0) ||
+        withdrawalCfg.platform_fee_percent != null;
+      const platformFeeDisplay = settingsMap.platform_fee_percent
+        ?? (Array.isArray(fees) && fees.length > 0 ? `${fees.length} tier${fees.length>1?'s':''}` : undefined)
+        ?? withdrawalCfg.platform_fee_percent;
+
       const statusList: SettingStatus[] = [
         {
           key: 'host_percent',
           name: 'Host Commission %',
           icon: <Gift className="w-4 h-4" />,
-          status: hostPercent ? 'configured' : 'missing',
-          value: hostPercent ? `${hostPercent}%` : undefined,
+          status: hostPercent != null ? 'configured' : 'missing',
+          value: hostPercent != null ? `${hostPercent}%` : undefined,
           description: 'Host commission percentage from gifts'
         },
         {
@@ -101,7 +132,7 @@ export function SystemHealthCheck() {
           key: 'beans_to_usd_rate',
           name: 'Beans to USD Rate',
           icon: <DollarSign className="w-4 h-4" />,
-          status: settingsMap.beans_to_usd_rate ? 'configured' : 'warning',
+          status: (beansRate.rate ?? settingsMap.beans_to_usd_rate) ? 'configured' : 'warning',
           value: settingsMap.beans_to_usd_rate,
           description: 'Beans to USD exchange rate (default: 9000)'
         },
@@ -109,9 +140,9 @@ export function SystemHealthCheck() {
           key: 'platform_fee_percent',
           name: 'Platform Fee %',
           icon: <Settings className="w-4 h-4" />,
-          status: settingsMap.platform_fee_percent ? 'configured' : 'warning',
-          value: settingsMap.platform_fee_percent,
-          description: 'Withdrawal platform fee percentage'
+          status: platformFeeConfigured ? 'configured' : 'warning',
+          value: platformFeeDisplay,
+          description: 'Withdrawal platform fee percentage (tiered via withdrawal_settings)'
         },
         {
           key: 'agency_level_tiers',
