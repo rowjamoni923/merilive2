@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBannersRealtime, Banner } from "@/hooks/useAdminSettingsRealtime";
 import { X, ChevronRight } from "lucide-react";
@@ -15,6 +15,21 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupUrl, setPopupUrl] = useState("");
   const [popupTitle, setPopupTitle] = useState("");
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
+
+  // Preload every banner image into the browser cache so the swap is instant
+  // and the user never sees a half-rendered / progressively painted image.
+  useEffect(() => {
+    allBanners.forEach((b) => {
+      if (!b.image_url || loadedImages[b.id]) return;
+      const img = new Image();
+      try { (img as any).fetchPriority = 'high'; } catch {}
+      img.decoding = 'async';
+      img.onload = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
+      img.onerror = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
+      img.src = b.image_url;
+    });
+  }, [allBanners]);
 
   // Filter banners by date range
   const activeBanners = allBanners.filter((banner) => {
@@ -82,19 +97,24 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
             style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
-              <img 
-                src={banner.image_url} 
-                alt={banner.title}
-                loading="eager"
-                decoding="sync"
-                // @ts-expect-error – fetchpriority is a standard HTML hint
-                fetchpriority="high"
-                className="w-full h-auto rounded-2xl object-cover"
-                onError={(e) => {
-                  // Hide broken images
-                  (e.currentTarget.parentElement as HTMLElement).style.display = 'none';
-                }}
-              />
+              <div
+                className="relative w-full overflow-hidden rounded-2xl bg-white/[0.04]"
+                style={{ aspectRatio: '16 / 6' }}
+              >
+                <img
+                  src={banner.image_url}
+                  alt={banner.title}
+                  loading="eager"
+                  decoding="async"
+                  // @ts-expect-error – fetchpriority is a standard HTML hint
+                  fetchpriority="high"
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                  onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
+                  onError={(e) => {
+                    (e.currentTarget.parentElement?.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
+                  }}
+                />
+              </div>
             ) : (
               <div className="flex items-center justify-between">
                 <div>
