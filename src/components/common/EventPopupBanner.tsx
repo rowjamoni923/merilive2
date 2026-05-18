@@ -19,10 +19,28 @@ const EventPopupBanner = () => {
   const [banner, setBanner] = useState<PopupBanner | null>(null);
   const [visible, setVisible] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [imageReady, setImageReady] = useState(false);
 
   const skipDelay = banner?.skip_delay_seconds ?? 3;
   const autoDismiss = banner?.auto_dismiss_seconds ?? 10;
   const canSkip = elapsed >= skipDelay;
+
+  // Preload an image into the browser cache, resolves on load OR error
+  // (errors shouldn't block the popup forever — fall through after a short cap).
+  const preloadImage = (url: string, capMs = 3500) =>
+    new Promise<void>((resolve) => {
+      const img = new Image();
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      img.onload = finish;
+      img.onerror = finish;
+      // Hint the browser to fetch eagerly at high priority
+      try { (img as any).fetchPriority = 'high'; } catch {}
+      img.decoding = 'sync';
+      img.src = url;
+      // Hard cap: never wait more than capMs (slow networks shouldn't block UX)
+      setTimeout(finish, capMs);
+    });
 
   const fetchAndShowBanner = useCallback(async () => {
     // Only show ONCE per cold start
@@ -48,7 +66,12 @@ const EventPopupBanner = () => {
 
       if (error) throw error;
       if (data) {
+        // ★ Preload the banner image BEFORE making the modal visible so the
+        //   user never sees the black-frame + ticking countdown without art.
         setBanner(data);
+        setImageReady(false);
+        await preloadImage(data.image_url);
+        setImageReady(true);
         setElapsed(0);
         setVisible(true);
       }
@@ -66,17 +89,17 @@ const EventPopupBanner = () => {
     // Also listen for fresh login events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
-        // Small delay to let the UI settle after login
-        setTimeout(() => fetchAndShowBanner(), 1500);
+        // Tiny delay so the post-login route finishes mounting
+        setTimeout(() => fetchAndShowBanner(), 300);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [fetchAndShowBanner]);
 
-  // Auto-dismiss countdown timer
+  // Auto-dismiss countdown timer — only starts AFTER the image is on screen.
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || !imageReady) return;
     const interval = setInterval(() => {
       setElapsed(prev => {
         const next = prev + 1;
@@ -88,7 +111,7 @@ const EventPopupBanner = () => {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [visible, autoDismiss]);
+  }, [visible, imageReady, autoDismiss]);
 
   const handleDismiss = useCallback(() => {
     setVisible(false);
