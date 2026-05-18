@@ -7424,6 +7424,7 @@ export type Database = {
           hour_number: number | null
           id: string
           is_completed: boolean | null
+          last_minute_at: string | null
           minutes_accumulated: number
           program_day: number | null
           target_minutes: number
@@ -7443,6 +7444,7 @@ export type Database = {
           hour_number?: number | null
           id?: string
           is_completed?: boolean | null
+          last_minute_at?: string | null
           minutes_accumulated?: number
           program_day?: number | null
           target_minutes: number
@@ -7462,6 +7464,7 @@ export type Database = {
           hour_number?: number | null
           id?: string
           is_completed?: boolean | null
+          last_minute_at?: string | null
           minutes_accumulated?: number
           program_day?: number | null
           target_minutes?: number
