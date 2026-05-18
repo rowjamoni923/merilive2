@@ -326,7 +326,7 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
     if (signed) return signed;
   }
 
-  return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : value;
+  return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : normalizeAdminStorageValue(raw, defaultBucket);
 };
 
 export const resolveAdminStorageSignedUrl = resolveAdminStorageImageUrl;
