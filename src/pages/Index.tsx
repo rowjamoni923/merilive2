@@ -89,41 +89,49 @@ const Index = () => {
   const handlePullRefresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"] });
   }, [queryClient]);
-  // Dynamic country list from database
+  // Country chips — show the full supported country set (same as Party Discover)
+  // so every country is always reachable, even before its first host signs up.
+  // Any extra country that appears in the DB is merged in dynamically.
+  const STATIC_COUNTRIES = useMemo(() => ([
+    { code: "BD", name: "Bangladesh", flag: "🇧🇩" },
+    { code: "IN", name: "India", flag: "🇮🇳" },
+    { code: "PK", name: "Pakistan", flag: "🇵🇰" },
+    { code: "NP", name: "Nepal", flag: "🇳🇵" },
+    { code: "PH", name: "Philippines", flag: "🇵🇭" },
+    { code: "ID", name: "Indonesia", flag: "🇮🇩" },
+  ]), []);
+
   const { data: dynamicCountries } = useQuery({
     queryKey: ["host-countries"],
-    staleTime: 1000 * 60 * 15, // 15 minutes cache - country list rarely changes
+    staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 60,
+    refetchOnMount: true,
     queryFn: async () => {
       const { data } = await supabase.rpc('get_public_host_countries_v1' as any);
-      
-      if (!data) return [];
-      
-      // Get unique countries
+      if (!data) return [] as Array<{ code: string; flag: string; name: string }>;
       const countryMap = new Map<string, string>();
-      data.forEach(p => {
-        if (p.country_code && p.country_flag && p.country_flag !== 'NONE') {
+      (data as any[]).forEach((p: any) => {
+        if (p?.country_code && p?.country_flag && p.country_flag !== 'NONE') {
           countryMap.set(p.country_code, p.country_flag);
         }
       });
-      
-      // Convert to array and sort by country code
-      const countries = Array.from(countryMap.entries())
-        .map(([code, flag]) => {
-          const countryInfo = getCountryByCode(code);
-          return { code, flag, name: countryInfo?.name || code };
-        })
-        .sort((a, b) => a.name.localeCompare(b.name));
-      
-      return countries;
+      return Array.from(countryMap.entries()).map(([code, flag]) => {
+        const countryInfo = getCountryByCode(code);
+        return { code, flag, name: countryInfo?.name || code };
+      });
     },
   });
 
   const countries = useMemo(() => {
     const allOption = { code: "all", name: "All", flag: "🌍" };
-    if (!dynamicCountries || dynamicCountries.length === 0) return [allOption];
-    return [allOption, ...dynamicCountries];
-  }, [dynamicCountries]);
+    const map = new Map<string, { code: string; name: string; flag: string }>();
+    STATIC_COUNTRIES.forEach((c) => map.set(c.code, c));
+    (dynamicCountries || []).forEach((c) => {
+      if (!map.has(c.code)) map.set(c.code, c);
+    });
+    const list = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    return [allOption, ...list];
+  }, [STATIC_COUNTRIES, dynamicCountries]);
 
   const [activeTab, setActiveTab] = useState("/");
   const [subTab, setSubTab] = useState<SubTab>("popular");
