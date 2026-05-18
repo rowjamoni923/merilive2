@@ -338,22 +338,31 @@ serve(async (req) => {
     const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
     if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
 
+    // ★ NEVER auto-reject. If auto-approve cannot safely fire, leave the row in
+    //   `submitted` so admin sees it in Pending and reviews manually. The previous
+    //   auto-reject branch on invalid_face_count / front_error / underage /
+    //   face_occluded produced many false rejections (Rekognition age is
+    //   unreliable for women, "occluded" misfires on glasses/hair/lighting,
+    //   borderline face counts happen at frame boundary). Falling through to
+    //   admin review is always safer than rejecting a real user.
     const autoReason = String(autoResult?.reason || "");
-    if (!autoResult?.success && ["invalid_face_count", "front_error", "underage", "face_occluded"].includes(autoReason)) {
-      const reasonText = autoReason === "invalid_face_count"
-        ? `Auto rejected: ${details.length === 0 ? "no face detected" : "multiple faces detected"}.`
+    if (!autoResult?.success) {
+      const reviewReason = autoReason === "invalid_face_count"
+        ? `Needs admin review: ${details.length === 0 ? "no clear face on front frame" : "multiple faces on front frame"}.`
         : autoReason === "underage"
-          ? "Auto rejected: detected age appears under 18."
+          ? "Needs admin review: AI age estimate borderline (often unreliable for women)."
           : autoReason === "face_occluded"
-            ? "Auto rejected: face appears occluded."
-            : `Auto rejected: ${String(autoResult?.detail || "front image failed")}.`;
+            ? "Needs admin review: AI flagged possible occlusion (glasses/hair/lighting can trigger this)."
+            : autoReason === "gender_unknown" || autoReason === "low_gender_confidence"
+              ? "Needs admin review: gender confidence below auto-approve threshold."
+              : autoReason === "low_compare_score" || autoReason === "low_similarity"
+                ? "Needs admin review: front-vs-side angle similarity below auto-approve threshold."
+                : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          status: "rejected",
-          rejection_reason: reasonText,
-          reviewed_at: new Date().toISOString(),
-          admin_notes: `${summary}\n[auto-rejected] ${reasonText}`,
+          // status stays "submitted" — admin Pending tab will show it.
+          admin_notes: `${summary}\n[manual-review] ${reviewReason}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
