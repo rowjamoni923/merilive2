@@ -299,7 +299,7 @@ const AdminTasksSettings = () => {
   return (
     <div className="p-6 space-y-6">
       {/* New Host Live Bonus Settings */}
-      {bonusSettings && (
+      {bonusGlobals && bonusHourRows.length > 0 && (
         <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-fuchsia-50">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -310,32 +310,21 @@ const AdminTasksSettings = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3 mb-2">
               <Switch
-                checked={bonusSettings.is_active}
-                onCheckedChange={(checked) => setBonusSettings({ ...bonusSettings, is_active: checked })}
+                checked={bonusGlobals.is_active}
+                onCheckedChange={(checked) => setBonusGlobals({ ...bonusGlobals, is_active: checked })}
               />
-              <Label className="font-medium">{bonusSettings.is_active ? '✅ Active' : '❌ Inactive'}</Label>
+              <Label className="font-medium">{bonusGlobals.is_active ? '✅ Active' : '❌ Inactive'} (applies to all hours)</Label>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div>
-                <Label className="text-sm font-medium">Beans Per Hour</Label>
-                <Input
-                  type="number"
-                  value={bonusSettings.beans_per_hour}
-                  onChange={(e) => setBonusSettings({ ...bonusSettings, beans_per_hour: parseInt(e.target.value) || 0 })}
-                  className="mt-1"
-                />
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Daily max: {((bonusSettings.beans_per_hour ?? 0) * (bonusSettings.max_hours_per_day ?? 0)).toLocaleString()} beans
-                </p>
-              </div>
+            {/* Shared globals */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label className="text-sm font-medium">Max Hours/Day</Label>
                 <Input
                   type="number"
                   min={1}
-                  value={bonusSettings.max_hours_per_day}
-                  onChange={(e) => setBonusSettings({ ...bonusSettings, max_hours_per_day: parseInt(e.target.value) || 1 })}
+                  value={bonusGlobals.max_hours_per_day}
+                  onChange={(e) => setBonusGlobals({ ...bonusGlobals, max_hours_per_day: parseInt(e.target.value) || 1 })}
                   className="mt-1"
                 />
               </div>
@@ -344,26 +333,12 @@ const AdminTasksSettings = () => {
                 <Input
                   type="number"
                   min={1}
-                  value={bonusSettings.eligible_days}
-                  onChange={(e) => setBonusSettings({ ...bonusSettings, eligible_days: parseInt(e.target.value) || 1 })}
+                  value={bonusGlobals.eligible_days}
+                  onChange={(e) => setBonusGlobals({ ...bonusGlobals, eligible_days: parseInt(e.target.value) || 1 })}
                   className="mt-1"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  First {bonusSettings.eligible_days} days after verification
-                </p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Minutes Per Hour (target)</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={60}
-                  value={bonusSettings.target_minutes ?? 60}
-                  onChange={(e) => setBonusSettings({ ...bonusSettings, target_minutes: parseInt(e.target.value) || 60 })}
-                  className="mt-1"
-                />
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Live minutes required to complete each hour slot
+                  First {bonusGlobals.eligible_days} days after verification
                 </p>
               </div>
               <div>
@@ -372,8 +347,8 @@ const AdminTasksSettings = () => {
                   type="number"
                   min={0}
                   max={1440}
-                  value={bonusSettings.daily_reset_offset_minutes ?? 0}
-                  onChange={(e) => setBonusSettings({ ...bonusSettings, daily_reset_offset_minutes: parseInt(e.target.value) || 0 })}
+                  value={bonusGlobals.daily_reset_offset_minutes}
+                  onChange={(e) => setBonusGlobals({ ...bonusGlobals, daily_reset_offset_minutes: parseInt(e.target.value) || 0 })}
                   className="mt-1"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
@@ -382,9 +357,54 @@ const AdminTasksSettings = () => {
               </div>
             </div>
 
+            {/* Per-hour rows */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Per-Hour Configuration ({bonusHourRows.length} hour slots)</Label>
+              <div className="rounded-xl border border-purple-200 overflow-hidden bg-background/60">
+                <table className="w-full text-sm">
+                  <thead className="bg-purple-100/80 text-purple-900">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-semibold w-20">Hour</th>
+                      <th className="text-left px-3 py-2 font-semibold">Target Minutes</th>
+                      <th className="text-left px-3 py-2 font-semibold">Bonus Beans</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bonusHourRows.map((row) => (
+                      <tr key={row.id} className="border-t border-purple-100">
+                        <td className="px-3 py-2 font-semibold text-purple-700">Hour {row.hour_number}</td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            min={1}
+                            max={60}
+                            value={row.target_minutes}
+                            onChange={(e) => updateHourRow(row.id, { target_minutes: parseInt(e.target.value) || 60 })}
+                            className="h-8"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={row.bonus_beans}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value) || 0;
+                              updateHourRow(row.id, { bonus_beans: v, beans_per_hour: v });
+                            }}
+                            className="h-8"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             <div className="p-3 rounded-xl bg-purple-100/60 border border-purple-200">
               <p className="text-xs text-purple-700">
-                📌 <strong>Summary:</strong> New verified hosts earn {(bonusSettings.beans_per_hour ?? 0).toLocaleString()} beans/hour for the first {bonusSettings.eligible_days ?? 0} days (max {bonusSettings.max_hours_per_day ?? 0} hours/day = {((bonusSettings.beans_per_hour ?? 0) * (bonusSettings.max_hours_per_day ?? 0)).toLocaleString()} beans)
+                📌 <strong>Summary:</strong> {bonusHourRows.length} hour slots, total daily max = {bonusHourRows.reduce((sum, r) => sum + (r.bonus_beans || 0), 0).toLocaleString()} beans · capped at {bonusGlobals.max_hours_per_day} hours/day · for first {bonusGlobals.eligible_days} days after verification.
               </p>
             </div>
 
@@ -394,7 +414,7 @@ const AdminTasksSettings = () => {
               className="bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white"
             >
               <Save className="w-4 h-4 mr-2" />
-              {savingBonus ? 'Saving...' : 'Save Bonus Settings'}
+              {savingBonus ? `Saving ${bonusHourRows.length} rows...` : `Save All (${bonusHourRows.length} hour rows)`}
             </Button>
           </CardContent>
         </Card>
