@@ -535,7 +535,9 @@ const AdminFaceVerification = () => {
   // stays in lock-step with AdminHostApplications & friends: every status maps
   // to exactly one of pending / approved / rejected (anything not explicitly
   // approved/rejected falls into pending).
-  const getSubmissionBucket = (s: Submission) => s.status_bucket || bucketOfStatus(s.status);
+  // Button/tab visibility must follow the row's real status. `status_bucket` can
+  // arrive stale from older RPC versions, so only use it when raw status is absent.
+  const getSubmissionBucket = (s: Submission) => bucketOfStatus(s.status || s.status_bucket);
   const isApproved = (s: Submission) => getSubmissionBucket(s) === "approved";
   const isRejected = (s: Submission) => getSubmissionBucket(s) === "rejected";
   const isPendingBucket = (s: Submission) => getSubmissionBucket(s) === "pending";
@@ -580,7 +582,7 @@ const AdminFaceVerification = () => {
   });
 
   // Shared counter — guaranteed to be in sync with server bucket rules.
-  const visibleCounts = countFaceReviewBuckets(visiblePool, (s) => s.status_bucket || s.status, (s) => s.admin_notes);
+  const visibleCounts = countFaceReviewBuckets(visiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes);
   const pendingCount = visibleCounts.pending;
   const approvedCount = visibleCounts.approved;
   const autoApprovedCount = visibleCounts.auto_approved;
@@ -1134,7 +1136,7 @@ const AdminFaceVerification = () => {
                 )}
 
                 {/* Rejection Reason */}
-                {selectedSubmission.status === 'rejected' && selectedSubmission.rejection_reason && (
+                {isRejected(selectedSubmission) && selectedSubmission.rejection_reason && (
                   <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
                     <p className="text-sm text-red-400 font-medium mb-1">Rejection Reason:</p>
                     <p className="text-red-300">{selectedSubmission.rejection_reason}</p>
@@ -1142,7 +1144,7 @@ const AdminFaceVerification = () => {
                 )}
 
                 {/* Action Buttons */}
-                {['pending', 'submitted', 'under_review'].includes(selectedSubmission.status) && (
+                {isPendingBucket(selectedSubmission) && (
                   <div className="space-y-2 pt-4">
                     <div className="flex gap-3">
                       <Button
@@ -1207,7 +1209,7 @@ const AdminFaceVerification = () => {
                 )}
 
                 {/* Rejected → allow re-open via override approve */}
-                {selectedSubmission.status === 'rejected' && (
+                {isRejected(selectedSubmission) && (
                   <div className="flex gap-2 pt-4 border-t border-slate-700">
                     <Button
                       variant="outline"
@@ -1240,7 +1242,7 @@ const AdminFaceVerification = () => {
                 )}
 
                 {/* Post-Approval Admin Controls */}
-                {selectedSubmission.status === 'approved' && (
+                {isApproved(selectedSubmission) && (
                   <div className="pt-4 border-t border-slate-700 space-y-4">
                     <h4 className="font-semibold text-sm text-amber-300 flex items-center gap-2">
                       <Shield className="w-4 h-4" /> Admin Controls
