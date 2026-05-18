@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { warmLiveKitToken } from "@/services/livekitService";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 interface Profile {
   id: string;
