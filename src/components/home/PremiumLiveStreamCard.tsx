@@ -2,7 +2,7 @@ import { Eye, Gift, Crown, Diamond, Flame, MapPin, Verified, Star } from "lucide
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
 
