@@ -18,15 +18,17 @@ import {
 type Row = {
   id: string;
   status: string | null;
+  status_bucket?: "pending" | "approved" | "rejected" | null;
   admin_notes?: string | null;
   is_auto_reviewed?: boolean | null;
   review_source?: string | null;
 };
 
 // Predicates copied verbatim from both admin pages.
-const isApproved = (s: Row) => bucketOfStatus(s.status) === "approved";
-const isRejected = (s: Row) => bucketOfStatus(s.status) === "rejected";
-const isPending = (s: Row) => bucketOfStatus(s.status) === "pending";
+const getBucket = (s: Row) => bucketOfStatus(s.status || s.status_bucket);
+const isApproved = (s: Row) => getBucket(s) === "approved";
+const isRejected = (s: Row) => getBucket(s) === "rejected";
+const isPending = (s: Row) => getBucket(s) === "pending";
 const isAutoReviewed = (s: Row) =>
   Boolean(s.is_auto_reviewed) ||
   s.review_source === "auto" ||
@@ -122,6 +124,12 @@ describe("Face verification tab + button visibility regression", () => {
     expect(isKnownStatus("approved")).toBe(true);
     expect(isKnownStatus("auto_approved")).toBe(true);
     expect(isKnownStatus(null)).toBe(false);
+  });
+
+  it("Raw status wins over stale RPC status_bucket so pending buttons do not disappear", () => {
+    expect(showsActionButtons({ id: "stale-1", status: "pending", status_bucket: "approved" })).toBe(true);
+    expect(showsActionButtons({ id: "stale-2", status: "submitted", status_bucket: "rejected" })).toBe(true);
+    expect(showsActionButtons({ id: "stale-3", status: "approved", status_bucket: "pending" })).toBe(false);
   });
 
   it("Visible counts derive from the SAME pool as the visible list (search-safe)", () => {
