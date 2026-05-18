@@ -225,9 +225,9 @@ export default function AdminHostApplications() {
     }
   };
 
-  const handleApprove = async (role?: 'host' | 'user') => {
-    if (!selectedApplication) return;
-    if (!guardStart(`approve-${selectedApplication.id}`)) return;
+  const handleApproveApplication = async (application: HostSubmission, role?: 'host' | 'user') => {
+    if (!application) return;
+    if (!guardStart(`approve-${application.id}`)) return;
     const finalRole = role || approveAsRole;
     setActionLoading(true);
     try {
@@ -235,7 +235,7 @@ export default function AdminHostApplications() {
       const targetGender = isHost ? 'female' : 'male';
 
       const { data: processData, error: processError } = await supabase.rpc('admin_process_face_verification', {
-        _submission_id: selectedApplication.id,
+        _submission_id: application.id,
         _action: 'approve',
         _approve_as: finalRole,
         _set_gender: targetGender,
@@ -256,16 +256,16 @@ export default function AdminHostApplications() {
 
       await supabase.functions.invoke('send-app-notification', {
         body: {
-          userId: selectedApplication.user_id,
+          userId: application.user_id,
           templateKey: 'welcome_message',
-          variables: { display_name: selectedApplication.full_name || 'Host' },
+          variables: { display_name: application.full_name || 'Host' },
           type: 'host_approved'
         }
       });
 
       toast.success(`${finalRole === 'host' ? '🎤 Host' : '👤 User'} approved!`);
       // Optimistic: remove from current pending list immediately
-      const approvedId = selectedApplication.id;
+      const approvedId = application.id;
       setApplications((prev) => prev.filter((a) => a.id !== approvedId));
       setShowDetailDialog(false);
       setAdminNotes("");
@@ -275,7 +275,38 @@ export default function AdminHostApplications() {
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
-      if (selectedApplication) guardEnd(`approve-${selectedApplication.id}`);
+      guardEnd(`approve-${application.id}`);
+    }
+  };
+
+  const handleApprove = async (role?: 'host' | 'user') => {
+    if (!selectedApplication) return;
+    return handleApproveApplication(selectedApplication, role);
+  };
+
+  const handleInlineRejectApplication = async (application: HostSubmission) => {
+    const reason = window.prompt("Reject reason", "Rejected by admin");
+    if (!reason?.trim()) return;
+    if (!guardStart(`inline-reject-${application.id}`)) return;
+    setActionLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_process_face_verification', {
+        _submission_id: application.id,
+        _action: 'reject',
+        _reason: reason.trim(),
+        _approve_as: 'user',
+        _set_gender: null,
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Rejection failed');
+      setApplications((prev) => prev.filter((a) => a.id !== application.id));
+      toast.success("Application rejected");
+      invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
+    } catch (error) {
+      toast.error((error as any)?.message || "Operation failed");
+    } finally {
+      setActionLoading(false);
+      guardEnd(`inline-reject-${application.id}`);
     }
   };
 
