@@ -84,9 +84,13 @@ export function AdminMediaFrame({
   const isPrivateStorage = isPrivateAdminStorageReference(src, bucket);
   const [blobMimeType, setBlobMimeType] = useState("");
   const [blobMimeChecked, setBlobMimeChecked] = useState(false);
-  const rawKind = kind === "auto"
-    ? (blobMimeType.startsWith("video/") ? "video" : blobMimeType.startsWith("image/") ? "image" : (isAdminVideoUrl(src) || (!!displaySrc && !displaySrc.startsWith("blob:") && isAdminVideoUrl(displaySrc)) ? "video" : "image"))
-    : kind;
+  const rawKind = blobMimeType.startsWith("video/")
+    ? "video"
+    : blobMimeType.startsWith("image/")
+      ? "image"
+      : kind === "auto"
+        ? (isAdminVideoUrl(src) || (!!displaySrc && !displaySrc.startsWith("blob:") && isAdminVideoUrl(displaySrc)) ? "video" : "image")
+        : kind;
   const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
   const mediaKind = rawKind;
 
