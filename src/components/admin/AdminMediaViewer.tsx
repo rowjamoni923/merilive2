@@ -269,6 +269,17 @@ export function AdminMediaFrame({
           onLoadStart={() => { setVideoLoading(true); }}
           onWaiting={() => { setVideoLoading(true); }}
           onStalled={() => { setVideoLoading(true); }}
+          onLoadedMetadata={(e) => {
+            const d = (e.currentTarget as HTMLVideoElement).duration;
+            if (Number.isFinite(d) && d > 0) setVideoDuration(d);
+          }}
+          onDurationChange={(e) => {
+            const d = (e.currentTarget as HTMLVideoElement).duration;
+            if (Number.isFinite(d) && d > 0) setVideoDuration(d);
+          }}
+          onTimeUpdate={(e) => {
+            setVideoTime((e.currentTarget as HTMLVideoElement).currentTime || 0);
+          }}
           onLoadedData={() => { setFailed(false); setVideoLoading(false); }}
           onCanPlay={() => { setFailed(false); setVideoLoading(false); }}
           onPlaying={() => { setVideoLoading(false); }}
