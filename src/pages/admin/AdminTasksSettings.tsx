@@ -30,12 +30,17 @@ interface DailyTask {
   duration_hours: number;
 }
 
-interface BonusSettings {
+interface BonusHourRow {
   id: string;
+  hour_number: number;
+  target_minutes: number;
+  bonus_beans: number;
   beans_per_hour: number;
+}
+
+interface BonusGlobals {
   max_hours_per_day: number;
   eligible_days: number;
-  target_minutes: number;
   daily_reset_offset_minutes: number;
   is_active: boolean;
 }
