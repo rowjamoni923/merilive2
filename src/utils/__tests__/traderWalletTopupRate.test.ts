@@ -82,8 +82,9 @@ describe("usdToDiamonds — deterministic formula", () => {
     expect(usdToDiamonds(50, 85.5)).toBe(58_479);
   });
 
-  it("rate=100: $0.01 → 1 💎 (smallest positive credit)", () => {
-    expect(usdToDiamonds(0.01, 100)).toBe(1);
+  it("rate=100: $0.01 → 10 💎 (smallest typical credit)", () => {
+    // 0.01 * 100000 / 100 = 10
+    expect(usdToDiamonds(0.01, 100)).toBe(10);
   });
 
   it("rate=1000: $0.01 → 0 💎 (below 1-diamond floor)", () => {
