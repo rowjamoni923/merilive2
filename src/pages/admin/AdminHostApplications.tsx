@@ -215,6 +215,7 @@ export default function AdminHostApplications() {
 
       const femaleOnly = rows.slice(0, pageSize).map((s: any) => ({
         ...s,
+        status: String(s.status ?? s.status_bucket ?? 'pending').trim().toLowerCase(),
         agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
 
