@@ -264,6 +264,9 @@ export default function AdminHostApplications() {
       });
 
       toast.success(`${finalRole === 'host' ? '🎤 Host' : '👤 User'} approved!`);
+      // Optimistic: remove from current pending list immediately
+      const approvedId = selectedApplication.id;
+      setApplications((prev) => prev.filter((a) => a.id !== approvedId));
       setShowDetailDialog(false);
       setAdminNotes("");
       invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
@@ -301,6 +304,8 @@ export default function AdminHostApplications() {
         toast.success("Application rejected");
       }
 
+      const rejectedId = selectedApplication.id;
+      setApplications((prev) => prev.filter((a) => a.id !== rejectedId));
       setShowRejectDialog(false);
       setShowDetailDialog(false);
       setRejectionReason("");
@@ -311,6 +316,55 @@ export default function AdminHostApplications() {
     } finally {
       setActionLoading(false);
       if (selectedApplication) guardEnd(`reject-${selectedApplication.id}`);
+    }
+  };
+
+  // Quick action for profiles WITHOUT a face submission (orange "no submission" cards)
+  const handleForceApproveProfile = async (
+    profile: { id: string; display_name: string | null },
+    role: 'host' | 'user',
+  ) => {
+    if (!guardStart(`force-${profile.id}-${role}`)) return;
+    try {
+      const { data, error } = await supabase.rpc('admin_force_verify_and_approve_host', {
+        _user_id: profile.id,
+        _approve_as: role,
+        _set_gender: role === 'host' ? 'female' : 'male',
+        _reason: 'Admin direct approval (no submission)',
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Approval failed');
+      // Optimistic removal
+      setPendingHosts((prev) => prev.filter((p) => p.id !== profile.id));
+      setPendingHostsCount((c) => Math.max(0, c - 1));
+      toast.success(`${role === 'host' ? '🎤 Host' : '👤 User'} approved!`);
+      invalidateStatusCountsCache('face_verification_submissions');
+      fetchApplications();
+      fetchStatusCounts(true);
+      fetchPendingHostsWithoutSubmission();
+    } catch (e) {
+      toast.error((e as any)?.message || 'Operation failed');
+    } finally {
+      guardEnd(`force-${profile.id}-${role}`);
+    }
+  };
+
+  const handleQuickRejectProfile = async (profile: { id: string }) => {
+    if (!guardStart(`qreject-${profile.id}`)) return;
+    try {
+      const { error } = await supabase.rpc('admin_set_host_status', {
+        _user_id: profile.id,
+        _make_host: false,
+      });
+      if (error) throw error;
+      setPendingHosts((prev) => prev.filter((p) => p.id !== profile.id));
+      setPendingHostsCount((c) => Math.max(0, c - 1));
+      toast.success('Host application rejected');
+      fetchPendingHostsWithoutSubmission();
+    } catch (e) {
+      toast.error((e as any)?.message || 'Operation failed');
+    } finally {
+      guardEnd(`qreject-${profile.id}`);
     }
   };
 
@@ -645,6 +699,29 @@ export default function AdminHostApplications() {
                     Registered: {host.created_at ? new Date(host.created_at).toLocaleDateString() : '-'}
                     {' • '}No face verification submitted yet
                   </p>
+                  <div className="grid grid-cols-3 gap-1.5 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={() => handleForceApproveProfile({ id: host.id, display_name: host.display_name }, 'host')}
+                      className="bg-pink-600 hover:bg-pink-500 text-white h-8 text-xs"
+                    >
+                      <CheckCircle className="w-3 h-3 mr-1" /> Host
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleForceApproveProfile({ id: host.id, display_name: host.display_name }, 'user')}
+                      className="bg-blue-600 hover:bg-blue-500 text-white h-8 text-xs"
+                    >
+                      <UserCheck className="w-3 h-3 mr-1" /> User
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleQuickRejectProfile({ id: host.id })}
+                      className="bg-rose-600 hover:bg-rose-500 text-white h-8 text-xs"
+                    >
+                      <XCircle className="w-3 h-3 mr-1" /> Reject
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
