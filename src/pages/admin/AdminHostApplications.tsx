@@ -694,6 +694,32 @@ export default function AdminHostApplications() {
                     Registered: {host.created_at ? new Date(host.created_at).toLocaleDateString() : '-'}
                     {' • '}No face verification submitted yet
                   </p>
+                  <div className="grid grid-cols-3 gap-1.5 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={() => handleForceApproveProfile({ id: host.id, display_name: host.display_name }, 'host')}
+                      className="bg-pink-600 hover:bg-pink-500 text-white h-8 text-xs"
+                    >
+                      <CheckCircle className="w-3 h-3 mr-1" /> Host
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleForceApproveProfile({ id: host.id, display_name: host.display_name }, 'user')}
+                      className="bg-blue-600 hover:bg-blue-500 text-white h-8 text-xs"
+                    >
+                      <UserCheck className="w-3 h-3 mr-1" /> User
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleQuickRejectProfile({ id: host.id })}
+                      className="bg-rose-600 hover:bg-rose-500 text-white h-8 text-xs"
+                    >
+                      <XCircle className="w-3 h-3 mr-1" /> Reject
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
                 </CardContent>
               </Card>
             ))}
