@@ -477,11 +477,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         if (!isMounted) return;
         setProfile(profileData);
 
-        // Cache profile for instant tab-switch restore
+        // Cache profile for instant reload/tab-switch restore (persistent + 24h TTL guard)
         if (profileData) {
           try {
             const cacheKey = `meri_profile_cache_${userId || 'self'}`;
-            sessionStorage.setItem(cacheKey, JSON.stringify({ data: profileData, ts: Date.now() }));
+            const payload = JSON.stringify({ data: profileData, ts: Date.now() });
+            localStorage.setItem(cacheKey, payload);
+            sessionStorage.setItem(cacheKey, payload);
           } catch {}
 
           // Unlock the profile screen immediately after the primary row is ready.
