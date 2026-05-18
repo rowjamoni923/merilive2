@@ -14265,9 +14265,10 @@ export type Database = {
         Returns: undefined
       }
       admin_entry_effects_stats: { Args: never; Returns: Json }
-      admin_face_verification_stats:
-        | { Args: never; Returns: Json }
-        | { Args: { _search?: string }; Returns: Json }
+      admin_face_verification_stats: {
+        Args: { _search?: string }
+        Returns: Json
+      }
       admin_finance_overview_stats: { Args: never; Returns: Json }
       admin_force_verify_and_approve_host: {
         Args: {
@@ -14313,9 +14314,10 @@ export type Database = {
       admin_helper_applications_stats: { Args: never; Returns: Json }
       admin_helper_management_stats: { Args: never; Returns: Json }
       admin_helper_requests_stats: { Args: never; Returns: Json }
-      admin_host_application_stats:
-        | { Args: never; Returns: Json }
-        | { Args: { _search?: string }; Returns: Json }
+      admin_host_application_stats: {
+        Args: { _search?: string }
+        Returns: Json
+      }
       admin_host_applications_paginated: {
         Args: {
           _limit?: number
