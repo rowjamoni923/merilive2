@@ -25,6 +25,9 @@ export type StatusCounts = {
   rejected: number;
   auto_approved?: number;
   auto_rejected?: number;
+  auto_host?: number;
+  auto_user?: number;
+  auto_face_verification?: number;
   manual_pending?: number;
   manual_approved?: number;
   manual_rejected?: number;
@@ -41,8 +44,8 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
 
 /** Every status string the admin pages know how to bucket. */
 export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
-  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified",
-  "rejected", "auto_rejected", "auto-rejected",
+  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed",
+  "rejected", "auto_rejected", "auto-rejected", "failed", "denied",
   "pending", "submitted", "under_review", "applied", "in_review", "reviewing",
 ]);
 
@@ -56,8 +59,8 @@ export function isKnownStatus(status: string | null | undefined): boolean {
 /** Canonical status → bucket mapping. */
 export function bucketOfStatus(status: string | null | undefined): StatusBucket {
   const normalized = String(status || "").trim().toLowerCase();
-  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified"].includes(normalized)) return "approved";
-  if (["rejected", "auto_rejected", "auto-rejected"].includes(normalized)) return "rejected";
+  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed"].includes(normalized)) return "approved";
+  if (["rejected", "auto_rejected", "auto-rejected", "failed", "denied"].includes(normalized)) return "rejected";
   return "pending";
 }
 
@@ -112,6 +115,9 @@ export function countFaceReviewBuckets<T>(
     ...EMPTY_STATUS_COUNTS,
     auto_approved: 0,
     auto_rejected: 0,
+    auto_host: 0,
+    auto_user: 0,
+    auto_face_verification: 0,
     manual_pending: 0,
     manual_approved: 0,
     manual_rejected: 0,
@@ -128,11 +134,26 @@ export function countFaceReviewBuckets<T>(
         || String((row as { verification_method?: string | null }).verification_method || "").toLowerCase().startsWith("auto")
       : false;
     const auto = explicitAuto || isAutoFaceReview(status, getAdminNotes(row));
+    const role = typeof row === "object" && row !== null
+      ? String((row as { verification_type?: string | null }).verification_type || "").toLowerCase() === "host"
+        || Boolean((row as { profile?: { is_host?: boolean | null; gender?: string | null } | null }).profile?.is_host)
+        || String((row as { profile?: { gender?: string | null } | null }).profile?.gender || "").toLowerCase() === "female"
+          ? "host"
+          : "user"
+      : "user";
     out[bucket]++;
     if (bucket === "pending") out.manual_pending++;
-    else if (bucket === "approved" && auto) out.auto_approved++;
+    else if (bucket === "approved" && auto) {
+      out.auto_approved++;
+      out.auto_face_verification++;
+      if (role === "host") out.auto_host++;
+      else out.auto_user++;
+    }
     else if (bucket === "approved") out.manual_approved++;
-    else if (bucket === "rejected" && auto) out.auto_rejected++;
+    else if (bucket === "rejected" && auto) {
+      out.auto_rejected++;
+      out.auto_face_verification++;
+    }
     else if (bucket === "rejected") out.manual_rejected++;
   }
 
@@ -212,6 +233,26 @@ function cacheKey(opts: FilteredCountOptions): string {
   return `${opts.table}::${opts.searchColumn}::${(opts.searchQuery || "").trim().toLowerCase()}::${opts.globalStatsRpc || ""}`;
 }
 
+function normalizeStatusCounts(data: StatusCounts | Record<string, unknown>): StatusCounts {
+  const s = (data || {}) as StatusCounts;
+  return {
+    pending: Number(s.pending || 0),
+    under_review: Number(s.under_review || 0),
+    approved: Number(s.approved || 0),
+    rejected: Number(s.rejected || 0),
+    auto_approved: Number(s.auto_approved || 0),
+    auto_rejected: Number(s.auto_rejected || 0),
+    auto_host: Number(s.auto_host || 0),
+    auto_user: Number(s.auto_user || 0),
+    auto_face_verification: Number(s.auto_face_verification || 0),
+    manual_pending: Number(s.manual_pending || s.pending || 0),
+    manual_approved: Number(s.manual_approved || 0),
+    manual_rejected: Number(s.manual_rejected || 0),
+    manual_total: Number(s.manual_total || 0),
+    total: Number(s.total || 0),
+  };
+}
+
 /** Invalidate all cached status-count entries (e.g. after a mutation). */
 export function invalidateStatusCountsCache(table?: string): void {
   if (!table) {
@@ -260,6 +301,14 @@ export async function fetchFilteredStatusCounts(
   }
 
   async function doFetch(): Promise<StatusCounts> {
+  if (opts.globalStatsRpc && client.rpc) {
+    // Server-side stats use the same canonical bucket + auto-host rules as the
+    // paginated list, and support the same search filter.
+    const { data, error } = await client.rpc(opts.globalStatsRpc, { _search: q || null });
+    if (error) throw new Error(error.message);
+    return normalizeStatusCounts(data || {});
+  }
+
   if (q) {
     const base = () =>
       client
@@ -278,28 +327,6 @@ export async function fetchFilteredStatusCounts(
       under_review: 0,
       approved: approvedRes.count || 0,
       rejected: rejectedRes.count || 0,
-    };
-  }
-
-  if (opts.globalStatsRpc && client.rpc) {
-    // Always pass the explicit text argument. Older deployments had both
-    // admin_face_verification_stats() and admin_face_verification_stats(text DEFAULT NULL),
-    // which makes a no-arg RPC call ambiguous in PostgREST.
-    const { data, error } = await client.rpc(opts.globalStatsRpc, { _search: null });
-    if (error) throw new Error(error.message);
-    const s = (data || {}) as StatusCounts;
-    return {
-      pending: Number(s.pending || 0),
-      under_review: Number(s.under_review || 0),
-      approved: Number(s.approved || 0),
-      rejected: Number(s.rejected || 0),
-      auto_approved: Number(s.auto_approved || 0),
-      auto_rejected: Number(s.auto_rejected || 0),
-      manual_pending: Number(s.manual_pending || s.pending || 0),
-      manual_approved: Number(s.manual_approved || 0),
-      manual_rejected: Number(s.manual_rejected || 0),
-      manual_total: Number(s.manual_total || 0),
-      total: Number(s.total || 0),
     };
   }
 

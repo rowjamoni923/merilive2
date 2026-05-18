@@ -59,7 +59,7 @@ describe("admin/statusCounts shared module", () => {
     expect(counts).toMatchObject({ pending: 7, under_review: 0, approved: 3, rejected: 2 });
   });
 
-  it("fetchFilteredStatusCounts runs filtered counts when search is active", async () => {
+  it("fetchFilteredStatusCounts sends active search to the stats RPC", async () => {
     let rpcCalled = false;
     const rows = [
       { status: "approved", full_name: "Alice" },
@@ -86,9 +86,18 @@ describe("admin/statusCounts shared module", () => {
     const counts = await fetchFilteredStatusCounts(
       {
         from: () => ({ select: () => makeQ(rows) }),
-        rpc: async () => {
+        rpc: async (_fn: string, args?: { _search?: string | null }) => {
           rpcCalled = true;
-          return { data: { pending: 999 }, error: null };
+          const needle = String(args?._search || "").toLowerCase();
+          const current = rows.filter((r) => r.full_name.toLowerCase().includes(needle));
+          return {
+            data: {
+              pending: current.filter((r) => !["approved", "rejected"].includes(r.status)).length,
+              approved: current.filter((r) => r.status === "approved").length,
+              rejected: current.filter((r) => r.status === "rejected").length,
+            },
+            error: null,
+          };
         },
       } as any,
       {
@@ -99,7 +108,7 @@ describe("admin/statusCounts shared module", () => {
       },
     );
 
-    expect(rpcCalled).toBe(false);
-    expect(counts).toEqual({ pending: 0, under_review: 0, approved: 2, rejected: 1 });
+    expect(rpcCalled).toBe(true);
+    expect(counts).toMatchObject({ pending: 0, under_review: 0, approved: 2, rejected: 1 });
   });
 });
