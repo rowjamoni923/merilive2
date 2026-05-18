@@ -163,8 +163,11 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
     );
   }
 
-  const progressPercent = currentHour ? (currentHour.minutes_accumulated / 60) * 100 : 100;
-  const minutesLeft = currentHour ? Math.max(0, 60 - currentHour.minutes_accumulated) : 0;
+  const currentTarget = Math.max(1, currentHour?.target_minutes ?? 60);
+  const progressPercent = currentHour
+    ? Math.min(100, (currentHour.minutes_accumulated / currentTarget) * 100)
+    : 100;
+  const minutesLeft = currentHour ? Math.max(0, currentTarget - currentHour.minutes_accumulated) : 0;
 
   return (
     <>
