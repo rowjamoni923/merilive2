@@ -71,7 +71,7 @@ describe("AdminHostApplications status counts ↔ search filter", () => {
     const client = buildMockClient(DATASET);
     const counts = await fetchHostApplicationStatusCounts(client as any, "");
 
-    expect(client.rpc).toHaveBeenCalledWith("admin_face_verification_stats", { _search: null });
+    expect(client.rpc).toHaveBeenCalledWith("admin_host_application_stats", { _search: null });
     expect(counts.pending).toBe(
       DATASET.filter((r) => !["approved", "rejected"].includes(r.status)).length,
     );
@@ -90,7 +90,7 @@ describe("AdminHostApplications status counts ↔ search filter", () => {
     const counts = await fetchHostApplicationStatusCounts(client as any, query);
     const visible = filteredList(query);
 
-    expect(client.rpc).toHaveBeenCalledWith("admin_face_verification_stats", { _search: query });
+    expect(client.rpc).toHaveBeenCalledWith("admin_host_application_stats", { _search: query });
     expect(counts.pending).toBe(
       visible.filter((r) => !["approved", "rejected"].includes(r.status)).length,
     );
