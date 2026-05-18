@@ -1840,14 +1840,28 @@ const AgencyWithdrawal = () => {
     return usd * coinsToUsdRate;
   };
 
+  // Is the current payment method an "auto" method (foreign agency auto-credit: ePay/USDT/Binance/Crypto)?
+  const isAutoMethod = (method?: string) => {
+    const m = (method ?? paymentMethod ?? '').toLowerCase();
+    return autoWithdrawalFee.enabled && autoWithdrawalFee.methods.includes(m);
+  };
+
   // Get withdrawal fee in USD based on tiered fee from DB (withdrawal_settings)
-  // Fee is calculated based on beans amount, matched against tiered ranges
+  // Fee is calculated based on beans amount, matched against tiered ranges.
+  // EXCEPTION: when paymentMethod is an auto method (ePay/USDT/Binance/Crypto) and
+  // admin enabled auto_withdrawal_fee, return that flat USD fee instead of the tiered fee.
   const getWithdrawalFeeUsd = (localAmountOverride?: number) => {
     const localAmount = localAmountOverride !== undefined ? localAmountOverride : parseFloat(amount || '0');
     const beansAmount = localToBeans(localAmount);
-    
+
+    // Auto method override (admin-controlled flat USD)
+    if (isAutoMethod()) {
+      return Math.max(0, Number(autoWithdrawalFee.flat_usd) || 0);
+    }
+
     // Below free limit = no fee
     if (beansAmount <= freeWithdrawalLimit) return 0;
+
     
     // Find matching tier from DB
     for (const tier of withdrawalFees) {
