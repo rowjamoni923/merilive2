@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { getAdminCache } from "@/utils/adminDataCache";
+import { invalidateAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { bucketOfStatus, invalidateStatusCountsCache } from "@/lib/admin/statusCounts";
@@ -108,8 +108,8 @@ const statusConfig: Record<string, { bg: string; text: string; icon: any; label:
 };
 
 export default function AdminHostApplications() {
-  const [applications, setApplications] = useState<HostSubmission[]>(() => getAdminCache<HostSubmission[]>('admin_host_apps') || []);
-  const [loading, setLoading] = useState(() => !getAdminCache('admin_host_apps'));
+  const [applications, setApplications] = useState<HostSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("pending");
   const [currentPage, setCurrentPage] = useState(1);
@@ -138,6 +138,7 @@ export default function AdminHostApplications() {
   useEffect(() => { setCurrentPage(1); }, [filterStatus, debouncedSearch]);
 
   useEffect(() => {
+    invalidateAdminCache('admin_host_apps');
     fetchApplications();
     fetchStatusCounts();
     fetchPendingHostsWithoutSubmission();
