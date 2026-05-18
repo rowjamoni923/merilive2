@@ -720,9 +720,6 @@ export default function AdminHostApplications() {
                 </CardContent>
               </Card>
             ))}
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </div>
       )}
