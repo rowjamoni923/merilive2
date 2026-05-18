@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Flame, Check, Clock, AlertTriangle, Gift, CalendarRange } from "lucide-react";
+import { ArrowLeft, Flame, Check, Clock, AlertTriangle, Gift, CalendarRange, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import BeansIcon from "@/components/common/BeansIcon";
 import { getTaskDate } from "@/utils/taskDateUtils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HourRow {
   hour_number: number;
