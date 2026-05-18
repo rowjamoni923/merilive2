@@ -134,10 +134,12 @@ function BanCard({ ban, onUnban }: { ban: LiveBan; onUnban: () => void }) {
 }
 
 export default function AdminStreams() {
-  const [streams, setStreams] = useState<LiveStream[]>(() => getAdminCache<LiveStream[]>('admin_streams') || []);
-  const [loading, setLoading] = useState(() => !getAdminCache('admin_streams'));
-  const [searchQuery, setSearchQuery] = useState("");
+  // Cache is per-filter so switching status never renders the previous filter's rows.
   const [statusFilter, setStatusFilter] = useState("active");
+  const cacheKeyFor = (f: string) => `admin_streams:${f}`;
+  const [streams, setStreams] = useState<LiveStream[]>(() => getAdminCache<LiveStream[]>(cacheKeyFor('active')) || []);
+  const [loading, setLoading] = useState(() => !getAdminCache(cacheKeyFor('active')));
+  const [searchQuery, setSearchQuery] = useState("");
   const [stats, setStats] = useState({ totalActive: 0, totalViewers: 0, totalGifts: 0, totalCoins: 0 });
   const [watchingStream, setWatchingStream] = useState<LiveStream | null>(null);
   const [activeTab, setActiveTab] = useState("live");
@@ -180,7 +182,18 @@ export default function AdminStreams() {
   }, []);
 
   const fetchStreams = useCallback(async () => {
-    if (streams.length === 0) setLoading(true);
+    // Always invalidate any previous filter's rows/stats BEFORE the new query
+    // so users never see stale data while the new filter is loading.
+    const cached = getAdminCache<LiveStream[]>(cacheKeyFor(statusFilter));
+    if (cached && cached.length) {
+      setStreams(cached);
+      calculateStatsFromStreams(cached);
+      setLoading(false);
+    } else {
+      setStreams([]);
+      setStats({ totalActive: 0, totalViewers: 0, totalGifts: 0, totalCoins: 0 });
+      setLoading(true);
+    }
     try {
       let query = supabase
         .from("live_streams")
@@ -199,6 +212,11 @@ export default function AdminStreams() {
 
       setStreams(formattedData);
       calculateStatsFromStreams(formattedData);
+      setAdminCache(cacheKeyFor(statusFilter), formattedData);
+
+      // Drop any selected stream that no longer belongs to the active result set.
+      setWatchingStream((prev) => (prev && !formattedData.some((s) => s.id === prev.id) ? null : prev));
+      setStopStreamDialog((prev) => (prev && !formattedData.some((s) => s.id === prev.streamId) ? null : prev));
     } catch (error) {
       console.error("Error fetching streams:", error);
       recordAdminError({ kind: "rpc", label: "AdminStreams.formattedData", message: formatAdminError(error) });
