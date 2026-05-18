@@ -3179,7 +3179,7 @@ export default function AdminUserManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20 border-2 border-slate-600">
-                  <AvatarImage src={selectedApplication.photo_url} />
+                  <AvatarImage src={selectedApplication.photo_url} data-admin-media-bucket="host-verification" />
                   <AvatarFallback className="bg-pink-500/20 text-pink-400 text-xl">
                     {selectedApplication.full_name?.charAt(0) || "U"}
                   </AvatarFallback>
