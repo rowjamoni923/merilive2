@@ -231,11 +231,12 @@ const shouldDownloadPrivateImageFirst = (storagePath: AdminStoragePath) => {
     || /\.(jpg|jpeg|png|webp|gif|avif|heic|heif)(?:$|[?#])/i.test(lower);
 };
 
-const shouldStreamSignedStoragePath = (storagePath: AdminStoragePath) => {
-  const lower = storagePath.path.toLowerCase();
-  if (lower.includes('/face-videos/') || lower.includes('/videos/') || lower.includes('/video/') || lower.includes('/liveness/')) return true;
-  if (lower.includes('/face-angles/')) return false;
-  return VIDEO_FILE_RE.test(lower);
+const shouldStreamSignedStoragePath = (_storagePath: AdminStoragePath) => {
+  // ★ NEVER download videos as blob: URLs. blob: URLs do not support HTTP
+  //   range requests, which breaks <video> seek + playback (the element shows
+  //   only the poster). For verification videos we always serve the signed /
+  //   public URL directly so the browser can stream it natively.
+  return false;
 };
 
 const createTypedObjectUrl = async (blob: Blob, hintedType?: string | null, hintedPath?: string | null) => {
