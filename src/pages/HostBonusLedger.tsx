@@ -119,6 +119,7 @@ const HostBonusLedger = () => {
   }, [ledger, range]);
 
   return (
+    <TooltipProvider delayDuration={150}>
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 border-b border-border/40 bg-background/95 backdrop-blur">
         <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-muted">
