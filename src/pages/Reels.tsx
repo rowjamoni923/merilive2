@@ -681,47 +681,35 @@ const Reels = () => {
                   </motion.div>
                 )}
 
-                {/* Bottom Info - Luxurious Gradient Overlay */}
+                {/* Bottom Info - Refined Editorial */}
                 <div className="absolute left-0 right-0 pointer-events-none" style={{ bottom: 'var(--bottom-nav-height, 56px)' }}>
-                  <div className="bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-20 pb-3 px-3.5">
-                    <div className="pointer-events-auto">
-                      {/* Username + Level + Verified */}
+                  <div className="bg-gradient-to-t from-black/85 via-black/45 to-transparent pt-24 pb-4 px-4">
+                    <div className="pointer-events-auto pr-16">
+                      {/* Username row */}
                       <div className="flex items-center gap-2 mb-2">
-                        <button onClick={() => navigate(`/profile/${currentReel.user_id}`)} className="flex items-center gap-1.5">
-                          <span className="text-white font-extrabold text-[14px] tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-                            @{currentReel.user?.display_name || 'User'}
-                          </span>
+                        <button
+                          onClick={() => navigate(`/profile/${currentReel.user_id}`)}
+                          className="text-white font-bold text-[15px] tracking-[-0.01em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] active:opacity-70"
+                        >
+                          @{currentReel.user?.display_name || 'User'}
                         </button>
-                        {currentReel.user?.app_uid && (
-                          <span className="text-white/70 text-[10px] font-bold drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
-                            ID {currentReel.user.app_uid}
-                          </span>
-                        )}
                         {currentReel.user?.is_verified && (
-                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center shadow-[0_0_8px_rgba(59,130,246,0.5)]">
-                            <span className="text-white text-[8px] font-bold">✓</span>
+                          <div className="w-[15px] h-[15px] rounded-full bg-sky-500 flex items-center justify-center shadow-[0_0_6px_rgba(14,165,233,0.5)]">
+                            <span className="text-white text-[9px] font-black leading-none">✓</span>
                           </div>
                         )}
                         <LevelBadge level={currentReel.user?.user_level || 1} size="sm" />
-                        {!currentReel.is_following && currentReel.user_id !== currentUserId && (
-                          <button
-                            onClick={() => handleFollow(currentReel.user_id)}
-                            className="px-3 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold active:scale-95 transition-all shadow-[0_2px_10px_rgba(244,63,94,0.35)]"
-                          >
-                            Follow
-                          </button>
-                        )}
                       </div>
 
-                      {/* Caption - with elegant fade */}
+                      {/* Caption */}
                       {currentReel.caption && (
-                        <p className="text-white/95 text-[12.5px] mb-2.5 line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] leading-[1.6] font-medium pr-14">
+                        <p className="text-white text-[13px] mb-3 line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] leading-snug">
                           {currentReel.caption}
                         </p>
                       )}
 
-                      {/* Music Ticker - Marquee Style */}
-                      <button 
+                      {/* Music Ticker */}
+                      <button
                         onClick={() => {
                           if (isHost) {
                             const soundData: Sound = {
@@ -735,22 +723,22 @@ const Reels = () => {
                             setShowUploadModal(true);
                           }
                         }}
-                        className="flex items-center gap-2 max-w-[70%] overflow-hidden"
+                        className="flex items-center gap-1.5 max-w-full overflow-hidden"
                       >
-                        <Music2 className="w-3.5 h-3.5 text-white/80 flex-shrink-0" />
-                        <div className="overflow-hidden">
-                          <motion.span 
-                            className="text-white/80 text-[11px] font-medium whitespace-nowrap inline-block"
-                            animate={{ x: [0, -120, 0] }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        <Music2 className="w-[13px] h-[13px] text-white/90 flex-shrink-0" />
+                        <div className="overflow-hidden flex-1">
+                          <motion.span
+                            className="text-white/90 text-[11.5px] font-medium whitespace-nowrap inline-block drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]"
+                            animate={{ x: [0, -140, 0] }}
+                            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
                           >
-                            {currentReel.sound_title || currentReel.music_title || 'Original Sound'} 
+                            {currentReel.sound_title || currentReel.music_title || 'Original Sound'}
                             {' · '}
                             {currentReel.sound_artist || currentReel.music_artist || currentReel.user?.display_name || 'Unknown'}
                           </motion.span>
                         </div>
                         {isHost && (
-                          <span className="text-pink-400 text-[10px] font-bold whitespace-nowrap flex-shrink-0 bg-pink-500/15 px-1.5 py-0.5 rounded-full border border-pink-500/20">Use</span>
+                          <span className="text-white text-[9.5px] font-bold whitespace-nowrap flex-shrink-0 bg-white/15 backdrop-blur-sm px-1.5 py-0.5 rounded">Use</span>
                         )}
                       </button>
                     </div>
