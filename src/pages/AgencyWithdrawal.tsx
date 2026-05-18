@@ -2496,31 +2496,10 @@ const AgencyWithdrawal = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Allow multiple orders - no warning message, just show pending orders in history below */}
-                {/* Country Selection */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2 text-gray-800 font-medium">
-                    <Globe className="w-4 h-4 text-brand-500" />
-                    Your Country
-                    <Lock className="w-3 h-3 text-warning-500" />
-                  </Label>
-                  <div className="w-full h-14 flex items-center justify-between px-4 bg-gray-100 border-2 border-gray-300 rounded-lg cursor-not-allowed">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{countryConfig.flag}</span>
-                      <div>
-                        <p className="font-semibold text-gray-900">{countryConfig.name}</p>
-                        <p className="text-xs text-gray-500">{countryConfig.currency} - {countryConfig.currencySymbol}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 bg-warning-100 text-warning-700 px-2 py-1 rounded-md text-xs font-medium">
-                      <Lock className="w-3 h-3" />
-                      Locked
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    Country is locked to your account registration location for security
-                  </p>
-                </div>
+                {/* Country UI hidden — country is auto-detected from registration_country_code (VPN-proof).
+                    Payment methods below are auto-filtered: local methods if helpers exist in your country,
+                    otherwise official global methods (ePay / USDT / custom crypto gateway). */}
+
 
                 <div className="space-y-2">
                   <Label className="text-gray-800 font-semibold">Payment Method</Label>
