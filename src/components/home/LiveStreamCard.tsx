@@ -2,6 +2,7 @@ import { Eye, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 interface LiveStreamCardProps {
   id: string;
@@ -34,18 +35,23 @@ export const LiveStreamCard = ({
     <div className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] bg-muted">
       {/* Thumbnail */}
       <img
-        src={thumbnailUrl}
+        src={enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
         alt={hostName}
         loading="eager"
         decoding="sync"
         // @ts-expect-error – fetchpriority is a standard HTML hint
         fetchpriority="high"
+        onError={(e) => {
+          const img = e.currentTarget;
+          if (img.src !== thumbnailUrl && thumbnailUrl) img.src = thumbnailUrl;
+        }}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         style={{
-          filter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
-          WebkitFilter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
+          filter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
+          WebkitFilter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
         }}
       />
+
 
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

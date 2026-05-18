@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
+import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 
 interface PremiumLiveStreamCardProps {
   id: string;
@@ -70,20 +71,27 @@ export const PremiumLiveStreamCard = ({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
     >
-      {/* Thumbnail — render instantly, no entry animation */}
+      {/* Thumbnail — CDN-enhanced (sharpen + WebP + quality boost) for a
+          luxurious, magazine-quality look. Renders instantly. */}
       <img
-        src={thumbnailUrl || "/placeholder.svg"}
+        src={enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
         alt={hostName}
         loading="eager"
         decoding="sync"
         // @ts-expect-error – fetchpriority is a standard HTML hint
         fetchpriority="high"
+        onError={(e) => {
+          // Fallback to raw URL if CDN fails (e.g. private storage)
+          const img = e.currentTarget;
+          if (img.src !== thumbnailUrl && thumbnailUrl) img.src = thumbnailUrl;
+        }}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         style={{
-          filter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
-          WebkitFilter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
+          filter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
+          WebkitFilter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
         }}
       />
+
 
       {/* Premium Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
