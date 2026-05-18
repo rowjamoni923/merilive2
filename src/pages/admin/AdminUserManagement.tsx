@@ -988,7 +988,7 @@ export default function AdminUserManagement() {
     // Instant optimistic update: remove from pending views immediately
     setFaceSubmissions(prev => prev.map(item =>
       item.id === submission.id
-        ? { ...item, status: nextStatus, rejection_reason: nextReason, reviewed_at: reviewedAt }
+        ? { ...item, status: nextStatus, status_bucket: nextStatus, rejection_reason: nextReason, reviewed_at: reviewedAt }
         : item
     ));
 
@@ -1043,7 +1043,7 @@ export default function AdminUserManagement() {
 
     setFaceSubmissions(prev => prev.map(item =>
       item.id === submission.id
-        ? { ...item, status: nextStatus, rejection_reason: nextReason, reviewed_at: new Date().toISOString() }
+        ? { ...item, status: nextStatus, status_bucket: nextStatus, rejection_reason: nextReason, reviewed_at: new Date().toISOString() }
         : item
     ));
     setShowFaceActionModal(false);
