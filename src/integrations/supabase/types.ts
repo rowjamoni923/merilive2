@@ -14267,7 +14267,7 @@ export type Database = {
       admin_entry_effects_stats: { Args: never; Returns: Json }
       admin_face_verification_stats:
         | { Args: never; Returns: Json }
-        | { Args: { _search: string }; Returns: Json }
+        | { Args: { _search?: string }; Returns: Json }
       admin_finance_overview_stats: { Args: never; Returns: Json }
       admin_force_verify_and_approve_host: {
         Args: {
