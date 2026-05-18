@@ -376,6 +376,17 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
   if (!candidates.length) return value;
 
   for (const candidate of candidates) {
+    // Verification videos often arrive with inconsistent public/private URL
+    // shape or storage Content-Type. Download through the admin signer first so
+    // the edge function can sniff bytes and return a correctly typed blob URL.
+    if (
+      (candidate.bucket === "face-verification" || candidate.bucket === "host-verification")
+      && shouldStreamSignedStoragePath(candidate)
+    ) {
+      const downloaded = await downloadAdminStoragePathAsObjectUrl(candidate);
+      if (downloaded) return downloaded;
+    }
+
     const publicUrl = await resolvePublicVerificationUrl(candidate, raw, defaultBucket);
     if (publicUrl) return publicUrl;
 
