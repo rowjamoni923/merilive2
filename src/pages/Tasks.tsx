@@ -621,6 +621,12 @@ const Tasks = () => {
                 <Video className="w-4 h-4 mr-1.5" />
                 Go Live
               </Button>
+              <button
+                onClick={() => navigate('/host-bonus-ledger')}
+                className="w-full mt-2 text-[11px] text-purple-200/80 hover:text-white underline underline-offset-2"
+              >
+                View bonus ledger →
+              </button>
             </div>
           </motion.div>
         )}
