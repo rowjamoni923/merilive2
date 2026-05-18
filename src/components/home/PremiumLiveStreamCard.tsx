@@ -135,14 +135,9 @@ export const PremiumLiveStreamCard = ({
           >
             <Eye className="w-3.5 h-3.5 text-pink-600" />
           </motion.div>
-          <motion.span
-            className="text-xs text-white font-bold"
-            key={viewerCount}
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-          >
+          <span className="text-xs text-white font-bold">
             {viewerCount > 1000 ? `${(viewerCount / 1000).toFixed(1)}k` : viewerCount}
-          </motion.span>
+          </span>
         </motion.div>
       </div>
 
