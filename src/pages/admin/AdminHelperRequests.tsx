@@ -276,8 +276,15 @@ const AdminHelperRequests = () => {
     setSelectedRequest(request);
     setRequestType(type);
     setAdminNotes(request.admin_notes || "");
+    setApproveUsd(type === 'topup' ? String((request as TopupRequest).amount_usd ?? "") : "");
     setShowDetailModal(true);
   };
+
+  const previewDiamonds = (() => {
+    const usd = parseFloat(approveUsd);
+    if (!topupRate || !isFinite(usd) || usd <= 0) return 0;
+    return Math.floor((usd / topupRate) * 100000);
+  })();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
