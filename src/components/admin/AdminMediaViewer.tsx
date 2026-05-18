@@ -69,6 +69,17 @@ const resolveBlobMimeType = async (url: string) => {
   return type;
 };
 
+const formatMediaTime = (seconds: number) => {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const total = Math.floor(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+};
+
 interface AdminMediaFrameProps {
   src?: string | null;
   alt: string;
@@ -96,6 +107,8 @@ export function AdminMediaFrame({
   const [failReason, setFailReason] = useState<string>("");
   const [retryNonce, setRetryNonce] = useState(0);
   const [videoLoading, setVideoLoading] = useState(true);
+  const [videoTime, setVideoTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
@@ -219,6 +232,20 @@ export function AdminMediaFrame({
           {effectiveMediaKind === "video" ? "Video could not be played." : "Media could not be loaded."}
         </p>
         {failReason && <p className="text-[11px] text-muted-foreground">{failReason}</p>}
+        {effectiveMediaKind === "video" && (videoDuration > 0 || videoTime > 0) && (
+          <div className="flex w-full max-w-xs flex-col gap-1 pt-1">
+            <div className="flex items-center justify-between text-[11px] font-semibold tabular-nums text-foreground">
+              <span>Stopped at {formatMediaTime(videoTime)}</span>
+              <span className="text-muted-foreground">/ {formatMediaTime(videoDuration)}</span>
+            </div>
+            <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-destructive"
+                style={{ width: videoDuration > 0 ? `${Math.min(100, (videoTime / videoDuration) * 100)}%` : "0%" }}
+              />
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-2 pt-1">
           <button
             type="button"
@@ -267,6 +294,17 @@ export function AdminMediaFrame({
           onLoadStart={() => { setVideoLoading(true); }}
           onWaiting={() => { setVideoLoading(true); }}
           onStalled={() => { setVideoLoading(true); }}
+          onLoadedMetadata={(e) => {
+            const d = (e.currentTarget as HTMLVideoElement).duration;
+            if (Number.isFinite(d) && d > 0) setVideoDuration(d);
+          }}
+          onDurationChange={(e) => {
+            const d = (e.currentTarget as HTMLVideoElement).duration;
+            if (Number.isFinite(d) && d > 0) setVideoDuration(d);
+          }}
+          onTimeUpdate={(e) => {
+            setVideoTime((e.currentTarget as HTMLVideoElement).currentTime || 0);
+          }}
           onLoadedData={() => { setFailed(false); setVideoLoading(false); }}
           onCanPlay={() => { setFailed(false); setVideoLoading(false); }}
           onPlaying={() => { setVideoLoading(false); }}
@@ -293,6 +331,22 @@ export function AdminMediaFrame({
             <span className="text-[11px] font-medium text-white/90">Loading video…</span>
           </div>
         )}
+
+        {/* Time + progress overlay — visible even when playback fails mid-way */}
+        {(videoDuration > 0 || videoTime > 0) && (
+          <div className="pointer-events-none absolute bottom-12 left-2 right-2 flex items-center gap-2 rounded-md bg-black/60 px-2 py-1 backdrop-blur-sm">
+            <span className="text-[11px] font-semibold tabular-nums text-white">
+              {formatMediaTime(videoTime)} <span className="text-white/60">/ {formatMediaTime(videoDuration)}</span>
+            </span>
+            <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/20">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-150"
+                style={{ width: videoDuration > 0 ? `${Math.min(100, (videoTime / videoDuration) * 100)}%` : "0%" }}
+              />
+            </div>
+          </div>
+        )}
+
 
         <div className="absolute top-2 right-2 flex items-center gap-1">
           <button
