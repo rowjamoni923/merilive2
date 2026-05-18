@@ -1849,12 +1849,12 @@ const FaceVerification = () => {
     };
 
     return (
-    <div className="bg-gradient-to-br from-[#FFFBF2] to-[#FFFBF2] rounded-3xl p-5 border border-purple-500/20 shadow-2xl">
+    <div className="bg-gradient-to-br from-[#FFFBF2] to-[#FFF6E2] rounded-3xl p-5 border border-amber-400/40 shadow-[0_20px_60px_-20px_rgba(201,168,76,0.45)] ring-1 ring-amber-200/50">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-            <ScanFace className="w-6 h-6 text-slate-800" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#f5d97a] via-[#c9a84c] to-[#8a6a1f] flex items-center justify-center shadow-lg shadow-amber-500/40 ring-1 ring-amber-200/70">
+            <ScanFace className="w-6 h-6 text-[#3a2a05] drop-shadow" />
           </div>
           {verificationRecording && (
             <motion.div 
@@ -1865,8 +1865,8 @@ const FaceVerification = () => {
           )}
         </div>
         <div>
-          <h2 className="font-bold text-slate-800 text-lg">Live Face Scan</h2>
-          <p className="text-slate-600 text-sm">
+          <h2 className="font-bold text-[#3a2a05] text-lg tracking-tight">Live Face Scan</h2>
+          <p className="text-amber-900/70 text-sm">
             {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length}` : 'AI-powered identity verification'}
           </p>
         </div>
@@ -1875,13 +1875,13 @@ const FaceVerification = () => {
       {/* Progress Bar */}
       {verificationRecording && (
         <div className="mb-4">
-          <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+          <div className="flex justify-between text-xs text-amber-900/70 mb-1.5">
             <span>Liveness Check Progress</span>
             <span>{completedCount}/{faceInstructions.length} steps</span>
           </div>
-          <div className="h-2 bg-amber-50/70 rounded-full overflow-hidden">
+          <div className="h-2 bg-amber-100/80 rounded-full overflow-hidden ring-1 ring-amber-200/60">
             <motion.div 
-              className="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-full"
+              className="h-full bg-gradient-to-r from-[#f5d97a] via-[#c9a84c] to-[#8a6a1f] rounded-full shadow-[0_0_12px_rgba(201,168,76,0.6)]"
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.5 }}
             />
