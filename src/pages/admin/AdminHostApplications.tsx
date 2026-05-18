@@ -198,7 +198,7 @@ export default function AdminHostApplications() {
       let offset = (currentPage - 1) * pageSize;
       let total = Number.POSITIVE_INFINITY;
       for (let page = 0; page < 8 && rows.length < pageSize && offset < total; page += 1) {
-        const { data, error } = await supabase.rpc('admin_list_face_verification_paginated', {
+        const { data, error } = await supabase.rpc('admin_host_applications_paginated', {
           _status: filterStatus === 'all' ? null : filterStatus,
           _search: debouncedSearch || null,
           _limit: pageSize,
@@ -208,7 +208,7 @@ export default function AdminHostApplications() {
         const payload = (data as any) || {};
         const pageRows = (payload.rows || []) as any[];
         total = Number(payload.total ?? pageRows.length);
-        rows.push(...pageRows.filter((s) => String(s.profile?.gender || '').toLowerCase() === 'female'));
+        rows.push(...pageRows);
         offset += pageRows.length;
         if (pageRows.length < pageSize) break;
       }

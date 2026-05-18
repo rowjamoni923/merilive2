@@ -23,7 +23,7 @@ export async function fetchHostApplicationStatusCounts(
     table: "face_verification_submissions",
     searchColumn: "full_name",
     searchQuery,
-    globalStatsRpc: "admin_face_verification_stats",
+    globalStatsRpc: "admin_host_application_stats",
     forceRefresh,
   });
 }
