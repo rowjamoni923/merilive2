@@ -281,7 +281,7 @@ const AdminTasksSettings = () => {
               <Label className="font-medium">{bonusSettings.is_active ? '✅ Active' : '❌ Inactive'}</Label>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <Label className="text-sm font-medium">Beans Per Hour</Label>
                 <Input
@@ -298,6 +298,7 @@ const AdminTasksSettings = () => {
                 <Label className="text-sm font-medium">Max Hours/Day</Label>
                 <Input
                   type="number"
+                  min={1}
                   value={bonusSettings.max_hours_per_day}
                   onChange={(e) => setBonusSettings({ ...bonusSettings, max_hours_per_day: parseInt(e.target.value) || 1 })}
                   className="mt-1"
@@ -307,12 +308,41 @@ const AdminTasksSettings = () => {
                 <Label className="text-sm font-medium">Eligible Days</Label>
                 <Input
                   type="number"
+                  min={1}
                   value={bonusSettings.eligible_days}
                   onChange={(e) => setBonusSettings({ ...bonusSettings, eligible_days: parseInt(e.target.value) || 1 })}
                   className="mt-1"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
                   First {bonusSettings.eligible_days} days after verification
+                </p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Minutes Per Hour (target)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={60}
+                  value={bonusSettings.target_minutes ?? 60}
+                  onChange={(e) => setBonusSettings({ ...bonusSettings, target_minutes: parseInt(e.target.value) || 60 })}
+                  className="mt-1"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Live minutes required to complete each hour slot
+                </p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Daily Reset Offset (min from BST midnight)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={1440}
+                  value={bonusSettings.daily_reset_offset_minutes ?? 0}
+                  onChange={(e) => setBonusSettings({ ...bonusSettings, daily_reset_offset_minutes: parseInt(e.target.value) || 0 })}
+                  className="mt-1"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  0 = midnight BST. 1830 = 6:30 PM BST.
                 </p>
               </div>
             </div>
