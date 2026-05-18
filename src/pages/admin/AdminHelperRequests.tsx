@@ -203,9 +203,8 @@ const AdminHelperRequests = () => {
           { usd_per_100k_diamonds: topupRate },
           approveUsd
         );
-        if (!calc.ok) {
-          const msg = calc.error;
-          toast({ title: "Cannot approve", description: msg, variant: "destructive" });
+        if (calc.ok !== true) {
+          toast({ title: "Cannot approve", description: calc.error, variant: "destructive" });
           setProcessing(false);
           guardEnd(`approve-${req.id}`);
           return;
