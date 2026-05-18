@@ -1372,11 +1372,10 @@ export default function AdminLayout() {
     return () => clearTimeout(initialTimer);
   }, [fetchHeaderStats]);
 
-  // ⚡ Prefetch ALL admin page chunks after initial render to eliminate lazy-load delay
-  // Lighter prefetch strategy: warm only the most-used admin routes after mount.
-  // Other routes prefetch on sidebar hover via prefetchAdminRoute().
+  // ⚡ Prefetch ALL admin page chunks after first paint so every tab opens instantly.
+  // Runs in idle slices (see adminRoutePrefetch.ts) — no main-thread blocking.
   useEffect(() => {
-    const t = setTimeout(() => prefetchCommonAdminRoutes(), 1500);
+    const t = setTimeout(() => prefetchCommonAdminRoutes(), 600);
     return () => clearTimeout(t);
   }, []);
 
