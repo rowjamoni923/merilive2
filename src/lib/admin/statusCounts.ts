@@ -25,6 +25,9 @@ export type StatusCounts = {
   rejected: number;
   auto_approved?: number;
   auto_rejected?: number;
+  auto_host?: number;
+  auto_user?: number;
+  auto_face_verification?: number;
   manual_pending?: number;
   manual_approved?: number;
   manual_rejected?: number;
@@ -41,8 +44,8 @@ export const EMPTY_STATUS_COUNTS: StatusCounts = {
 
 /** Every status string the admin pages know how to bucket. */
 export const KNOWN_STATUSES: ReadonlySet<string> = new Set([
-  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified",
-  "rejected", "auto_rejected", "auto-rejected",
+  "approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed",
+  "rejected", "auto_rejected", "auto-rejected", "failed", "denied",
   "pending", "submitted", "under_review", "applied", "in_review", "reviewing",
 ]);
 
@@ -56,8 +59,8 @@ export function isKnownStatus(status: string | null | undefined): boolean {
 /** Canonical status → bucket mapping. */
 export function bucketOfStatus(status: string | null | undefined): StatusBucket {
   const normalized = String(status || "").trim().toLowerCase();
-  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified"].includes(normalized)) return "approved";
-  if (["rejected", "auto_rejected", "auto-rejected"].includes(normalized)) return "rejected";
+  if (["approved", "auto_approved", "auto-approved", "auto_verified", "auto-verified", "verified", "passed"].includes(normalized)) return "approved";
+  if (["rejected", "auto_rejected", "auto-rejected", "failed", "denied"].includes(normalized)) return "rejected";
   return "pending";
 }
 
