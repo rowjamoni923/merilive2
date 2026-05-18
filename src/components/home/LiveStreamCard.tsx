@@ -36,6 +36,10 @@ export const LiveStreamCard = ({
       <img
         src={thumbnailUrl}
         alt={hostName}
+        loading="eager"
+        decoding="sync"
+        // @ts-expect-error – fetchpriority is a standard HTML hint
+        fetchpriority="high"
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         style={{
           filter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
