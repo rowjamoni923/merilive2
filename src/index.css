@@ -595,6 +595,10 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     text-size-adjust: 100%;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    /* Prevent bounce/refresh leaking into native WebView */
+    overscroll-behavior-y: contain;
+    /* Lock zoom on mobile WebView */
+    touch-action: pan-x pan-y;
   }
 
   body {
@@ -604,10 +608,39 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     background-color: hsl(var(--background));
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
+    /* Smooth momentum scroll on Android WebView + iOS */
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
     font-size: 14px;
     line-height: 1.55;
     letter-spacing: -0.005em;
   }
+
+  /* ============================================
+     UNIVERSAL SCROLL POLISH — Pkg40
+     Any element marked .app-scroll or [data-scroll]
+     gets momentum + safe-area-aware bottom padding
+     so it never gets eaten by the bottom nav.
+     ============================================ */
+  .app-scroll,
+  [data-scroll="true"],
+  main[role="main"],
+  .scroll-area-mobile {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+
+  /* Any vertically scrolling container inside the app gets
+     momentum scrolling on iOS/Android WebView automatically. */
+  .overflow-y-auto,
+  .overflow-y-scroll,
+  .overflow-auto,
+  .overflow-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
 
   /* ============================================
      UNIFIED TYPOGRAPHY BASELINE
