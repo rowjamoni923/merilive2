@@ -669,9 +669,53 @@ serve(async (req) => {
     if (eyesOpen?.Value === false && (eyesOpen?.Confidence || 0) > 90) warnings.push("eyes_closed");
     if (sunglasses?.Value === true && (sunglasses?.Confidence || 0) > 90) warnings.push("wearing_sunglasses");
 
-    // ★ NO AUTO-APPROVE — All submissions stay as "pending" for manual admin review
-    // We only save AI analysis notes to help admin make the decision
+    // ★ AUTO-APPROVE (Pkg40) — user explicitly wants 100% auto-verify:
+    // Only the borderline / undetectable cases should go to manual admin review.
+    // All hard rejects (no_face, multiple_faces, gender_mismatch, occluded, underage,
+    // borderline match) are already handled above. If we reach here AND face match
+    // cleared the threshold AND face confidence ≥ 80, instantly approve.
     const detectedGenderLabel = detectedGender === "female" ? "Female" : detectedGender === "male" ? "Male" : "Unknown";
+    const passesAutoApprove =
+      !borderlineMatchWarning &&
+      faceMatchPercentage >= MIN_FACE_MATCH_PERCENTAGE &&
+      confidence >= 80 &&
+      // For host submissions require HIGH gender trust + female.
+      (!hostSubmissionRequested || (genderTrustLevel === "high" && isFemaleDetected));
+
+    if (submissionId && passesAutoApprove) {
+      // Final gender: prefer high-trust detection, else profile, else default.
+      const finalGender = genderTrustLevel === "high"
+        ? detectedGender
+        : (profileRow?.gender?.toLowerCase?.() || (hostSubmissionRequested ? "female" : "male"));
+      const finalRole = finalGender === "female" ? "host" : "user";
+
+      const { data: approveData, error: approveError } = await supabaseAdmin.rpc("auto_approve_face_verification", {
+        _submission_id: submissionId,
+        _detected_gender: finalGender,
+        _verification_type: finalRole,
+        _face_match: Number(faceMatchPercentage.toFixed(2)),
+        _face_confidence: Number(confidence.toFixed(2)),
+      });
+
+      if (!approveError && (approveData as any)?.success) {
+        console.log(`[auto-face-verify] ✅ AUTO-APPROVED ${submissionId} — match=${faceMatchPercentage.toFixed(1)}% role=${finalRole}`);
+        return new Response(JSON.stringify({
+          approved: true,
+          autoApproved: true,
+          role: finalRole,
+          gender: finalGender,
+          matchPercentage: faceMatchPercentage,
+          requiredPercentage: MIN_FACE_MATCH_PERCENTAGE,
+          message: finalRole === "host"
+            ? "✅ Face verified instantly! Host status active — you can go live now."
+            : "✅ Face verified instantly!",
+        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      console.warn(`[auto-face-verify] auto_approve_face_verification RPC failed, falling through to pending review`, approveError);
+    }
+
+    // Fall-through: save AI analysis notes, keep submission as "pending" for admin manual review.
     const adminNotes = [
       borderlineMatchWarning,
       `AI Analysis (pending admin review): Face Match: ${faceMatchPercentage.toFixed(1)}% (min ${MIN_FACE_MATCH_PERCENTAGE}%). Gender detected: ${detectedGenderLabel} (${(gender?.Confidence || 0).toFixed(1)}%), Confidence: ${confidence.toFixed(1)}%, Age: ${ageRange?.Low}-${ageRange?.High}${warnings.length > 0 ? `, Warnings: ${warnings.join(", ")}` : ""}`,
