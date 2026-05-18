@@ -522,18 +522,21 @@ export default function AdminHostApplications() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — Pending / Approved / Rejected / All (matches AdminFaceVerification) */}
       <div className="grid grid-cols-4 gap-2 md:gap-3">
         {[
           { key: 'pending', icon: Clock, color: 'amber', label: 'Pending' },
           { key: 'approved', icon: CheckCircle, color: 'emerald', label: 'Approved' },
           { key: 'rejected', icon: XCircle, color: 'rose', label: 'Rejected' },
+          { key: 'all', icon: FileText, color: 'purple', label: 'All' },
         ].map(({ key, icon: Icon, color, label }) => {
-          const count = statusCounts[key as keyof typeof statusCounts] || 0;
+          const count = key === 'all'
+            ? (statusCounts.pending || 0) + (statusCounts.approved || 0) + (statusCounts.rejected || 0)
+            : (statusCounts[key as keyof typeof statusCounts] as number) || 0;
           return (
             <button
               key={key}
-              onClick={() => setFilterStatus(filterStatus === key ? 'all' : key)}
+              onClick={() => setFilterStatus(key)}
               className={`relative overflow-hidden rounded-xl p-3 md:p-4 transition-all duration-200 border ${
                 filterStatus === key
                   ? `bg-${color}-500/20 border-${color}-500/40 ring-1 ring-${color}-500/30`
