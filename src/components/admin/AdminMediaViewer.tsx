@@ -184,8 +184,9 @@ export function AdminMediaFrame({
 
   if (!displaySrc) {
     return (
-      <div className={cn("flex min-h-32 items-center justify-center rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
-        <ImageIcon className="mr-2 h-4 w-4 animate-pulse" /> Loading media
+      <div className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/20 text-muted-foreground", className)}>
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        <span className="text-xs">Resolving signed media URL…</span>
       </div>
     );
   }
