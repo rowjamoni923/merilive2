@@ -816,28 +816,62 @@ const AdminFaceVerification = () => {
                       }
                       return (
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" data-admin-media-bucket="face-verification">
-                          {tiles.map((t, idx) => (
-                            <button
-                              key={`${submission.id}-tile-${idx}`}
-                              type="button"
-                              onClick={() => { setSelectedSubmission(submission); setShowDetailModal(true); }}
-                              className="relative aspect-square rounded-lg overflow-hidden border border-border bg-background/40 hover:border-purple-400 transition-colors"
-                              title={t.label}
-                            >
-                              <AdminMediaFrame
-                                src={t.src}
-                                alt={t.label}
-                                kind={t.kind}
-                                bucket="face-verification"
-                                poster={profilePhoto && (t.kind === 'video' || isAdminVideoUrl(t.src)) ? profilePhoto : undefined}
-                                className="w-full h-full"
-                                mediaClassName="object-cover w-full h-full"
-                              />
-                              <span className="pointer-events-none absolute bottom-0 inset-x-0 bg-black/60 text-[10px] text-white px-1.5 py-0.5 truncate">
-                                {t.label}
-                              </span>
-                            </button>
-                          ))}
+                          {tiles.map((t, idx) => {
+                            const isVid = t.kind === 'video' || isAdminVideoUrl(t.src);
+                            // Inline tiles are POSTERS ONLY (no <video> inside <button> — invalid HTML
+                            // and the controls become unclickable). Clicking opens the detail dialog
+                            // where the real <video controls> lives and plays.
+                            if (isVid) {
+                              const posterSrc = profilePhoto || t.src;
+                              return (
+                                <button
+                                  key={`${submission.id}-tile-${idx}`}
+                                  type="button"
+                                  onClick={() => { setSelectedSubmission(submission); setShowDetailModal(true); }}
+                                  className="relative aspect-square rounded-lg overflow-hidden border border-border bg-background/40 hover:border-purple-400 transition-colors group"
+                                  title={`${t.label} — click to play`}
+                                >
+                                  <AdminMediaFrame
+                                    src={posterSrc}
+                                    alt={t.label}
+                                    kind="image"
+                                    bucket="face-verification"
+                                    className="w-full h-full"
+                                    mediaClassName="object-cover w-full h-full"
+                                  />
+                                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
+                                    <span className="rounded-full bg-white/95 p-2 shadow-lg">
+                                      <Video className="w-5 h-5 text-purple-700" />
+                                    </span>
+                                  </span>
+                                  <span className="pointer-events-none absolute bottom-0 inset-x-0 bg-black/70 text-[10px] text-white px-1.5 py-0.5 truncate">
+                                    ▶ {t.label}
+                                  </span>
+                                </button>
+                              );
+                            }
+                            return (
+                              <button
+                                key={`${submission.id}-tile-${idx}`}
+                                type="button"
+                                onClick={() => { setSelectedSubmission(submission); setShowDetailModal(true); }}
+                                className="relative aspect-square rounded-lg overflow-hidden border border-border bg-background/40 hover:border-purple-400 transition-colors"
+                                title={t.label}
+                              >
+                                <AdminMediaFrame
+                                  src={t.src}
+                                  alt={t.label}
+                                  kind={t.kind}
+                                  bucket="face-verification"
+                                  className="w-full h-full"
+                                  mediaClassName="object-cover w-full h-full"
+                                />
+                                <span className="pointer-events-none absolute bottom-0 inset-x-0 bg-black/60 text-[10px] text-white px-1.5 py-0.5 truncate">
+                                  {t.label}
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
                       );
                     })()}

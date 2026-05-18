@@ -221,8 +221,9 @@ export function AdminMediaFrame({
 
   if (effectiveMediaKind === "video") {
     const sourceType = blobMimeType || getVideoMimeType(displaySrc);
+    const canOpenOriginal = !displaySrc.startsWith("blob:");
     return (
-      <div className={cn("overflow-hidden rounded-lg border border-border bg-background", className)}>
+      <div className={cn("relative overflow-hidden rounded-lg border border-border bg-background", className)}>
         <video
           key={displaySrc}
           controls
@@ -234,7 +235,17 @@ export function AdminMediaFrame({
           className={cn("h-full w-full bg-background object-contain", mediaClassName)}
           onError={() => setFailed(true)}
           onLoadedData={() => setFailed(false)}
+          onCanPlay={() => setFailed(false)}
           controlsList="nodownload"
+          ref={(el) => {
+            // Force the element to (re-)read sources whenever displaySrc changes.
+            // Without an explicit load() call, swapping the <source> child while the
+            // <video> is already mounted often leaves it stuck on the poster.
+            if (el && el.dataset.adminLoadedSrc !== displaySrc) {
+              el.dataset.adminLoadedSrc = displaySrc;
+              try { el.load(); } catch { /* noop */ }
+            }
+          }}
           {...({
             "webkit-playsinline": "true",
             "x5-video-player-type": "h5",
@@ -242,7 +253,20 @@ export function AdminMediaFrame({
           } as Record<string, string>)}
         >
           {sourceType ? <source src={displaySrc} type={sourceType} /> : <source src={displaySrc} />}
+          {/* Some browsers refuse certain webm codecs — give them an untyped fallback too */}
+          {sourceType && <source src={displaySrc} />}
         </video>
+        {canOpenOriginal && (
+          <a
+            href={displaySrc}
+            target="_blank"
+            rel="noreferrer"
+            className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
+            title="Open video in new tab"
+          >
+            <ExternalLink className="h-3 w-3" /> Open
+          </a>
+        )}
       </div>
     );
   }
