@@ -422,13 +422,20 @@ const Index = () => {
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img
             src={(user.isLive && user.liveThumbnailUrl)
-              ? user.liveThumbnailUrl
+              ? enhanceThumbnail(user.liveThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
               : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, !!(user.is_host || user.gender === 'female'))}
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover"
+            style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
             loading={index < 6 ? "eager" : "lazy"}
             {...({ fetchpriority: index < 4 ? "high" : "auto" } as any)}
             decoding="async"
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (user.isLive && user.liveThumbnailUrl && img.src !== user.liveThumbnailUrl) {
+                img.src = user.liveThumbnailUrl;
+              }
+            }}
           />
 
           {/* Lightweight gradient overlay - single layer */}
