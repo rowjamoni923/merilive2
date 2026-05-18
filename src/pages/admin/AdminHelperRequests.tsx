@@ -196,29 +196,29 @@ const AdminHelperRequests = () => {
         
       } else {
         const req = selectedRequest as TopupRequest;
-        
-        // Update request status
-        await supabase
-          .from('helper_topup_requests')
-          .update({
-            status: 'approved',
-            admin_notes: adminNotes || null,
-            processed_at: new Date().toISOString(),
-            processed_by: user?.id
-          })
-          .eq('id', req.id);
-        
-        // Add coins to user
-        await supabase.rpc('admin_add_user_coins', {
-          _user_id: req.user_id,
-          _amount: req.coin_amount,
-          _note: `Manual top-up request #${req.id.slice(0, 8)}`
+        const usdNum = parseFloat(approveUsd);
+        if (!isFinite(usdNum) || usdNum <= 0) {
+          toast({ title: "Invalid amount", description: "Enter a valid USD amount to approve.", variant: "destructive" });
+          setProcessing(false);
+          guardEnd(`approve-${req.id}`);
+          return;
+        }
+
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc('admin_approve_helper_topup', {
+          _request_id: req.id,
+          _amount_usd: usdNum,
+          _admin_notes: adminNotes || null,
         });
-        
-        // Send notification
-        await adminSendNotification(req.user_id, 'Top-up Approved! 💎', `Your top-up of ${req.coin_amount.toLocaleString()} coins has been approved.`, 'topup_approved')
-        
-        toast({ title: "Approved!", description: `Top-up of ${req.coin_amount} coins approved.` });
+        if (rpcErr) throw rpcErr;
+        const res = rpcRes as any;
+        if (res && res.success === false) {
+          throw new Error(res.error || 'Approval failed');
+        }
+
+        const credited = res?.diamonds_credited ?? previewDiamonds;
+        await adminSendNotification(req.user_id, 'Top-up Approved! 💎', `Your top-up of ${Number(credited).toLocaleString()} diamonds has been approved.`, 'topup_approved')
+
+        toast({ title: "Approved!", description: `Credited ${Number(credited).toLocaleString()} 💎 for $${usdNum}.` });
       }
       
       setShowDetailModal(false);
@@ -276,8 +276,15 @@ const AdminHelperRequests = () => {
     setSelectedRequest(request);
     setRequestType(type);
     setAdminNotes(request.admin_notes || "");
+    setApproveUsd(type === 'topup' ? String((request as TopupRequest).amount_usd ?? "") : "");
     setShowDetailModal(true);
   };
+
+  const previewDiamonds = (() => {
+    const usd = parseFloat(approveUsd);
+    if (!topupRate || !isFinite(usd) || usd <= 0) return 0;
+    return Math.floor((usd / topupRate) * 100000);
+  })();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -531,6 +538,33 @@ const AdminHelperRequests = () => {
                 )}
               </div>
 
+              {/* USD approve input + diamonds preview (topup only) */}
+              {requestType === 'topup' && selectedRequest.status === 'pending' && (
+                <div className="space-y-2 p-3 border rounded-lg bg-slate-50">
+                  <Label htmlFor="approve-usd">Approve USD amount</Label>
+                  <Input
+                    id="approve-usd"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={approveUsd}
+                    onChange={e => setApproveUsd(e.target.value)}
+                    placeholder="Enter USD amount to credit"
+                  />
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-500">
+                      Rate: {topupRate ? `$${topupRate} / 100,000 💎` : 'Loading…'}
+                    </span>
+                    <span className="font-semibold text-blue-600">
+                      💎 {previewDiamonds.toLocaleString()} to credit
+                    </span>
+                  </div>
+                  {!topupRate && (
+                    <p className="text-xs text-red-500">Topup rate not configured in admin settings.</p>
+                  )}
+                </div>
+              )}
+
               {/* Payment Info */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -601,7 +635,7 @@ const AdminHelperRequests = () => {
                   </Button>
                   <Button
                     onClick={handleApprove}
-                    disabled={processing}
+                    disabled={processing || (requestType === 'topup' && (!previewDiamonds || !topupRate))}
                     className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
