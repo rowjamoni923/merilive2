@@ -180,7 +180,7 @@ const publicStorageObjectExists = async (url: string) => {
 const resolvePublicVerificationUrl = async (storagePath: AdminStoragePath, rawValue: string, defaultBucket?: string) => {
   if (!PUBLIC_VERIFICATION_BUCKETS.has(storagePath.bucket)) return null;
   const publicUrl = getPublicStorageUrl(storagePath);
-  const explicit = extractAdminStoragePath(rawValue, defaultBucket);
+  const explicit = extractAdminStoragePath(rawValue);
   if (explicit?.bucket === storagePath.bucket && explicit.path === storagePath.path) return publicUrl;
   return (await publicStorageObjectExists(publicUrl)) ? publicUrl : null;
 };
