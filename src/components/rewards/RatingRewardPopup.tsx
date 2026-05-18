@@ -37,11 +37,10 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
       if (!user) return;
       setUserId(user.id);
 
-      const { data: settingData } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'rating_popup_enabled')
-        .maybeSingle();
+      const [{ data: settingData }, { data: amountData }] = await Promise.all([
+        supabase.from('app_settings').select('setting_value').eq('setting_key', 'rating_popup_enabled').maybeSingle(),
+        supabase.from('app_settings').select('setting_value').eq('setting_key', 'rating_reward_amounts').maybeSingle(),
+      ]);
 
       const enabled =
         settingData?.setting_value === true ||
@@ -49,6 +48,17 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
         localStorage.getItem(RATING_PENDING_KEY) === 'true';
 
       if (!enabled) return;
+
+      // Parse admin-configured reward amounts; require both to be present
+      try {
+        const raw = amountData?.setting_value;
+        const cfg = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        const hb = Number(cfg?.host_beans);
+        const ud = Number(cfg?.user_diamonds);
+        if (Number.isFinite(hb) && hb > 0 && Number.isFinite(ud) && ud > 0) {
+          setRewardAmounts({ host_beans: hb, user_diamonds: ud });
+        }
+      } catch { /* keep null → popup hidden */ }
 
       const { data: existingClaims } = await supabase
         .from('rating_reward_claims')
