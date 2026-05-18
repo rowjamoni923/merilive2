@@ -133,29 +133,14 @@ interface StepItem {
   preview?: React.ReactNode;
 }
 
-const FACE_VERIFICATION_CACHE_KEY = 'admin_face_verification_cache_v3';
+const FACE_VERIFICATION_CACHE_KEY = 'admin_face_verification_cache_disabled_v4';
 const FACE_VERIFICATION_FETCH_LIMIT = 500;
 const ADMIN_FAST_LOADING_TIMEOUT_MS = 900;
 
 const AdminFaceVerification = () => {
   const { toast } = useToast();
-  const [submissions, setSubmissions] = useState<Submission[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const raw = sessionStorage.getItem(FACE_VERIFICATION_CACHE_KEY);
-      return raw ? (JSON.parse(raw) as Submission[]) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [loading, setLoading] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    try {
-      return !sessionStorage.getItem(FACE_VERIFICATION_CACHE_KEY);
-    } catch {
-      return true;
-    }
-  });
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
@@ -261,10 +246,11 @@ const AdminFaceVerification = () => {
 
       setSubmissions(enriched);
 
-      // Cache for instant subsequent loads
+      // Never reuse old face-verification rows: approval state must be DB-fresh.
       if (typeof window !== 'undefined') {
         try {
-          sessionStorage.setItem(FACE_VERIFICATION_CACHE_KEY, JSON.stringify(enriched));
+          sessionStorage.removeItem('admin_face_verification_cache_v3');
+          sessionStorage.removeItem(FACE_VERIFICATION_CACHE_KEY);
         } catch {}
       }
     } catch (error) {
