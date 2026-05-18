@@ -665,6 +665,42 @@ export default function AdminHostApplications() {
                       <p className="text-[10px] text-white/30">{formatDate(app.created_at)}</p>
                     </div>
                   </div>
+
+                  {isPendingStatus(app.status) && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-3 border-t border-border/40">
+                      <Button
+                        size="sm"
+                        disabled={actionLoading}
+                        onClick={(event) => { event.stopPropagation(); handleApproveApplication(app); }}
+                      >
+                        <CheckCircle className="w-3.5 h-3.5 mr-1" /> Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={actionLoading}
+                        onClick={(event) => { event.stopPropagation(); handleApproveApplication(app, 'host'); }}
+                      >
+                        <CheckCircle className="w-3.5 h-3.5 mr-1" /> Host
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={actionLoading}
+                        onClick={(event) => { event.stopPropagation(); handleApproveApplication(app, 'user'); }}
+                      >
+                        <UserCheck className="w-3.5 h-3.5 mr-1" /> User
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={actionLoading}
+                        onClick={(event) => { event.stopPropagation(); handleInlineRejectApplication(app); }}
+                      >
+                        <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
