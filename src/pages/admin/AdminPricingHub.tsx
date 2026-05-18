@@ -104,6 +104,12 @@ export default function AdminPricingHub() {
   });
   const [traderWalletTopupRate, setTraderWalletTopupRate] = useState<number | "">("");
 
+  // Auto Withdrawal Fee (app_settings.auto_withdrawal_fee) — flat USD for ePay/USDT/Binance/Crypto auto methods (foreign agencies)
+  const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number | ""; enabled: boolean }>({
+    flat_usd: "",
+    enabled: true,
+  });
+
   // Beans → Diamonds exchange (app_settings.coin_exchange)
   const [coinExchange, setCoinExchange] = useState<any>(null);
 
