@@ -50,46 +50,38 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
   const [selectedGift, setSelectedGift] = useState<GiftData | null>(null);
   const [sendCount, setSendCount] = useState(1);
   const [activeCategory, setActiveCategory] = useState("popular");
-  const [gifts, setGifts] = useState<GiftData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [gifts, setGifts] = useState<GiftData[]>(() => transformGiftsFromCache(getCachedGifts()));
+  const [loading, setLoading] = useState(!hasGiftCache());
   const [currentPage, setCurrentPage] = useState(0);
 
-  // Fetch gifts from database
+  // Load gifts INSTANTLY from prefetch cache, refresh in background
   useEffect(() => {
-    const fetchGifts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("gifts")
-          .select("*")
-          .eq("is_active", true)
-          .order("display_order", { ascending: true })
-          .order("coin_value", { ascending: true });
+    if (!isOpen) return;
 
-        if (error) throw error;
-
-        const transformedGifts: GiftData[] = (data || []).map((gift) => ({
-          id: gift.id,
-          name: gift.name,
-          emoji: '', // No defaults - only DB assets
-          coins: gift.coin_value,
-          category: gift.category || 'wall',
-          animationType: getAnimationType(gift.coin_value),
-          icon_url: gift.icon_url?.startsWith('http') ? gift.icon_url : 
-                    (gift.animation_url?.startsWith('http') ? gift.animation_url : null),
-          animation_url: gift.animation_url,
-        }));
-
-        setGifts(transformedGifts);
-      } catch (error) {
-        console.error("Error fetching gifts:", error);
-      } finally {
+    const applyFromCache = () => {
+      const cached = getCachedGifts();
+      if (cached.length > 0) {
+        setGifts(transformGiftsFromCache(cached));
         setLoading(false);
       }
     };
 
-    if (isOpen) {
-      fetchGifts();
-    }
+    applyFromCache();
+
+    // Subscribe so admin updates / late prefetch results show up
+    const unsubscribe = subscribeToGiftCache(applyFromCache);
+
+    // Ensure cache exists (no-op if fresh) — fully non-blocking
+    getGiftsWithFetch()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setGifts(transformGiftsFromCache(data));
+        }
+      })
+      .catch((error) => console.error("Error fetching gifts:", error))
+      .finally(() => setLoading(false));
+
+    return unsubscribe;
   }, [isOpen]);
 
   const getAnimationType = (coinValue: number): 'basic' | 'premium' | 'luxury' | 'legendary' => {
