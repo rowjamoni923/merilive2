@@ -538,6 +538,33 @@ const AdminHelperRequests = () => {
                 )}
               </div>
 
+              {/* USD approve input + diamonds preview (topup only) */}
+              {requestType === 'topup' && selectedRequest.status === 'pending' && (
+                <div className="space-y-2 p-3 border rounded-lg bg-slate-50">
+                  <Label htmlFor="approve-usd">Approve USD amount</Label>
+                  <Input
+                    id="approve-usd"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={approveUsd}
+                    onChange={e => setApproveUsd(e.target.value)}
+                    placeholder="Enter USD amount to credit"
+                  />
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-500">
+                      Rate: {topupRate ? `$${topupRate} / 100,000 💎` : 'Loading…'}
+                    </span>
+                    <span className="font-semibold text-blue-600">
+                      💎 {previewDiamonds.toLocaleString()} to credit
+                    </span>
+                  </div>
+                  {!topupRate && (
+                    <p className="text-xs text-red-500">Topup rate not configured in admin settings.</p>
+                  )}
+                </div>
+              )}
+
               {/* Payment Info */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
