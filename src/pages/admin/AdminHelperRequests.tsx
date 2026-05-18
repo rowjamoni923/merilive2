@@ -87,15 +87,21 @@ const AdminHelperRequests = () => {
   const [requestType, setRequestType] = useState<'upgrade' | 'topup'>('upgrade');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
-  
+  const [approveUsd, setApproveUsd] = useState<string>("");
+  const [topupRate, setTopupRate] = useState<number | null>(null);
+
   const [pendingUpgradeCount, setPendingUpgradeCount] = useState(0);
   const [pendingTopupCount, setPendingTopupCount] = useState(0);
-  
-  useEffect(() => { 
+
+  useEffect(() => {
     loadRequests();
+    supabase.rpc('get_trader_wallet_topup_rate').then(({ data }) => {
+      const r = (data as any)?.usd_per_100k_diamonds;
+      setTopupRate(r ? Number(r) : null);
+    });
   }, [statusFilter]);
 
-  useAdminRealtime(['helper_upgrade_requests', 'helper_topup_requests'], () => loadRequests());
+  useAdminRealtime(['helper_upgrade_requests', 'helper_topup_requests', 'app_settings'], () => loadRequests());
 
   const loadRequests = async () => {
     setLoading(true);
