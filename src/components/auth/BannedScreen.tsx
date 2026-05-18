@@ -30,12 +30,12 @@ const BannedScreen = () => {
     fetchReason();
   }, []);
 
-  const handleLogout = async () => {
-    localStorage.setItem('meri_manual_logout', 'true');
-    const { clearNativeSession } = await import('@/utils/nativeSessionStorage');
-    await clearNativeSession();
-    await supabase.auth.signOut({ scope: 'local' });
-    window.location.href = '/auth';
+  const handleLogout = () => {
+    // INSTANT: flag + redirect, cleanup in background
+    try { localStorage.setItem('meri_manual_logout', 'true'); } catch {}
+    window.location.replace('/auth');
+    void import('@/utils/nativeSessionStorage').then(({ clearNativeSession }) => clearNativeSession()).catch(() => {});
+    void supabase.auth.signOut({ scope: 'local' }).catch(() => {});
   };
 
   return (
