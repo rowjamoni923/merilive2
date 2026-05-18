@@ -1,0 +1,1 @@
+INSERT INTO public.app_settings (setting_key, setting_value, description) VALUES ('platform_fee_percent', '3', 'Default withdrawal platform fee (tiered config in withdrawal_settings.fees)') ON CONFLICT (setting_key) DO NOTHING;
