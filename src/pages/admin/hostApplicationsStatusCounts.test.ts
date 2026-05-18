@@ -51,15 +51,18 @@ function buildMockClient(rows: Row[]) {
       select: (_cols: string, _opts: { count: "exact"; head: true }) =>
         makeQuery(rows),
     }),
-    rpc: vi.fn(async () => ({
-      data: {
-        pending: rows.filter((r) => !["approved", "rejected"].includes(r.status))
-          .length,
-        approved: rows.filter((r) => r.status === "approved").length,
-        rejected: rows.filter((r) => r.status === "rejected").length,
-      },
-      error: null,
-    })),
+    rpc: vi.fn(async (_fn: string, args?: { _search?: string | null }) => {
+      const q = String(args?._search || "").trim().toLowerCase();
+      const current = q ? rows.filter((r) => r.full_name.toLowerCase().includes(q)) : rows;
+      return {
+        data: {
+          pending: current.filter((r) => !["approved", "rejected"].includes(r.status)).length,
+          approved: current.filter((r) => r.status === "approved").length,
+          rejected: current.filter((r) => r.status === "rejected").length,
+        },
+        error: null,
+      };
+    }),
   };
 }
 
