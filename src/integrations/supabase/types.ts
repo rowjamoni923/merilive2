@@ -16271,6 +16271,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_my_host_bonus_ledger: {
+        Args: { _limit_days?: number }
+        Returns: Json
+      }
       get_next_available_shard: { Args: never; Returns: string }
       get_noble_subscriptions_needing_reminder: {
         Args: never
