@@ -117,14 +117,15 @@ export function AdminMediaFrame({
     setImageFallbackFailed(false);
     setBlobMimeType("");
     setBlobMimeChecked(false);
+    setResolutionFailed(false);
     if (!src) {
       setDisplaySrc(null);
+      setDisplayPoster(null);
       return;
     }
     let cancelled = false;
     setDisplaySrc(null);
     setDisplayPoster(null);
-    setResolutionFailed(false);
     (async () => {
       const resolver = bucket === "face-verification" || bucket === "host-verification" || isPrivateStorage
         ? resolveAdminStorageObjectUrl
@@ -134,9 +135,9 @@ export function AdminMediaFrame({
         resolver(poster, bucket),
       ]);
       if (!cancelled) {
-        setDisplaySrc(resolved);
+        setDisplaySrc(resolved || src);
         setDisplayPoster(resolvedPoster || null);
-        setResolutionFailed(!resolved || (isPrivateAdminStorageReference(src, bucket) && resolved === src));
+        setResolutionFailed(false);
       }
     })();
     return () => {

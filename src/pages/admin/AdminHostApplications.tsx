@@ -718,7 +718,10 @@ export default function AdminHostApplications() {
 
                 {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
                   <div className="sticky top-0 z-20 rounded-2xl border border-white/10 bg-slate-900/95 p-3 shadow-xl backdrop-blur">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <Button onClick={() => handleApprove()} disabled={actionLoading} className="bg-emerald-600 hover:bg-emerald-500 text-white">
+                        <CheckCircle className="w-4 h-4 mr-1" /> Approve
+                      </Button>
                       <Button onClick={() => handleApprove('host')} disabled={actionLoading} className="bg-pink-600 hover:bg-pink-500 text-white">
                         <CheckCircle className="w-4 h-4 mr-1" /> Host
                       </Button>

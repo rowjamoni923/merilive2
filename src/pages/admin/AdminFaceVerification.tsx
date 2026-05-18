@@ -535,6 +535,16 @@ const AdminFaceVerification = () => {
     });
   };
 
+  const approveSubmissionAs = (submission: Submission, asRole?: 'host' | 'user') => {
+    const resolvedRole = asRole || (submission.verification_type === 'host' ? 'host' : 'user');
+    return processSubmissionAction({
+      submission,
+      action: 'approve',
+      approveAs: resolvedRole,
+      setGender: resolvedRole === 'host' ? 'female' : 'male',
+    });
+  };
+
   // Bucketing is delegated to the shared admin status-count module so this page
   // stays in lock-step with AdminHostApplications & friends: every status maps
   // to exactly one of pending / approved / rejected (anything not explicitly
@@ -850,32 +860,25 @@ const AdminFaceVerification = () => {
                       </div>
                     )}
 
-                    {['pending', 'submitted', 'under_review'].includes(submission.status) && (
+                    {isPendingBucket(submission) && (
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <Button
                           disabled={processing}
-                          onClick={() => {
-                            processSubmissionAction({
-                              submission,
-                              action: 'approve',
-                              approveAs: submission.verification_type === 'host' ? 'host' : 'user',
-                              setGender: submission.profile?.gender === 'female' ? 'female' : submission.verification_type === 'host' ? 'female' : 'male',
-                            });
-                          }}
+                          onClick={() => approveSubmissionAs(submission)}
                         >
                           <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
                         </Button>
                         <Button
                           variant="outline"
                           disabled={processing}
-                          onClick={() => processSubmissionAction({ submission, action: 'approve', approveAs: 'host', setGender: 'female' })}
+                          onClick={() => approveSubmissionAs(submission, 'host')}
                         >
                           <Mic className="w-4 h-4 mr-2" /> Host
                         </Button>
                         <Button
                           variant="outline"
                           disabled={processing}
-                          onClick={() => processSubmissionAction({ submission, action: 'approve', approveAs: 'user', setGender: 'male' })}
+                          onClick={() => approveSubmissionAs(submission, 'user')}
                         >
                           <User className="w-4 h-4 mr-2" /> User
                         </Button>
@@ -913,26 +916,26 @@ const AdminFaceVerification = () => {
 
             return (
               <div className="space-y-5">
-                {['pending', 'submitted', 'under_review'].includes(selectedSubmission.status) && (
+                {isPendingBucket(selectedSubmission) && (
                   <div className="sticky top-0 z-20 rounded-xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <Button
                         disabled={processing}
-                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: selectedSubmission.verification_type === 'host' ? 'host' : 'user' })}
+                        onClick={() => approveSubmissionAs(selectedSubmission)}
                       >
                         <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
                       </Button>
                       <Button
                         variant="outline"
                         disabled={processing}
-                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: 'host', setGender: 'female' })}
+                        onClick={() => approveSubmissionAs(selectedSubmission, 'host')}
                       >
                         <Mic className="w-4 h-4 mr-2" /> Host
                       </Button>
                       <Button
                         variant="outline"
                         disabled={processing}
-                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: 'user', setGender: 'male' })}
+                        onClick={() => approveSubmissionAs(selectedSubmission, 'user')}
                       >
                         <User className="w-4 h-4 mr-2" /> User
                       </Button>
