@@ -482,6 +482,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             const cacheKey = `meri_profile_cache_${userId || 'self'}`;
             sessionStorage.setItem(cacheKey, JSON.stringify({ data: profileData, ts: Date.now() }));
           } catch {}
+
+          // Unlock the profile screen immediately after the primary row is ready.
+          // Secondary counters/wallet/task queries below continue in the background.
+          if (isInitialLoad) {
+            if (initialLoadSafetyTimer) {
+              clearTimeout(initialLoadSafetyTimer);
+              initialLoadSafetyTimer = null;
+            }
+            setLoading(false);
+            if (!initialLoadComplete) {
+              setInitialLoadComplete(true);
+            }
+          }
         }
 
         // PARALLEL FETCH - All independent queries at once for speed
