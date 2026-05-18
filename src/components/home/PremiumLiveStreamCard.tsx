@@ -69,21 +69,20 @@ export const PremiumLiveStreamCard = ({
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
     >
-      {/* Thumbnail with animated scale on hover */}
-      <motion.img
+      {/* Thumbnail — render instantly, no entry animation */}
+      <img
         src={thumbnailUrl || "/placeholder.svg"}
         alt={hostName}
-        className="absolute inset-0 w-full h-full object-cover"
+        loading="eager"
+        decoding="sync"
+        // @ts-expect-error – fetchpriority is a standard HTML hint
+        fetchpriority="high"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         style={{
-          filter: 'brightness(1.05) contrast(1.08) saturate(1.15) blur(0px)',
+          filter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
           WebkitFilter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
         }}
-        whileHover={{ scale: 1.1 }}
-        transition={{ duration: 0.5 }}
       />
 
       {/* Premium Gradient Overlay */}
