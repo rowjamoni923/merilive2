@@ -3371,6 +3371,7 @@ export type Database = {
           reward_beans: number | null
           reward_coins: number | null
           reward_xp: number | null
+          show_in_live: boolean
           target_audience: string | null
           target_gender: string | null
           task_type: string
@@ -3394,6 +3395,7 @@ export type Database = {
           reward_beans?: number | null
           reward_coins?: number | null
           reward_xp?: number | null
+          show_in_live?: boolean
           target_audience?: string | null
           target_gender?: string | null
           task_type: string
@@ -3417,6 +3419,7 @@ export type Database = {
           reward_beans?: number | null
           reward_coins?: number | null
           reward_xp?: number | null
+          show_in_live?: boolean
           target_audience?: string | null
           target_gender?: string | null
           task_type?: string
