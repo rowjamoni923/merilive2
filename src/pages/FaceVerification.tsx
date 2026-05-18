@@ -736,13 +736,15 @@ const FaceVerification = () => {
         await liveVideoRef.current.play().catch(console.error);
       }
       
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-        ? 'video/webm;codecs=vp9' 
-        : MediaRecorder.isTypeSupported('video/webm') 
-          ? 'video/webm' 
-          : 'video/mp4';
+      const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+        ? 'video/mp4'
+        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+          ? 'video/webm;codecs=vp8,opus'
+          : MediaRecorder.isTypeSupported('video/webm')
+            ? 'video/webm'
+            : '';
       
-      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
       
@@ -751,8 +753,9 @@ const FaceVerification = () => {
       };
       
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mimeType });
-        const file = new File([blob], 'verification-video.webm', { type: mimeType });
+        const type = mediaRecorder.mimeType || mimeType || 'video/webm';
+        const blob = new Blob(chunksRef.current, { type });
+        const file = new File([blob], `verification-video.${type.includes('mp4') ? 'mp4' : 'webm'}`, { type });
         setVideoFile(file);
         setVideoPreview(URL.createObjectURL(blob));
         stream.getTracks().forEach(track => track.stop());
@@ -947,11 +950,13 @@ const FaceVerification = () => {
     });
 
     try {
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-        ? 'video/webm;codecs=vp9' 
-        : MediaRecorder.isTypeSupported('video/webm') 
-          ? 'video/webm' 
-          : '';
+      const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+        ? 'video/mp4'
+        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+          ? 'video/webm;codecs=vp8,opus'
+          : MediaRecorder.isTypeSupported('video/webm')
+            ? 'video/webm'
+            : '';
       
       const mediaRecorder = mimeType
         ? new MediaRecorder(faceStream, { mimeType })
