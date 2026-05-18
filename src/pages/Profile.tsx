@@ -368,6 +368,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Track if initial load is complete
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
+  // Keep persistent cache in sync whenever profile state changes (edits, balance updates, etc.)
+  useEffect(() => {
+    if (!profile) return;
+    try {
+      const cacheKey = `meri_profile_cache_${userId || 'self'}`;
+      const payload = JSON.stringify({ data: profile, ts: Date.now() });
+      localStorage.setItem(cacheKey, payload);
+      sessionStorage.setItem(cacheKey, payload);
+    } catch {}
+  }, [profile, userId]);
+
+
+
   useEffect(() => {
     let isMounted = true;
     let refetchTimer: ReturnType<typeof setTimeout> | null = null;
