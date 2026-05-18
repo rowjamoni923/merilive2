@@ -108,12 +108,6 @@ export const saveAdminSession = (session: Omit<AdminSession, 'version' | 'signed
 export const getAdminSession = (): AdminSession | null => {
   if (!hasWindow()) return null;
   try {
-    // Every browser tab must be opened from the secret admin link before it can
-    // reuse an existing admin session. Owners still bypass device approval in
-    // the RPC, but not the secret-link gate.
-    if (!window.sessionStorage.getItem(ADMIN_SECRET_LINK_SESSION_KEY)) {
-      return null;
-    }
     const raw =
       window.sessionStorage.getItem(ADMIN_SESSION_KEY) ||
       window.localStorage.getItem(ADMIN_SESSION_KEY);
@@ -127,9 +121,19 @@ export const getAdminSession = (): AdminSession | null => {
       clearAdminSession();
       return null;
     }
+    // Secret-link access is mandatory to create a new admin session, but once
+    // the server has issued a real session token it must survive hard refreshes
+    // and new tabs. Otherwise admin-only media signing breaks in Lovable preview
+    // even though the admin is still logged in.
+    if (!window.sessionStorage.getItem(ADMIN_SECRET_LINK_SESSION_KEY) && !parsed.session_token) {
+      return null;
+    }
     // Sync to sessionStorage if only in localStorage
     if (!window.sessionStorage.getItem(ADMIN_SESSION_KEY)) {
       window.sessionStorage.setItem(ADMIN_SESSION_KEY, raw);
+    }
+    if (parsed.session_token && parsed.session_token.length >= 16) {
+      window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
     }
     return parsed;
   } catch {

@@ -155,6 +155,13 @@ const buildStorageCandidates = (value: string, defaultBucket?: string): AdminSto
   return buckets.map((bucket) => ({ bucket, path: cleanPath }));
 };
 
+const normalizeAdminStorageValue = (value: string, defaultBucket?: string) => {
+  const raw = value.trim();
+  const parsed = extractAdminStoragePath(raw, defaultBucket);
+  if (!parsed) return raw;
+  return `${parsed.bucket}/${parsed.path}`;
+};
+
 const usefulMimeType = (type?: string | null) => {
   const clean = (type || "").split(";")[0].trim().toLowerCase();
   return clean && clean !== "application/octet-stream" && clean !== "application/json" ? clean : "";
@@ -319,7 +326,7 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
     if (signed) return signed;
   }
 
-  return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : value;
+  return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : normalizeAdminStorageValue(raw, defaultBucket);
 };
 
 export const resolveAdminStorageSignedUrl = resolveAdminStorageImageUrl;
@@ -353,7 +360,7 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
     if (signed) return signed;
   }
 
-  return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : value;
+  return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : normalizeAdminStorageValue(raw, defaultBucket);
 };
 
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
