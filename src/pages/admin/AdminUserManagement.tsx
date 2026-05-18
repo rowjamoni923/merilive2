@@ -1405,9 +1405,10 @@ export default function AdminUserManagement() {
     agency.agency_code?.toLowerCase().includes(blockSearchQuery.toLowerCase())
   );
 
-  const isFaceApproved = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'approved';
-  const isFaceRejected = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'rejected';
-  const isFacePendingBucket = (s: FaceVerificationSubmission) => bucketOfStatus(s.status) === 'pending';
+  const getFaceSubmissionBucket = (s: FaceVerificationSubmission) => s.status_bucket || bucketOfStatus(s.status);
+  const isFaceApproved = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'approved';
+  const isFaceRejected = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'rejected';
+  const isFacePendingBucket = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'pending';
   const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || s.review_source === 'auto' || isAutoFaceReview(s.status, s.admin_notes);
 
   const faceQueryRaw = faceSearchQuery.trim();
@@ -1436,7 +1437,7 @@ export default function AdminUserManagement() {
     return false;
   });
 
-  const faceCounts = countFaceReviewBuckets(faceVisiblePool, (s) => s.status, (s) => s.admin_notes);
+  const faceCounts = countFaceReviewBuckets(faceVisiblePool, (s) => s.status_bucket || s.status, (s) => s.admin_notes);
   const pendingFaceCount = faceCounts.pending;
   const approvedFaceCount = faceCounts.approved;
   const rejectedFaceCount = faceCounts.rejected;
