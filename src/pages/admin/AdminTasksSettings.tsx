@@ -86,7 +86,8 @@ const AdminTasksSettings = () => {
     duration_hours: 24
   });
 
-  const [bonusSettings, setBonusSettings] = useState<BonusSettings | null>(null);
+  const [bonusHourRows, setBonusHourRows] = useState<BonusHourRow[]>([]);
+  const [bonusGlobals, setBonusGlobals] = useState<BonusGlobals | null>(null);
   const [savingBonus, setSavingBonus] = useState(false);
 
   useEffect(() => {
@@ -101,11 +102,27 @@ const AdminTasksSettings = () => {
       const { data, error } = await supabase
         .from('new_host_live_bonus_settings' as any)
         .select('*')
-        .limit(1)
-        .maybeSingle();
+        .order('hour_number', { ascending: true });
 
-      if (!error && data) {
-        setBonusSettings(data as any);
+      if (error) throw error;
+      const rows = ((data || []) as any[]).filter((r) => r.hour_number != null);
+      setBonusHourRows(
+        rows.map((r) => ({
+          id: r.id,
+          hour_number: Number(r.hour_number),
+          target_minutes: Number(r.target_minutes) || 60,
+          bonus_beans: Number(r.bonus_beans) || 0,
+          beans_per_hour: Number(r.beans_per_hour) || 0,
+        }))
+      );
+      const first = rows[0];
+      if (first) {
+        setBonusGlobals({
+          max_hours_per_day: Number(first.max_hours_per_day) || rows.length,
+          eligible_days: Number(first.eligible_days) || 1,
+          daily_reset_offset_minutes: Number(first.daily_reset_offset_minutes) || 0,
+          is_active: !!first.is_active,
+        });
       }
     } catch (error) {
       console.error('Error fetching bonus settings:', error);
@@ -113,21 +130,34 @@ const AdminTasksSettings = () => {
     }
   };
 
+  const updateHourRow = (id: string, patch: Partial<BonusHourRow>) => {
+    setBonusHourRows((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  };
+
   const saveBonusSettings = async () => {
-    if (!bonusSettings) return;
+    if (!bonusGlobals || bonusHourRows.length === 0) return;
     setSavingBonus(true);
     try {
-      const { data, error } = await supabase.rpc('admin_save_host_bonus_settings' as any, {
-        _beans_per_hour: Number(bonusSettings.beans_per_hour) || 0,
-        _max_hours_per_day: Number(bonusSettings.max_hours_per_day) || 1,
-        _eligible_days: Number(bonusSettings.eligible_days) || 1,
-        _target_minutes: Number(bonusSettings.target_minutes) || 60,
-        _daily_reset_offset_minutes: Number(bonusSettings.daily_reset_offset_minutes) || 0,
-        _is_active: !!bonusSettings.is_active,
-      });
-      if (error) throw error;
-      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'save_failed');
-      toast.success('New host bonus settings saved');
+      // Sync ALL hour rows in parallel — shared globals applied to every row, per-row target_minutes/bonus_beans preserved
+      const results = await Promise.all(
+        bonusHourRows.map((row) =>
+          supabase
+            .from('new_host_live_bonus_settings' as any)
+            .update({
+              target_minutes: Math.max(1, Math.min(60, Number(row.target_minutes) || 60)),
+              bonus_beans: Math.max(0, Number(row.bonus_beans) || 0),
+              beans_per_hour: Math.max(0, Number(row.bonus_beans) || 0),
+              max_hours_per_day: Math.max(1, Number(bonusGlobals.max_hours_per_day) || 1),
+              eligible_days: Math.max(1, Number(bonusGlobals.eligible_days) || 1),
+              daily_reset_offset_minutes: Math.max(0, Math.min(1440, Number(bonusGlobals.daily_reset_offset_minutes) || 0)),
+              is_active: !!bonusGlobals.is_active,
+            })
+            .eq('id', row.id)
+        )
+      );
+      const firstErr = results.find((r) => r.error)?.error;
+      if (firstErr) throw firstErr;
+      toast.success(`Saved ${bonusHourRows.length} hour rows`);
       fetchBonusSettings();
     } catch (error) {
       console.error('Error saving bonus settings:', error);
