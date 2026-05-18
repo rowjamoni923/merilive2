@@ -2,7 +2,7 @@ import { Eye, Gift, Crown, Diamond, Flame, MapPin, Verified, Star } from "lucide
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
 
@@ -69,21 +69,20 @@ export const PremiumLiveStreamCard = ({
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
     >
-      {/* Thumbnail with animated scale on hover */}
-      <motion.img
+      {/* Thumbnail — render instantly, no entry animation */}
+      <img
         src={thumbnailUrl || "/placeholder.svg"}
         alt={hostName}
-        className="absolute inset-0 w-full h-full object-cover"
+        loading="eager"
+        decoding="sync"
+        // @ts-expect-error – fetchpriority is a standard HTML hint
+        fetchpriority="high"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         style={{
-          filter: 'brightness(1.05) contrast(1.08) saturate(1.15) blur(0px)',
+          filter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
           WebkitFilter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
         }}
-        whileHover={{ scale: 1.1 }}
-        transition={{ duration: 0.5 }}
       />
 
       {/* Premium Gradient Overlay */}
@@ -99,11 +98,7 @@ export const PremiumLiveStreamCard = ({
       {/* Stream Type Badge with Animation */}
       {isOnline && (
         <div className="absolute top-3 left-3 z-10">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="flex items-center gap-1"
-          >
+          <div className="flex items-center gap-1">
             <Badge className={cn(
               "border-0 gap-1 px-2 py-0.5 font-bold text-white shadow-lg",
               `bg-gradient-to-r ${streamBadge.color}`
@@ -118,18 +113,12 @@ export const PremiumLiveStreamCard = ({
             
             {/* VIP Badge */}
             {isVIP && (
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 border-0 text-white shadow-lg">
-                  <Crown className="w-3 h-3 mr-0.5" />
-                  VIP
-                </Badge>
-              </motion.div>
+              <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 border-0 text-white shadow-lg">
+                <Crown className="w-3 h-3 mr-0.5" />
+                VIP
+              </Badge>
             )}
-          </motion.div>
+          </div>
         </div>
       )}
 
@@ -146,25 +135,15 @@ export const PremiumLiveStreamCard = ({
           >
             <Eye className="w-3.5 h-3.5 text-pink-600" />
           </motion.div>
-          <motion.span
-            className="text-xs text-white font-bold"
-            key={viewerCount}
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-          >
+          <span className="text-xs text-white font-bold">
             {viewerCount > 1000 ? `${(viewerCount / 1000).toFixed(1)}k` : viewerCount}
-          </motion.span>
+          </span>
         </motion.div>
       </div>
 
-      {/* Gift Counter with Flying Animation */}
+      {/* Gift Counter */}
       {giftCount > 0 && (
-        <motion.div
-          className="absolute top-12 right-3 z-10"
-          initial={{ x: 50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="absolute top-12 right-3 z-10">
           <div className="flex items-center gap-1 bg-gradient-to-r from-pink-500/80 to-purple-500/80 backdrop-blur-md rounded-full px-2.5 py-1">
             <motion.div
               animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
@@ -174,32 +153,23 @@ export const PremiumLiveStreamCard = ({
             </motion.div>
             <span className="text-xs text-white font-bold">{giftCount}</span>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      {/* Tags with slide-in animation */}
-      <AnimatePresence>
-        {tags.length > 0 && (
-          <div className="absolute top-12 left-3 flex flex-wrap gap-1 z-10">
-            {tags.slice(0, 2).map((tag, index) => (
-              <motion.div
-                key={tag}
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -20, opacity: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Badge
-                  variant="secondary"
-                  className="bg-white/20 backdrop-blur-sm text-white border-0 text-[10px] px-1.5 py-0"
-                >
-                  #{tag}
-                </Badge>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Tags */}
+      {tags.length > 0 && (
+        <div className="absolute top-12 left-3 flex flex-wrap gap-1 z-10">
+          {tags.slice(0, 2).map((tag) => (
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="bg-white/20 backdrop-blur-sm text-white border-0 text-[10px] px-1.5 py-0"
+            >
+              #{tag}
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* PK Battle Progress Bar */}
       {isPK && (
