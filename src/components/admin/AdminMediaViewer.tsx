@@ -132,6 +132,8 @@ export function AdminMediaFrame({
 
   useEffect(() => {
     setFailed(false);
+    setFailReason("");
+    setVideoLoading(true);
     setImageFallbackFailed(false);
     setBlobMimeType("");
     setBlobMimeChecked(false);
