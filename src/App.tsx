@@ -885,7 +885,8 @@ const App = () => {
             setSession(null);
             invalidateCachedUser();
             clearBalanceCache();
-            clearNativeSession();
+            // Fire-and-forget — do not block any subsequent navigation/state updates
+            void Promise.resolve(clearNativeSession()).catch(() => {});
           } else {
             // 🛡️ AUTO sign-out COMPLETELY BLOCKED — do absolutely nothing
             // Do NOT call refreshSession() here as it can trigger another SIGNED_OUT loop
