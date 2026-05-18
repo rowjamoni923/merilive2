@@ -281,6 +281,14 @@ export async function fetchFilteredStatusCounts(
   }
 
   async function doFetch(): Promise<StatusCounts> {
+  if (opts.globalStatsRpc && client.rpc) {
+    // Server-side stats use the same canonical bucket + auto-host rules as the
+    // paginated list, and support the same search filter.
+    const { data, error } = await client.rpc(opts.globalStatsRpc, { _search: q || null });
+    if (error) throw new Error(error.message);
+    return normalizeStatusCounts(data || {});
+  }
+
   if (q) {
     const base = () =>
       client
@@ -299,28 +307,6 @@ export async function fetchFilteredStatusCounts(
       under_review: 0,
       approved: approvedRes.count || 0,
       rejected: rejectedRes.count || 0,
-    };
-  }
-
-  if (opts.globalStatsRpc && client.rpc) {
-    // Always pass the explicit text argument. Older deployments had both
-    // admin_face_verification_stats() and admin_face_verification_stats(text DEFAULT NULL),
-    // which makes a no-arg RPC call ambiguous in PostgREST.
-    const { data, error } = await client.rpc(opts.globalStatsRpc, { _search: null });
-    if (error) throw new Error(error.message);
-    const s = (data || {}) as StatusCounts;
-    return {
-      pending: Number(s.pending || 0),
-      under_review: Number(s.under_review || 0),
-      approved: Number(s.approved || 0),
-      rejected: Number(s.rejected || 0),
-      auto_approved: Number(s.auto_approved || 0),
-      auto_rejected: Number(s.auto_rejected || 0),
-      manual_pending: Number(s.manual_pending || s.pending || 0),
-      manual_approved: Number(s.manual_approved || 0),
-      manual_rejected: Number(s.manual_rejected || 0),
-      manual_total: Number(s.manual_total || 0),
-      total: Number(s.total || 0),
     };
   }
 
