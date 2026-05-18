@@ -1444,6 +1444,10 @@ export default function AdminUserManagement() {
   const autoRejectedFaceSubmissions = faceSubmissions.filter((s) => isFaceRejected(s) && isFaceAutoReviewed(s));
   const autoApprovedFaceCount = faceCounts.auto_approved;
   const autoRejectedFaceCount = faceCounts.auto_rejected;
+  const isResolvedHostSubmission = (s: FaceVerificationSubmission) =>
+    s.verification_type === 'host' || s.profile?.is_host === true || String(s.profile?.gender || '').toLowerCase() === 'female';
+  const autoHostFaceCount = faceCounts.auto_host ?? autoApprovedFaceSubmissions.filter(isResolvedHostSubmission).length;
+  const autoUserFaceCount = faceCounts.auto_user ?? autoApprovedFaceSubmissions.filter((s) => !isResolvedHostSubmission(s)).length;
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
@@ -1960,7 +1964,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <Crown className="w-6 h-6 text-pink-500" />
                   <div>
-                    <p className="text-lg font-bold text-pink-600">{autoApprovedFaceSubmissions.filter(s => s.verification_type === 'host').length}</p>
+                    <p className="text-lg font-bold text-pink-600">{autoHostFaceCount}</p>
                     <p className="text-xs text-pink-600/80">Auto Host</p>
                   </div>
                 </div>
@@ -1971,7 +1975,7 @@ export default function AdminUserManagement() {
                 <div className="flex items-center gap-2">
                   <User className="w-6 h-6 text-blue-500" />
                   <div>
-                    <p className="text-lg font-bold text-blue-600">{autoApprovedFaceSubmissions.filter(s => s.verification_type !== 'host').length}</p>
+                    <p className="text-lg font-bold text-blue-600">{autoUserFaceCount}</p>
                     <p className="text-xs text-blue-600/80">Auto User</p>
                   </div>
                 </div>
