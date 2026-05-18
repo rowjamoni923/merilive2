@@ -309,7 +309,7 @@ const AdminFaceVerification = () => {
       ? (approveAs || (submission.verification_type === 'host' ? 'host' : 'user'))
       : 'user';
     const resolvedGender = action === 'approve'
-      ? (resolvedApproveAs === 'host' ? 'female' : 'male')
+      ? (setGender || (resolvedApproveAs === 'host' ? 'female' : 'male'))
       : null;
     const resolvedReason = action === 'reject'
       ? (reason?.trim() || 'Rejected by admin')
