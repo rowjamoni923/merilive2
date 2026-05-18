@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Flame, Check, Clock, AlertTriangle, Gift, CalendarRange } from "lucide-react";
+import { ArrowLeft, Flame, Check, Clock, AlertTriangle, Gift, CalendarRange, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import BeansIcon from "@/components/common/BeansIcon";
 import { getTaskDate } from "@/utils/taskDateUtils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HourRow {
   hour_number: number;
@@ -118,6 +119,7 @@ const HostBonusLedger = () => {
   }, [ledger, range]);
 
   return (
+    <TooltipProvider delayDuration={150}>
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 border-b border-border/40 bg-background/95 backdrop-blur">
         <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-muted">
@@ -250,27 +252,85 @@ const HostBonusLedger = () => {
                   )}
 
                   <ul className="space-y-1.5">
-                    {d.hours.map((h) => {
+                    {d.hours.map((h, idx) => {
                       const pct = Math.min(
                         100,
                         (h.minutes_accumulated / Math.max(h.target_minutes, 1)) * 100,
                       );
+                      // A row is "over-cap" when its position within the
+                      // day exceeds max_hours_per_day. We surface the
+                      // earned_hour_bucket (claimed_at || last_minute_at)
+                      // in the tooltip so the host can see exactly which
+                      // wall-clock hour pushed them past the cap.
+                      const overCap = idx + 1 > ledger.max_hours_per_day;
+                      const bucket = h.claimed_at ?? h.last_minute_at;
+                      const bucketLabel = bucket
+                        ? new Date(bucket).toLocaleString(undefined, {
+                            month: "short",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "—";
                       return (
                         <li
                           key={h.hour_number}
-                          className="flex items-center gap-2 text-[11px] bg-muted/40 rounded-md px-2 py-1.5"
+                          className={`flex items-center gap-2 text-[11px] rounded-md px-2 py-1.5 ${
+                            overCap
+                              ? "bg-destructive/10 ring-1 ring-destructive/40"
+                              : "bg-muted/40"
+                          }`}
                         >
-                          <span className="w-10 font-semibold tabular-nums">H{h.hour_number}</span>
+                          <span className="w-10 font-semibold tabular-nums flex items-center gap-1">
+                            H{h.hour_number}
+                            {overCap && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    aria-label="Cap exceeded — why?"
+                                    className="inline-flex items-center gap-0.5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold px-1.5 py-0.5 leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60"
+                                  >
+                                    <Ban className="w-2.5 h-2.5" />
+                                    OVER
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[240px] text-[11px] leading-snug">
+                                  <p className="font-semibold mb-1">Beyond the {ledger.max_hours_per_day}-hour daily cap</p>
+                                  <p>
+                                    Only the first {ledger.max_hours_per_day} qualifying hours per 24h pay out. This was
+                                    hour #{idx + 1} on this program day, so it won't be credited.
+                                  </p>
+                                  <p className="mt-1 text-muted-foreground">
+                                    earned_hour_bucket: <span className="font-mono">{bucketLabel}</span>
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </span>
                           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                             <div
-                              className={`h-full ${h.completed ? "bg-green-500" : "bg-primary"}`}
+                              className={`h-full ${
+                                overCap ? "bg-destructive" : h.completed ? "bg-green-500" : "bg-primary"
+                              }`}
                               style={{ width: `${pct}%` }}
                             />
                           </div>
                           <span className="w-16 text-right tabular-nums text-muted-foreground">
                             {h.minutes_accumulated}/{h.target_minutes}m
                           </span>
-                          {h.claimed ? (
+                          {overCap ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-destructive font-semibold w-20 text-right cursor-help">
+                                  capped
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-[11px]">
+                                Excluded by 24h cap.
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : h.claimed ? (
                             <span className="flex items-center gap-0.5 text-green-500 font-semibold w-20 justify-end">
                               <Check className="w-3 h-3" />+{h.claimed_beans.toLocaleString()}
                             </span>
@@ -290,6 +350,7 @@ const HostBonusLedger = () => {
         )}
       </main>
     </div>
+    </TooltipProvider>
   );
 };
 
