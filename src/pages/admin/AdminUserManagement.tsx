@@ -1027,6 +1027,56 @@ export default function AdminUserManagement() {
     }
   };
 
+  const processFaceSubmission = async (
+    submission: FaceVerificationSubmission,
+    action: 'approve' | 'reject',
+    approveAs: 'host' | 'user' = submission.verification_type === 'host' ? 'host' : 'user',
+    reason?: string,
+  ) => {
+    if (actionLoading) return;
+    const actionKey = `face-direct-${submission.id}-${action}-${approveAs}`;
+    if (!startSingleFlight(actionKey)) return;
+
+    const previousFaceSubmissions = faceSubmissions;
+    const nextStatus: FaceVerificationSubmission['status'] = action === 'approve' ? 'approved' : 'rejected';
+    const nextReason = action === 'reject' ? (reason?.trim() || 'Rejected by admin') : null;
+
+    setFaceSubmissions(prev => prev.map(item =>
+      item.id === submission.id
+        ? { ...item, status: nextStatus, rejection_reason: nextReason, reviewed_at: new Date().toISOString() }
+        : item
+    ));
+    setActionLoading(true);
+
+    try {
+      const { data, error } = await supabase.rpc('admin_process_face_verification', {
+        _submission_id: submission.id,
+        _action: action,
+        _reason: nextReason,
+        _approve_as: action === 'approve' ? approveAs : 'user',
+        _set_gender: action === 'approve' ? (approveAs === 'host' ? 'female' : 'male') : null,
+      });
+
+      if (error) throw error;
+      if ((data as any)?.pending) {
+        setFaceSubmissions(previousFaceSubmissions);
+        toast.success('⏳ Submitted for Owner Approval — decision queued.');
+      } else if ((data as any)?.success === false) {
+        throw new Error((data as any)?.error || 'Failed to process');
+      } else {
+        toast.success(action === 'approve' ? `✅ Approved as ${approveAs === 'host' ? 'Host' : 'User'}!` : '❌ Rejected!');
+      }
+      fetchFaceSubmissions();
+    } catch (error: any) {
+      setFaceSubmissions(previousFaceSubmissions);
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorProcessingSubmissionDirect", message: formatAdminError(error)});
+      toast.error(error.message || "Failed to process");
+    } finally {
+      setActionLoading(false);
+      endSingleFlight(actionKey);
+    }
+  };
+
   // === MODERATION TAB FUNCTIONS ===
   const fetchModerationLogs = async () => {
     setLoading(true);
