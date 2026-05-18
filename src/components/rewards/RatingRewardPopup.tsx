@@ -28,6 +28,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
   const [alreadyClaimed, setAlreadyClaimed] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [isEnabled, setIsEnabled] = useState(false);
+  const [rewardAmounts, setRewardAmounts] = useState<{ host_beans: number; user_diamonds: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,11 +37,10 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
       if (!user) return;
       setUserId(user.id);
 
-      const { data: settingData } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'rating_popup_enabled')
-        .maybeSingle();
+      const [{ data: settingData }, { data: amountData }] = await Promise.all([
+        supabase.from('app_settings').select('setting_value').eq('setting_key', 'rating_popup_enabled').maybeSingle(),
+        supabase.from('app_settings').select('setting_value').eq('setting_key', 'rating_reward_amounts').maybeSingle(),
+      ]);
 
       const enabled =
         settingData?.setting_value === true ||
@@ -48,6 +48,17 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
         localStorage.getItem(RATING_PENDING_KEY) === 'true';
 
       if (!enabled) return;
+
+      // Parse admin-configured reward amounts; require both to be present
+      try {
+        const raw = amountData?.setting_value;
+        const cfg = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        const hb = Number(cfg?.host_beans);
+        const ud = Number(cfg?.user_diamonds);
+        if (Number.isFinite(hb) && hb > 0 && Number.isFinite(ud) && ud > 0) {
+          setRewardAmounts({ host_beans: hb, user_diamonds: ud });
+        }
+      } catch { /* keep null → popup hidden */ }
 
       const { data: existingClaims } = await supabase
         .from('rating_reward_claims')
@@ -203,7 +214,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
     }
   }, [userId]);
 
-  if (alreadyClaimed || !isEnabled) return null;
+  if (alreadyClaimed || !isEnabled || !rewardAmounts) return null;
 
   return (
     <>
@@ -306,7 +317,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                           boxShadow: '0 2px 8px rgba(251,191,36,0.1)',
                         }}
                       >
-                        Hosts: 10,000 🫘
+                        Hosts: {rewardAmounts.host_beans.toLocaleString()} 🫘
                       </span>
                       <span className="text-purple-400/40 text-xs">•</span>
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
@@ -317,7 +328,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                           boxShadow: '0 2px 8px rgba(139,92,246,0.1)',
                         }}
                       >
-                        Users: 5,000 💎
+                        Users: {rewardAmounts.user_diamonds.toLocaleString()} 💎
                       </span>
                     </div>
                   </div>

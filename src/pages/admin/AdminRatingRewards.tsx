@@ -215,9 +215,11 @@ export default function AdminRatingRewards() {
         return;
       }
 
-      await adminSendNotification(claim.user_id, '🎉 Rating Reward Approved!', `Congratulations! Your Play Store rating has been verified. ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} have been credited to your account. Thank you for your support!`, 'system')
+      const amt = Number(result?.reward_amount ?? 0).toLocaleString();
+      const rewardLabel = result.reward_type === 'beans' ? `🫘 ${amt} Beans` : `💎 ${amt} Diamonds`;
+      await adminSendNotification(claim.user_id, '🎉 Rating Reward Approved!', `Congratulations! Your Play Store rating has been verified. ${rewardLabel} have been credited to your account. Thank you for your support!`, 'system')
 
-      toast.success(`Approved! ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} sent to user`);
+      toast.success(`Approved! ${rewardLabel} sent to user`);
     } catch (err: any) {
       console.error('Approve error:', err);
       recordAdminError({ kind: "rpc", label: "AdminRatingRewards.approve", message: formatAdminError(err) });
@@ -555,7 +557,7 @@ export default function AdminRatingRewards() {
                       </Badge>
                       {claim.status === 'approved' && (
                         <span className="text-[10px] text-emerald-400 font-medium">
-                          {claim.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'}
+                          {claim.reward_type === 'beans' ? `🫘 ${(claim.reward_amount ?? 0).toLocaleString()} Beans` : `💎 ${(claim.reward_amount ?? 0).toLocaleString()} Diamonds`}
                         </span>
                       )}
                       {(claim.status === 'approved' || claim.status === 'rejected') && claim.reviewer && (
