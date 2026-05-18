@@ -174,7 +174,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
             transition={{ delay: 1.1, duration: 0.5 }}
             className="absolute bottom-8 text-[11px] text-slate-500 tracking-wider font-medium"
           >
-            Version {APP_VERSION}
+            Version {displayVersion}
           </motion.div>
 
           <style>{`
