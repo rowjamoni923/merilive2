@@ -15762,6 +15762,7 @@ export type Database = {
       }
       current_admin_id: { Args: never; Returns: string }
       current_admin_id_from_header: { Args: never; Returns: string }
+      current_admin_reviewer_auth_id: { Args: never; Returns: string }
       current_admin_token_from_header: { Args: never; Returns: string }
       current_user_id: { Args: never; Returns: string }
       debug_distribute_test: {
