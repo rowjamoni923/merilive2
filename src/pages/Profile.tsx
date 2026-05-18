@@ -98,26 +98,27 @@ const Profile = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const profileCreationAttemptedRef = useRef(false);
   const [profile, setProfile] = useState<any>(() => {
-    // Instant restore from session cache to avoid blank flash on tab switch
+    // Instant restore from persistent cache to avoid blank flash on reload/tab switch.
+    // Stale-while-revalidate: always serve cached data immediately, refetch in background.
     try {
       const cacheKey = `meri_profile_cache_${userId || 'self'}`;
-      const cached = sessionStorage.getItem(cacheKey);
+      const cached = localStorage.getItem(cacheKey) ?? sessionStorage.getItem(cacheKey);
       if (cached) {
-        const { data, ts } = JSON.parse(cached);
-        if (Date.now() - ts < 300_000) return data; // 5 min cache
+        const { data } = JSON.parse(cached);
+        if (data) return data; // serve any cached profile instantly; freshness handled by background fetch
       }
     } catch {}
     return null;
   });
   const [activeTab, setActiveTab] = useState("/profile");
   const [loading, setLoading] = useState(() => {
-    // If we have cached profile, skip loading state
+    // If we have any cached profile, skip the blocking loading state
     try {
       const cacheKey = `meri_profile_cache_${userId || 'self'}`;
-      const cached = sessionStorage.getItem(cacheKey);
+      const cached = localStorage.getItem(cacheKey) ?? sessionStorage.getItem(cacheKey);
       if (cached) {
-        const { ts } = JSON.parse(cached);
-        if (Date.now() - ts < 300_000) return false;
+        const { data } = JSON.parse(cached);
+        if (data) return false;
       }
     } catch {}
     return true;
