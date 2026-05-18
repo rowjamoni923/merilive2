@@ -32,6 +32,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { computeTopupApproval, usdToDiamonds } from "@/utils/traderWalletTopupRate";
 interface UpgradeRequest {
   id: string;
   user_id: string;
@@ -196,9 +197,14 @@ const AdminHelperRequests = () => {
         
       } else {
         const req = selectedRequest as TopupRequest;
-        const usdNum = parseFloat(approveUsd);
-        if (!isFinite(usdNum) || usdNum <= 0) {
-          toast({ title: "Invalid amount", description: "Enter a valid USD amount to approve.", variant: "destructive" });
+
+        // Single source of truth — same formula + validation as SQL RPC
+        const calc = computeTopupApproval(
+          { usd_per_100k_diamonds: topupRate },
+          approveUsd
+        );
+        if (calc.ok !== true) {
+          toast({ title: "Cannot approve", description: calc.error, variant: "destructive" });
           setProcessing(false);
           guardEnd(`approve-${req.id}`);
           return;
@@ -206,7 +212,7 @@ const AdminHelperRequests = () => {
 
         const { data: rpcRes, error: rpcErr } = await supabase.rpc('admin_approve_helper_topup', {
           _request_id: req.id,
-          _amount_usd: usdNum,
+          _amount_usd: calc.usd,
           _admin_notes: adminNotes || null,
         });
         if (rpcErr) throw rpcErr;
@@ -215,10 +221,10 @@ const AdminHelperRequests = () => {
           throw new Error(res.error || 'Approval failed');
         }
 
-        const credited = res?.diamonds_credited ?? previewDiamonds;
-        await adminSendNotification(req.user_id, 'Top-up Approved! 💎', `Your top-up of ${Number(credited).toLocaleString()} diamonds has been approved.`, 'topup_approved')
+        const credited = Number(res?.diamonds ?? res?.diamonds_credited ?? calc.diamonds);
+        await adminSendNotification(req.user_id, 'Top-up Approved! 💎', `Your top-up of ${credited.toLocaleString()} diamonds has been approved.`, 'topup_approved')
 
-        toast({ title: "Approved!", description: `Credited ${Number(credited).toLocaleString()} 💎 for $${usdNum}.` });
+        toast({ title: "Approved!", description: `Credited ${credited.toLocaleString()} 💎 for $${calc.usd}.` });
       }
       
       setShowDetailModal(false);
@@ -283,7 +289,7 @@ const AdminHelperRequests = () => {
   const previewDiamonds = (() => {
     const usd = parseFloat(approveUsd);
     if (!topupRate || !isFinite(usd) || usd <= 0) return 0;
-    return Math.floor((usd / topupRate) * 100000);
+    try { return usdToDiamonds(usd, topupRate); } catch { return 0; }
   })();
 
   const getStatusBadge = (status: string) => {
