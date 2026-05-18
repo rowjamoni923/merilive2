@@ -62,7 +62,7 @@ export const extractAdminStoragePath = (value: string, defaultBucket?: string): 
 
 export const isAdminStorageReference = (value?: string | null, defaultBucket?: string) => {
   if (!value) return false;
-  return !!extractAdminStoragePath(value) || RAW_FILE_PATH_RE.test(value.trim());
+  return !!extractAdminStoragePath(value, defaultBucket) || RAW_FILE_PATH_RE.test(value.trim());
 };
 
 export const isPrivateAdminStorageReference = (value?: string | null, defaultBucket?: string) => {
@@ -323,13 +323,33 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
 };
 
 /**
- * SIMPLIFIED: For ALL admin media (images + videos), always return a signed
- * Supabase Storage URL. The edge function backfills the correct Content-Type
- * on storage objects so the browser renders them natively without any blob
- * dance. This avoids the race conditions and broken-image flashes we saw with
- * the previous blob-download path.
+ * Face/host verification media is private and some historical face-angle stills
+ * were saved with a video extension while the actual bytes are JPEG. For this
+ * admin review flow, fetch through the admin edge function first and return a
+ * correctly typed object URL; fall back to normal signed URLs only if download
+ * mode is unavailable. This makes photos + videos render even when extension,
+ * bucket visibility, or stored Content-Type are inconsistent.
  */
-export const resolveAdminStorageObjectUrl = resolveAdminStorageImageUrl;
+export const resolveAdminStorageObjectUrl = async (value?: string | null, defaultBucket = "face-verification") => {
+  if (!value) return null;
+  const raw = value.trim();
+  if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return value;
+
+  const candidates = buildStorageCandidates(raw, defaultBucket);
+  if (!candidates.length) return value;
+
+  for (const candidate of candidates) {
+    if (candidate.bucket === "face-verification" || candidate.bucket === "host-verification") {
+      const downloaded = await downloadAdminStoragePathAsObjectUrl(candidate);
+      if (downloaded) return downloaded;
+    }
+
+    const signed = await signAdminStoragePath(candidate);
+    if (signed) return signed;
+  }
+
+  return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : value;
+};
 
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
