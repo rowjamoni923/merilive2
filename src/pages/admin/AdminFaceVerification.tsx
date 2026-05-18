@@ -535,9 +535,10 @@ const AdminFaceVerification = () => {
   // stays in lock-step with AdminHostApplications & friends: every status maps
   // to exactly one of pending / approved / rejected (anything not explicitly
   // approved/rejected falls into pending).
-  const isApproved = (s: Submission) => bucketOfStatus(s.status) === "approved";
-  const isRejected = (s: Submission) => bucketOfStatus(s.status) === "rejected";
-  const isPendingBucket = (s: Submission) => bucketOfStatus(s.status) === "pending";
+  const getSubmissionBucket = (s: Submission) => s.status_bucket || bucketOfStatus(s.status);
+  const isApproved = (s: Submission) => getSubmissionBucket(s) === "approved";
+  const isRejected = (s: Submission) => getSubmissionBucket(s) === "rejected";
+  const isPendingBucket = (s: Submission) => getSubmissionBucket(s) === "pending";
 
   // Single source of truth for what the user can currently see (after search).
   // Counters are derived from the SAME pool the list uses, so badges always
@@ -579,7 +580,7 @@ const AdminFaceVerification = () => {
   });
 
   // Shared counter — guaranteed to be in sync with server bucket rules.
-  const visibleCounts = countFaceReviewBuckets(visiblePool, (s) => s.status, (s) => s.admin_notes);
+  const visibleCounts = countFaceReviewBuckets(visiblePool, (s) => s.status_bucket || s.status, (s) => s.admin_notes);
   const pendingCount = visibleCounts.pending;
   const approvedCount = visibleCounts.approved;
   const autoApprovedCount = visibleCounts.auto_approved;
