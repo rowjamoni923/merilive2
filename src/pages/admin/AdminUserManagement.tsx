@@ -3338,12 +3338,20 @@ export default function AdminUserManagement() {
 
 
               {isFacePendingBucket(selectedFaceSubmission) && (
-                <div className="flex gap-2">
-                  <Button className="flex-1 bg-green-500 hover:bg-green-600" onClick={() => { setFaceActionType('approve'); setFaceApproveAs(selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user'); setShowFaceActionModal(true); }}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <Button className="bg-green-500 hover:bg-green-600" onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', selectedFaceSubmission.verification_type === 'host' ? 'host' : 'user')}>
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Approve
                   </Button>
-                  <Button className="flex-1 bg-red-500 hover:bg-red-600" onClick={() => { setFaceActionType('reject'); setShowFaceActionModal(true); }}>
+                  <Button variant="outline" className="border-pink-500/30 text-pink-300 hover:bg-pink-500/10" onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'host')}>
+                    <Crown className="w-4 h-4 mr-2" />
+                    Host
+                  </Button>
+                  <Button variant="outline" className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10" onClick={() => processFaceSubmission(selectedFaceSubmission, 'approve', 'user')}>
+                    <UserCheck className="w-4 h-4 mr-2" />
+                    User
+                  </Button>
+                  <Button className="bg-red-500 hover:bg-red-600" onClick={() => { setFaceActionType('reject'); setShowFaceActionModal(true); }}>
                     <XCircle className="w-4 h-4 mr-2" />
                     Reject
                   </Button>
