@@ -155,6 +155,13 @@ const buildStorageCandidates = (value: string, defaultBucket?: string): AdminSto
   return buckets.map((bucket) => ({ bucket, path: cleanPath }));
 };
 
+const normalizeAdminStorageValue = (value: string, defaultBucket?: string) => {
+  const raw = value.trim();
+  const parsed = extractAdminStoragePath(raw, defaultBucket);
+  if (!parsed) return raw;
+  return `${parsed.bucket}/${parsed.path}`;
+};
+
 const usefulMimeType = (type?: string | null) => {
   const clean = (type || "").split(";")[0].trim().toLowerCase();
   return clean && clean !== "application/octet-stream" && clean !== "application/json" ? clean : "";
