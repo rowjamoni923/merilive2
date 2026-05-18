@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
+import { getAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { invalidateStatusCountsCache } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, invalidateStatusCountsCache } from "@/lib/admin/statusCounts";
 import { resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
 import { fetchHostApplicationStatusCounts } from "@/pages/admin/hostApplicationsStatusCounts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -82,6 +82,7 @@ interface HostSubmission {
   right_url?: string | null;
   rejection_reason: string | null;
   admin_notes: string | null;
+  status_bucket?: 'pending' | 'approved' | 'rejected' | null;
   created_at: string;
   updated_at: string;
   profile?: {
@@ -90,6 +91,7 @@ interface HostSubmission {
     avatar_url: string | null;
     gender: string | null;
     is_host: boolean | null;
+    face_verification_status?: string | null;
   };
   agency_info?: {
     agency_name: string;
@@ -414,7 +416,10 @@ export default function AdminHostApplications() {
 
   const totalPages = Math.ceil(totalApplications / pageSize);
 
-  const isPendingStatus = (status: string) => status !== 'approved' && status !== 'rejected';
+  const isPendingApplication = (app: HostSubmission) => (
+    (app.status_bucket ? app.status_bucket : bucketOfStatus(app.status)) === 'pending'
+    && bucketOfStatus(app.profile?.face_verification_status) !== 'approved'
+  );
 
   const getStatusBadge = (status: string) => {
     const config = statusConfig[status] || statusConfig.pending;
@@ -666,7 +671,7 @@ export default function AdminHostApplications() {
                     </div>
                   </div>
 
-                  {isPendingStatus(app.status) && (
+                  {isPendingApplication(app) && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-3 border-t border-border/40">
                       <Button
                         size="sm"
@@ -860,7 +865,7 @@ export default function AdminHostApplications() {
                   ]}
                 />
 
-                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
+                {isPendingApplication(sel) && (
                   <div className="sticky top-0 z-20 rounded-2xl border border-white/10 bg-slate-900/95 p-3 shadow-xl backdrop-blur">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <Button onClick={() => handleApprove()} disabled={actionLoading} className="bg-emerald-600 hover:bg-emerald-500 text-white">
@@ -944,7 +949,7 @@ export default function AdminHostApplications() {
                 </section>
 
                 {/* ---- Admin Notes ---- */}
-                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
+                {isPendingApplication(sel) && (
                   <>
                     <Separator className="bg-white/10" />
                     <section>
@@ -971,7 +976,7 @@ export default function AdminHostApplications() {
                 )}
 
                 {/* ---- Action Buttons ---- */}
-                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
+                {isPendingApplication(sel) && (
                   <div className="space-y-4 pt-2">
                     {/* Top row: Review + Reject */}
                     <div className="flex items-center gap-3">
