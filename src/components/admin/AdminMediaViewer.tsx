@@ -307,6 +307,22 @@ export function AdminMediaFrame({
           </div>
         )}
 
+        {/* Time + progress overlay — visible even when playback fails mid-way */}
+        {(videoDuration > 0 || videoTime > 0) && (
+          <div className="pointer-events-none absolute bottom-12 left-2 right-2 flex items-center gap-2 rounded-md bg-black/60 px-2 py-1 backdrop-blur-sm">
+            <span className="text-[11px] font-semibold tabular-nums text-white">
+              {formatMediaTime(videoTime)} <span className="text-white/60">/ {formatMediaTime(videoDuration)}</span>
+            </span>
+            <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/20">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-150"
+                style={{ width: videoDuration > 0 ? `${Math.min(100, (videoTime / videoDuration) * 100)}%` : "0%" }}
+              />
+            </div>
+          </div>
+        )}
+
+
         <div className="absolute top-2 right-2 flex items-center gap-1">
           <button
             type="button"
