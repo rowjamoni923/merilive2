@@ -2489,23 +2489,38 @@ export default function AdminUserManagement() {
 
                         {/* Inline Approve/Reject Buttons */}
                         {isFacePendingBucket(submission) && (
-                          <div className="flex gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <Button 
-                              className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                              className="bg-green-500 hover:bg-green-600 text-white"
                               disabled={actionLoading}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedFaceSubmission(submission);
-                                setFaceActionType('approve');
-                                setFaceApproveAs(submission.verification_type === 'host' ? 'host' : 'user');
-                                setShowFaceActionModal(true);
+                                processFaceSubmission(submission, 'approve', submission.verification_type === 'host' ? 'host' : 'user');
                               }}
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Approve
                             </Button>
+                            <Button
+                              variant="outline"
+                              className="border-pink-200 text-pink-600 hover:bg-pink-50"
+                              disabled={actionLoading}
+                              onClick={(e) => { e.stopPropagation(); processFaceSubmission(submission, 'approve', 'host'); }}
+                            >
+                              <Crown className="w-4 h-4 mr-2" />
+                              Host
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                              disabled={actionLoading}
+                              onClick={(e) => { e.stopPropagation(); processFaceSubmission(submission, 'approve', 'user'); }}
+                            >
+                              <UserCheck className="w-4 h-4 mr-2" />
+                              User
+                            </Button>
                             <Button 
-                              className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                              className="bg-red-500 hover:bg-red-600 text-white"
                               disabled={actionLoading}
                               onClick={(e) => {
                                 e.stopPropagation();
