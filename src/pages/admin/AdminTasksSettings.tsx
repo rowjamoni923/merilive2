@@ -391,10 +391,18 @@ const AdminTasksSettings = () => {
                 <Input
                   type="number"
                   min={1}
+                  max={24}
                   value={bonusGlobals.max_hours_per_day}
-                  onChange={(e) => setBonusGlobals({ ...bonusGlobals, max_hours_per_day: parseInt(e.target.value) || 1 })}
+                  onChange={(e) => {
+                    const v = Math.max(1, Math.min(24, parseInt(e.target.value) || 1));
+                    setBonusGlobals({ ...bonusGlobals, max_hours_per_day: v });
+                    reconcileHourRows(v);
+                  }}
                   className="mt-1"
                 />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Hour rows auto-adjust to match (1–24).
+                </p>
               </div>
               <div>
                 <Label className="text-sm font-medium">Eligible Days</Label>
