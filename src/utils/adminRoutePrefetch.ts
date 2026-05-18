@@ -97,15 +97,21 @@ export function prefetchAdminRoute(path: string): void {
   setTimeout(() => importer().catch(() => prefetched.delete(clean)), 0);
 }
 
-/** Bulk prefetch (used by AdminLayout after first paint to warm common pages). */
+/** Bulk prefetch — warms EVERY registered admin route so navigation is instant.
+ *  Runs in idle slices to avoid blocking the main thread / network. */
 export function prefetchCommonAdminRoutes(): void {
-  const common = [
-    '/admin/users',
-    '/admin/agencies',
-    '/admin/withdrawals',
-    '/admin/recharge-history',
-    '/admin/online-users',
-    '/admin/face-verification',
-  ];
-  common.forEach((p) => prefetchAdminRoute(p));
+  const all = Object.keys(ROUTE_IMPORTERS);
+  const ric: (cb: () => void) => void =
+    (typeof window !== 'undefined' && (window as any).requestIdleCallback)
+      ? (cb) => (window as any).requestIdleCallback(cb, { timeout: 2000 })
+      : (cb) => setTimeout(cb, 50);
+
+  let i = 0;
+  const step = () => {
+    // Prefetch a small batch per idle tick so we don't saturate the network.
+    const end = Math.min(i + 4, all.length);
+    for (; i < end; i++) prefetchAdminRoute(all[i]);
+    if (i < all.length) ric(step);
+  };
+  ric(step);
 }
