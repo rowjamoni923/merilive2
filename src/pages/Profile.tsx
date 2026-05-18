@@ -98,26 +98,27 @@ const Profile = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const profileCreationAttemptedRef = useRef(false);
   const [profile, setProfile] = useState<any>(() => {
-    // Instant restore from session cache to avoid blank flash on tab switch
+    // Instant restore from persistent cache to avoid blank flash on reload/tab switch.
+    // Stale-while-revalidate: always serve cached data immediately, refetch in background.
     try {
       const cacheKey = `meri_profile_cache_${userId || 'self'}`;
-      const cached = sessionStorage.getItem(cacheKey);
+      const cached = localStorage.getItem(cacheKey) ?? sessionStorage.getItem(cacheKey);
       if (cached) {
-        const { data, ts } = JSON.parse(cached);
-        if (Date.now() - ts < 300_000) return data; // 5 min cache
+        const { data } = JSON.parse(cached);
+        if (data) return data; // serve any cached profile instantly; freshness handled by background fetch
       }
     } catch {}
     return null;
   });
   const [activeTab, setActiveTab] = useState("/profile");
   const [loading, setLoading] = useState(() => {
-    // If we have cached profile, skip loading state
+    // If we have any cached profile, skip the blocking loading state
     try {
       const cacheKey = `meri_profile_cache_${userId || 'self'}`;
-      const cached = sessionStorage.getItem(cacheKey);
+      const cached = localStorage.getItem(cacheKey) ?? sessionStorage.getItem(cacheKey);
       if (cached) {
-        const { ts } = JSON.parse(cached);
-        if (Date.now() - ts < 300_000) return false;
+        const { data } = JSON.parse(cached);
+        if (data) return false;
       }
     } catch {}
     return true;
@@ -367,6 +368,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Track if initial load is complete
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
+  // Keep persistent cache in sync whenever profile state changes (edits, balance updates, etc.)
+  useEffect(() => {
+    if (!profile) return;
+    try {
+      const cacheKey = `meri_profile_cache_${userId || 'self'}`;
+      const payload = JSON.stringify({ data: profile, ts: Date.now() });
+      localStorage.setItem(cacheKey, payload);
+      sessionStorage.setItem(cacheKey, payload);
+    } catch {}
+  }, [profile, userId]);
+
+
+
   useEffect(() => {
     let isMounted = true;
     let refetchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -476,11 +490,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         if (!isMounted) return;
         setProfile(profileData);
 
-        // Cache profile for instant tab-switch restore
+        // Cache profile for instant reload/tab-switch restore (persistent + 24h TTL guard)
         if (profileData) {
           try {
             const cacheKey = `meri_profile_cache_${userId || 'self'}`;
-            sessionStorage.setItem(cacheKey, JSON.stringify({ data: profileData, ts: Date.now() }));
+            const payload = JSON.stringify({ data: profileData, ts: Date.now() });
+            localStorage.setItem(cacheKey, payload);
+            sessionStorage.setItem(cacheKey, payload);
           } catch {}
 
           // Unlock the profile screen immediately after the primary row is ready.
