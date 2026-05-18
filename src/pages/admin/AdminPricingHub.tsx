@@ -153,6 +153,13 @@ export default function AdminPricingHub() {
 
       setCoinExchange(map.coin_exchange ?? {});
 
+      const tw = map.trader_wallet_topup_rate;
+      setTraderWalletTopupRate(
+        typeof tw === "number"
+          ? tw
+          : tw?.usd_per_100k_diamonds ?? ""
+      );
+
       // Load agency_level_tiers
       const { data: tierData, error: tierErr } = await supabase
         .from("agency_level_tiers")
