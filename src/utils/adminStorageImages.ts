@@ -7,6 +7,7 @@ const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 const failedSignedUrlCache = new Map<string, number>();
 const inFlightSignedUrls = new Map<string, Promise<string | null>>();
 const objectUrlCache = new Set<string>();
+const publicStorageExistsCache = new Map<string, boolean>();
 const LEGACY_ADMIN_TOKEN_KEYS = ['merilive-admin-token', 'admin_session_token'];
 const ADMIN_SESSION_KEYS = ['merilive-admin-session'];
 const STORAGE_OBJECT_RE = /\/storage\/v1\/(?:object|render\/image)\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
@@ -19,6 +20,7 @@ const PRIVATE_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings', 'chat-media',
 ]);
+const PUBLIC_VERIFICATION_BUCKETS = new Set(['face-verification', 'host-verification']);
 const KNOWN_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'avatars', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
@@ -160,6 +162,27 @@ const normalizeAdminStorageValue = (value: string, defaultBucket?: string) => {
   const parsed = extractAdminStoragePath(raw, defaultBucket);
   if (!parsed) return raw;
   return `${parsed.bucket}/${parsed.path}`;
+};
+
+const getPublicStorageUrl = (storagePath: AdminStoragePath) => {
+  const { data } = adminSupabase.storage.from(storagePath.bucket).getPublicUrl(storagePath.path);
+  return data?.publicUrl || `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(storagePath.bucket)}/${storagePath.path.split('/').map(encodeURIComponent).join('/')}`;
+};
+
+const publicStorageObjectExists = async (url: string) => {
+  if (publicStorageExistsCache.has(url)) return publicStorageExistsCache.get(url) === true;
+  const response = await fetch(url, { method: 'HEAD', cache: 'no-store' }).catch(() => null);
+  const exists = !!response && (response.ok || response.status === 206 || response.status === 304);
+  publicStorageExistsCache.set(url, exists);
+  return exists;
+};
+
+const resolvePublicVerificationUrl = async (storagePath: AdminStoragePath, rawValue: string, defaultBucket?: string) => {
+  if (!PUBLIC_VERIFICATION_BUCKETS.has(storagePath.bucket)) return null;
+  const publicUrl = getPublicStorageUrl(storagePath);
+  const explicit = extractAdminStoragePath(rawValue, defaultBucket);
+  if (explicit?.bucket === storagePath.bucket && explicit.path === storagePath.path) return publicUrl;
+  return (await publicStorageObjectExists(publicUrl)) ? publicUrl : null;
 };
 
 const usefulMimeType = (type?: string | null) => {
