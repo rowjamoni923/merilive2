@@ -915,7 +915,7 @@ const AdminFaceVerification = () => {
               <div className="space-y-5">
                 {['pending', 'submitted', 'under_review'].includes(selectedSubmission.status) && (
                   <div className="sticky top-0 z-20 rounded-xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <Button
                         disabled={processing}
                         onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: selectedSubmission.verification_type === 'host' ? 'host' : 'user' })}
@@ -925,9 +925,16 @@ const AdminFaceVerification = () => {
                       <Button
                         variant="outline"
                         disabled={processing}
-                        onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
+                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: 'host', setGender: 'female' })}
                       >
-                        Host
+                        <Mic className="w-4 h-4 mr-2" /> Host
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled={processing}
+                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: 'user', setGender: 'male' })}
+                      >
+                        <User className="w-4 h-4 mr-2" /> User
                       </Button>
                       <Button
                         variant="destructive"
