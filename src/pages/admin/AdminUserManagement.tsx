@@ -1046,6 +1046,8 @@ export default function AdminUserManagement() {
         ? { ...item, status: nextStatus, rejection_reason: nextReason, reviewed_at: new Date().toISOString() }
         : item
     ));
+    setShowFaceActionModal(false);
+    setShowFaceDetailModal(false);
     setActionLoading(true);
 
     try {
