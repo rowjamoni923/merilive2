@@ -2168,6 +2168,27 @@ const AgencyWithdrawal = () => {
         if (ws.coins_to_dollar_rate) setCoinsToUsdRate(ws.coins_to_dollar_rate);
       }
 
+      // Fetch Auto Withdrawal Fee (admin-set flat USD for ePay/USDT/Binance/Crypto)
+      const { data: awfData } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'auto_withdrawal_fee')
+        .maybeSingle();
+      if (awfData?.setting_value) {
+        const awf = typeof awfData.setting_value === 'string'
+          ? JSON.parse(awfData.setting_value)
+          : awfData.setting_value;
+        setAutoWithdrawalFee({
+          flat_usd: typeof awf.flat_usd === 'number' ? awf.flat_usd : 2,
+          enabled: awf.enabled !== false,
+          methods: Array.isArray(awf.methods) && awf.methods.length > 0
+            ? awf.methods.map((m: string) => m.toLowerCase())
+            : ['epay', 'usdt', 'binance', 'crypto_auto'],
+        });
+        console.log('[AgencyWithdrawal] Auto withdrawal fee from DB:', awf);
+      }
+
+
       // Fetch agency with beans_balance
       const { data: agencyData, error: agencyError } = await supabase
         .from('agencies')
