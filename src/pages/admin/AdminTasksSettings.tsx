@@ -112,18 +112,18 @@ const AdminTasksSettings = () => {
     if (!bonusSettings) return;
     setSavingBonus(true);
     try {
-      const { error } = await supabase
-        .from('new_host_live_bonus_settings' as any)
-        .update({
-          beans_per_hour: bonusSettings.beans_per_hour,
-          max_hours_per_day: bonusSettings.max_hours_per_day,
-          eligible_days: bonusSettings.eligible_days,
-          is_active: bonusSettings.is_active,
-        })
-        .eq('id', bonusSettings.id);
-
+      const { data, error } = await supabase.rpc('admin_save_host_bonus_settings' as any, {
+        _beans_per_hour: Number(bonusSettings.beans_per_hour) || 0,
+        _max_hours_per_day: Number(bonusSettings.max_hours_per_day) || 1,
+        _eligible_days: Number(bonusSettings.eligible_days) || 1,
+        _target_minutes: Number(bonusSettings.target_minutes) || 60,
+        _daily_reset_offset_minutes: Number(bonusSettings.daily_reset_offset_minutes) || 0,
+        _is_active: !!bonusSettings.is_active,
+      });
       if (error) throw error;
-      toast.success('New host bonus settings updated');
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'save_failed');
+      toast.success('New host bonus settings saved');
+      fetchBonusSettings();
     } catch (error) {
       console.error('Error saving bonus settings:', error);
       recordAdminError({ kind: "rpc", label: "AdminTasksSettings.saveBonusSettings", message: formatAdminError(error) });
