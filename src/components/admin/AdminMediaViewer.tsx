@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { AlertTriangle, ExternalLink, Image as ImageIcon, Loader2, RefreshCw, Video } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, ExternalLink, Image as ImageIcon, Loader2, Maximize2, RefreshCw, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
@@ -109,6 +109,7 @@ export function AdminMediaFrame({
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoTime, setVideoTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
   const [displaySrc, setDisplaySrc] = useState<string | null>(null);
   const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
@@ -267,6 +268,14 @@ export function AdminMediaFrame({
   if (effectiveMediaKind === "video") {
     const sourceType = blobMimeType || getVideoMimeType(displaySrc);
     const canOpenOriginal = !displaySrc.startsWith("blob:");
+    const requestFullscreen = () => {
+      const el = videoElRef.current as any;
+      if (!el) return;
+      const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen || el.msRequestFullscreen;
+      if (fn) {
+        try { fn.call(el); } catch { /* noop */ }
+      }
+    };
     return (
       <div className={cn("relative overflow-hidden rounded-lg border border-border bg-black", className)}>
         <video
@@ -310,6 +319,7 @@ export function AdminMediaFrame({
           onPlaying={() => { setVideoLoading(false); }}
           controlsList="nodownload"
           ref={(el) => {
+            videoElRef.current = el;
             if (el && el.dataset.adminLoadedSrc !== `${displaySrc}-${retryNonce}`) {
               el.dataset.adminLoadedSrc = `${displaySrc}-${retryNonce}`;
               try { el.load(); } catch { /* noop */ }
@@ -349,6 +359,14 @@ export function AdminMediaFrame({
 
 
         <div className="absolute top-2 right-2 flex items-center gap-1">
+          <button
+            type="button"
+            onClick={requestFullscreen}
+            className="inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
+            title="Fullscreen"
+          >
+            <Maximize2 className="h-3 w-3" /> Fullscreen
+          </button>
           <button
             type="button"
             onClick={() => { setFailed(false); setFailReason(""); setVideoLoading(true); setRetryNonce((n) => n + 1); }}
