@@ -1275,7 +1275,24 @@ const Auth = () => {
         normalizedEmail.split("@")[0] ||
         "User";
 
-      const readyProfile = await ensureProfileReady(
+      // INSTANT LOGIN: navigate immediately, run profile readiness in background.
+      // App-mount runLegacyProfileSync + profile self-healing handles any gaps.
+      localStorage.setItem("meri_last_user", JSON.stringify({
+        email: normalizedEmail,
+        displayName: fallbackDisplayName,
+        avatarUrl: null,
+      }));
+      localStorage.removeItem("meri_manual_logout");
+
+      toast({
+        title: "✅ Welcome!",
+        description: "Login successful.",
+      });
+      resetAuthState();
+      navigateAfterAuth();
+
+      // Background — do not block UI
+      void ensureProfileReady(
         verifiedUser.id,
         {
           email: normalizedEmail,
@@ -1283,21 +1300,19 @@ const Auth = () => {
           is_verified: true,
         },
         { requireHost: false }
-      );
-
-      localStorage.setItem("meri_last_user", JSON.stringify({
-        email: normalizedEmail,
-        displayName: readyProfile?.display_name || fallbackDisplayName,
-        avatarUrl: null,
-      }));
-
-      localStorage.removeItem("meri_manual_logout");
-      toast({
-        title: "✅ Welcome!",
-        description: "Email verified and login completed successfully.",
+      ).then((readyProfile) => {
+        if (readyProfile?.display_name && readyProfile.display_name !== fallbackDisplayName) {
+          try {
+            localStorage.setItem("meri_last_user", JSON.stringify({
+              email: normalizedEmail,
+              displayName: readyProfile.display_name,
+              avatarUrl: (readyProfile as any).avatar_url || null,
+            }));
+          } catch {}
+        }
+      }).catch((e) => {
+        console.warn("[Auth] background profile sync failed:", e);
       });
-      resetAuthState();
-      navigateAfterAuth();
     } catch (error: any) {
       console.error("Email OTP verify error:", error);
       recordClientError({ label: "Auth.readyProfile", message: error instanceof Error ? error.message : String(error) });
