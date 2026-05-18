@@ -341,7 +341,10 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
   if (!candidates.length) return value;
 
   for (const candidate of candidates) {
-    if (candidate.bucket === "face-verification" || candidate.bucket === "host-verification") {
+    if (
+      (candidate.bucket === "face-verification" || candidate.bucket === "host-verification")
+      && shouldDownloadPrivateImageFirst(candidate)
+    ) {
       const downloaded = await downloadAdminStoragePathAsObjectUrl(candidate);
       if (downloaded) return downloaded;
     }
