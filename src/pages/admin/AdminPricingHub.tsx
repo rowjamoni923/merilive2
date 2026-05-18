@@ -122,6 +122,7 @@ export default function AdminPricingHub() {
           "helper_diamond_commission",
           "helper_fee_settings",
           "coin_exchange",
+          "trader_wallet_topup_rate",
         ]);
       if (error) throw error;
 
