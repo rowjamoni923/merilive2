@@ -2942,38 +2942,7 @@ export default function AdminLayout() {
         {/* Page Content */}
         <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 80px), 80px)' }}>
           <Suspense fallback={
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="bg-white/[0.02] rounded-2xl p-6 border border-white/[0.06]">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-white/[0.06] animate-pulse" />
-                  <div className="space-y-2">
-                    <div className="h-6 w-48 bg-white/[0.06] rounded-lg animate-pulse" />
-                    <div className="h-4 w-32 bg-white/[0.04] rounded-lg animate-pulse" />
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 text-center space-y-2">
-                    <div className="w-8 h-8 mx-auto bg-white/[0.06] rounded-lg animate-pulse" />
-                    <div className="h-7 w-16 mx-auto bg-white/[0.06] rounded-lg animate-pulse" />
-                    <div className="h-3 w-20 mx-auto bg-white/[0.04] rounded-lg animate-pulse" />
-                  </div>
-                ))}
-              </div>
-              <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 border-b border-white/[0.04] last:border-0">
-                    <div className="w-10 h-10 rounded-full bg-white/[0.06] animate-pulse flex-shrink-0" />
-                    <div className="space-y-2 flex-1">
-                      <div className="h-4 w-40 bg-white/[0.06] rounded-lg animate-pulse" />
-                      <div className="h-3 w-56 bg-white/[0.04] rounded-lg animate-pulse" />
-                    </div>
-                    <div className="h-8 w-20 bg-white/[0.06] rounded-lg animate-pulse" />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <div className="min-h-[40vh]" aria-hidden="true" />
           }>
             <ErrorBoundary componentName="AdminPage">
               <Outlet />
