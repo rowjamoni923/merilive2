@@ -97,19 +97,24 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
             style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
-              <img 
-                src={banner.image_url} 
-                alt={banner.title}
-                loading="eager"
-                decoding="sync"
-                // @ts-expect-error – fetchpriority is a standard HTML hint
-                fetchpriority="high"
-                className="w-full h-auto rounded-2xl object-cover"
-                onError={(e) => {
-                  // Hide broken images
-                  (e.currentTarget.parentElement as HTMLElement).style.display = 'none';
-                }}
-              />
+              <div
+                className="relative w-full overflow-hidden rounded-2xl bg-white/[0.04]"
+                style={{ aspectRatio: '16 / 6' }}
+              >
+                <img
+                  src={banner.image_url}
+                  alt={banner.title}
+                  loading="eager"
+                  decoding="async"
+                  // @ts-expect-error – fetchpriority is a standard HTML hint
+                  fetchpriority="high"
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                  onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
+                  onError={(e) => {
+                    (e.currentTarget.parentElement?.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
+                  }}
+                />
+              </div>
             ) : (
               <div className="flex items-center justify-between">
                 <div>
