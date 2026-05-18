@@ -1685,18 +1685,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }
 
   if (!profile) {
-    const handleLogoutAndReregister = async () => {
-      localStorage.removeItem('meri_device_id');
-      localStorage.removeItem('meri_device_account');
-      localStorage.removeItem('meri_last_user');
-      localStorage.removeItem('meri_pending_referral');
-      
-      const { clearNativeSession } = await import('@/utils/nativeSessionStorage');
-      await clearNativeSession();
-      
-      localStorage.setItem('meri_manual_logout', 'true');
-      await supabase.auth.signOut({ scope: 'local' });
-      navigate('/auth');
+    const handleLogoutAndReregister = () => {
+      // INSTANT: clear + navigate, background cleanup
+      try {
+        localStorage.setItem('meri_manual_logout', 'true');
+        localStorage.removeItem('meri_device_id');
+        localStorage.removeItem('meri_device_account');
+        localStorage.removeItem('meri_last_user');
+        localStorage.removeItem('meri_pending_referral');
+      } catch {}
+      navigate('/auth', { replace: true });
+      void supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+      void import('@/utils/nativeSessionStorage').then(({ clearNativeSession }) => clearNativeSession()).catch(() => {});
     };
 
     return (
