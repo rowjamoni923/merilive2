@@ -167,6 +167,15 @@ export default function AdminPricingHub() {
           : tw?.usd_per_100k_diamonds ?? ""
       );
 
+      // Auto Withdrawal Fee (flat USD for ePay/USDT/Binance/Crypto auto methods)
+      const awf = map.auto_withdrawal_fee;
+      setAutoWithdrawalFee({
+        flat_usd: typeof awf?.flat_usd === "number" ? awf.flat_usd : (typeof awf === "number" ? awf : ""),
+        enabled: awf?.enabled !== false,
+      });
+
+
+
       // Load agency_level_tiers
       const { data: tierData, error: tierErr } = await supabase
         .from("agency_level_tiers")
