@@ -264,6 +264,9 @@ export default function AdminHostApplications() {
       });
 
       toast.success(`${finalRole === 'host' ? '🎤 Host' : '👤 User'} approved!`);
+      // Optimistic: remove from current pending list immediately
+      const approvedId = selectedApplication.id;
+      setApplications((prev) => prev.filter((a) => a.id !== approvedId));
       setShowDetailDialog(false);
       setAdminNotes("");
       invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
