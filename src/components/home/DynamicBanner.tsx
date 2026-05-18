@@ -85,6 +85,10 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
               <img 
                 src={banner.image_url} 
                 alt={banner.title}
+                loading="eager"
+                decoding="sync"
+                // @ts-expect-error – fetchpriority is a standard HTML hint
+                fetchpriority="high"
                 className="w-full h-auto rounded-2xl object-cover"
                 onError={(e) => {
                   // Hide broken images
