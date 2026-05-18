@@ -134,11 +134,26 @@ export function countFaceReviewBuckets<T>(
         || String((row as { verification_method?: string | null }).verification_method || "").toLowerCase().startsWith("auto")
       : false;
     const auto = explicitAuto || isAutoFaceReview(status, getAdminNotes(row));
+    const role = typeof row === "object" && row !== null
+      ? String((row as { verification_type?: string | null }).verification_type || "").toLowerCase() === "host"
+        || Boolean((row as { profile?: { is_host?: boolean | null; gender?: string | null } | null }).profile?.is_host)
+        || String((row as { profile?: { gender?: string | null } | null }).profile?.gender || "").toLowerCase() === "female"
+          ? "host"
+          : "user"
+      : "user";
     out[bucket]++;
     if (bucket === "pending") out.manual_pending++;
-    else if (bucket === "approved" && auto) out.auto_approved++;
+    else if (bucket === "approved" && auto) {
+      out.auto_approved++;
+      out.auto_face_verification++;
+      if (role === "host") out.auto_host++;
+      else out.auto_user++;
+    }
     else if (bucket === "approved") out.manual_approved++;
-    else if (bucket === "rejected" && auto) out.auto_rejected++;
+    else if (bucket === "rejected" && auto) {
+      out.auto_rejected++;
+      out.auto_face_verification++;
+    }
     else if (bucket === "rejected") out.manual_rejected++;
   }
 
