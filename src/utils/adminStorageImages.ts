@@ -345,6 +345,9 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
   if (!candidates.length) return value;
 
   for (const candidate of candidates) {
+    const publicUrl = await resolvePublicVerificationUrl(candidate, raw, defaultBucket);
+    if (publicUrl) return publicUrl;
+
     const signed = await signAdminStoragePath(candidate);
     if (signed) return signed;
   }
@@ -371,6 +374,9 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
   if (!candidates.length) return value;
 
   for (const candidate of candidates) {
+    const publicUrl = await resolvePublicVerificationUrl(candidate, raw, defaultBucket);
+    if (publicUrl) return publicUrl;
+
     if (
       (candidate.bucket === "face-verification" || candidate.bucket === "host-verification")
       && shouldDownloadPrivateImageFirst(candidate)
