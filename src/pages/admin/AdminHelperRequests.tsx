@@ -204,7 +204,8 @@ const AdminHelperRequests = () => {
           approveUsd
         );
         if (!calc.ok) {
-          toast({ title: "Cannot approve", description: calc.error, variant: "destructive" });
+          const msg = calc.error;
+          toast({ title: "Cannot approve", description: msg, variant: "destructive" });
           setProcessing(false);
           guardEnd(`approve-${req.id}`);
           return;
