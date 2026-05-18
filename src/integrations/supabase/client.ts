@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { supabaseAuthStorage } from './nativeStorage';
-import { fetchWithInstantRestCache } from '@/utils/instantRestCache';
+import { clearInstantRestCache, fetchWithInstantRestCache } from '@/utils/instantRestCache';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
@@ -40,13 +40,17 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     lock: inProcessAuthLock,
   },
   global: {
-    fetch: (input, init) => fetchWithInstantRestCache(input, init, {
-      namespace: 'app',
-      ttlMs: 45_000,
-      staleWhileRevalidateMs: 5 * 60_000,
-      maxEntries: 220,
-      skipUrl: (url) => url.includes('/rest/v1/rpc/') || url.includes('/rest/v1/notifications'),
-    }),
+    fetch: (input, init) => {
+      const method = (init?.method || (typeof Request !== 'undefined' && input instanceof Request ? input.method : 'GET') || 'GET').toUpperCase();
+      if (method !== 'GET' && method !== 'HEAD') clearInstantRestCache('app');
+      return fetchWithInstantRestCache(input, init, {
+        namespace: 'app',
+        ttlMs: 45_000,
+        staleWhileRevalidateMs: 5 * 60_000,
+        maxEntries: 220,
+        skipUrl: (url) => url.includes('/rest/v1/rpc/') || url.includes('/rest/v1/notifications'),
+      });
+    },
     headers: {
       'x-client-platform': __isNativeAndroid ? 'android-native' : 'web',
     },
