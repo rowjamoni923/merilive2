@@ -289,7 +289,7 @@ const AdminHelperRequests = () => {
   const previewDiamonds = (() => {
     const usd = parseFloat(approveUsd);
     if (!topupRate || !isFinite(usd) || usd <= 0) return 0;
-    return Math.floor((usd / topupRate) * 100000);
+    try { return usdToDiamonds(usd, topupRate); } catch { return 0; }
   })();
 
   const getStatusBadge = (status: string) => {
