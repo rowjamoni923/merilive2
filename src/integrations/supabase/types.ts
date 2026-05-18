@@ -15510,6 +15510,16 @@ export type Database = {
         Args: { _withdrawal_id: string }
         Returns: Json
       }
+      auto_approve_face_verification: {
+        Args: {
+          _detected_gender: string
+          _face_confidence?: number
+          _face_match?: number
+          _submission_id: string
+          _verification_type: string
+        }
+        Returns: Json
+      }
       auto_distribute_leaderboard_rewards: { Args: never; Returns: string }
       auto_finalize_face_verification: {
         Args: {
