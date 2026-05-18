@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
+import { getAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { bucketOfStatus, invalidateStatusCountsCache } from "@/lib/admin/statusCounts";
@@ -671,7 +671,7 @@ export default function AdminHostApplications() {
                     </div>
                   </div>
 
-                  {isPendingStatus(app.status) && (
+                  {isPendingApplication(app) && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-3 border-t border-border/40">
                       <Button
                         size="sm"
@@ -865,7 +865,7 @@ export default function AdminHostApplications() {
                   ]}
                 />
 
-                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
+                {isPendingApplication(sel) && (
                   <div className="sticky top-0 z-20 rounded-2xl border border-white/10 bg-slate-900/95 p-3 shadow-xl backdrop-blur">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <Button onClick={() => handleApprove()} disabled={actionLoading} className="bg-emerald-600 hover:bg-emerald-500 text-white">
@@ -949,7 +949,7 @@ export default function AdminHostApplications() {
                 </section>
 
                 {/* ---- Admin Notes ---- */}
-                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
+                {isPendingApplication(sel) && (
                   <>
                     <Separator className="bg-white/10" />
                     <section>
@@ -976,7 +976,7 @@ export default function AdminHostApplications() {
                 )}
 
                 {/* ---- Action Buttons ---- */}
-                {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
+                {isPendingApplication(sel) && (
                   <div className="space-y-4 pt-2">
                     {/* Top row: Review + Reject */}
                     <div className="flex items-center gap-3">
