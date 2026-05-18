@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Gift, Phone, Users, Video, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Bell, Gift, Phone, Users, Video, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX, ShieldCheck, ShieldX } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,8 @@ const CATEGORIES: NotificationCategory[] = [
   { key: 'agency', label: 'Agency', description: 'Agency notifications', icon: Building2, color: 'bg-purple-500' },
   { key: 'helper', label: 'Helper', description: 'Orders, payroll, level', icon: HeadphonesIcon, color: 'bg-teal-500' },
   { key: 'host', label: 'Host', description: 'Application status', icon: Crown, color: 'bg-yellow-500' },
+  { key: 'face_verification_approved', label: 'Face Verification — Approved', description: 'Notify when your face verification is approved', icon: ShieldCheck, color: 'bg-emerald-500' },
+  { key: 'face_verification_rejected', label: 'Face Verification — Rejected', description: 'Notify when your face verification is rejected', icon: ShieldX, color: 'bg-rose-500' },
   { key: 'general', label: 'General', description: 'Other notifications', icon: Bell, color: 'bg-amber-50' },
 ];
 
