@@ -322,6 +322,8 @@ export const resolveAdminStorageImageUrl = async (value?: string | null, default
   return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : value;
 };
 
+export const resolveAdminStorageSignedUrl = resolveAdminStorageImageUrl;
+
 /**
  * Face/host verification media is private and some historical face-angle stills
  * were saved with a video extension while the actual bytes are JPEG. For this
