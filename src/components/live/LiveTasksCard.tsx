@@ -47,27 +47,39 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
   const [isEligible, setIsEligible] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if (!hostId) return;
+    // Guard against duplicate timers / late callbacks after unmount or hostId change.
+    let cancelled = false;
+    let hourTimer: ReturnType<typeof setTimeout> | null = null;
+    let resetTimer: ReturnType<typeof setTimeout> | null = null;
+
     checkEligibilityAndFetch();
     const channel = supabase
-      .channel('live-tasks-sync')
+      .channel(`live-tasks-sync-${hostId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_task_progress' }, () => {
-        fetchLiveTasks();
+        if (!cancelled) fetchLiveTasks();
       })
       .subscribe();
 
     // Auto-refresh at 12:30 AM Europe/London (server reset) — re-fetches eligibility too.
-    const msUntilReset = getMsUntilNextReset();
-    const resetTimer = setTimeout(() => {
+    resetTimer = setTimeout(() => {
+      if (cancelled) return;
       console.log('[LiveTasks] Server day reset — refreshing');
       setProgress({});
       checkEligibilityAndFetch();
-    }, msUntilReset);
+    }, getMsUntilNextReset());
 
-    // Hourly nudge: refresh at every wall-clock hour so live_minutes
-    // accumulation and "Today" labels stay current without polling.
-    let hourTimer: ReturnType<typeof setTimeout> | null = null;
+    // Hourly nudge: refresh at every wall-clock hour. Guarded so the
+    // recursive scheduler never creates an orphan timer after cleanup.
     const scheduleHourly = () => {
+      if (cancelled) return;
+      if (hourTimer) {
+        clearTimeout(hourTimer);
+        hourTimer = null;
+      }
       hourTimer = setTimeout(() => {
+        hourTimer = null;
+        if (cancelled) return;
         fetchLiveTasks();
         scheduleHourly();
       }, getMsUntilNextHour());
@@ -75,9 +87,12 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
     scheduleHourly();
 
     return () => {
+      cancelled = true;
       supabase.removeChannel(channel);
-      clearTimeout(resetTimer);
+      if (resetTimer) clearTimeout(resetTimer);
       if (hourTimer) clearTimeout(hourTimer);
+      resetTimer = null;
+      hourTimer = null;
     };
   }, [hostId]);
 
