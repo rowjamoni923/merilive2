@@ -267,6 +267,14 @@ export function AdminMediaFrame({
   if (effectiveMediaKind === "video") {
     const sourceType = blobMimeType || getVideoMimeType(displaySrc);
     const canOpenOriginal = !displaySrc.startsWith("blob:");
+    const requestFullscreen = () => {
+      const el = videoElRef.current as any;
+      if (!el) return;
+      const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen || el.msRequestFullscreen;
+      if (fn) {
+        try { fn.call(el); } catch { /* noop */ }
+      }
+    };
     return (
       <div className={cn("relative overflow-hidden rounded-lg border border-border bg-black", className)}>
         <video
