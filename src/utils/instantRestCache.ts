@@ -78,6 +78,18 @@ const rememberKey = (namespace: string, key: string, maxEntries: number) => {
   }
 };
 
+export const clearInstantRestCache = (namespace: string) => {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    const metaKey = `${META_PREFIX}${namespace}`;
+    const list = JSON.parse(sessionStorage.getItem(metaKey) || "[]") as string[];
+    list.forEach((key) => sessionStorage.removeItem(key));
+    sessionStorage.removeItem(metaKey);
+  } catch {
+    // Cache is an optimization only.
+  }
+};
+
 const readCached = (key: string): CachedResponse | null => {
   try {
     const raw = sessionStorage.getItem(key);
