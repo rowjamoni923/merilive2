@@ -314,6 +314,55 @@ export default function AdminHostApplications() {
     }
   };
 
+  // Quick action for profiles WITHOUT a face submission (orange "no submission" cards)
+  const handleForceApproveProfile = async (
+    profile: { id: string; display_name: string | null },
+    role: 'host' | 'user',
+  ) => {
+    if (!guardStart(`force-${profile.id}-${role}`)) return;
+    try {
+      const { data, error } = await supabase.rpc('admin_force_verify_and_approve_host', {
+        _user_id: profile.id,
+        _approve_as: role,
+        _set_gender: role === 'host' ? 'female' : 'male',
+        _reason: 'Admin direct approval (no submission)',
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Approval failed');
+      // Optimistic removal
+      setPendingHosts((prev) => prev.filter((p) => p.id !== profile.id));
+      setPendingHostsCount((c) => Math.max(0, c - 1));
+      toast.success(`${role === 'host' ? '🎤 Host' : '👤 User'} approved!`);
+      invalidateStatusCountsCache('face_verification_submissions');
+      fetchApplications();
+      fetchStatusCounts(true);
+      fetchPendingHostsWithoutSubmission();
+    } catch (e) {
+      toast.error((e as any)?.message || 'Operation failed');
+    } finally {
+      guardEnd(`force-${profile.id}-${role}`);
+    }
+  };
+
+  const handleQuickRejectProfile = async (profile: { id: string }) => {
+    if (!guardStart(`qreject-${profile.id}`)) return;
+    try {
+      const { error } = await supabase.rpc('admin_set_host_status', {
+        _user_id: profile.id,
+        _make_host: false,
+      });
+      if (error) throw error;
+      setPendingHosts((prev) => prev.filter((p) => p.id !== profile.id));
+      setPendingHostsCount((c) => Math.max(0, c - 1));
+      toast.success('Host application rejected');
+      fetchPendingHostsWithoutSubmission();
+    } catch (e) {
+      toast.error((e as any)?.message || 'Operation failed');
+    } finally {
+      guardEnd(`qreject-${profile.id}`);
+    }
+  };
+
   const handleMarkUnderReview = async (app: HostSubmission) => {
     if (!guardStart(`review-${app.id}`)) return;
     try {
