@@ -791,7 +791,74 @@ export default function AdminPricingHub() {
               </Button>
             </CardContent>
           </Card>
+
+          <Card className="border-amber-500/40">
+            <CardHeader>
+              <CardTitle className="text-base">Auto Withdrawal Fee (Foreign Agencies)</CardTitle>
+              <CardDescription>
+                Flat USD fee applied when an agency withdraws via an Auto Payment Method —
+                <strong> ePay (Global), USDT, Binance, or the Custom Crypto Gateway</strong>.
+                Used by agencies outside Bangladesh / India / Pakistan whose payouts are auto-credited.
+                Overrides the tiered Withdrawal Fee above for these methods only.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Flat fee (USD)" hint="e.g. 2 = $2 deducted per auto withdrawal">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={NUM(autoWithdrawalFee.flat_usd)}
+                    onChange={(e) =>
+                      setAutoWithdrawalFee({
+                        ...autoWithdrawalFee,
+                        flat_usd: e.target.value === "" ? "" : Number(e.target.value),
+                      })
+                    }
+                  />
+                </Field>
+                <Field label="Enabled" hint="If off, tiered fee above is used for auto methods too">
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={autoWithdrawalFee.enabled ? "yes" : "no"}
+                    onChange={(e) =>
+                      setAutoWithdrawalFee({ ...autoWithdrawalFee, enabled: e.target.value === "yes" })
+                    }
+                  >
+                    <option value="yes">Enabled</option>
+                    <option value="no">Disabled</option>
+                  </select>
+                </Field>
+              </div>
+              {autoWithdrawalFee.enabled && autoWithdrawalFee.flat_usd !== "" && (
+                <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs space-y-1">
+                  <div className="font-semibold text-amber-700 dark:text-amber-400">Live Preview</div>
+                  <div>Example: $50 auto withdrawal → fee <strong>${Number(autoWithdrawalFee.flat_usd).toFixed(2)}</strong> → net <strong>${(50 - Number(autoWithdrawalFee.flat_usd)).toFixed(2)}</strong> credited to Binance / wallet instantly</div>
+                  <div className="text-muted-foreground">Applies to: ePay, USDT, Binance, Crypto Gateway</div>
+                </div>
+              )}
+              <Button
+                onClick={() =>
+                  saveSection(
+                    "auto_withdrawal_fee",
+                    {
+                      flat_usd: autoWithdrawalFee.flat_usd === "" ? 0 : Number(autoWithdrawalFee.flat_usd),
+                      enabled: autoWithdrawalFee.enabled,
+                      methods: ["epay", "usdt", "binance", "crypto_auto"],
+                    },
+                    "Auto withdrawal fee"
+                  )
+                }
+                disabled={saving === "auto_withdrawal_fee"}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saving === "auto_withdrawal_fee" ? "Saving..." : "Save Auto Withdrawal Fee"}
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
+
 
         {/* ============== EXCHANGE ============== */}
         <TabsContent value="exchange" className="space-y-4">
