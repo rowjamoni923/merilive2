@@ -141,14 +141,9 @@ export const PremiumLiveStreamCard = ({
         </motion.div>
       </div>
 
-      {/* Gift Counter with Flying Animation */}
+      {/* Gift Counter */}
       {giftCount > 0 && (
-        <motion.div
-          className="absolute top-12 right-3 z-10"
-          initial={{ x: 50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="absolute top-12 right-3 z-10">
           <div className="flex items-center gap-1 bg-gradient-to-r from-pink-500/80 to-purple-500/80 backdrop-blur-md rounded-full px-2.5 py-1">
             <motion.div
               animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
@@ -158,7 +153,7 @@ export const PremiumLiveStreamCard = ({
             </motion.div>
             <span className="text-xs text-white font-bold">{giftCount}</span>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Tags with slide-in animation */}
