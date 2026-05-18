@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AdminMediaDialog, AdminMediaFrame, isAdminVideoUrl } from "@/components/admin/AdminMediaViewer";
+import { FaceVerificationDebugPanel } from "@/components/admin/FaceVerificationDebugPanel";
 import { FaceSubmissionMediaBlocks } from "@/components/admin/FaceSubmissionMediaBlocks";
 import {
   Dialog,
@@ -701,6 +702,19 @@ export default function AdminHostApplications() {
                     </div>
                   </div>
                 )}
+
+                <FaceVerificationDebugPanel
+                  items={[
+                    { label: "profile_photo_url", raw: selectedApplication.profile_photo_url },
+                    { label: "video_url", raw: selectedApplication.video_url },
+                    { label: "face_image_url", raw: selectedApplication.face_image_url },
+                    { label: "front_url", raw: selectedApplication.front_url },
+                    { label: "left_url", raw: selectedApplication.left_url },
+                    { label: "right_url", raw: selectedApplication.right_url },
+                    { label: "selfie_url", raw: selectedApplication.selfie_url },
+                    ...(selectedApplication.host_photos || []).map((u, i) => ({ label: `host_photos[${i}]`, raw: u })),
+                  ]}
+                />
 
                 {(sel.status === 'pending' || sel.status === 'submitted' || sel.status === 'under_review') && (
                   <div className="sticky top-0 z-20 rounded-2xl border border-white/10 bg-slate-900/95 p-3 shadow-xl backdrop-blur">

@@ -138,16 +138,18 @@ function parseVerificationDetails(adminNotes: string | null) {
 function HostApplicationDetailMedia({ application }: { application: HostApplication }) {
   const photoUrl = useAdminSignedUrl(application.photo_url, "host-verification");
   const videoUrl = useAdminSignedUrl(application.video_url, "host-verification");
+  const safePhotoUrl = photoUrl || application.photo_url;
+  const safeVideoUrl = videoUrl || application.video_url;
 
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <div className="space-y-2">
         <p className="text-xs font-medium text-slate-400">Application Photo</p>
-        <AdminMediaFrame src={photoUrl || application.photo_url} alt="Application photo" kind="image" bucket="host-verification" className="aspect-square border-border bg-background" mediaClassName="object-cover" />
+        <AdminMediaFrame src={safePhotoUrl} alt="Application photo" kind="image" bucket="host-verification" className="aspect-square border-border bg-background" mediaClassName="object-cover" />
       </div>
       <div className="space-y-2">
         <p className="text-xs font-medium text-slate-400">Intro Video</p>
-        <AdminMediaFrame src={videoUrl || application.video_url} alt="Intro video" kind="video" bucket="host-verification" poster={photoUrl || application.photo_url} className="aspect-square border-border bg-background" />
+        <AdminMediaFrame src={safeVideoUrl} alt="Intro video" kind="video" bucket="host-verification" poster={safePhotoUrl} className="aspect-square border-border bg-background" />
       </div>
     </div>
   );
@@ -3177,7 +3179,7 @@ export default function AdminUserManagement() {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20 border-2 border-slate-600">
-                  <AvatarImage src={selectedApplication.photo_url} />
+                  <AvatarImage src={selectedApplication.photo_url} data-admin-media-bucket="host-verification" />
                   <AvatarFallback className="bg-pink-500/20 text-pink-400 text-xl">
                     {selectedApplication.full_name?.charAt(0) || "U"}
                   </AvatarFallback>
