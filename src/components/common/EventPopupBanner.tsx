@@ -116,32 +116,43 @@ const EventPopupBanner = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[9999] bg-white/80 flex items-center justify-center"
+          className="fixed inset-0 z-[9999] bg-black flex items-stretch justify-stretch overflow-hidden"
           onClick={canSkip ? handleDismiss : undefined}
           style={{
-            paddingTop: 'max(env(safe-area-inset-top), 16px)',
-            paddingBottom: 'max(env(safe-area-inset-bottom), 16px)',
-            paddingLeft: 'max(env(safe-area-inset-left), 12px)',
-            paddingRight: 'max(env(safe-area-inset-right), 12px)',
+            // Edge-to-edge: no padding. Image covers the entire viewport.
+            // Safe-area is applied only to the floating chips so notch /
+            // bottom-bar don't eat them.
+            width: '100vw',
+            height: '100dvh',
           }}
         >
           <motion.div
-            initial={{ scale: 1.05, opacity: 0 }}
+            initial={{ scale: 1.03, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full h-full max-w-md max-h-full flex items-center justify-center"
+            exit={{ scale: 0.97, opacity: 0 }}
+            transition={{ type: "spring", damping: 28, stiffness: 320 }}
+            className="relative w-full h-full"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={banner.image_url}
               alt={banner.title}
               onClick={handleBannerClick}
-              className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl cursor-pointer shadow-2xl"
+              loading="eager"
+              decoding="sync"
+              fetchPriority="high"
+              className="absolute inset-0 w-full h-full object-cover cursor-pointer select-none"
+              draggable={false}
             />
 
-            {/* Countdown Timer Badge */}
-            <div className="absolute top-3 left-3 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md rounded-full pl-2.5 pr-3 py-1.5 border border-white/10 shadow-lg z-10"> {/* dark-ok */}
+            {/* Countdown Timer Badge (safe-area aware) */}
+            <div
+              className="absolute flex items-center gap-2 bg-slate-900/85 backdrop-blur-md rounded-full pl-2.5 pr-3 py-1.5 border border-white/10 shadow-lg z-10" /* dark-ok */
+              style={{
+                top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+                left: 'calc(env(safe-area-inset-left, 0px) + 12px)',
+              }}
+            >
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75 animate-ping" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
@@ -151,17 +162,26 @@ const EventPopupBanner = () => {
               </span>
             </div>
 
-            {/* Close X button - only show after skip delay */}
             {canSkip ? (
               <button
                 onClick={handleDismiss}
                 aria-label="Close"
-                className="absolute top-3 right-3 w-10 h-10 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/15 flex items-center justify-center shadow-lg text-white hover:bg-slate-900 active:scale-95 transition z-10" // dark-ok
+                className="absolute w-10 h-10 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/15 flex items-center justify-center shadow-lg text-white hover:bg-slate-900 active:scale-95 transition z-10" /* dark-ok */
+                style={{
+                  top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+                  right: 'calc(env(safe-area-inset-right, 0px) + 12px)',
+                }}
               >
                 <X className="w-5 h-5" strokeWidth={2.5} />
               </button>
             ) : (
-              <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/10 text-white/90 text-[11px] font-medium tabular-nums z-10 shadow-lg"> {/* dark-ok */}
+              <div
+                className="absolute px-3 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/10 text-white/90 text-[11px] font-medium tabular-nums z-10 shadow-lg" /* dark-ok */
+                style={{
+                  top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+                  right: 'calc(env(safe-area-inset-right, 0px) + 12px)',
+                }}
+              >
                 Skip in {Math.max(0, skipDelay - elapsed)}s
               </div>
             )}

@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import appLogo from '@/assets/app-logo.png';
 import { APP_VERSION } from '@/lib/version';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -15,6 +17,27 @@ interface SplashScreenProps {
 
 export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
+  // ★ Live version: on native, pulled from the actual installed APK / IPA so
+  //   the splash always matches what's on the device. Falls back to the JS
+  //   APP_VERSION constant on web. The (build) code is appended on native.
+  const [displayVersion, setDisplayVersion] = useState<string>(APP_VERSION);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!Capacitor.isNativePlatform()) return;
+      try {
+        const info = await CapacitorApp.getInfo();
+        if (cancelled) return;
+        if (info?.version) {
+          setDisplayVersion(info.build ? `${info.version} (${info.build})` : info.version);
+        }
+      } catch {
+        // keep fallback
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -151,7 +174,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
             transition={{ delay: 1.1, duration: 0.5 }}
             className="absolute bottom-8 text-[11px] text-slate-500 tracking-wider font-medium"
           >
-            Version {APP_VERSION}
+            Version {displayVersion}
           </motion.div>
 
           <style>{`
