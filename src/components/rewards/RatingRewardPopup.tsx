@@ -28,6 +28,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
   const [alreadyClaimed, setAlreadyClaimed] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [isEnabled, setIsEnabled] = useState(false);
+  const [rewardAmounts, setRewardAmounts] = useState<{ host_beans: number; user_diamonds: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
