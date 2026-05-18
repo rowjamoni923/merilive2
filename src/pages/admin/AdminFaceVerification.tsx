@@ -309,7 +309,7 @@ const AdminFaceVerification = () => {
       ? (approveAs || (submission.verification_type === 'host' ? 'host' : 'user'))
       : 'user';
     const resolvedGender = action === 'approve'
-      ? (resolvedApproveAs === 'host' ? 'female' : 'male')
+      ? (setGender || (resolvedApproveAs === 'host' ? 'female' : 'male'))
       : null;
     const resolvedReason = action === 'reject'
       ? (reason?.trim() || 'Rejected by admin')
@@ -851,9 +851,8 @@ const AdminFaceVerification = () => {
                     )}
 
                     {['pending', 'submitted', 'under_review'].includes(submission.status) && (
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <Button
-                          className="flex-1"
                           disabled={processing}
                           onClick={() => {
                             processSubmissionAction({
@@ -867,8 +866,21 @@ const AdminFaceVerification = () => {
                           <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
                         </Button>
                         <Button
+                          variant="outline"
+                          disabled={processing}
+                          onClick={() => processSubmissionAction({ submission, action: 'approve', approveAs: 'host', setGender: 'female' })}
+                        >
+                          <Mic className="w-4 h-4 mr-2" /> Host
+                        </Button>
+                        <Button
+                          variant="outline"
+                          disabled={processing}
+                          onClick={() => processSubmissionAction({ submission, action: 'approve', approveAs: 'user', setGender: 'male' })}
+                        >
+                          <User className="w-4 h-4 mr-2" /> User
+                        </Button>
+                        <Button
                           variant="destructive"
-                          className="flex-1"
                           disabled={processing}
                           onClick={() => processSubmissionAction({ submission, action: 'reject' })}
                         >
@@ -903,7 +915,7 @@ const AdminFaceVerification = () => {
               <div className="space-y-5">
                 {['pending', 'submitted', 'under_review'].includes(selectedSubmission.status) && (
                   <div className="sticky top-0 z-20 rounded-xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <Button
                         disabled={processing}
                         onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: selectedSubmission.verification_type === 'host' ? 'host' : 'user' })}
@@ -913,9 +925,16 @@ const AdminFaceVerification = () => {
                       <Button
                         variant="outline"
                         disabled={processing}
-                        onClick={() => handleManualOverrideApprove(selectedSubmission, 'host')}
+                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: 'host', setGender: 'female' })}
                       >
-                        Host
+                        <Mic className="w-4 h-4 mr-2" /> Host
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled={processing}
+                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'approve', approveAs: 'user', setGender: 'male' })}
+                      >
+                        <User className="w-4 h-4 mr-2" /> User
                       </Button>
                       <Button
                         variant="destructive"
