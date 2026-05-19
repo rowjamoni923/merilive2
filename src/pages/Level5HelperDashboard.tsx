@@ -1428,9 +1428,9 @@ const Level5HelperDashboard = () => {
             {agencyWithdrawals.length === 0 ? (
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-8 text-center">
-                  <Building2 className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-700">No pending agency withdrawals</p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <Building2 className="w-12 h-12 mx-auto text-slate-400 mb-3" />
+                  <p className="text-slate-800 font-medium">No pending agency withdrawals</p>
+                  <p className="text-xs text-slate-600 mt-1">
                     All withdrawals are cleared 🎉
                   </p>
                 </CardContent>
