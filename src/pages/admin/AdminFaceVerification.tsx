@@ -1090,11 +1090,11 @@ const AdminFaceVerification = () => {
                 {selectedSubmission.face_image_url && !selectedSubmission.face_image_url.startsWith('admin-approved://') && (() => {
                   const url = resolvedMedia.face_image_url || selectedSubmission.face_image_url;
                   return (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold flex items-center gap-2 text-purple-300">
-                        <ScanFace className="w-5 h-5" /> Face Verification
+                    <div className="space-y-3 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-purple-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(168,85,247,0.35)]">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+                        <ScanFace className="w-5 h-5 text-amber-300" /> Face Verification
                       </h4>
-                      <AdminMediaFrame src={url} alt="Face verification" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="border-2 border-purple-500/30 bg-background" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                      <AdminMediaFrame src={url} alt="Face verification" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_24px_rgba(251,191,36,0.15)]" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                     </div>
                   );
                 })()}
@@ -1114,11 +1114,11 @@ const AdminFaceVerification = () => {
                 {selectedSubmission.profile_photo_url && (() => {
                   const url = resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url;
                   return (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold flex items-center gap-2 text-purple-300">
-                        <Camera className="w-5 h-5" /> Profile Photo
+                    <div className="space-y-3 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 via-fuchsia-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(168,85,247,0.35)]">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-purple-300 via-fuchsia-200 to-purple-400 bg-clip-text text-transparent">
+                        <Camera className="w-5 h-5 text-purple-300" /> Profile Photo
                       </h4>
-                      <AdminMediaFrame src={url} alt="Profile" kind="image" className="mx-auto w-40 h-40 rounded-2xl border-2 border-purple-500/30 hover:scale-105 transition-transform" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(url)} />
+                      <AdminMediaFrame src={url} alt="Profile" kind="image" className="mx-auto w-44 h-44 rounded-2xl border-2 border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_28px_rgba(168,85,247,0.25)] hover:scale-105 transition-transform" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(url)} />
                     </div>
                   );
                 })()}
@@ -1127,23 +1127,24 @@ const AdminFaceVerification = () => {
                 {selectedSubmission.video_url && selectedSubmission.video_url !== selectedSubmission.face_image_url && (() => {
                   const url = resolvedMedia.video_url || selectedSubmission.video_url;
                   return (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold flex items-center gap-2 text-purple-300">
-                        <Video className="w-5 h-5" /> Verification Video
+                    <div className="space-y-3 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/8 via-purple-500/5 to-transparent p-4 shadow-[0_10px_40px_-12px_rgba(251,191,36,0.35)]">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+                        <Video className="w-5 h-5 text-amber-300" /> Verification Video
+                        <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-200 normal-case tracking-normal">10s Intro</span>
                       </h4>
-                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="border-2 border-purple-500/30 bg-background" mediaClassName="max-h-80" />
+                      <AdminMediaFrame src={url} alt="Verification video" kind="video" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/40 bg-black shadow-[0_0_32px_rgba(251,191,36,0.2)]" mediaClassName="max-h-96" />
                     </div>
                   );
                 })()}
 
                 {([resolvedMedia.front_url || selectedSubmission.front_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-semibold flex items-center gap-2 text-purple-300">
-                      <Camera className="w-5 h-5" /> Manual Face Angles
+                  <div className="space-y-3 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 via-fuchsia-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(168,85,247,0.35)]">
+                    <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-purple-300 via-fuchsia-200 to-purple-400 bg-clip-text text-transparent">
+                      <Camera className="w-5 h-5 text-purple-300" /> Manual Face Angles
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {([resolvedMedia.front_url || selectedSubmission.front_url, resolvedMedia.left_url || selectedSubmission.left_url, resolvedMedia.right_url || selectedSubmission.right_url].filter(Boolean) as string[]).map((url, index) => (
-                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-square border-2 border-border bg-background" mediaClassName="object-cover" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                        <AdminMediaFrame key={index} src={url} alt={`Face angle ${index + 1}`} className="aspect-square rounded-xl border-2 border-purple-500/30 bg-black/40 shadow-[0_0_18px_rgba(168,85,247,0.18)]" mediaClassName="object-cover" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                       ))}
                     </div>
                   </div>
@@ -1151,17 +1152,18 @@ const AdminFaceVerification = () => {
 
                 {/* Host Photos */}
                 {selectedSubmission.host_photos && selectedSubmission.host_photos.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-semibold flex items-center gap-2 text-purple-300">
-                      <ImagePlus className="w-5 h-5" /> Host Photos ({selectedSubmission.host_photos.length})
+                  <div className="space-y-3 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-purple-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(251,191,36,0.3)]">
+                    <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+                      <ImagePlus className="w-5 h-5 text-amber-300" /> Host Photos
+                      <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-200 normal-case tracking-normal">{selectedSubmission.host_photos.length}</span>
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
                       {selectedSubmission.host_photos.map((photo, index) => {
                         const url = resolvedMedia.host_photos?.[index] || photo;
                         return (
                           <div key={index} className="relative group">
-                            <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-square rounded-xl border-2 border-slate-600 hover:border-purple-500/50 transition-colors" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(url)} />
-                            <span className="absolute top-1 left-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">{index + 1}</span>
+                            <AdminMediaFrame src={url} alt={`Host photo ${index + 1}`} kind="image" className="aspect-square rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_18px_rgba(251,191,36,0.18)] hover:border-amber-400/60 hover:shadow-[0_0_24px_rgba(251,191,36,0.35)] transition-all" mediaClassName="object-cover" onOpen={() => setExpandedPhoto(url)} />
+                            <span className="absolute top-1.5 left-1.5 bg-gradient-to-br from-amber-400 to-amber-600 text-black text-[10px] px-2 py-0.5 rounded-full font-bold shadow-md">{index + 1}</span>
                           </div>
                         );
                       })}

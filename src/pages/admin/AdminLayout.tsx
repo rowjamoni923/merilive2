@@ -77,7 +77,7 @@ import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRoutePrefetch";
-import { installAdminMediaAutoResolver } from "@/utils/adminStorageImages";
+// installAdminMediaAutoResolver removed (Pkg42) — see useEffect below for rationale.
 
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -1323,10 +1323,12 @@ export default function AdminLayout() {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.body.setAttribute('data-admin-active', 'true');
-    const uninstallMediaResolver = installAdminMediaAutoResolver();
+    // NOTE: global MutationObserver-based media auto-resolver removed (Pkg42).
+    // It was scanning every DOM mutation across the entire admin app and
+    // caused major Chrome lag. All admin media now flows through
+    // AdminMediaFrame, which resolves URLs explicitly.
     return () => {
       document.body.removeAttribute('data-admin-active');
-      uninstallMediaResolver();
     };
   }, []);
 
