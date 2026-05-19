@@ -392,8 +392,10 @@ export function LiveRouletteGame({
         setTimeout(() => { if (isMountedRef.current) setShowWinPopup(false); }, 2000);
       }
       
-      onProcessResult(totalWinnings > 0 ? 'win' : 'none');
     }
+    
+    // Always notify parent of round result so history/UI stays in sync even on no-bet rounds
+    onProcessResult(winningNumber.toString());
     
     setIsSpinning(false);
     isSpinningRef.current = false;

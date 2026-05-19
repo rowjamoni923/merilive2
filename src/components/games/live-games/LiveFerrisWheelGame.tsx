@@ -71,6 +71,8 @@ export function LiveFerrisWheelGame({
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isPlacingBet, setIsPlacingBet] = useState(false);
   const [totalBetPlaced, setTotalBetPlaced] = useState(0);
+  // Track exact wheel rotation so arrow aligns with winning item (no visual mismatch)
+  const [wheelRotation, setWheelRotation] = useState(0);
   
   // 24/7 Auto-play state - SINGLE TIMER SYSTEM
   const [autoPlayPhase, setAutoPlayPhase] = useState<'betting' | 'spinning'>('betting');
@@ -187,7 +189,16 @@ export function LiveFerrisWheelGame({
       }
     }
 
-    // Animate wheel
+    // Compute exact landing rotation so the FIXED top arrow points at the winner.
+    // Item i sits at angle (i*45 - 90) from center → top (-90°) corresponds to item 0.
+    // To land winIndex at the top: rotate by (360 - winIndex*45) mod 360 + N full spins.
+    const ANGLE_PER_ITEM = 360 / WHEEL_ITEMS.length;
+    const fullSpins = 3 + Math.floor(Math.random() * 2);
+    const targetRotation = wheelRotation + (fullSpins * 360) +
+      ((360 - winIndex * ANGLE_PER_ITEM) - (wheelRotation % 360) + 360) % 360;
+    setWheelRotation(targetRotation);
+
+    // Animate wheel (must match motion transition duration below: 5s)
     await new Promise(resolve => setTimeout(resolve, 4000));
     
     sounds.playFerrisWheelStop();
@@ -370,10 +381,10 @@ export function LiveFerrisWheelGame({
             <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 w-3 h-12 bg-gradient-to-b from-gray-400 to-gray-600 rounded-b-lg shadow-lg" />
             <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-16 h-2 bg-gradient-to-r from-gray-500 via-gray-400 to-gray-500 rounded-lg shadow-lg" />
             
-            {/* Spinning Wheel - Code-based design */}
+            {/* Spinning Wheel - lands so top arrow aligns with the winning item */}
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
-              animate={{ rotate: isSpinning ? 1080 : 0 }}
+              animate={{ rotate: wheelRotation }}
               transition={{ duration: 5, ease: [0.2, 0.8, 0.2, 1] }}
             >
               {/* Wheel Background */}
@@ -446,7 +457,7 @@ export function LiveFerrisWheelGame({
                         initial={{ scale: 0 }}
                         animate={{ 
                           scale: 1,
-                          rotate: isSpinning ? -1080 : 0
+                          rotate: -wheelRotation
                         }}
                         transition={{ 
                           scale: { duration: 0.2 },

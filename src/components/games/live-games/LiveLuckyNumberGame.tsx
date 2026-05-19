@@ -171,8 +171,9 @@ export function LiveLuckyNumberGame({
       await new Promise(r => setTimeout(r, speed));
     }
     
-    setRevealingNumber(null);
+    // Land cleanly on winner — set winning first, then clear revealing to avoid blank flicker
     setWinningNumber(winner);
+    setRevealingNumber(null);
     setIsRevealing(false);
     setRecentResults(prev => [winner, ...prev].slice(0, 10));
     
