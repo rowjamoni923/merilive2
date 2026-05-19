@@ -37,7 +37,7 @@ describe("PremiumLiveStreamCard cover/avatar visibility", () => {
         isOnline
       />
     );
-    const cover = screen.getByAltText("Kylie") as HTMLImageElement;
+    const cover = document.querySelector("img.object-cover") as HTMLImageElement;
     expect(cover.src).toContain(THUMB);
   });
 
@@ -55,7 +55,7 @@ describe("PremiumLiveStreamCard cover/avatar visibility", () => {
         isOnline={false}
       />
     );
-    const cover = screen.getByAltText("Rain") as HTMLImageElement;
+    const cover = document.querySelector("img.object-cover") as HTMLImageElement;
     expect(cover.src).toBe(AVATAR);
   });
 
@@ -72,7 +72,7 @@ describe("PremiumLiveStreamCard cover/avatar visibility", () => {
         countryFlag="🇷🇼"
       />
     );
-    const cover = screen.getByAltText("Delyn") as HTMLImageElement;
+    const cover = document.querySelector("img.object-cover") as HTMLImageElement;
     expect(cover.src).toBe(AVATAR);
   });
 
@@ -90,7 +90,7 @@ describe("PremiumLiveStreamCard cover/avatar visibility", () => {
         isOnline={false}
       />
     );
-    const cover = screen.getByAltText("Ghost") as HTMLImageElement;
+    const cover = document.querySelector("img.object-cover") as HTMLImageElement;
     expect(cover.src).toContain("placeholder.example/avatar.jpg");
   });
 });
