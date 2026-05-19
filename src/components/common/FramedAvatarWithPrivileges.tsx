@@ -1,15 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getEquippedPrivilegesForUser, EquippedPrivileges } from "@/hooks/useUserPrivileges";
 import { motion } from "framer-motion";
 import Premium3DFrame from "./Premium3DFrame";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import {
+  getCachedGender,
+  getCachedViewerId,
+  requestGender,
+  ensureViewerLoaded,
+} from "@/utils/avatarGenderCache";
 
 interface FramedAvatarWithPrivilegesProps {
   userId: string;
   src?: string | null;
   name?: string;
   level?: number;
+  /** When known, callers can pass gender to skip the cache lookup. */
+  gender?: 'male' | 'female' | null;
+  /** Force owner-mode. When undefined, auto-detect via signed-in viewer. */
+  isOwner?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   showFrame?: boolean;
   showAnimation?: boolean;
@@ -19,6 +30,7 @@ interface FramedAvatarWithPrivilegesProps {
   fallbackClassName?: string;
   onClick?: () => void;
 }
+
 
 const avatarSizeClasses = {
   xs: "w-6 h-6",
