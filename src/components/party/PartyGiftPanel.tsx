@@ -372,18 +372,23 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                 </motion.div>
               </div>
 
-              {/* Tiny Page Dots */}
+              {/* Compact professional page bars */}
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-1 py-1">
+                <div className="flex justify-center items-center gap-0.5 py-1">
                   {Array.from({ length: totalPages }).map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentPage(index)}
-                      className={cn(
-                        "h-1 rounded-full transition-all duration-300",
-                        currentPage === index ? "w-4 bg-white" : "w-1 bg-white/50"
-                      )}
-                    />
+                      className="group grid h-3 w-4 place-items-center"
+                      aria-label={`Page ${index + 1}`}
+                    >
+                      <span
+                        className={cn(
+                          "block h-0.5 rounded-[1px] transition-all duration-200",
+                          currentPage === index ? "w-3 bg-white" : "w-1.5 bg-white/45 group-hover:bg-white/75"
+                        )}
+                      />
+                    </button>
                   ))}
                 </div>
               )}
