@@ -212,7 +212,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           className="absolute inset-0 w-full h-full object-cover"
           decoding="async"
           loading="eager"
-          fetchPriority="high"
+          fetchPriority={branding.background_type === 'gif' ? 'low' : 'high'}
           onError={() => setMediaFailed(true)}
           style={mediaStyle}
         />
