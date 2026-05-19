@@ -77,7 +77,7 @@ import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRoutePrefetch";
-import { installAdminMediaAutoResolver } from "@/utils/adminStorageImages";
+// installAdminMediaAutoResolver removed (Pkg42) — see useEffect below for rationale.
 
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
 import { recordAdminError } from "@/utils/adminErrorLog";
