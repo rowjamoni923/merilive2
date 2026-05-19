@@ -243,7 +243,7 @@ export interface DirectChatBubbleProps {
   message: string;
   isMine: boolean;
   createdAt?: string | number | Date;
-  status?: "sending" | "sent" | "delivered" | "read" | "failed";
+  status?: "sending" | "sent" | "delivered" | "read";
   optimistic?: boolean;
   children?: React.ReactNode; // optional rich content (image, audio…)
 }
