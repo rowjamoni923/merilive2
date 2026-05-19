@@ -15,6 +15,10 @@ interface PremiumLiveStreamCardProps {
   hostId?: string;
   hostName: string;
   hostAvatar: string;
+  /** 'female' (default) → female placeholder pool. 'male' → male pool. */
+  hostGender?: "female" | "male" | null;
+  /** True when the signed-in viewer is the card's host. Owner never sees their own placeholder. */
+  isOwner?: boolean;
   thumbnailUrl: string;
   viewerCount: number;
   country: string;
@@ -35,6 +39,8 @@ export const PremiumLiveStreamCard = ({
   hostId,
   hostName,
   hostAvatar,
+  hostGender,
+  isOwner = false,
   thumbnailUrl,
   viewerCount,
   country,
@@ -50,6 +56,7 @@ export const PremiumLiveStreamCard = ({
   streamType = "live",
   onClick,
 }: PremiumLiveStreamCardProps) => {
+
   
   // Get stream type badge config
   const getStreamTypeBadge = () => {
