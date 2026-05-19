@@ -38,7 +38,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const [error, setError] = useState<string | null>(null);
   const completedRef = useRef(false);
   const mountedRef = useRef(true);
-  const animationStartedRef = useRef(false);
+  const loadRunRef = useRef(0);
   const activeHowlsRef = useRef<Howl[]>([]);
   const activeAudiosRef = useRef<HTMLAudioElement[]>([]);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -71,15 +71,17 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   }, [onComplete, cleanupAudio]);
 
   useEffect(() => {
-    if (animationStartedRef.current) return;
-    animationStartedRef.current = true;
+    const runId = ++loadRunRef.current;
     mountedRef.current = true;
     completedRef.current = false;
+    setLoading(true);
+    setError(null);
     
     if (!src || !containerRef.current) return;
 
     let player: any = null;
     const shouldPlayAudio = volume > 0;
+    const isCurrentRun = () => mountedRef.current && loadRunRef.current === runId;
 
     const loadAndPlay = async () => {
       try {
@@ -94,7 +96,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
           shouldPlayAudio ? extractAudioFromSVGA(src) : Promise.resolve([]),
         ]);
         
-        if (!mountedRef.current || !containerRef.current) return;
+        if (!isCurrentRun() || !containerRef.current) return;
 
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
@@ -113,7 +115,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         
         // Fallback: try parser's videoItem for audio data
         const videoItem = await loadSVGA(src);
-        if (!mountedRef.current) return;
+        if (!isCurrentRun()) return;
         
         if (!audioFound && shouldPlayAudio) {
           audioFound = extractAndPlayFromVideoItem(videoItem, volume, loop, activeHowlsRef, activeAudiosRef);
@@ -166,7 +168,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
           if (exactDuration > 0) {
             const safetyBuffer = Math.min(1500, exactDuration * 0.2);
             completionTimerRef.current = setTimeout(() => {
-              if (mountedRef.current && !completedRef.current) {
+              if (isCurrentRun() && !completedRef.current) {
                 handleAnimationComplete();
               }
             }, exactDuration + safetyBuffer);
@@ -175,7 +177,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         
       } catch (err) {
         console.error('[SVGAPlayerWithAudio] ❌ Error:', err);
-        if (mountedRef.current) {
+        if (isCurrentRun()) {
           setError('Failed to load animation');
           setLoading(false);
           onError?.(err instanceof Error ? err : new Error('Failed to load SVGA'));
@@ -186,6 +188,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     loadAndPlay();
 
     return () => {
+      loadRunRef.current++;
       mountedRef.current = false;
       cleanupAudio();
       if (completionTimerRef.current) {
