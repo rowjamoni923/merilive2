@@ -260,16 +260,17 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
 GiftEmojiAnimationInner.displayName = 'GiftEmojiAnimationInner';
 
 // Wrapper to ensure stable key and prevent re-mounts
-export const GiftEmojiAnimation = ({ emoji, count = 1, onComplete }: GiftEmojiAnimationProps) => {
+export const GiftEmojiAnimation = ({ emoji, count = 1, soundUrl, onComplete }: GiftEmojiAnimationProps) => {
   // CRITICAL: Use stable key based on emoji URL to prevent re-mounting
   const stableKey = useRef(`gift-anim-${Date.now()}-${emoji.slice(-20)}`);
-  
+
   return (
-    <GiftEmojiAnimationInner 
+    <GiftEmojiAnimationInner
       key={stableKey.current}
-      emoji={emoji} 
-      count={count} 
-      onComplete={onComplete} 
+      emoji={emoji}
+      count={count}
+      soundUrl={soundUrl}
+      onComplete={onComplete}
     />
   );
 };
