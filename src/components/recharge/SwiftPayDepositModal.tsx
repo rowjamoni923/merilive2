@@ -106,11 +106,20 @@ export default function SwiftPayDepositModal({
     if (!pkg) return;
     setCreating(true);
     try {
+      const requestBody: Record<string, unknown> = { pay_currency: currency };
+      if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
+        requestBody.target = "helper_wallet";
+        requestBody.helper_id = helperId;
+        requestBody.custom_coins = helperCustomCoins;
+        requestBody.custom_price_usd = helperCustomPriceUsd;
+      } else {
+        requestBody.package_id = pkg.id;
+      }
+
       const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
-        body: { package_id: pkg.id, pay_currency: currency },
+        body: requestBody,
       });
 
-      // supabase.functions.invoke puts the response body on error.context for non-2xx
       let errMsg: string | null = null;
       if (error) {
         try {
@@ -141,7 +150,7 @@ export default function SwiftPayDepositModal({
     } finally {
       setCreating(false);
     }
-  }, [pkg, currency, toast]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd]);
 
   // Poll for credit status
   useEffect(() => {
