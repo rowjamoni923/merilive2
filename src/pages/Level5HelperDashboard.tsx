@@ -1315,7 +1315,7 @@ const Level5HelperDashboard = () => {
           </Button>
           <div className="flex-1">
             <h1 className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-yellow-600 to-amber-700">Diamond Helper</h1>
-            <p className="text-slate-500 text-xs">Level 5 • Payroll System</p>
+            <p className="text-slate-700 text-xs font-medium">Level 5 • Payroll System</p>
           </div>
           <Button
             variant="ghost"
