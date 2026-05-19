@@ -47,7 +47,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const [error, setError] = useState<string | null>(null);
   const completedRef = useRef(false);
   const mountedRef = useRef(true);
-  const animationStartedRef = useRef(false);
   const activeHowlsRef = useRef<Howl[]>([]);
   const activeAudiosRef = useRef<HTMLAudioElement[]>([]);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
