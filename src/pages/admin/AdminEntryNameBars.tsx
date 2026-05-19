@@ -17,6 +17,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 // Lazy load SVGA player
 const SVGAPreviewWithMuteToggle = lazy(() => import("@/components/admin/SVGAPreviewWithMuteToggle"));
+const UniversalAnimationPlayer = lazy(() => import("@/components/common/UniversalAnimationPlayer"));
 
 interface EntryNameBar {
   id: string;
