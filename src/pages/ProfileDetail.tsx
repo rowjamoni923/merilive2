@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
