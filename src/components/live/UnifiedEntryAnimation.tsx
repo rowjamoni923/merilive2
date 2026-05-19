@@ -12,8 +12,7 @@ import React, { useEffect, useState, useMemo, useCallback, memo, forwardRef, use
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 export interface EntryAnimation {
   id: string;
   userId: string;
