@@ -88,36 +88,18 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, onComplete }: GiftEmoj
 
   const items = Array.from({ length: Math.min(count * 5, 20) });
 
-  // Render FULL SCREEN animation for SVGA/Lottie/VAP
+  // Render FULL SCREEN animation for SVGA/Lottie/VAP — NO overlay, NO sparkles, direct play
   if (hasAnimation) {
     return (
       <AnimatePresence>
-        <motion.div 
+        <motion.div
           className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center"
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.25 }}
         >
-          {/* Dark overlay for emphasis */}
-          <motion.div 
-            className="absolute inset-0 bg-black/40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: phase === 'show' ? 0.5 : 0 }}
-            transition={{ duration: 0.5 }}
-          />
-          
-          {/* TRUE Full-screen animation container */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center"
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ 
-              scale: phase === 'enter' ? [0.5, 1.05, 1] : phase === 'exit' ? [1, 1.05, 0.5] : 1,
-              opacity: phase === 'exit' ? 0 : 1
-            }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            {/* Full-screen animation — FixedAnimationFrame enforces explicit dimensions */}
+          <div className="absolute inset-0 flex items-center justify-center">
             {isSvga && (
               <FixedAnimationFrame
                 src={emoji}
@@ -143,91 +125,37 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, onComplete }: GiftEmoj
                 center
               />
             )}
-          </motion.div>
-          
-          {/* Sparkle effects around the animation */}
-          {Array.from({ length: 16 }).map((_, i) => (
-            <motion.div
-              key={`sparkle-${i}`}
-              className="absolute w-5 h-5 rounded-full"
-              style={{
-                background: `radial-gradient(circle, ${['#FFD700', '#FF6B6B', '#4ECDC4', '#A855F7', '#F472B6'][i % 5]}, transparent)`,
-                left: `${10 + Math.random() * 80}%`,
-                top: `${10 + Math.random() * 80}%`,
-              }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: [0, 2.5, 1.5, 2.5, 0],
-                opacity: [0, 1, 0.8, 1, 0],
-              }}
-              transition={{
-                duration: 2.5,
-                delay: i * 0.1,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          ))}
+          </div>
         </motion.div>
       </AnimatePresence>
     );
   }
 
-  // Render simple image - FULL SCREEN
+  // Render simple image - FULL SCREEN (no dark overlay, no sparkles)
   if (isImage) {
     return (
       <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
-        <motion.div 
-          className="absolute inset-0 bg-black/40"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        />
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
-            initial={{ scale: 0, rotate: -15 }}
-            animate={{ 
-              scale: [0, 1.2, 1],
-              rotate: [0, 10, 0],
+            initial={{ scale: 0, rotate: -10 }}
+            animate={{
+              scale: [0, 1.15, 1],
+              rotate: [0, 5, 0],
             }}
             exit={{ scale: 0, opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="w-[80vw] h-[80vh] max-w-[500px] max-h-[500px] flex items-center justify-center drop-shadow-2xl"
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="w-[90vw] h-[80vh] max-w-[600px] max-h-[600px] flex items-center justify-center"
           >
-            <img 
-              src={emoji} 
-              alt="Gift" 
-              className="w-full h-full object-contain drop-shadow-[0_0_60px_rgba(255,200,100,0.6)]"
+            <img
+              src={emoji}
+              alt="Gift"
+              className="w-full h-full object-contain drop-shadow-[0_0_60px_rgba(255,200,100,0.5)]"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
           </motion.div>
         </div>
-        
-        {/* Sparkle effects for static images */}
-        {Array.from({ length: 12 }).map((_, i) => (
-          <motion.div
-            key={`sparkle-${i}`}
-            className="absolute w-4 h-4 rounded-full"
-            style={{
-              background: `radial-gradient(circle, ${['#FFD700', '#FF6B6B', '#4ECDC4', '#A855F7'][i % 4]}, transparent)`,
-              left: `${15 + Math.random() * 70}%`,
-              top: `${15 + Math.random() * 70}%`,
-            }}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{
-              scale: [0, 2, 1, 2, 0],
-              opacity: [0, 1, 0.8, 1, 0],
-            }}
-            transition={{
-              duration: 1.5,
-              delay: i * 0.1,
-              repeat: 2,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
       </div>
     );
   }
