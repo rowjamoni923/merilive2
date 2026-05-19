@@ -628,7 +628,7 @@ export function LiveTeenPattiGame({
           {autoPlayPhase === 'betting' ? `${autoPlayTimeLeft}s` : '🃏'}
         </div>
         
-        <span className="text-[10px] text-gray-400">Pick A, B, or C to bet</span>
+        <span className="text-xs font-semibold text-amber-200 drop-shadow">Pick A, B, or C to bet</span>
       </div>
 
       {/* Win/Lose Popup - with Game Logo */}
@@ -675,7 +675,7 @@ export function LiveTeenPattiGame({
       )}
 
       {/* Win Multiplier Info */}
-      <div className="text-center text-[9px] text-white/50">
+      <div className="text-center text-[10px] text-white/80 font-medium">
         Win 2x your bet • Select A, B, or C
       </div>
 
