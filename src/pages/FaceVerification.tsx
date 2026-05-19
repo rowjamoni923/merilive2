@@ -46,7 +46,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
-import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
 
 const languages = [
@@ -607,10 +606,6 @@ const FaceVerification = () => {
       void refreshVerificationState(userId);
     };
 
-    const handleVisibilityRefresh = () => {
-      if (document.visibilityState === 'visible') syncVerificationState();
-    };
-
     const channel = supabase
       .channel(`face-verification-sync-${userId}`)
       .on('postgres_changes', {
@@ -633,19 +628,10 @@ const FaceVerification = () => {
       }, syncVerificationState)
       .subscribe();
 
-    window.addEventListener('focus', syncVerificationState);
-    document.addEventListener('visibilitychange', handleVisibilityRefresh);
-
     return () => {
-      window.removeEventListener('focus', syncVerificationState);
-      document.removeEventListener('visibilitychange', handleVisibilityRefresh);
       supabase.removeChannel(channel);
     };
   }, [userId, refreshVerificationState]);
-
-  useRefreshOnResume(() => {
-    if (userId) void refreshVerificationState(userId);
-  });
 
   // Handle photo selection (Step 1)
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
