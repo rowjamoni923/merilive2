@@ -49,8 +49,24 @@ Deno.serve(async (req) => {
           pay_network?: string;
         }
       | null;
-    if (!body?.withdrawal_id || !body?.pay_currency || !body?.pay_address) {
-      return json({ error: "withdrawal_id, pay_currency, pay_address required" }, 400);
+    if (!body?.withdrawal_id || !body?.pay_address) {
+      return json({ error: "withdrawal_id and pay_address are required" }, 400);
+    }
+
+    // 🔒 FINANCIAL HARDENING — withdrawals are USDT ONLY.
+    // Reject anything else even if the client tampers with the request.
+    const ALLOWED_CURRENCIES = new Set(["usdttrc20", "usdtbep20", "usdterc20"]);
+    const payCurrency = String(body.pay_currency ?? "usdttrc20").toLowerCase().trim();
+    if (!ALLOWED_CURRENCIES.has(payCurrency)) {
+      return json({ error: "only USDT withdrawals are supported" }, 400);
+    }
+    const payNetwork = body.pay_network ??
+      (payCurrency === "usdtbep20" ? "BEP20" : payCurrency === "usdterc20" ? "ERC20" : "TRC20");
+
+    // Basic wallet address sanity (alphanumeric, 20–100 chars — same rule as the client)
+    const payAddress = String(body.pay_address).trim();
+    if (!/^[a-zA-Z0-9]{20,100}$/.test(payAddress)) {
+      return json({ error: "invalid_pay_address" }, 400);
     }
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -76,7 +92,10 @@ Deno.serve(async (req) => {
     }
 
     const externalUserId = `merilive_agency_${w.agency_id}`;
-    const payCurrency = String(body.pay_currency).toLowerCase().trim();
+
+    // 🔒 IDEMPOTENCY HEADER — prevents accidental double-payouts even if
+    // the function is invoked twice for the same withdrawal in parallel.
+    const idemKey = `withdrawal_${w.id}`;
 
     // Call Swift Pay payout
     const payoutRes = await fetch(`${SWIFT_PAY_BASE_URL}/api/public/v1/payout`, {
@@ -84,15 +103,16 @@ Deno.serve(async (req) => {
       headers: {
         Authorization: `Bearer ${SWIFT_PAY_API_KEY}`,
         "Content-Type": "application/json",
+        "Idempotency-Key": idemKey,
       },
       body: JSON.stringify({
         external_user_id: externalUserId,
         display_name: (w as any).agencies.name,
         amount_usd: netUsd,
         pay_currency: payCurrency,
-        pay_address: body.pay_address,
-        pay_network: body.pay_network ?? null,
-        reference: `withdrawal_${w.id}`,
+        pay_address: payAddress,
+        pay_network: payNetwork,
+        reference: idemKey,
       }),
     });
     const txt = await payoutRes.text();
@@ -119,8 +139,9 @@ Deno.serve(async (req) => {
           payment_id: paymentId,
           status,
           pay_currency: payCurrency,
-          pay_address: body.pay_address,
-          pay_network: body.pay_network ?? null,
+          pay_address: payAddress,
+          pay_network: payNetwork,
+          amount_usd: netUsd,
           raw: parsed,
           at: new Date().toISOString(),
         },
