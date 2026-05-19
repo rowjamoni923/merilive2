@@ -14,13 +14,16 @@ interface BetHistoryPanelProps {
 
 interface TransactionRecord {
   id: string;
-  game_id: string;
-  game_name: string;
+  game_id: string | null;
+  game_type: string | null;
   transaction_type: string;
   amount: number;
-  balance_before: number;
-  balance_after: number;
-  multiplier: number | null;
+  balance_before: number | null;
+  balance_after: number | null;
+  bet_amount: number | null;
+  win_amount: number | null;
+  is_win: boolean | null;
+  result_data: any | null;
   created_at: string;
 }
 
