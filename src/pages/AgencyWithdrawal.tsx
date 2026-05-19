@@ -2107,9 +2107,16 @@ const AgencyWithdrawal = () => {
 
     // STRICT: source local methods from THIS country only — never from the BD display-fallback.
     const strictCountryCfg = COUNTRY_CONFIGS[selectedCountry];
-    const localMethods = (strictCountryCfg?.paymentMethods ?? []).filter(
+    let localMethods = (strictCountryCfg?.paymentMethods ?? []).filter(
       m => m.value !== 'epay' && m.value !== 'crypto_auto' && m.value !== 'binance'
     );
+
+    // Admin-driven gate: if any active L5 helper in this country has configured methods,
+    // only those methods are offered. Empty/missing → fall back to all country local methods.
+    const configured = helperConfiguredMethods[selectedCountry];
+    if (configured && configured.size > 0) {
+      localMethods = localMethods.filter(m => configured.has(m.value.toLowerCase()));
+    }
 
     if (hasLocalPayrollHelpers === null) {
       // Helper-availability still loading: show local only (don't promote auto prematurely)
@@ -2118,7 +2125,9 @@ const AgencyWithdrawal = () => {
 
     if (hasLocalPayrollHelpers) {
       // Has Level-5 helper in this country:
-      //   excluded (BD/IN/PK) → local only; others → local + auto (user choice)
+      //   excluded (BD/IN/PK) → local only; others → local + auto (user choice).
+      //   If admin-configured list filtered everything out, fall back to auto so user isn't stuck.
+      if (localMethods.length === 0) return [...OFFICIAL_AUTO_METHODS];
       return isExcluded ? localMethods : [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
 
