@@ -258,14 +258,14 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
             transformOrigin: 'center center',
           }}
         >
-          <UniversalAnimationPlayer
+          <FixedAnimationFrame
             src={displayAnimationUrl}
-            className="w-full h-full"
+            size="fill"
             loop={animationType === 'image'}
-            autoPlay={true}
             muted={false}
             onComplete={handleAnimationComplete}
             onError={() => handleAnimationComplete()}
+            center={false}
           />
         </div>
       </motion.div>
