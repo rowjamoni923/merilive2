@@ -17,10 +17,11 @@ export interface AdminStoragePath {
   path: string;
 }
 const PRIVATE_STORAGE_BUCKETS = new Set([
-  'face-verification', 'host-verification', 'payment-proofs', 'payment-screenshots',
-  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings', 'chat-media',
+  'payment-proofs', 'payment-screenshots',
+  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
 ]);
-const PUBLIC_VERIFICATION_BUCKETS = new Set(['face-verification', 'host-verification']);
+// face-verification, host-verification and chat-media are public buckets — serve direct public URL.
+const PUBLIC_VERIFICATION_BUCKETS = new Set(['face-verification', 'host-verification', 'chat-media']);
 const KNOWN_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'avatars', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
