@@ -221,7 +221,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     paymentMethods: [
       { value: "bkash", label: "bKash" },
       { value: "nagad", label: "Nagad" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   IN: {
@@ -231,7 +232,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₹",
     paymentMethods: [
       { value: "upi", label: "UPI" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   PK: {
@@ -241,7 +243,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "easypaisa", label: "Easypaisa" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   NP: {
@@ -251,7 +254,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "esewa", label: "eSewa" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   LK: {
@@ -261,7 +265,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "frimi", label: "FriMi" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   PH: {
@@ -271,7 +276,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₱",
     paymentMethods: [
       { value: "gcash", label: "GCash" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   ID: {
@@ -281,7 +287,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rp",
     paymentMethods: [
       { value: "gopay", label: "GoPay" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   VN: {
@@ -291,7 +298,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₫",
     paymentMethods: [
       { value: "momo", label: "MoMo" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   TH: {
@@ -301,7 +309,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "฿",
     paymentMethods: [
       { value: "promptpay", label: "PromptPay" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   MY: {
@@ -311,7 +320,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "RM",
     paymentMethods: [
       { value: "grabpay", label: "GrabPay" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   SG: {
@@ -321,7 +331,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "S$",
     paymentMethods: [
       { value: "paynow", label: "PayNow" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   JP: {
@@ -331,7 +342,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "¥",
     paymentMethods: [
       { value: "paypay", label: "PayPay" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   KR: {
@@ -1788,11 +1800,11 @@ const AgencyWithdrawal = () => {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
-  // Auto Withdrawal Fee (admin-configurable, flat USD) — applies to ePay/USDT/Binance/Crypto auto methods
+  // Auto Withdrawal Fee (admin-configurable, flat USD) — applies to Swift Pay / Binance / USDT / Crypto auto methods
   const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; enabled: boolean; methods: string[] }>({
     flat_usd: 2,
     enabled: true,
-    methods: ['epay', 'usdt', 'binance', 'crypto_auto'],
+    methods: ['usdt', 'binance', 'crypto_auto'],
   });
   
   // Form state
@@ -1911,14 +1923,16 @@ const AgencyWithdrawal = () => {
   };
 
   const getAccountFieldLabel = () => {
-    if (paymentMethod === 'epay') return 'ePay Email';
+    if (paymentMethod === 'crypto_auto') return 'Crypto Wallet Address (USDT TRC20 / BEP20)';
+    if (paymentMethod === 'binance') return 'Binance Pay ID or Email';
     if (paymentMethod === 'upi') return 'UPI ID';
     if (paymentMethod === 'alipay') return 'Alipay Email / Account';
     return 'Wallet Number / Account Number';
   };
 
   const getAccountFieldPlaceholder = () => {
-    if (paymentMethod === 'epay') return 'Enter your ePay email';
+    if (paymentMethod === 'crypto_auto') return 'Paste your USDT wallet address';
+    if (paymentMethod === 'binance') return 'Binance Pay ID (numeric) or email';
     if (paymentMethod === 'upi') return 'Enter your UPI ID';
     if (paymentMethod === 'alipay') return 'Enter your Alipay email or account number';
     return 'Enter your wallet/account number';
@@ -1928,7 +1942,7 @@ const AgencyWithdrawal = () => {
 
   const getNormalizedAccountNumber = () => {
     const normalized = accountNumber.trim();
-    return ['epay', 'upi', 'alipay'].includes(paymentMethod)
+    return ['crypto_auto', 'binance', 'upi', 'alipay'].includes(paymentMethod)
       ? normalized
       : normalized.replace(/\s+/g, '');
   };
@@ -1936,10 +1950,18 @@ const AgencyWithdrawal = () => {
   const getAccountNumberValidationMessage = () => {
     const normalizedAccountNumber = getNormalizedAccountNumber();
 
-    if (paymentMethod === 'epay') {
-      return emailAccountSchema.safeParse(normalizedAccountNumber).success
+    if (paymentMethod === 'crypto_auto') {
+      // Crypto wallet address: alphanumeric, 20-100 chars
+      return /^[a-zA-Z0-9]{20,100}$/.test(normalizedAccountNumber)
         ? null
-        : 'ePay account must be a valid email address';
+        : 'Enter a valid crypto wallet address (20-100 chars, no spaces)';
+    }
+
+    if (paymentMethod === 'binance') {
+      // Binance Pay ID (numeric 5-20 digits) or email
+      const isEmail = emailAccountSchema.safeParse(normalizedAccountNumber).success;
+      const isId = /^\d{5,20}$/.test(normalizedAccountNumber);
+      return isEmail || isId ? null : 'Enter a valid Binance Pay ID or email';
     }
 
     if (paymentMethod === 'upi') {
@@ -2049,24 +2071,36 @@ const AgencyWithdrawal = () => {
     console.log('[Withdrawal] Country', selectedCountry, 'has helpers:', hasHelpers);
   }, [selectedCountry, countriesWithHelpers]);
 
-  // Get available payment methods based on helper availability
+  // Official auto-credit methods (Swift Pay Gateway + Binance) — shown for ALL countries.
+  // ePay is fully removed. Local helper methods (lower fee) are shown only if Level-5
+  // helpers exist in the agency's country. Official auto methods (slightly higher flat
+  // USD fee, set by Admin via auto_withdrawal_fee) are always available as fallback /
+  // recommended for foreign agencies.
+  const OFFICIAL_AUTO_METHODS = [
+    { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+    { value: "binance", label: "🪙 Binance Pay (Auto)" },
+  ];
+
   const getAvailablePaymentMethods = () => {
-    if (!countryConfig) return [];
-    
-    // If country has local helpers, show local methods only (no ePay)
-    // If country has NO helpers, show only ePay
+    if (!countryConfig) return OFFICIAL_AUTO_METHODS;
+
+    // Strip any legacy ePay entries
+    const localMethods = countryConfig.paymentMethods.filter(
+      m => m.value !== 'epay' && m.value !== 'crypto_auto' && m.value !== 'binance'
+    );
+
     if (hasLocalPayrollHelpers === null) {
-      // Still loading - show all methods temporarily
-      return countryConfig.paymentMethods;
+      // Still loading — show local + official to avoid flicker
+      return [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
-    
+
     if (hasLocalPayrollHelpers) {
-      // Has helpers - filter out ePay, show local methods only
-      return countryConfig.paymentMethods.filter(m => m.value !== 'epay');
-    } else {
-      // No helpers - show only ePay
-      return [{ value: "epay", label: "ePay (Global)" }];
+      // Local Level-5 helpers exist → show local (lower fee) first, then official auto as fallback
+      return [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
+
+    // No local helpers → official auto-credit only
+    return OFFICIAL_AUTO_METHODS;
   };
 
   // Update payment method when country or helper availability changes
@@ -2074,7 +2108,6 @@ const AgencyWithdrawal = () => {
     if (!selectedCountry && !countryConfig) return;
     const availableMethods = getAvailablePaymentMethods();
     if (availableMethods.length > 0) {
-      // Only update if current method is not in available methods
       const currentMethodAvailable = availableMethods.some(m => m.value === paymentMethod);
       if (!currentMethodAvailable || !paymentMethod) {
         setPaymentMethod(availableMethods[0].value);
@@ -2182,8 +2215,8 @@ const AgencyWithdrawal = () => {
           flat_usd: typeof awf.flat_usd === 'number' ? awf.flat_usd : 2,
           enabled: awf.enabled !== false,
           methods: Array.isArray(awf.methods) && awf.methods.length > 0
-            ? awf.methods.map((m: string) => m.toLowerCase())
-            : ['epay', 'usdt', 'binance', 'crypto_auto'],
+            ? awf.methods.map((m: string) => m.toLowerCase()).filter((m: string) => m !== 'epay')
+            : ['usdt', 'binance', 'crypto_auto'],
         });
         console.log('[AgencyWithdrawal] Auto withdrawal fee from DB:', awf);
       }
@@ -2343,8 +2376,8 @@ const AgencyWithdrawal = () => {
 
        // Helper notifications are now sent automatically by a database trigger
        // when the agency_withdrawals row is created.
-       if (paymentMethod === 'epay') {
-         console.log('[Withdrawal] ePay method - helper notification skipped, goes to Admin Panel');
+       if (isAutoMethod(paymentMethod)) {
+         console.log('[Withdrawal] Auto method (Swift Pay / Binance) - auto-credit via gateway, helper notification skipped');
        } else {
          console.log('[Withdrawal] Helper notifications will be sent automatically to same-country active Level 5 payroll helpers');
        }
@@ -2558,9 +2591,7 @@ const AgencyWithdrawal = () => {
                             className="text-gray-900 font-medium hover:bg-brand-50 focus:bg-brand-50 cursor-pointer py-3"
                           >
                             <div className="flex items-center justify-between w-full">
-                              <span>
-                                {method.value === 'epay' && '🌍 '}{method.label}
-                              </span>
+                              <span>{method.label}</span>
                               {maxLimit && (
                                 <span className="text-xs text-slate-500 ml-2">
                                   (Max: {countryConfig.currencySymbol}{formatNumber(maxLimit)})
@@ -2573,12 +2604,13 @@ const AgencyWithdrawal = () => {
                     </SelectContent>
                   </Select>
                   {/* Show info based on payment method */}
-                  {paymentMethod === 'epay' ? (
+                  {isAutoMethod(paymentMethod) ? (
                     <div className="bg-info-50 rounded-lg p-3 border border-info-200">
                       <div className="flex items-center gap-2 text-info-700 text-sm">
                         <Globe className="w-4 h-4" />
                         <span>
-                          <strong>ePay (Global):</strong> Your request will be processed by Admin directly.
+                          <strong>{paymentMethod === 'binance' ? 'Binance Pay (Auto)' : 'Swift Pay (Crypto Auto-Credit)'}:</strong>{' '}
+                          Funds are credited automatically to your wallet via our payment gateway. Flat fee: <strong>${autoWithdrawalFee.flat_usd}</strong>.
                         </span>
                       </div>
                     </div>
@@ -2595,13 +2627,13 @@ const AgencyWithdrawal = () => {
                       </div>
                     </div>
                   )}
-                  {/* Show ePay notice if no local helpers */}
+                  {/* Notice when no local helpers — official auto-credit only */}
                   {!hasLocalPayrollHelpers && hasLocalPayrollHelpers !== null && (
                     <div className="bg-warning-50 rounded-lg p-3 border border-warning-200">
                       <div className="flex items-center gap-2 text-warning-700 text-sm">
                         <AlertCircle className="w-4 h-4" />
                         <span>
-                          No local payment helpers in your country. Using <strong>ePay (Global)</strong> - processed by Admin.
+                          No local Level-5 payment helpers in your country. Using our official <strong>Swift Pay / Binance auto-credit</strong> gateway.
                         </span>
                       </div>
                     </div>
@@ -2756,21 +2788,23 @@ const AgencyWithdrawal = () => {
                 <div className="space-y-2">
                   <Label className="text-gray-800 font-semibold">{getAccountFieldLabel()}</Label>
                   <Input
-                    type={paymentMethod === 'epay' ? 'email' : 'text'}
-                    inputMode={paymentMethod === 'epay' ? 'email' : ['bkash', 'nagad', 'easypaisa', 'esewa', 'frimi', 'gcash', 'gopay', 'momo', 'promptpay', 'grabpay', 'paynow', 'paypay', 'kakaopay', 'payme', 'linepay', 'wavepay', 'wing', 'bcel', 'progresifpay', 'qpay', 'kaspi', 'mpay', 'tbcpay', 'alipay'].includes(paymentMethod) ? 'numeric' : 'text'}
+                    type="text"
+                    inputMode={['bkash', 'nagad', 'easypaisa', 'esewa', 'frimi', 'gcash', 'gopay', 'momo', 'promptpay', 'grabpay', 'paynow', 'paypay', 'kakaopay', 'payme', 'linepay', 'wavepay', 'wing', 'bcel', 'progresifpay', 'qpay', 'kaspi', 'mpay', 'tbcpay', 'alipay'].includes(paymentMethod) ? 'numeric' : 'text'}
                     placeholder={getAccountFieldPlaceholder()}
                     value={accountNumber}
                     onChange={(e) => setAccountNumber(e.target.value)}
                     className="h-12 bg-white border-2 border-gray-200 hover:border-brand-400 focus:border-brand-500 focus:ring-brand-500/20 text-gray-900 font-medium placeholder:text-slate-500"
                   />
                   <p className="text-xs text-gray-500">
-                    {paymentMethod === 'epay'
-                      ? 'Must be a valid email address.'
-                      : paymentMethod === 'upi'
-                        ? 'Must be your exact UPI ID.'
-                        : paymentMethod === 'alipay'
-                          ? 'Use your Alipay email or numeric account.'
-                          : `Use your exact ${countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || 'wallet'} number.`}
+                    {paymentMethod === 'crypto_auto'
+                      ? 'Paste your USDT wallet address (TRC20 / BEP20). Funds are auto-credited on-chain.'
+                      : paymentMethod === 'binance'
+                        ? 'Your Binance Pay ID (numeric) or registered email. Auto-credited instantly.'
+                        : paymentMethod === 'upi'
+                          ? 'Must be your exact UPI ID.'
+                          : paymentMethod === 'alipay'
+                            ? 'Use your Alipay email or numeric account.'
+                            : `Use your exact ${countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || 'wallet'} number.`}
                   </p>
                 </div>
 
