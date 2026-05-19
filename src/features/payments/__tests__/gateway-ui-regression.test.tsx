@@ -19,12 +19,12 @@ import { renderHook, waitFor } from "@testing-library/react";
 const orderMock = vi.fn();
 const eqMock = vi.fn(() => ({ order: orderMock }));
 const selectMock = vi.fn(() => ({ eq: eqMock, order: orderMock }));
-const fromMock = vi.fn(() => ({ select: selectMock }));
-const channelMock = vi.fn(() => ({
+const fromMock = vi.fn((_table: string) => ({ select: selectMock }));
+const channelMock = vi.fn((_name: string) => ({
   on: vi.fn().mockReturnThis(),
   subscribe: vi.fn().mockReturnThis(),
 }));
-const removeChannelMock = vi.fn();
+const removeChannelMock = vi.fn((_ch: unknown) => undefined);
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
