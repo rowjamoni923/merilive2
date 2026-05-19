@@ -26,6 +26,15 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function gatewayErrorMessage(body: any): string {
+  return String(body?.error ?? body?.message ?? body?.raw ?? "gateway_error");
+}
+
+function isGatewayMinimumAmountError(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return normalized.includes("less than minimal") || normalized.includes("less than minimum");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -103,10 +112,26 @@ Deno.serve(async (req) => {
     }
 
     if (!depositRes.ok) {
+      const gatewayMessage = gatewayErrorMessage(depositBody);
       console.error("[swift-pay-create-deposit] gateway error", depositRes.status, depositBody);
+
+      // NOWPayments rejects small packages before it can create an address. This is
+      // an expected business validation, not an edge-function outage; return a
+      // structured success transport response so the app shows a normal message
+      // instead of Lovable/Supabase treating it as a 502 runtime failure.
+      if (depositRes.status === 400 && isGatewayMinimumAmountError(gatewayMessage)) {
+        return json({
+          ok: false,
+          error: "minimum_deposit_not_met",
+          message: "This crypto network requires a larger deposit amount. Please choose a bigger diamond package and try again.",
+          gateway_status: depositRes.status,
+          details: depositBody,
+        });
+      }
+
       return json(
         {
-          error: depositBody?.error ?? "gateway_error",
+          error: gatewayMessage,
           gateway_status: depositRes.status,
           details: depositBody,
         },
