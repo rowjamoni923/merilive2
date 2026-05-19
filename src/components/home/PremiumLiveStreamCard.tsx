@@ -74,38 +74,50 @@ export const PremiumLiveStreamCard = ({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
     >
-      {/* Thumbnail — CDN-enhanced (sharpen + WebP + quality boost) for a
-          luxurious, magazine-quality look. Renders instantly. */}
-      <img
-        src={enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
-        alt={hostName}
-        loading="eager"
-        decoding="sync"
-        // @ts-expect-error – fetchpriority is a standard HTML hint
-        fetchpriority="high"
-        onError={(e) => {
-          const img = e.currentTarget;
-          // Step 1: raw thumbnail URL (skip CDN proxy)
-          if (thumbnailUrl && img.src !== thumbnailUrl && !img.dataset.s1) {
-            img.dataset.s1 = "1";
-            img.src = thumbnailUrl;
-            return;
-          }
-          // Step 2: host avatar fallback (or placeholder)
-          if (!img.dataset.s2) {
-            img.dataset.s2 = "1";
-            img.src = hostId ? getDisplayAvatar(hostId, hostAvatar || null) : (hostAvatar || DEFAULT_THUMB);
-            return;
-          }
-          // Step 3: final placeholder
-          if (img.src !== DEFAULT_THUMB) img.src = DEFAULT_THUMB;
-        }}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        style={{
-          filter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
-          WebkitFilter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
-        }}
-      />
+      {/* Resolve the best image: live thumbnail when present, otherwise the
+          host's avatar (profile_photo_url) so offline hosts still render. */}
+      {(() => {
+        const avatarFallback = hostId
+          ? getDisplayAvatar(hostId, hostAvatar || null)
+          : (hostAvatar || DEFAULT_THUMB);
+        const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== DEFAULT_THUMB;
+        const primarySrc = hasLiveThumb
+          ? enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
+          : avatarFallback;
+        return (
+          <img
+            src={primarySrc}
+            alt={hostName}
+            loading="eager"
+            decoding="sync"
+            // @ts-expect-error – fetchpriority is a standard HTML hint
+            fetchpriority="high"
+            onError={(e) => {
+              const img = e.currentTarget;
+              // Step 1: raw thumbnail URL (skip CDN proxy)
+              if (hasLiveThumb && img.src !== thumbnailUrl && !img.dataset.s1) {
+                img.dataset.s1 = "1";
+                img.src = thumbnailUrl;
+                return;
+              }
+              // Step 2: host avatar fallback (stable placeholder)
+              if (!img.dataset.s2 && img.src !== avatarFallback) {
+                img.dataset.s2 = "1";
+                img.src = avatarFallback;
+                return;
+              }
+              // Step 3: final placeholder
+              if (img.src !== DEFAULT_THUMB) img.src = DEFAULT_THUMB;
+            }}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            style={{
+              filter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
+              WebkitFilter: 'brightness(1.04) contrast(1.10) saturate(1.18)',
+            }}
+          />
+        );
+      })()}
+
 
 
       {/* Premium Gradient Overlay */}
