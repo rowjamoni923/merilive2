@@ -822,38 +822,8 @@ const ProfileDetail = () => {
         {/* Subtle vignette */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.22) 100%)' }} />
 
-        {/* Slideshow Indicators — compact professional bars */}
-        {posterImages.length > 1 && (
-          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-1.5 py-1 rounded-[5px] bg-foreground/15 backdrop-blur-md">
-            {posterImages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlideIndex(index)}
-                aria-label={`Slide ${index + 1}`}
-                className="group grid h-3 w-4 place-items-center"
-              >
-                <span
-                  className={`block h-0.5 rounded-[1px] transition-all duration-200 ${
-                  index === currentSlideIndex
-                    ? "w-3 bg-background"
-                    : "w-1.5 bg-background/45 group-hover:bg-background/75"
-                }`}
-                />
-              </button>
-            ))}
-            <button
-              onClick={() => setIsPaused(!isPaused)}
-              aria-label={isPaused ? 'Play' : 'Pause'}
-              className="ml-0.5 grid h-4 w-5 place-items-center rounded-[4px] bg-background/85 backdrop-blur-md shadow-sm"
-            >
-              {isPaused ? (
-                <Play className="w-2.5 h-2.5 text-foreground" />
-              ) : (
-                <Pause className="w-2.5 h-2.5 text-foreground" />
-              )}
-            </button>
-          </div>
-        )}
+        {/* Slideshow auto-plays 24/7; controls intentionally hidden */}
+
 
         {/* Header Buttons */}
         <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center safe-area-top">
