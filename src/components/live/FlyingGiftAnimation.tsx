@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, memo, forwardRef, useRef, useMemo } from "react";
+import React, { useEffect, useState, useCallback, memo, forwardRef, useRef, useMemo, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,34 @@ const getAnimationType = (url?: string): 'svga' | 'lottie' | 'video' | 'image' |
   if (cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm')) return 'video';
   if (cleanUrl.endsWith('.gif') || cleanUrl.endsWith('.png') || cleanUrl.endsWith('.webp') || cleanUrl.endsWith('.jpg')) return 'image';
   return null;
+};
+
+const FULLSCREEN_GIFT_LAYER_STYLE: CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  width: '100dvw',
+  height: '100dvh',
+  minWidth: '100vw',
+  minHeight: '100vh',
+  zIndex: 2147483000,
+  pointerEvents: 'none',
+  overflow: 'hidden',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  isolation: 'isolate',
+};
+
+const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  width: '100dvw',
+  height: '100dvh',
+  minWidth: '100vw',
+  minHeight: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 };
 
 // ============================================================
@@ -167,85 +195,54 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     );
   };
 
-  // Full-screen SVGA/fallback animation
+  // Full-screen gift animation — every gift occupies the complete app viewport.
   const renderFullScreen = () => {
     if (!showFullScreen || animationEnded) return null;
 
-    if (isSVGA && displayAnimationUrl) {
+    if (displayAnimationUrl) {
       return (
         <motion.div
-          key="svga-fs"
+          key={`fullscreen-${displayAnimationUrl}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="pointer-events-none"
-          style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 99999 }}
+          style={FULLSCREEN_GIFT_LAYER_STYLE}
         >
-          <div style={{
-            position: 'absolute', top: '50%', left: '50%', width: '100%', height: '100%',
-            transform: 'translate(-50%, -50%) scale(1.6)', transformOrigin: 'center',
-          }}>
+          <div style={FULLSCREEN_GIFT_STAGE_STYLE}>
             <FixedAnimationFrame
               src={displayAnimationUrl}
-              size="fill"
-              type="svga"
+              size="fullscreen"
+              width="100dvw"
+              height="100dvh"
+              type={isSVGA ? 'svga' : undefined}
               loop={false}
-              muted={false}
+              muted={!isSVGA}
               volume={0.8}
               soundUrl={gift.soundUrl}
-              onComplete={handleAnimationComplete}
+              onComplete={isSVGA ? handleAnimationComplete : undefined}
               onError={handleSvgaError}
-              center={false}
+              center
             />
           </div>
         </motion.div>
       );
     }
 
-    // Fallback: show gift icon burst for non-SVGA premium gifts
-    if (isPremium && giftIconSrc) {
-      return (
-        <motion.div
-          key="img-fs"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="pointer-events-none"
-          style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <motion.img
-            src={giftIconSrc}
-            alt={gift.giftName}
-            className="w-48 h-48 object-contain drop-shadow-2xl"
-            initial={{ scale: 0, rotate: -15 }}
-            animate={{ scale: [0, 1.4, 1.1], rotate: [0, 10, 0] }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          />
-          {/* Particle burst */}
-          {Array.from({ length: 10 }).map((_, i) => {
-            const angle = (i / 10) * Math.PI * 2;
-            return (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 rounded-full"
-                style={{ background: ['#FFD700', '#FF69B4', '#00CED1', '#9370DB', '#FF4500'][i % 5] }}
-                initial={{ scale: 0, x: 0, y: 0 }}
-                animate={{
-                  scale: [0, 1.5, 0],
-                  x: Math.cos(angle) * (100 + Math.random() * 60),
-                  y: Math.sin(angle) * (100 + Math.random() * 60),
-                  opacity: [0, 1, 0],
-                }}
-                transition={{ duration: 1.2, delay: 0.2 + i * 0.04 }}
-              />
-            );
-          })}
-        </motion.div>
-      );
-    }
-
-    return null;
+    return (
+      <motion.div
+        key="emoji-fullscreen"
+        initial={{ opacity: 0, scale: 0.2, rotate: -14 }}
+        animate={{ opacity: 1, scale: [0.2, 1.08, 1], rotate: [0, 8, 0] }}
+        exit={{ opacity: 0, scale: 0.86 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        style={FULLSCREEN_GIFT_LAYER_STYLE}
+      >
+        <span className="drop-shadow-2xl text-[clamp(8rem,45vmin,22rem)]">
+          {gift.giftIcon || '🎁'}
+        </span>
+      </motion.div>
+    );
   };
 
   // Banner gradient based on gift value (Bigo style)
@@ -264,7 +261,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   return createPortal(
     <div
       className="pointer-events-none"
-      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 100000 }}
+      style={{ position: 'fixed', inset: 0, width: '100dvw', height: '100dvh', minWidth: '100vw', minHeight: '100vh', zIndex: 2147483000, pointerEvents: 'none', overflow: 'hidden', isolation: 'isolate' }}
     >
       {/* Full-screen animation */}
       <AnimatePresence mode="wait">{renderFullScreen()}</AnimatePresence>
