@@ -119,8 +119,32 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
     ...(height !== undefined ? { height } : null),
   };
 
-  const resolvedType = type || detectAnimationType(src);
-  const useAudioPlayer = resolvedType === 'svga' && !muted;
+  // ─── Type validation ──────────────────────────────────────────────
+  // Sniff the extension; if the caller forced `type` but the src extension
+  // disagrees (e.g. type="svga" on a .png), trust the extension and fall back
+  // to UniversalAnimationPlayer so we never spin up SVGA + audio decode on
+  // a non-SVGA file. Unknown extensions also bypass audio handling.
+  const detected = detectAnimationType(src);
+  const KNOWN_TYPES = new Set<AnimationType>([
+    'svga', 'lottie', 'vap', 'gif', 'webp', 'png', 'mp4', 'webm', 'static',
+  ]);
+  const explicitMismatch =
+    !!type && detected !== 'static' && type !== detected;
+  if (explicitMismatch && typeof window !== 'undefined' && (debug ?? isAnimationDebugEnabled())) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[FixedAnimationFrame] type="${type}" does not match detected "${detected}" for src=${src.split('/').pop()} — using detected type.`,
+    );
+  }
+  const safeType: AnimationType | undefined = type && KNOWN_TYPES.has(type) && !explicitMismatch
+    ? type
+    : detected;
+  const resolvedType = safeType;
+  // Audio path is allowed ONLY when we are certain the file is SVGA.
+  const useAudioPlayer = resolvedType === 'svga' && detected === 'svga' && !muted;
+  // For unknown / static / non-animatable types, force muted so downstream
+  // players never attempt SVGA audio extraction or video unmuting.
+  const safeMuted = resolvedType === 'static' ? true : muted;
 
   const debugActive = debug ?? isAnimationDebugEnabled();
   const mountTimeRef = useRef<number>(Date.now());
