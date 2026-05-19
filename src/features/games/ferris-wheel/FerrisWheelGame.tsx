@@ -24,7 +24,7 @@ const CHIP_VALUES = [500, 1000, 5000, 10000, 20000];
 
 interface UserProfile {
   id: string;
-  diamond_balance: number;
+  coins: number;
   display_name: string;
 }
 
@@ -52,7 +52,7 @@ export const FerrisWheelGame = () => {
         setUserId(user.id);
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("id, diamond_balance, display_name")
+          .select("id, coins, display_name")
           .eq("id", user.id)
           .single();
         if (profileData) {
@@ -93,7 +93,7 @@ export const FerrisWheelGame = () => {
       return;
     }
 
-    if ((profile?.diamond_balance || 0) < selectedChip) {
+    if ((profile?.coins || 0) < selectedChip) {
       toast.error("Not enough diamonds!");
       return;
     }
@@ -120,7 +120,7 @@ export const FerrisWheelGame = () => {
     }
 
     const newBalance = betResult.newBalance || 0;
-    setProfile({ ...profile, diamond_balance: newBalance });
+    setProfile({ ...profile, coins: newBalance });
 
     // Determine winner (with slight house edge)
     const random = Math.random();
@@ -160,7 +160,7 @@ export const FerrisWheelGame = () => {
         );
         
         if (winResult.success) {
-          setProfile(prev => prev ? { ...prev, diamond_balance: winResult.newBalance || 0 } : null);
+          setProfile(prev => prev ? { ...prev, coins: winResult.newBalance || 0 } : null);
         }
         
         setTodayProfit(prev => prev + winAmount - selectedChip);
@@ -317,7 +317,7 @@ export const FerrisWheelGame = () => {
         <div className="bg-white/80 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-2 shadow">
           <span className="text-gray-600 text-sm">Gold balance</span>
           <Diamond className="w-4 h-4 text-pink-500" />
-          <span className="font-bold text-gray-800">{(profile?.diamond_balance || 0).toLocaleString()}</span>
+          <span className="font-bold text-gray-800">{(profile?.coins || 0).toLocaleString()}</span>
         </div>
         <div className="bg-white/80 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-2 shadow">
           <span className="text-gray-600 text-sm">Today's profit</span>

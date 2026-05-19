@@ -27,7 +27,7 @@ const CHIP_VALUES = [500, 1000, 5000, 10000, 20000];
 
 interface UserProfile {
   id: string;
-  diamond_balance: number;
+  coins: number;
   display_name: string;
 }
 
@@ -107,7 +107,7 @@ export const TeenPattiGame = () => {
         setUserId(user.id);
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("id, diamond_balance, display_name")
+          .select("id, coins, display_name")
           .eq("id", user.id)
           .single();
         if (profileData) {
@@ -143,7 +143,7 @@ export const TeenPattiGame = () => {
       return;
     }
 
-    if ((profile?.diamond_balance || 0) < selectedChip) {
+    if ((profile?.coins || 0) < selectedChip) {
       toast.error("Not enough diamonds!");
       return;
     }
@@ -156,7 +156,7 @@ export const TeenPattiGame = () => {
       return;
     }
 
-    setProfile(prev => prev ? { ...prev, diamond_balance: betResult.newBalance || 0 } : null);
+    setProfile(prev => prev ? { ...prev, coins: betResult.newBalance || 0 } : null);
     setBets(prev => ({ ...prev, [hand]: prev[hand] + selectedChip }));
     setAllBets(prev => ({ ...prev, [hand]: prev[hand] + selectedChip }));
     playBetSound();
@@ -210,7 +210,7 @@ export const TeenPattiGame = () => {
           const winResult = await processWin(userId, "teen-patti", "Teen Patti", winAmount, 2);
           
           if (winResult.success) {
-            setProfile(prev => prev ? { ...prev, diamond_balance: winResult.newBalance || 0 } : null);
+            setProfile(prev => prev ? { ...prev, coins: winResult.newBalance || 0 } : null);
           }
           
           playWinSound();
@@ -469,7 +469,7 @@ export const TeenPattiGame = () => {
             "from-purple-400 to-purple-600"
           ];
           const isSelected = selectedChip === value;
-          const isDisabled = (profile?.diamond_balance || 0) < value;
+          const isDisabled = (profile?.coins || 0) < value;
           
           return (
             <motion.button
@@ -502,7 +502,7 @@ export const TeenPattiGame = () => {
         <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full">
           <Diamond className="w-5 h-5 text-yellow-400" />
           <span className="text-white font-bold">
-            {(profile?.diamond_balance || 0).toLocaleString()}
+            {(profile?.coins || 0).toLocaleString()}
           </span>
         </div>
       </div>
