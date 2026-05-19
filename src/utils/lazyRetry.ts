@@ -10,8 +10,8 @@
  *     network / dev-server hiccups.
  *  2. If it still fails, throw the error to the route ErrorBoundary.
  *
- * IMPORTANT: never call window.location.reload() here. The native app must not
- * hard-reload during normal use; realtime/query invalidation keeps data fresh.
+ * IMPORTANT: no hard page refresh here. The native app keeps data fresh through
+ * realtime/query invalidation during normal use.
  */
 const isChunkLoadError = (error: any) =>
   error?.message?.includes('Failed to fetch dynamically imported module') ||
