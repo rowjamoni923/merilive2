@@ -24,3 +24,12 @@ verify_jwt = false
 [functions.admin-sign-storage-url]
 verify_jwt = false
 
+
+[functions.swift-pay-create-deposit]
+verify_jwt = false
+
+[functions.swift-pay-poll-deposits]
+verify_jwt = false
+
+[functions.swift-pay-create-payout]
+verify_jwt = false
