@@ -60,6 +60,14 @@ export interface FixedAnimationFrameProps {
   fallbackEmoji?: string;
   /** Optional admin-uploaded sound URL — used for SVGA with no embedded audio. */
   soundUrl?: string | null;
+  /**
+   * When true, logs onComplete timing with provenance ('native' vs 'safety-timer')
+   * for both SVGAPlayerWithAudio and UniversalAnimationPlayer paths.
+   * Also auto-enabled by `localStorage.svgaDebug = '1'` or `window.__SVGA_DEBUG__ = true`.
+   */
+  debug?: boolean;
+  /** Optional label appended to debug logs to identify the call site. */
+  debugTag?: string;
 }
 
 const BG_CLASSES: Record<NonNullable<FixedAnimationFrameProps['background']>, string> = {
