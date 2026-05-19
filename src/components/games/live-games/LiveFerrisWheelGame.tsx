@@ -71,6 +71,8 @@ export function LiveFerrisWheelGame({
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [isPlacingBet, setIsPlacingBet] = useState(false);
   const [totalBetPlaced, setTotalBetPlaced] = useState(0);
+  // Track exact wheel rotation so arrow aligns with winning item (no visual mismatch)
+  const [wheelRotation, setWheelRotation] = useState(0);
   
   // 24/7 Auto-play state - SINGLE TIMER SYSTEM
   const [autoPlayPhase, setAutoPlayPhase] = useState<'betting' | 'spinning'>('betting');
