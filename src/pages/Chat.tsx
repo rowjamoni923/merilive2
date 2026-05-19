@@ -132,13 +132,17 @@ interface GroupMessage {
 }
 
 // Parse gift payload from chat content
-const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string } => {
+// Format: [Gift: ANIMATION_URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | snd:SOUND_URL]
+// The `snd:` suffix is optional and only present when the gift has a separate sound asset.
+const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null } => {
   const mediaMatch = content.match(/\[Gift:\s*(https?:\/\/[^\|\s\]]+)\|/i);
   const emojiMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?([^\s\]]+)/i);
+  const soundMatch = content.match(/\|\s*snd:(https?:\/\/[^\s\|\]]+)/i);
 
   return {
     mediaUrl: mediaMatch?.[1] ?? null,
     emoji: emojiMatch?.[1] ?? '🎁',
+    soundUrl: soundMatch?.[1] ?? null,
   };
 };
 
