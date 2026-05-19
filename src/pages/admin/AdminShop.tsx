@@ -46,7 +46,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import SVGAPreviewWithMuteToggle from "@/components/admin/SVGAPreviewWithMuteToggle";
-import { UniversalAnimationPlayer } from "@/features/shared/animations";
+
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { LazyImage } from "@/components/LazyImage";
 import { recordAdminError } from "@/utils/adminErrorLog";
