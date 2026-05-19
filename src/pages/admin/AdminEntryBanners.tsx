@@ -37,7 +37,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import SVGAPreviewWithMuteToggle from '@/components/admin/SVGAPreviewWithMuteToggle';
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { EntryBannerAnimation } from "@/components/live/EntryBannerAnimation";
 import adminStyles from "@/styles/adminStyles";
 
@@ -315,11 +315,10 @@ export default function AdminEntryBanners() {
                   containerClassName="w-full h-full"
                 />
               ) : banner.animation_url ? (
-                <UniversalAnimationPlayer
+                <FixedAnimationFrame size="fill" center={false}
                   src={banner.animation_url}
                   className="w-full h-full object-contain"
                   loop
-                  autoPlay
                   muted
                 />
               ) : (

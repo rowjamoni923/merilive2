@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, Car } from "lucide-react";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
@@ -278,11 +278,10 @@ const AdminVehicleEntrances = () => {
                   {item.preview_url ? (
                     <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   ) : item.animation_url ? (
-                    <UniversalAnimationPlayer
+                    <FixedAnimationFrame size="fill" center={false}
                       src={item.animation_url}
-                      className="w-full h-full"
+                      
                       loop
-                      autoPlay
                     />
                   ) : (
                     <Car className="h-16 w-16 text-blue-500" />
@@ -418,11 +417,10 @@ const AdminVehicleEntrances = () => {
 
             {formData.animation_url && (
               <div className="aspect-video bg-black rounded-lg overflow-hidden max-h-40">
-                <UniversalAnimationPlayer
+                <FixedAnimationFrame size="fill" center={false}
                   src={formData.animation_url}
-                  className="w-full h-full"
+                  
                   loop
-                  autoPlay
                 />
               </div>
             )}
@@ -445,11 +443,10 @@ const AdminVehicleEntrances = () => {
           </DialogHeader>
           {previewUrl && (
             <div className="flex-1 bg-black rounded-lg overflow-hidden h-full">
-              <UniversalAnimationPlayer
+              <FixedAnimationFrame size="fill" center={false}
                 src={previewUrl}
-                className="w-full h-full"
+                
                 loop
-                autoPlay
                 muted={false}
               />
             </div>

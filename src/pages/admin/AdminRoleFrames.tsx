@@ -15,8 +15,7 @@ import {
   RefreshCw, UserCog, Building2, Briefcase, Shield,
   User, CheckCircle, X, Image
 } from "lucide-react";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
-
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface RoleFrame {
   id: string;
   role_type: string;
@@ -472,11 +471,10 @@ const AdminRoleFrames = () => {
                     {/* Frame Preview */}
                     <div className="aspect-square bg-slate-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                       {frame.frame_url ? (
-                        <UniversalAnimationPlayer
+                        <FixedAnimationFrame size="fill" center={false}
                           src={frame.frame_url}
-                          className="w-full h-full"
+                          
                           loop
-                          autoPlay
                         />
                       ) : (
                         <Image className="w-12 h-12 text-slate-600" />
@@ -561,11 +559,10 @@ const AdminRoleFrames = () => {
                           <div className="flex items-center gap-2">
                             <div className="w-10 h-10 rounded bg-slate-800 overflow-hidden">
                               {assignment.frame?.frame_url && (
-                                <UniversalAnimationPlayer
+                                <FixedAnimationFrame size="fill" center={false}
                                   src={assignment.frame.frame_url}
-                                  className="w-full h-full"
+                                  
                                   loop
-                                  autoPlay
                                 />
                               )}
                             </div>
@@ -678,11 +675,10 @@ const AdminRoleFrames = () => {
               {/* Preview */}
               {frameForm.frame_url && (
                 <div className="mt-2 w-24 h-24 bg-slate-800 rounded-lg overflow-hidden">
-                  <UniversalAnimationPlayer
+                  <FixedAnimationFrame size="fill" center={false}
                     src={frameForm.frame_url}
-                    className="w-full h-full"
+                    
                     loop
-                    autoPlay
                   />
                 </div>
               )}
