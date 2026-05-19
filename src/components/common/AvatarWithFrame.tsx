@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, memo, useCallback, useRef, forwardRef } from 'react';
+import React, { useState, useEffect, Suspense, lazy, memo, useCallback, useRef, forwardRef, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,12 +10,20 @@ import {
   clearUserFrameCacheById,
   preloadUserFrames,
 } from '@/utils/frameCache';
+import { getDisplayAvatar } from '@/utils/placeholderAvatar';
+import {
+  getCachedGender,
+  getCachedViewerId,
+  requestGender,
+  ensureViewerLoaded,
+} from '@/utils/avatarGenderCache';
 
 // Lazy load frame player
 const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
 
 // Preload SVGA function
 import { preloadSVGA } from './SVGAPlayer';
+
 
 interface FrameData {
   id: string;
@@ -31,6 +39,13 @@ interface AvatarWithFrameProps {
   name?: string;
   level?: number;
   isHost?: boolean;
+  /** When known, callers can pass gender to skip the cache lookup. */
+  gender?: 'male' | 'female' | null;
+  /**
+   * Force owner-mode (no AI placeholder). When undefined, AvatarWithFrame
+   * auto-detects ownership by comparing userId to the signed-in viewer.
+   */
+  isOwner?: boolean;
   size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   showFrame?: boolean;
   showAnimation?: boolean;
@@ -41,6 +56,7 @@ interface AvatarWithFrameProps {
   onClick?: () => void;
   frameId?: string | null;
 }
+
 
 // Size configurations
 // Avatar fills the FULL container so no white ring shows between avatar and frame.
@@ -238,6 +254,8 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   name = 'U',
   level = 1,
   isHost = false,
+  gender: genderProp,
+  isOwner: isOwnerProp,
   size = 'md',
   showFrame = true,
   showGlow = false, // Disabled by default for performance
@@ -250,8 +268,62 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   const [activeFrameUrl, setActiveFrameUrl] = useState<string | null>(null);
   const [activeFrameType, setActiveFrameType] = useState<string>('static');
   const [frameError, setFrameError] = useState(false);
-  
+
+  // ───────── Gender-aware AI placeholder resolution ─────────
+  // If src is missing AND viewer is NOT the profile owner, show a stable AI
+  // placeholder picked from the matching gender pool. Owners always see their
+  // real (possibly blank) avatar so they're nudged to upload one.
+  const hasRealSrc = !!(src && src.trim().length > 0);
+  const cached = userId ? getCachedGender(userId) : undefined;
+  const initialGender: 'male' | 'female' | null =
+    genderProp ??
+    (cached
+      ? (cached.is_host || cached.gender === 'female' ? 'female' : (cached.gender === 'male' ? 'male' : null))
+      : null);
+  const [resolvedGender, setResolvedGender] = useState<'male' | 'female' | null>(initialGender);
+  const [viewerId, setViewerId] = useState<string | null>(getCachedViewerId());
+
+  // Kick off gender lookup once per userId when missing avatar + unknown gender.
+  useEffect(() => {
+    if (hasRealSrc || !userId || genderProp || resolvedGender) return;
+    let cancelled = false;
+    requestGender(userId).then(() => {
+      if (cancelled) return;
+      const c = getCachedGender(userId);
+      if (!c) return;
+      setResolvedGender(
+        c.is_host || c.gender === 'female' ? 'female' : c.gender === 'male' ? 'male' : null,
+      );
+    });
+    return () => { cancelled = true; };
+  }, [userId, hasRealSrc, genderProp, resolvedGender]);
+
+  // Resolve current viewer id once (for owner detection).
+  useEffect(() => {
+    if (viewerId || isOwnerProp !== undefined) return;
+    let cancelled = false;
+    ensureViewerLoaded().then(() => {
+      if (cancelled) return;
+      const id = getCachedViewerId();
+      if (id) setViewerId(id);
+    });
+    return () => { cancelled = true; };
+  }, [viewerId, isOwnerProp]);
+
+  const isOwner = isOwnerProp !== undefined
+    ? isOwnerProp
+    : !!(userId && viewerId && userId === viewerId);
+
+  const effectiveSrc = useMemo(() => {
+    if (hasRealSrc) return src!;
+    if (!userId) return undefined;
+    if (isOwner) return undefined; // owner sees blank → AvatarFallback initial
+    // Default to female pool when gender unknown (host-first product).
+    return getDisplayAvatar(userId, null, { gender: resolvedGender ?? 'female' });
+  }, [hasRealSrc, src, userId, isOwner, resolvedGender]);
+
   const sizeConfig = sizeConfigs[size];
+
   const displayName = name?.charAt(0)?.toUpperCase() || 'U';
   // Always eager — avatar must appear instantly with no flicker
   const avatarImageLoading: 'eager' | 'lazy' = 'eager';
@@ -362,8 +434,9 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   }, [activeFrameUrl, activeFrameType]);
 
   useEffect(() => {
-    warmAvatarAsset(src);
-  }, [src]);
+    warmAvatarAsset(effectiveSrc);
+  }, [effectiveSrc]);
+
 
   const hasValidFrame = activeFrameUrl && activeFrameUrl.startsWith('http') && !frameError && !brokenFrameUrls.has(activeFrameUrl);
   const frameAutoPlay = true; // Premium frames must animate nonstop everywhere, even if older call sites pass showAnimation={false}.
@@ -387,7 +460,8 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         style={{ ...containerStyle, overflow: 'hidden', borderRadius: '9999px' }}>
         <Avatar className={cn('border-2 border-white/30', avatarClassName)}
           style={{ width: sizeConfig.container, height: sizeConfig.container }}>
-          <AvatarImage src={src || undefined} className="object-cover" loading={avatarImageLoading} decoding="async" />
+          <AvatarImage src={effectiveSrc || undefined} className="object-cover" loading={avatarImageLoading} decoding="async" />
+
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold shadow-inner', sizeConfig.text)}>
             {displayName}
           </AvatarFallback>
@@ -444,7 +518,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
             width: sizeConfig.avatar, height: sizeConfig.avatar,
             border: '2.5px solid rgba(255,255,255,0.15)',
           }}>
-          <AvatarImage src={src || undefined} className="object-cover" loading={avatarImageLoading} decoding="async" />
+          <AvatarImage src={effectiveSrc || undefined} className="object-cover" loading={avatarImageLoading} decoding="async" />
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold', sizeConfig.text)}>
             {displayName}
           </AvatarFallback>

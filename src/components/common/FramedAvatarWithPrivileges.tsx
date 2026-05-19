@@ -1,15 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getEquippedPrivilegesForUser, EquippedPrivileges } from "@/hooks/useUserPrivileges";
 import { motion } from "framer-motion";
 import Premium3DFrame from "./Premium3DFrame";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import {
+  getCachedGender,
+  getCachedViewerId,
+  requestGender,
+  ensureViewerLoaded,
+} from "@/utils/avatarGenderCache";
 
 interface FramedAvatarWithPrivilegesProps {
   userId: string;
   src?: string | null;
   name?: string;
   level?: number;
+  /** When known, callers can pass gender to skip the cache lookup. */
+  gender?: 'male' | 'female' | null;
+  /** Force owner-mode. When undefined, auto-detect via signed-in viewer. */
+  isOwner?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   showFrame?: boolean;
   showAnimation?: boolean;
@@ -19,6 +30,7 @@ interface FramedAvatarWithPrivilegesProps {
   fallbackClassName?: string;
   onClick?: () => void;
 }
+
 
 const avatarSizeClasses = {
   xs: "w-6 h-6",
@@ -67,6 +79,8 @@ const FramedAvatarWithPrivileges = ({
   src,
   name = "U",
   level = 1,
+  gender: genderProp,
+  isOwner: isOwnerProp,
   size = "md",
   showFrame = true,
   showAnimation = true,
@@ -92,8 +106,56 @@ const FramedAvatarWithPrivileges = ({
     setIsLoading(false);
   };
 
+  // ───────── Gender-aware AI placeholder resolution ─────────
+  const hasRealSrc = !!(src && src.trim().length > 0);
+  const cached = userId ? getCachedGender(userId) : undefined;
+  const initialGender: 'male' | 'female' | null =
+    genderProp ??
+    (cached
+      ? (cached.is_host || cached.gender === 'female' ? 'female' : (cached.gender === 'male' ? 'male' : null))
+      : null);
+  const [resolvedGender, setResolvedGender] = useState<'male' | 'female' | null>(initialGender);
+  const [viewerId, setViewerId] = useState<string | null>(getCachedViewerId());
+
+  useEffect(() => {
+    if (hasRealSrc || !userId || genderProp || resolvedGender) return;
+    let cancelled = false;
+    requestGender(userId).then(() => {
+      if (cancelled) return;
+      const c = getCachedGender(userId);
+      if (!c) return;
+      setResolvedGender(
+        c.is_host || c.gender === 'female' ? 'female' : c.gender === 'male' ? 'male' : null,
+      );
+    });
+    return () => { cancelled = true; };
+  }, [userId, hasRealSrc, genderProp, resolvedGender]);
+
+  useEffect(() => {
+    if (viewerId || isOwnerProp !== undefined) return;
+    let cancelled = false;
+    ensureViewerLoaded().then(() => {
+      if (cancelled) return;
+      const id = getCachedViewerId();
+      if (id) setViewerId(id);
+    });
+    return () => { cancelled = true; };
+  }, [viewerId, isOwnerProp]);
+
+  const isOwner = isOwnerProp !== undefined
+    ? isOwnerProp
+    : !!(userId && viewerId && userId === viewerId);
+
+  const effectiveSrc = useMemo(() => {
+    if (hasRealSrc) return src!;
+    if (!userId) return undefined;
+    if (isOwner) return undefined;
+    return getDisplayAvatar(userId, null, { gender: resolvedGender ?? 'female' });
+  }, [hasRealSrc, src, userId, isOwner, resolvedGender]);
+
   const displayName = name?.charAt(0)?.toUpperCase() || "U";
   const glowColor = getGlowColor(level);
+
 
   // Check if user has a custom frame
   const customFrame = privileges?.frame || privileges?.portrait_frame;
@@ -109,7 +171,7 @@ const FramedAvatarWithPrivileges = ({
       onClick={onClick}
     >
       <AvatarImage
-        src={src || undefined}
+        src={effectiveSrc || undefined}
         className="object-cover"
       />
       <AvatarFallback
@@ -287,7 +349,7 @@ const FramedAvatarWithPrivileges = ({
   // Pass userId for unified frame fetching
   return (
     <Premium3DFrame
-      src={src}
+      src={effectiveSrc}
       name={name}
       level={level}
       size={size}
