@@ -2933,7 +2933,7 @@ const Level5HelperDashboard = () => {
  <SelectItem value="wise" className="text-slate-900">💚 Wise</SelectItem>
  <SelectItem value="skrill" className="text-slate-900">💜 Skrill</SelectItem>
  <SelectItem value="payoneer" className="text-slate-900">🟠 Payoneer</SelectItem>
- <SelectItem value="epay" className="text-slate-900">💰 ePay</SelectItem>
+ 
  <SelectItem value="alipay" className="text-slate-900">🔵 Alipay</SelectItem>
  <SelectItem value="wechat" className="text-slate-900">🟢 WeChat Pay</SelectItem>
  <SelectItem value="line_pay" className="text-slate-900">🟢 LINE Pay</SelectItem>
