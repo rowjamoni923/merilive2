@@ -184,27 +184,48 @@ const Live = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'stream_viewers' },
         (payload) => {
-          // Instantly bump the affected stream's viewer count without full refetch.
-          // join/leave RPCs also update live_streams.viewer_count, so the UPDATE
-          // handler above will reconcile to the exact server value within ~1 frame.
+          // Idempotent ±1: maintain a per-stream Set of active viewer ids.
+          // A repeat INSERT for the same viewer becomes a no-op; a DELETE for a
+          // viewer we never tracked is ignored. The live_streams UPDATE handler
+          // above still reconciles to the server-authoritative count.
           const row: any = (payload.new as any) ?? (payload.old as any);
-          const streamId = row?.stream_id;
-          if (!streamId) return;
+          const streamId: string | undefined = row?.stream_id;
+          const viewerId: string | undefined =
+            (payload.new as any)?.viewer_id ?? (payload.old as any)?.viewer_id;
+          if (!streamId || !viewerId) return;
+
+          let set = activeViewersByStreamRef.current.get(streamId);
+          if (!set) {
+            set = new Set<string>();
+            activeViewersByStreamRef.current.set(streamId, set);
+          }
+
+          // Compute desired membership for this viewer based on the event.
+          let shouldBeActive: boolean | null = null;
+          if (payload.eventType === 'INSERT') {
+            shouldBeActive = true;
+          } else if (payload.eventType === 'DELETE') {
+            shouldBeActive = false;
+          } else {
+            // UPDATE: presence is encoded by left_at
+            shouldBeActive = !((payload.new as any)?.left_at);
+          }
+
+          const wasActive = set.has(viewerId);
+          if (shouldBeActive === wasActive) return; // duplicate / no-op
+
+          let delta = 0;
+          if (shouldBeActive) {
+            set.add(viewerId);
+            delta = +1;
+          } else {
+            set.delete(viewerId);
+            delta = -1;
+          }
+
           setStreams((prev) => {
             const idx = prev.findIndex((s) => s.id === streamId);
             if (idx === -1) return prev;
-            const delta =
-              payload.eventType === 'INSERT' ? 1 :
-              payload.eventType === 'DELETE' ? -1 :
-              // UPDATE: left_at NULL→set means leave, set→NULL means rejoin
-              (() => {
-                const oldLeft = (payload.old as any)?.left_at;
-                const newLeft = (payload.new as any)?.left_at;
-                if (!oldLeft && newLeft) return -1;
-                if (oldLeft && !newLeft) return 1;
-                return 0;
-              })();
-            if (delta === 0) return prev;
             const updated = [...prev];
             updated[idx] = {
               ...updated[idx],
@@ -219,6 +240,7 @@ const Live = () => {
 
     // Zero-refresh: realtime channel is the single source of truth, no polling
     return () => {
+
       supabase.removeChannel(channel);
       cleanupAllPreloaded(); // Disconnect preloaded rooms when leaving Live page
     };
