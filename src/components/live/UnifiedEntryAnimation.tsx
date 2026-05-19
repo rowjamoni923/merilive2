@@ -235,9 +235,28 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+        transition={{ duration: 0.1 }}
+        className="pointer-events-none"
+        style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          width: '100vw', height: '100vh',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+        }}
       >
-        <div className="w-full h-full max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%', left: '50%',
+            width: '100%', height: '100%',
+            transform: 'translate(-50%, -50%) scale(1.2)',
+            transformOrigin: 'center center',
+          }}
+        >
           <UniversalAnimationPlayer
             src={displayAnimationUrl}
             className="w-full h-full"
