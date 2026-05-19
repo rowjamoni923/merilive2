@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
