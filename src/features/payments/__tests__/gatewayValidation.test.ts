@@ -95,7 +95,7 @@ describe("normalizeGatewayRow", () => {
     expect(() => normalizeGatewayRow({ ...good, id: "" })).toThrow(expect.objectContaining({ code: "MISSING_GATEWAY_ID" }));
     expect(() => normalizeGatewayRow({ ...good, name: "" })).toThrow(expect.objectContaining({ code: "MISSING_GATEWAY_NAME" }));
     expect(() => normalizeGatewayRow({ ...good, gateway_type: null, config: {} })).toThrow(
-      /MISSING_GATEWAY_TYPE/,
+      expect.objectContaining({ code: "MISSING_GATEWAY_TYPE" }),
     );
   });
   it("throws on bad country codes inside the row", () => {
