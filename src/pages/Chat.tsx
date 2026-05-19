@@ -279,6 +279,7 @@ const Chat = () => {
   // Gift Animation State
   const [showGiftAnimation, setShowGiftAnimation] = useState(false);
   const [animatingGiftEmoji, setAnimatingGiftEmoji] = useState("");
+  const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
   
   // Host's received gift tracking (live counter)
