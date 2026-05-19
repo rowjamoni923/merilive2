@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, memo, useCallback, useRef, forwardRef } from 'react';
+import React, { useState, useEffect, Suspense, lazy, memo, useCallback, useRef, forwardRef, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,12 +10,20 @@ import {
   clearUserFrameCacheById,
   preloadUserFrames,
 } from '@/utils/frameCache';
+import { getDisplayAvatar } from '@/utils/placeholderAvatar';
+import {
+  getCachedGender,
+  getCachedViewerId,
+  requestGender,
+  ensureViewerLoaded,
+} from '@/utils/avatarGenderCache';
 
 // Lazy load frame player
 const UniversalFramePlayer = lazy(() => import('./UniversalFramePlayer'));
 
 // Preload SVGA function
 import { preloadSVGA } from './SVGAPlayer';
+
 
 interface FrameData {
   id: string;
