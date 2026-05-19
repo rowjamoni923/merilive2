@@ -521,13 +521,41 @@ export function processVideoFrame(
 let _animFrameId: number | null = null;
 let _processingCanvas: HTMLCanvasElement | null = null;
 let _sourceVideo: HTMLVideoElement | null = null;
+let _activeInputStream: MediaStream | null = null;
+let _activeOutputStream: MediaStream | null = null;
 
 /**
- * Start processing a MediaStream and return a beautified MediaStream
+ * Start processing a MediaStream and return a beautified MediaStream.
+ *
+ * IMPORTANT for live broadcast: the output stream is a canvas captureStream.
+ * Once it's published to LiveKit, viewers will see whatever this canvas paints.
+ * Two correctness rules enforced below:
+ *  1. Idempotency — if called twice with the same input, reuse the existing
+ *     canvas/output so the previously published track stays live (prevents
+ *     "viewers see black/frozen face" when beauty is reprocessed mid-stream).
+ *  2. Beauty-off passthrough — the render loop always paints the source
+ *     frame, even when beauty is disabled, so the published canvas never
+ *     freezes when the host toggles beauty off.
  */
 export async function startBeautyProcessing(
   inputStream: MediaStream
 ): Promise<MediaStream> {
+  // Idempotent reuse: same input + canvas still live → return existing output.
+  if (
+    _activeInputStream === inputStream &&
+    _activeOutputStream &&
+    _activeOutputStream.getVideoTracks()[0]?.readyState === 'live'
+  ) {
+    return _activeOutputStream;
+  }
+
+  // Different input or stale canvas — tear down old pipeline before re-init
+  // so the orphaned canvas doesn't leak and so we don't silently stop painting
+  // the previously-published surface mid-broadcast.
+  if (_sourceVideo || _processingCanvas) {
+    stopBeautyProcessing();
+  }
+
   // Initialize MediaPipe
   await initMediaPipe();
 
@@ -553,21 +581,54 @@ export async function startBeautyProcessing(
   _processingCanvas.style.display = 'none';
   document.body.appendChild(_processingCanvas);
 
+  // Cache a passthrough 2D ctx for the off-state path
+  const passthroughCtx = _processingCanvas.getContext('2d');
+
   // Start render loop
   const renderLoop = () => {
-    if (!_enabled || !_sourceVideo || !_processingCanvas) {
-      _animFrameId = requestAnimationFrame(renderLoop);
+    if (!_sourceVideo || !_processingCanvas) {
+      // Pipeline torn down — stop scheduling new frames.
+      _animFrameId = null;
       return;
     }
 
-    if (_sourceVideo.readyState >= 2 && !_processing) {
-      _processing = true;
-      try {
-        processVideoFrame(_sourceVideo, _processingCanvas);
-      } catch (e) {
-        // Silent fail — don't break the loop
+    if (_sourceVideo.readyState >= 2) {
+      if (_enabled && !_processing) {
+        _processing = true;
+        try {
+          processVideoFrame(_sourceVideo, _processingCanvas);
+        } catch (e) {
+          // Silent fail — fall through to passthrough so the canvas
+          // never freezes for viewers.
+          try {
+            passthroughCtx?.drawImage(
+              _sourceVideo,
+              0,
+              0,
+              _processingCanvas.width,
+              _processingCanvas.height,
+            );
+          } catch { /* noop */ }
+        }
+        _processing = false;
+      } else if (!_enabled && passthroughCtx) {
+        // Beauty OFF — keep painting raw frames so the published canvas
+        // stream stays live. Without this, viewers would see a frozen
+        // frame the instant the host disabled beauty.
+        try {
+          if (_processingCanvas.width !== _sourceVideo.videoWidth && _sourceVideo.videoWidth) {
+            _processingCanvas.width = _sourceVideo.videoWidth;
+            _processingCanvas.height = _sourceVideo.videoHeight;
+          }
+          passthroughCtx.drawImage(
+            _sourceVideo,
+            0,
+            0,
+            _processingCanvas.width,
+            _processingCanvas.height,
+          );
+        } catch { /* noop */ }
       }
-      _processing = false;
     }
 
     _animFrameId = requestAnimationFrame(renderLoop);
@@ -583,9 +644,13 @@ export async function startBeautyProcessing(
     outputStream.addTrack(track);
   });
 
+  _activeInputStream = inputStream;
+  _activeOutputStream = outputStream;
+
   console.log('[MediaPipeBeauty] ✅ Beauty processing started');
   return outputStream;
 }
+
 
 /**
  * Stop beauty processing and cleanup
@@ -607,6 +672,8 @@ export function stopBeautyProcessing() {
     _processingCanvas = null;
   }
 
+  _activeInputStream = null;
+  _activeOutputStream = null;
   _processing = false;
   console.log('[MediaPipeBeauty] Processing stopped');
 }
