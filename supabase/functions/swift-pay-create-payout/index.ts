@@ -49,8 +49,24 @@ Deno.serve(async (req) => {
           pay_network?: string;
         }
       | null;
-    if (!body?.withdrawal_id || !body?.pay_currency || !body?.pay_address) {
-      return json({ error: "withdrawal_id, pay_currency, pay_address required" }, 400);
+    if (!body?.withdrawal_id || !body?.pay_address) {
+      return json({ error: "withdrawal_id and pay_address are required" }, 400);
+    }
+
+    // 🔒 FINANCIAL HARDENING — withdrawals are USDT ONLY.
+    // Reject anything else even if the client tampers with the request.
+    const ALLOWED_CURRENCIES = new Set(["usdttrc20", "usdtbep20", "usdterc20"]);
+    const payCurrency = String(body.pay_currency ?? "usdttrc20").toLowerCase().trim();
+    if (!ALLOWED_CURRENCIES.has(payCurrency)) {
+      return json({ error: "only USDT withdrawals are supported" }, 400);
+    }
+    const payNetwork = body.pay_network ??
+      (payCurrency === "usdtbep20" ? "BEP20" : payCurrency === "usdterc20" ? "ERC20" : "TRC20");
+
+    // Basic wallet address sanity (alphanumeric, 20–100 chars — same rule as the client)
+    const payAddress = String(body.pay_address).trim();
+    if (!/^[a-zA-Z0-9]{20,100}$/.test(payAddress)) {
+      return json({ error: "invalid_pay_address" }, 400);
     }
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
