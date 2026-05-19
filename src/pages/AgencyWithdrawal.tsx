@@ -221,7 +221,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     paymentMethods: [
       { value: "bkash", label: "bKash" },
       { value: "nagad", label: "Nagad" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -232,7 +232,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₹",
     paymentMethods: [
       { value: "upi", label: "UPI" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -243,7 +243,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "easypaisa", label: "Easypaisa" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -254,7 +254,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "esewa", label: "eSewa" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -265,7 +265,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "frimi", label: "FriMi" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -276,7 +276,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₱",
     paymentMethods: [
       { value: "gcash", label: "GCash" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -287,7 +287,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rp",
     paymentMethods: [
       { value: "gopay", label: "GoPay" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -298,7 +298,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₫",
     paymentMethods: [
       { value: "momo", label: "MoMo" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -309,7 +309,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "฿",
     paymentMethods: [
       { value: "promptpay", label: "PromptPay" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -320,7 +320,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "RM",
     paymentMethods: [
       { value: "grabpay", label: "GrabPay" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -331,7 +331,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "S$",
     paymentMethods: [
       { value: "paynow", label: "PayNow" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -342,7 +342,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "¥",
     paymentMethods: [
       { value: "paypay", label: "PayPay" },
-      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
       { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
@@ -1800,7 +1800,7 @@ const AgencyWithdrawal = () => {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
-  // Auto Withdrawal Fee (admin-configurable, flat USD) — applies to Swift Pay / Binance / USDT / Crypto auto methods
+  // Auto Withdrawal Fee (admin-configurable, flat USD) — applies to MeriCash / Binance / USDT / Crypto auto methods
   const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; enabled: boolean; methods: string[] }>({
     flat_usd: 2,
     enabled: true,
@@ -2071,13 +2071,13 @@ const AgencyWithdrawal = () => {
     console.log('[Withdrawal] Country', selectedCountry, 'has helpers:', hasHelpers);
   }, [selectedCountry, countriesWithHelpers]);
 
-  // Official auto-credit methods (Swift Pay Gateway + Binance) — shown ONLY for foreign
+  // Official auto-credit methods (MeriCash Gateway + Binance) — shown ONLY for foreign
   // agencies. Bangladesh / India / Pakistan are explicitly excluded for now (they will
   // continue using local payroll-helper methods only). Auto methods can be enabled for
   // these 3 countries later by removing them from AUTO_PAY_EXCLUDED_COUNTRIES.
   const AUTO_PAY_EXCLUDED_COUNTRIES = ['BD', 'IN', 'PK'];
   const OFFICIAL_AUTO_METHODS = [
-    { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+    { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
     { value: "binance", label: "🪙 Binance Pay (Auto)" },
   ];
 
@@ -2382,7 +2382,7 @@ const AgencyWithdrawal = () => {
        // Helper notifications are now sent automatically by a database trigger
        // when the agency_withdrawals row is created.
        if (isAutoMethod(paymentMethod)) {
-         console.log('[Withdrawal] Auto method - initiating Swift Pay payout');
+         console.log('[Withdrawal] Auto method - initiating MeriCash payout');
          const withdrawalId = (data as any)?.withdrawal_id;
          // Default to USDT TRC20 for binance/crypto_auto; user can override later via admin
          const payCurrency = paymentMethod === 'binance' ? 'usdtbep20' : 'usdttrc20';
@@ -2632,7 +2632,7 @@ const AgencyWithdrawal = () => {
                       <div className="flex items-center gap-2 text-info-700 text-sm">
                         <Globe className="w-4 h-4" />
                         <span>
-                          <strong>{paymentMethod === 'binance' ? 'Binance Pay (Auto)' : 'Swift Pay (Crypto Auto-Credit)'}:</strong>{' '}
+                          <strong>{paymentMethod === 'binance' ? 'Binance Pay (Auto)' : 'MeriCash (Crypto Auto-Credit)'}:</strong>{' '}
                           Funds are credited automatically to your wallet via our payment gateway. Flat fee: <strong>${autoWithdrawalFee.flat_usd}</strong>.
                         </span>
                       </div>
@@ -2656,7 +2656,7 @@ const AgencyWithdrawal = () => {
                       <div className="flex items-center gap-2 text-warning-700 text-sm">
                         <AlertCircle className="w-4 h-4" />
                         <span>
-                          No local Level-5 payment helpers in your country. Using our official <strong>Swift Pay / Binance auto-credit</strong> gateway.
+                          No local Level-5 payment helpers in your country. Using our official <strong>MeriCash / Binance auto-credit</strong> gateway.
                         </span>
                       </div>
                     </div>

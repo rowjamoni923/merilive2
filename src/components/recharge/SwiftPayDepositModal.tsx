@@ -117,7 +117,7 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages }: P
       <DialogContent className="max-w-md bg-gradient-to-b from-slate-900 to-slate-950 border-amber-500/30 text-amber-50 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-amber-200">
-            <Sparkles className="w-5 h-5" /> Swift Pay — Crypto Auto-Credit
+            <Sparkles className="w-5 h-5" /> MeriCash — Crypto Auto-Credit
           </DialogTitle>
           <DialogDescription className="text-amber-100/70 text-xs">
             Pay with crypto, diamonds credit automatically on blockchain confirmation.
