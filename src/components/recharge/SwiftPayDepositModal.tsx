@@ -295,7 +295,7 @@ export default function SwiftPayDepositModal({
             <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
             <p className="text-lg font-bold text-emerald-300">Payment received!</p>
             <p className="text-sm text-amber-100/80">
-              {fmt(deposit.coins_amount)} diamonds added to your balance.
+              {fmt(deposit.coins_amount)} diamonds added to your {mode === "helper" ? "Trader Wallet" : "balance"}.
             </p>
             <Button onClick={() => onOpenChange(false)} className="w-full">Done</Button>
           </div>
