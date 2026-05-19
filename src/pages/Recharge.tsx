@@ -1599,6 +1599,13 @@ const Recharge = () => {
       return;
     }
 
+    // MeriCash crypto auto-credit — open modal with chosen package
+    if (selectedPaymentMethod === 'mericash') {
+      setMericashInitialPackageId(selectedPackageId || null);
+      setShowSwiftPayModal(true);
+      return;
+    }
+
     // If Play Store is selected on Android, use Play Store Billing
     if (selectedPaymentMethod === 'playstore' && (isPlayStoreAvailable || isAndroidNative)) {
       handlePlayStorePurchase();
