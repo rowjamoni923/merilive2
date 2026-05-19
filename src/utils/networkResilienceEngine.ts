@@ -9,7 +9,6 @@
  * - Zero visible "reconnecting" states
  */
 
-import { supabase } from '@/integrations/supabase/client';
 import { forceReconnectChannel, getConnectionStatus } from '@/hooks/useUniversalRealtime';
 import { getAdaptiveNetworkProfile, getConnectionTier } from '@/utils/connectionProfile';
 
