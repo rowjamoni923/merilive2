@@ -502,82 +502,76 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
     currentGame.game_url?.startsWith('http');
 
   return (
-    <div className="live-game-shell w-full rounded-xl overflow-hidden relative z-20 pointer-events-auto">
-      {/* 3D stage removed — each game renders its own 3D-styled board/wheel inline */}
-      {/* Compact Header - HIDDEN for external/iframe games */}
+    <div className="live-game-shell w-full rounded-[28px] overflow-hidden relative z-20 pointer-events-auto bg-gradient-to-b from-[#141526] to-[#0A0A12] border border-[#D4AF37]/30 shadow-2xl shadow-black/80">
+      {/* Obsidian Gold Premium Header */}
       {!isCurrentGameExternal && (
-        <div className="live-game-header flex items-center justify-between p-1.5 border-b border-border/35">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+          <div className="flex items-center gap-2 min-w-0">
             {currentGame && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className={cn(
-                  "w-7 h-7 rounded-md flex items-center justify-center text-sm shadow-md overflow-hidden relative",
-                  `bg-gradient-to-br ${currentGame.game_color}`
-                )}
+                className="w-7 h-7 rounded-lg flex items-center justify-center shadow-lg overflow-hidden relative bg-gradient-to-tr from-[#D4AF37] to-[#F9E498] shrink-0"
               >
                 {currentGame.logo_url ? (
-                  <img 
-                    src={getProxiedUrl(currentGame.logo_url)} 
+                  <img
+                    src={getProxiedUrl(currentGame.logo_url)}
                     alt={currentGame.game_name}
-                    className="w-full h-full object-cover rounded-md"
+                    className="w-full h-full object-cover rounded-lg"
                     loading="lazy"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
                       if (target.nextElementSibling) {
-                        (target.nextElementSibling as HTMLElement).style.display = 'block';
+                        (target.nextElementSibling as HTMLElement).style.display = 'flex';
                       }
                     }}
                   />
                 ) : null}
-                <span 
-                  className="text-sm emoji-fallback" 
-                  style={{ display: currentGame.logo_url ? 'none' : 'block' }}
+                <div
+                  className="emoji-fallback absolute inset-0 items-center justify-center text-sm text-[#0A0A12] font-black"
+                  style={{ display: currentGame.logo_url ? 'none' : 'flex' }}
                 >
                   {currentGame.game_emoji}
-                </span>
+                </div>
               </motion.div>
             )}
-            <div>
-              <h3 className="text-white font-bold text-xs leading-tight drop-shadow-sm">
+            <div className="flex flex-col min-w-0">
+              <span
+                className="text-[11px] font-bold text-white/90 tracking-wide uppercase leading-tight truncate"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
                 {currentGame?.game_name || 'Game'}
-              </h3>
-              <div className="flex items-center gap-1.5 text-[10px] leading-tight">
-                <span className="text-white/80 font-semibold">R#{currentRound?.round_number || 0}</span>
-                <span className="flex items-center gap-0.5 text-amber-300 font-semibold">
-                  <Users className="w-2.5 h-2.5" />
-                  {currentRound?.total_players || 0}
-                </span>
+              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[9px] text-white/40 font-medium">R#{currentRound?.round_number || 0}</span>
+                <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-white/10 rounded-full">
+                  <Users className="w-2 h-2 text-white/60" />
+                  <span className="text-[9px] text-white/60">{currentRound?.total_players || 0}</span>
+                </div>
+                {currentRound && currentRound.total_bet_amount > 0 && (
+                  <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-full">
+                    <Coins className="w-2 h-2 text-[#D4AF37]" />
+                    <span className="text-[9px] text-[#D4AF37] font-bold">{currentRound.total_bet_amount.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-0.5">
-            {currentRound && currentRound.total_bet_amount > 0 && (
-              <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/20 rounded-full">
-                <Coins className="w-2.5 h-2.5 text-amber-400" />
-                <span className="text-amber-300 font-bold text-[9px]">
-                  {currentRound.total_bet_amount.toLocaleString()}
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/20 rounded-full">
-              <Diamond3DIcon size={12} />
-              <span className="text-amber-300 font-bold text-[9px]">
-                {diamondBalance.toLocaleString()}
-              </span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1 bg-black/40 border border-[#D4AF37]/20 rounded-full pl-1.5 pr-2 py-1">
+              <Diamond3DIcon size={11} />
+              <span className="text-white text-[10px] font-bold">{diamondBalance.toLocaleString()}</span>
             </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10 h-5 w-5 p-0">
-                  <Settings className="w-3 h-3" />
+                <Button variant="ghost" size="sm" className="text-white/40 hover:text-white hover:bg-white/10 h-6 w-6 p-0">
+                  <Settings className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40 bg-slate-900/95 border-purple-500/30">
+              <DropdownMenuContent align="end" className="w-40 bg-[#0A0A12] border-[#D4AF37]/30">
                 <DropdownMenuItem onClick={() => setIsSoundEnabled(!isSoundEnabled)} className="text-white/80 hover:text-white text-xs gap-2">
                   {isSoundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
                   {isSoundEnabled ? 'Mute Sound' : 'Unmute Sound'}
@@ -592,14 +586,14 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-white/10" />
                 <DropdownMenuItem onClick={() => setShowLeaderboardPanel(true)} className="text-white/80 hover:text-white text-xs gap-2">
-                  <Trophy className="w-3 h-3 text-amber-400" />
+                  <Trophy className="w-3 h-3 text-[#D4AF37]" />
                   Leaderboard
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="ghost" size="sm" onClick={() => setShowGameSelector(!showGameSelector)} className="text-white/70 hover:text-white hover:bg-white/10 h-5 w-5 p-0">
-              <ChevronDown className={cn("w-3 h-3 transition-transform", showGameSelector && "rotate-180")} />
+            <Button variant="ghost" size="sm" onClick={() => setShowGameSelector(!showGameSelector)} className="text-white/40 hover:text-white hover:bg-white/10 h-6 w-6 p-0">
+              <ChevronDown className={cn("w-4 h-4 transition-transform", showGameSelector && "rotate-180")} />
             </Button>
           </div>
         </div>
@@ -704,37 +698,37 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
       </AnimatePresence>
       )}
 
-      {/* Top Compact Premium Bet Controls - HIDDEN for external games */}
+      {/* Obsidian Gold Bet Chips Bar */}
       {!isCurrentGameExternal && phase === 'betting' && activeGame !== 'roulette' && (
-        <div className="px-2 py-1.5 bg-gradient-to-r from-purple-900/40 via-black/40 to-pink-900/40 border-b border-white/10">
-          <div className="flex items-center justify-between gap-2">
-            {/* Preset Bet Chips - Left side */}
-            <div className="flex items-center gap-1">
-              {presetBets.map((amount) => (
+        <div className="flex items-center justify-between gap-2 px-3 py-2.5 bg-gradient-to-r from-[#1A1B2E] to-[#12121D] border-b border-white/5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            {presetBets.map((amount) => {
+              const isActive = betAmount === amount;
+              const tooHigh = amount > userCoins;
+              return (
                 <motion.button
                   key={amount}
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => setBetAmount(amount)}
-                  disabled={amount > userCoins}
+                  disabled={tooHigh}
                   className={cn(
-                    "px-2 py-1 rounded-full text-[9px] font-bold transition-all",
-                    betAmount === amount
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 ring-1 ring-white/30"
-                      : amount > userCoins
-                        ? "bg-white/5 text-white/30"
-                        : "bg-white/10 text-white/80 hover:bg-white/20"
+                    "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-[10px] font-black tabular-nums transition-all",
+                    isActive
+                      ? "border-2 border-[#D4AF37] bg-gradient-to-b from-[#F9E498] to-[#D4AF37] text-[#1A1B2E] shadow-[0_0_12px_rgba(212,175,55,0.45)] ring-2 ring-black/30"
+                      : tooHigh
+                        ? "border border-white/5 bg-white/[0.02] text-white/25 cursor-not-allowed"
+                        : "border border-white/10 bg-white/5 text-white/70 hover:border-[#D4AF37]/50 hover:text-white"
                   )}
                 >
                   {formatBetAmount(amount)}
                 </motion.button>
-              ))}
-            </div>
-            
-            {/* Current Bet Display - Right side */}
-            <div className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 rounded-full border border-amber-500/40 shadow-lg shadow-amber-500/10">
-              <Coins className="w-3 h-3 text-amber-400" />
-              <span className="text-amber-300 font-bold text-xs">{betAmount.toLocaleString()}</span>
-            </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/40 rounded-xl shrink-0">
+            <Coins className="w-3 h-3 text-[#D4AF37]" />
+            <span className="text-[#D4AF37] font-black text-xs tabular-nums">{betAmount.toLocaleString()}</span>
           </div>
         </div>
       )}
