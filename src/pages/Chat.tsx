@@ -907,20 +907,21 @@ const Chat = () => {
     }
   }, [currentUserId]);
 
-  // Group messages use broadcast - group_messages is NOT in realtime publication
-  // Keep lightweight polling via conversations subscription above
+  // Group messages are loaded once per selected group. Zero-refresh policy: no
+  // background polling loop; new outgoing messages update local state directly.
   useEffect(() => {
     if (!selectedGroup) return;
 
-    // group_messages table is NOT in supabase_realtime publication
-    // Use a polling approach with the universal messages subscription as trigger
-    const pollInterval = setInterval(async () => {
+    let cancelled = false;
+    const loadGroupMessages = async () => {
       const { data } = await supabase
         .from('group_messages')
         .select('*')
         .eq('group_id', selectedGroup.id)
         .order('created_at', { ascending: true })
         .limit(100);
+
+      if (cancelled) return;
 
       if (data && data.length > 0) {
         // Sender profile JOIN through `profiles` FK is blocked by RLS for
@@ -937,9 +938,11 @@ const Chat = () => {
       } else {
         setGroupMessages(data || []);
       }
-    }, 5000);
+    };
 
-    return () => clearInterval(pollInterval);
+    void loadGroupMessages();
+
+    return () => { cancelled = true; };
   }, [selectedGroup, currentUserId]);
 
   // Fetch host's received gifts count and subscribe to real-time updates

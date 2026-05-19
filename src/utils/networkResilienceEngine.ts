@@ -9,8 +9,7 @@
  * - Zero visible "reconnecting" states
  */
 
-import { forceReconnectChannel, getConnectionStatus } from '@/hooks/useUniversalRealtime';
-import { getAdaptiveNetworkProfile, getConnectionTier } from '@/utils/connectionProfile';
+import { getConnectionTier } from '@/utils/connectionProfile';
 
 // ============= Connection Quality =============
 type ConnectionQuality = 'excellent' | 'good' | 'slow' | 'offline';
@@ -100,17 +99,12 @@ const performInstantRecovery = async (reason: 'online' | 'resume' | 'silent-disc
     lastRecoveryAt = Date.now();
     console.log(`[NetworkEngine] ⚡ Instant recovery triggered (${reason})`);
 
-    // 1. Reconnect realtime only when needed
-    const { isConnected } = getConnectionStatus();
-    if (!isConnected || reason === 'online' || reason === 'silent-disconnect') {
-      forceReconnectChannel();
-    }
-
-    // 2. Measure actual latency to classify connection
+    // 1. Measure actual latency to classify connection.
+    // Supabase/native sockets recover themselves; no forced channel rebuild here.
     const latency = await measureLatency();
     updateQuality(classifyQuality(latency));
 
-    // 3. No data/auth refetch here. Realtime + request guards keep state fresh
+    // 2. No data/auth refetch here. Realtime + request guards keep state fresh
     // without any foreground/visibility-triggered refresh storm.
   })().finally(() => {
     recoveryInFlight = null;
@@ -161,32 +155,8 @@ const handleVisibilityChange = () => {
 
 // ============= Periodic Health Check =============
 const startHealthMonitor = () => {
-  if (networkCheckInterval) return;
-
-  const { healthCheckIntervalMs } = getAdaptiveNetworkProfile();
-
-  // Adaptive cadence by network quality (e.g., slower cadence on 2G/3G)
-  networkCheckInterval = setInterval(async () => {
-    if (isAdminRoute()) return;
-    if (!navigator.onLine) {
-      updateQuality('offline');
-      return;
-    }
-
-    // Avoid background churn when app is hidden
-    if (document.visibilityState === 'hidden') return;
-
-    const latency = await measureLatency();
-    const quality = classifyQuality(latency);
-    const wasOffline = currentQuality === 'offline';
-    updateQuality(quality);
-
-    // If we just recovered from offline state, run one guarded recovery pass
-    if (wasOffline && quality !== 'offline') {
-      console.log('[NetworkEngine] ⚠️ Silent disconnection recovered — forcing recovery');
-      void performInstantRecovery('silent-disconnect');
-    }
-  }, healthCheckIntervalMs);
+  // Zero-refresh policy: no app-wide polling/health loop. Network changes are
+  // handled by native/browser online/offline events only.
 };
 
 // ============= Native App Integration =============

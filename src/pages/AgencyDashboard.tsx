@@ -209,6 +209,7 @@ const AgencyDashboard = () => {
   const [pendingHosts, setPendingHosts] = useState<any[]>([]);
   const [approvingHostId, setApprovingHostId] = useState<string | null>(null);
   const [rejectingHostId, setRejectingHostId] = useState<string | null>(null);
+  const agencyIdRef = useRef<string | null>(null);
   
   // Host earnings and agency commission tracking
   const [totalHostEarningsFromTransfers, setTotalHostEarningsFromTransfers] = useState(0);
@@ -223,6 +224,10 @@ const AgencyDashboard = () => {
   const [subAgencyCount, setSubAgencyCount] = useState(0);
   const [subAgencies, setSubAgencies] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    agencyIdRef.current = agency?.id ?? null;
+  }, [agency?.id]);
   
   // Initialize notification sound
   useEffect(() => {
@@ -295,6 +300,7 @@ const AgencyDashboard = () => {
   };
 
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       try {
         const user = await getCachedUser();
@@ -308,6 +314,8 @@ const AgencyDashboard = () => {
           .select("*")
           .eq("owner_id", user.id)
           .maybeSingle();
+
+        if (cancelled) return;
 
         if (agencyError) {
           console.error('[AgencyDashboard] Error fetching agency:', agencyError);
@@ -376,6 +384,8 @@ const AgencyDashboard = () => {
           supabase.from('agency_earnings_transfers').select('gift_earnings, call_earnings, amount, commission_rate').eq('agency_id', agencyData.id),
         ]);
 
+        if (cancelled) return;
+
         // ===== BATCH 2: All secondary queries in parallel =====
         const hostsData = hostsRes.data || [];
         const pendingHostsData = pendingHostsRes.data || [];
@@ -434,6 +444,8 @@ const AgencyDashboard = () => {
             ? supabase.from("agency_withdrawals").select("*", { count: 'exact', head: true }).eq("status", "pending")
             : Promise.resolve({ count: 0 }),
         ]);
+
+        if (cancelled) return;
 
         // ===== Process parent agency =====
         if (parentRes.data) {
@@ -569,17 +581,29 @@ const AgencyDashboard = () => {
         console.error('[AgencyDashboard] Error fetching data:', error);
         recordClientError({ label: "AgencyDashboard.rate", message: error instanceof Error ? error.message : String(error) });
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
     fetchData();
 
-    // Debounced refetch to prevent multiple rapid calls
-    let refetchTimer: ReturnType<typeof setTimeout> | null = null;
-    const debouncedRefetch = () => {
-      if (refetchTimer) clearTimeout(refetchTimer);
-      refetchTimer = setTimeout(() => fetchData(), 500);
+    const upsertWithdrawal = (record: WithdrawalHistory) => {
+      setWithdrawals((current) => {
+        const exists = current.some((item) => item.id === record.id);
+        const next = exists
+          ? current.map((item) => item.id === record.id ? { ...item, ...record } : item)
+          : [record, ...current];
+
+        const limited = next
+          .sort((a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime())
+          .slice(0, 10);
+
+        setTotalWithdrawn(limited
+          .filter(w => ['pending', 'processing', 'approved', 'completed'].includes(w.status))
+          .reduce((sum, w) => sum + (Number(w.amount) || 0), 0));
+
+        return limited;
+      });
     };
 
     // Real-time subscriptions for instant updates
@@ -588,42 +612,27 @@ const AgencyDashboard = () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'agencies' },
-        async (payload) => {
-          if (payload.new && (payload.new as any).id === agency?.id) {
+        (payload) => {
+          if (payload.new && (payload.new as any).id === agencyIdRef.current) {
             setAgency(payload.new as Agency);
           }
         }
       )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_hosts' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_performance' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_diamond_transactions' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_withdrawals' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_level_tiers' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, debouncedRefetch)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_helpers' },
+        { event: '*', schema: 'public', table: 'agency_withdrawals' },
         (payload) => {
-          const newData = payload.new as any;
-          if (newData?.is_verified && newData?.is_active) {
-            setHasHelperAccess(true);
-            if (newData.trader_level === 5 && newData.payroll_enabled) {
-              setIsLevel5Helper(true);
-            }
-          } else if (newData && !newData.is_active) {
-            setHasHelperAccess(false);
-            setIsLevel5Helper(false);
-          }
-          debouncedRefetch();
+          const next = payload.new as WithdrawalHistory & { agency_id?: string };
+          if (next?.agency_id === agencyIdRef.current) upsertWithdrawal(next);
         }
       )
       .subscribe();
 
     return () => {
-      if (refetchTimer) clearTimeout(refetchTimer);
+      cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [navigate, agency?.id]);
+  }, [navigate]);
 
   // ===== Approve/Reject Host Handlers =====
   const handleApproveHost = async (hostId: string) => {

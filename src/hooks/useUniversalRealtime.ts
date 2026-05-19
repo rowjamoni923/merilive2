@@ -37,6 +37,7 @@ let connectionAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 10;
 const FORCE_RECONNECT_COOLDOWN_MS = 15_000;
 const subscribers = new Map<string, SubscriberCallback>();
+const activeTableSet = new Set<string>();
 const tableDataCache = new Map<string, any[]>();
 const pendingUpdates = new Map<string, NodeJS.Timeout>();
 let lastForcedReconnectAt = 0;
@@ -193,7 +194,11 @@ const initializeUniversalChannel = async () => {
     });
 
     // Subscribe to all currently requested tables (dynamic)
-    getActiveMonitoredTables().forEach(({ table, schema = 'public', event = '*', filter }) => {
+    const monitoredTables = getActiveMonitoredTables();
+    activeTableSet.clear();
+    monitoredTables.forEach(({ table }) => activeTableSet.add(table));
+
+    monitoredTables.forEach(({ table, schema = 'public', event = '*', filter }) => {
       const config: any = { event, schema, table };
       if (filter) config.filter = filter;
 
@@ -284,6 +289,7 @@ const cleanupAndReconnect = async () => {
   isInitializing = false;
   await cleanupUniversalChannels();
   universalChannel = null;
+  activeTableSet.clear();
   await initializeUniversalChannel();
 };
 
@@ -293,6 +299,11 @@ const cleanupAndReconnect = async () => {
 // But keep it fast enough for instant chat/gift delivery.
 const scheduleChannelRebuild = () => {
   if (!universalChannel || !hasActiveSubscribers()) return;
+  const nextTables = new Set(getActiveMonitoredTables().map((item) => item.table));
+  const unchanged = nextTables.size === activeTableSet.size &&
+    Array.from(nextTables).every((table) => activeTableSet.has(table));
+  if (unchanged) return;
+
   if (channelRebuildTimer) clearTimeout(channelRebuildTimer);
 
   channelRebuildTimer = setTimeout(() => {
@@ -311,20 +322,26 @@ export const subscribeToTables = (
 ): (() => void) => {
   ensureAuthStateListener();
 
+  const previousTables = getActiveMonitoredTables().map((item) => item.table).sort().join('|');
+
   subscribers.set(subscriberId, {
     id: subscriberId,
     tables,
     callback
   });
 
-  // Rebuild channel bindings when subscriber table-set changes
-  scheduleChannelRebuild();
+  const nextTables = getActiveMonitoredTables().map((item) => item.table).sort().join('|');
+
+  // Rebuild channel bindings only when the actual table-set changes.
+  if (previousTables !== nextTables) scheduleChannelRebuild();
 
   // Ensure channel is initialized
   void initializeUniversalChannel();
 
   return () => {
+    const tablesBeforeDelete = getActiveMonitoredTables().map((item) => item.table).sort().join('|');
     subscribers.delete(subscriberId);
+    const remainingTables = getActiveMonitoredTables().map((item) => item.table).sort().join('|');
 
     if (subscribers.size === 0) {
       if (reconnectTimer) {
@@ -338,6 +355,7 @@ export const subscribeToTables = (
       connectionAttempts = 0;
       isConnected = false;
       universalChannel = null;
+      activeTableSet.clear();
       authStateUnsubscribe?.();
       authStateUnsubscribe = null;
       void cleanupUniversalChannels();
@@ -345,7 +363,7 @@ export const subscribeToTables = (
     }
 
     // Remaining subscribers changed target tables => rebuild subscriptions
-    scheduleChannelRebuild();
+    if (tablesBeforeDelete !== remainingTables) scheduleChannelRebuild();
   };
 };
 
