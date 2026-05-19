@@ -36,7 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import Premium3DFrame from "@/components/common/Premium3DFrame";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -162,12 +162,13 @@ const ShopItemCard = ({
               onError={() => setImageError(true)}
             />
           ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <UniversalAnimationPlayer
+            <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
+              <FixedAnimationFrame
                 src={item.animation_file_url || ''}
-                className={`max-w-[85%] max-h-[85%] ${isFullWidth ? 'scale-110' : ''}`}
+                size="fill"
                 loop
                 autoPlay
+                center={false}
               />
             </div>
           ) : (

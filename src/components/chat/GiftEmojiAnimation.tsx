@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 interface GiftEmojiAnimationProps {
   emoji: string; // Can be emoji character or URL to SVGA/image
@@ -118,32 +117,31 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, onComplete }: GiftEmoj
             }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            {/* SVGA Player - Proper full screen with audio */}
+            {/* Full-screen animation — FixedAnimationFrame enforces explicit dimensions */}
             {isSvga && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <SVGAPlayerWithAudio
-                  src={emoji}
-                  className="w-full h-full max-w-[90vw] max-h-[90vh]"
-                  loop={false}
-                  autoPlay={true}
-                  volume={0.8}
-                  onComplete={handleAnimationEnd}
-                />
-              </div>
+              <FixedAnimationFrame
+                src={emoji}
+                size="full-square"
+                type="svga"
+                loop={false}
+                autoPlay
+                muted={false}
+                volume={0.8}
+                onComplete={handleAnimationEnd}
+                center
+              />
             )}
-            
-            {/* Lottie/Universal Player - Proper full screen */}
+
             {(isLottie || isVap) && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <UniversalAnimationPlayer
-                  src={emoji}
-                  className="w-full h-full max-w-[90vw] max-h-[90vh]"
-                  loop={false}
-                  autoPlay={true}
-                  muted={false}
-                  onComplete={handleAnimationEnd}
-                />
-              </div>
+              <FixedAnimationFrame
+                src={emoji}
+                size="full-square"
+                loop={false}
+                autoPlay
+                muted={false}
+                onComplete={handleAnimationEnd}
+                center
+              />
             )}
           </motion.div>
           
