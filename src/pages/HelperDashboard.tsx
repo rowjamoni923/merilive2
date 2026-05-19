@@ -1910,165 +1910,39 @@ const HelperDashboard = () => {
               </div>
             </div>
 
-            <div>
-              <Label className="text-slate-800 text-sm">Payment Method</Label>
-              {paymentMethods.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {paymentMethods.map((method) => {
-                    const getMethodIcon = (type: string) => {
-                      const lower = type.toLowerCase();
-                      if (lower.includes('binance')) return '🟡';
-                      if (lower.includes('epay')) return '💚';
-                      if (lower.includes('crypto')) return '₿';
-                      if (lower.includes('bank')) return '🏦';
-                      return '💳';
-                    };
-                    
-                    return (
-                      <button
-                        key={method.id}
-                        onClick={() => {
-                          setPaymentMethod(method.method_name);
-                          setSelectedPaymentMethod(method);
-                        }}
-                        className={cn(
-                          "p-3 rounded-lg border text-sm transition-all flex items-center gap-2",
-                          paymentMethod === method.method_name
- ?"bg-purple-500 border-purple-400 text-slate-900"
-                            : "bg-slate-100 border-slate-200 text-slate-500 hover:border-purple-500"
-                        )}
-                      >
-                        {method.logo_url ? (
-                          <img src={method.logo_url} alt={method.method_name} className="w-6 h-6 rounded object-contain bg-amber-50/80" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                        ) : (
-                          <span className="text-lg">{getMethodIcon(method.method_type)}</span>
-                        )}
-                        <span>{method.method_name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="mt-2 p-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 text-sm">
-                  No payment methods available. Please contact admin.
-                </div>
+            {/* Auto Crypto Gateway — replaces manual ePay/Binance flow */}
+            <div className="rounded-xl border border-amber-300/60 bg-gradient-to-br from-amber-50 to-yellow-50 p-3">
+              <p className="text-amber-800 text-xs font-semibold mb-1">⚡ Instant Auto-Verified Payment</p>
+              <p className="text-slate-600 text-[11px]">
+                Pay with USDT / BTC / BNB / ETH — your Level {selectedUpgradeLevel?.level_number} application is auto-submitted the moment the blockchain confirms. No screenshot, no transaction ID, no admin wait.
+              </p>
+              {selectedUpgradeLevel && selectedUpgradeLevel.upgrade_cost_usd > 0 && (
+                <p className="text-emerald-700 text-[11px] mt-2">
+                  You will also receive ≈ {Math.floor(selectedUpgradeLevel.upgrade_cost_usd * upgradeDiamondsPerUsd).toLocaleString()} 💎 diamonds in your account.
+                </p>
               )}
-              
-              {/* Show selected payment method details */}
-              {selectedPaymentMethod && (
-                <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30">
-                  <p className="text-xs text-purple-700 mb-2">Pay to this account:</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600 text-xs">Account:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-800 text-sm font-medium">{selectedPaymentMethod.account_name}</span>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(selectedPaymentMethod.account_name);
-                            toast({ title: "Copied! ✅", description: "Account name copied to clipboard" });
-                          }}
-                          className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors"
-                        >
-                          <Copy className="w-3 h-3 text-purple-700" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600 text-xs">ID/Number:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-800 text-sm font-mono">{selectedPaymentMethod.account_number}</span>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(selectedPaymentMethod.account_number);
-                            toast({ title: "Copied! ✅", description: "Account ID/Number copied to clipboard" });
-                          }}
-                          className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors"
-                        >
-                          <Copy className="w-3 h-3 text-purple-700" />
-                        </button>
-                      </div>
-                    </div>
-                    {selectedPaymentMethod.instructions && (
-                      <p className="text-xs text-slate-600 mt-2 italic">{selectedPaymentMethod.instructions}</p>
-                    )}
-                  </div>
-                  
-                  {/* Copy All Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const text = `${selectedPaymentMethod.method_name}\nAccount: ${selectedPaymentMethod.account_name}\nID/Number: ${selectedPaymentMethod.account_number}${selectedPaymentMethod.instructions ? `\nInstructions: ${selectedPaymentMethod.instructions}` : ''}`;
-                      navigator.clipboard.writeText(text);
-                      toast({ title: "All details copied! ✅", description: "Payment details copied to clipboard" });
-                    }}
-                    className="w-full mt-3 border-purple-500/50 text-purple-700 hover:bg-purple-100"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy All Payment Details
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-slate-800 text-sm">Transaction ID</Label>
-              <Input
-                placeholder="Enter transaction ID"
-                value={transactionId}
-                onChange={(e) => setTransactionId(e.target.value)}
-                className="bg-white border-slate-200 text-slate-800 mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-slate-800 text-sm">Payment Screenshot</Label>
-              <div className="mt-1">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setPaymentProof(e.target.files?.[0] || null)}
-                  className="hidden"
-                  id="payment-proof"
-                />
-                <label
-                  htmlFor="payment-proof"
-                  className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100"
-                >
-                  <Upload className="w-5 h-5 text-slate-600" />
-                  <span className="text-slate-600 text-sm">
-                    {paymentProof ? paymentProof.name : "Upload payment proof"}
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-slate-800 text-sm">Note (Optional)</Label>
-              <Textarea
-                placeholder="Any additional details..."
-                value={paymentNote}
-                onChange={(e) => setPaymentNote(e.target.value)}
-                className="bg-white border-slate-200 text-slate-800 mt-1"
-                rows={2}
-              />
             </div>
 
             <div className="flex gap-2 pt-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowUpgradeModal(false)}
                 className="flex-1 border-slate-200 text-slate-500"
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={handleApplyUpgrade}
+              <Button
+                onClick={() => {
+                  if (!selectedUpgradeLevel || !selectedUpgradeLevel.upgrade_cost_usd) {
+                    toast({ title: "Invalid level", description: "Upgrade cost not configured", variant: "destructive" });
+                    return;
+                  }
+                  setShowUpgradeCryptoModal(true);
+                }}
                 disabled={processing}
- className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 font-bold"
               >
-                {processing ? (uploadingProof ? "Uploading..." : "Submitting...") : "Submit Application"}
+                ⚡ Pay ${selectedUpgradeLevel?.upgrade_cost_usd} with Crypto
               </Button>
             </div>
           </div>
