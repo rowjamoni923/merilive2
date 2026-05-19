@@ -705,6 +705,15 @@ const Chat = () => {
     // would arrive with a different id and slightly different content (estimated vs
     // actual beans), causing a duplicate bubble on the receiver. Do NOT add it back.
     upsertLiveMessage(optimisticGiftRow);
+    directMessageChannelRef.current?.send({
+      type: 'broadcast',
+      event: 'gift_animation',
+      payload: {
+        conversationId: selectedConversation.id,
+        senderId: currentUserId,
+        content: optimisticGiftMessage,
+      },
+    }).catch(() => {});
 
     // ========== BACKGROUND PROCESSING ==========
     (async () => {
@@ -1284,11 +1293,7 @@ const Chat = () => {
     }
 
     if (newMessage.message_type === 'gift') {
-      playSoundDebounced('gift');
-      const { mediaUrl, emoji } = parseGiftContent(newMessage.content || '');
-      setAnimatingGiftEmoji(mediaUrl || emoji);
-      setGiftAnimationInstance(prev => prev + 1);
-      setShowGiftAnimation(true);
+      playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
     } else {
       playSoundDebounced('message');
     }
