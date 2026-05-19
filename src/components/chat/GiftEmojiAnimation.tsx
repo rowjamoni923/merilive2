@@ -5,11 +5,13 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface GiftEmojiAnimationProps {
   emoji: string; // Can be emoji character or URL to SVGA/image
   count?: number;
+  /** Optional separate sound asset URL (used when SVGA has no embedded audio) */
+  soundUrl?: string;
   onComplete: () => void;
 }
 
 // CRITICAL: Memoized to prevent re-renders causing multiple SVGA loads
-const GiftEmojiAnimationInner = memo(({ emoji, count = 1, onComplete }: GiftEmojiAnimationProps) => {
+const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }: GiftEmojiAnimationProps) => {
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
   const completedRef = useRef(false);
   const mountedRef = useRef(true);
@@ -109,6 +111,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, onComplete }: GiftEmoj
                 autoPlay
                 muted={false}
                 volume={0.8}
+                soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
               />
@@ -121,6 +124,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, onComplete }: GiftEmoj
                 loop={false}
                 autoPlay
                 muted={false}
+                soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
               />
@@ -256,16 +260,17 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, onComplete }: GiftEmoj
 GiftEmojiAnimationInner.displayName = 'GiftEmojiAnimationInner';
 
 // Wrapper to ensure stable key and prevent re-mounts
-export const GiftEmojiAnimation = ({ emoji, count = 1, onComplete }: GiftEmojiAnimationProps) => {
+export const GiftEmojiAnimation = ({ emoji, count = 1, soundUrl, onComplete }: GiftEmojiAnimationProps) => {
   // CRITICAL: Use stable key based on emoji URL to prevent re-mounting
   const stableKey = useRef(`gift-anim-${Date.now()}-${emoji.slice(-20)}`);
-  
+
   return (
-    <GiftEmojiAnimationInner 
+    <GiftEmojiAnimationInner
       key={stableKey.current}
-      emoji={emoji} 
-      count={count} 
-      onComplete={onComplete} 
+      emoji={emoji}
+      count={count}
+      soundUrl={soundUrl}
+      onComplete={onComplete}
     />
   );
 };

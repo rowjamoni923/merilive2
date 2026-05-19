@@ -132,13 +132,17 @@ interface GroupMessage {
 }
 
 // Parse gift payload from chat content
-const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string } => {
+// Format: [Gift: ANIMATION_URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans | snd:SOUND_URL]
+// The `snd:` suffix is optional and only present when the gift has a separate sound asset.
+const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string; soundUrl: string | null } => {
   const mediaMatch = content.match(/\[Gift:\s*(https?:\/\/[^\|\s\]]+)\|/i);
   const emojiMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?([^\s\]]+)/i);
+  const soundMatch = content.match(/\|\s*snd:(https?:\/\/[^\s\|\]]+)/i);
 
   return {
     mediaUrl: mediaMatch?.[1] ?? null,
     emoji: emojiMatch?.[1] ?? '🎁',
+    soundUrl: soundMatch?.[1] ?? null,
   };
 };
 
@@ -156,7 +160,10 @@ const cleanGiftMessageForPreview = (content: string): string => {
 
   // Match format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans] or [Gift: EMOJI NAME xCOUNT | +BEANS beans]
   // Extract just emoji, name, count and beans - remove URL completely
-  const urlRemoved = content.replace(/\[Gift:\s*https?:\/\/[^\|\s]+\|/i, '[Gift: ');
+  const urlRemoved = content
+    .replace(/\[Gift:\s*https?:\/\/[^\|\s]+\|/i, '[Gift: ')
+    // Strip optional trailing |snd:URL field before final ] so preview regex matches
+    .replace(/\|\s*snd:[^\|\]]+/i, '');
 
   // Parse the clean content (supports both old and new format with optional diamonds segment)
   const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans\s*\]/i);
@@ -272,6 +279,7 @@ const Chat = () => {
   // Gift Animation State
   const [showGiftAnimation, setShowGiftAnimation] = useState(false);
   const [animatingGiftEmoji, setAnimatingGiftEmoji] = useState("");
+  const [animatingGiftSound, setAnimatingGiftSound] = useState<string | null>(null);
   const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
   
   // Host's received gift tracking (live counter)
@@ -674,16 +682,19 @@ const Chat = () => {
     const animationUrl = gift.animation_url?.startsWith('http') ? gift.animation_url : '';
     const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
     const giftMediaUrl = animationUrl || iconUrl;
+    const giftSoundUrl = (gift as any).sound_url?.startsWith('http') ? (gift as any).sound_url : '';
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
+    const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
-      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`
-      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`;
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`;
 
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
+    setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
     
@@ -740,8 +751,8 @@ const Chat = () => {
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
         // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`
-          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`;
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${soundSuffix}]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans${soundSuffix}]`;
 
         setMessages(prev => prev.map(m =>
           m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
@@ -1251,8 +1262,9 @@ const Chat = () => {
     recentGiftAnimationsRef.current.set(signature, now);
     if (playSoundEffect) playSoundDebounced('gift');
 
-    const { mediaUrl, emoji } = parseGiftContent(content || '');
+    const { mediaUrl, emoji, soundUrl } = parseGiftContent(content || '');
     setAnimatingGiftEmoji(mediaUrl || emoji);
+    setAnimatingGiftSound(soundUrl);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
   }
@@ -2973,9 +2985,11 @@ const Chat = () => {
               <GiftEmojiAnimation
                 key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
                 emoji={animatingGiftEmoji}
+                soundUrl={animatingGiftSound || undefined}
                 onComplete={() => {
                   setShowGiftAnimation(false);
                   setAnimatingGiftEmoji("");
+                  setAnimatingGiftSound(null);
                 }}
               />
             )}
