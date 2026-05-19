@@ -2985,9 +2985,11 @@ const Chat = () => {
               <GiftEmojiAnimation
                 key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
                 emoji={animatingGiftEmoji}
+                soundUrl={animatingGiftSound || undefined}
                 onComplete={() => {
                   setShowGiftAnimation(false);
                   setAnimatingGiftEmoji("");
+                  setAnimatingGiftSound(null);
                 }}
               />
             )}
