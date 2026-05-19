@@ -104,9 +104,10 @@ export default function AdminPricingHub() {
   });
   const [traderWalletTopupRate, setTraderWalletTopupRate] = useState<number | "">("");
 
-  // Auto Withdrawal Fee (app_settings.auto_withdrawal_fee) — flat USD for ePay/USDT/Binance/Crypto auto methods (foreign agencies)
-  const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number | ""; enabled: boolean }>({
+  // Auto Withdrawal Fee (app_settings.auto_withdrawal_fee) — flat USD + percent for ePay/USDT/Binance/Crypto auto methods (foreign agencies)
+  const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number | ""; percent: number | ""; enabled: boolean }>({
     flat_usd: "",
+    percent: "",
     enabled: true,
   });
 
@@ -167,10 +168,11 @@ export default function AdminPricingHub() {
           : tw?.usd_per_100k_diamonds ?? ""
       );
 
-      // Auto Withdrawal Fee (flat USD for ePay/USDT/Binance/Crypto auto methods)
+      // Auto Withdrawal Fee (flat USD + percent for ePay/USDT/Binance/Crypto auto methods)
       const awf = map.auto_withdrawal_fee;
       setAutoWithdrawalFee({
         flat_usd: typeof awf?.flat_usd === "number" ? awf.flat_usd : (typeof awf === "number" ? awf : ""),
+        percent: typeof awf?.percent === "number" ? awf.percent : "",
         enabled: awf?.enabled !== false,
       });
 
@@ -796,14 +798,14 @@ export default function AdminPricingHub() {
             <CardHeader>
               <CardTitle className="text-base">Auto Withdrawal Fee (Foreign Agencies)</CardTitle>
               <CardDescription>
-                Flat USD fee applied when an agency withdraws via an Auto Payment Method —
+                Fee applied when an agency withdraws via an Auto Payment Method —
                 <strong> ePay (Global), USDT, Binance, or the Custom Crypto Gateway</strong>.
-                Used by agencies outside Bangladesh / India / Pakistan whose payouts are auto-credited.
+                Final fee = <strong>Flat USD + (Withdrawal USD × Percent%)</strong>. Set either or both.
                 Overrides the tiered Withdrawal Fee above for these methods only.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Field label="Flat fee (USD)" hint="e.g. 2 = $2 deducted per auto withdrawal">
                   <Input
                     type="number"
@@ -814,6 +816,21 @@ export default function AdminPricingHub() {
                       setAutoWithdrawalFee({
                         ...autoWithdrawalFee,
                         flat_usd: e.target.value === "" ? "" : Number(e.target.value),
+                      })
+                    }
+                  />
+                </Field>
+                <Field label="Percent fee (%)" hint="e.g. 1.5 = 1.5% of withdrawal USD">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={NUM(autoWithdrawalFee.percent)}
+                    onChange={(e) =>
+                      setAutoWithdrawalFee({
+                        ...autoWithdrawalFee,
+                        percent: e.target.value === "" ? "" : Number(e.target.value),
                       })
                     }
                   />
@@ -831,10 +848,22 @@ export default function AdminPricingHub() {
                   </select>
                 </Field>
               </div>
-              {autoWithdrawalFee.enabled && autoWithdrawalFee.flat_usd !== "" && (
+              {autoWithdrawalFee.enabled && (autoWithdrawalFee.flat_usd !== "" || autoWithdrawalFee.percent !== "") && (
                 <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs space-y-1">
                   <div className="font-semibold text-amber-700 dark:text-amber-400">Live Preview</div>
-                  <div>Example: $50 auto withdrawal → fee <strong>${Number(autoWithdrawalFee.flat_usd).toFixed(2)}</strong> → net <strong>${(50 - Number(autoWithdrawalFee.flat_usd)).toFixed(2)}</strong> credited to Binance / wallet instantly</div>
+                  {(() => {
+                    const flat = Number(autoWithdrawalFee.flat_usd) || 0;
+                    const pct = Number(autoWithdrawalFee.percent) || 0;
+                    const sample = 50;
+                    const fee = flat + (sample * pct) / 100;
+                    return (
+                      <div>
+                        Example: ${sample} auto withdrawal → fee <strong>${fee.toFixed(2)}</strong>
+                        {pct > 0 && <> (${flat.toFixed(2)} flat + {pct}% = ${((sample * pct) / 100).toFixed(2)})</>}
+                        {' '}→ net <strong>${(sample - fee).toFixed(2)}</strong> credited instantly
+                      </div>
+                    );
+                  })()}
                   <div className="text-muted-foreground">Applies to: ePay, USDT, Binance, Crypto Gateway</div>
                 </div>
               )}
@@ -844,6 +873,7 @@ export default function AdminPricingHub() {
                     "auto_withdrawal_fee",
                     {
                       flat_usd: autoWithdrawalFee.flat_usd === "" ? 0 : Number(autoWithdrawalFee.flat_usd),
+                      percent: autoWithdrawalFee.percent === "" ? 0 : Number(autoWithdrawalFee.percent),
                       enabled: autoWithdrawalFee.enabled,
                       methods: ["epay", "usdt", "binance", "crypto_auto"],
                     },
