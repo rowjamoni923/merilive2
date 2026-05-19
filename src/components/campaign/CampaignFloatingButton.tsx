@@ -305,7 +305,7 @@ function CampaignFloatingButton() {
         });
       }
 
-      const valid = combined.filter(m => validHelperIds.has(m.helper_id) || m.helper_id.startsWith('country-'));
+      const valid = combined.filter(m => validHelperIds.has(m.helper_id));
       const seen = new Set<string>();
       const unique = valid.filter(m => {
         const key = `${m.method_name}-${m.account_number}`;
@@ -481,7 +481,11 @@ function CampaignFloatingButton() {
     const gw = gateways.find((g) => g.id === selectedPaymentTab);
     if (gw) {
       setShowPopup(false);
-      navigate(`/recharge?campaign_id=${campaign.id}`);
+      if (gw.id === 'mericash') {
+        setShowSwiftPayModal(true);
+      } else {
+        navigate(`/recharge?campaign_id=${campaign.id}`);
+      }
     }
   };
 
