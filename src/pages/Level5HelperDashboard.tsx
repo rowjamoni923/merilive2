@@ -2927,7 +2927,7 @@ const Level5HelperDashboard = () => {
  <SelectItem value="dana" className="text-slate-900">🔵 DANA</SelectItem>
  <SelectItem value="gopay" className="text-slate-900">🟢 GoPay</SelectItem>
  <SelectItem value="mpesa" className="text-slate-900">🟢 M-Pesa</SelectItem>
- <SelectItem value="binance" className="text-slate-900">🔶 Binance Pay</SelectItem>
+ 
  <SelectItem value="crypto" className="text-slate-900">₿ Crypto (USDT)</SelectItem>
  <SelectItem value="paypal" className="text-slate-900">💙 PayPal</SelectItem>
  <SelectItem value="wise" className="text-slate-900">💚 Wise</SelectItem>
