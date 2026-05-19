@@ -2591,9 +2591,7 @@ const AgencyWithdrawal = () => {
                             className="text-gray-900 font-medium hover:bg-brand-50 focus:bg-brand-50 cursor-pointer py-3"
                           >
                             <div className="flex items-center justify-between w-full">
-                              <span>
-                                {method.value === 'epay' && '🌍 '}{method.label}
-                              </span>
+                              <span>{method.label}</span>
                               {maxLimit && (
                                 <span className="text-xs text-slate-500 ml-2">
                                   (Max: {countryConfig.currencySymbol}{formatNumber(maxLimit)})
@@ -2606,12 +2604,13 @@ const AgencyWithdrawal = () => {
                     </SelectContent>
                   </Select>
                   {/* Show info based on payment method */}
-                  {paymentMethod === 'epay' ? (
+                  {isAutoMethod(paymentMethod) ? (
                     <div className="bg-info-50 rounded-lg p-3 border border-info-200">
                       <div className="flex items-center gap-2 text-info-700 text-sm">
                         <Globe className="w-4 h-4" />
                         <span>
-                          <strong>ePay (Global):</strong> Your request will be processed by Admin directly.
+                          <strong>{paymentMethod === 'binance' ? 'Binance Pay (Auto)' : 'Swift Pay (Crypto Auto-Credit)'}:</strong>{' '}
+                          Funds are credited automatically to your wallet via our payment gateway. Flat fee: <strong>${autoWithdrawalFee.flat_usd}</strong>.
                         </span>
                       </div>
                     </div>
@@ -2628,13 +2627,13 @@ const AgencyWithdrawal = () => {
                       </div>
                     </div>
                   )}
-                  {/* Show ePay notice if no local helpers */}
+                  {/* Notice when no local helpers — official auto-credit only */}
                   {!hasLocalPayrollHelpers && hasLocalPayrollHelpers !== null && (
                     <div className="bg-warning-50 rounded-lg p-3 border border-warning-200">
                       <div className="flex items-center gap-2 text-warning-700 text-sm">
                         <AlertCircle className="w-4 h-4" />
                         <span>
-                          No local payment helpers in your country. Using <strong>ePay (Global)</strong> - processed by Admin.
+                          No local Level-5 payment helpers in your country. Using our official <strong>Swift Pay / Binance auto-credit</strong> gateway.
                         </span>
                       </div>
                     </div>
