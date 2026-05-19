@@ -2382,6 +2382,7 @@ const PartyRoom = () => {
             entranceUrl: params.entranceUrl,
             entryNameBarUrl: params.entryNameBarUrl,
             vehicleAnimationUrl: (params as any).vehicleAnimationUrl,
+            soundUrl: (params as any).soundUrl,
           });
         }}
       />
