@@ -170,7 +170,7 @@ export default function SwiftPayDepositModal({
     } finally {
       setCreating(false);
     }
-  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd]);
 
   // Poll for credit status
   useEffect(() => {
