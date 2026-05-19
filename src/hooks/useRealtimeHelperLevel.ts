@@ -52,17 +52,9 @@ export const useRealtimeHelperLevel = (helperId: string | null) => {
     setLoading(false);
   }, [helperId]);
 
-  // PERFORMANCE: Reduced from 1s to 60s - realtime subscription handles instant updates
+  // Initial load only; realtime subscription below handles live updates without polling.
   useEffect(() => {
     fetchHelperData();
-    
-    const refreshInterval = setInterval(() => {
-      fetchHelperData();
-    }, 60000);
-    
-    return () => {
-      clearInterval(refreshInterval);
-    };
   }, [fetchHelperData]);
 
   // Real-time subscription for level changes
