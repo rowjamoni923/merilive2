@@ -37,6 +37,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import SVGAPreviewWithMuteToggle from '@/components/admin/SVGAPreviewWithMuteToggle';
+import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import { EntryBannerAnimation } from "@/components/live/EntryBannerAnimation";
 import adminStyles from "@/styles/adminStyles";
 
