@@ -6,6 +6,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { LiveGameBoard } from "./LiveGameBoard";
+import { GameErrorBoundary } from "./GameErrorBoundary";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 interface GameItem {
   game_id: string;
