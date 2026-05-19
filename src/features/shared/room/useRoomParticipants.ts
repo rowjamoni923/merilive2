@@ -38,6 +38,7 @@ interface UseRoomParticipantsOptions {
     entranceUrl?: string;
     entryNameBarUrl?: string;
     vehicleAnimationUrl?: string;
+    soundUrl?: string;
   }) => void;
   /** Whether hook is active */
   enabled?: boolean;
