@@ -240,10 +240,11 @@ const Live = () => {
 
     // Zero-refresh: realtime channel is the single source of truth, no polling
     return () => {
-
+      activeViewersByStreamRef.current.clear();
       supabase.removeChannel(channel);
       cleanupAllPreloaded(); // Disconnect preloaded rooms when leaving Live page
     };
+
   }, []);
 
   const totalViewers = streams.reduce((acc, stream) => acc + (stream.viewer_count || 0), 0);
