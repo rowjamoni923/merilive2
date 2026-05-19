@@ -92,7 +92,10 @@ Deno.serve(async (req) => {
     }
 
     const externalUserId = `merilive_agency_${w.agency_id}`;
-    const payCurrency = String(body.pay_currency).toLowerCase().trim();
+
+    // 🔒 IDEMPOTENCY HEADER — prevents accidental double-payouts even if
+    // the function is invoked twice for the same withdrawal in parallel.
+    const idemKey = `withdrawal_${w.id}`;
 
     // Call Swift Pay payout
     const payoutRes = await fetch(`${SWIFT_PAY_BASE_URL}/api/public/v1/payout`, {
@@ -100,15 +103,16 @@ Deno.serve(async (req) => {
       headers: {
         Authorization: `Bearer ${SWIFT_PAY_API_KEY}`,
         "Content-Type": "application/json",
+        "Idempotency-Key": idemKey,
       },
       body: JSON.stringify({
         external_user_id: externalUserId,
         display_name: (w as any).agencies.name,
         amount_usd: netUsd,
         pay_currency: payCurrency,
-        pay_address: body.pay_address,
-        pay_network: body.pay_network ?? null,
-        reference: `withdrawal_${w.id}`,
+        pay_address: payAddress,
+        pay_network: payNetwork,
+        reference: idemKey,
       }),
     });
     const txt = await payoutRes.text();
@@ -135,8 +139,9 @@ Deno.serve(async (req) => {
           payment_id: paymentId,
           status,
           pay_currency: payCurrency,
-          pay_address: body.pay_address,
-          pay_network: body.pay_network ?? null,
+          pay_address: payAddress,
+          pay_network: payNetwork,
+          amount_usd: netUsd,
           raw: parsed,
           at: new Date().toISOString(),
         },
