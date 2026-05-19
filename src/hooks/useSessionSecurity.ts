@@ -127,24 +127,5 @@ export function useSessionSecurity() {
     if (hasCheckedRef.current) return;
     hasCheckedRef.current = true;
     validateSession();
-
-    // Periodic checks
-    const interval = setInterval(validateSession, CHECK_INTERVAL_MS);
-
-    // Check on visibility change (user returns to tab)
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        const lastCheck = Number(sessionStorage.getItem(SESSION_CHECK_KEY) || '0');
-        if (Date.now() - lastCheck >= CHECK_INTERVAL_MS) {
-          void validateSession();
-        }
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
   }, [validateSession]);
 }
