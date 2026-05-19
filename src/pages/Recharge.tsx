@@ -28,6 +28,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 
 interface PaymentGateway {
   id: string;
@@ -121,6 +122,7 @@ const Recharge = () => {
   
   const [selectedTab, setSelectedTab] = useState<TabType>(campaignTab && ['google', 'recommend'].includes(campaignTab) ? campaignTab : "google");
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [showSwiftPayModal, setShowSwiftPayModal] = useState(false);
   const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(null);
   // Use global shared balance hook for real-time sync across all pages
   const { balance: globalBalance, refetch: refetchGlobalBalance } = useUserBalance();
@@ -2763,6 +2765,26 @@ const Recharge = () => {
               </div>
             )}
 
+            {/* Swift Pay — Crypto Auto-Credit (recommended for all countries) */}
+            <button
+              type="button"
+              onClick={() => setShowSwiftPayModal(true)}
+              className="w-full mb-3 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-amber-500/15 hover:from-amber-500/25 hover:via-yellow-500/25 hover:to-amber-500/25 p-3.5 flex items-center gap-3 shadow-[0_4px_18px_-6px_rgba(245,158,11,0.45)] transition relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400" />
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-md shrink-0">
+                <Sparkles className="w-5 h-5 text-slate-950" />
+              </div>
+              <div className="flex-1 text-left">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-black text-amber-700">Swift Pay — Crypto Auto-Credit</p>
+                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500 text-white">RECOMMENDED</span>
+                </div>
+                <p className="text-[11px] text-gray-600 mt-0.5">USDT · BTC · BNB · ETH · ⚡ Instant auto-credit · No helper wait</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-amber-700 shrink-0" />
+            </button>
+
             {/* Packages Grid - Compact */}
             <div className="grid grid-cols-2 gap-3">
               {packages.map((pkg) => {
@@ -3590,6 +3612,18 @@ const Recharge = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <SwiftPayDepositModal
+        open={showSwiftPayModal}
+        onOpenChange={setShowSwiftPayModal}
+        packages={packages.map((p: any) => ({
+          id: p.id,
+          coins: p.coins,
+          bonus_percentage: p.bonus_percentage,
+          price_usd: Number(p.price ?? p.price_usd ?? 0),
+          name: p.name,
+        }))}
+      />
     </div>
   );
 };

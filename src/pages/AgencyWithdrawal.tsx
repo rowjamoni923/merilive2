@@ -2382,7 +2382,25 @@ const AgencyWithdrawal = () => {
        // Helper notifications are now sent automatically by a database trigger
        // when the agency_withdrawals row is created.
        if (isAutoMethod(paymentMethod)) {
-         console.log('[Withdrawal] Auto method (Swift Pay / Binance) - auto-credit via gateway, helper notification skipped');
+         console.log('[Withdrawal] Auto method - initiating Swift Pay payout');
+         const withdrawalId = (data as any)?.withdrawal_id;
+         // Default to USDT TRC20 for binance/crypto_auto; user can override later via admin
+         const payCurrency = paymentMethod === 'binance' ? 'usdtbep20' : 'usdttrc20';
+         if (withdrawalId) {
+           const { error: payoutErr, data: payoutData } = await supabase.functions.invoke('swift-pay-create-payout', {
+             body: {
+               withdrawal_id: withdrawalId,
+               pay_currency: payCurrency,
+               pay_address: accountNumber.trim(),
+             },
+           });
+           if (payoutErr || payoutData?.error) {
+             console.error('[Withdrawal] Auto payout failed:', payoutErr || payoutData?.error);
+             toast.error('Withdrawal recorded but auto-payout failed. Admin will process manually.');
+           } else {
+             toast.success('✅ Auto-payout initiated! Funds will arrive shortly.');
+           }
+         }
        } else {
          console.log('[Withdrawal] Helper notifications will be sent automatically to same-country active Level 5 payroll helpers');
        }
