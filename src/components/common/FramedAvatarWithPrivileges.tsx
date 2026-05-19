@@ -171,7 +171,7 @@ const FramedAvatarWithPrivileges = ({
       onClick={onClick}
     >
       <AvatarImage
-        src={src || undefined}
+        src={effectiveSrc || undefined}
         className="object-cover"
       />
       <AvatarFallback
@@ -349,7 +349,7 @@ const FramedAvatarWithPrivileges = ({
   // Pass userId for unified frame fetching
   return (
     <Premium3DFrame
-      src={src}
+      src={effectiveSrc}
       name={name}
       level={level}
       size={size}
