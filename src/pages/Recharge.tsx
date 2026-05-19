@@ -123,6 +123,7 @@ const Recharge = () => {
   const [selectedTab, setSelectedTab] = useState<TabType>(campaignTab && ['google', 'recommend'].includes(campaignTab) ? campaignTab : "google");
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [showSwiftPayModal, setShowSwiftPayModal] = useState(false);
+  const [mericashInitialPackageId, setMericashInitialPackageId] = useState<string | null>(null);
   const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(null);
   // Use global shared balance hook for real-time sync across all pages
   const { balance: globalBalance, refetch: refetchGlobalBalance } = useUserBalance();
@@ -187,7 +188,7 @@ const Recharge = () => {
   // Play Store Billing State
   const [isPlayStoreAvailable, setIsPlayStoreAvailable] = useState(false);
   const [playStoreProcessing, setPlayStoreProcessing] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'playstore' | 'stripe' | 'local' | 'helper'>('playstore');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'playstore' | 'stripe' | 'local' | 'helper' | 'mericash'>('playstore');
   const [stripeProcessing, setStripeProcessing] = useState(false);
   
   // REALTIME: Diamond Packages & Currency Rates
@@ -1598,6 +1599,13 @@ const Recharge = () => {
       return;
     }
 
+    // MeriCash crypto auto-credit — open modal with chosen package
+    if (selectedPaymentMethod === 'mericash') {
+      setMericashInitialPackageId(selectedPackageId || null);
+      setShowSwiftPayModal(true);
+      return;
+    }
+
     // If Play Store is selected on Android, use Play Store Billing
     if (selectedPaymentMethod === 'playstore' && (isPlayStoreAvailable || isAndroidNative)) {
       handlePlayStorePurchase();
@@ -2511,6 +2519,49 @@ const Recharge = () => {
                     )}
                   </div>
                 </button>
+
+                {/* MeriCash — Crypto Auto-Credit (styled like Google Play, with RECOMMENDED ribbon) */}
+                <button
+                  onClick={() => setSelectedPaymentMethod('mericash')}
+                  className={cn(
+                    "flex-1 min-w-[130px] relative overflow-hidden rounded-2xl p-3 transition-all duration-200",
+                    selectedPaymentMethod === 'mericash'
+                      ? "bg-gradient-to-br from-amber-500 to-yellow-600 shadow-lg shadow-amber-500/30"
+                      : "bg-white border-2 border-gray-100 hover:border-amber-400/50 shadow-sm"
+                  )}
+                >
+                  {/* RECOMMENDED ribbon */}
+                  <span className="absolute -top-0 -right-0 text-[8px] font-black px-1.5 py-0.5 rounded-bl-lg bg-rose-500 text-white tracking-wider shadow">
+                    RECOMMENDED
+                  </span>
+                  <div className="relative flex items-center gap-2">
+                    <div className={cn(
+                      "w-8 h-8 rounded-xl flex items-center justify-center text-base",
+                      selectedPaymentMethod === 'mericash' ? "bg-white/20" : "bg-amber-50"
+                    )}>
+                      💎
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className={cn(
+                        "font-bold text-[13px]",
+                        selectedPaymentMethod === 'mericash' ? "text-heading" : "text-heading"
+                      )}>
+                        MeriCash
+                      </p>
+                      <p className={cn(
+                        "text-[10px] font-medium",
+                        selectedPaymentMethod === 'mericash' ? "text-body" : "text-heading"
+                      )}>
+                        Crypto • Auto-Credit
+                      </p>
+                    </div>
+                    {selectedPaymentMethod === 'mericash' && (
+                      <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-heading" />
+                      </div>
+                    )}
+                  </div>
+                </button>
                 
                 {/* Stripe - International Payments */}
                 {!isBangladesh && (
@@ -2765,25 +2816,17 @@ const Recharge = () => {
               </div>
             )}
 
-            {/* MeriCash — Crypto Auto-Credit (recommended for all countries) */}
-            <button
-              type="button"
-              onClick={() => setShowSwiftPayModal(true)}
-              className="w-full mb-3 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-amber-500/15 hover:from-amber-500/25 hover:via-yellow-500/25 hover:to-amber-500/25 p-3.5 flex items-center gap-3 shadow-[0_4px_18px_-6px_rgba(245,158,11,0.45)] transition relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400" />
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-md shrink-0">
-                <Sparkles className="w-5 h-5 text-slate-950" />
-              </div>
-              <div className="flex-1 text-left">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-black text-amber-700">MeriCash — Crypto Auto-Credit</p>
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500 text-white">RECOMMENDED</span>
+            {/* MeriCash hint when selected as payment method */}
+            {selectedPaymentMethod === 'mericash' && (
+              <div className="mb-3 rounded-xl p-2.5 border bg-amber-50 border-amber-200">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <p className="text-[11px] text-amber-700 font-semibold">
+                    💎 USDT · BTC · BNB · ETH • ⚡ Instant auto-credit • No helper wait
+                  </p>
                 </div>
-                <p className="text-[11px] text-gray-600 mt-0.5">USDT · BTC · BNB · ETH · ⚡ Instant auto-credit · No helper wait</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-amber-700 shrink-0" />
-            </button>
+            )}
 
             {/* Packages Grid - Compact */}
             <div className="grid grid-cols-2 gap-3">
@@ -2794,6 +2837,12 @@ const Recharge = () => {
                   setSelectedPackageId(pkg.id);
                   
                   // Trigger payment flow immediately
+                  if (selectedPaymentMethod === 'mericash') {
+                    // Open MeriCash modal pre-selected to this package
+                    setMericashInitialPackageId(pkg.id);
+                    setShowSwiftPayModal(true);
+                    return;
+                  }
                   if (selectedPaymentMethod === 'playstore') {
                       const isAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
                       if (isPlayStoreAvailable || isAndroid) {
@@ -3615,7 +3664,11 @@ const Recharge = () => {
 
       <SwiftPayDepositModal
         open={showSwiftPayModal}
-        onOpenChange={setShowSwiftPayModal}
+        onOpenChange={(v) => {
+          setShowSwiftPayModal(v);
+          if (!v) setMericashInitialPackageId(null);
+        }}
+        initialPackageId={mericashInitialPackageId}
         packages={packages.map((p: any) => ({
           id: p.id,
           coins: p.coins,
