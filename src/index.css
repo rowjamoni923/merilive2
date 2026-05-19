@@ -848,12 +848,14 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   }
 
   /* Hide scrollbar but keep functionality */
-  .scrollbar-hide {
+  .scrollbar-hide,
+  .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
-  .scrollbar-hide::-webkit-scrollbar {
+
+  .scrollbar-hide::-webkit-scrollbar,
+  .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 
