@@ -1800,11 +1800,11 @@ const AgencyWithdrawal = () => {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
-  // Auto Withdrawal Fee (admin-configurable, flat USD) — applies to ePay/USDT/Binance/Crypto auto methods
+  // Auto Withdrawal Fee (admin-configurable, flat USD) — applies to Swift Pay / Binance / USDT / Crypto auto methods
   const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; enabled: boolean; methods: string[] }>({
     flat_usd: 2,
     enabled: true,
-    methods: ['epay', 'usdt', 'binance', 'crypto_auto'],
+    methods: ['usdt', 'binance', 'crypto_auto'],
   });
   
   // Form state
