@@ -593,11 +593,17 @@ function CampaignFloatingButton() {
     }
   };
 
-  const paymentTabs: { key: PaymentTab; label: string; icon: React.ReactNode; description: string }[] = [
-    { key: 'google', label: 'Google Pay', icon: <CreditCard className="w-5 h-5" />, description: 'Pay with Google Play' },
-    { key: 'recommend', label: 'Recommended', icon: <Wallet className="w-5 h-5" />, description: 'Local payment methods' },
-    ...(!isBangladesh ? [{ key: 'skrill' as PaymentTab, label: 'Skrill', icon: <Globe className="w-5 h-5" />, description: 'International payment' }] : []),
-  ];
+  // Gateway icon helper — pick a sensible emoji per gateway type so unconfigured
+  // logos still look polished.
+  const gatewayIcon = (g: AutoGateway) => {
+    const t = (g.gateway_type || '').toLowerCase();
+    if (t.includes('zinipay') || t.includes('crypto') || t.includes('usdt') || t.includes('mericash')) return '💎';
+    if (t.includes('ssl') || t.includes('aamarpay') || t.includes('bkash') || t.includes('nagad')) return '🏦';
+    if (t.includes('stripe') || t.includes('paypal') || t.includes('card')) return '💳';
+    if (t.includes('skrill')) return '🌐';
+    return '💠';
+  };
+
 
   return (
     <>
