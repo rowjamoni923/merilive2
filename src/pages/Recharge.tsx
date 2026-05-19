@@ -2766,25 +2766,17 @@ const Recharge = () => {
               </div>
             )}
 
-            {/* MeriCash — Crypto Auto-Credit (recommended for all countries) */}
-            <button
-              type="button"
-              onClick={() => setShowSwiftPayModal(true)}
-              className="w-full mb-3 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-amber-500/15 hover:from-amber-500/25 hover:via-yellow-500/25 hover:to-amber-500/25 p-3.5 flex items-center gap-3 shadow-[0_4px_18px_-6px_rgba(245,158,11,0.45)] transition relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400" />
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-md shrink-0">
-                <Sparkles className="w-5 h-5 text-slate-950" />
-              </div>
-              <div className="flex-1 text-left">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-black text-amber-700">MeriCash — Crypto Auto-Credit</p>
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500 text-white">RECOMMENDED</span>
+            {/* MeriCash hint when selected as payment method */}
+            {selectedPaymentMethod === 'mericash' && (
+              <div className="mb-3 rounded-xl p-2.5 border bg-amber-50 border-amber-200">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <p className="text-[11px] text-amber-700 font-semibold">
+                    💎 USDT · BTC · BNB · ETH • ⚡ Instant auto-credit • No helper wait
+                  </p>
                 </div>
-                <p className="text-[11px] text-gray-600 mt-0.5">USDT · BTC · BNB · ETH · ⚡ Instant auto-credit · No helper wait</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-amber-700 shrink-0" />
-            </button>
+            )}
 
             {/* Packages Grid - Compact */}
             <div className="grid grid-cols-2 gap-3">
