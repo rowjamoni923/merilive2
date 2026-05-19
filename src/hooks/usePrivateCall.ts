@@ -516,21 +516,27 @@ export function usePrivateCall(userId: string | null) {
           account_blocked: { title: 'Account Blocked', description: 'Account is blocked' },
           user_blocked: { title: 'Blocked', description: 'You and this host have blocked each other' },
           cannot_call_self: { title: 'Invalid', description: 'You cannot call yourself' },
+          caller_busy_in_call: { title: 'Already in Call', description: 'You are already in another call' },
+          native_app_required: { title: 'App Required', description: 'Private calls are available only in the MeriLive Android app' },
+          call_rate_not_configured: { title: 'Call Rate Missing', description: 'Admin has not set a call rate for this host yet' },
+          invalid_call_rate_config: { title: 'Config Error', description: 'Call rate config is invalid — contact admin' },
+          unauthorized: { title: 'Unauthorized', description: 'Please log in again to make a call' },
         };
         const mapped = reasonMap[reason];
-        if (reason === 'Insufficient balance') {
+        if (reason === 'insufficient_balance' || reason === 'Insufficient balance') {
           toast({ title: 'Insufficient Diamonds', description: 'Please recharge to continue', variant: 'destructive' });
           navigate('/recharge');
         } else {
           toast({
             title: mapped?.title || 'Call Failed',
-            description: mapped?.description || reason || 'Please try again',
+            description: mapped?.description || rpcPayload.message || reason || 'Please try again',
             variant: 'destructive',
           });
         }
         setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
         return null;
       }
+
 
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
       const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
