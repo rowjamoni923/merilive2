@@ -299,7 +299,7 @@ export function LiveLuckyNumberGame({
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 3, opacity: 0 }}
-              className="absolute inset-0 flex items-center justify-center z-30 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 flex items-center justify-center z-30 bg-black/75"
             >
               <motion.span 
                 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400"
