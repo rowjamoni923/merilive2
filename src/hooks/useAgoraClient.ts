@@ -106,6 +106,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   const participantUidMapRef = useRef<Map<string, number>>(new Map());
   const remoteAudioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
   const hostVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
   const preferredVideoQualityRef = useRef<VideoQuality>(VideoQuality.HIGH);
@@ -163,6 +164,13 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     if (hostVideoRecoveryTimerRef.current) {
       clearInterval(hostVideoRecoveryTimerRef.current);
       hostVideoRecoveryTimerRef.current = null;
+    }
+  }, []);
+
+  const clearViewerHardReconnectTimer = useCallback(() => {
+    if (viewerHardReconnectTimerRef.current) {
+      clearTimeout(viewerHardReconnectTimerRef.current);
+      viewerHardReconnectTimerRef.current = null;
     }
   }, []);
 
