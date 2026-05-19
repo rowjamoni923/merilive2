@@ -7,7 +7,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Bell, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert } from "lucide-react";
 import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
@@ -56,7 +56,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { NotificationList, NotificationBell } from "@/components/notifications/NotificationList";
+import { NotificationList } from "@/components/notifications/NotificationList";
 import { OfficialNoticeList } from "@/components/notifications/OfficialNoticeList";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
@@ -223,7 +223,6 @@ const Chat = () => {
   const groupPhotoInputRef = useRef<HTMLInputElement>(null);
   
   // Notifications
-  const [showNotifications, setShowNotifications] = useState(false);
   const { markAllAsRead: markAllNotificationsAsRead } = useNotifications();
   const globalUnread = useGlobalUnreadCount();
 

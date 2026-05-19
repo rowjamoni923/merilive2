@@ -1,14 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
-import { toast } from 'sonner';
 import {
   getLocallyReadAgencyHostRequestIds,
   markAgencyHostRequestAsRead,
   markAgencyHostRequestsAsRead,
 } from '@/utils/agencyHostRequestReadState';
-import { buildSupportReplyLink } from '@/utils/supportNotificationLink';
-import { openInApp } from '@/utils/inAppNavigation';
 
 export interface Notification {
   id: string;
@@ -343,22 +340,7 @@ export const useNotifications = () => {
             playNotificationSound(newNotification.type);
           }
 
-          // Show visible toast popup
-          const actionUrl = newNotification.type === 'support_reply'
-            ? buildSupportReplyLink(newNotification.data as any)
-            : ((newNotification.data as any)?.action_url || null);
-
-          toast(newNotification.title, {
-            description: newNotification.message?.substring(0, 120),
-            duration: 6000,
-            icon: getNotificationIcon(newNotification.type),
-            action: actionUrl ? {
-              label: 'View',
-              onClick: () => {
-                void openInApp(actionUrl);
-              }
-            } : undefined,
-          });
+          // Push/FCM handles user-facing notification delivery. No in-app toast banner here.
         }
       )
       .on(
@@ -413,12 +395,7 @@ export const useNotifications = () => {
               playNotificationSound(newNotification.type);
             }
 
-            // Show visible toast popup for helper notifications
-            toast(newNotification.title, {
-              description: newNotification.message?.substring(0, 120),
-              duration: 6000,
-              icon: getNotificationIcon(newNotification.type),
-            });
+            // Push/FCM handles user-facing notification delivery. No in-app toast banner here.
           }
         )
         .on(

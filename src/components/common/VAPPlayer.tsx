@@ -348,18 +348,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   if (error) {
     return (
-      <div className={cn("flex items-center justify-center bg-black/20 rounded-lg", className)}>
-        <span className="text-xs text-red-400">VAP Error</span>
-      </div>
+      <div className={cn("bg-transparent", className)} aria-hidden="true" />
     );
   }
 
   return (
     <div className={cn("relative", className)}>
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        </div>
+        <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
       <canvas
         ref={canvasRef}
