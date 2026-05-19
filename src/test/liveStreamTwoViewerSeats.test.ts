@@ -162,7 +162,6 @@ const createViewerState = (room: ReturnType<typeof makeRoom>) => {
 
 beforeEach(() => {
   cleanup();
-  // jsdom needs a stub MediaStream so attach() doesn't throw
   if (typeof (globalThis as any).MediaStream === 'undefined') {
     (globalThis as any).MediaStream = class {
       private tracks: any[];
@@ -182,6 +181,14 @@ beforeEach(() => {
         this.tracks.push(t);
       }
     };
+  }
+  // jsdom's HTMLMediaElement.play() returns undefined; LiveKitVideoPlayer
+  // calls `.play().then(...)` and would crash. Stub a real promise.
+  if (!(HTMLMediaElement.prototype as any).__playStubbed) {
+    HTMLMediaElement.prototype.play = function play() {
+      return Promise.resolve();
+    } as any;
+    (HTMLMediaElement.prototype as any).__playStubbed = true;
   }
 });
 
