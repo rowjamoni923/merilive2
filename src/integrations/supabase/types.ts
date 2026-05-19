@@ -11370,6 +11370,8 @@ export type Database = {
           price_usd: number
           raw_payload: Json | null
           status: string
+          target_helper_id: string | null
+          target_type: string
           updated_at: string
           user_id: string
         }
@@ -11394,6 +11396,8 @@ export type Database = {
           price_usd: number
           raw_payload?: Json | null
           status?: string
+          target_helper_id?: string | null
+          target_type?: string
           updated_at?: string
           user_id: string
         }
@@ -11418,10 +11422,34 @@ export type Database = {
           price_usd?: number
           raw_payload?: Json | null
           status?: string
+          target_helper_id?: string | null
+          target_type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "swift_pay_topups_target_helper_id_fkey"
+            columns: ["target_helper_id"]
+            isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swift_pay_topups_target_helper_id_fkey"
+            columns: ["target_helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swift_pay_topups_target_helper_id_fkey"
+            columns: ["target_helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_error_logs: {
         Row: {
@@ -15881,6 +15909,10 @@ export type Database = {
           _user_id: string
         }
         Returns: string
+      }
+      credit_helper_wallet_from_swift_pay: {
+        Args: { p_diamonds: number; p_helper_id: string; p_topup_id: string }
+        Returns: Json
       }
       credit_sub_agent_commission: {
         Args: {
