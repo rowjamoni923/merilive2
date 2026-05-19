@@ -16772,7 +16772,15 @@ export type Database = {
         Args: { _agency_code: string; _host_id: string; _joined_via?: string }
         Returns: boolean
       }
+      join_live_stream_viewer: {
+        Args: { p_stream_id: string }
+        Returns: number
+      }
       leave_agency: { Args: never; Returns: Json }
+      leave_live_stream_viewer: {
+        Args: { p_stream_id: string }
+        Returns: number
+      }
       log_admin_action: {
         Args: {
           _action_type: string
