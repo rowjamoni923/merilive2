@@ -10,7 +10,7 @@ import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hoo
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
-const UniversalAnimationPlayer = lazy(() => import("@/components/common/UniversalAnimationPlayer"));
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 // Gift data types
 export interface GiftData {
