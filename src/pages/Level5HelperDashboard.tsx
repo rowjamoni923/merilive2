@@ -3614,7 +3614,7 @@ const Level5HelperDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
-      </div>
+
 
       {/* In-app Image Viewer */}
       <ImageViewer
