@@ -250,7 +250,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             setMediaLoaded(true);
             onLoad?.();
           }}
-          onEnded={() => !loop && onComplete?.()}
+          onEnded={() => !loop && fireComplete('native')}
           onError={() => {
             setHasError(true);
             onError?.(new Error('Video load failed'));
