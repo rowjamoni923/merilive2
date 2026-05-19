@@ -1007,6 +1007,13 @@ const navGroups: NavGroup[] = [
         description: "Owner-only queue of sub-admin financial / verification actions awaiting approval.",
       },
       {
+        label: "Auto Actions Log",
+        icon: Clock,
+        path: "/admin/auto-actions",
+        hubKey: "moderation-hub",
+        description: "Full history of every auto financial action (recharge / withdrawal / commission / payroll) with reverse + refund.",
+      },
+      {
         label: "Gmail Support",
         icon: Mail,
         path: "/admin/gmail-support",
