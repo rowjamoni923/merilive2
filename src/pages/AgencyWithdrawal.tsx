@@ -1923,14 +1923,16 @@ const AgencyWithdrawal = () => {
   };
 
   const getAccountFieldLabel = () => {
-    if (paymentMethod === 'epay') return 'ePay Email';
+    if (paymentMethod === 'crypto_auto') return 'Crypto Wallet Address (USDT TRC20 / BEP20)';
+    if (paymentMethod === 'binance') return 'Binance Pay ID or Email';
     if (paymentMethod === 'upi') return 'UPI ID';
     if (paymentMethod === 'alipay') return 'Alipay Email / Account';
     return 'Wallet Number / Account Number';
   };
 
   const getAccountFieldPlaceholder = () => {
-    if (paymentMethod === 'epay') return 'Enter your ePay email';
+    if (paymentMethod === 'crypto_auto') return 'Paste your USDT wallet address';
+    if (paymentMethod === 'binance') return 'Binance Pay ID (numeric) or email';
     if (paymentMethod === 'upi') return 'Enter your UPI ID';
     if (paymentMethod === 'alipay') return 'Enter your Alipay email or account number';
     return 'Enter your wallet/account number';
@@ -1940,7 +1942,7 @@ const AgencyWithdrawal = () => {
 
   const getNormalizedAccountNumber = () => {
     const normalized = accountNumber.trim();
-    return ['epay', 'upi', 'alipay'].includes(paymentMethod)
+    return ['crypto_auto', 'binance', 'upi', 'alipay'].includes(paymentMethod)
       ? normalized
       : normalized.replace(/\s+/g, '');
   };
@@ -1948,10 +1950,18 @@ const AgencyWithdrawal = () => {
   const getAccountNumberValidationMessage = () => {
     const normalizedAccountNumber = getNormalizedAccountNumber();
 
-    if (paymentMethod === 'epay') {
-      return emailAccountSchema.safeParse(normalizedAccountNumber).success
+    if (paymentMethod === 'crypto_auto') {
+      // Crypto wallet address: alphanumeric, 20-100 chars
+      return /^[a-zA-Z0-9]{20,100}$/.test(normalizedAccountNumber)
         ? null
-        : 'ePay account must be a valid email address';
+        : 'Enter a valid crypto wallet address (20-100 chars, no spaces)';
+    }
+
+    if (paymentMethod === 'binance') {
+      // Binance Pay ID (numeric 5-20 digits) or email
+      const isEmail = emailAccountSchema.safeParse(normalizedAccountNumber).success;
+      const isId = /^\d{5,20}$/.test(normalizedAccountNumber);
+      return isEmail || isId ? null : 'Enter a valid Binance Pay ID or email';
     }
 
     if (paymentMethod === 'upi') {
