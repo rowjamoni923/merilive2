@@ -2035,10 +2035,6 @@ const AgencyWithdrawal = () => {
     fetchData();
   }, []);
 
-  // Fetch countries that have active payroll helpers
-  useEffect(() => {
-    const fetchHelperCountries = async () => {
-      const { data, error } = await supabase
   // Fetch countries that have active payroll helpers + their admin-configured payment methods
   useEffect(() => {
     const fetchHelperCountries = async () => {
