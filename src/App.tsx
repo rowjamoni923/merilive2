@@ -1056,6 +1056,7 @@ const App = () => {
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
                   <Suspense fallback={<RouteSuspenseFallback />}>
+                  <ErrorBoundary componentName="AppRoutes">
                   <Routes>
                 {/* ============================================= */}
                 {/* PUBLIC ROUTES - No authentication required */}
