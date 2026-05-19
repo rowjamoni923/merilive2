@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, memo } from "react";
+import { useEffect, useState, useRef, memo, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
@@ -10,6 +10,34 @@ interface GiftEmojiAnimationProps {
   soundUrl?: string;
   onComplete: () => void;
 }
+
+const FULLSCREEN_LAYER_STYLE: CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  width: '100dvw',
+  height: '100dvh',
+  minWidth: '100vw',
+  minHeight: '100vh',
+  zIndex: 2147483000,
+  pointerEvents: 'none',
+  overflow: 'hidden',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  isolation: 'isolate',
+};
+
+const FULLSCREEN_STAGE_STYLE: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  width: '100dvw',
+  height: '100dvh',
+  minWidth: '100vw',
+  minHeight: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
 
 // CRITICAL: Memoized to prevent re-renders causing multiple SVGA loads
 const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }: GiftEmojiAnimationProps) => {
@@ -37,6 +65,19 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
   const isImage = isUrl && !isSvga && !isLottie && !isVap;
   const isEmoji = !isUrl;
   const hasAnimation = isSvga || isLottie || isVap;
+
+  useEffect(() => {
+    if (!soundUrl || isSvga) return;
+    const audio = new Audio(soundUrl);
+    audio.volume = 0.8;
+    audio.play().catch(() => {});
+    return () => {
+      try {
+        audio.pause();
+        audio.src = '';
+      } catch {}
+    };
+  }, [soundUrl, isSvga]);
   
   useEffect(() => {
     mountedRef.current = true;
@@ -102,17 +143,19 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
     return createPortal(
       <AnimatePresence>
         <motion.div
-          className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center"
+          style={FULLSCREEN_LAYER_STYLE}
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
         >
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div style={FULLSCREEN_STAGE_STYLE}>
             {isSvga && (
               <FixedAnimationFrame
                 src={emoji}
-                size="full-square"
+                size="fullscreen"
+                width="100dvw"
+                height="100dvh"
                 type="svga"
                 loop={false}
                 autoPlay
@@ -127,10 +170,13 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
             {(isLottie || isVap) && (
               <FixedAnimationFrame
                 src={emoji}
-                size="full-square"
+                size="fullscreen"
+                width="100dvw"
+                height="100dvh"
+                type={isLottie ? 'lottie' : 'vap'}
                 loop={false}
                 autoPlay
-                muted={false}
+                muted
                 soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
@@ -146,22 +192,22 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
   // Render simple image - FULL SCREEN (no dark overlay, no sparkles)
   if (isImage) {
     return createPortal(
-      <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
+      <div style={FULLSCREEN_LAYER_STYLE}>
+        <div style={FULLSCREEN_STAGE_STYLE}>
           <motion.div
             initial={{ scale: 0, rotate: -10 }}
             animate={{
-              scale: [0, 1.15, 1],
+              scale: [0, 1.08, 1],
               rotate: [0, 5, 0],
             }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="w-[90vw] h-[80vh] max-w-[600px] max-h-[600px] flex items-center justify-center"
+            style={{ width: '100dvw', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <img
               src={emoji}
               alt="Gift"
-              className="w-full h-full object-contain drop-shadow-[0_0_60px_rgba(255,200,100,0.5)]"
+              className="w-full h-full object-contain drop-shadow-2xl"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
@@ -175,20 +221,20 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
 
   // Emoji burst animation (original behavior for text emojis)
   return createPortal(
-    <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
+    <div style={FULLSCREEN_LAYER_STYLE}>
       {/* Center Burst Animation */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div style={FULLSCREEN_STAGE_STYLE}>
         {/* Main big emoji */}
         <motion.div
           initial={{ scale: 0, rotate: -30 }}
           animate={{
-            scale: [0, 2.5, 2],
+            scale: [0, 1.2, 1],
             rotate: [0, 15, 0],
           }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="drop-shadow-2xl"
         >
-          <span className="text-[120px] drop-shadow-2xl">{emoji}</span>
+          <span className="text-[clamp(8rem,45vmin,22rem)] drop-shadow-2xl">{emoji}</span>
         </motion.div>
 
         {/* Exploding emoji items */}
