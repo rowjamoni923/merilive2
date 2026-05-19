@@ -111,6 +111,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
                 autoPlay
                 muted={false}
                 volume={0.8}
+                soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
               />
@@ -123,6 +124,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
                 loop={false}
                 autoPlay
                 muted={false}
+                soundUrl={soundUrl}
                 onComplete={handleAnimationEnd}
                 center
               />
