@@ -154,14 +154,16 @@ const EntryNameBarAnimationInner = memo(({
               {/* Layer 1: SVGA background */}
               {hasSvga && cleanAnimUrl && (
                 <div className="absolute inset-0 z-[1]">
-                  <SVGAPlayerWithAudio
+                  <FixedAnimationFrame
                     src={cleanAnimUrl}
+                    size="fill"
+                    type="svga"
                     loop={false}
-                    autoPlay={true}
+                    muted={false}
                     volume={0}
                     onComplete={handleSvgaComplete}
                     onError={handleSvgaError}
-                    className="w-full h-full"
+                    center={false}
                   />
                 </div>
               )}
