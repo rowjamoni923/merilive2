@@ -747,16 +747,8 @@ export function UnifiedPartyRoom({
         }
       });
     
-    // POLLING FALLBACK for native apps (in case realtime fails)
-    // Ensures viewers see participant list without manual refresh
-    const pollInterval = setInterval(() => {
-      console.log('[UnifiedPartyRoom] 🔄 Polling viewer refresh');
-      fetchRealtimeViewers();
-    }, 5000); // Poll every 5 seconds
-
     return () => {
-      console.log('[UnifiedPartyRoom] Cleaning up viewer subscription and polling');
-      clearInterval(pollInterval);
+      console.log('[UnifiedPartyRoom] Cleaning up viewer subscription');
       supabase.removeChannel(viewerChannel);
     };
   }, [roomId, fetchRealtimeViewers]);

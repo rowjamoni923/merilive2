@@ -9,7 +9,6 @@
  * - Zero visible "reconnecting" states
  */
 
-import { supabase } from '@/integrations/supabase/client';
 import { forceReconnectChannel, getConnectionStatus } from '@/hooks/useUniversalRealtime';
 import { getAdaptiveNetworkProfile, getConnectionTier } from '@/utils/connectionProfile';
 
@@ -111,15 +110,8 @@ const performInstantRecovery = async (reason: 'online' | 'resume' | 'silent-disc
     const latency = await measureLatency();
     updateQuality(classifyQuality(latency));
 
-    // 3. Refresh auth session silently to prevent stale tokens
-    try {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session) {
-        console.log('[NetworkEngine] ✅ Session valid after recovery');
-      }
-    } catch {
-      // Silently ignore — authRequestGuard handles fallback
-    }
+    // 3. No data/auth refetch here. Realtime + request guards keep state fresh
+    // without any foreground/visibility-triggered refresh storm.
   })().finally(() => {
     recoveryInFlight = null;
   });
@@ -160,10 +152,9 @@ const handleVisibilityChange = () => {
 
   if (document.visibilityState === 'visible') {
     const hiddenForMs = lastHiddenAt ? Date.now() - lastHiddenAt : 0;
-    // Resume recovery only if app was really backgrounded
+    // Zero-refresh policy: visibility changes must not trigger app/data refresh.
     if (hiddenForMs >= 8000) {
-      console.log('[NetworkEngine] 👁 App resumed — quick recovery');
-      void performInstantRecovery('resume');
+      console.log('[NetworkEngine] 👁 App visible — refresh skipped');
     }
   }
 };
@@ -211,18 +202,7 @@ const setupNativeListeners = async () => {
       }
     });
 
-    // Also listen for app resume
-    try {
-      const { App } = await import('@capacitor/app');
-      await App.addListener('appStateChange', ({ isActive }) => {
-        if (isActive) {
-          console.log('[NetworkEngine] 📱 App resumed from background');
-          void performInstantRecovery('resume');
-        }
-      });
-    } catch {
-      // App plugin not available — web fallback
-    }
+    // App foreground/resume is intentionally ignored to avoid automatic refresh.
   } catch {
     // Network plugin not available — web fallback only
   }

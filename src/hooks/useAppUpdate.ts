@@ -279,38 +279,14 @@ export const useAppUpdate = () => {
 
   // Check for updates on mount (only once)
   useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
     // Delay to ensure app is fully loaded
     const timer = setTimeout(() => {
       checkForUpdate();
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [checkForUpdate]);
-
-  // Also check when app comes to foreground (but respect rate limiting)
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-
-    const setupAppStateListener = async () => {
-      try {
-        const { App } = await import('@capacitor/app');
-        const listener = await App.addListener('appStateChange', ({ isActive }) => {
-          if (isActive) {
-            console.log('[AppUpdate] App became active');
-            // Don't force check on foreground - let rate limiting handle it
-            checkForUpdate(false);
-          }
-        });
-        
-        return () => {
-          listener.remove();
-        };
-      } catch (error) {
-        console.error('[AppUpdate] Failed to setup app state listener:', error);
-      }
-    };
-
-    setupAppStateListener();
   }, [checkForUpdate]);
 
   return {

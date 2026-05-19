@@ -125,9 +125,6 @@ export const initSecureLinkGuard = (): (() => void) => {
   // Fetch rules immediately
   fetchAllowedLinks();
 
-  // Refresh rules periodically (every 5 minutes)
-  const refreshInterval = setInterval(fetchAllowedLinks, 5 * 60 * 1000);
-
   // Subscribe to real-time changes
   const channel = supabase
     .channel('secure-link-guard')
@@ -177,7 +174,6 @@ export const initSecureLinkGuard = (): (() => void) => {
   return () => {
     document.removeEventListener('click', handleClick, true);
     window.open = originalWindowOpen;
-    clearInterval(refreshInterval);
     supabase.removeChannel(channel);
   };
 };

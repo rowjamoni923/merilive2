@@ -3,7 +3,7 @@
  * All URLs open inside the app — nothing goes to external browser
  * 
  * Play Store → Android market:// intent (opens in Play Store app)
- * Internal routes → window.location.href (stays in WebView)
+ * Internal routes → SPA history navigation (no WebView/page refresh)
  * Payment/External → Capacitor Browser in-app overlay
  */
 
@@ -18,6 +18,21 @@ const INTERNAL_DOMAINS = [
 ];
 
 const PLAY_STORE_PACKAGE = 'com.merilive.app';
+
+export function navigateInAppPath(path: string, options?: { replace?: boolean }): void {
+  if (typeof window === 'undefined' || !path) return;
+
+  const target = path.startsWith('/') ? path : `/${path}`;
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (target === current) return;
+
+  if (options?.replace) {
+    window.history.replaceState(null, '', target);
+  } else {
+    window.history.pushState(null, '', target);
+  }
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
 
 /**
  * Check if URL is an internal app route
@@ -94,14 +109,14 @@ export async function openInApp(url: string, options?: {
   // === Internal URLs → Navigate within WebView ===
   if (isInternalUrl(url) && !options?.useOverlay) {
     if (url.startsWith('/')) {
-      window.location.href = url;
+      navigateInAppPath(url);
     } else {
       try {
         const parsed = new URL(url);
         // Extract path and navigate internally
-        window.location.href = parsed.pathname + parsed.search + parsed.hash;
+        navigateInAppPath(parsed.pathname + parsed.search + parsed.hash);
       } catch {
-        window.location.href = url;
+        navigateInAppPath(url);
       }
     }
     return;

@@ -8,6 +8,7 @@ import {
   markAgencyHostRequestsAsRead,
 } from '@/utils/agencyHostRequestReadState';
 import { buildSupportReplyLink } from '@/utils/supportNotificationLink';
+import { openInApp } from '@/utils/inAppNavigation';
 
 export interface Notification {
   id: string;
@@ -354,7 +355,7 @@ export const useNotifications = () => {
             action: actionUrl ? {
               label: 'View',
               onClick: () => {
-                window.location.href = actionUrl;
+                void openInApp(actionUrl);
               }
             } : undefined,
           });

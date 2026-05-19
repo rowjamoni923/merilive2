@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ShieldX, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { navigateInAppPath } from "@/utils/inAppNavigation";
 
 /**
  * Full-screen banned account overlay.
@@ -33,7 +34,7 @@ const BannedScreen = () => {
   const handleLogout = () => {
     // INSTANT: flag + redirect, cleanup in background
     try { localStorage.setItem('meri_manual_logout', 'true'); } catch {}
-    window.location.replace('/auth');
+    navigateInAppPath('/auth', { replace: true });
     void import('@/utils/nativeSessionStorage').then(({ clearNativeSession }) => clearNativeSession()).catch(() => {});
     void supabase.auth.signOut({ scope: 'local' }).catch(() => {});
   };

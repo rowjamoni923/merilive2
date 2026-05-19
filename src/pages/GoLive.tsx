@@ -29,7 +29,6 @@ import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
-import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 
@@ -478,12 +477,6 @@ const GoLive = () => {
       void refreshUserProfile(currentUserId);
     };
 
-    const handleVisibilityRefresh = () => {
-      if (document.visibilityState === 'visible') {
-        syncVerificationState();
-      }
-    };
-
     const channel = supabase
       .channel(`go-live-verification-${currentUserId}`)
       .on('postgres_changes', {
@@ -506,19 +499,10 @@ const GoLive = () => {
       }, syncVerificationState)
       .subscribe();
 
-    window.addEventListener('focus', syncVerificationState);
-    document.addEventListener('visibilitychange', handleVisibilityRefresh);
-
     return () => {
-      window.removeEventListener('focus', syncVerificationState);
-      document.removeEventListener('visibilitychange', handleVisibilityRefresh);
       supabase.removeChannel(channel);
     };
   }, [currentUserId, refreshUserProfile]);
-
-  useRefreshOnResume(() => {
-    if (currentUserId) void refreshUserProfile(currentUserId);
-  });
 
   // Function to actually request permissions when user clicks Allow
   const handleAllowPermissions = async () => {

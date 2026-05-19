@@ -148,15 +148,6 @@ export const useRealtimeLevel = (userId: string | null) => {
 
   useEffect(() => {
     fetchLevel();
-    
-    // PERFORMANCE: Reduced from 1s to 60s - realtime subscription handles instant updates
-    const refreshInterval = setInterval(() => {
-      fetchLevel();
-    }, 60000);
-    
-    return () => {
-      clearInterval(refreshInterval);
-    };
   }, [fetchLevel]);
 
   // Set up real-time subscription for level changes

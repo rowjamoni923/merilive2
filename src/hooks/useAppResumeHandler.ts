@@ -9,17 +9,12 @@
  */
 
 import { useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { forceReconnectChannel, getConnectionStatus } from '@/hooks/useUniversalRealtime';
-import { QueryClient } from '@tanstack/react-query';
+import { getConnectionStatus } from '@/hooks/useUniversalRealtime';
 
 type ResumeCallback = () => void;
 
 // Global event bus for app resume
 const resumeCallbacks = new Set<ResumeCallback>();
-
-// Reference to the app's QueryClient - set during hook initialization
-let appQueryClient: QueryClient | null = null;
 
 /**
  * Register a callback that fires when app resumes from background
@@ -47,34 +42,10 @@ const triggerResumeCallbacks = () => {
 };
 
 /**
- * Critical queries to refresh immediately on resume.
- * Everything else only refreshes if cache is old, preventing refetch storms.
- */
-const CRITICAL_QUERY_KEYS = new Set([
-  'index-hosts-v4',
-  'live-stream',
-  'active-streams',
-  'party-rooms',
-  'conversations',
-  'messages',
-  'notifications',
-  'user-profile',
-  'host-profile',
-  'agency-details',
-]);
-
-/**
  * Main hook - place in App.tsx to handle app resume globally
  */
-export const useAppResumeHandler = (userId: string | null, queryClient?: QueryClient) => {
+export const useAppResumeHandler = (userId: string | null, _queryClient?: unknown) => {
   const lastResumeTime = useRef(0);
-
-  // Store queryClient reference for global access
-  useEffect(() => {
-    if (queryClient) {
-      appQueryClient = queryClient;
-    }
-  }, [queryClient]);
 
   const handleResume = useCallback(async () => {
     if (!userId || window.location.pathname.startsWith('/admin')) return;
@@ -84,63 +55,18 @@ export const useAppResumeHandler = (userId: string | null, queryClient?: QueryCl
     if (now - lastResumeTime.current < 60000) return;
     lastResumeTime.current = now;
 
-    console.log('[AppResume] 🔄 App resumed from background');
+    console.log('[AppResume] App resumed — zero-refresh policy active');
 
-    // 1. Force reconnect realtime only when disconnected (avoids reconnect storms)
+    // 1. Report realtime state only; do not reconnect/refetch on foreground.
     const { isConnected } = getConnectionStatus();
-    if (!isConnected) {
-      forceReconnectChannel();
-    } else {
+    if (isConnected) {
       console.log('[AppResume] ✅ Realtime already connected, skipping forced reconnect');
+    } else {
+      console.log('[AppResume] Realtime disconnected; waiting for native/socket auto-reconnect');
     }
 
-    // 2. Refresh auth session (might have expired)
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('[AppResume] Session refresh error:', error);
-      } else if (data?.session) {
-        console.log('[AppResume] ✅ Session still valid');
-      }
-    } catch (e) {
-      console.error('[AppResume] Session check failed:', e);
-    }
-
-    // 3. Smart invalidate (critical + stale), not ALL queries
-    if (appQueryClient) {
-      const resumeTime = Date.now();
-      console.log('[AppResume] 🔄 Smart invalidation (critical + stale caches)');
-      appQueryClient.invalidateQueries({
-        predicate: (query) => {
-          const rootKey = String(query.queryKey?.[0] ?? '');
-          if (CRITICAL_QUERY_KEYS.has(rootKey)) return true;
-
-          // Refresh non-critical queries only if cache is old (>3 min)
-          const lastUpdated = query.state.dataUpdatedAt || 0;
-          return resumeTime - lastUpdated > 3 * 60 * 1000;
-        },
-        refetchType: 'active',
-      });
-    }
-
-    // 4. Trigger all registered resume callbacks
+    // 2. Trigger explicit local callbacks only; no query invalidation/refetch.
     triggerResumeCallbacks();
-
-    // 5. Clear stale global settings cache to force refresh
-    try {
-      const storedTime = localStorage.getItem('meri_global_settings_time');
-      if (storedTime) {
-        const elapsed = Date.now() - parseInt(storedTime, 10);
-        // If settings are older than 5 minutes, clear cache
-        if (elapsed > 5 * 60 * 1000) {
-          localStorage.removeItem('meri_global_settings');
-          localStorage.removeItem('meri_global_settings_time');
-          console.log('[AppResume] 🗑️ Cleared stale settings cache');
-        }
-      }
-    } catch (e) {
-      // Ignore storage errors
-    }
   }, [userId]);
 
   useEffect(() => {

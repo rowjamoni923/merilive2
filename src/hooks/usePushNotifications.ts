@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
+import { navigateInAppPath, openInApp } from '@/utils/inAppNavigation';
 
 interface UsePushNotificationsReturn {
   isSupported: boolean;
@@ -87,32 +88,33 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     if (!data) return;
 
     const type = data.type || '';
+    const go = (path: string) => navigateInAppPath(path);
 
     // Use comprehensive deep-linking
     if (type === 'incoming_call' || type === 'call') {
-      window.location.href = `/call?callId=${data.call_id || data.callId || ''}`;
+      go(`/call?callId=${data.call_id || data.callId || ''}`);
     } else if (type === 'call_missed' || type === 'call_received') {
-      window.location.href = '/call-history';
+      go('/call-history');
     } else if (type === 'message') {
-      window.location.href = `/chat/${data.conversation_id || data.conversationId || ''}`;
+      go(`/chat/${data.conversation_id || data.conversationId || ''}`);
     } else if (type === 'gift' || type === 'gift_received') {
-      window.location.href = data.sender_id ? `/profile-detail/${data.sender_id}` : '/profile';
+      go(data.sender_id ? `/profile-detail/${data.sender_id}` : '/profile');
     } else if (type === 'follow' || type === 'new_follower') {
-      window.location.href = `/profile-detail/${data.follower_id || ''}`;
+      go(`/profile-detail/${data.follower_id || ''}`);
     } else if (type === 'live' || type === 'live_started') {
-      window.location.href = data.stream_id ? `/live/${data.stream_id}` : '/discover';
+      go(data.stream_id ? `/live/${data.stream_id}` : '/discover');
     } else if (type === 'party_invite') {
-      window.location.href = data.room_id ? `/party/${data.room_id}` : '/party-rooms';
+      go(data.room_id ? `/party/${data.room_id}` : '/party-rooms');
     } else if (type === 'support_reply') {
-      window.location.href = `/settings/customer-service?mode=live_chat&ticket_id=${data.ticket_id || ''}`;
+      go(`/settings/customer-service?mode=live_chat&ticket_id=${data.ticket_id || ''}`);
     } else if (type.startsWith('agency_')) {
-      window.location.href = '/agency-dashboard';
+      go('/agency-dashboard');
     } else if (data.link_url) {
-      window.location.href = data.link_url;
+      void openInApp(data.link_url);
     } else if (data.action_url) {
-      window.location.href = data.action_url;
+      void openInApp(data.action_url);
     } else {
-      window.location.href = '/chat?tab=notifications';
+      go('/chat?tab=notifications');
     }
   }, []);
 

@@ -17,6 +17,7 @@ import { initWebViewPerformance } from '@/utils/nativePerformance';
 import { clearBalanceCache } from '@/hooks/useUserBalance';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
+import { navigateInAppPath } from '@/utils/inAppNavigation';
 
 
 // =============================================
@@ -780,13 +781,7 @@ const App = () => {
             return;
           }
 
-          console.warn('[App] 🚨 Global app re-entry signal received. Soft-resetting route/cache without reload...');
-
-          setTimeout(() => {
-            queryClient.invalidateQueries({ refetchType: 'active' });
-            window.history.replaceState(null, '', '/');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }, 350);
+          console.warn('[App] 🚨 Global app re-entry signal received. Route refresh blocked by zero-refresh policy.');
         }
       )
       .subscribe();
@@ -810,7 +805,7 @@ const App = () => {
                 setSession(null);
                 invalidateCachedUser();
                 await clearNativeSession();
-                window.location.replace('/auth');
+                navigateInAppPath('/auth', { replace: true });
                 return;
               }
             } catch (err) {
@@ -999,7 +994,7 @@ const App = () => {
   if (!isNative && !isLovablePreview && !isBrowserAllowedRoute && !session) {
     // Redirect unauthenticated browser users to auth page
     if (currentPath !== '/auth' && !currentPath.startsWith('/auth')) {
-      window.location.replace('/auth');
+      navigateInAppPath('/auth', { replace: true });
       return null; // ⚡ no full-screen spinner — instant redirect
     }
   }
