@@ -389,7 +389,8 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
           </div>
         )}
       </motion.div>
-    </div>
+    </div>,
+    portalTarget
   );
 });
 
