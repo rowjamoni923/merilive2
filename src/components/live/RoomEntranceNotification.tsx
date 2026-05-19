@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { InlineLevelBadge, LevelBadge } from "@/components/common/LevelBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 interface EntranceUser {
   id: string;
