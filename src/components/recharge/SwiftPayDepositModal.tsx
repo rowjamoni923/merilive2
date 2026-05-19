@@ -21,6 +21,13 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   packages: PkgLite[];
   initialPackageId?: string | null;
+  /** When "helper", skips package picker and tops up a helper's trader wallet. */
+  mode?: "user" | "helper";
+  helperId?: string | null;
+  helperCustomCoins?: number | null;
+  helperCustomPriceUsd?: number | null;
+  /** Called after successful credit so parent can refresh wallet display. */
+  onCredited?: (coins: number) => void;
 }
 
 const CRYPTO_OPTIONS = [
