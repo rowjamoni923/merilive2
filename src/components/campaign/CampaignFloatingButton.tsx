@@ -342,7 +342,12 @@ function CampaignFloatingButton() {
         if (codes.includes('GLOBAL')) return true;
         return cc ? codes.includes(cc) : false;
       });
-      setGateways(filtered.map((g: any) => ({ id: g.id, name: g.name, gateway_type: g.gateway_type, logo_url: g.logo_url })));
+      const mapped = filtered.map((g: any) => ({ id: g.id, name: g.name, gateway_type: g.gateway_type, logo_url: g.logo_url }));
+      const withoutMeriCashDuplicate = mapped.filter((g) => {
+        const key = `${g.name} ${g.gateway_type}`.toLowerCase();
+        return !key.includes('mericash') && !key.includes('meri cash') && !key.includes('swift');
+      });
+      setGateways([MERICASH_GATEWAY, ...withoutMeriCashDuplicate]);
     } catch (e) {
       console.error('Error fetching campaign gateways:', e);
     }
@@ -378,23 +383,13 @@ function CampaignFloatingButton() {
   };
 
   const handleBuyNow = async () => {
-    // Start with Google Play on native, otherwise pick the first available
-    // auto gateway (or local methods) — the Recommend tab is gone, every
-    // gateway from the topup page now shows up here directly.
     setPopupView('payment_select');
-    await Promise.all([
+    const [, helperList, gatewayList] = await Promise.all([
       fetchMatchedPackage(campaign),
       fetchHelperPaymentMethods(),
       fetchGateways(),
     ]);
-    // Default selection: Google Play on Android native, else first auto
-    // gateway, else local pay if helper methods exist.
-    setSelectedPaymentTab((prev) => {
-      if (isPlayStoreNative) return 'google';
-      if (gateways.length > 0) return gateways[0].id;
-      if (helperMethods.length > 0) return 'local';
-      return prev;
-    });
+    setSelectedPaymentTab(isPlayStoreNative ? 'google' : (gatewayList?.[0]?.id || (helperList?.length ? 'local' : 'mericash')));
   };
 
   const resetHelperForm = () => {
