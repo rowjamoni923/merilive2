@@ -97,6 +97,7 @@ const HelperDashboard = () => {
   const [processing, setProcessing] = useState(false);
   const [userFaceVerified, setUserFaceVerified] = useState(false);
   const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
+  const [showCryptoTopupModal, setShowCryptoTopupModal] = useState(false);
   
   // Real-time level progress hook
   const { 
