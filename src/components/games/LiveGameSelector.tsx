@@ -6,6 +6,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { LiveGameBoard } from "./LiveGameBoard";
+import { GameErrorBoundary } from "./GameErrorBoundary";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 interface GameItem {
   game_id: string;
@@ -160,15 +161,17 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts }: LiveG
           className="h-auto max-h-[85vh] rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden"
         >
           <div className="p-2 overflow-y-auto max-h-[80vh]">
-            <LiveGameBoard 
-              selectedGame={selectedGame} 
-              roomId={roomId}
-              onClose={() => {
-                setSelectedGame(null);
-                onClose();
-              }}
-              onOpenGifts={onOpenGifts}
-            />
+            <GameErrorBoundary gameName={selectedGame ?? undefined} onReset={() => setSelectedGame(null)}>
+              <LiveGameBoard
+                selectedGame={selectedGame}
+                roomId={roomId}
+                onClose={() => {
+                  setSelectedGame(null);
+                  onClose();
+                }}
+                onOpenGifts={onOpenGifts}
+              />
+            </GameErrorBoundary>
           </div>
         </SheetContent>
       </Sheet>

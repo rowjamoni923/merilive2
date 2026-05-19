@@ -36,6 +36,7 @@ import { LiveTeenPattiGame } from "./live-games/LiveTeenPattiGame";
 import { LiveLuckyNumberGame } from "./live-games/LiveLuckyNumberGame";
 import { LiveRocketRaceGame } from "./live-games/LiveRocketRaceGame";
 import { LiveRouletteGame } from "./live-games/LiveRouletteGame";
+import { GameErrorBoundary } from "./GameErrorBoundary";
 import { GameCategoryTabs } from "./GameCategoryTabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -398,19 +399,41 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
       onGameWin: (winAmount: number) => handleGameWin(winAmount, currentGame.game_name, currentGame.game_emoji || "🎰")
     };
 
+    // Wrap each per-game render in GameErrorBoundary so a crash in (say) the
+    // Ferris Wheel doesn't blank the whole game board — user can retry just
+    // that game or pick another from the tabs above.
+    let inner: React.ReactNode = null;
     switch (activeGame) {
       case 'roulette':
-        return <LiveRouletteGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveRouletteGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        break;
       case 'ferris-wheel':
       case 'ferris_wheel':
-        return <LiveFerrisWheelGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveFerrisWheelGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        break;
       case 'teen-patti':
       case 'teen_patti':
-        return <LiveTeenPattiGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveTeenPattiGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        break;
       case 'lucky_number':
-        return <LiveLuckyNumberGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveLuckyNumberGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        break;
       case 'rocket_race':
-        return <LiveRocketRaceGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        inner = <LiveRocketRaceGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
+        break;
+    }
+    if (inner) {
+      return (
+        <GameErrorBoundary
+          key={activeGame ?? 'game'}
+          gameName={currentGame.game_name}
+          onReset={() => setActiveGame((g) => g)}
+        >
+          {inner}
+        </GameErrorBoundary>
+      );
+    }
+    switch (activeGame) {
       default:
         return (
           <div className="flex flex-col items-center justify-center h-32 text-white/60">

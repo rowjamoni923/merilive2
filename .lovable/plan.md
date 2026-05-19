@@ -1,113 +1,59 @@
-# Helper Dashboard Premium Redesign — Full Audit & Fix
+## Single-Device Login (✅ DONE this turn)
 
-## Goal
+Root cause: `profiles` table was not in the `supabase_realtime` publication, so the realtime `UPDATE` listener in `useSingleDeviceSession` never fired on the old device. Combined with the recently-removed polling, the old device was effectively never kicked.
 
-`HelperDashboard` (Level 1-4) এবং `Level5HelperDashboard` — দুটোতেই
-1. **Premium text & color** — app-এর Ultra-Premium 3D Luxurious aesthetic (dark surfaces + gold/amber accents + emerald earnings) এর সাথে match করানো।
-2. **প্রত্যেকটা button / action সঠিকভাবে কাজ করছে কিনা** verify + fix।
+Fix shipped:
 
-কোনো business logic বদলাবো না — শুধু presentation layer + broken handlers।
+1. New table `public.user_active_sessions(user_id PK, session_id, device_info, updated_at)` — added to the `supabase_realtime` publication with `REPLICA IDENTITY FULL`. Backfilled from current profiles.
+2. `update_active_session` RPC now upserts into the mirror table on every register.
+3. `useSingleDeviceSession` realtime channel listens to `user_active_sessions` (both UPDATE + INSERT) instead of `profiles`. Old device receives the new session_id within ~1 second → triggers `forceLogout` instantly. Grace period (30s new-device + 15s reconnect) preserved.
+4. Fresh-login detection hardened: now also listens directly to Supabase `onAuthStateChange('SIGNED_IN')` event + a 30-second `meri_fresh_signin_uid` localStorage marker, so even after a fast reload the new device wins.
 
----
-
-## Scope
-
-### File A — `src/pages/HelperDashboard.tsx` (2,422 lines, Level 1-4)
-Sections to upgrade:
-- Header / hero stats (Trader Wallet, My Diamonds, Total Earned, Today's Earnings)
-- Manual Top-up card (auto crypto gateway block)
-- Level progression card (Level 1 → Level 5)
-- Upgrade Application modal (Crown dialog)
-- Payroll Application section (Apply / Pending / Rejected / Approved states)
-- 3-Tab section (`user` / `agency` / `self`) — TabsList + each TabsContent
-- Upgrade requests history list
-
-### File B — `src/pages/Level5HelperDashboard.tsx` (3,624 lines)
-Sections to upgrade:
-- Header + balance/earnings KPIs
-- Withdrawal request card + history table
-- Order management section
-- Performance / weekly earnings widgets
-- All dialogs & toasts
+Expected behaviour now: phone A logs in → phone B logs in with same account → phone B writes a new session_id → realtime row arrives on phone A → phone A shows toast "Signed out — your account is now active on another device" and routes to /auth. No polling, no reload, no freeze.
 
 ---
 
-## Design system (locked across both files)
+## Games — Professional Pass (proposed, needs your OK)
 
-| Token | Value (Tailwind / hex) | Used for |
-|---|---|---|
-| Base surface | `bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950` | Page background |
-| Card surface | `bg-slate-900/60 backdrop-blur-xl border border-amber-500/20` | All cards |
-| Premium card surface | `bg-gradient-to-br from-slate-900 via-slate-800/80 to-slate-900 border-amber-400/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)]` | Hero/stat cards |
-| Heading text | `text-amber-100` / gold gradient `bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400` | Section titles |
-| Body text | `text-slate-200` | Primary readable text |
-| Muted text | `text-slate-400` | Labels, hints |
-| Earnings / money | `text-emerald-300` + `text-amber-300` for diamonds | Diamonds, Beans, USD |
-| Primary CTA | `bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-bold shadow-[0_4px_20px_rgba(245,158,11,0.4)]` | Main actions (Pay, Apply) |
-| Secondary | `Button variant="glass"` (already in `button.tsx`) | Cancel, secondary |
-| Outline | `Button variant="outline-premium"` | Tertiary |
-| Danger | `bg-red-500/10 border border-red-500/40 text-red-300` | Rejected states |
-| Success | `bg-emerald-500/10 border border-emerald-500/40 text-emerald-300` | Approved states |
-| Info | `bg-amber-500/10 border border-amber-500/40 text-amber-200` | Pending |
+Scope you described: all 5 live games (Lucky Number, Ferris Wheel, Rocket Race, Roulette, Teen Patti) — broken open/blank, bet button doesn't work, result/animation off, balance not updating reliably, text colour collides with background. Keep the existing game system, just bring it to a professional level.
 
-> Existing `luxury`, `glass`, `outline-premium` button variants (per memory `mem://design/premium-button-variants-and-readability`) will be reused — না বানিয়ে already আছে।
+This is large. Suggested work split into 5 packages so we can ship + verify each one, instead of one mega-edit that breaks more than it fixes.
 
----
+### Pkg A — Game shell & open/blank fix (foundation, do first)
+- Audit `LiveGameBoard`, `LiveGame3DStage`, `Game3DContainer`, `GlobalGameOverlay`, `ProfessionalGameOverlay` for missing explicit dimensions on Canvas parents, missing `<Html>` wrappers, lazy-load failures.
+- Add a single `GameErrorBoundary` so a crash inside one game never shows a blank screen — fallback to a "Retry" card.
+- Ensure each game mounts behind a `Suspense` with the same skeleton, not a blank div.
 
-## Functional fixes to verify
+### Pkg B — Bet flow correctness
+- Standardise on one `useGameBet` hook calling the existing `processGameBet` / `processGameWin` RPCs (per `mem://technical/secure-game-transaction-standard`).
+- Disable bet button while a bet is in-flight; show toast on RPC error instead of silent failure.
+- Use `CompactBetControls` everywhere; remove the older `BetControls` duplication.
 
-For each interactive element I will trace handler → confirm it does what its label says:
+### Pkg C — Result reveal + animation polish
+- One shared `useGameRound` hook that drives countdown → reveal → settle for all 5 games using server-emitted round events (no client-side timers diverging).
+- Fix animation finish handlers (Ferris wheel stops on winning slot, Rocket lands at result row, Lucky Number flips at the right card, Roulette ball locks on the correct pocket, Teen Patti reveals real cards).
+- Win popup uses a single `WinPopup` component with confetti only on wins ≥ threshold.
 
-### HelperDashboard.tsx
-1. **Apply for Level 5** → opens upgrade modal ✓ already wired
-2. **Pay with Crypto** (modal) → opens `SwiftPayDepositModal`, on `onCredited` inserts `helper_upgrade_requests` ✓ verify
-3. **Apply for Payroll Access** → `setShowPayrollModal(true)` ✓ verify modal still renders
-4. **Re-apply for Payroll Access** → same modal, rejected state ✓ verify
-5. **Open Level 5 Dashboard** → `navigate('/level5-helper-dashboard')` ✓ verify route exists
-6. **TabsTrigger user/agency/self** → check each TabsContent fully renders (user reported earlier "General click korle properly kaj kortese na")
-7. **Manual Top-up "Generate"** → wired in earlier patch ✓ verify still working after redesign
-8. **Cancel buttons** in all dialogs → `setShow*(false)` — verify
+### Pkg D — Balance integrity
+- Remove any client-side optimistic balance math. Read live balance only from the singleton balance cache (per `mem://ui/balance-display-integrity-v2`).
+- After every `processGameWin` RPC, invalidate the balance query key — no polling.
 
-### Level5HelperDashboard.tsx
-1. Withdrawal request form → submits to correct RPC
-2. Order accept/reject buttons → mutation handlers
-3. Tab navigation works
-4. All "Copy", "Download", "Refresh" icons have handlers
+### Pkg E — Professional visual pass (uses our design tokens)
+- Replace any literal `text-white` / `text-slate-*` / hard-coded hex inside game files with semantic tokens (`text-foreground`, `bg-card`, `border-border`, etc.) so contrast works on both light and dark.
+- Apply the existing `luxury` + `glass` Button variants for primary actions.
+- Use one shared gold/purple gradient header per game (matches the rest of the app's Ultra-Premium Luxury aesthetic).
+- Run the contrast guard (`npm run check:contrast:baseline`) at the end so we never regress again.
 
-If any handler is missing or broken, fix it in the same pass.
+### Suggested order & size
+- Pkg A → 1 turn
+- Pkg B → 1 turn
+- Pkg C → 2 turns (animations are per-game)
+- Pkg D → 1 turn
+- Pkg E → 1 turn
 
----
+### Open questions before I start Pkg A
+1. Do you want me to keep all 5 live games visible, or temporarily hide the ones we haven't polished yet so users don't see broken ones?
+2. Any specific game I should fix **first** (the one most users complain about)?
+3. For the "professional" look, do you want me to use the existing Luxury/Gold theme (matches VIP/Noble) or pick a new visual direction via design previews?
 
-## Approach (sequential, low-risk)
-
-```text
-Step 1: HelperDashboard.tsx — outer page wrapper + header (10 min)
-Step 2: HelperDashboard.tsx — Manual Top-up + Levels card (10 min)
-Step 3: HelperDashboard.tsx — Upgrade modal + Payroll states (10 min)
-Step 4: HelperDashboard.tsx — Tabs section (user/agency/self) + handler audit (15 min)
-Step 5: Level5HelperDashboard.tsx — header + KPIs (10 min)
-Step 6: Level5HelperDashboard.tsx — withdrawal + orders + dialogs (15 min)
-Step 7: Click-through verification — open every dialog, switch every tab, confirm no broken handler
-```
-
-Each step = focused `code--line_replace` patches (no full rewrites of 6k-line files).
-
----
-
-## Out of scope (explicitly NOT touching)
-
-- Financial logic (host%, beans→USD, withdrawal minimums) — per immutability memory
-- Database / RPCs / edge functions
-- Authentication / routing
-- Other pages (Recharge, Agency, etc.)
-- Bengali strings (memory: English-only UI)
-
----
-
-## Risk
-
-Low. Pure presentation + bug-fix pass. No schema, no API, no money math touched. If any redesign hides a working button accidentally, click-through verification step catches it before finishing.
-
----
-
-approve করলে শুরু করি — sequential ভাবে patch করবো, প্রতি step-এর পর verify।
+Once you answer those 3, I'll start with Pkg A in the next turn.
