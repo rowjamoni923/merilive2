@@ -2205,8 +2205,8 @@ const AgencyWithdrawal = () => {
           flat_usd: typeof awf.flat_usd === 'number' ? awf.flat_usd : 2,
           enabled: awf.enabled !== false,
           methods: Array.isArray(awf.methods) && awf.methods.length > 0
-            ? awf.methods.map((m: string) => m.toLowerCase())
-            : ['epay', 'usdt', 'binance', 'crypto_auto'],
+            ? awf.methods.map((m: string) => m.toLowerCase()).filter((m: string) => m !== 'epay')
+            : ['usdt', 'binance', 'crypto_auto'],
         });
         console.log('[AgencyWithdrawal] Auto withdrawal fee from DB:', awf);
       }
