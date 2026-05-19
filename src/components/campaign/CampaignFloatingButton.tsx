@@ -4,15 +4,22 @@
  * Payment methods shown inline (no navigation to /recharge).
  */
 import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { X, CreditCard, Wallet, Globe, Copy, Check, Upload } from 'lucide-react';
+import { X, CreditCard, Copy, Check, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/CampaignTemplates';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { PLAY_STORE_PRODUCTS } from '@/sdk/PlayStoreBillingSDK';
 import { useAppState } from '@/hooks/useAppState';
+
+interface AutoGateway {
+  id: string;
+  name: string;
+  gateway_type: string;
+  logo_url: string | null;
+}
 
 interface Campaign {
   id: string;
@@ -66,7 +73,7 @@ const PURCHASED_KEY = 'campaign_purchased_';
 
 const getCampaignSessionKey = (campaignId: string) => `${SESSION_KEY}_${campaignId}`;
 
-type PaymentTab = 'google' | 'recommend' | 'skrill';
+type PaymentTab = 'google' | 'local' | string; // string = auto gateway id
 type PopupView = 'main' | 'payment_select' | 'payment_number';
 type PaymentStep = 'form' | 'processing' | 'pending';
 
@@ -92,11 +99,13 @@ function CampaignFloatingButton() {
   const [helperTransactionId, setHelperTransactionId] = useState('');
   const [helperPaymentProof, setHelperPaymentProof] = useState<string | null>(null);
   const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
+  const [gateways, setGateways] = useState<AutoGateway[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
   const appState = useAppState();
   const location = useLocation();
+  const navigate = useNavigate();
   // Profile page has wallet/beans cards stacked above bottom-nav — push the
   // floating button higher so the 150% bonus pill never overlaps "MY BEANS".
   const isProfileRoute = location.pathname.startsWith('/profile');
@@ -309,6 +318,27 @@ function CampaignFloatingButton() {
     setLoadingMethods(false);
   }, [userCountryCode]);
 
+  const fetchGateways = useCallback(async () => {
+    if (!userCountryCode) return;
+    try {
+      const { data } = await supabase
+        .from('payment_gateways')
+        .select('id, name, gateway_type, country_codes, logo_url')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      const cc = (userCountryCode || '').toUpperCase();
+      const filtered = (data || []).filter((g: any) => {
+        const codes: string[] = Array.isArray(g.country_codes) ? g.country_codes.map((c: string) => String(c).toUpperCase()) : [];
+        if (codes.length === 0) return false;
+        if (codes.includes('GLOBAL')) return true;
+        return cc ? codes.includes(cc) : false;
+      });
+      setGateways(filtered.map((g: any) => ({ id: g.id, name: g.name, gateway_type: g.gateway_type, logo_url: g.logo_url })));
+    } catch (e) {
+      console.error('Error fetching campaign gateways:', e);
+    }
+  }, [userCountryCode]);
+
   if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || purchased) return null;
 
   const template: CampaignTemplate = CAMPAIGN_TEMPLATES.find(t => t.id === campaign.template_id) || CAMPAIGN_TEMPLATES[0];
@@ -339,16 +369,23 @@ function CampaignFloatingButton() {
   };
 
   const handleBuyNow = async () => {
-    // On web, Google Play is not available — start the user on the Recommend
-    // (Local Pay) tab so helper numbers (bKash/Nagad/etc.) are shown immediately.
-    const initialTab: PaymentTab = isPlayStoreNative ? 'google' : 'recommend';
-    setSelectedPaymentTab(initialTab);
+    // Start with Google Play on native, otherwise pick the first available
+    // auto gateway (or local methods) — the Recommend tab is gone, every
+    // gateway from the topup page now shows up here directly.
     setPopupView('payment_select');
     await Promise.all([
       fetchMatchedPackage(campaign),
-      // Eagerly prefetch local methods so the Recommend tab never appears empty.
       fetchHelperPaymentMethods(),
+      fetchGateways(),
     ]);
+    // Default selection: Google Play on Android native, else first auto
+    // gateway, else local pay if helper methods exist.
+    setSelectedPaymentTab((prev) => {
+      if (isPlayStoreNative) return 'google';
+      if (gateways.length > 0) return gateways[0].id;
+      if (helperMethods.length > 0) return 'local';
+      return prev;
+    });
   };
 
   const resetHelperForm = () => {
@@ -370,12 +407,8 @@ function CampaignFloatingButton() {
   const handleSelectPayment = async (tab: PaymentTab) => {
     setSelectedPaymentTab(tab);
 
-    if (tab === 'recommend') {
+    if (tab === 'local') {
       await Promise.all([fetchHelperPaymentMethods(), matchedPackage ? Promise.resolve() : fetchMatchedPackage(campaign)]);
-      return;
-    }
-
-    if (tab === 'skrill') {
       return;
     }
   };
@@ -383,11 +416,9 @@ function CampaignFloatingButton() {
   const handleContinueSelectedPayment = async () => {
     if (selectedPaymentTab === 'google') {
       if (!isPlayStoreNative) {
-        // Web/iOS — gracefully redirect the user to local methods instead of
-        // an unprofessional toast pop. Prefetch in case the user lands here
-        // without having opened the Recommend tab yet.
-        setSelectedPaymentTab('recommend');
-        await fetchHelperPaymentMethods();
+        // Web/iOS — gracefully redirect the user to Recharge so they can pick
+        // a payment gateway that works in their browser.
+        navigate(`/recharge?campaign_id=${campaign.id}`);
         return;
       }
       try {
@@ -415,7 +446,7 @@ function CampaignFloatingButton() {
       return;
     }
 
-    if (selectedPaymentTab === 'recommend') {
+    if (selectedPaymentTab === 'local') {
       if (!selectedLocalMethodName) {
         toast({ title: 'Select payment method', description: 'Please choose Nagad, Bkash, Rocket or another available method.', variant: 'destructive' });
         return;
@@ -431,10 +462,15 @@ function CampaignFloatingButton() {
       return;
     }
 
-    if (selectedPaymentTab === 'skrill') {
-      toast({ title: 'Skrill', description: 'Skrill payment coming soon' });
+    // Any other auto gateway (selectedPaymentTab === gateway.id) — hand off to
+    // the full Recharge page so the user gets the same flow as topup.
+    const gw = gateways.find((g) => g.id === selectedPaymentTab);
+    if (gw) {
+      setShowPopup(false);
+      navigate(`/recharge?campaign_id=${campaign.id}`);
     }
   };
+
 
   const handleShowNextNumber = () => {
     if (filteredHelperMethods.length > 1) {
@@ -557,11 +593,17 @@ function CampaignFloatingButton() {
     }
   };
 
-  const paymentTabs: { key: PaymentTab; label: string; icon: React.ReactNode; description: string }[] = [
-    { key: 'google', label: 'Google Pay', icon: <CreditCard className="w-5 h-5" />, description: 'Pay with Google Play' },
-    { key: 'recommend', label: 'Recommended', icon: <Wallet className="w-5 h-5" />, description: 'Local payment methods' },
-    ...(!isBangladesh ? [{ key: 'skrill' as PaymentTab, label: 'Skrill', icon: <Globe className="w-5 h-5" />, description: 'International payment' }] : []),
-  ];
+  // Gateway icon helper — pick a sensible emoji per gateway type so unconfigured
+  // logos still look polished.
+  const gatewayIcon = (g: AutoGateway) => {
+    const t = (g.gateway_type || '').toLowerCase();
+    if (t.includes('zinipay') || t.includes('crypto') || t.includes('usdt') || t.includes('mericash')) return '💎';
+    if (t.includes('ssl') || t.includes('aamarpay') || t.includes('bkash') || t.includes('nagad')) return '🏦';
+    if (t.includes('stripe') || t.includes('paypal') || t.includes('card')) return '💳';
+    if (t.includes('skrill')) return '🌐';
+    return '💠';
+  };
+
 
   return (
     <>
@@ -838,86 +880,102 @@ function CampaignFloatingButton() {
                   </p>
 
                   <div className="space-y-4">
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Google Play — always shown (matches topup) */}
                       <button
                         onClick={() => handleSelectPayment('google')}
-                        className={`flex-1 min-w-[130px] relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ${
+                        className={`relative overflow-hidden rounded-2xl p-3 transition-all duration-200 text-left ${
                           selectedPaymentTab === 'google'
                             ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-green-500/25'
                             : 'bg-white border-2 border-gray-100 hover:border-green-400/50 shadow-sm'
                         }`}
                       >
-                        <div className="relative flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                           <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base ${selectedPaymentTab === 'google' ? 'bg-white/20' : 'bg-green-50'}`}>
                             🎮
                           </div>
-                          <div className="flex-1 text-left">
-                            <p className={`font-bold text-[13px] ${selectedPaymentTab === 'google' ? 'text-white' : 'text-gray-800'}`}>
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-bold text-[13px] truncate ${selectedPaymentTab === 'google' ? 'text-white' : 'text-gray-800'}`}>
                               Google Play
                             </p>
-                            <p className={`text-[10px] font-medium ${selectedPaymentTab === 'google' ? 'text-white/80' : 'text-gray-500'}`}>
+                            <p className={`text-[10px] font-medium truncate ${selectedPaymentTab === 'google' ? 'text-white/80' : 'text-gray-500'}`}>
                               Worldwide • Instant
                             </p>
                           </div>
                           {selectedPaymentTab === 'google' && (
-                            <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
+                            <div className="w-5 h-5 shrink-0 rounded-full bg-white/25 flex items-center justify-center">
                               <Check className="w-3 h-3 text-white" />
                             </div>
                           )}
                         </div>
                       </button>
 
-                      <button
-                        onClick={() => handleSelectPayment('recommend')}
-                        className={`flex-1 min-w-[130px] relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ${
-                          selectedPaymentTab === 'recommend'
-                            ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/25'
-                            : 'bg-white border-2 border-gray-100 hover:border-orange-400/50 shadow-sm'
-                        }`}
-                      >
-                        <div className="relative flex items-center gap-2">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base ${selectedPaymentTab === 'recommend' ? 'bg-white/20' : 'bg-orange-50'}`}>
-                            ⭐
-                          </div>
-                          <div className="flex-1 text-left">
-                            <p className={`font-bold text-[13px] ${selectedPaymentTab === 'recommend' ? 'text-white' : 'text-gray-800'}`}>
-                              Recommend
-                            </p>
-                            <p className={`text-[10px] truncate max-w-[70px] font-medium ${selectedPaymentTab === 'recommend' ? 'text-white/80' : 'text-gray-500'}`}>
-                              {recommendPreviewText}
-                            </p>
-                          </div>
-                          {selectedPaymentTab === 'recommend' && (
-                            <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
+                      {/* Auto payment gateways — pulled live from payment_gateways
+                          (same source as the topup page). */}
+                      {gateways.map((gw) => {
+                        const isSelected = selectedPaymentTab === gw.id;
+                        return (
+                          <button
+                            key={gw.id}
+                            onClick={() => handleSelectPayment(gw.id)}
+                            className={`relative overflow-hidden rounded-2xl p-3 transition-all duration-200 text-left ${
+                              isSelected
+                                ? 'bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25'
+                                : 'bg-white border-2 border-gray-100 hover:border-indigo-400/50 shadow-sm'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base overflow-hidden ${isSelected ? 'bg-white/20' : 'bg-indigo-50'}`}>
+                                {gw.logo_url ? (
+                                  <img src={gw.logo_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  gatewayIcon(gw)
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`font-bold text-[13px] truncate ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                                  {gw.name}
+                                </p>
+                                <p className={`text-[10px] font-medium truncate ${isSelected ? 'text-white/80' : 'text-gray-500'}`}>
+                                  Auto • Instant
+                                </p>
+                              </div>
+                              {isSelected && (
+                                <div className="w-5 h-5 shrink-0 rounded-full bg-white/25 flex items-center justify-center">
+                                  <Check className="w-3 h-3 text-white" />
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </button>
+                          </button>
+                        );
+                      })}
 
-                      {!isBangladesh && (
+                      {/* Local Pay — only when a Level-5 payroll helper in the
+                          user's country has added a local method. No "Recommend"
+                          label anywhere. */}
+                      {recommendedMethodNames.length > 0 && (
                         <button
-                          onClick={() => handleSelectPayment('skrill')}
-                          className={`w-full relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ${
-                            selectedPaymentTab === 'skrill'
-                              ? 'bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25'
-                              : 'bg-white border-2 border-gray-100 hover:border-indigo-400/50 shadow-sm'
+                          onClick={() => handleSelectPayment('local')}
+                          className={`relative overflow-hidden rounded-2xl p-3 transition-all duration-200 text-left ${
+                            selectedPaymentTab === 'local'
+                              ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/25'
+                              : 'bg-white border-2 border-gray-100 hover:border-orange-400/50 shadow-sm'
                           }`}
                         >
-                          <div className="relative flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base ${selectedPaymentTab === 'skrill' ? 'bg-white/20' : 'bg-indigo-50'}`}>
-                              💳
+                          <div className="flex items-center gap-2">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base ${selectedPaymentTab === 'local' ? 'bg-white/20' : 'bg-orange-50'}`}>
+                              💵
                             </div>
-                            <div className="flex-1 text-left">
-                              <p className={`font-bold text-[13px] ${selectedPaymentTab === 'skrill' ? 'text-white' : 'text-gray-800'}`}>
-                                Skrill
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-bold text-[13px] truncate ${selectedPaymentTab === 'local' ? 'text-white' : 'text-gray-800'}`}>
+                                Local Pay
                               </p>
-                              <p className={`text-[10px] font-medium ${selectedPaymentTab === 'skrill' ? 'text-white/80' : 'text-gray-500'}`}>
-                                International payment
+                              <p className={`text-[10px] font-medium truncate ${selectedPaymentTab === 'local' ? 'text-white/80' : 'text-gray-500'}`}>
+                                {recommendPreviewText}
                               </p>
                             </div>
-                            {selectedPaymentTab === 'skrill' && (
-                              <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
+                            {selectedPaymentTab === 'local' && (
+                              <div className="w-5 h-5 shrink-0 rounded-full bg-white/25 flex items-center justify-center">
                                 <Check className="w-3 h-3 text-white" />
                               </div>
                             )}
@@ -926,7 +984,7 @@ function CampaignFloatingButton() {
                       )}
                     </div>
 
-                    {selectedPaymentTab === 'recommend' && (
+                    {selectedPaymentTab === 'local' && (
                       <div className="space-y-3">
                         {loadingMethods ? (
                           <div className="flex items-center justify-center py-6">
@@ -971,17 +1029,7 @@ function CampaignFloatingButton() {
                               Continue with {selectedLocalMethodName ? formatMethodLabel(selectedLocalMethodName) : 'Local Pay'}
                             </button>
                           </>
-                        ) : (
-                          <div className="rounded-2xl border border-amber-200/40 bg-gradient-to-br from-amber-50/10 to-orange-50/5 px-4 py-5 text-center">
-                            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-amber-400/15">
-                              <Wallet className="h-5 w-5 text-amber-300" />
-                            </div>
-                            <p className="text-sm font-semibold text-white">No verified local agents online</p>
-                            <p className="mt-1 text-[11px] text-white/60 leading-relaxed">
-                              We couldn't find an active payroll trader for {userCountryCode} right now. Please try again in a moment.
-                            </p>
-                          </div>
-                        )}
+                        ) : null}
                       </div>
                     )}
 
@@ -1002,7 +1050,7 @@ function CampaignFloatingButton() {
                               <div className="flex-1 text-left">
                                 <p className="text-[13px] font-bold text-white">Available on Android app</p>
                                 <p className="mt-0.5 text-[11px] text-white/65 leading-snug">
-                                  Google Play Billing requires the MeriLive Android app. Use a local payment instead — same offer, instant.
+                                  Google Play Billing requires the MeriLive Android app. Pick another gateway above to continue.
                                 </p>
                               </div>
                             </div>
@@ -1012,22 +1060,24 @@ function CampaignFloatingButton() {
                             onClick={handleContinueSelectedPayment}
                             className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-3.5 text-sm font-bold text-[#2d1a00] shadow-lg"
                           >
-                            Switch to Local Pay
+                            Open Recharge
                           </button>
                         </div>
                       )
                     )}
 
-                    {selectedPaymentTab === 'skrill' && (
+                    {/* Auto gateway continue button — handed off to /recharge */}
+                    {selectedPaymentTab !== 'google' && selectedPaymentTab !== 'local' && gateways.some((g) => g.id === selectedPaymentTab) && (
                       <button
                         type="button"
                         onClick={handleContinueSelectedPayment}
                         className="w-full rounded-2xl bg-gradient-to-r from-indigo-400 to-purple-500 px-4 py-3.5 text-sm font-bold text-white shadow-lg"
                       >
-                        Continue with Skrill
+                        Continue with {gateways.find((g) => g.id === selectedPaymentTab)?.name || 'Payment'}
                       </button>
                     )}
                   </div>
+
                 </div>
               )}
 
