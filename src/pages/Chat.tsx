@@ -688,8 +688,11 @@ const Chat = () => {
       status: 'sending',
       _optimistic: true,
     };
+    // Local optimistic only — receiver gets the real row via persistDirectMessage
+    // (postgres_changes + single broadcast). Broadcasting the optimistic temp id here
+    // would arrive with a different id and slightly different content (estimated vs
+    // actual beans), causing a duplicate bubble on the receiver. Do NOT add it back.
     upsertLiveMessage(optimisticGiftRow);
-    void broadcastDirectMessage(optimisticGiftRow, selectedConversation.id);
 
     // ========== BACKGROUND PROCESSING ==========
     (async () => {
