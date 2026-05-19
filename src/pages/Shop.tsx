@@ -46,11 +46,6 @@ const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWit
 const isAnimatedAssetUrl = (url?: string | null) => /\.(svga|json)(\?|#|$)/i.test(url ?? '');
 const resolveShopAssetUrl = (item: Pick<ShopItem, 'preview_url' | 'animation_url' | 'animation_file_url'>) =>
   item.animation_file_url || item.animation_url || item.preview_url || '';
-const resolveShopPreviewUrl = (item: Pick<ShopItem, 'preview_url' | 'animation_url' | 'animation_file_url'>) => {
-  const previewUrl = item.preview_url?.trim() || '';
-  if (previewUrl && !isAnimatedAssetUrl(previewUrl)) return previewUrl;
-  return item.animation_url || item.animation_file_url || previewUrl;
-};
 
 interface ShopItem {
   id: string;
@@ -118,7 +113,7 @@ const ShopItemCard = ({
   isFullWidth?: boolean;
 }) => {
   const [imageError, setImageError] = useState(false);
-  const previewSrc = resolveShopPreviewUrl(item);
+  const previewSrc = resolveShopAssetUrl(item);
   
   return (
     <motion.div
