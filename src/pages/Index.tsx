@@ -439,15 +439,18 @@ const Index = () => {
                 img.src = user.liveThumbnailUrl;
                 return;
               }
-              // 2nd fallback: stable AI placeholder for hosts/females so the
-              // card never renders as a blank gray box (Pkg covers broken
-              // avatar URLs from private buckets / dead links).
-              const isHostLike = !!(user.is_host || user.gender === 'female');
-              const fallback = isHostLike ? getDisplayAvatar(user.id, null) : DEFAULT_AVATAR;
+              // 2nd fallback: stable AI placeholder (gender-aware) so the
+              // card never renders blank. Owners still see DEFAULT_AVATAR.
+              const isOwner = !!currentUserId && currentUserId === user.id;
+              const gender: 'female' | 'male' = (user.is_host || user.gender === 'female')
+                ? 'female'
+                : (user.gender === 'male' ? 'male' : 'female');
+              const fallback = isOwner ? DEFAULT_AVATAR : getDisplayAvatar(user.id, null, { gender });
               if (img.src !== fallback && !img.dataset.fellBack) {
                 img.dataset.fellBack = "1";
                 img.src = fallback;
               }
+
             }}
           />
 
