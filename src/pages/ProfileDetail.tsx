@@ -776,61 +776,77 @@ const ProfileDetail = () => {
       {/* Scrollable Content Container */}
       <div style={{ paddingBottom: 'calc(120px + env(safe-area-inset-bottom, 20px))' }}>
       {/* Cover Image / Slideshow */}
-      <div className="relative h-[45vh] min-h-[300px] max-h-[420px] overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentSlideIndex}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.7 }}
-            className="absolute inset-0"
-          >
-            {isVideo ? (
-              <video
-                src={posterImages[currentSlideIndex]?.image_url}
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            ) : (
-              <img
-                src={getCurrentCoverImage()}
-                alt="Cover"
-                className="w-full h-full object-cover"
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
+      <div className="relative h-[45vh] min-h-[300px] max-h-[420px] overflow-hidden bg-slate-100">
+        {/* Preload + render all posters stacked; toggle opacity for instant switching */}
+        {posterImages.map((p, idx) => {
+          const url = p.image_url;
+          const isV = !!url?.match(/\.(mp4|webm|mov)$/i);
+          const active = idx === currentSlideIndex;
+          return (
+            <motion.div
+              key={p.id || idx}
+              initial={false}
+              animate={{ opacity: active ? 1 : 0 }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0"
+              style={{ pointerEvents: active ? 'auto' : 'none' }}
+            >
+              {isV ? (
+                <video
+                  src={url}
+                  className="w-full h-full object-cover"
+                  autoPlay={active}
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                />
+              ) : (
+                <img
+                  src={url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority={active ? 'high' : 'low'}
+                />
+              )}
+            </motion.div>
+          );
+        })}
+        {posterImages.length === 0 && (
+          <img src={getCurrentCoverImage()} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
         {/* Premium gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-[#f7f8fa]" /> {/* dark-ok: intentional photo→footer overlay, no text inside */}
         {/* Subtle vignette */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.22) 100%)' }} />
 
-        {/* Slideshow Indicators */}
+        {/* Slideshow Indicators — slim professional pills */}
         {posterImages.length > 1 && (
-          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
             {posterImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlideIndex(index)}
-                className={`rounded-full transition-all ${
-                  index === currentSlideIndex 
-                    ? "w-6 h-2 bg-gradient-to-r from-fuchsia-400 to-purple-400" 
-                    : "w-2 h-2 bg-white/30 hover:bg-white"
+                aria-label={`Slide ${index + 1}`}
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  index === currentSlideIndex
+                    ? "w-5 bg-white"
+                    : "w-1 bg-white/50 hover:bg-white/80"
                 }`}
+                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.35)' }}
               />
             ))}
-              <button
+            <button
               onClick={() => setIsPaused(!isPaused)}
-                className="ml-2 w-7 h-7 rounded-full bg-white backdrop-blur-xl border border-slate-200 flex items-center justify-center shadow-sm"
+              aria-label={isPaused ? 'Play' : 'Pause'}
+              className="ml-1.5 w-5 h-5 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center shadow-sm"
             >
               {isPaused ? (
-                <Play className="w-3 h-3 text-slate-700" />
+                <Play className="w-2.5 h-2.5 text-slate-700" />
               ) : (
-                <Pause className="w-3 h-3 text-slate-700" />
+                <Pause className="w-2.5 h-2.5 text-slate-700" />
               )}
             </button>
           </div>
