@@ -194,7 +194,11 @@ const initializeUniversalChannel = async () => {
     });
 
     // Subscribe to all currently requested tables (dynamic)
-    getActiveMonitoredTables().forEach(({ table, schema = 'public', event = '*', filter }) => {
+    const monitoredTables = getActiveMonitoredTables();
+    activeTableSet.clear();
+    monitoredTables.forEach(({ table }) => activeTableSet.add(table));
+
+    monitoredTables.forEach(({ table, schema = 'public', event = '*', filter }) => {
       const config: any = { event, schema, table };
       if (filter) config.filter = filter;
 
@@ -285,6 +289,7 @@ const cleanupAndReconnect = async () => {
   isInitializing = false;
   await cleanupUniversalChannels();
   universalChannel = null;
+  activeTableSet.clear();
   await initializeUniversalChannel();
 };
 
