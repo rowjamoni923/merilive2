@@ -5,11 +5,13 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface GiftEmojiAnimationProps {
   emoji: string; // Can be emoji character or URL to SVGA/image
   count?: number;
+  /** Optional separate sound asset URL (used when SVGA has no embedded audio) */
+  soundUrl?: string;
   onComplete: () => void;
 }
 
 // CRITICAL: Memoized to prevent re-renders causing multiple SVGA loads
-const GiftEmojiAnimationInner = memo(({ emoji, count = 1, onComplete }: GiftEmojiAnimationProps) => {
+const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }: GiftEmojiAnimationProps) => {
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
   const completedRef = useRef(false);
   const mountedRef = useRef(true);
