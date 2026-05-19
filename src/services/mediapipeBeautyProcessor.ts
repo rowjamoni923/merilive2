@@ -709,6 +709,7 @@ export function stopBeautyProcessing() {
 
   _activeInputStream = null;
   _activeOutputStream = null;
+  _activeSourceTrackId = null;
   _processing = false;
   console.log('[MediaPipeBeauty] Processing stopped');
 }
