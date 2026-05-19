@@ -42,9 +42,8 @@ const FollowingList = () => {
   useEffect(() => {
     fetchData();
     
-    // 'followers' table is NOT in supabase_realtime publication.
-    // Use profiles realtime (which IS in publication) for online status,
-    // and polling for follow/unfollow changes.
+    // Zero-refresh: keep online status live via realtime; follow/unfollow is
+    // updated optimistically by the action handlers on this screen.
     const profileChannel = supabase
       .channel('following-profiles-sync')
       .on('postgres_changes', { 
@@ -75,12 +74,8 @@ const FollowingList = () => {
       })
       .subscribe();
 
-    // Polling fallback for follow/unfollow changes (every 15s)
-    const pollInterval = setInterval(() => fetchData(), 15000);
-
     return () => {
       supabase.removeChannel(profileChannel);
-      clearInterval(pollInterval);
     };
   }, []);
 
