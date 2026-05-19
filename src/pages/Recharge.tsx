@@ -2512,6 +2512,49 @@ const Recharge = () => {
                     )}
                   </div>
                 </button>
+
+                {/* MeriCash — Crypto Auto-Credit (styled like Google Play, with RECOMMENDED ribbon) */}
+                <button
+                  onClick={() => setSelectedPaymentMethod('mericash')}
+                  className={cn(
+                    "flex-1 min-w-[130px] relative overflow-hidden rounded-2xl p-3 transition-all duration-200",
+                    selectedPaymentMethod === 'mericash'
+                      ? "bg-gradient-to-br from-amber-500 to-yellow-600 shadow-lg shadow-amber-500/30"
+                      : "bg-white border-2 border-gray-100 hover:border-amber-400/50 shadow-sm"
+                  )}
+                >
+                  {/* RECOMMENDED ribbon */}
+                  <span className="absolute -top-0 -right-0 text-[8px] font-black px-1.5 py-0.5 rounded-bl-lg bg-rose-500 text-white tracking-wider shadow">
+                    RECOMMENDED
+                  </span>
+                  <div className="relative flex items-center gap-2">
+                    <div className={cn(
+                      "w-8 h-8 rounded-xl flex items-center justify-center text-base",
+                      selectedPaymentMethod === 'mericash' ? "bg-white/20" : "bg-amber-50"
+                    )}>
+                      💎
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className={cn(
+                        "font-bold text-[13px]",
+                        selectedPaymentMethod === 'mericash' ? "text-heading" : "text-heading"
+                      )}>
+                        MeriCash
+                      </p>
+                      <p className={cn(
+                        "text-[10px] font-medium",
+                        selectedPaymentMethod === 'mericash' ? "text-body" : "text-heading"
+                      )}>
+                        Crypto • Auto-Credit
+                      </p>
+                    </div>
+                    {selectedPaymentMethod === 'mericash' && (
+                      <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-heading" />
+                      </div>
+                    )}
+                  </div>
+                </button>
                 
                 {/* Stripe - International Payments */}
                 {!isBangladesh && (
