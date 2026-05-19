@@ -659,21 +659,12 @@ const LiveStream = () => {
           activeViewerIdsRef.current.add(currentUserId);
           setViewerCount(activeViewerIdsRef.current.size);
 
-          // Reliable join write (no silent fail)
+          // Reliable server-side join (no silent fail) + exact count sync
           void supabase
-            .from("stream_viewers")
-            .upsert(
-              {
-                stream_id: id!,
-                viewer_id: currentUserId,
-                joined_at: new Date().toISOString(),
-                left_at: null,
-              },
-              { onConflict: "stream_id,viewer_id" }
-            )
-            .then(async ({ error }) => {
+            .rpc("join_live_stream_viewer", { p_stream_id: id! })
+            .then(async ({ data, error }) => {
               if (error) {
-                console.error('[LiveStream] ❌ Viewer join upsert failed:', error);
+                console.error('[LiveStream] ❌ Viewer join RPC failed:', error);
                 recordClientError({ label: "LiveStream.selfProfile", message: error instanceof Error ? error.message : String(error) });
                 // Revert optimistic update on failure
                 setViewerCount(prev => Math.max(0, prev - 1));
@@ -682,15 +673,8 @@ const LiveStream = () => {
 
               console.log('[LiveStream] Viewer joined:', currentUserId);
 
-              // Sync accurate count from DB in background (non-blocking)
-              const { count } = await supabase
-                .from("stream_viewers")
-                .select("*", { count: "exact", head: true })
-                .eq("stream_id", id!)
-                .is("left_at", null);
-
-              if (mountedRef.current && typeof count === 'number') {
-                setViewerCount(count);
+              if (mountedRef.current && typeof data === 'number') {
+                setViewerCount(data);
               }
             });
           
