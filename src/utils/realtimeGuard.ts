@@ -35,6 +35,7 @@ const PUBLICATION_TABLES = new Set([
   'party_room_participants',
   'party_room_messages',
   'stream_chat',
+  'stream_viewers',
   'gift_transactions',
   'support_tickets',
   'support_messages',
