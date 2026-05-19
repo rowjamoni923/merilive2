@@ -106,7 +106,7 @@ const Index = () => {
     queryKey: ["host-countries"],
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 60,
-    refetchOnMount: true,
+    refetchOnMount: false,
     queryFn: async () => {
       const { data } = await supabase.rpc('get_public_host_countries_v1' as any);
       if (!data) return [] as Array<{ code: string; flag: string; name: string }>;
