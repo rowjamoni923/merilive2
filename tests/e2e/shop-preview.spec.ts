@@ -26,6 +26,13 @@ const TABS = [
   { label: "Chat Bubbles",  id: "chat_bubbles",  firstItem: { id: "cb1", name: "Royal Bubble" } },
 ] as const;
 
+// Allow CI / sandboxes to point at a system-patched Chromium when the
+// bundled Playwright download cannot load (e.g. missing glib). Local dev and
+// CI with `npx playwright install` work unchanged.
+if (process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE) {
+  test.use({ launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } });
+}
+
 test.describe("Shop — full-screen preview (no reload)", () => {
   test.beforeEach(async ({ page }) => {
     // Fresh session so __RELOAD_COUNT__ starts at 1.
