@@ -1575,6 +1575,7 @@ const AdminFaceVerification = () => {
               </Button>
             )}
           </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
