@@ -178,14 +178,11 @@ const publicStorageObjectExists = async (url: string) => {
   return exists;
 };
 
-const resolvePublicVerificationUrl = async (storagePath: AdminStoragePath, rawValue: string, defaultBucket?: string) => {
+const resolvePublicVerificationUrl = async (storagePath: AdminStoragePath, _rawValue: string, _defaultBucket?: string) => {
   if (!PUBLIC_VERIFICATION_BUCKETS.has(storagePath.bucket)) return null;
-  const publicUrl = getPublicStorageUrl(storagePath);
-  // Face/host verification buckets are frequently private while rows still store
-  // Supabase public-style URLs. Never trust the URL shape alone; only use public
-  // URLs when the object is actually publicly reachable, otherwise fall through
-  // to admin signing/download so videos and photos render in review screens.
-  return (await publicStorageObjectExists(publicUrl)) ? publicUrl : null;
+  // Bucket is public — return direct URL. No HEAD probe (it was freezing the
+  // admin page when many tiles loaded at once), no signing, no blob download.
+  return getPublicStorageUrl(storagePath);
 };
 
 const usefulMimeType = (type?: string | null) => {
