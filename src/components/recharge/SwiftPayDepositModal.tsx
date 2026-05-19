@@ -338,8 +338,20 @@ export default function SwiftPayDepositModal({
               </button>
             )}
             <div className="rounded-lg bg-slate-800/60 border border-amber-500/30 p-3">
-              <p className="text-2xl font-black text-amber-200">{fmt(pkg.coins)} <span className="text-xs">diamonds</span></p>
-              <p className="text-sm text-amber-100/80">${pkg.price_usd.toFixed(2)} USD</p>
+              {(() => {
+                const { total, bonus, bonusPct } = getBonusInclusiveCoins(pkg);
+                return (
+                  <>
+                    <p className="text-2xl font-black text-amber-200">{fmt(total)} <span className="text-xs">diamonds</span></p>
+                    {bonus > 0 && (
+                      <p className="text-[11px] font-semibold text-emerald-300 mt-0.5">
+                        {fmt(pkg.coins)} + {fmt(bonus)} bonus <span className="opacity-70">(+{bonusPct}%)</span>
+                      </p>
+                    )}
+                    <p className="text-sm text-amber-100/80 mt-0.5">${pkg.price_usd.toFixed(2)} USD</p>
+                  </>
+                );
+              })()}
             </div>
             <div>
               <label className="text-sm font-medium text-amber-100/90 mb-1.5 block">Choose crypto</label>
