@@ -294,23 +294,22 @@ const FullScreenGiftAnimation = ({
     // SVGA Animation - Proper sizing without excessive scaling
     if (animationType === 'svga' && gift.animation_url) {
       return (
-        <Suspense fallback={<AnimationLoader />}>
-          {/* SVGA container - centered, proper size */}
-          <div
-            className="absolute inset-0 flex items-center justify-center"
-          >
-            <SVGAPlayerWithAudio
-              src={gift.animation_url}
-              className="w-full h-full max-w-[90vw] max-h-[90vh]"
-              loop={false}
-              autoPlay={true}
-              volume={0.8}
-              soundUrl={gift.sound_url}
-              onAudioExtracted={handleSvgaAudioExtracted}
-              onComplete={handleAnimationEnd}
-            />
-          </div>
-        </Suspense>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <FixedAnimationFrame
+            src={gift.animation_url}
+            type="svga"
+            width="100%"
+            height="100%"
+            className="max-w-[90vw] max-h-[90vh]"
+            loop={false}
+            muted={false}
+            volume={0.8}
+            soundUrl={gift.sound_url}
+            onAudioExtracted={handleSvgaAudioExtracted}
+            onComplete={handleAnimationEnd}
+            center={false}
+          />
+        </div>
       );
     }
 
