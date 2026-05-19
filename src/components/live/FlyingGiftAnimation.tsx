@@ -259,17 +259,6 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       className="pointer-events-none"
       style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 100000 }}
     >
-      {/* Background dim for premium */}
-      {isPremium && (
-        <motion.div
-          className="bg-black/15"
-          style={{ position: 'fixed', inset: 0 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        />
-      )}
-
       {/* Full-screen animation */}
       <AnimatePresence mode="wait">{renderFullScreen()}</AnimatePresence>
 

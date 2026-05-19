@@ -142,6 +142,14 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
   };
 };
 
+const getGiftAnimationSignature = (content: string, senderId?: string | null): string => {
+  const { mediaUrl, emoji } = parseGiftContent(content || '');
+  const detailMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+  const name = detailMatch?.[1]?.trim().toLowerCase() || 'gift';
+  const count = detailMatch?.[2] || '1';
+  return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
+};
+
 // Helper function to clean gift message for preview (removes URLs, shows only emoji + name + beans)
 const cleanGiftMessageForPreview = (content: string): string => {
   if (!/^\[Gift:/i.test(content)) return content;
@@ -196,6 +204,7 @@ const Chat = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingChannelRef = useRef<any>(null);
   const directMessageChannelRef = useRef<any>(null);
+  const recentGiftAnimationsRef = useRef<Map<string, number>>(new Map());
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -666,6 +675,14 @@ const Chat = () => {
     const animationUrl = gift.animation_url?.startsWith('http') ? gift.animation_url : '';
     const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
     const giftMediaUrl = animationUrl || iconUrl;
+    const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
+    void ensureHostGiftPercentLoaded();
+    const optimisticGiftMessage = giftMediaUrl
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`;
+
+    const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
+    recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
     setGiftAnimationInstance(prev => prev + 1);
@@ -673,11 +690,6 @@ const Chat = () => {
     
     // Gift animation is already playing - no toast needed
     
-    const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
-    void ensureHostGiftPercentLoaded();
-    const optimisticGiftMessage = giftMediaUrl
-      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`
-      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`;
     const optimisticGiftRow: Message = {
       id: `gift_live_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       content: optimisticGiftMessage,
@@ -693,6 +705,15 @@ const Chat = () => {
     // would arrive with a different id and slightly different content (estimated vs
     // actual beans), causing a duplicate bubble on the receiver. Do NOT add it back.
     upsertLiveMessage(optimisticGiftRow);
+    directMessageChannelRef.current?.send({
+      type: 'broadcast',
+      event: 'gift_animation',
+      payload: {
+        conversationId: selectedConversation.id,
+        senderId: currentUserId,
+        content: optimisticGiftMessage,
+      },
+    }).catch(() => {});
 
     // ========== BACKGROUND PROCESSING ==========
     (async () => {
@@ -799,6 +820,15 @@ const Chat = () => {
         (payload: any) => {
           if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.message) return;
           upsertLiveMessage(payload.payload.message);
+        }
+      )
+      .on(
+        'broadcast',
+        { event: 'gift_animation' },
+        (payload: any) => {
+          if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.content) return;
+          if (payload.payload?.senderId === currentUserId) return;
+          playGiftAnimationFromContent(payload.payload.content, payload.payload.senderId, true);
         }
       )
       .on(
@@ -1213,6 +1243,21 @@ const Chat = () => {
     }
   }
 
+  function playGiftAnimationFromContent(content: string, senderId?: string | null, playSoundEffect = false) {
+    const signature = getGiftAnimationSignature(content, senderId);
+    const now = Date.now();
+    const lastPlayed = recentGiftAnimationsRef.current.get(signature) || 0;
+    if (now - lastPlayed < 4000) return;
+
+    recentGiftAnimationsRef.current.set(signature, now);
+    if (playSoundEffect) playSoundDebounced('gift');
+
+    const { mediaUrl, emoji } = parseGiftContent(content || '');
+    setAnimatingGiftEmoji(mediaUrl || emoji);
+    setGiftAnimationInstance(prev => prev + 1);
+    setShowGiftAnimation(true);
+  }
+
   function upsertLiveMessage(messageRow: any) {
     const newMessage = castMessage(messageRow);
 
@@ -1248,11 +1293,7 @@ const Chat = () => {
     }
 
     if (newMessage.message_type === 'gift') {
-      playSoundDebounced('gift');
-      const { mediaUrl, emoji } = parseGiftContent(newMessage.content || '');
-      setAnimatingGiftEmoji(mediaUrl || emoji);
-      setGiftAnimationInstance(prev => prev + 1);
-      setShowGiftAnimation(true);
+      playGiftAnimationFromContent(newMessage.content || '', newMessage.sender_id, true);
     } else {
       playSoundDebounced('message');
     }
