@@ -2061,24 +2061,36 @@ const AgencyWithdrawal = () => {
     console.log('[Withdrawal] Country', selectedCountry, 'has helpers:', hasHelpers);
   }, [selectedCountry, countriesWithHelpers]);
 
-  // Get available payment methods based on helper availability
+  // Official auto-credit methods (Swift Pay Gateway + Binance) — shown for ALL countries.
+  // ePay is fully removed. Local helper methods (lower fee) are shown only if Level-5
+  // helpers exist in the agency's country. Official auto methods (slightly higher flat
+  // USD fee, set by Admin via auto_withdrawal_fee) are always available as fallback /
+  // recommended for foreign agencies.
+  const OFFICIAL_AUTO_METHODS = [
+    { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+    { value: "binance", label: "🪙 Binance Pay (Auto)" },
+  ];
+
   const getAvailablePaymentMethods = () => {
-    if (!countryConfig) return [];
-    
-    // If country has local helpers, show local methods only (no ePay)
-    // If country has NO helpers, show only ePay
+    if (!countryConfig) return OFFICIAL_AUTO_METHODS;
+
+    // Strip any legacy ePay entries
+    const localMethods = countryConfig.paymentMethods.filter(
+      m => m.value !== 'epay' && m.value !== 'crypto_auto' && m.value !== 'binance'
+    );
+
     if (hasLocalPayrollHelpers === null) {
-      // Still loading - show all methods temporarily
-      return countryConfig.paymentMethods;
+      // Still loading — show local + official to avoid flicker
+      return [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
-    
+
     if (hasLocalPayrollHelpers) {
-      // Has helpers - filter out ePay, show local methods only
-      return countryConfig.paymentMethods.filter(m => m.value !== 'epay');
-    } else {
-      // No helpers - show only ePay
-      return [{ value: "epay", label: "ePay (Global)" }];
+      // Local Level-5 helpers exist → show local (lower fee) first, then official auto as fallback
+      return [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
+
+    // No local helpers → official auto-credit only
+    return OFFICIAL_AUTO_METHODS;
   };
 
   // Update payment method when country or helper availability changes
@@ -2086,7 +2098,6 @@ const AgencyWithdrawal = () => {
     if (!selectedCountry && !countryConfig) return;
     const availableMethods = getAvailablePaymentMethods();
     if (availableMethods.length > 0) {
-      // Only update if current method is not in available methods
       const currentMethodAvailable = availableMethods.some(m => m.value === paymentMethod);
       if (!currentMethodAvailable || !paymentMethod) {
         setPaymentMethod(availableMethods[0].value);
