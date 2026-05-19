@@ -43,6 +43,16 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const activeAudiosRef = useRef<HTMLAudioElement[]>([]);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const waitForRenderableSize = useCallback(async (isCurrentRun: () => boolean) => {
+    for (let i = 0; i < 30; i++) {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!isCurrentRun()) return false;
+      if (rect && rect.width > 1 && rect.height > 1) return true;
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    }
+    return Boolean(containerRef.current);
+  }, []);
+
   const cleanupAudio = useCallback(() => {
     activeHowlsRef.current.forEach(h => { try { h.stop(); h.unload(); } catch {} });
     activeHowlsRef.current = [];
@@ -95,11 +105,13 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
           getSVGAModule(),
           shouldPlayAudio ? extractAudioFromSVGA(src) : Promise.resolve([]),
         ]);
+        await waitForRenderableSize(isCurrentRun);
         
         if (!isCurrentRun() || !containerRef.current) return;
 
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
+        player.setContentMode?.('AspectFit');
         player.loops = loop ? 0 : 1;
         player.clearsAfterStop = true;
 
@@ -203,7 +215,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         playerRef.current = null;
       }
     };
-  }, [src]);
+  }, [src, loop, autoPlay, volume, soundUrl, onLoad, onError, onAudioExtracted, handleAnimationComplete, cleanupAudio, waitForRenderableSize]);
 
   if (error) {
     return (
@@ -214,13 +226,13 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative min-h-px min-w-px", className)}>
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
           <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
         </div>
       )}
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="h-full w-full min-h-px min-w-px" />
     </div>
   );
 };
