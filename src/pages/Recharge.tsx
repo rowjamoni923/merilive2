@@ -2830,6 +2830,12 @@ const Recharge = () => {
                   setSelectedPackageId(pkg.id);
                   
                   // Trigger payment flow immediately
+                  if (selectedPaymentMethod === 'mericash') {
+                    // Open MeriCash modal pre-selected to this package
+                    setMericashInitialPackageId(pkg.id);
+                    setShowSwiftPayModal(true);
+                    return;
+                  }
                   if (selectedPaymentMethod === 'playstore') {
                       const isAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
                       if (isPlayStoreAvailable || isAndroid) {
