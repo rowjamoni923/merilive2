@@ -429,27 +429,6 @@ export const useSingleDeviceSession = (userId: string | null) => {
       )
       .subscribe();
 
-          // ✅ CRITICAL: Don't react during grace period (this is the NEW device)
-          if (isInGracePeriod()) {
-            console.log('[SingleDevice] 🛡️ Realtime change ignored — grace period active');
-            recordSessionEvent('realtime.ignored.grace', { channel: channelName });
-            return;
-          }
-
-          // Don't react until this device has finished registering
-          if (!isRegistered.current) {
-            recordSessionEvent('realtime.ignored.unregistered', { channel: channelName });
-            return;
-          }
-
-          if (newSessionId && newSessionId !== sessionId.current) {
-            console.log('[SingleDevice] 🔄 Another device logged in — THIS (old) device logging out');
-            forceLogout();
-          }
-        }
-      )
-      .subscribe();
-
     return () => {
       recordSessionEvent('channel.unsubscribe', { channel: channelName });
       setCurrentChannelName(null);
