@@ -61,17 +61,14 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     activeAudiosRef.current = [];
   }, []);
 
-  const handleAnimationComplete = useCallback((source: 'native' | 'safety-timer' | 'unknown' = 'unknown') => {
+  const handleAnimationComplete = useCallback((source: AnimationCompletionSource = 'unknown') => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
 
     const elapsed = startTimeRef.current > 0 ? Date.now() - startTimeRef.current : 0;
     const expected = expectedDurationRef.current;
-    const drift = expected > 0 ? elapsed - expected : 0;
-    const icon = source === 'native' ? '✅' : source === 'safety-timer' ? '⚠️' : '❔';
-    console.log(
-      `[SVGAPlayerWithAudio] ${icon} onComplete (${source}) | elapsed=${elapsed}ms | expected=${expected}ms | drift=${drift > 0 ? '+' : ''}${drift}ms | src=${src.split('/').pop()?.split('?')[0]}`
-    );
+    logAnimationCompletion('SVGAPlayerWithAudio', source, { elapsed, expected, src });
+    onCompleteDebug?.(source);
 
     if (completionTimerRef.current) {
       clearTimeout(completionTimerRef.current);
@@ -87,7 +84,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     
     setTimeout(() => cleanupAudio(), 500);
     onComplete?.();
-  }, [onComplete, cleanupAudio, src]);
+  }, [onComplete, onCompleteDebug, cleanupAudio, src]);
+
 
   useEffect(() => {
     if (animationStartedRef.current) return;
