@@ -21,6 +21,20 @@ if (!window.location.pathname.startsWith('/admin')) {
 // 🔊 Install global audio unlock — first user tap unlocks SVGA gift sounds
 installAudioUnlock();
 
+// 🛡️ GLOBAL CRASH GUARDS — swallow async errors so the app never goes blank.
+// React render errors are still caught by the in-tree <ErrorBoundary>.
+window.addEventListener('error', (e) => {
+  try { console.error('[global error]', e.error || e.message); } catch { /* noop */ }
+  // Prevent default browser "Uncaught" overlay that can stall WebViews
+  e.preventDefault?.();
+});
+window.addEventListener('unhandledrejection', (e) => {
+  try { console.error('[unhandled promise]', e.reason); } catch { /* noop */ }
+  e.preventDefault?.();
+});
+
+
+
 // =============================================
 // MOBILE VIEWPORT HEIGHT FIX
 // Fixes 100vh issue on mobile browsers (address bar)
