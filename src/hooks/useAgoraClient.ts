@@ -672,9 +672,14 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
               if (originalTrack && originalTrack.readyState === 'live') {
                 const beautifiedTrack = await processTrackWithBeauty(originalTrack);
                 if (beautifiedTrack !== originalTrack) {
-                  // Replace the published track with the beauty-processed one
+                  // Replace the published track with the beauty-processed one.
+                  // CRITICAL: pass `false` as the second arg to unpublishTrack so LiveKit
+                  // does NOT call stop() on the underlying camera MediaStreamTrack.
+                  // The beauty pipeline keeps reading that exact track as its source —
+                  // stopping it would freeze the canvas captureStream and viewers would
+                  // see a black/frozen face for the entire stream.
                   try {
-                    await room.localParticipant.unpublishTrack(cameraPub.track);
+                    await room.localParticipant.unpublishTrack(cameraPub.track, false);
                     await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
                     console.log('[LiveKitClient] ✅ Replaced camera track with beauty-processed track');
                   } catch (e) {
@@ -683,6 +688,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
                 }
               }
             }
+
           }
 
           // Extract local tracks & set contentHint for crystal clear sharpness
