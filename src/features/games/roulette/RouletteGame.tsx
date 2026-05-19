@@ -584,7 +584,7 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/75 pointer-events-none"
           >
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
