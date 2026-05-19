@@ -523,24 +523,30 @@ let _processingCanvas: HTMLCanvasElement | null = null;
 let _sourceVideo: HTMLVideoElement | null = null;
 let _activeInputStream: MediaStream | null = null;
 let _activeOutputStream: MediaStream | null = null;
+let _activeSourceTrackId: string | null = null;
+// In-flight guard: concurrent startBeautyProcessing() calls (UI double-tap,
+// React StrictMode double-mount, retry-on-error) must NOT race and create
+// two canvases / two captureStream tracks. The second caller awaits the first.
+let _startInFlight: Promise<MediaStream> | null = null;
 
 /**
  * Start processing a MediaStream and return a beautified MediaStream.
  *
  * IMPORTANT for live broadcast: the output stream is a canvas captureStream.
  * Once it's published to LiveKit, viewers will see whatever this canvas paints.
- * Two correctness rules enforced below:
- *  1. Idempotency — if called twice with the same input, reuse the existing
- *     canvas/output so the previously published track stays live (prevents
- *     "viewers see black/frozen face" when beauty is reprocessed mid-stream).
- *  2. Beauty-off passthrough — the render loop always paints the source
- *     frame, even when beauty is disabled, so the published canvas never
- *     freezes when the host toggles beauty off.
+ * Correctness rules enforced below:
+ *  1. Idempotency — same input stream OR same underlying video track → reuse
+ *     existing canvas/output so the previously published track stays live
+ *     (prevents orphan canvas capture and "viewers see black face" on re-init).
+ *  2. Concurrency guard — overlapping start calls share one promise; no
+ *     duplicate canvases, no orphan captureStream tracks.
+ *  3. Beauty-off passthrough — render loop always paints the source frame,
+ *     even when beauty is disabled, so the published canvas never freezes.
  */
 export async function startBeautyProcessing(
   inputStream: MediaStream
 ): Promise<MediaStream> {
-  // Idempotent reuse: same input + canvas still live → return existing output.
+  // (1a) Fast-path idempotent reuse by stream identity.
   if (
     _activeInputStream === inputStream &&
     _activeOutputStream &&
@@ -549,12 +555,33 @@ export async function startBeautyProcessing(
     return _activeOutputStream;
   }
 
-  // Different input or stale canvas — tear down old pipeline before re-init
-  // so the orphaned canvas doesn't leak and so we don't silently stop painting
-  // the previously-published surface mid-broadcast.
-  if (_sourceVideo || _processingCanvas) {
-    stopBeautyProcessing();
+  // (1b) Idempotent reuse by underlying video-track id. Callers sometimes
+  // wrap the same camera track in a fresh MediaStream (e.g. LiveKit clones
+  // tracks on republish). Without this check we'd tear down a healthy
+  // pipeline and orphan the canvas the LiveKit publisher is still reading.
+  const incomingVideoTrack = inputStream.getVideoTracks()[0];
+  if (
+    incomingVideoTrack &&
+    _activeSourceTrackId === incomingVideoTrack.id &&
+    _activeOutputStream &&
+    _activeOutputStream.getVideoTracks()[0]?.readyState === 'live'
+  ) {
+    _activeInputStream = inputStream;
+    return _activeOutputStream;
   }
+
+  // (2) Concurrency guard — share one in-flight promise.
+  if (_startInFlight) {
+    return _startInFlight;
+  }
+
+  _startInFlight = (async () => {
+    // Different input or stale canvas — tear down old pipeline before re-init
+    // so the orphaned canvas doesn't leak and so we don't silently stop painting
+    // the previously-published surface mid-broadcast.
+    if (_sourceVideo || _processingCanvas) {
+      stopBeautyProcessing();
+    }
 
   // Initialize MediaPipe
   await initMediaPipe();
