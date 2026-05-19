@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   Crown, Star, Shield, Gem, CheckCircle2, Loader2,
   MessageCircle, Send, DollarSign, Banknote,
-  ArrowRight, Copy, Upload, CreditCard, MapPin
+  ArrowRight, Copy, Upload, CreditCard, MapPin, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 
 interface TraderLevel {
   level_number: number;
@@ -49,14 +50,12 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   const [reason, setReason] = useState("");
   const [payrollRequested, setPayrollRequested] = useState(false);
   
-  // Payment fields for Level 2-5
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
-  const [transactionId, setTransactionId] = useState("");
-  const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
-  const [uploadingScreenshot, setUploadingScreenshot] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Diamond-per-USD rate (best coin-package rate); used to credit diamonds for paid helper apps
+  const [diamondsPerUsd, setDiamondsPerUsd] = useState<number>(0);
+
+  // Crypto payment modal
+  const [swiftPayOpen, setSwiftPayOpen] = useState(false);
+  const [paidConfirmed, setPaidConfirmed] = useState(false);
 
   // Level 5 ID Verification fields
   const [idCardFront, setIdCardFront] = useState<File | null>(null);
@@ -72,7 +71,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
 
   useEffect(() => {
     loadLevels();
-    loadPaymentMethods();
+    loadDiamondRate();
   }, []);
 
   const loadLevels = async () => {
@@ -94,19 +93,17 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     }
   };
 
-  const loadPaymentMethods = async () => {
-    try {
-      const { data } = await supabase
-        .from('topup_payment_methods')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
-      
-      if (data) {
-        setPaymentMethods(data);
-      }
-    } catch (error) {
-      console.error(error);
+  const loadDiamondRate = async () => {
+    // Best rate from active coin packages: max((coins+bonus)/price)
+    const { data } = await supabase
+      .from('coin_packages')
+      .select('coins_amount, bonus_coins, price_usd')
+      .eq('is_active', true);
+    if (data && data.length) {
+      const best = Math.max(
+        ...data.map(p => ((p.coins_amount ?? 0) + (p.bonus_coins ?? 0)) / Math.max(Number(p.price_usd) || 1, 0.01))
+      );
+      setDiamondsPerUsd(Math.floor(best));
     }
   };
 
@@ -135,19 +132,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     toast({ title: "Copied! ✅", description: `${label} copied` });
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Max 5MB", variant: "destructive" });
-        return;
-      }
-      setScreenshot(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setScreenshotPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
+  // (file-screenshot upload removed; payment goes through MeriCash auto crypto gateway)
 
   const handleIdCardSelect = (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back') => {
     const file = e.target.files?.[0];
@@ -168,94 +153,71 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     }
   };
 
-  const isFreeLevel = selectedLevel === 1;
-  const isPaidLevel = selectedLevel >= 2 && selectedLevel <= 5;
   const selectedLevelData = levels.find(l => l.level_number === selectedLevel);
+  const upgradeCost = Number(selectedLevelData?.upgrade_cost_usd || 0);
+  const isPaidLevel = upgradeCost > 0;
+  const isFreeLevel = !isPaidLevel;
+  const diamondsForUpgrade = Math.floor(upgradeCost * diamondsPerUsd);
 
-  const handleSubmit = async () => {
-    if (isFreeLevel && !contactWhatsapp && !contactTelegram) {
-      toast({ title: "Contact Required", description: "Provide WhatsApp or Telegram", variant: "destructive" });
+  /** Validate the form (everything except the actual payment). */
+  const validateForm = (): string | null => {
+    if (!contactWhatsapp && !contactTelegram) {
+      return "Provide WhatsApp or Telegram so we can reach you";
+    }
+    if (selectedLevel === 5) {
+      if (!idCardFront || !idCardBack) return "Upload both front and back of your ID card";
+      if (!idCardName.trim()) return "Enter the name on your ID card";
+      if (!idCardNumber.trim()) return "Enter your ID card number";
+      if (!fullAddress.trim()) return "Enter your full address";
+      if (!country.trim()) return "Enter your country";
+    }
+    if (isPaidLevel && diamondsPerUsd <= 0) {
+      return "Diamond rate not loaded yet — try again in a moment";
+    }
+    return null;
+  };
+
+  /** Open the crypto payment modal after validating the form. */
+  const handlePayWithCrypto = async () => {
+    const err = validateForm();
+    if (err) {
+      toast({ title: "Required", description: err, variant: "destructive" });
       return;
     }
-    
-    if (isPaidLevel) {
-      if (!selectedPaymentMethod) {
-        toast({ title: "Payment Method Required", variant: "destructive" });
-        return;
-      }
-      if (!transactionId.trim()) {
-        toast({ title: "Transaction ID Required", variant: "destructive" });
-        return;
-      }
-      if (!screenshot) {
-        toast({ title: "Screenshot Required", variant: "destructive" });
-        return;
-      }
+    // Block if an application already exists
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({ title: "Not logged in", variant: "destructive" });
+      return;
     }
-
-    // Level 5 specific validations
-    if (selectedLevel === 5) {
-      if (!idCardFront || !idCardBack) {
-        toast({ title: "ID Card Required", description: "Upload both front and back of your ID card", variant: "destructive" });
-        return;
-      }
-      if (!idCardName.trim()) {
-        toast({ title: "Name Required", description: "Enter the name on your ID card", variant: "destructive" });
-        return;
-      }
-      if (!idCardNumber.trim()) {
-        toast({ title: "ID Number Required", description: "Enter your ID card number", variant: "destructive" });
-        return;
-      }
-      if (!fullAddress.trim()) {
-        toast({ title: "Address Required", description: "Enter your full address", variant: "destructive" });
-        return;
-      }
-      if (!country.trim()) {
-        toast({ title: "Country Required", variant: "destructive" });
-        return;
-      }
+    const { data: existingApp } = await supabase
+      .from('helper_applications')
+      .select('id, status')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (existingApp) {
+      toast({ title: "Application Exists", description: `Status: ${existingApp.status}`, variant: "destructive" });
+      return;
     }
+    setPaidConfirmed(false);
+    setSwiftPayOpen(true);
+  };
 
+  /** Called after the user actually submits — for free level OR after crypto payment succeeds. */
+  const submitApplication = async (paymentTopupId?: string) => {
+    if (!paidConfirmed && isPaidLevel && !paymentTopupId) {
+      // safety net
+      toast({ title: "Payment not confirmed yet", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      const { data: existingApp } = await supabase
-        .from('helper_applications')
-        .select('id, status')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existingApp) {
-        toast({ title: "Application Exists", description: `Status: ${existingApp.status}`, variant: "destructive" });
-        return;
-      }
-
-      let screenshotUrl = null;
-      
-      if (isPaidLevel && screenshot) {
-        setUploadingScreenshot(true);
-        const fileName = `helper-applications/${user.id}/${Date.now()}-${screenshot.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from('payment-screenshots')
-          .upload(fileName, screenshot);
-        
-        if (uploadError) throw uploadError;
-        
-        const { data: urlData } = supabase.storage
-          .from('payment-screenshots')
-          .getPublicUrl(fileName);
-        
-        screenshotUrl = urlData.publicUrl;
-        setUploadingScreenshot(false);
-      }
-
       // Upload ID card images for Level 5
-      let idCardFrontUrl = null;
-      let idCardBackUrl = null;
-      
+      let idCardFrontUrl: string | null = null;
+      let idCardBackUrl: string | null = null;
       if (selectedLevel === 5) {
         if (idCardFront) {
           const frontName = `helper-id-cards/${user.id}/${Date.now()}-front-${idCardFront.name}`;
@@ -278,11 +240,12 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
       }
 
       const paymentDetails = isPaidLevel ? {
-        method_id: selectedPaymentMethod?.id,
-        method_name: selectedPaymentMethod?.method_name,
-        transaction_id: transactionId,
-        screenshot_url: screenshotUrl,
-        amount_usd: selectedLevelData?.upgrade_cost_usd || 0
+        method: 'swift_pay_crypto',
+        method_name: 'MeriCash Crypto Gateway',
+        topup_id: paymentTopupId || null,
+        amount_usd: upgradeCost,
+        diamonds_credited: diamondsForUpgrade,
+        auto_verified: true,
       } : null;
 
       const { error } = await supabase
@@ -293,14 +256,13 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           requested_level: selectedLevel,
           payroll_requested: selectedLevel === 5 ? payrollRequested : false,
           contact_phone: null,
-          contact_whatsapp: isFreeLevel ? contactWhatsapp || null : null,
-          contact_telegram: isFreeLevel ? contactTelegram || null : null,
-          reason: isFreeLevel ? reason || null : null,
-          payment_method: isPaidLevel ? selectedPaymentMethod?.method_name : null,
+          contact_whatsapp: contactWhatsapp || null,
+          contact_telegram: contactTelegram || null,
+          reason: reason || null,
+          payment_method: isPaidLevel ? 'MeriCash Crypto Gateway' : null,
           payment_details: paymentDetails,
-          payment_screenshot_url: screenshotUrl,
-          payment_transaction_id: isPaidLevel ? transactionId : null,
-          // Level 5 ID verification fields
+          payment_screenshot_url: null,
+          payment_transaction_id: paymentTopupId || null,
           id_card_front_url: idCardFrontUrl,
           id_card_back_url: idCardBackUrl,
           id_card_name: selectedLevel === 5 ? idCardName || null : null,
@@ -312,13 +274,29 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
 
       if (error) throw error;
 
-      toast({ title: "Application Submitted! 🎉" });
+      toast({
+        title: "Application Submitted! 🎉",
+        description: isPaidLevel ? `${diamondsForUpgrade.toLocaleString()} diamonds credited to your balance.` : undefined,
+      });
       onSuccess?.();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
-      setUploadingScreenshot(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (isFreeLevel) {
+      const err = validateForm();
+      if (err) {
+        toast({ title: "Required", description: err, variant: "destructive" });
+        return;
+      }
+      await submitApplication();
+    } else {
+      // Paid path goes through the crypto modal
+      await handlePayWithCrypto();
     }
   };
 
@@ -359,10 +337,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                 onClick={() => {
                   setSelectedLevel(level.level_number);
                   if (level.level_number !== 5) setPayrollRequested(false);
-                  setSelectedPaymentMethod(null);
-                  setTransactionId("");
-                  setScreenshot(null);
-                  setScreenshotPreview(null);
+                  setPaidConfirmed(false);
                 }}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98]",
@@ -582,189 +557,91 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           </div>
         )}
 
-        {/* PAYMENT SECTION - Level 2-5 */}
+        {/* PAYMENT SECTION — Crypto auto gateway */}
         {isPaidLevel && (
-          <div className="space-y-3 bg-white rounded-xl p-3 border border-amber-200/60">
-            <Label className="text-xs font-semibold flex items-center gap-1.5">
-              💳 Payment Information
+          <div className="space-y-3 bg-gradient-to-br from-amber-500/10 to-yellow-500/10 rounded-xl p-3 border border-amber-500/30">
+            <Label className="text-xs font-semibold flex items-center gap-1.5 text-amber-700">
+              <Sparkles className="w-3.5 h-3.5" />
+              Payment — MeriCash Crypto (Auto)
             </Label>
-            
-            {/* Payment Methods */}
-            <div className="grid grid-cols-2 gap-2">
-              {paymentMethods.map((method) => (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => setSelectedPaymentMethod(method)}
-                  className={cn(
-                    "p-2.5 rounded-lg border text-xs transition-all flex items-center gap-2 active:scale-95",
-                    selectedPaymentMethod?.id === method.id
-                      ? "bg-emerald-500 border-emerald-500 text-white"
-                      : "bg-white border-amber-200/60 hover:border-emerald-500"
-                  )}
-                >
-                  <span className="text-base">{getMethodIcon(method.method_type)}</span>
-                  <span className="font-medium truncate">{method.method_name}</span>
-                </button>
-              ))}
+            <div className="bg-white/70 rounded-lg p-3 space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-slate-600">Level cost</span>
+                <span className="font-bold text-emerald-600">${upgradeCost}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-slate-600">Diamonds you receive</span>
+                <span className="font-bold text-amber-600">
+                  {diamondsForUpgrade > 0 ? diamondsForUpgrade.toLocaleString() : "…"}
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500 pt-1">
+                Pay in crypto (USDT/BTC/ETH/BNB). Diamonds credit to your balance automatically once the blockchain confirms — no admin wait.
+              </p>
             </div>
-
-            {/* Payment Details */}
-            {selectedPaymentMethod && (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 space-y-2">
-                <p className="font-semibold text-emerald-600 text-sm">
-                  {selectedPaymentMethod.method_name}
-                </p>
-                
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center bg-white rounded-lg px-2.5 py-2">
-                    <span className="text-[10px] text-slate-500">Account:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-medium text-white">{selectedPaymentMethod.account_name}</span>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(selectedPaymentMethod.account_name, "Account")}
-                        className="p-1 rounded bg-emerald-500/20 active:bg-emerald-500/40"
-                      >
-                        <Copy className="w-3 h-3 text-emerald-600" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center bg-white rounded-lg px-2.5 py-2">
-                    <span className="text-[10px] text-slate-500">ID/Number:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-mono text-emerald-600 max-w-[140px] truncate">
-                        {selectedPaymentMethod.account_number}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(selectedPaymentMethod.account_number, "Number")}
-                        className="p-1 rounded bg-emerald-500/20 active:bg-emerald-500/40"
-                      >
-                        <Copy className="w-3 h-3 text-emerald-600" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {selectedPaymentMethod.instructions && (
-                    <p className="text-[10px] text-slate-500 pt-1">
-                      {selectedPaymentMethod.instructions}
-                    </p>
-                  )}
-                </div>
-
-                <div className="text-[11px] text-orange-600 bg-orange-500/10 px-2.5 py-1.5 rounded-lg border border-orange-500/20">
-                  ⚠️ Pay exactly <span className="font-bold">${selectedLevelData?.upgrade_cost_usd}</span> to this account
-                </div>
+            {paidConfirmed && (
+              <div className="flex items-center gap-2 text-[11px] text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/30">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Payment received — diamonds credited. Submitting application…
               </div>
             )}
+          </div>
+        )}
 
-            {/* Transaction ID */}
-            <div className="space-y-1.5">
-              <Label className="text-[10px] text-slate-500">Transaction ID *</Label>
+        {/* CONTACT SECTION — All levels */}
+        <div className="space-y-3">
+          <Label className="text-xs font-semibold">Contact Information</Label>
+
+          <div className="space-y-2">
+            <div className="relative">
+              <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
               <Input
-                placeholder="Enter transaction ID"
-                value={transactionId}
-                onChange={(e) => setTransactionId(e.target.value)}
-                className="h-10 bg-white border-amber-200/60 text-sm"
+                placeholder="WhatsApp Number"
+                value={contactWhatsapp}
+                onChange={(e) => setContactWhatsapp(e.target.value)}
+                className="pl-10 h-10"
               />
             </div>
 
-            {/* Screenshot */}
-            <div className="space-y-1.5">
-              <Label className="text-[10px] text-slate-500">Payment Screenshot *</Label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              
-              {screenshotPreview ? (
-                <div className="relative">
-                  <img 
-                    src={screenshotPreview} 
-                    alt="Screenshot" 
-                    className="w-full h-24 object-cover rounded-lg border border-amber-200/60"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setScreenshot(null); setScreenshotPreview(null); }}
-                    className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-16 border border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center gap-1 bg-white active:bg-slate-100"
-                >
-                  <Upload className="w-4 h-4 text-slate-500" />
-                  <span className="text-[10px] text-slate-500">Upload screenshot</span>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* CONTACT SECTION - Level 1 Only */}
-        {isFreeLevel && (
-          <div className="space-y-3">
-            <Label className="text-xs font-semibold">Contact Information</Label>
-            
-            <div className="space-y-2">
-              <div className="relative">
-                <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
-                <Input
-                  placeholder="WhatsApp Number"
-                  value={contactWhatsapp}
-                  onChange={(e) => setContactWhatsapp(e.target.value)}
-                  className="pl-10 h-10"
-                />
-              </div>
-              
-              <div className="relative">
-                <Send className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
-                <Input
-                  placeholder="Telegram Username"
-                  value={contactTelegram}
-                  onChange={(e) => setContactTelegram(e.target.value)}
-                  className="pl-10 h-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-[10px] text-muted-foreground">Message (Optional)</Label>
-              <Textarea
-                placeholder="Tell us about yourself..."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={2}
-                className="text-sm resize-none"
+            <div className="relative">
+              <Send className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+              <Input
+                placeholder="Telegram Username"
+                value={contactTelegram}
+                onChange={(e) => setContactTelegram(e.target.value)}
+                className="pl-10 h-10"
               />
             </div>
           </div>
-        )}
+
+          <div className="space-y-1.5">
+            <Label className="text-[10px] text-muted-foreground">Message (Optional)</Label>
+            <Textarea
+              placeholder="Tell us about yourself..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              className="text-sm resize-none"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Fixed Footer */}
       <div className="pt-3 flex-shrink-0 space-y-2 border-t">
         <Button
           onClick={handleSubmit}
-          disabled={submitting || uploadingScreenshot}
+          disabled={submitting}
           className="w-full h-11 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
         >
-          {submitting || uploadingScreenshot ? (
+          {submitting ? (
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : isPaidLevel ? (
+            <Sparkles className="w-4 h-4 mr-2" />
           ) : (
             <ArrowRight className="w-4 h-4 mr-2" />
           )}
-          {uploadingScreenshot ? "Uploading..." : "Submit Application"}
+          {isPaidLevel ? `Pay $${upgradeCost} with Crypto` : "Submit Application"}
         </Button>
 
         {onClose && (
@@ -773,6 +650,23 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           </Button>
         )}
       </div>
+
+      {/* MeriCash Crypto Payment Modal */}
+      <SwiftPayDepositModal
+        open={swiftPayOpen}
+        onOpenChange={setSwiftPayOpen}
+        packages={[]}
+        mode="user"
+        userCustomCoins={diamondsForUpgrade}
+        userCustomPriceUsd={upgradeCost}
+        userCustomLabel={`Helper Level ${selectedLevel} Upgrade`}
+        onCredited={async (_coins) => {
+          setPaidConfirmed(true);
+          // Close payment modal and submit application automatically
+          setSwiftPayOpen(false);
+          await submitApplication("swift_pay_auto");
+        }}
+      />
     </div>
   );
 };

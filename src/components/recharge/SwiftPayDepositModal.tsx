@@ -21,12 +21,16 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   packages: PkgLite[];
   initialPackageId?: string | null;
-  /** When "helper", skips package picker and tops up a helper's trader wallet. */
+  /** "user" = credit user diamonds (package OR custom); "helper" = credit helper trader wallet */
   mode?: "user" | "helper";
   helperId?: string | null;
   helperCustomCoins?: number | null;
   helperCustomPriceUsd?: number | null;
-  /** Called after successful credit so parent can refresh wallet display. */
+  /** For user-mode custom amount (e.g. helper application fee). Bypasses package picker. */
+  userCustomCoins?: number | null;
+  userCustomPriceUsd?: number | null;
+  userCustomLabel?: string | null;
+  /** Called after successful credit so parent can refresh or proceed. */
   onCredited?: (coins: number) => void;
 }
 
@@ -65,6 +69,9 @@ export default function SwiftPayDepositModal({
   helperId = null,
   helperCustomCoins = null,
   helperCustomPriceUsd = null,
+  userCustomCoins = null,
+  userCustomPriceUsd = null,
+  userCustomLabel = null,
   onCredited,
 }: Props) {
   const { toast } = useToast();
@@ -77,6 +84,11 @@ export default function SwiftPayDepositModal({
   // Helper mode synthesises a "package" from custom amounts
   const helperPkg: PkgLite | null = mode === "helper" && helperCustomCoins && helperCustomPriceUsd
     ? { id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" }
+    : null;
+
+  // User custom mode (e.g. helper application fee)
+  const userCustomPkg: PkgLite | null = mode === "user" && userCustomCoins && userCustomPriceUsd
+    ? { id: `custom_${userCustomPriceUsd}`, coins: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" }
     : null;
 
   useEffect(() => {
@@ -93,6 +105,11 @@ export default function SwiftPayDepositModal({
       setStep("pick_currency");
       return;
     }
+    if (mode === "user" && userCustomPkg) {
+      setPkg(userCustomPkg);
+      setStep("pick_currency");
+      return;
+    }
     if (initialPackageId) {
       const pre = packages.find((p) => p.id === initialPackageId);
       if (pre) {
@@ -100,7 +117,7 @@ export default function SwiftPayDepositModal({
         setStep("pick_currency");
       }
     }
-  }, [open, initialPackageId, packages, mode, helperPkg]);
+  }, [open, initialPackageId, packages, mode, helperPkg, userCustomPkg]);
 
   const createDeposit = useCallback(async () => {
     if (!pkg) return;
@@ -112,6 +129,9 @@ export default function SwiftPayDepositModal({
         requestBody.helper_id = helperId;
         requestBody.custom_coins = helperCustomCoins;
         requestBody.custom_price_usd = helperCustomPriceUsd;
+      } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+        requestBody.custom_coins = userCustomCoins;
+        requestBody.custom_price_usd = userCustomPriceUsd;
       } else {
         requestBody.package_id = pkg.id;
       }
@@ -150,7 +170,7 @@ export default function SwiftPayDepositModal({
     } finally {
       setCreating(false);
     }
-  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd]);
 
   // Poll for credit status
   useEffect(() => {
@@ -226,7 +246,7 @@ export default function SwiftPayDepositModal({
 
         {step === "pick_currency" && pkg && (
           <div className="space-y-4">
-            {mode !== "helper" && (
+            {mode !== "helper" && !userCustomPkg && (
               <button onClick={() => setStep("pick_pkg")} className="flex items-center gap-1 text-xs text-amber-200/80 hover:text-amber-200">
                 <ChevronLeft className="w-3 h-3" /> Back
               </button>
