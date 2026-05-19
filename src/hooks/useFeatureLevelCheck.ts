@@ -55,11 +55,11 @@ export const useFeatureLevelCheck = () => {
       console.log("[useFeatureLevelCheck] Loaded requirements:", data);
       return (data as FeatureRequirement[]).map(normalizeRequirement);
     },
-    // Always refetch on mount/focus so admin-panel changes apply immediately
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
+    // Zero-refresh policy: cached data stays stable; realtime mutates cache instantly.
+    staleTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Real-time subscription for instant updates from admin panel
@@ -71,10 +71,21 @@ export const useFeatureLevelCheck = () => {
         { event: '*', schema: 'public', table: 'feature_level_requirements' },
         (payload) => {
           console.log("[useFeatureLevelCheck] Real-time update received", payload.eventType);
-          // Force immediate refetch (not just invalidate) so the new
-          // requirements are visible on the very next access check.
-          queryClient.invalidateQueries({ queryKey: ["feature-level-requirements"] });
-          queryClient.refetchQueries({ queryKey: ["feature-level-requirements"] });
+          queryClient.setQueryData<FeatureRequirement[]>(["feature-level-requirements"], (current = []) => {
+            if (payload.eventType === 'DELETE') {
+              return current.filter((item) => item.id !== (payload.old as FeatureRequirement | null)?.id);
+            }
+
+            const next = normalizeRequirement(payload.new as FeatureRequirement);
+            if (next.is_active === false) {
+              return current.filter((item) => item.id !== next.id);
+            }
+
+            const exists = current.some((item) => item.id === next.id);
+            return exists
+              ? current.map((item) => item.id === next.id ? next : item)
+              : [...current, next];
+          });
         }
       )
       .subscribe();
