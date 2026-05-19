@@ -629,22 +629,30 @@ const Shop = () => {
                           <div className="w-8 h-8 border-3 border-amber-400/30 border-t-amber-500 rounded-full animate-spin" />
                         </div>
                       }>
-                        <SVGAPlayerWithAudio
-                          src={selectedItem.animation_file_url || ''}
-                          className="max-w-[85%] max-h-[85%] object-contain"
-                          loop={true}
-                          autoPlay={true}
-                          volume={0}
-                        />
+                        {/* CRITICAL: SVGAPlayerWithAudio needs an explicitly-sized parent —
+                            max-w/max-h alone collapses the canvas to 0×0 and shows nothing. */}
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-full h-full max-w-[90%] max-h-[90%]">
+                            <SVGAPlayerWithAudio
+                              src={selectedItem.animation_file_url || ''}
+                              className="w-full h-full"
+                              loop={true}
+                              autoPlay={true}
+                              volume={0}
+                            />
+                          </div>
+                        </div>
                       </Suspense>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <UniversalAnimationPlayer
-                          src={selectedItem.animation_file_url || ''}
-                          className={`max-w-[85%] max-h-[85%] ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
-                          loop
-                          autoPlay
-                        />
+                        <div className={`w-full h-full max-w-[90%] max-h-[90%] ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}>
+                          <UniversalAnimationPlayer
+                            src={selectedItem.animation_file_url || ''}
+                            className="w-full h-full"
+                            loop
+                            autoPlay
+                          />
+                        </div>
                       </div>
                     )
                   ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
