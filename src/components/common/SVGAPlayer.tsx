@@ -46,24 +46,6 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
     return Boolean(containerRef.current);
   }, []);
 
-  const normalizeCanvasLayout = useCallback(() => {
-    const host = containerRef.current;
-    if (!host) return;
-
-    host.querySelectorAll('canvas').forEach((canvas) => {
-      const el = canvas as HTMLCanvasElement;
-      el.style.width = '100%';
-      el.style.height = '100%';
-      el.style.maxWidth = '100%';
-      el.style.maxHeight = '100%';
-      el.style.position = 'absolute';
-      el.style.inset = '0';
-      el.style.display = 'block';
-      el.style.objectFit = 'contain';
-      el.style.pointerEvents = 'none';
-    });
-  }, []);
-
   const handleComplete = useCallback(() => {
     if (!mountedRef.current || completedRef.current) return;
     completedRef.current = true;
@@ -100,7 +82,6 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
         player.setContentMode?.('AspectFit');
-        normalizeCanvasLayout();
         
         player.loops = loop ? 0 : 1;
         player.clearsAfterStop = true;
@@ -123,13 +104,11 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         const videoItemToUse = muted ? stripAudio(videoItem) : videoItem;
 
         player.setVideoItem(videoItemToUse);
-        normalizeCanvasLayout();
         setReady(true);
         onLoad?.();
 
         if (autoPlay) {
           player.startAnimation();
-          requestAnimationFrame(normalizeCanvasLayout);
         }
 
         if (!loop) {
