@@ -340,22 +340,7 @@ export const useNotifications = () => {
             playNotificationSound(newNotification.type);
           }
 
-          // Show visible toast popup
-          const actionUrl = newNotification.type === 'support_reply'
-            ? buildSupportReplyLink(newNotification.data as any)
-            : ((newNotification.data as any)?.action_url || null);
-
-          toast(newNotification.title, {
-            description: newNotification.message?.substring(0, 120),
-            duration: 6000,
-            icon: getNotificationIcon(newNotification.type),
-            action: actionUrl ? {
-              label: 'View',
-              onClick: () => {
-                void openInApp(actionUrl);
-              }
-            } : undefined,
-          });
+          // Push/FCM handles user-facing notification delivery. No in-app toast banner here.
         }
       )
       .on(
@@ -410,12 +395,7 @@ export const useNotifications = () => {
               playNotificationSound(newNotification.type);
             }
 
-            // Show visible toast popup for helper notifications
-            toast(newNotification.title, {
-              description: newNotification.message?.substring(0, 120),
-              duration: 6000,
-              icon: getNotificationIcon(newNotification.type),
-            });
+            // Push/FCM handles user-facing notification delivery. No in-app toast banner here.
           }
         )
         .on(
