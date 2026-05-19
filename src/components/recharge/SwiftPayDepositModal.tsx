@@ -226,9 +226,11 @@ export default function SwiftPayDepositModal({
 
         {step === "pick_currency" && pkg && (
           <div className="space-y-4">
-            <button onClick={() => setStep("pick_pkg")} className="flex items-center gap-1 text-xs text-amber-200/80 hover:text-amber-200">
-              <ChevronLeft className="w-3 h-3" /> Back
-            </button>
+            {mode !== "helper" && (
+              <button onClick={() => setStep("pick_pkg")} className="flex items-center gap-1 text-xs text-amber-200/80 hover:text-amber-200">
+                <ChevronLeft className="w-3 h-3" /> Back
+              </button>
+            )}
             <div className="rounded-lg bg-slate-800/60 border border-amber-500/30 p-3">
               <p className="text-2xl font-black text-amber-200">{fmt(pkg.coins)} <span className="text-xs">diamonds</span></p>
               <p className="text-sm text-amber-100/80">${pkg.price_usd.toFixed(2)} USD</p>
