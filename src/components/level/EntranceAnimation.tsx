@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Howl } from 'howler';
 
-// Eagerly import SVGAPlayerWithAudio for instant entry animations
-import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 interface EntranceAnimationProps {
   userId: string;
