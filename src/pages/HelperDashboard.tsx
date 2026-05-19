@@ -199,6 +199,21 @@ const HelperDashboard = () => {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('coin_packages')
+        .select('coins_amount, bonus_coins, price_usd')
+        .eq('is_active', true);
+      if (data && data.length) {
+        const best = Math.max(
+          ...data.map((p: any) => ((p.coins_amount ?? 0) + (p.bonus_coins ?? 0)) / Math.max(Number(p.price_usd) || 1, 0.01))
+        );
+        if (Number.isFinite(best) && best > 0) setUpgradeDiamondsPerUsd(Math.floor(best));
+      }
+    })();
+  }, []);
   
   // Sync realtime helper data
   useEffect(() => {
