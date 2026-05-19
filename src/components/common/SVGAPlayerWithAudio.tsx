@@ -191,9 +191,11 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
             const safetyBuffer = Math.min(1500, exactDuration * 0.2);
             completionTimerRef.current = setTimeout(() => {
               if (mountedRef.current && !completedRef.current) {
-                console.warn(
-                  `[SVGAPlayerWithAudio] ⚠️ Native onFinished did NOT fire within ${(exactDuration + safetyBuffer).toFixed(0)}ms — triggering safety fallback for "${fileTag}"`
-                );
+                if (isAnimationDebugEnabled()) {
+                  console.warn(
+                    `[SVGAPlayerWithAudio] ⚠️ Native onFinished did NOT fire within ${(exactDuration + safetyBuffer).toFixed(0)}ms — triggering safety fallback for "${fileTag}"`
+                  );
+                }
                 handleAnimationComplete('safety-timer');
               }
             }, exactDuration + safetyBuffer);
