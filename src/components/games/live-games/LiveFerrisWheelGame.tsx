@@ -262,36 +262,31 @@ export function LiveFerrisWheelGame({
     }, 3000);
   };
 
-  // Allow multiple bets on different foods - INSTANT response
-  const handleSelectFood = async (index: number) => {
-    if (autoPlayPhase !== 'betting' || isPlacingBet) return;
-    
-    // No limit check - unlimited betting allowed
+  // Allow multiple concurrent bets on different foods - INSTANT, non-blocking
+  const handleSelectFood = (index: number) => {
+    if (autoPlayPhase !== 'betting') return;
     if (betAmount > userCoins) return;
 
+    const stake = betAmount;
     // Instant UI update BEFORE API call
     setSelectedFoods(prev => new Set([...prev, index]));
-    setBetAmountsPerFood(prev => ({ ...prev, [index]: (prev[index] || 0) + betAmount }));
-    setTotalBetPlaced(prev => prev + betAmount);
-    
-    setIsPlacingBet(true);
+    setBetAmountsPerFood(prev => ({ ...prev, [index]: (prev[index] || 0) + stake }));
+    setTotalBetPlaced(prev => prev + stake);
+
     sounds.playBetSound();
     liveEffects.play('bet');
 
-    // Fire API call in background - don't wait
+    // Fire-and-forget: never block subsequent taps
     onPlaceBet('ferris_wheel', index.toString()).then(result => {
       if (!result?.success) {
-        // Rollback on failure
         setSelectedFoods(prev => {
           const newSet = new Set(prev);
-          if ((betAmountsPerFood[index] || 0) <= betAmount) newSet.delete(index);
+          if ((betAmountsPerFood[index] || 0) <= stake) newSet.delete(index);
           return newSet;
         });
-        setBetAmountsPerFood(prev => ({ ...prev, [index]: Math.max(0, (prev[index] || 0) - betAmount) }));
-        setTotalBetPlaced(prev => Math.max(0, prev - betAmount));
+        setBetAmountsPerFood(prev => ({ ...prev, [index]: Math.max(0, (prev[index] || 0) - stake) }));
+        setTotalBetPlaced(prev => Math.max(0, prev - stake));
       }
-    }).finally(() => {
-      setIsPlacingBet(false);
     });
   };
 
@@ -428,7 +423,7 @@ export function LiveFerrisWheelGame({
                     }}
                     whileHover={{ scale: autoPlayPhase === "betting" ? 1.15 : 1 }}
                     whileTap={{ scale: 0.9 }}
-                    disabled={autoPlayPhase !== "betting" || isPlacingBet}
+                    disabled={autoPlayPhase !== "betting"}
                   >
                     {/* Food Emoji */}
                     <motion.span 

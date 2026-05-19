@@ -256,25 +256,23 @@ export function LiveRocketRaceGame({
     }, 3000);
   };
 
-  const handleSelectRocket = async (rocketIndex: number) => {
-    if (autoPlayPhase !== 'betting' || isPlacingBet) return;
+  const handleSelectRocket = (rocketIndex: number) => {
+    if (autoPlayPhase !== 'betting') return;
     if (betAmount > userCoins) return;
 
+    const stake = betAmount;
     setSelectedRocket(rocketIndex);
-    setBetOnRocket(prev => ({ ...prev, [rocketIndex]: (prev[rocketIndex] || 0) + betAmount }));
-    setTotalBetPlaced(prev => prev + betAmount);
-    sounds.playBetSound(); // 🔊 Bet sound!
+    setBetOnRocket(prev => ({ ...prev, [rocketIndex]: (prev[rocketIndex] || 0) + stake }));
+    setTotalBetPlaced(prev => prev + stake);
+    sounds.playBetSound();
     playLiveEffect('bet');
-    
-    setIsPlacingBet(true);
 
+    // Fire-and-forget: allow tapping multiple rockets without waiting
     onPlaceBet('rocket_race', rocketIndex.toString()).then(result => {
       if (!result?.success) {
-        setBetOnRocket(prev => ({ ...prev, [rocketIndex]: Math.max(0, (prev[rocketIndex] || 0) - betAmount) }));
-        setTotalBetPlaced(prev => Math.max(0, prev - betAmount));
+        setBetOnRocket(prev => ({ ...prev, [rocketIndex]: Math.max(0, (prev[rocketIndex] || 0) - stake) }));
+        setTotalBetPlaced(prev => Math.max(0, prev - stake));
       }
-    }).finally(() => {
-      setIsPlacingBet(false);
     });
   };
 
@@ -507,7 +505,7 @@ export function LiveRocketRaceGame({
           <motion.button
             key={rocket.id}
             onClick={() => handleSelectRocket(i)}
-            disabled={isPlacingBet || betAmount > userCoins || autoPlayPhase !== 'betting'}
+            disabled={betAmount > userCoins || autoPlayPhase !== 'betting'}
             whileHover={{ scale: autoPlayPhase === 'betting' ? 1.05 : 1 }}
             whileTap={{ scale: 0.95 }}
             className={cn(
@@ -515,7 +513,7 @@ export function LiveRocketRaceGame({
               selectedRocket === i 
                 ? `border-white/60 ${rocket.bgColor}` 
                 : "border-white/20 bg-black/40 hover:bg-white/10",
-              (isPlacingBet || betAmount > userCoins || autoPlayPhase !== 'betting') && "opacity-50 cursor-not-allowed"
+              (betAmount > userCoins || autoPlayPhase !== 'betting') && "opacity-50 cursor-not-allowed"
             )}
           >
             {/* Background Glow */}
