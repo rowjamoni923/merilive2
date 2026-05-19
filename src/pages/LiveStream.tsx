@@ -1621,9 +1621,47 @@ const LiveStream = () => {
       }
     };
 
+    // Surgical viewer-list patch helpers — avoid full refetch on every event so
+    // the panel updates within ~1 frame of the realtime packet arriving.
+    const patchInViewer = async (viewerId: string) => {
+      if (!viewerId || !mountedRef.current) return;
+      // Optimistic placeholder so the slot appears immediately
+      if (mountedRef.current) {
+        setRecentViewerAvatars((prev) => {
+          if (prev.some((v: any) => v.id === viewerId)) return prev;
+          return [
+            { id: viewerId, app_uid: null, avatar_url: null, name: "User", user_level: 1 },
+            ...prev,
+          ];
+        });
+      }
+      const { data: profile } = await supabase
+        .from("profiles_public")
+        .select("id, app_uid, display_name, avatar_url, user_level")
+        .eq("id", viewerId)
+        .maybeSingle();
+      if (!profile || !mountedRef.current) return;
+      setRecentViewerAvatars((prev) => {
+        const enriched = {
+          id: profile.id,
+          app_uid: profile.app_uid || null,
+          avatar_url: profile.avatar_url || null,
+          name: profile.display_name || "User",
+          user_level: profile.user_level || 1,
+        };
+        const without = prev.filter((v: any) => v.id !== profile.id);
+        return [enriched, ...without];
+      });
+    };
+
+    const patchOutViewer = (viewerId: string) => {
+      if (!viewerId || !mountedRef.current) return;
+      setRecentViewerAvatars((prev) => prev.filter((v: any) => v.id !== viewerId));
+    };
+
     // Subscribe to viewer changes - with join notification support
     console.log('[LiveStream] 📡 Setting up viewer realtime subscription for stream:', id);
-    
+
     const channel = supabase
       .channel(`stream_viewers_realtime_${id}`)
       .on(
@@ -1631,17 +1669,17 @@ const LiveStream = () => {
         { event: "INSERT", schema: "public", table: "stream_viewers" },
         (payload: any) => {
           if (payload.new?.stream_id !== id) return;
+          const viewerId = payload.new?.viewer_id;
+          if (!viewerId) return;
 
-          console.log('[LiveStream] 👤 Viewer INSERT detected:', payload.new?.viewer_id);
+          console.log('[LiveStream] 👤 Viewer INSERT detected:', viewerId);
 
-          // ⚡ INSTANT: Count from an in-memory active viewer set to prevent double increments
-          activeViewerIdsRef.current.add(payload.new.viewer_id);
+          // ⚡ INSTANT: count + list patched in-place (no full refetch)
+          activeViewerIdsRef.current.add(viewerId);
           setViewerCount(activeViewerIdsRef.current.size);
-          fetchRecentViewers();
+          void patchInViewer(viewerId);
 
-          if (payload.new?.viewer_id) {
-            handleViewerJoin(payload.new.viewer_id);
-          }
+          handleViewerJoin(viewerId);
         }
       )
       .on(
@@ -1649,30 +1687,26 @@ const LiveStream = () => {
         { event: "UPDATE", schema: "public", table: "stream_viewers" },
         (payload: any) => {
           if ((payload.new?.stream_id ?? payload.old?.stream_id) !== id) return;
+          const viewerId = payload.new?.viewer_id ?? payload.old?.viewer_id;
+          if (!viewerId) return;
 
-          console.log('[LiveStream] 👤 Viewer UPDATE detected:', payload.new?.viewer_id, 'left_at:', payload.new?.left_at);
           const viewerLeft = payload.old?.left_at === null && payload.new?.left_at !== null;
           const viewerReturned = payload.old?.left_at !== null && payload.new?.left_at === null;
 
-          // ⚡ INSTANT: Optimistic count adjustment
           if (viewerLeft) {
-            activeViewerIdsRef.current.delete(payload.new?.viewer_id);
+            activeViewerIdsRef.current.delete(viewerId);
             setViewerCount(activeViewerIdsRef.current.size);
-          } else if (viewerReturned) {
-            activeViewerIdsRef.current.add(payload.new?.viewer_id);
-            setViewerCount(activeViewerIdsRef.current.size);
-          }
-
-          fetchRecentViewers();
-
-          if (viewerLeft) {
-            console.log('[LiveStream] 👋 Viewer marked left:', payload.new?.viewer_id);
+            patchOutViewer(viewerId);
+            console.log('[LiveStream] 👋 Viewer marked left:', viewerId);
             return;
           }
 
-          if (viewerReturned && payload.new?.viewer_id) {
-            console.log('[LiveStream] 👤 Viewer returned:', payload.new.viewer_id);
-            handleViewerJoin(payload.new.viewer_id);
+          if (viewerReturned) {
+            activeViewerIdsRef.current.add(viewerId);
+            setViewerCount(activeViewerIdsRef.current.size);
+            void patchInViewer(viewerId);
+            console.log('[LiveStream] 👤 Viewer returned:', viewerId);
+            handleViewerJoin(viewerId);
           }
         }
       )
@@ -1681,13 +1715,13 @@ const LiveStream = () => {
         { event: "DELETE", schema: "public", table: "stream_viewers" },
         (payload: any) => {
           if (payload.old?.stream_id !== id) return;
+          const viewerId = payload.old?.viewer_id;
+          if (!viewerId) return;
 
-          console.log('[LiveStream] 👋 Viewer DELETE detected:', payload.old?.viewer_id);
-          // ⚡ INSTANT: Optimistic decrement from active viewer set
-          activeViewerIdsRef.current.delete(payload.old?.viewer_id);
+          console.log('[LiveStream] 👋 Viewer DELETE detected:', viewerId);
+          activeViewerIdsRef.current.delete(viewerId);
           setViewerCount(activeViewerIdsRef.current.size);
-          fetchRecentViewers();
-
+          patchOutViewer(viewerId);
         }
       )
       .subscribe((status) => {
@@ -1699,6 +1733,7 @@ const LiveStream = () => {
       supabase.removeChannel(channel);
     };
   }, [id, currentUserId]);
+
 
   // Listen for incoming PK requests (if this user is a host)
   useEffect(() => {
