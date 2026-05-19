@@ -581,7 +581,7 @@ const AgencyDashboard = () => {
         console.error('[AgencyDashboard] Error fetching data:', error);
         recordClientError({ label: "AgencyDashboard.rate", message: error instanceof Error ? error.message : String(error) });
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
