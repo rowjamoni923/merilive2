@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { navigateInAppPath } from "@/utils/inAppNavigation";
 
 interface BanPopupDialogProps {
   open: boolean;
@@ -47,7 +48,7 @@ const BanPopupDialog = ({ open, reason, bannedUntil }: BanPopupDialogProps) => {
     setLoggingOut(true);
     // INSTANT: flag + redirect, cleanup in background
     try { localStorage.setItem("meri_manual_logout", "true"); } catch {}
-    window.location.replace("/auth");
+    navigateInAppPath("/auth", { replace: true });
     void import("@/utils/nativeSessionStorage").then(({ clearNativeSession }) => clearNativeSession()).catch(() => {});
     void supabase.auth.signOut({ scope: "local" }).catch(() => {});
   };
