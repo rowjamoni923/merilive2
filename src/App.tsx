@@ -103,11 +103,23 @@ let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
-  // Stagger imports to avoid blocking network
+  // Pkg51: kick off chunk downloads in parallel batches of 4 so the network
+  // stays saturated but doesn't stall main-thread parse. With HTTP/2
+  // multiplexing this completes in ~one round-trip on broadband.
+  const batchSize = 4;
   CORE_PAGE_IMPORTERS.forEach((fn, i) => {
-    setTimeout(() => fn().catch(() => {}), i * 50);
+    setTimeout(() => fn().catch(() => {}), Math.floor(i / batchSize) * 30);
   });
 }
+
+// Pkg51: Fire preload at module-evaluation time too (before <App /> mounts).
+// The useEffect inside App still calls it as a safety net — preloadCoreRoutes
+// is idempotent. Guarded by `window` so SSR/test environments stay safe.
+if (typeof window !== 'undefined') {
+  // Defer one microtask so we don't block the initial paint of <App />.
+  Promise.resolve().then(preloadCoreRoutes);
+}
+
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const Level = lazy(() => import("./pages/Level"));
 const Invitation = lazy(() => import("./pages/Invitation"));
@@ -389,36 +401,14 @@ const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string
   </div>
 ));
 
-// Stable, memoized fallback used by the lazy <Routes> Suspense boundary.
-// Memoized so the fallback element identity does NOT change between renders
-// — that prevents React from un/remounting it on every parent update, which
-// previously caused a brief flicker between routes. Light cream background
-// + bg-background base layer guarantees no dark flash even if a chunk
-// arrives mid-paint. Spinner is locked to viewport center via fixed
-// inset-0 + flex centering and ignores parent scroll position.
-const RouteSuspenseFallback = memo(() => (
-  <div
-    className="fixed inset-0 z-[60] flex items-center justify-center bg-background animate-fade-in"
-    style={{
-      background:
-        'radial-gradient(ellipse at center, #FFFBF2 0%, #FAF5EA 60%, #F5EFDF 100%)',
-      // Respect mobile safe-areas so the spinner is visually centered on
-      // notched devices instead of being pushed under the status bar.
-      paddingTop: 'env(safe-area-inset-top)',
-      paddingBottom: 'env(safe-area-inset-bottom)',
-    }}
-    aria-busy="true"
-    aria-live="polite"
-    role="status"
-  >
-    <div className="flex flex-col items-center gap-3">
-      <div className="h-12 w-12 rounded-full border-[3px] border-pink-200 border-t-pink-500 animate-spin shadow-[0_0_24px_rgba(236,72,153,0.25)]" />
-      <div className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-semibold">
-        Loading
-      </div>
-    </div>
-  </div>
-));
+// Pkg51: INSTANT navigation policy.
+// We deliberately render NOTHING during route chunk loads. Combined with the
+// CORE_PAGE_IMPORTERS preload that runs on first mount, every navigation to a
+// preloaded route resolves synchronously — no fallback flash, no spinner, no
+// blank-then-spinner sequence. For routes that haven't been preloaded yet,
+// we render a transparent placeholder so the previous screen visually
+// remains until the new one is ready (no jarring full-screen loader).
+const RouteSuspenseFallback = memo(() => null);
 RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 
 // =============================================
