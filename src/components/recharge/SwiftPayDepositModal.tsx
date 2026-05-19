@@ -31,7 +31,7 @@ interface Props {
   userCustomPriceUsd?: number | null;
   userCustomLabel?: string | null;
   /** Called after successful credit so parent can refresh or proceed. */
-  onCredited?: (coins: number) => void;
+  onCredited?: (coins: number, topupId?: string) => void;
 }
 
 // Recommendation logic:
