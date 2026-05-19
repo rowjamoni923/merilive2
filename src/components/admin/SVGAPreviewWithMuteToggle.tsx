@@ -108,7 +108,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
           <SVGAPlayer
             key={`muted-${key}`}
             src={src}
-            className={className}
+            className={cn("w-full h-full [&_canvas]:!w-full [&_canvas]:!h-full", className)}
             loop={loop}
             autoPlay={autoPlay}
             muted={true}
@@ -117,7 +117,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
           <SVGAPlayerWithAudio
             key={`unmuted-${key}`}
             src={src}
-            className={className}
+            className={cn("w-full h-full [&_canvas]:!w-full [&_canvas]:!h-full", className)}
             loop={loop}
             autoPlay={autoPlay}
             volume={0.7}

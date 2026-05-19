@@ -85,7 +85,7 @@ const GiftItem = memo(({
           <Suspense fallback={<div className="w-10 h-10 rounded-lg bg-white/5 animate-pulse" />}>
             <SVGAPlayer
               src={url}
-              className="w-10 h-10"
+              className="w-10 h-10 [&_canvas]:!w-full [&_canvas]:!h-full"
               loop={true}
               autoPlay={true}
             />
