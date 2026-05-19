@@ -5,7 +5,7 @@ import { useAppResumeHandler } from "@/hooks/useAppResumeHandler";
 import { useLevelPrivilegeAutoEquip } from "@/hooks/useLevelPrivilegeAutoEquip";
 import { useAdminBroadcastSync } from "@/hooks/useAdminBroadcastSync";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
-import { queryClient } from "@/App";
+import { queryClient } from "@/lib/queryClient";
 
 /**
  * Deferred hooks bridge - lazy loaded after first paint
