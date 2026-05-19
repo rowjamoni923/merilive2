@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, memo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
@@ -90,9 +91,15 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
 
   const items = Array.from({ length: Math.min(count * 5, 20) });
 
+  // CRITICAL: portal to <body> so position:fixed isn't trapped by ancestor
+  // transforms (framer-motion, scroll containers) — guarantees true app-wide
+  // full-screen across Chat / Live / Party / Private Call.
+  const portalTarget = typeof document !== 'undefined' ? document.body : null;
+  if (!portalTarget) return null;
+
   // Render FULL SCREEN animation for SVGA/Lottie/VAP — NO overlay, NO sparkles, direct play
   if (hasAnimation) {
-    return (
+    return createPortal(
       <AnimatePresence>
         <motion.div
           className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center"
@@ -131,13 +138,14 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
             )}
           </div>
         </motion.div>
-      </AnimatePresence>
+      </AnimatePresence>,
+      portalTarget
     );
   }
 
   // Render simple image - FULL SCREEN (no dark overlay, no sparkles)
   if (isImage) {
-    return (
+    return createPortal(
       <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
@@ -160,19 +168,20 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
             />
           </motion.div>
         </div>
-      </div>
+      </div>,
+      portalTarget
     );
   }
 
   // Emoji burst animation (original behavior for text emojis)
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
       {/* Center Burst Animation */}
       <div className="absolute inset-0 flex items-center justify-center">
         {/* Main big emoji */}
         <motion.div
           initial={{ scale: 0, rotate: -30 }}
-          animate={{ 
+          animate={{
             scale: [0, 2.5, 2],
             rotate: [0, 15, 0],
           }}
@@ -253,7 +262,8 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
           transition={{ duration: 0.8, delay: 0.3 }}
         />
       ))}
-    </div>
+    </div>,
+    portalTarget
   );
 });
 
