@@ -266,7 +266,7 @@ export default function SwiftPayDepositModal({
 
         {step === "pick_currency" && pkg && (
           <div className="space-y-4">
-            {mode !== "helper" && !userCustomPkg && (
+            {mode !== "helper" && !(mode === "user" && userCustomCoins && userCustomPriceUsd) && (
               <button onClick={() => setStep("pick_pkg")} className="flex items-center gap-1 text-xs text-amber-200/80 hover:text-amber-200">
                 <ChevronLeft className="w-3 h-3" /> Back
               </button>
