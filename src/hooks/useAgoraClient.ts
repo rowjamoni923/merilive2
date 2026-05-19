@@ -106,6 +106,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   const participantUidMapRef = useRef<Map<string, number>>(new Map());
   const remoteAudioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
   const hostVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
   const preferredVideoQualityRef = useRef<VideoQuality>(VideoQuality.HIGH);
@@ -163,6 +164,13 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     if (hostVideoRecoveryTimerRef.current) {
       clearInterval(hostVideoRecoveryTimerRef.current);
       hostVideoRecoveryTimerRef.current = null;
+    }
+  }, []);
+
+  const clearViewerHardReconnectTimer = useCallback(() => {
+    if (viewerHardReconnectTimerRef.current) {
+      clearTimeout(viewerHardReconnectTimerRef.current);
+      viewerHardReconnectTimerRef.current = null;
     }
   }, []);
 
@@ -427,6 +435,14 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         if (state === ConnectionState.Connected) {
           setConnectionState('CONNECTED');
           setIsReconnecting(false);
+          clearViewerHardReconnectTimer();
+
+          if (config.role === 'audience') {
+            setRemoteUsers(new Map());
+            const resync = () => room.remoteParticipants.forEach((participant) => ensureParticipantSubscribed(participant));
+            resync();
+            [40, 120, 300].forEach((delay) => setTimeout(resync, delay));
+          }
 
           // Host track publishing is handled in the dedicated host publish block below.
           // Avoid duplicate camera/mic enable calls here — these can trigger repeated
@@ -434,6 +450,20 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         } else if (state === ConnectionState.Reconnecting) {
           setConnectionState('CONNECTING');
           setIsReconnecting(true);
+          if (config.role === 'audience' && !viewerHardReconnectTimerRef.current) {
+            viewerHardReconnectTimerRef.current = setTimeout(() => {
+              viewerHardReconnectTimerRef.current = null;
+              const lastConfig = lastConfigRef.current;
+              if (!lastConfig || lastConfig.role !== 'audience' || isJoiningRef.current || isLeavingRef.current) return;
+              console.warn('[LiveKitClient] Audience reconnect stalled, forcing fresh room join');
+              lastConfigRef.current = null;
+              room.disconnect(true);
+              setRemoteUsers(new Map());
+              setIsJoined(false);
+              setConnectionState('CONNECTING');
+              joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
+            }, 2500);
+          }
         } else if (state === ConnectionState.Disconnected) {
           setConnectionState('DISCONNECTED');
         }
@@ -443,6 +473,17 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         clearHostVideoRecoveryTimer();
         setIsJoined(false);
         setConnectionState('DISCONNECTED');
+        if (config.role === 'audience') {
+          clearViewerHardReconnectTimer();
+          const lastConfig = lastConfigRef.current;
+          if (lastConfig && !isLeavingRef.current && !isJoiningRef.current) {
+            lastConfigRef.current = null;
+            setTimeout(() => {
+              if (isLeavingRef.current || isJoiningRef.current) return;
+              joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
+            }, 300);
+          }
+        }
       });
 
       // Capture local tracks as they publish (covers late-publish & re-publish after recovery)
@@ -710,6 +751,15 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         ensureParticipantSubscribed(participant);
       });
 
+      if (config.role === 'audience') {
+        const readyRemoteCount = Array.from(room.remoteParticipants.values()).filter((participant) =>
+          Array.from(participant.trackPublications.values()).some((pub) => pub.kind === Track.Kind.Video && pub.track)
+        ).length;
+        if (readyRemoteCount === 0) {
+          setRemoteUsers(new Map());
+        }
+      }
+
       // Fast fallback resubscribe pass for audience clients with multiple retries
       if (config.role === 'audience') {
         // Aggressive retry passes for instant first-frame (30ms, 80ms, 200ms, 500ms)
@@ -744,6 +794,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     setIsReconnecting(false);
 
     try {
+      clearViewerHardReconnectTimer();
       clearHostVideoRecoveryTimer();
       destroyBeautyProcessor();
       remoteAudioElementsRef.current.forEach(els => {
@@ -778,7 +829,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     } finally {
       isLeavingRef.current = false;
     }
-  }, [clearHostVideoRecoveryTimer]);
+  }, [clearHostVideoRecoveryTimer, clearViewerHardReconnectTimer]);
 
   // Toggle audio
   const toggleAudio = useCallback(async (enabled: boolean) => {

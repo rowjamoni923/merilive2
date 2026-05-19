@@ -28,6 +28,7 @@ import { getLiveKitToken } from '@/services/livekitService';
 
 const PRELOAD_TTL_MS = 60_000; // auto-disconnect after 60s if unused
 const STAGGER_DELAY_MS = 200; // delay between each connection to avoid spikes
+const HANDOFF_GRACE_MS = 5_000; // keep clicked stream alive while route changes
 
 interface PreloadedStream {
   room: Room;
@@ -41,6 +42,13 @@ interface PreloadedStream {
 
 const preloadedStreams = new Map<string, PreloadedStream>();
 let _preloadEnabled = false;
+let handoffStreamId: string | null = null;
+let handoffExpiresAt = 0;
+
+export function markPreloadedStreamForHandoff(streamId: string): void {
+  handoffStreamId = streamId;
+  handoffExpiresAt = Date.now() + HANDOFF_GRACE_MS;
+}
 
 /**
  * Consume a preloaded stream (removes from cache, caller owns the Room now).
@@ -57,6 +65,10 @@ export function consumePreloadedStream(streamId: string): {
 
   clearTimeout(entry.ttlTimer);
   preloadedStreams.delete(streamId);
+  if (handoffStreamId === streamId) {
+    handoffStreamId = null;
+    handoffExpiresAt = 0;
+  }
 
   // Only return if still connected and has video
   if (entry.room.state === ConnectionState.Connected && entry.videoTrack) {
@@ -200,11 +212,18 @@ export function preloadTopStreams(streamIds: string[]): void {
  */
 export function cleanupAllPreloaded(): void {
   _preloadEnabled = false;
+  const keepHandoff = handoffStreamId && handoffExpiresAt > Date.now() ? handoffStreamId : null;
   preloadedStreams.forEach((entry) => {
+    if (entry.streamId === keepHandoff) return;
     clearTimeout(entry.ttlTimer);
     try { entry.room.disconnect(true); } catch {}
+    preloadedStreams.delete(entry.streamId);
   });
-  preloadedStreams.clear();
+  if (!keepHandoff) {
+    preloadedStreams.clear();
+    handoffStreamId = null;
+    handoffExpiresAt = 0;
+  }
   console.log('[Preloader] 🧹 All preloaded streams cleaned up');
 }
 
