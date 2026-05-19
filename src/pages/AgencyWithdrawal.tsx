@@ -2068,17 +2068,18 @@ const AgencyWithdrawal = () => {
   ];
 
   const getAvailablePaymentMethods = () => {
-    if (!selectedCountry || !countryConfig) return [];
+    if (!selectedCountry) return [];
 
     const isExcluded = AUTO_PAY_EXCLUDED_COUNTRIES.includes(selectedCountry);
 
-    // Only this country's local methods — strip any legacy auto entries baked into the country config
-    const localMethods = countryConfig.paymentMethods.filter(
+    // STRICT: source local methods from THIS country only — never from the BD display-fallback.
+    const strictCountryCfg = COUNTRY_CONFIGS[selectedCountry];
+    const localMethods = (strictCountryCfg?.paymentMethods ?? []).filter(
       m => m.value !== 'epay' && m.value !== 'crypto_auto' && m.value !== 'binance'
     );
 
     if (hasLocalPayrollHelpers === null) {
-      // Helper-availability still loading: don't guess auto, show local for now
+      // Helper-availability still loading: show local only (don't promote auto prematurely)
       return localMethods;
     }
 
@@ -2088,7 +2089,7 @@ const AgencyWithdrawal = () => {
       return isExcluded ? localMethods : [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
 
-    // No Level-5 helper anywhere in this country → auto gateway only (applies to every country incl. BD/IN/PK)
+    // No Level-5 helper in this country → auto gateway only (every country, incl. BD/IN/PK)
     return [...OFFICIAL_AUTO_METHODS];
   };
 
