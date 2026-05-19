@@ -90,6 +90,20 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const animationType = type || detectAnimationType(src);
+  const startTimeRef = useRef<number>(Date.now());
+  const completedRef = useRef(false);
+  useEffect(() => { startTimeRef.current = Date.now(); completedRef.current = false; }, [src]);
+
+  const fireComplete = (source: AnimationCompletionSource) => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    logAnimationCompletion('UniversalAnimationPlayer', source, {
+      elapsed: Date.now() - startTimeRef.current,
+      src,
+    });
+    onCompleteDebug?.(source);
+    onComplete?.();
+  };
 
   // Load Lottie JSON data
   useEffect(() => {
