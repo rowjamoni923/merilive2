@@ -20,6 +20,8 @@ interface SVGAPlayerWithAudioProps {
   onLoad?: () => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  /** Receives onComplete with provenance ('native' = SVGA onFinished fired, 'safety-timer' = duration-based fallback). */
+  onCompleteDebug?: (source: AnimationCompletionSource) => void;
   onAudioExtracted?: (audioUrl: string | null) => void;
   volume?: number;
   /** Optional admin-uploaded sound URL — used as fallback when SVGA has no embedded audio */
