@@ -1310,6 +1310,29 @@ function CampaignFloatingButton() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {campaign && (
+        <SwiftPayDepositModal
+          open={showSwiftPayModal}
+          onOpenChange={(open) => setShowSwiftPayModal(open)}
+          packages={matchedPackage ? [{
+            id: matchedPackage.id,
+            coins: matchedPackage.coins_amount,
+            price_usd: matchedPackage.price_usd,
+          }] : []}
+          userCustomCoins={campaign.diamonds_amount + (campaign.bonus_diamonds || 0)}
+          userCustomPriceUsd={campaign.offer_price_usd || campaign.original_price_usd}
+          userCustomLabel={campaign.campaign_name}
+          onCredited={() => {
+            localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+            sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
+            setPurchased(true);
+            setCampaign(null);
+            setRemainingSeconds(0);
+            setShowSwiftPayModal(false);
+          }}
+        />
+      )}
     </>
   );
 }
