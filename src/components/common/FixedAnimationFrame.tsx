@@ -39,9 +39,13 @@ export interface FixedAnimationFrameProps {
   autoPlay?: boolean;
   /** muted = false plays embedded SVGA audio. Default true. */
   muted?: boolean;
+  /** SVGA only — 0..1 audio volume (passed to SVGAPlayerWithAudio). Default 0.8. */
+  volume?: number;
   onLoad?: () => void;
   onError?: (err: Error) => void;
   onComplete?: () => void;
+  /** SVGA only — fires once embedded/fallback audio source is resolved. */
+  onAudioExtracted?: (audioUrl: string | null) => void;
   /** Wrapper class — does NOT affect dimensions, only positioning/background. */
   className?: string;
   /** Center the frame within its parent (default true). */
