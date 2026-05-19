@@ -682,16 +682,19 @@ const Chat = () => {
     const animationUrl = gift.animation_url?.startsWith('http') ? gift.animation_url : '';
     const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
     const giftMediaUrl = animationUrl || iconUrl;
+    const giftSoundUrl = (gift as any).sound_url?.startsWith('http') ? (gift as any).sound_url : '';
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
+    const soundSuffix = giftSoundUrl ? ` | snd:${giftSoundUrl}` : '';
     const optimisticGiftMessage = giftMediaUrl
-      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`
-      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`;
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans${soundSuffix}]`;
 
     const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
     recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
 
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
+    setAnimatingGiftSound(giftSoundUrl || null);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
     
