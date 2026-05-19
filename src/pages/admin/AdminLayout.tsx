@@ -1323,10 +1323,12 @@ export default function AdminLayout() {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.body.setAttribute('data-admin-active', 'true');
-    const uninstallMediaResolver = installAdminMediaAutoResolver();
+    // NOTE: global MutationObserver-based media auto-resolver removed (Pkg42).
+    // It was scanning every DOM mutation across the entire admin app and
+    // caused major Chrome lag. All admin media now flows through
+    // AdminMediaFrame, which resolves URLs explicitly.
     return () => {
       document.body.removeAttribute('data-admin-active');
-      uninstallMediaResolver();
     };
   }, []);
 
