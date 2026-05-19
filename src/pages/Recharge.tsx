@@ -187,7 +187,7 @@ const Recharge = () => {
   // Play Store Billing State
   const [isPlayStoreAvailable, setIsPlayStoreAvailable] = useState(false);
   const [playStoreProcessing, setPlayStoreProcessing] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'playstore' | 'stripe' | 'local' | 'helper'>('playstore');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'playstore' | 'stripe' | 'local' | 'helper' | 'mericash'>('playstore');
   const [stripeProcessing, setStripeProcessing] = useState(false);
   
   // REALTIME: Diamond Packages & Currency Rates
