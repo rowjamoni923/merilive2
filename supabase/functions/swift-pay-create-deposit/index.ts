@@ -103,21 +103,30 @@ Deno.serve(async (req) => {
       // Isolated Swift Pay sub-account per helper
       externalUserId = `merilive_helper_${helper.id}`;
     } else {
-      if (!body.package_id) return json({ error: "package_id is required" }, 400);
-      const { data: pkg, error: pkgErr } = await admin
-        .from("coin_packages")
-        .select("id, coins_amount, bonus_coins, price_usd, is_active")
-        .eq("id", body.package_id)
-        .maybeSingle();
-      if (pkgErr || !pkg || !pkg.is_active) {
-        return json({ error: "package_not_found" }, 404);
+      // user_diamond — either a package OR a custom amount (e.g. helper-application fee)
+      if (body.package_id) {
+        const { data: pkg, error: pkgErr } = await admin
+          .from("coin_packages")
+          .select("id, coins_amount, bonus_coins, price_usd, is_active")
+          .eq("id", body.package_id)
+          .maybeSingle();
+        if (pkgErr || !pkg || !pkg.is_active) {
+          return json({ error: "package_not_found" }, 404);
+        }
+        totalCoins = (pkg.coins_amount ?? 0) + (pkg.bonus_coins ?? 0);
+        priceUsd = Number(pkg.price_usd);
+        if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
+          return json({ error: "invalid_package_price" }, 500);
+        }
+        packageId = pkg.id;
+      } else if (body.custom_coins && body.custom_price_usd) {
+        totalCoins = Math.floor(Number(body.custom_coins));
+        priceUsd = Number(body.custom_price_usd);
+        if (!Number.isFinite(totalCoins) || totalCoins <= 0) return json({ error: "invalid_custom_coins" }, 400);
+        if (!Number.isFinite(priceUsd) || priceUsd <= 0) return json({ error: "invalid_custom_price_usd" }, 400);
+      } else {
+        return json({ error: "package_id or (custom_coins + custom_price_usd) required" }, 400);
       }
-      totalCoins = (pkg.coins_amount ?? 0) + (pkg.bonus_coins ?? 0);
-      priceUsd = Number(pkg.price_usd);
-      if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
-        return json({ error: "invalid_package_price" }, 500);
-      }
-      packageId = pkg.id;
     }
 
     const idempotencyKey = crypto.randomUUID();
