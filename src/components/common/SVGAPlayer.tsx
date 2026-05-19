@@ -101,7 +101,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
 
         if (!loop) {
           player.onFinished(() => {
-            if (mountedRef.current && !completedRef.current) {
+            if (isCurrentRun() && !completedRef.current) {
               handleComplete();
             }
           });
