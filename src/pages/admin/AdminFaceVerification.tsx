@@ -1413,15 +1413,22 @@ const AdminFaceVerification = () => {
 
       {/* Action Modal */}
       <Dialog open={showActionModal} onOpenChange={setShowActionModal}>
-        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-white text-lg">
-              {actionType === 'approve' ? '✅ Confirm Approval' : '❌ Confirm Rejection'}
-            </DialogTitle>
-            <DialogDescription className="text-white/50">
-              {actionType === 'approve' ? 'Select gender and click Host or User to convert instantly' : 'Provide a reason for rejection'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="admin-content max-w-md border-0 p-0 text-white shadow-[0_24px_80px_-20px_rgba(201,168,76,0.4)] animate-scale-in
+          bg-[radial-gradient(ellipse_at_top,_rgba(201,168,76,0.2),_transparent_55%),linear-gradient(180deg,_#0b0b14_0%,_#0d0d18_50%,_#0a0a12_100%)]
+          ring-1 ring-[hsl(45,65%,55%)]/25">
+          <div className="relative overflow-hidden px-6 pt-6 pb-4">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(45,75%,60%)]/70 to-transparent" />
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold tracking-tight bg-gradient-to-r from-[#f5e7b0] via-[#fff7d6] to-[#c9a84c] bg-clip-text text-transparent">
+                {actionType === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
+              </DialogTitle>
+              <DialogDescription className="text-[13px] text-white/55 mt-0.5">
+                {actionType === 'approve' ? 'Select gender and click Host or User to convert instantly' : 'Provide a reason for rejection'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[hsl(45,55%,55%)]/40 to-transparent" />
+          </div>
+          <div className="px-6 pb-6 pt-2">
           <div className="space-y-5">
             {actionType === 'approve' && (
               <>
