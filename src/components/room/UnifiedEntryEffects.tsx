@@ -245,19 +245,21 @@ const VehicleEntranceOverlay: React.FC<VehicleEntranceOverlayProps> = ({
         }}
       >
         {/* SVGA Vehicle Animation with Audio - plays ONCE based on SVGA's own duration */}
-           <SVGAPlayerWithAudio
-            src={vehicleAnimationUrl}
-            className="w-full h-full"
-            loop={false}
-            autoPlay={true}
-            volume={0.8}
-            soundUrl={vehicleSoundUrl ?? null}
-            onComplete={handleAnimationComplete}
-            onError={(err) => {
-              console.error('[VehicleEntrance] ❌ SVGA error:', err);
-              handleAnimationComplete();
-            }}
-          />
+        <FixedAnimationFrame
+          src={vehicleAnimationUrl}
+          size="fill"
+          type="svga"
+          loop={false}
+          muted={false}
+          volume={0.8}
+          soundUrl={vehicleSoundUrl ?? null}
+          onComplete={handleAnimationComplete}
+          onError={(err) => {
+            console.error('[VehicleEntrance] ❌ SVGA error:', err);
+            handleAnimationComplete();
+          }}
+          center={false}
+        />
 
         {/* User Info Overlay at bottom center */}
         <div className="absolute inset-0 flex items-end justify-center pb-[15%]">
