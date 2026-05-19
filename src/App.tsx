@@ -13,7 +13,6 @@ import { setCachedUser, invalidateCachedUser } from '@/utils/cachedAuth';
 import { secureStorage } from '@/utils/encryptedStorage';
 import { saveSessionToNative, clearNativeSession, getSessionFromNative } from '@/utils/nativeSessionStorage';
 import { prewarmSVGA } from '@/utils/svgaPrewarm';
-import { getAdaptiveNetworkProfile } from '@/utils/connectionProfile';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
 import { clearBalanceCache } from '@/hooks/useUserBalance';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
@@ -373,50 +372,6 @@ const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScre
 import ScrollToTop from "@/components/common/ScrollToTop";
 
 
-
-// =============================================
-// OPTIMIZED QUERY CLIENT - Minimal config for speed
-// =============================================
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 300, // 5 minutes - ultra-fast section switching, realtime handles live updates
-      gcTime: 1000 * 60 * 120, // 2 hour cache - never re-fetch old data unnecessarily
-      refetchOnWindowFocus: false, // Disabled - app resume handler handles this explicitly
-      refetchOnMount: false, // Prevent mount-time refetch storm across sections
-      refetchOnReconnect: false, // Avoid mass refetch when connection flaps; realtime handles updates
-      retry: (failureCount: number) => {
-        const { queryRetryCount } = getAdaptiveNetworkProfile();
-        return failureCount < queryRetryCount;
-      },
-      retryDelay: (attemptIndex: number) => {
-        const { queryRetryBaseDelayMs, queryRetryMaxDelayMs } = getAdaptiveNetworkProfile();
-        return Math.min(queryRetryBaseDelayMs * 2 ** Math.max(0, attemptIndex - 1), queryRetryMaxDelayMs);
-      },
-      placeholderData: (prev: any) => prev, // 🚀 Show previous data while refetching - no loading flickers
-      networkMode: 'offlineFirst', // 🚀 Show cached data immediately, fetch in background
-    },
-  },
-});
-
-// 🚀 INSTANT LOAD: Persist React Query cache to localStorage so on every app
-// launch / reload / route switch, all previously-fetched data appears in 0ms.
-// Realtime + background refetch silently update under the hood.
-const __queryPersister = (() => {
-  try {
-    if (typeof window === 'undefined') return undefined;
-    return createSyncStoragePersister({
-      storage: window.localStorage,
-      key: 'merilive-rq-cache-v1',
-      throttleTime: 1000,
-    });
-  } catch {
-    return undefined;
-  }
-})();
-
-// Export queryClient for use in app resume handler
-export { queryClient };
 
 // =============================================
 // ROUTE LOADER - visible fallback to prevent blank/black screen during lazy chunk loads
