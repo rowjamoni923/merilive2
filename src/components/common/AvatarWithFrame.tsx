@@ -240,7 +240,6 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   isHost = false,
   size = 'md',
   showFrame = true,
-  showAnimation = true,
   showGlow = false, // Disabled by default for performance
   isOnline,
   className,
