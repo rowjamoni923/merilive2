@@ -749,6 +749,15 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         ensureParticipantSubscribed(participant);
       });
 
+      if (config.role === 'audience') {
+        const readyRemoteCount = Array.from(room.remoteParticipants.values()).filter((participant) =>
+          Array.from(participant.trackPublications.values()).some((pub) => pub.kind === Track.Kind.Video && pub.track)
+        ).length;
+        if (readyRemoteCount === 0) {
+          setRemoteUsers(new Map());
+        }
+      }
+
       // Fast fallback resubscribe pass for audience clients with multiple retries
       if (config.role === 'audience') {
         // Aggressive retry passes for instant first-frame (30ms, 80ms, 200ms, 500ms)
