@@ -200,6 +200,36 @@ const Chat = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+
+  // 🛡️ DM dedup guard: enforce one row per message id at all times. Catches
+  // any race between optimistic insert, REST fetch, realtime INSERT,
+  // broadcast and persistDirectMessage so the same id never renders twice.
+  useEffect(() => {
+    setMessages(prev => {
+      const seen = new Set<string>();
+      const out: Message[] = [];
+      for (const m of prev) {
+        const key = String(m.id);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(m);
+      }
+      return out.length === prev.length ? prev : out;
+    });
+  }, [messages]);
+  useEffect(() => {
+    setGroupMessages(prev => {
+      const seen = new Set<string>();
+      const out: GroupMessage[] = [];
+      for (const m of prev) {
+        const key = String(m.id);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(m);
+      }
+      return out.length === prev.length ? prev : out;
+    });
+  }, [groupMessages]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
