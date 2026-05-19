@@ -140,9 +140,11 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             className="w-full h-full"
             loop={loop}
             autoPlay={autoPlay}
+            volume={volume}
             onLoad={onLoad}
             onComplete={onComplete}
             onError={onError}
+            onAudioExtracted={onAudioExtracted}
             soundUrl={soundUrl}
           />
         </Suspense>
