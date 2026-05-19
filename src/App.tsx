@@ -1043,7 +1043,7 @@ const App = () => {
     <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{
-        persister: __queryPersister as any,
+        persister: queryPersister as any,
         maxAge: 1000 * 60 * 60 * 24 * 7, // keep cache 7 days
         buster: 'merilive-v1',
       }}
