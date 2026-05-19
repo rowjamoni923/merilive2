@@ -40,7 +40,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { registerFCMToken } from "@/services/firebaseMessaging";
 import { getAppInfo } from "@/utils/nativeUtils";
-import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
 import {
   checkPermissionStatus,
@@ -322,28 +321,6 @@ const Settings = () => {
   useEffect(() => {
     if (showPermissionsDialog) void refreshPermissions();
   }, [showPermissionsDialog, refreshPermissions]);
-
-  useEffect(() => {
-    const syncPermissions = () => {
-      void refreshPermissions();
-    };
-
-    const handleVisibilityRefresh = () => {
-      if (document.visibilityState === 'visible') syncPermissions();
-    };
-
-    window.addEventListener('focus', syncPermissions);
-    document.addEventListener('visibilitychange', handleVisibilityRefresh);
-
-    return () => {
-      window.removeEventListener('focus', syncPermissions);
-      document.removeEventListener('visibilitychange', handleVisibilityRefresh);
-    };
-  }, [refreshPermissions]);
-
-  useRefreshOnResume(() => {
-    void refreshPermissions();
-  });
 
   // Helpers ─────────────────────────────────────────────
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
