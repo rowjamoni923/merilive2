@@ -1853,7 +1853,7 @@ const LiveStream = () => {
       connectionInitiated.current = false;
     });
 
-    // Cleanup only on unmount
+      // Cleanup only on unmount
     return () => {
       console.log('🧹 Component unmounting, cleaning up...');
       streamEndedRef.current = true; // Stop task tracking immediately on unmount
@@ -1866,6 +1866,12 @@ const LiveStream = () => {
             .from('live_streams')
             .update({ is_active: false, ended_at: new Date().toISOString() })
             .eq('id', id);
+          } else if (id) {
+            supabase
+              .rpc('leave_live_stream_viewer', { p_stream_id: id })
+              .then(({ error }) => {
+                if (error) console.error('[LiveStream] Viewer leave RPC failed:', error);
+              });
         }
       }
     };
