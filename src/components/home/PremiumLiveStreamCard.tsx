@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+
+const DEFAULT_THUMB = "/placeholder.svg";
 
 interface PremiumLiveStreamCardProps {
   id: string;
@@ -81,9 +84,21 @@ export const PremiumLiveStreamCard = ({
         // @ts-expect-error – fetchpriority is a standard HTML hint
         fetchpriority="high"
         onError={(e) => {
-          // Fallback to raw URL if CDN fails (e.g. private storage)
           const img = e.currentTarget;
-          if (img.src !== thumbnailUrl && thumbnailUrl) img.src = thumbnailUrl;
+          // Step 1: raw thumbnail URL (skip CDN proxy)
+          if (thumbnailUrl && img.src !== thumbnailUrl && !img.dataset.s1) {
+            img.dataset.s1 = "1";
+            img.src = thumbnailUrl;
+            return;
+          }
+          // Step 2: host avatar fallback (or placeholder)
+          if (!img.dataset.s2) {
+            img.dataset.s2 = "1";
+            img.src = hostId ? getDisplayAvatar(hostId, hostAvatar || null) : (hostAvatar || DEFAULT_THUMB);
+            return;
+          }
+          // Step 3: final placeholder
+          if (img.src !== DEFAULT_THUMB) img.src = DEFAULT_THUMB;
         }}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         style={{
