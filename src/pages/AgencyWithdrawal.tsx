@@ -2788,21 +2788,23 @@ const AgencyWithdrawal = () => {
                 <div className="space-y-2">
                   <Label className="text-gray-800 font-semibold">{getAccountFieldLabel()}</Label>
                   <Input
-                    type={paymentMethod === 'epay' ? 'email' : 'text'}
-                    inputMode={paymentMethod === 'epay' ? 'email' : ['bkash', 'nagad', 'easypaisa', 'esewa', 'frimi', 'gcash', 'gopay', 'momo', 'promptpay', 'grabpay', 'paynow', 'paypay', 'kakaopay', 'payme', 'linepay', 'wavepay', 'wing', 'bcel', 'progresifpay', 'qpay', 'kaspi', 'mpay', 'tbcpay', 'alipay'].includes(paymentMethod) ? 'numeric' : 'text'}
+                    type="text"
+                    inputMode={['bkash', 'nagad', 'easypaisa', 'esewa', 'frimi', 'gcash', 'gopay', 'momo', 'promptpay', 'grabpay', 'paynow', 'paypay', 'kakaopay', 'payme', 'linepay', 'wavepay', 'wing', 'bcel', 'progresifpay', 'qpay', 'kaspi', 'mpay', 'tbcpay', 'alipay'].includes(paymentMethod) ? 'numeric' : 'text'}
                     placeholder={getAccountFieldPlaceholder()}
                     value={accountNumber}
                     onChange={(e) => setAccountNumber(e.target.value)}
                     className="h-12 bg-white border-2 border-gray-200 hover:border-brand-400 focus:border-brand-500 focus:ring-brand-500/20 text-gray-900 font-medium placeholder:text-slate-500"
                   />
                   <p className="text-xs text-gray-500">
-                    {paymentMethod === 'epay'
-                      ? 'Must be a valid email address.'
-                      : paymentMethod === 'upi'
-                        ? 'Must be your exact UPI ID.'
-                        : paymentMethod === 'alipay'
-                          ? 'Use your Alipay email or numeric account.'
-                          : `Use your exact ${countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || 'wallet'} number.`}
+                    {paymentMethod === 'crypto_auto'
+                      ? 'Paste your USDT wallet address (TRC20 / BEP20). Funds are auto-credited on-chain.'
+                      : paymentMethod === 'binance'
+                        ? 'Your Binance Pay ID (numeric) or registered email. Auto-credited instantly.'
+                        : paymentMethod === 'upi'
+                          ? 'Must be your exact UPI ID.'
+                          : paymentMethod === 'alipay'
+                            ? 'Use your Alipay email or numeric account.'
+                            : `Use your exact ${countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || 'wallet'} number.`}
                   </p>
                 </div>
 
