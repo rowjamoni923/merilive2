@@ -122,6 +122,7 @@ const Recharge = () => {
   
   const [selectedTab, setSelectedTab] = useState<TabType>(campaignTab && ['google', 'recommend'].includes(campaignTab) ? campaignTab : "google");
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [showSwiftPayModal, setShowSwiftPayModal] = useState(false);
   const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(null);
   // Use global shared balance hook for real-time sync across all pages
   const { balance: globalBalance, refetch: refetchGlobalBalance } = useUserBalance();
