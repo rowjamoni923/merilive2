@@ -173,53 +173,75 @@ export function BetHistoryPanel({ isOpen, onClose, gameId }: BetHistoryPanelProp
             ) : (
               transactions.map((tx) => {
                 const isWin = tx.transaction_type === 'win' || tx.transaction_type === 'jackpot';
-                const isBet = tx.transaction_type === 'bet';
-                
+                const before = tx.balance_before;
+                const after = tx.balance_after;
+                const delta = (typeof before === 'number' && typeof after === 'number')
+                  ? after - before
+                  : (isWin ? (tx.amount || 0) : -(tx.amount || 0));
+                const multiplier = tx.result_data?.multiplier ?? null;
+                const txShort = tx.id.slice(0, 8);
+
                 return (
                   <motion.div
                     key={tx.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className={`flex items-center justify-between p-2.5 rounded-lg ${
-                      isWin 
-                        ? 'bg-green-500/10 border border-green-500/20' 
+                    className={`p-2.5 rounded-lg ${
+                      isWin
+                        ? 'bg-green-500/10 border border-green-500/20'
                         : 'bg-red-500/10 border border-red-500/20'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        isWin ? 'bg-green-500/20' : 'bg-red-500/20'
-                      }`}>
-                        {isWin ? (
-                          <TrendingUp className="w-4 h-4 text-green-400" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-red-400" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-white text-xs font-medium">
-                          {tx.game_name || formatGameName(tx.game_id)}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          isWin ? 'bg-green-500/20' : 'bg-red-500/20'
+                        }`}>
+                          {isWin ? (
+                            <TrendingUp className="w-4 h-4 text-green-400" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 text-red-400" />
+                          )}
                         </div>
-                        <div className="text-white/50 text-[9px]">
-                          {format(new Date(tx.created_at), 'MMM d, HH:mm')}
+                        <div>
+                          <div className="text-white text-xs font-medium">
+                            {formatGameName(tx.game_type || tx.game_id || 'game')}
+                            <span className="ml-1.5 text-white/30 text-[9px] font-mono">#{txShort}</span>
+                          </div>
+                          <div className="text-white/50 text-[9px]">
+                            {format(new Date(tx.created_at), 'MMM d, HH:mm:ss')}
+                            {multiplier ? <span className="ml-1.5 text-amber-400/70">×{multiplier}</span> : null}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-1 justify-end">
+                          <Coins className="w-3 h-3 text-amber-400" />
+                          <span className={`text-xs font-bold ${
+                            delta >= 0 ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            {delta >= 0 ? '+' : ''}{delta.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="text-white/40 text-[9px] uppercase tracking-wide">
+                          {tx.transaction_type}
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1">
-                        <Coins className="w-3 h-3 text-amber-400" />
-                        <span className={`text-xs font-bold ${
-                          isWin ? 'text-green-400' : 'text-red-400'
-                        }`}>
-                          {isWin ? '+' : '-'}{tx.amount?.toLocaleString()}
+
+                    {/* Audit chain: balance_before → balance_after */}
+                    {(typeof before === 'number' && typeof after === 'number') && (
+                      <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono">
+                        <span className="text-white/40">Balance:</span>
+                        <span className="text-white/70">
+                          {before.toLocaleString()}
+                          <span className="mx-1 text-white/30">→</span>
+                          <span className={delta >= 0 ? 'text-green-400' : 'text-red-400'}>
+                            {after.toLocaleString()}
+                          </span>
                         </span>
                       </div>
-                      {tx.multiplier && (
-                        <div className="text-white/40 text-[9px]">
-                          x{tx.multiplier}
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </motion.div>
                 );
               })
