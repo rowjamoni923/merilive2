@@ -204,6 +204,7 @@ const Chat = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingChannelRef = useRef<any>(null);
   const directMessageChannelRef = useRef<any>(null);
+  const recentGiftAnimationsRef = useRef<Map<string, number>>(new Map());
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
