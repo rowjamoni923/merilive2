@@ -251,15 +251,21 @@ export default function GamesHub() {
                         "group active:scale-[0.95] transition-transform"
                       )}
                     >
-                      {game.logo_url ? (
-                        <img
-                          src={getProxiedUrl(game.logo_url)}
-                          alt={game.game_name}
-                          className="w-10 h-10 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <span className="text-2xl">{game.game_emoji}</span>
-                      )}
+                      {(() => {
+                        const logo = resolveGameLogo(game);
+                        return logo ? (
+                          <img
+                            src={logo}
+                            alt={game.game_name}
+                            loading="lazy"
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-lg object-contain"
+                          />
+                        ) : (
+                          <span className="text-2xl">{game.game_emoji}</span>
+                        );
+                      })()}
                       <p className="text-white text-xs font-medium text-center truncate w-full">
                         {game.game_name}
                       </p>
