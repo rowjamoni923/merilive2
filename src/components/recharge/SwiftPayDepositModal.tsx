@@ -21,12 +21,16 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   packages: PkgLite[];
   initialPackageId?: string | null;
-  /** When "helper", skips package picker and tops up a helper's trader wallet. */
+  /** "user" = credit user diamonds (package OR custom); "helper" = credit helper trader wallet */
   mode?: "user" | "helper";
   helperId?: string | null;
   helperCustomCoins?: number | null;
   helperCustomPriceUsd?: number | null;
-  /** Called after successful credit so parent can refresh wallet display. */
+  /** For user-mode custom amount (e.g. helper application fee). Bypasses package picker. */
+  userCustomCoins?: number | null;
+  userCustomPriceUsd?: number | null;
+  userCustomLabel?: string | null;
+  /** Called after successful credit so parent can refresh or proceed. */
   onCredited?: (coins: number) => void;
 }
 
