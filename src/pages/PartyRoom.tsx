@@ -1290,6 +1290,7 @@ const PartyRoom = () => {
             entranceUrl: data.entranceAnimationUrl || undefined,
             entryNameBarUrl: data.entryNameBarUrl || undefined,
             vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
+            soundUrl: data.entranceSoundUrl || undefined,
           });
         }
       })
