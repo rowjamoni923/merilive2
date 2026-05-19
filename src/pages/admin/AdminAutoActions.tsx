@@ -139,7 +139,7 @@ export default function AdminAutoActions() {
       <AdminPageHeader
         icon={History}
         title="Auto Actions Log"
-        description="Every automatic financial action — recharge, withdrawal, commission, payroll. Verify and reverse with full audit."
+        subtitle="Every automatic financial action — recharge, withdrawal, commission, payroll. Verify and reverse with full audit."
       />
 
       <Card>
