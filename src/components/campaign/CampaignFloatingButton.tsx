@@ -4,7 +4,7 @@
  * Payment methods shown inline (no navigation to /recharge).
  */
 import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Wallet, Globe, Copy, Check, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +13,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { PLAY_STORE_PRODUCTS } from '@/sdk/PlayStoreBillingSDK';
 import { useAppState } from '@/hooks/useAppState';
+
+interface AutoGateway {
+  id: string;
+  name: string;
+  gateway_type: string;
+  logo_url: string | null;
+}
 
 interface Campaign {
   id: string;
