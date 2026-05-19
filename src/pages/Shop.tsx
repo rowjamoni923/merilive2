@@ -36,7 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import Premium3DFrame from "@/components/common/Premium3DFrame";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { recordClientError } from "@/utils/clientErrorLog";
