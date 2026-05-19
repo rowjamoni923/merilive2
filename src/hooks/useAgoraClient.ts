@@ -16,7 +16,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
-import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
+import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
@@ -240,6 +240,11 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       shouldUseNativeLiveKit({ feature: 'live-broadcast' })
     ) {
       try {
+        await whenNativeLiveKitKillSwitchReady();
+        if (!shouldUseNativeLiveKit({ feature: 'live-broadcast' })) {
+          throw new Error('native_livekit_disabled_after_settings_sync');
+        }
+
         const roomType = 'host_stream';
         warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
         const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
