@@ -399,7 +399,7 @@ export default function AdminBanners() {
         ))}
 
         {banners.length === 0 && (
-          <div className="text-center py-12 text-slate-400 bg-white rounded-xl border border-slate-200 shadow-lg">
+          <div className="text-center py-12 text-slate-600 bg-white rounded-xl border border-slate-200 shadow-lg">
             <Image className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p>No banners found</p>
             <Button onClick={() => openEditor(null)} className="mt-4 bg-gradient-to-r from-pink-500 to-purple-600">
