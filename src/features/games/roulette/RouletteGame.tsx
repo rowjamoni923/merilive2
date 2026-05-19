@@ -377,12 +377,8 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
       return;
     }
 
-    if (diamondBalance < selectedChip) {
-      toast.error("Not enough diamonds!");
-      return;
-    }
-
-    // Atomically deduct diamonds first
+    // Server is the source of truth — do NOT pre-block with stale cached balance.
+    // Atomically deduct diamonds; server validates amount and balance under row lock.
     const { data: deductResult, error: deductError } = await supabase.rpc('deduct_coins_atomic', {
       p_user_id: userId,
       p_amount: selectedChip
@@ -396,7 +392,13 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
 
     const result = deductResult as any;
     if (!result.success) {
-      toast.error(result.error || "Not enough diamonds!");
+      const serverBal = typeof result.balance === 'number' ? result.balance : undefined;
+      if (serverBal !== undefined) updateCachedBalance(serverBal);
+      const msg = result.error === 'Insufficient balance' && serverBal !== undefined
+        ? `Not enough diamonds (you have ${serverBal.toLocaleString()})`
+        : (result.error || "Failed to place bet");
+      toast.error(msg);
+      refetchBalance();
       return;
     }
 

@@ -143,16 +143,15 @@ export const TeenPattiGame = () => {
       return;
     }
 
-    if ((profile?.coins || 0) < selectedChip) {
-      toast.error("Not enough diamonds!");
-      return;
-    }
-
-    // Deduct from balance using service
+    // Server is source of truth — no client-side stale-balance pre-check.
     const betResult = await placeBetService(userId, "teen-patti", "Teen Patti", selectedChip);
-    
+
     if (!betResult.success) {
-      toast.error(betResult.error || "Failed to place bet");
+      const bal = (betResult as any).newBalance;
+      const msg = /insufficient/i.test(betResult.error || '')
+        ? `Not enough diamonds${typeof bal === 'number' ? ` (you have ${bal.toLocaleString()})` : ''}`
+        : (betResult.error || "Failed to place bet");
+      toast.error(msg);
       return;
     }
 

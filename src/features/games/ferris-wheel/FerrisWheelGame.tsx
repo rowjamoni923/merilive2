@@ -93,10 +93,8 @@ export const FerrisWheelGame = () => {
       return;
     }
 
-    if ((profile?.coins || 0) < selectedChip) {
-      toast.error("Not enough diamonds!");
-      return;
-    }
+    // Server validates balance during spinWheel via place_game_bet RPC.
+    // Selecting a slot must not be blocked by stale cached coins.
 
     setSelectedFood(index);
     playBetSound();
