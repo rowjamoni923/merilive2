@@ -1234,6 +1234,21 @@ const Chat = () => {
     }
   }
 
+  function playGiftAnimationFromContent(content: string, senderId?: string | null, playSoundEffect = false) {
+    const signature = getGiftAnimationSignature(content, senderId);
+    const now = Date.now();
+    const lastPlayed = recentGiftAnimationsRef.current.get(signature) || 0;
+    if (now - lastPlayed < 4000) return;
+
+    recentGiftAnimationsRef.current.set(signature, now);
+    if (playSoundEffect) playSoundDebounced('gift');
+
+    const { mediaUrl, emoji } = parseGiftContent(content || '');
+    setAnimatingGiftEmoji(mediaUrl || emoji);
+    setGiftAnimationInstance(prev => prev + 1);
+    setShowGiftAnimation(true);
+  }
+
   function upsertLiveMessage(messageRow: any) {
     const newMessage = castMessage(messageRow);
 
