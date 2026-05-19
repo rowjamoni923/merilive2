@@ -1262,8 +1262,9 @@ const Chat = () => {
     recentGiftAnimationsRef.current.set(signature, now);
     if (playSoundEffect) playSoundDebounced('gift');
 
-    const { mediaUrl, emoji } = parseGiftContent(content || '');
+    const { mediaUrl, emoji, soundUrl } = parseGiftContent(content || '');
     setAnimatingGiftEmoji(mediaUrl || emoji);
+    setAnimatingGiftSound(soundUrl);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
   }
