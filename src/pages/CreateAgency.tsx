@@ -619,7 +619,7 @@ const CreateAgency = () => {
           disabled={isSubmitting || !codeAvailable || !formData.name.trim() || !formData.email.trim() || !formData.whatsapp.trim()}
           className={`w-full h-12 transition-all ${
             isSubmitting || !codeAvailable || !formData.name.trim() || !formData.email.trim() || !formData.whatsapp.trim()
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-gray-200 text-gray-700 cursor-not-allowed"
               : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
           }`}
         >
