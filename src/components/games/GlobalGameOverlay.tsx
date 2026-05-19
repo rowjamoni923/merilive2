@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
+import { GameErrorBoundary } from "@/components/games/GameErrorBoundary";
 
 interface GlobalGameOverlayProps {
   gameId?: string;
