@@ -50,14 +50,12 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   const [reason, setReason] = useState("");
   const [payrollRequested, setPayrollRequested] = useState(false);
   
-  // Payment fields for Level 2-5
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
-  const [transactionId, setTransactionId] = useState("");
-  const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
-  const [uploadingScreenshot, setUploadingScreenshot] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Diamond-per-USD rate (best coin-package rate); used to credit diamonds for paid helper apps
+  const [diamondsPerUsd, setDiamondsPerUsd] = useState<number>(0);
+
+  // Crypto payment modal
+  const [swiftPayOpen, setSwiftPayOpen] = useState(false);
+  const [paidConfirmed, setPaidConfirmed] = useState(false);
 
   // Level 5 ID Verification fields
   const [idCardFront, setIdCardFront] = useState<File | null>(null);
@@ -73,7 +71,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
 
   useEffect(() => {
     loadLevels();
-    loadPaymentMethods();
+    loadDiamondRate();
   }, []);
 
   const loadLevels = async () => {
@@ -95,19 +93,17 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     }
   };
 
-  const loadPaymentMethods = async () => {
-    try {
-      const { data } = await supabase
-        .from('topup_payment_methods')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
-      
-      if (data) {
-        setPaymentMethods(data);
-      }
-    } catch (error) {
-      console.error(error);
+  const loadDiamondRate = async () => {
+    // Best rate from active coin packages: max((coins+bonus)/price)
+    const { data } = await supabase
+      .from('coin_packages')
+      .select('coins_amount, bonus_coins, price_usd')
+      .eq('is_active', true);
+    if (data && data.length) {
+      const best = Math.max(
+        ...data.map(p => ((p.coins_amount ?? 0) + (p.bonus_coins ?? 0)) / Math.max(Number(p.price_usd) || 1, 0.01))
+      );
+      setDiamondsPerUsd(Math.floor(best));
     }
   };
 
