@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { PLAY_STORE_PRODUCTS } from '@/sdk/PlayStoreBillingSDK';
 import { useAppState } from '@/hooks/useAppState';
+import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
 
 interface AutoGateway {
   id: string;
@@ -20,6 +21,13 @@ interface AutoGateway {
   gateway_type: string;
   logo_url: string | null;
 }
+
+const MERICASH_GATEWAY: AutoGateway = {
+  id: 'mericash',
+  name: 'MeriCash',
+  gateway_type: 'mericash',
+  logo_url: null,
+};
 
 interface Campaign {
   id: string;
@@ -100,6 +108,7 @@ function CampaignFloatingButton() {
   const [helperPaymentProof, setHelperPaymentProof] = useState<string | null>(null);
   const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
   const [gateways, setGateways] = useState<AutoGateway[]>([]);
+  const [showSwiftPayModal, setShowSwiftPayModal] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
