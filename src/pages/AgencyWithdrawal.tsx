@@ -1788,6 +1788,11 @@ const AgencyWithdrawal = () => {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
+  // Pkg41+: admin-configured local methods per country (from helper_country_payment_methods).
+  // Map of country_code → Set of payment_method_name (e.g. 'bkash', 'nagad', 'upi').
+  // If a country has any active L5 helper config rows → only those methods are offered.
+  // If empty/missing → fallback to all COUNTRY_CONFIGS local methods.
+  const [helperConfiguredMethods, setHelperConfiguredMethods] = useState<Record<string, Set<string>>>({});
   // Auto Withdrawal Fee (admin-configurable: flat USD + percent of USD) — applies to MeriCash / Binance / USDT / Crypto auto methods
   const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; percent: number; enabled: boolean; methods: string[] }>({
     flat_usd: 2,
@@ -2030,21 +2035,49 @@ const AgencyWithdrawal = () => {
     fetchData();
   }, []);
 
-  // Fetch countries that have active payroll helpers
+  // Fetch countries that have active payroll helpers + their admin-configured payment methods
   useEffect(() => {
     const fetchHelperCountries = async () => {
-      const { data, error } = await supabase
+      // 1) Countries that have an active verified Level-5 payroll helper
+      const { data: helpers, error: hErr } = await supabase
         .from('topup_helpers')
-        .select('country_code')
+        .select('id, country_code')
         .eq('is_verified', true)
         .eq('payroll_enabled', true)
         .eq('is_active', true);
-      
-      if (!error && data) {
-        const countries = [...new Set(data.map(h => h.country_code).filter(Boolean))] as string[];
-        setCountriesWithHelpers(countries);
-        console.log('[Withdrawal] Countries with payroll helpers:', countries);
+
+      if (hErr || !helpers) return;
+
+      const countries = [...new Set(helpers.map(h => h.country_code).filter(Boolean))] as string[];
+      setCountriesWithHelpers(countries);
+
+      const helperIds = helpers.map(h => h.id);
+      if (helperIds.length === 0) {
+        setHelperConfiguredMethods({});
+        return;
       }
+
+      // 2) Admin-configured local methods these helpers actually offer
+      const { data: methods, error: mErr } = await supabase
+        .from('helper_country_payment_methods')
+        .select('country_code, payment_method_name, method_name, is_active, helper_id')
+        .eq('is_active', true)
+        .in('helper_id', helperIds);
+
+      if (mErr || !methods) return;
+
+      const map: Record<string, Set<string>> = {};
+      for (const row of methods) {
+        const cc = (row as any).country_code as string | null;
+        const name = ((row as any).payment_method_name || (row as any).method_name || '')
+          .toString().trim().toLowerCase();
+        if (!cc || !name) continue;
+        if (!map[cc]) map[cc] = new Set<string>();
+        map[cc].add(name);
+      }
+      setHelperConfiguredMethods(map);
+      console.log('[Withdrawal] Helper-configured local methods per country:', 
+        Object.fromEntries(Object.entries(map).map(([k, v]) => [k, [...v]])));
     };
     fetchHelperCountries();
   }, []);
@@ -2074,9 +2107,16 @@ const AgencyWithdrawal = () => {
 
     // STRICT: source local methods from THIS country only — never from the BD display-fallback.
     const strictCountryCfg = COUNTRY_CONFIGS[selectedCountry];
-    const localMethods = (strictCountryCfg?.paymentMethods ?? []).filter(
+    let localMethods = (strictCountryCfg?.paymentMethods ?? []).filter(
       m => m.value !== 'epay' && m.value !== 'crypto_auto' && m.value !== 'binance'
     );
+
+    // Admin-driven gate: if any active L5 helper in this country has configured methods,
+    // only those methods are offered. Empty/missing → fall back to all country local methods.
+    const configured = helperConfiguredMethods[selectedCountry];
+    if (configured && configured.size > 0) {
+      localMethods = localMethods.filter(m => configured.has(m.value.toLowerCase()));
+    }
 
     if (hasLocalPayrollHelpers === null) {
       // Helper-availability still loading: show local only (don't promote auto prematurely)
@@ -2085,7 +2125,9 @@ const AgencyWithdrawal = () => {
 
     if (hasLocalPayrollHelpers) {
       // Has Level-5 helper in this country:
-      //   excluded (BD/IN/PK) → local only; others → local + auto (user choice)
+      //   excluded (BD/IN/PK) → local only; others → local + auto (user choice).
+      //   If admin-configured list filtered everything out, fall back to auto so user isn't stuck.
+      if (localMethods.length === 0) return [...OFFICIAL_AUTO_METHODS];
       return isExcluded ? localMethods : [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
 
@@ -2103,7 +2145,7 @@ const AgencyWithdrawal = () => {
         setPaymentMethod(availableMethods[0].value);
       }
     }
-  }, [selectedCountry, hasLocalPayrollHelpers]);
+  }, [selectedCountry, hasLocalPayrollHelpers, helperConfiguredMethods]);
 
   const fetchData = async () => {
     try {
