@@ -592,11 +592,23 @@ const AgencyDashboard = () => {
 
     fetchData();
 
-    // Debounced refetch to prevent multiple rapid calls
-    let refetchTimer: ReturnType<typeof setTimeout> | null = null;
-    const debouncedRefetch = () => {
-      if (refetchTimer) clearTimeout(refetchTimer);
-      refetchTimer = setTimeout(() => fetchData(), 500);
+    const upsertWithdrawal = (record: WithdrawalHistory) => {
+      setWithdrawals((current) => {
+        const exists = current.some((item) => item.id === record.id);
+        const next = exists
+          ? current.map((item) => item.id === record.id ? { ...item, ...record } : item)
+          : [record, ...current];
+
+        const limited = next
+          .sort((a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime())
+          .slice(0, 10);
+
+        setTotalWithdrawn(limited
+          .filter(w => ['pending', 'processing', 'approved', 'completed'].includes(w.status))
+          .reduce((sum, w) => sum + (Number(w.amount) || 0), 0));
+
+        return limited;
+      });
     };
 
     // Real-time subscriptions for instant updates
@@ -605,40 +617,24 @@ const AgencyDashboard = () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'agencies' },
-        async (payload) => {
-          if (payload.new && (payload.new as any).id === agency?.id) {
+        (payload) => {
+          if (payload.new && (payload.new as any).id === agencyIdRef.current) {
             setAgency(payload.new as Agency);
           }
         }
       )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_hosts' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_performance' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_diamond_transactions' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_withdrawals' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_level_tiers' }, debouncedRefetch)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, debouncedRefetch)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_helpers' },
+        { event: '*', schema: 'public', table: 'agency_withdrawals' },
         (payload) => {
-          const newData = payload.new as any;
-          if (newData?.is_verified && newData?.is_active) {
-            setHasHelperAccess(true);
-            if (newData.trader_level === 5 && newData.payroll_enabled) {
-              setIsLevel5Helper(true);
-            }
-          } else if (newData && !newData.is_active) {
-            setHasHelperAccess(false);
-            setIsLevel5Helper(false);
-          }
-          debouncedRefetch();
+          const next = payload.new as WithdrawalHistory & { agency_id?: string };
+          if (next?.agency_id === agencyIdRef.current) upsertWithdrawal(next);
         }
       )
       .subscribe();
 
     return () => {
       cancelled = true;
-      if (refetchTimer) clearTimeout(refetchTimer);
       supabase.removeChannel(channel);
     };
   }, [navigate]);
