@@ -17,6 +17,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 // Lazy load SVGA player
 const SVGAPreviewWithMuteToggle = lazy(() => import("@/components/admin/SVGAPreviewWithMuteToggle"));
+const UniversalAnimationPlayer = lazy(() => import("@/components/common/UniversalAnimationPlayer"));
 
 interface EntryNameBar {
   id: string;
@@ -433,14 +434,35 @@ const AdminEntryNameBars = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* SVGA Preview */}
+              {/* Preview: preview_url image first → SVGA player → Universal fallback for lottie/mp4/gif */}
               <div className="bg-black/40 rounded-lg p-2 flex justify-center">
                 <Suspense fallback={<div className="w-full h-16 bg-purple-600/20 animate-pulse rounded" />}>
-                  <SVGAPreviewWithMuteToggle
-                    src={nameBar.animation_url}
-                    className="w-full h-16"
-                    containerClassName="w-full h-16"
-                  />
+                  {nameBar.preview_url ? (
+                    <img
+                      src={nameBar.preview_url}
+                      alt={nameBar.name}
+                      className="w-full h-16 object-contain"
+                      onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}
+                    />
+                  ) : nameBar.animation_url?.toLowerCase().split('?')[0].endsWith('.svga') ? (
+                    <SVGAPreviewWithMuteToggle
+                      src={nameBar.animation_url}
+                      className="w-full h-16"
+                      containerClassName="w-full h-16"
+                    />
+                  ) : nameBar.animation_url ? (
+                    <UniversalAnimationPlayer
+                      src={nameBar.animation_url}
+                      className="w-full h-16 object-contain"
+                      loop
+                      autoPlay
+                      muted
+                    />
+                  ) : (
+                    <div className="w-full h-16 flex items-center justify-center text-purple-300/60">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                  )}
                 </Suspense>
               </div>
 
