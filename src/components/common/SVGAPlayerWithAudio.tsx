@@ -36,6 +36,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   onLoad,
   onError,
   onComplete,
+  onCompleteDebug,
   onAudioExtracted,
   volume = 0.8,
   soundUrl = null,
