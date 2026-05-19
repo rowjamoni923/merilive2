@@ -167,51 +167,80 @@ export default function SwiftPayDepositModal({
     if (!pkg) return;
     setCreating(true);
     try {
-      const requestBody: Record<string, unknown> = { pay_currency: currency };
-      if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
-        requestBody.target = "helper_wallet";
-        requestBody.helper_id = helperId;
-        requestBody.custom_coins = helperCustomCoins;
-        requestBody.custom_price_usd = helperCustomPriceUsd;
-      } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-        requestBody.custom_coins = userCustomCoins;
-        requestBody.custom_price_usd = userCustomPriceUsd;
-      } else {
-        requestBody.package_id = pkg.id;
-      }
+      // Build an ordered list of currencies to try: user pick first, then the
+      // remaining BASE_CRYPTO_OPTIONS as automatic fallbacks. If the gateway
+      // returns "currency not enabled / unsupported", we silently move on to
+      // the next one so the user never sees that raw error.
+      const tryOrder = [currency, ...BASE_CRYPTO_OPTIONS.map((o) => o.value).filter((v) => v !== currency)];
 
-      const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
-        body: requestBody,
-      });
+      let lastErrMsg: string | null = null;
+      let lastErrIsMinimum = false;
 
-      let errMsg: string | null = null;
-      if (error) {
-        try {
-          const ctx: any = (error as any).context;
-          if (ctx && typeof ctx.json === "function") {
-            const parsed = await ctx.json();
-            errMsg = getDepositErrorMessage(parsed, null);
-          }
-        } catch { /* ignore */ }
-        errMsg = errMsg || getDepositErrorMessage(null, error.message);
-      } else if (data?.error || data?.ok === false || data?.fallback) {
-        errMsg = getDepositErrorMessage(data, null);
-      }
+      for (let i = 0; i < tryOrder.length; i++) {
+        const tryCurrency = tryOrder[i];
+        const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
+        if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
+          requestBody.target = "helper_wallet";
+          requestBody.helper_id = helperId;
+          requestBody.custom_coins = helperCustomCoins;
+          requestBody.custom_price_usd = helperCustomPriceUsd;
+        } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+          requestBody.custom_coins = userCustomCoins;
+          requestBody.custom_price_usd = userCustomPriceUsd;
+        } else {
+          requestBody.package_id = pkg.id;
+        }
 
-      if (errMsg) {
-        toast({
-          title: "Could not start deposit",
-          description: errMsg,
-          variant: "destructive",
+        const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
+          body: requestBody,
         });
-        setCreating(false);
-        return;
+
+        // Try to parse a structured error payload from the FunctionsHttpError context.
+        let parsedErrPayload: any = null;
+        if (error) {
+          try {
+            const ctx: any = (error as any).context;
+            if (ctx && typeof ctx.json === "function") parsedErrPayload = await ctx.json();
+          } catch { /* ignore */ }
+        }
+
+        const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
+
+        if (!error && !errPayload) {
+          // SUCCESS — persist chosen currency so the UI reflects what actually worked.
+          if (tryCurrency !== currency) setCurrency(tryCurrency);
+          setDeposit(data);
+          setStep("pay");
+          setCreating(false);
+          return;
+        }
+
+        // Decide whether to auto-fallback to next currency.
+        if (errPayload && isCurrencyDisabledError(errPayload, error?.message)) {
+          // silently try next currency
+          continue;
+        }
+
+        // Minimum-deposit failures are not currency-specific — bail out immediately.
+        if (errPayload?.error === "minimum_deposit_not_met") {
+          lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
+          lastErrIsMinimum = true;
+          break;
+        }
+
+        lastErrMsg = getDepositErrorMessage(errPayload, error?.message);
+        // Non-currency, non-minimum gateway error → stop trying.
+        break;
       }
-      setDeposit(data);
-      setStep("pay");
+
+      toast({
+        title: lastErrIsMinimum ? "Amount too small" : "Could not start deposit",
+        description: lastErrMsg || "All available crypto networks are unavailable right now. Please try again shortly.",
+        variant: "destructive",
+      });
+      setCreating(false);
     } catch (e: any) {
       toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
-    } finally {
       setCreating(false);
     }
   }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd]);
