@@ -1949,6 +1949,48 @@ const HelperDashboard = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Auto Crypto Gateway for Helper Upgrade Application */}
+      {selectedUpgradeLevel && selectedUpgradeLevel.upgrade_cost_usd > 0 && (
+        <SwiftPayDepositModal
+          open={showUpgradeCryptoModal}
+          onOpenChange={setShowUpgradeCryptoModal}
+          packages={[]}
+          userCustomCoins={Math.floor(selectedUpgradeLevel.upgrade_cost_usd * upgradeDiamondsPerUsd)}
+          userCustomPriceUsd={Number(selectedUpgradeLevel.upgrade_cost_usd)}
+          onCredited={async (_coins, topupId) => {
+            try {
+              if (!helperData || !selectedUpgradeLevel) return;
+              const { error } = await supabase
+                .from('helper_upgrade_requests' as any)
+                .insert({
+                  helper_id: helperData.id,
+                  user_id: helperData.user_id,
+                  requested_level: selectedUpgradeLevel.level_number,
+                  amount_usd: selectedUpgradeLevel.upgrade_cost_usd,
+                  payment_method: 'crypto_auto',
+                  payment_proof_url: null,
+                  transaction_id: topupId ?? null,
+                  notes: 'Auto-verified via MeriCash crypto gateway',
+                  status: 'pending',
+                });
+              if (error) throw error;
+              toast({
+                title: "Payment Confirmed! ✅",
+                description: `Your Level ${selectedUpgradeLevel.level_number} application has been auto-submitted.`,
+              });
+              setShowUpgradeCryptoModal(false);
+              setShowUpgradeModal(false);
+              setSelectedUpgradeLevel(null);
+              loadPendingRequests();
+            } catch (error: any) {
+              toast({ title: "Submission Failed", description: error.message, variant: "destructive" });
+            }
+          }}
+        />
+      )}
+
+
+
       {/* Payroll Application Modal */}
       <Dialog open={showPayrollModal} onOpenChange={setShowPayrollModal}>
         <DialogContent className="bg-white border-slate-200 max-w-md">
