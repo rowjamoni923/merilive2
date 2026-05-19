@@ -457,7 +457,7 @@ export function LiveFerrisWheelGame({
                         initial={{ scale: 0 }}
                         animate={{ 
                           scale: 1,
-                          rotate: isSpinning ? -1080 : 0
+                          rotate: -wheelRotation
                         }}
                         transition={{ 
                           scale: { duration: 0.2 },
