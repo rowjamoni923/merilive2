@@ -152,7 +152,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
               disabled={loading || !rateConfigured}
               className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
                 loading || !rateConfigured
-                  ? "bg-amber-50/70 text-slate-500 cursor-not-allowed"
+                  ? "bg-amber-50/70 text-slate-700 cursor-not-allowed"
                   : hasEnoughCoins 
                     ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg shadow-pink-500/30"
                     : "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30"
