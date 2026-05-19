@@ -43,6 +43,11 @@ import { recordClientError } from "@/utils/clientErrorLog";
 // Lazy load SVGAPlayerWithAudio for full-screen entry animation previews with sound
 const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
 
+const getCleanAssetPath = (url?: string | null) => url?.split('?')[0].split('#')[0].toLowerCase() ?? '';
+const isAnimatedAssetUrl = (url?: string | null) => /\.(svga|json)(\?|#|$)/i.test(url ?? '');
+const resolveShopAssetUrl = (item: Pick<ShopItem, 'preview_url' | 'animation_url' | 'animation_file_url'>) =>
+  item.animation_file_url || item.animation_url || item.preview_url || '';
+
 interface ShopItem {
   id: string;
   name: string;
@@ -151,27 +156,28 @@ const ShopItemCard = ({
           }}
         />
 
-        {(item.animation_file_url || item.preview_url) && !imageError ? (
-          // If preview_url exists and is a real image (not SVGA/Lottie), show static preview
-          item.preview_url && !item.preview_url.endsWith('.svga') && !item.preview_url.endsWith('.json') ? (
+        {resolveShopAssetUrl(item) && !imageError ? (
+          isAnimatedAssetUrl(resolveShopAssetUrl(item)) ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <UniversalAnimationPlayer
+                src={resolveShopAssetUrl(item)}
+                className={`w-[85%] h-[85%] [&_canvas]:!w-full [&_canvas]:!h-full ${isFullWidth ? 'scale-110' : ''}`}
+                loop
+                autoPlay
+                muted
+                onError={() => setImageError(true)}
+              />
+            </div>
+          ) : item.preview_url && !isAnimatedAssetUrl(item.preview_url) ? (
             <img
               src={item.preview_url}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
-          ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <UniversalAnimationPlayer
-                src={item.animation_file_url || ''}
-                className={`max-w-[85%] max-h-[85%] ${isFullWidth ? 'scale-110' : ''}`}
-                loop
-                autoPlay
-              />
-            </div>
           ) : (
             <img
-              src={item.animation_file_url || item.preview_url || ''}
+              src={resolveShopAssetUrl(item)}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
