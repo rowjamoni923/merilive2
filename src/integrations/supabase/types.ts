@@ -11348,6 +11348,81 @@ export type Database = {
         }
         Relationships: []
       }
+      swift_pay_topups: {
+        Row: {
+          coins_amount: number
+          created_at: string
+          credited_at: string | null
+          error_message: string | null
+          expires_at: string | null
+          external_user_id: string
+          id: string
+          idempotency_key: string
+          last_polled_at: string | null
+          package_id: string | null
+          paid_at: string | null
+          pay_address: string | null
+          pay_amount: number | null
+          pay_currency: string
+          pay_network: string | null
+          payment_id: string | null
+          poll_attempts: number
+          price_usd: number
+          raw_payload: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coins_amount: number
+          created_at?: string
+          credited_at?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          external_user_id: string
+          id?: string
+          idempotency_key: string
+          last_polled_at?: string | null
+          package_id?: string | null
+          paid_at?: string | null
+          pay_address?: string | null
+          pay_amount?: number | null
+          pay_currency: string
+          pay_network?: string | null
+          payment_id?: string | null
+          poll_attempts?: number
+          price_usd: number
+          raw_payload?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coins_amount?: number
+          created_at?: string
+          credited_at?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          external_user_id?: string
+          id?: string
+          idempotency_key?: string
+          last_polled_at?: string | null
+          package_id?: string | null
+          paid_at?: string | null
+          pay_address?: string | null
+          pay_amount?: number | null
+          pay_currency?: string
+          pay_network?: string | null
+          payment_id?: string | null
+          poll_attempts?: number
+          price_usd?: number
+          raw_payload?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       system_error_logs: {
         Row: {
           browser_info: Json | null
