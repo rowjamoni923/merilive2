@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 interface GiftEmojiAnimationProps {
   emoji: string; // Can be emoji character or URL to SVGA/image
