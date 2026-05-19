@@ -435,7 +435,8 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
 
   useEffect(() => {
     warmAvatarAsset(effectiveSrc);
-  }, [src]);
+  }, [effectiveSrc]);
+
 
   const hasValidFrame = activeFrameUrl && activeFrameUrl.startsWith('http') && !frameError && !brokenFrameUrls.has(activeFrameUrl);
   const frameAutoPlay = true; // Premium frames must animate nonstop everywhere, even if older call sites pass showAnimation={false}.
