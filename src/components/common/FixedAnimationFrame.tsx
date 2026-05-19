@@ -170,6 +170,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             volume={volume}
             onLoad={onLoad}
             onComplete={onComplete}
+            onCompleteDebug={handleDebugComplete}
             onError={onError}
             onAudioExtracted={onAudioExtracted}
             soundUrl={soundUrl}
@@ -186,6 +187,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           onLoad={onLoad}
           onError={onError}
           onComplete={onComplete}
+          onCompleteDebug={handleDebugComplete}
           fallbackEmoji={fallbackEmoji}
         />
       )}
