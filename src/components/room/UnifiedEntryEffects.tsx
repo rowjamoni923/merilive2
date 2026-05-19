@@ -5,8 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AvatarWithFrame from '@/components/common/AvatarWithFrame';
 import { LevelBadge } from '@/components/common/LevelBadge';
 
-// Eagerly import SVGAPlayerWithAudio for instant entry animations
-import SVGAPlayerWithAudio from '@/components/common/SVGAPlayerWithAudio';
+import FixedAnimationFrame from '@/components/common/FixedAnimationFrame';
 
 interface UnifiedEntryEffectsProps {
   // Full Screen Entrance Animation props
