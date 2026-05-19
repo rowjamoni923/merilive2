@@ -2648,10 +2648,10 @@ const Recharge = () => {
                   </button>
                 )}
                 
-                {/* Recommend - ALWAYS show for BD/IN/PK users regardless of helper data */}
-                {/* Force show: true = always visible for testing/supported regions */}
-                {/* Recommend - Only show if there are helper methods for user's country OR show as disabled */}
-                {(
+                {/* Recommend - only visible when a Level-5 payroll helper in
+                    the user's country has actually added a local payment method.
+                    Otherwise hidden entirely. */}
+                {hasLocalRecommendedMethod && (
                   <button
                     onClick={() => setSelectedPaymentMethod('local')}
                     className={cn(
@@ -2679,9 +2679,10 @@ const Recharge = () => {
                           "text-[10px] truncate max-w-[70px] font-medium",
                           selectedPaymentMethod === 'local' ? "text-body" : "text-heading"
                         )}>
-                          {helperPaymentMethods.length > 0 
-                            ? Array.from(new Set(helperPaymentMethods.map(m => m.method_name.toLowerCase()))).slice(0, 2).map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(', ')
-                            : 'Local Pay'}
+                          {Array.from(new Set(helperPaymentMethods.map(m => m.method_name.toLowerCase())))
+                            .slice(0, 2)
+                            .map(m => m.charAt(0).toUpperCase() + m.slice(1))
+                            .join(', ')}
                         </p>
                       </div>
                       {selectedPaymentMethod === 'local' && (
