@@ -240,7 +240,6 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   isHost = false,
   size = 'md',
   showFrame = true,
-  showAnimation = true,
   showGlow = false, // Disabled by default for performance
   isOnline,
   className,
@@ -367,6 +366,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   }, [src]);
 
   const hasValidFrame = activeFrameUrl && activeFrameUrl.startsWith('http') && !frameError && !brokenFrameUrls.has(activeFrameUrl);
+  const frameAutoPlay = true; // Premium frames must animate nonstop everywhere, even if older call sites pass showAnimation={false}.
   const isAnimatedFrame = ['svga', 'lottie', 'gif', 'webp'].includes(activeFrameType);
   const isStaticFrame = activeFrameType === 'static';
 
@@ -413,7 +413,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
               type={activeFrameType as any}
               className="w-full h-full"
               loop={true}
-              autoPlay={showAnimation}
+              autoPlay={frameAutoPlay}
               onError={handleFrameError}
             />
           </Suspense>

@@ -31,7 +31,6 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   const playerRef = useRef<any>(null);
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
-  const animationStartedRef = useRef(false);
   
   const [ready, setReady] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -51,9 +50,14 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
     onComplete?.();
   }, [src, onComplete]);
 
+  const resumeLoopingAnimation = useCallback(() => {
+    if (!loop || !autoPlay || !mountedRef.current || !playerRef.current) return;
+    try {
+      playerRef.current.startAnimation();
+    } catch (e) {}
+  }, [loop, autoPlay]);
+
   useEffect(() => {
-    if (animationStartedRef.current) return;
-    animationStartedRef.current = true;
     mountedRef.current = true;
     completedRef.current = false;
     
@@ -70,7 +74,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         playerRef.current = player;
         
         player.loops = loop ? 0 : 1;
-        player.clearsAfterStop = true;
+        player.clearsAfterStop = !loop;
         
         if (muted) {
           player.isMuted = true;
@@ -113,6 +117,10 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
               }
             }, exactDuration + safetyBuffer);
           }
+        } else {
+          player.onFinished(() => {
+            requestAnimationFrame(resumeLoopingAnimation);
+          });
         }
         
       } catch (err) {
@@ -126,8 +134,14 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
 
     loadAndPlay();
 
+    const handleResume = () => resumeLoopingAnimation();
+    document.addEventListener('visibilitychange', handleResume);
+    window.addEventListener('focus', handleResume);
+
     return () => {
       mountedRef.current = false;
+      document.removeEventListener('visibilitychange', handleResume);
+      window.removeEventListener('focus', handleResume);
       if (playerRef.current) {
         try {
           playerRef.current.stopAnimation();
@@ -136,7 +150,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         playerRef.current = null;
       }
     };
-  }, [src]);
+  }, [src, loop, autoPlay, muted, handleComplete, resumeLoopingAnimation, onLoad, onError]);
 
   if (hasError) {
     return (
