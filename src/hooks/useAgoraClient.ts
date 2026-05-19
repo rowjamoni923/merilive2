@@ -456,6 +456,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
               const lastConfig = lastConfigRef.current;
               if (!lastConfig || lastConfig.role !== 'audience' || isJoiningRef.current || isLeavingRef.current) return;
               console.warn('[LiveKitClient] Audience reconnect stalled, forcing fresh room join');
+              lastConfigRef.current = null;
               room.disconnect(true);
               setRemoteUsers(new Map());
               setIsJoined(false);
@@ -476,8 +477,9 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
           clearViewerHardReconnectTimer();
           const lastConfig = lastConfigRef.current;
           if (lastConfig && !isLeavingRef.current && !isJoiningRef.current) {
+            lastConfigRef.current = null;
             setTimeout(() => {
-              if (!lastConfigRef.current || isLeavingRef.current || isJoiningRef.current) return;
+              if (isLeavingRef.current || isJoiningRef.current) return;
               joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
             }, 300);
           }
