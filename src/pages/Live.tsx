@@ -148,13 +148,8 @@ const Live = () => {
       )
       .subscribe();
 
-    // Polling fallback (10s) - realtime handles instant updates
-    const pollInterval = setInterval(() => {
-      fetchLiveStreams();
-    }, 10000);
-
+    // Zero-refresh: realtime channel is the single source of truth, no polling
     return () => {
-      clearInterval(pollInterval);
       supabase.removeChannel(channel);
       cleanupAllPreloaded(); // Disconnect preloaded rooms when leaving Live page
     };

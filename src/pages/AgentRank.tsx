@@ -164,8 +164,8 @@ const AgentRank = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gift_transactions' }, () => fetchRankings())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ranking_rewards' }, () => fetchRewards())
       .subscribe();
-    const interval = setInterval(fetchRankings, 45000);
-    return () => { supabase.removeChannel(channel); clearInterval(interval); };
+    // Zero-refresh: realtime channel only, no polling
+    return () => { supabase.removeChannel(channel); };
   }, [fetchRankings, fetchRewards]);
 
   useEffect(() => {

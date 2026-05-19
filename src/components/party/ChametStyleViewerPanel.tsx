@@ -146,15 +146,9 @@ export const ChametStyleViewerPanel = ({
         console.log('[ChametStyleViewerPanel] Subscription status:', status);
       });
 
-    // NATIVE APP FALLBACK: Polling every 3 seconds for when realtime fails
-    const pollInterval = setInterval(() => {
-      console.log('[ChametStyleViewerPanel] 🔄 Polling viewers (native fallback)');
-      fetchPartyViewers();
-    }, 3000);
-
+    // Zero-refresh: realtime channel only; removed 3s polling to stop UI flicker
     return () => {
       isMountedRef.current = false;
-      clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
   }, [isOpen, roomId, fetchPartyViewers]);
