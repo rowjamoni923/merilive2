@@ -676,6 +676,9 @@ const Chat = () => {
     const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
     const giftMediaUrl = animationUrl || iconUrl;
 
+    const giftAnimationSignature = getGiftAnimationSignature(optimisticGiftMessage, currentUserId);
+    recentGiftAnimationsRef.current.set(giftAnimationSignature, Date.now());
+
     setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
     setGiftAnimationInstance(prev => prev + 1);
     setShowGiftAnimation(true);
@@ -684,9 +687,6 @@ const Chat = () => {
     
     const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
     void ensureHostGiftPercentLoaded();
-    const optimisticGiftMessage = giftMediaUrl
-      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`
-      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`;
     const optimisticGiftRow: Message = {
       id: `gift_live_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       content: optimisticGiftMessage,
