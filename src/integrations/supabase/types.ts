@@ -2613,6 +2613,36 @@ export type Database = {
         }
         Relationships: []
       }
+      bucket_visibility_alerts: {
+        Row: {
+          actual_public: boolean
+          bucket_id: string
+          detected_at: string
+          expected_public: boolean
+          id: string
+          notified: boolean
+          resolved_at: string | null
+        }
+        Insert: {
+          actual_public: boolean
+          bucket_id: string
+          detected_at?: string
+          expected_public: boolean
+          id?: string
+          notified?: boolean
+          resolved_at?: string | null
+        }
+        Update: {
+          actual_public?: boolean
+          bucket_id?: string
+          detected_at?: string
+          expected_public?: boolean
+          id?: string
+          notified?: boolean
+          resolved_at?: string | null
+        }
+        Relationships: []
+      }
       call_delivery_log: {
         Row: {
           attempt_number: number
@@ -10817,6 +10847,30 @@ export type Database = {
         }
         Relationships: []
       }
+      storage_bucket_visibility_baseline: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          expected_public: boolean
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          expected_public: boolean
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          expected_public?: boolean
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stream_chat: {
         Row: {
           created_at: string
@@ -15874,6 +15928,13 @@ export type Database = {
           p_ip_address?: string
         }
         Returns: Json
+      }
+      check_bucket_visibility_drift: {
+        Args: never
+        Returns: {
+          drift_count: number
+          resolved_count: number
+        }[]
       }
       check_group_membership: {
         Args: { p_group_id: string; p_user_id: string }
