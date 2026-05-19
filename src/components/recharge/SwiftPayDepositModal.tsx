@@ -141,6 +141,11 @@ export default function SwiftPayDepositModal({
     }
   }, [open, initialPackageId, packages, mode, helperPkg, userCustomPkg]);
 
+  // Auto-select recommended crypto whenever the selected package changes
+  useEffect(() => {
+    if (pkg) setCurrency(getRecommendedCurrency(pkg.price_usd));
+  }, [pkg?.id]);
+
   const createDeposit = useCallback(async () => {
     if (!pkg) return;
     setCreating(true);
