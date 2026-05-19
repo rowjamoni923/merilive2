@@ -234,6 +234,23 @@ const LiveStream = () => {
   
   // Real chat messages from database - UNIFIED type from shared/room
   const [messages, setMessages] = useState<RoomChatMessage[]>([]);
+
+  // 🛡️ Live chat dedup guard: covers every code path (initial fetch,
+  // realtime INSERT, optimistic send, gift broadcast, welcome msg, join
+  // notifications, viewer enter). Same id never renders twice.
+  useEffect(() => {
+    setMessages(prev => {
+      const seen = new Set<string>();
+      const out: RoomChatMessage[] = [];
+      for (const m of prev) {
+        const key = String(m.id);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(m);
+      }
+      return out.length === prev.length ? prev : out;
+    });
+  }, [messages]);
   
   // Viewer list panel
   const [showViewerList, setShowViewerList] = useState(false);

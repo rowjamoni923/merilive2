@@ -165,6 +165,23 @@ const PartyRoom = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [seatRequests, setSeatRequests] = useState<SeatRequest[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+  // 🛡️ Party room chat dedup guard: same id never renders twice across
+  // realtime INSERT, broadcast event, local optimistic send, seat-request
+  // and gift code paths.
+  useEffect(() => {
+    setMessages(prev => {
+      const seen = new Set<string>();
+      const out: ChatMessage[] = [];
+      for (const m of prev) {
+        const key = String(m.id);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(m);
+      }
+      return out.length === prev.length ? prev : out;
+    });
+  }, [messages]);
   const [message, setMessage] = useState("");
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);

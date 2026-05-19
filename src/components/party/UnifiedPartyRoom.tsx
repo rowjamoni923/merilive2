@@ -595,6 +595,22 @@ export function UnifiedPartyRoom({
   // Unified chat format state - SAME as Live Stream (ONE LINK)
   // Only premiumMessages used - no separate joinNotifications (prevents duplicates)
   const [premiumMessages, setPremiumMessages] = useState<RoomChatMessage[]>([]);
+
+  // 🛡️ Party premium chat dedup guard: enforces id uniqueness regardless
+  // of which append path ran (realtime, broadcast, optimistic, welcome).
+  useEffect(() => {
+    setPremiumMessages(prev => {
+      const seen = new Set<string>();
+      const out: RoomChatMessage[] = [];
+      for (const m of prev) {
+        const key = String(m.id);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(m);
+      }
+      return out.length === prev.length ? prev : out;
+    });
+  }, [premiumMessages]);
   const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null } | null>(null);
   
   // Join notifications for stacking display
