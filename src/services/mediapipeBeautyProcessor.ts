@@ -671,11 +671,19 @@ export async function startBeautyProcessing(
     outputStream.addTrack(track);
   });
 
-  _activeInputStream = inputStream;
-  _activeOutputStream = outputStream;
+    _activeInputStream = inputStream;
+    _activeOutputStream = outputStream;
+    _activeSourceTrackId = inputStream.getVideoTracks()[0]?.id ?? null;
 
-  console.log('[MediaPipeBeauty] ✅ Beauty processing started');
-  return outputStream;
+    console.log('[MediaPipeBeauty] ✅ Beauty processing started');
+    return outputStream;
+  })();
+
+  try {
+    return await _startInFlight;
+  } finally {
+    _startInFlight = null;
+  }
 }
 
 
