@@ -155,7 +155,7 @@ const Live = () => {
               viewer_count: next.viewer_count ?? updated[idx].viewer_count,
               title: next.title ?? updated[idx].title,
               thumbnail_url: next.thumbnail_url ?? updated[idx].thumbnail_url,
-              last_heartbeat: next.last_heartbeat ?? updated[idx].last_heartbeat,
+              ...(next.last_heartbeat ? { last_heartbeat: next.last_heartbeat } : {}),
             } as any;
             return updated;
           });
