@@ -157,6 +157,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             autoPlay={autoPlay}
             onLoad={onLoad}
             onComplete={onComplete}
+            onCompleteDebug={(s) => { completedRef.current = true; onCompleteDebug?.(s); }}
             onError={(err) => {
               setHasError(true);
               onError?.(err);
