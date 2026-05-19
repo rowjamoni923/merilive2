@@ -255,7 +255,13 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     ? 'bg-gradient-to-r from-purple-600/95 via-pink-500/90 to-rose-400/50'
     : 'bg-gradient-to-r from-blue-600/90 via-indigo-500/85 to-purple-400/50';
 
-  return (
+  // CRITICAL: portal to <body> — ancestor transforms (framer-motion / scroll
+  // containers in LiveStream/PartyRoom/ActiveCall) would otherwise pin
+  // position:fixed inside a parent and break true fullscreen.
+  const portalTarget = typeof document !== 'undefined' ? document.body : null;
+  if (!portalTarget) return null;
+
+  return createPortal(
     <div
       className="pointer-events-none"
       style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 100000 }}
