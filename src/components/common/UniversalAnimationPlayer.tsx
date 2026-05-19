@@ -79,6 +79,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   onLoad,
   onError,
   onComplete,
+  onCompleteDebug,
   showControls = false,
   fallbackEmoji = '🎁',
 }) => {
