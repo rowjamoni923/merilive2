@@ -36,6 +36,16 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   const [ready, setReady] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  const waitForRenderableSize = useCallback(async (isCurrentRun: () => boolean) => {
+    for (let i = 0; i < 30; i++) {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!isCurrentRun()) return false;
+      if (rect && rect.width > 1 && rect.height > 1) return true;
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    }
+    return Boolean(containerRef.current);
+  }, []);
+
   const handleComplete = useCallback(() => {
     if (!mountedRef.current || completedRef.current) return;
     completedRef.current = true;
@@ -66,10 +76,12 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
     const loadAndPlay = async () => {
       try {
         const SVGA = await getSVGAModule();
+        await waitForRenderableSize(isCurrentRun);
         if (!isCurrentRun() || !containerRef.current) return;
 
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
+        player.setContentMode?.('AspectFit');
         
         player.loops = loop ? 0 : 1;
         player.clearsAfterStop = true;
@@ -139,7 +151,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         playerRef.current = null;
       }
     };
-  }, [src]);
+  }, [src, loop, autoPlay, muted, onLoad, onError, handleComplete, waitForRenderableSize]);
 
   if (hasError) {
     return (
@@ -154,7 +166,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         if (typeof ref === 'function') ref(node);
         else if (ref) ref.current = node;
       }}
-      className={cn("relative overflow-hidden", className)}
+      className={cn("relative overflow-hidden min-h-px min-w-px", className)}
       style={{ 
         opacity: ready ? 1 : 0,
         transition: 'opacity 0.1s ease-out',
