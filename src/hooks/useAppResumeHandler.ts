@@ -9,7 +9,6 @@
  */
 
 import { useEffect, useRef, useCallback } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { forceReconnectChannel, getConnectionStatus } from '@/hooks/useUniversalRealtime';
 import { QueryClient } from '@tanstack/react-query';
@@ -69,8 +68,6 @@ const CRITICAL_QUERY_KEYS = new Set([
  */
 export const useAppResumeHandler = (userId: string | null, queryClient?: QueryClient) => {
   const lastResumeTime = useRef(0);
-  const lastHiddenAt = useRef<number | null>(null);
-  const isNative = Capacitor.isNativePlatform();
 
   // Store queryClient reference for global access
   useEffect(() => {
@@ -84,7 +81,7 @@ export const useAppResumeHandler = (userId: string | null, queryClient?: QueryCl
 
     // Debounce - native can emit multiple resume-like events in a short burst
     const now = Date.now();
-    if (now - lastResumeTime.current < 10000) return;
+    if (now - lastResumeTime.current < 60000) return;
     lastResumeTime.current = now;
 
     console.log('[AppResume] 🔄 App resumed from background');
@@ -149,57 +146,32 @@ export const useAppResumeHandler = (userId: string | null, queryClient?: QueryCl
   useEffect(() => {
     if (!userId || window.location.pathname.startsWith('/admin')) return;
 
-    // === NATIVE: Capacitor appStateChange ===
+    // Native-only resume sync. Web visibility changes are intentionally ignored
+    // so switching tabs or opening overlays never looks like an app reload.
     let removeNativeListener: (() => void) | null = null;
 
-    if (isNative) {
-      import('@capacitor/app').then(({ App }) => {
-        App.addListener('appStateChange', ({ isActive }) => {
-          if (isActive) {
-            handleResume();
-          }
-        }).then(listener => {
-          removeNativeListener = () => listener.remove();
-        });
-
-        // Also listen for 'resume' event (Android specific)
+    import('@capacitor/core')
+      .then(({ Capacitor }) => {
+        if (!Capacitor.isNativePlatform()) return null;
+        return import('@capacitor/app');
+      })
+      .then((mod) => {
+        if (!mod) return;
+        const { App } = mod;
         App.addListener('resume', () => {
           handleResume();
         }).then(listener => {
-          const prev = removeNativeListener;
-          removeNativeListener = () => {
-            prev?.();
-            listener.remove();
-          };
+          removeNativeListener = () => listener.remove();
         });
-      }).catch(() => {
+      })
+      .catch(() => {
         console.warn('[AppResume] Capacitor App plugin not available');
       });
-    }
-
-    // === WEB: visibility change only (focus removed to avoid refetch storms) ===
-    const handleVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        lastHiddenAt.current = Date.now();
-        return;
-      }
-
-      if (document.visibilityState === 'visible') {
-        const hiddenForMs = lastHiddenAt.current ? Date.now() - lastHiddenAt.current : 0;
-        // Only treat as resume if app stayed in background for at least 8 seconds
-        if (hiddenForMs >= 8000) {
-          handleResume();
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
       if (removeNativeListener) removeNativeListener();
     };
-  }, [userId, isNative, handleResume]);
+  }, [userId, handleResume]);
 };
 
 /**

@@ -6,16 +6,12 @@
  * chunk hashes will return 404 ("Failed to fetch dynamically imported module").
  * 
  * Strategy:
- *  1. On first failure for a given module → reload the page once (gets fresh
- *     index.html with new chunk hashes). Tracked in sessionStorage so the
- *     reload only happens ONCE per module per session — no infinite loops.
- *  2. On second failure for the same module → throw the error so the
- *     ErrorBoundary can show its fallback UI.
- * 
- * This works on ALL routes including /admin — admin pages have no unsaved
- * client state worth preserving across a chunk-404 (the page literally hasn't
- * loaded yet), and stranding the admin on an error screen is far worse than
- * a clean reload.
+ *  1. Retry the same lazy import inline with short backoff for transient
+ *     network / dev-server hiccups.
+ *  2. If it still fails, throw the error to the route ErrorBoundary.
+ *
+ * IMPORTANT: no hard page refresh here. The native app keeps data fresh through
+ * realtime/query invalidation during normal use.
  */
 const isChunkLoadError = (error: any) =>
   error?.message?.includes('Failed to fetch dynamically imported module') ||
@@ -49,17 +45,7 @@ export function lazyRetry<T extends React.ComponentType<any>>(
       }
     }
 
-    // Inline retries exhausted — likely a stale deploy. Reload once per module.
-    const moduleKey = 'chunk-retry-' + importFn.toString().slice(0, 80);
-    const hasRetried = sessionStorage.getItem(moduleKey);
-    if (!hasRetried) {
-      sessionStorage.setItem(moduleKey, '1');
-      console.warn('[LazyRetry] Reloading to fetch fresh chunks...', lastError);
-      window.location.reload();
-      return new Promise<{ default: T }>(() => {});
-    }
-    sessionStorage.removeItem(moduleKey);
-    console.error('[LazyRetry] Chunk still failing after reload:', lastError);
+    console.error('[LazyRetry] Chunk failed after inline retries:', lastError);
     throw lastError;
   };
 }

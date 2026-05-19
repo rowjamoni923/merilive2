@@ -8,8 +8,8 @@
  *   - Realtime channel name being subscribed to
  *   - Last 8 single-device events (register / check / channel / forceLogout)
  *
- * Hidden by default. Enable with:
- *   localStorage.setItem('meri_session_debug', '1'); location.reload();
+ * Hidden by default. Enable without reloading:
+ *   __sessionDebug.enable()
  *
  * Or from devtools:
  *   __sessionDebug.enable()

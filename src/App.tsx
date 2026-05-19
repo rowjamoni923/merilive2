@@ -1,9 +1,7 @@
 import { useEffect, useState, lazy, Suspense, memo } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -15,10 +13,10 @@ import { setCachedUser, invalidateCachedUser } from '@/utils/cachedAuth';
 import { secureStorage } from '@/utils/encryptedStorage';
 import { saveSessionToNative, clearNativeSession, getSessionFromNative } from '@/utils/nativeSessionStorage';
 import { prewarmSVGA } from '@/utils/svgaPrewarm';
-import { getAdaptiveNetworkProfile } from '@/utils/connectionProfile';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
 import { clearBalanceCache } from '@/hooks/useUserBalance';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
+import { queryClient, queryPersister } from '@/lib/queryClient';
 
 
 // =============================================
@@ -374,50 +372,6 @@ const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScre
 import ScrollToTop from "@/components/common/ScrollToTop";
 
 
-
-// =============================================
-// OPTIMIZED QUERY CLIENT - Minimal config for speed
-// =============================================
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 300, // 5 minutes - ultra-fast section switching, realtime handles live updates
-      gcTime: 1000 * 60 * 120, // 2 hour cache - never re-fetch old data unnecessarily
-      refetchOnWindowFocus: false, // Disabled - app resume handler handles this explicitly
-      refetchOnMount: false, // Prevent mount-time refetch storm across sections
-      refetchOnReconnect: false, // Avoid mass refetch when connection flaps; realtime handles updates
-      retry: (failureCount: number) => {
-        const { queryRetryCount } = getAdaptiveNetworkProfile();
-        return failureCount < queryRetryCount;
-      },
-      retryDelay: (attemptIndex: number) => {
-        const { queryRetryBaseDelayMs, queryRetryMaxDelayMs } = getAdaptiveNetworkProfile();
-        return Math.min(queryRetryBaseDelayMs * 2 ** Math.max(0, attemptIndex - 1), queryRetryMaxDelayMs);
-      },
-      placeholderData: (prev: any) => prev, // 🚀 Show previous data while refetching - no loading flickers
-      networkMode: 'offlineFirst', // 🚀 Show cached data immediately, fetch in background
-    },
-  },
-});
-
-// 🚀 INSTANT LOAD: Persist React Query cache to localStorage so on every app
-// launch / reload / route switch, all previously-fetched data appears in 0ms.
-// Realtime + background refetch silently update under the hood.
-const __queryPersister = (() => {
-  try {
-    if (typeof window === 'undefined') return undefined;
-    return createSyncStoragePersister({
-      storage: window.localStorage,
-      key: 'merilive-rq-cache-v1',
-      throttleTime: 1000,
-    });
-  } catch {
-    return undefined;
-  }
-})();
-
-// Export queryClient for use in app resume handler
-export { queryClient };
 
 // =============================================
 // ROUTE LOADER - visible fallback to prevent blank/black screen during lazy chunk loads
@@ -826,11 +780,12 @@ const App = () => {
             return;
           }
 
-          console.warn('[App] 🚨 Global app re-entry signal received. Reloading app...');
+          console.warn('[App] 🚨 Global app re-entry signal received. Soft-resetting route/cache without reload...');
 
           setTimeout(() => {
-            window.location.replace('/');
-            window.location.reload();
+            queryClient.invalidateQueries({ refetchType: 'active' });
+            window.history.replaceState(null, '', '/');
+            window.dispatchEvent(new PopStateEvent('popstate'));
           }, 350);
         }
       )
@@ -1088,7 +1043,7 @@ const App = () => {
     <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{
-        persister: __queryPersister as any,
+        persister: queryPersister as any,
         maxAge: 1000 * 60 * 60 * 24 * 7, // keep cache 7 days
         buster: 'merilive-v1',
       }}

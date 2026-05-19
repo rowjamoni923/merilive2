@@ -6,7 +6,7 @@
  * we can quickly diagnose "why was I logged out?" reports.
  *
  * Enable the on-screen overlay with:
- *   localStorage.setItem('meri_session_debug', '1'); location.reload();
+ *   __sessionDebug.enable()
  *
  * From devtools:
  *   __sessionDebug.dump()   // pretty table
@@ -110,11 +110,11 @@ if (typeof window !== 'undefined') {
     },
     enable() {
       localStorage.setItem('meri_session_debug', '1');
-      location.reload();
+      target.dispatchEvent(new CustomEvent('event', { detail: null }));
     },
     disable() {
       localStorage.removeItem('meri_session_debug');
-      location.reload();
+      target.dispatchEvent(new CustomEvent('event', { detail: null }));
     },
     isEnabled() {
       return localStorage.getItem('meri_session_debug') === '1';
