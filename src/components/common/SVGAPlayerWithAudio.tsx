@@ -42,6 +42,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const activeHowlsRef = useRef<Howl[]>([]);
   const activeAudiosRef = useRef<HTMLAudioElement[]>([]);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const expectedDurationRef = useRef<number>(0);
 
   const cleanupAudio = useCallback(() => {
     activeHowlsRef.current.forEach(h => { try { h.stop(); h.unload(); } catch {} });
@@ -50,10 +52,18 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     activeAudiosRef.current = [];
   }, []);
 
-  const handleAnimationComplete = useCallback(() => {
+  const handleAnimationComplete = useCallback((source: 'native' | 'safety-timer' | 'unknown' = 'unknown') => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
-    
+
+    const elapsed = startTimeRef.current > 0 ? Date.now() - startTimeRef.current : 0;
+    const expected = expectedDurationRef.current;
+    const drift = expected > 0 ? elapsed - expected : 0;
+    const icon = source === 'native' ? '✅' : source === 'safety-timer' ? '⚠️' : '❔';
+    console.log(
+      `[SVGAPlayerWithAudio] ${icon} onComplete (${source}) | elapsed=${elapsed}ms | expected=${expected}ms | drift=${drift > 0 ? '+' : ''}${drift}ms | src=${src.split('/').pop()?.split('?')[0]}`
+    );
+
     if (completionTimerRef.current) {
       clearTimeout(completionTimerRef.current);
       completionTimerRef.current = null;
@@ -68,7 +78,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     
     setTimeout(() => cleanupAudio(), 500);
     onComplete?.();
-  }, [onComplete, cleanupAudio]);
+  }, [onComplete, cleanupAudio, src]);
 
   useEffect(() => {
     if (animationStartedRef.current) return;
