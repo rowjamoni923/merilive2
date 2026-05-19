@@ -70,6 +70,22 @@ type Step = "pick_pkg" | "pick_currency" | "pay" | "done";
 const MINIMUM_DEPOSIT_MESSAGE =
   "This crypto network requires a larger deposit amount. Please choose a bigger diamond package and try again.";
 
+// Detect upstream gateway "currency not enabled / not supported" errors so we can
+// automatically fall back to another enabled crypto network instead of failing.
+const isCurrencyDisabledError = (payload: any, fallback?: string | null) => {
+  const code = String(payload?.error ?? "").toLowerCase();
+  const message = String(payload?.message || payload?.details?.error || payload?.error || fallback || "").toLowerCase();
+  if (code.includes("currency") || code.includes("disabled") || code.includes("unsupported")) return true;
+  return (
+    message.includes("currency not enabled")
+    || message.includes("currency is not enabled")
+    || message.includes("not enabled")
+    || message.includes("not supported")
+    || message.includes("unsupported currency")
+    || message.includes("disabled")
+  );
+};
+
 const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   const code = String(payload?.error ?? "").toLowerCase();
   const message = String(payload?.message || payload?.details?.error || payload?.error || fallback || "Gateway error");
@@ -80,6 +96,14 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   }
 
   return message;
+};
+
+// Compute total diamonds including bonus_percentage (always applied — bonus is
+// part of the published amount the user expects to receive).
+const getBonusInclusiveCoins = (p: { coins: number; bonus_percentage?: number }) => {
+  const bonusPct = Number(p.bonus_percentage ?? 0);
+  const bonus = bonusPct > 0 ? Math.floor((p.coins * bonusPct) / 100) : 0;
+  return { total: p.coins + bonus, bonus, bonusPct };
 };
 
 export default function SwiftPayDepositModal({
@@ -143,51 +167,80 @@ export default function SwiftPayDepositModal({
     if (!pkg) return;
     setCreating(true);
     try {
-      const requestBody: Record<string, unknown> = { pay_currency: currency };
-      if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
-        requestBody.target = "helper_wallet";
-        requestBody.helper_id = helperId;
-        requestBody.custom_coins = helperCustomCoins;
-        requestBody.custom_price_usd = helperCustomPriceUsd;
-      } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
-        requestBody.custom_coins = userCustomCoins;
-        requestBody.custom_price_usd = userCustomPriceUsd;
-      } else {
-        requestBody.package_id = pkg.id;
-      }
+      // Build an ordered list of currencies to try: user pick first, then the
+      // remaining BASE_CRYPTO_OPTIONS as automatic fallbacks. If the gateway
+      // returns "currency not enabled / unsupported", we silently move on to
+      // the next one so the user never sees that raw error.
+      const tryOrder = [currency, ...BASE_CRYPTO_OPTIONS.map((o) => o.value).filter((v) => v !== currency)];
 
-      const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
-        body: requestBody,
-      });
+      let lastErrMsg: string | null = null;
+      let lastErrIsMinimum = false;
 
-      let errMsg: string | null = null;
-      if (error) {
-        try {
-          const ctx: any = (error as any).context;
-          if (ctx && typeof ctx.json === "function") {
-            const parsed = await ctx.json();
-            errMsg = getDepositErrorMessage(parsed, null);
-          }
-        } catch { /* ignore */ }
-        errMsg = errMsg || getDepositErrorMessage(null, error.message);
-      } else if (data?.error || data?.ok === false || data?.fallback) {
-        errMsg = getDepositErrorMessage(data, null);
-      }
+      for (let i = 0; i < tryOrder.length; i++) {
+        const tryCurrency = tryOrder[i];
+        const requestBody: Record<string, unknown> = { pay_currency: tryCurrency };
+        if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
+          requestBody.target = "helper_wallet";
+          requestBody.helper_id = helperId;
+          requestBody.custom_coins = helperCustomCoins;
+          requestBody.custom_price_usd = helperCustomPriceUsd;
+        } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+          requestBody.custom_coins = userCustomCoins;
+          requestBody.custom_price_usd = userCustomPriceUsd;
+        } else {
+          requestBody.package_id = pkg.id;
+        }
 
-      if (errMsg) {
-        toast({
-          title: "Could not start deposit",
-          description: errMsg,
-          variant: "destructive",
+        const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
+          body: requestBody,
         });
-        setCreating(false);
-        return;
+
+        // Try to parse a structured error payload from the FunctionsHttpError context.
+        let parsedErrPayload: any = null;
+        if (error) {
+          try {
+            const ctx: any = (error as any).context;
+            if (ctx && typeof ctx.json === "function") parsedErrPayload = await ctx.json();
+          } catch { /* ignore */ }
+        }
+
+        const errPayload = parsedErrPayload || (data?.error || data?.ok === false || data?.fallback ? data : null);
+
+        if (!error && !errPayload) {
+          // SUCCESS — persist chosen currency so the UI reflects what actually worked.
+          if (tryCurrency !== currency) setCurrency(tryCurrency);
+          setDeposit(data);
+          setStep("pay");
+          setCreating(false);
+          return;
+        }
+
+        // Decide whether to auto-fallback to next currency.
+        if (errPayload && isCurrencyDisabledError(errPayload, error?.message)) {
+          // silently try next currency
+          continue;
+        }
+
+        // Minimum-deposit failures are not currency-specific — bail out immediately.
+        if (errPayload?.error === "minimum_deposit_not_met") {
+          lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
+          lastErrIsMinimum = true;
+          break;
+        }
+
+        lastErrMsg = getDepositErrorMessage(errPayload, error?.message);
+        // Non-currency, non-minimum gateway error → stop trying.
+        break;
       }
-      setDeposit(data);
-      setStep("pay");
+
+      toast({
+        title: lastErrIsMinimum ? "Amount too small" : "Could not start deposit",
+        description: lastErrMsg || "All available crypto networks are unavailable right now. Please try again shortly.",
+        variant: "destructive",
+      });
+      setCreating(false);
     } catch (e: any) {
       toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
-    } finally {
       setCreating(false);
     }
   }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd]);
@@ -249,17 +302,30 @@ export default function SwiftPayDepositModal({
           <div className="space-y-3">
             <p className="text-sm text-amber-100/90">Choose a diamond package:</p>
             <div className="grid grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto">
-              {packages.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => { setPkg(p); setStep("pick_currency"); }}
-                  className="rounded-lg border border-amber-500/30 bg-slate-800/60 hover:border-amber-400 hover:bg-slate-800 p-3 text-left transition"
-                >
-                  <p className="text-lg font-black text-amber-200">{fmt(p.coins)}</p>
-                  <p className="text-[10px] text-amber-100/60 uppercase">diamonds</p>
-                  <p className="text-sm font-bold text-amber-100 mt-1">${p.price_usd.toFixed(2)}</p>
-                </button>
-              ))}
+              {packages.map((p) => {
+                const { total, bonus, bonusPct } = getBonusInclusiveCoins(p);
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => { setPkg(p); setStep("pick_currency"); }}
+                    className="relative rounded-lg border border-amber-500/30 bg-slate-800/60 hover:border-amber-400 hover:bg-slate-800 p-3 text-left transition"
+                  >
+                    {bonus > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 px-1.5 py-0.5 text-[9px] font-black text-slate-950 shadow">
+                        +{bonusPct}%
+                      </span>
+                    )}
+                    <p className="text-lg font-black text-amber-200">{fmt(total)}</p>
+                    <p className="text-[10px] text-amber-100/60 uppercase">diamonds</p>
+                    {bonus > 0 && (
+                      <p className="text-[10px] font-semibold text-emerald-300 mt-0.5">
+                        {fmt(p.coins)} + {fmt(bonus)} bonus
+                      </p>
+                    )}
+                    <p className="text-sm font-bold text-amber-100 mt-1">${p.price_usd.toFixed(2)}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -272,8 +338,20 @@ export default function SwiftPayDepositModal({
               </button>
             )}
             <div className="rounded-lg bg-slate-800/60 border border-amber-500/30 p-3">
-              <p className="text-2xl font-black text-amber-200">{fmt(pkg.coins)} <span className="text-xs">diamonds</span></p>
-              <p className="text-sm text-amber-100/80">${pkg.price_usd.toFixed(2)} USD</p>
+              {(() => {
+                const { total, bonus, bonusPct } = getBonusInclusiveCoins(pkg);
+                return (
+                  <>
+                    <p className="text-2xl font-black text-amber-200">{fmt(total)} <span className="text-xs">diamonds</span></p>
+                    {bonus > 0 && (
+                      <p className="text-[11px] font-semibold text-emerald-300 mt-0.5">
+                        {fmt(pkg.coins)} + {fmt(bonus)} bonus <span className="opacity-70">(+{bonusPct}%)</span>
+                      </p>
+                    )}
+                    <p className="text-sm text-amber-100/80 mt-0.5">${pkg.price_usd.toFixed(2)} USD</p>
+                  </>
+                );
+              })()}
             </div>
             <div>
               <label className="text-sm font-medium text-amber-100/90 mb-1.5 block">Choose crypto</label>
