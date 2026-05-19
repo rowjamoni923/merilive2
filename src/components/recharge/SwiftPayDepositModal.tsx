@@ -69,6 +69,9 @@ export default function SwiftPayDepositModal({
   helperId = null,
   helperCustomCoins = null,
   helperCustomPriceUsd = null,
+  userCustomCoins = null,
+  userCustomPriceUsd = null,
+  userCustomLabel = null,
   onCredited,
 }: Props) {
   const { toast } = useToast();
@@ -81,6 +84,11 @@ export default function SwiftPayDepositModal({
   // Helper mode synthesises a "package" from custom amounts
   const helperPkg: PkgLite | null = mode === "helper" && helperCustomCoins && helperCustomPriceUsd
     ? { id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" }
+    : null;
+
+  // User custom mode (e.g. helper application fee)
+  const userCustomPkg: PkgLite | null = mode === "user" && userCustomCoins && userCustomPriceUsd
+    ? { id: `custom_${userCustomPriceUsd}`, coins: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" }
     : null;
 
   useEffect(() => {
@@ -97,6 +105,11 @@ export default function SwiftPayDepositModal({
       setStep("pick_currency");
       return;
     }
+    if (mode === "user" && userCustomPkg) {
+      setPkg(userCustomPkg);
+      setStep("pick_currency");
+      return;
+    }
     if (initialPackageId) {
       const pre = packages.find((p) => p.id === initialPackageId);
       if (pre) {
@@ -104,7 +117,7 @@ export default function SwiftPayDepositModal({
         setStep("pick_currency");
       }
     }
-  }, [open, initialPackageId, packages, mode, helperPkg]);
+  }, [open, initialPackageId, packages, mode, helperPkg, userCustomPkg]);
 
   const createDeposit = useCallback(async () => {
     if (!pkg) return;
@@ -116,6 +129,9 @@ export default function SwiftPayDepositModal({
         requestBody.helper_id = helperId;
         requestBody.custom_coins = helperCustomCoins;
         requestBody.custom_price_usd = helperCustomPriceUsd;
+      } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+        requestBody.custom_coins = userCustomCoins;
+        requestBody.custom_price_usd = userCustomPriceUsd;
       } else {
         requestBody.package_id = pkg.id;
       }
