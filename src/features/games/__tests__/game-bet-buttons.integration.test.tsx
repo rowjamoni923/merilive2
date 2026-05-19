@@ -136,22 +136,24 @@ describe("Teen Patti — clicking a hand places a bet", () => {
     const { TeenPattiGame } = await import("../teen-patti/TeenPattiGame");
     render(<TeenPattiGame />);
 
-    // Wait for user/profile to load (the three hand labels become visible)
-    const handA = await screen.findByText("A");
-    fireEvent.click(handA);
+    // Wait for profile to load (balance display appears)
+    await screen.findByText("50,000");
+
+    // "A" label exists; click bubbles to parent motion.div onClick={onBet}
+    const handLabels = await screen.findAllByText("A");
+    fireEvent.click(handLabels[0]);
 
     await waitFor(() => {
       const betCall = rpcMock.mock.calls.find((c) => c[0] === "place_game_bet");
       expect(betCall).toBeTruthy();
       expect(betCall![1]).toMatchObject({
         p_user_id: USER_ID,
-        p_amount: 500, // default selectedChip
+        p_amount: 500,
         p_game_id: "teen-patti",
         p_game_name: "Teen Patti",
       });
     });
 
-    // Balance was decremented server-side: 50_000 - 500 = 49_500
     expect(mockBalance).toBe(49_500);
   });
 
