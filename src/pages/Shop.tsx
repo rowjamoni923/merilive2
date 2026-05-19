@@ -46,6 +46,11 @@ const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWit
 const isAnimatedAssetUrl = (url?: string | null) => /\.(svga|json)(\?|#|$)/i.test(url ?? '');
 const resolveShopAssetUrl = (item: Pick<ShopItem, 'preview_url' | 'animation_url' | 'animation_file_url'>) =>
   item.animation_file_url || item.animation_url || item.preview_url || '';
+const resolveShopPreviewUrl = (item: Pick<ShopItem, 'preview_url' | 'animation_url' | 'animation_file_url'>) => {
+  const previewUrl = item.preview_url?.trim() || '';
+  if (previewUrl && !isAnimatedAssetUrl(previewUrl)) return previewUrl;
+  return item.animation_url || item.animation_file_url || previewUrl;
+};
 
 interface ShopItem {
   id: string;
@@ -113,6 +118,7 @@ const ShopItemCard = ({
   isFullWidth?: boolean;
 }) => {
   const [imageError, setImageError] = useState(false);
+  const previewSrc = resolveShopPreviewUrl(item);
   
   return (
     <motion.div
@@ -155,11 +161,11 @@ const ShopItemCard = ({
           }}
         />
 
-        {resolveShopAssetUrl(item) && !imageError ? (
-          isAnimatedAssetUrl(resolveShopAssetUrl(item)) ? (
+        {previewSrc && !imageError ? (
+          isAnimatedAssetUrl(previewSrc) ? (
             <div className="w-full h-full flex items-center justify-center">
               <UniversalAnimationPlayer
-                src={resolveShopAssetUrl(item)}
+                src={previewSrc}
                 className={`w-[85%] h-[85%] [&_canvas]:!w-full [&_canvas]:!h-full ${isFullWidth ? 'scale-110' : ''}`}
                 loop
                 autoPlay
@@ -167,16 +173,9 @@ const ShopItemCard = ({
                 onError={() => setImageError(true)}
               />
             </div>
-          ) : item.preview_url && !isAnimatedAssetUrl(item.preview_url) ? (
-            <img
-              src={item.preview_url}
-              alt={item.name}
-              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
-              onError={() => setImageError(true)}
-            />
           ) : (
             <img
-              src={resolveShopAssetUrl(item)}
+              src={previewSrc}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
