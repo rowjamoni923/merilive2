@@ -1788,6 +1788,11 @@ const AgencyWithdrawal = () => {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
+  // Pkg41+: admin-configured local methods per country (from helper_country_payment_methods).
+  // Map of country_code → Set of payment_method_name (e.g. 'bkash', 'nagad', 'upi').
+  // If a country has any active L5 helper config rows → only those methods are offered.
+  // If empty/missing → fallback to all COUNTRY_CONFIGS local methods.
+  const [helperConfiguredMethods, setHelperConfiguredMethods] = useState<Record<string, Set<string>>>({});
   // Auto Withdrawal Fee (admin-configurable: flat USD + percent of USD) — applies to MeriCash / Binance / USDT / Crypto auto methods
   const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; percent: number; enabled: boolean; methods: string[] }>({
     flat_usd: 2,
