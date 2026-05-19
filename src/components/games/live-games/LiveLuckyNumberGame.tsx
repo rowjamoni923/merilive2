@@ -217,23 +217,21 @@ export function LiveLuckyNumberGame({
     }, 3000);
   };
 
-  const handleSelectNumber = async (num: number) => {
-    if (autoPlayPhase !== 'betting' || isPlacingBet) return;
+  const handleSelectNumber = (num: number) => {
+    if (autoPlayPhase !== 'betting') return;
     if (betAmount > userCoins) return;
 
+    const stake = betAmount;
     setSelectedNumbers(prev => new Set([...prev, num]));
-    setBetOnNumber(prev => ({ ...prev, [num]: (prev[num] || 0) + betAmount }));
-    setTotalBetPlaced(prev => prev + betAmount);
-    
-    setIsPlacingBet(true);
+    setBetOnNumber(prev => ({ ...prev, [num]: (prev[num] || 0) + stake }));
+    setTotalBetPlaced(prev => prev + stake);
 
+    // Fire-and-forget: concurrent bets allowed, do NOT block other taps
     onPlaceBet('lucky_number', num.toString()).then(result => {
       if (!result?.success) {
-        setBetOnNumber(prev => ({ ...prev, [num]: Math.max(0, (prev[num] || 0) - betAmount) }));
-        setTotalBetPlaced(prev => Math.max(0, prev - betAmount));
+        setBetOnNumber(prev => ({ ...prev, [num]: Math.max(0, (prev[num] || 0) - stake) }));
+        setTotalBetPlaced(prev => Math.max(0, prev - stake));
       }
-    }).finally(() => {
-      setIsPlacingBet(false);
     });
   };
 
@@ -398,7 +396,7 @@ export function LiveLuckyNumberGame({
             <motion.button
               key={num}
               onClick={() => handleSelectNumber(num)}
-              disabled={isPlacingBet || betAmount > userCoins || autoPlayPhase !== 'betting'}
+              disabled={betAmount > userCoins || autoPlayPhase !== 'betting'}
               whileHover={{ scale: autoPlayPhase === 'betting' ? 1.1 : 1 }}
               whileTap={{ scale: 0.95 }}
               className={cn(
@@ -407,7 +405,7 @@ export function LiveLuckyNumberGame({
                   ? "border-white/60 ring-2 ring-white/40" 
                   : "border-white/20",
                 winningNumber === num && "ring-4 ring-yellow-400 border-yellow-400",
-                (isPlacingBet || betAmount > userCoins || autoPlayPhase !== 'betting') && "opacity-60"
+                (betAmount > userCoins || autoPlayPhase !== 'betting') && "opacity-60"
               )}
             >
               {/* Background Gradient */}

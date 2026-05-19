@@ -406,27 +406,24 @@ export function LiveRouletteGame({
     }, 3000);
   };
 
-  // INSTANT multi-bet placement - works during betting phase
-  const handlePlaceBet = async (type: string, value: string) => {
-    if (autoPlayPhase !== 'betting' || isPlacingBet) return;
+  // INSTANT multi-bet placement - fire-and-forget, never blocks other taps
+  const handlePlaceBet = (type: string, value: string) => {
+    if (autoPlayPhase !== 'betting') return;
     if (betAmount > userCoins) return;
-    
-    // Store the current bet amount
+
     const currentBetAmount = betAmount;
-    
+
     // Instant UI update BEFORE API call
     setSelectedBets(prev => new Set([...prev, type]));
     setBetAmountsPerOption(prev => ({ ...prev, [type]: (prev[type] || 0) + currentBetAmount }));
     setTotalBetPlaced(prev => prev + currentBetAmount);
-    
-    setIsPlacingBet(true);
+
     sounds.playBetSound();
     playLiveEffect('bet');
-    
-    // Fire API call in background - don't wait
+
+    // Fire API call in background - never block UI
     onPlaceBet('roulette', `${type}:${value}`).then(result => {
       if (!result?.success) {
-        // Rollback on failure
         setBetAmountsPerOption(prev => {
           const newAmount = Math.max(0, (prev[type] || 0) - currentBetAmount);
           if (newAmount === 0) {
@@ -440,8 +437,6 @@ export function LiveRouletteGame({
         });
         setTotalBetPlaced(prev => Math.max(0, prev - currentBetAmount));
       }
-    }).finally(() => {
-      setIsPlacingBet(false);
     });
   };
 
