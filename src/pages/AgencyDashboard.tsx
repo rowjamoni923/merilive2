@@ -305,6 +305,7 @@ const AgencyDashboard = () => {
   };
 
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       try {
         const user = await getCachedUser();
@@ -318,6 +319,8 @@ const AgencyDashboard = () => {
           .select("*")
           .eq("owner_id", user.id)
           .maybeSingle();
+
+        if (cancelled) return;
 
         if (agencyError) {
           console.error('[AgencyDashboard] Error fetching agency:', agencyError);
@@ -386,6 +389,8 @@ const AgencyDashboard = () => {
           supabase.from('agency_earnings_transfers').select('gift_earnings, call_earnings, amount, commission_rate').eq('agency_id', agencyData.id),
         ]);
 
+        if (cancelled) return;
+
         // ===== BATCH 2: All secondary queries in parallel =====
         const hostsData = hostsRes.data || [];
         const pendingHostsData = pendingHostsRes.data || [];
@@ -444,6 +449,8 @@ const AgencyDashboard = () => {
             ? supabase.from("agency_withdrawals").select("*", { count: 'exact', head: true }).eq("status", "pending")
             : Promise.resolve({ count: 0 }),
         ]);
+
+        if (cancelled) return;
 
         // ===== Process parent agency =====
         if (parentRes.data) {
@@ -630,10 +637,11 @@ const AgencyDashboard = () => {
       .subscribe();
 
     return () => {
+      cancelled = true;
       if (refetchTimer) clearTimeout(refetchTimer);
       supabase.removeChannel(channel);
     };
-  }, [navigate, agency?.id]);
+  }, [navigate]);
 
   // ===== Approve/Reject Host Handlers =====
   const handleApproveHost = async (hostId: string) => {
