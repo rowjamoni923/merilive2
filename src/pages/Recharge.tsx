@@ -1817,6 +1817,23 @@ const Recharge = () => {
         return;
       }
 
+      // HARD GUARD: never let a gateway/country mismatch reach the DB silently.
+      try {
+        const { assertGatewayMatchesCountry } = await import('@/features/payments/gatewayValidation');
+        assertGatewayMatchesCountry(
+          { id: selectedGateway.id, gateway_type: selectedGateway.gateway_code, country_codes: (selectedGateway as any).country_codes },
+          userCountryCode,
+        );
+      } catch (e: any) {
+        recordClientError({ label: 'Recharge.gatewayValidation', message: e?.message || String(e) });
+        toast({
+          title: 'Payment Not Allowed',
+          description: e?.message || 'This payment method is not available in your country.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // Standard payment flow - create transaction record
       const { data: transaction, error } = await supabase
         .from('payment_transactions')
