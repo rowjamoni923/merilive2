@@ -651,7 +651,22 @@ const Recharge = () => {
       const existingIds = new Set([...legacyNormalized, ...countryNormalized].map(m => m.id));
       const uniqueGlobal = globalNormalized.filter(m => !existingIds.has(m.id));
 
-      const combinedMethodsData = [...legacyNormalized, ...countryNormalized, ...uniqueGlobal];
+      // PERMANENT FILTER: ePay + Binance are removed from helper top-up listings.
+      // Our Swift Pay Gateway is the only auto-credit path for top-up. To re-enable,
+      // remove the matching method_type strings below.
+      const EXCLUDED_HELPER_METHOD_TYPES = new Set([
+        'epay', 'epay_global', 'epay-global',
+        'binance', 'binance_pay', 'binancepay', 'binance-pay',
+      ]);
+      const matchesExcluded = (val: string | null | undefined) => {
+        if (!val) return false;
+        const key = String(val).trim().toLowerCase().replace(/\s+/g, '_');
+        return EXCLUDED_HELPER_METHOD_TYPES.has(key);
+      };
+      const combinedMethodsDataAll = [...legacyNormalized, ...countryNormalized, ...uniqueGlobal];
+      const combinedMethodsData = combinedMethodsDataAll.filter(
+        (m: any) => !matchesExcluded(m.method_type) && !matchesExcluded(m.payment_type) && !matchesExcluded(m.account_name)
+      );
 
       if (combinedMethodsData.length === 0) {
         console.log('[Recharge] No payment methods found for country:', userCountryCode);
@@ -914,8 +929,16 @@ const Recharge = () => {
         return;
       }
 
-      console.log('[Recharge] Admin payment methods loaded:', (data || []).length);
-      setAdminPaymentMethods(data || []);
+      // Filter out ePay + Binance — permanently removed from helper/top-up flow.
+      const EXCLUDED_ADMIN_METHODS = new Set([
+        'epay', 'epay_global', 'binance', 'binance_pay', 'binancepay',
+      ]);
+      const filtered = (data || []).filter((m: any) => {
+        const key = String(m.method_type || m.name || '').trim().toLowerCase().replace(/\s+/g, '_');
+        return !EXCLUDED_ADMIN_METHODS.has(key);
+      });
+      console.log('[Recharge] Admin payment methods loaded:', filtered.length, '(filtered from', (data || []).length, ')');
+      setAdminPaymentMethods(filtered);
     } catch (error) {
       console.error('[Recharge] Error fetching admin payment methods:', error);
       recordClientError({ label: "Recharge.fetchAdminPaymentMethods", message: error instanceof Error ? error.message : String(error) });

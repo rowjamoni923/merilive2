@@ -2071,36 +2071,41 @@ const AgencyWithdrawal = () => {
     console.log('[Withdrawal] Country', selectedCountry, 'has helpers:', hasHelpers);
   }, [selectedCountry, countriesWithHelpers]);
 
-  // Official auto-credit methods (Swift Pay Gateway + Binance) — shown for ALL countries.
-  // ePay is fully removed. Local helper methods (lower fee) are shown only if Level-5
-  // helpers exist in the agency's country. Official auto methods (slightly higher flat
-  // USD fee, set by Admin via auto_withdrawal_fee) are always available as fallback /
-  // recommended for foreign agencies.
+  // Official auto-credit methods (Swift Pay Gateway + Binance) — shown ONLY for foreign
+  // agencies. Bangladesh / India / Pakistan are explicitly excluded for now (they will
+  // continue using local payroll-helper methods only). Auto methods can be enabled for
+  // these 3 countries later by removing them from AUTO_PAY_EXCLUDED_COUNTRIES.
+  const AUTO_PAY_EXCLUDED_COUNTRIES = ['BD', 'IN', 'PK'];
   const OFFICIAL_AUTO_METHODS = [
     { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
     { value: "binance", label: "🪙 Binance Pay (Auto)" },
   ];
 
   const getAvailablePaymentMethods = () => {
-    if (!countryConfig) return OFFICIAL_AUTO_METHODS;
+    if (!countryConfig) return [];
 
-    // Strip any legacy ePay entries
+    const autoAllowed = !AUTO_PAY_EXCLUDED_COUNTRIES.includes(selectedCountry);
+    const autoMethods = autoAllowed ? OFFICIAL_AUTO_METHODS : [];
+
+    // Strip any legacy ePay entries and any auto-method duplicates injected into country configs
     const localMethods = countryConfig.paymentMethods.filter(
       m => m.value !== 'epay' && m.value !== 'crypto_auto' && m.value !== 'binance'
     );
 
     if (hasLocalPayrollHelpers === null) {
-      // Still loading — show local + official to avoid flicker
-      return [...localMethods, ...OFFICIAL_AUTO_METHODS];
+      // Still loading — show local + auto (where allowed)
+      return [...localMethods, ...autoMethods];
     }
 
     if (hasLocalPayrollHelpers) {
-      // Local Level-5 helpers exist → show local (lower fee) first, then official auto as fallback
-      return [...localMethods, ...OFFICIAL_AUTO_METHODS];
+      // Local Level-5 helpers exist → show local (lower fee) first, then auto (if allowed)
+      return [...localMethods, ...autoMethods];
     }
 
-    // No local helpers → official auto-credit only
-    return OFFICIAL_AUTO_METHODS;
+    // No local helpers
+    if (autoMethods.length > 0) return autoMethods;
+    // Excluded country with no helpers: fall back to local methods so UI is never empty
+    return localMethods;
   };
 
   // Update payment method when country or helper availability changes
