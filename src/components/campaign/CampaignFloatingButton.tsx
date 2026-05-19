@@ -321,14 +321,20 @@ function CampaignFloatingButton() {
         if (availableMethodNames.length === 0) return null;
         return prev && availableMethodNames.includes(prev) ? prev : availableMethodNames[0];
       });
+      return unique;
     } catch (e) {
       console.error('Error fetching helper payment methods:', e);
+      return [] as HelperMethod[];
+    } finally {
+      setLoadingMethods(false);
     }
-    setLoadingMethods(false);
   }, [userCountryCode]);
 
   const fetchGateways = useCallback(async () => {
-    if (!userCountryCode) return;
+    if (!userCountryCode) {
+      setGateways([MERICASH_GATEWAY]);
+      return [MERICASH_GATEWAY];
+    }
     try {
       const { data } = await supabase
         .from('payment_gateways')
@@ -347,9 +353,13 @@ function CampaignFloatingButton() {
         const key = `${g.name} ${g.gateway_type}`.toLowerCase();
         return !key.includes('mericash') && !key.includes('meri cash') && !key.includes('swift');
       });
-      setGateways([MERICASH_GATEWAY, ...withoutMeriCashDuplicate]);
+      const nextGateways = [MERICASH_GATEWAY, ...withoutMeriCashDuplicate];
+      setGateways(nextGateways);
+      return nextGateways;
     } catch (e) {
       console.error('Error fetching campaign gateways:', e);
+      setGateways([MERICASH_GATEWAY]);
+      return [MERICASH_GATEWAY];
     }
   }, [userCountryCode]);
 
