@@ -1809,9 +1809,10 @@ const AgencyWithdrawal = () => {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
 
-  // Country-strict: only ever use the selected country's own config. Never fall back to BD
-  // (would leak BD methods like bKash/Nagad into other countries). Returns null when no country picked yet.
-  const countryConfig = selectedCountry ? (COUNTRY_CONFIGS[selectedCountry] ?? null) : null;
+  // Display config falls back to BD only for currency/symbol/flag rendering safety. Payment methods
+  // are NEVER inherited from this fallback — see getAvailablePaymentMethods() which strictly uses
+  // COUNTRY_CONFIGS[selectedCountry] only, so BD bKash/Nagad can never leak to other countries.
+  const countryConfig = selectedCountry ? (COUNTRY_CONFIGS[selectedCountry] || COUNTRY_CONFIGS.BD) : COUNTRY_CONFIGS.BD;
 
   // Convert beans to USD
   const beansToUsd = (beans: number) => {
