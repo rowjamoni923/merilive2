@@ -191,12 +191,14 @@ describe('Live stream — two-viewer seat integration', () => {
     const viewerA = createViewerState(room);
     const viewerB = createViewerState(room);
 
-    // Host joins and publishes camera + mic
+    // Publish AUDIO FIRST so that when the VIDEO TrackSubscribed fires, the
+    // wrapper-builder loop in the production reducer also picks up the
+    // existing audio publication (matches useAgoraClient.ts:354-359).
     const host = room.addRemoteParticipant('host-42');
-    const hostVideo = makeLiveKitTrack('video');
     const hostAudio = makeLiveKitTrack('audio');
-    room.publishToParticipant(host, hostVideo);
+    const hostVideo = makeLiveKitTrack('video');
     room.publishToParticipant(host, hostAudio);
+    room.publishToParticipant(host, hostVideo);
 
     expect(viewerA.remoteUsers.size).toBe(1);
     expect(viewerB.remoteUsers.size).toBe(1);
@@ -204,15 +206,14 @@ describe('Live stream — two-viewer seat integration', () => {
     const [wrapperA] = Array.from(viewerA.remoteUsers.values());
     const [wrapperB] = Array.from(viewerB.remoteUsers.values());
 
-    // Same host video track surfaced to BOTH viewer seats
     expect(wrapperA.videoTrack).toBe(hostVideo);
     expect(wrapperB.videoTrack).toBe(hostVideo);
     expect(wrapperA.hasVideo).toBe(true);
     expect(wrapperB.hasVideo).toBe(true);
-
-    // Audio attached to wrapper because video subscribed AFTER audio pub existed
     expect(wrapperA.audioTrack).toBe(hostAudio);
     expect(wrapperB.audioTrack).toBe(hostAudio);
+    expect(wrapperA.hasAudio).toBe(true);
+    expect(wrapperB.hasAudio).toBe(true);
   });
 
   it('host disconnect clears state on both viewers (no orphan seats)', () => {
