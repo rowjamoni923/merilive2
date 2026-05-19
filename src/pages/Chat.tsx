@@ -2432,55 +2432,84 @@ const Chat = () => {
             }}
           />
           
-          {/* Inline Translation Bar - Shows when enabled */}
+          {/* Inline Translation Bar — premium luxury redesign */}
           {inlineTranslateEnabled && !isGroup && (
- <div className="px-4 py-2 border-t border-slate-200/[0.06]">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] text-slate-600 font-medium">Auto-translate to:</span>
-                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-                  {languageOptions.slice(0, 8).map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => handleInlineLangChange(lang.code)}
-                      className={`flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] whitespace-nowrap transition-all border ${
-                        inlineTargetLang === lang.code
- ?'bg-gradient-to-r from-purple-500/80 to-pink-500/80 text-slate-900 border-purple-400/30'
- :'bg-white/[0.06] text-slate-700/85 border-slate-200/[0.08] hover:bg-white/[0.1]'
-                      }`}
-                    >
-                      <span>{lang.flag}</span>
-                      <span>{lang.name}</span>
-                    </button>
-                  ))}
+            <div className="px-3 pt-2.5 pb-2 border-t border-amber-200/40 bg-gradient-to-b from-amber-50/60 via-white to-rose-50/40">
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-2 px-1">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[11px] font-semibold tracking-wide bg-gradient-to-r from-amber-700 via-rose-600 to-purple-700 bg-clip-text text-transparent whitespace-nowrap">
+                    ✨ Auto-Translate
+                  </span>
+                  <span className="text-[10px] text-slate-500">→</span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white shadow-sm border border-amber-300/60 min-w-0">
+                    <span className="text-xs leading-none">
+                      {languageOptions.find(l => l.code === inlineTargetLang)?.flag}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-800 truncate">
+                      {languageOptions.find(l => l.code === inlineTargetLang)?.name}
+                    </span>
+                  </span>
                 </div>
                 <button
                   onClick={() => {
                     setInlineTranslateEnabled(false);
                     setInlineTranslation("");
                   }}
-                  className="ml-auto p-1 rounded-full hover:bg-white/10 text-slate-600"
+                  className="p-1 rounded-full bg-white/80 hover:bg-rose-100 text-slate-500 hover:text-rose-600 border border-slate-200/60 transition-colors shrink-0 ml-2"
+                  aria-label="Close translator"
                 >
                   <X className="w-3 h-3" />
                 </button>
               </div>
-              
+
+              {/* Language chips — horizontal scroll, each chip distinct */}
+              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide -mx-1 px-1">
+                {languageOptions.map((lang) => {
+                  const active = inlineTargetLang === lang.code;
+                  return (
+                    <button
+                      key={lang.code}
+                      onClick={() => handleInlineLangChange(lang.code)}
+                      className={`shrink-0 inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all duration-200 border ${
+                        active
+                          ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-fuchsia-600 text-white border-white shadow-[0_4px_14px_rgba(244,114,182,0.45)] ring-2 ring-amber-300/70 scale-[1.04]'
+                          : 'bg-white text-slate-700 border-slate-200 shadow-sm hover:border-amber-300 hover:shadow-md hover:-translate-y-px'
+                      }`}
+                    >
+                      <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[13px] leading-none ${
+                        active ? 'bg-white/25' : 'bg-slate-50'
+                      }`}>
+                        {lang.flag}
+                      </span>
+                      <span className={active ? 'drop-shadow-sm' : ''}>{lang.name}</span>
+                      {active && <span className="text-[10px] leading-none">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Translation Result */}
               {(inlineTranslation || isInlineTranslating) && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="bg-purple-500/10 rounded-xl px-3 py-2 border border-purple-500/20"
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-2 rounded-xl px-3 py-2 bg-gradient-to-br from-white via-purple-50/70 to-rose-50/70 border border-purple-200/60 shadow-inner"
                 >
-                  <div className="flex items-center gap-1 mb-1">
-                    <span className="text-[9px] text-purple-300 font-medium">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[10px] font-bold text-purple-700">
                       {languageOptions.find(l => l.code === inlineTargetLang)?.flag} {inlineTargetLang}
                     </span>
                     {isInlineTranslating && (
-                      <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse" />
+                      <span className="inline-flex gap-0.5">
+                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce" />
+                      </span>
                     )}
                   </div>
-                  <p className="text-sm text-purple-200">
-                    {inlineTranslation || "Translating..."}
+                  <p className="text-sm text-slate-800 font-medium leading-snug">
+                    {inlineTranslation || "Translating…"}
                   </p>
                 </motion.div>
               )}
