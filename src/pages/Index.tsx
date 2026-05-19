@@ -425,7 +425,7 @@ const Index = () => {
           <img
             src={(user.isLive && user.liveThumbnailUrl)
               ? enhanceThumbnail(user.liveThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
-              : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, !!(user.is_host || user.gender === 'female'))}
+              : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'))}
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover"
             style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
