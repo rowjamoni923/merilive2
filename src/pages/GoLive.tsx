@@ -932,14 +932,16 @@ const GoLive = () => {
       // Handoff policy:
       // - Web preview: preserve same MediaStream for zero-gap transition
       // - Native DeepAR preview: release camera BEFORE entering LiveStream to avoid Android camera resource crash
-      if (isNativeAndroid) {
+      if (isNativeAndroid && nativePreviewActive) {
         preservePreviewForLiveRef.current = false;
         clearPreparedHostPreviewStream();
-        if (nativePreviewActive) {
-          await stopNativeDeepARPreview();
-          await new Promise((resolve) => setTimeout(resolve, 800));
-        }
+        await stopNativeDeepARPreview();
+        await new Promise((resolve) => setTimeout(resolve, 800));
       } else {
+        // Preserve the real WebView camera stream on Android when native preview
+        // was unavailable/no-op. If native LiveKit is disabled or falls back to
+        // web publishing, LiveStream can publish this already-user-approved track
+        // instead of trying getUserMedia again outside the tap gesture.
         preservePreviewForLiveRef.current = true;
         if (streamRef.current) {
           setPreparedHostPreviewStream(streamRef.current);
