@@ -2800,14 +2800,12 @@ const AgencyWithdrawal = () => {
                   />
                   <p className="text-xs text-gray-500">
                     {paymentMethod === 'crypto_auto'
-                      ? 'Paste your USDT wallet address (TRC20 / BEP20). Funds are auto-credited on-chain.'
-                      : paymentMethod === 'binance'
-                        ? 'Your Binance Pay ID (numeric) or registered email. Auto-credited instantly.'
-                        : paymentMethod === 'upi'
-                          ? 'Must be your exact UPI ID.'
-                          : paymentMethod === 'alipay'
-                            ? 'Use your Alipay email or numeric account.'
-                            : `Use your exact ${countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || 'wallet'} number.`}
+                      ? 'Paste your USDT TRC20 wallet address. Funds are auto-credited on-chain in seconds.'
+                      : paymentMethod === 'upi'
+                        ? 'Must be your exact UPI ID.'
+                        : paymentMethod === 'alipay'
+                          ? 'Use your Alipay email or numeric account.'
+                          : `Use your exact ${countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || 'wallet'} number.`}
                   </p>
                 </div>
 
