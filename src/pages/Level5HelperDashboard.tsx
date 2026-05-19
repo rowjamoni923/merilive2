@@ -1413,14 +1413,14 @@ const Level5HelperDashboard = () => {
                 <Building2 className="w-4 h-4 text-orange-600" />
                 All Agency Withdrawals
               </h3>
-              <Badge className="bg-emerald-50 text-emerald-600 text-xs">
+              <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-300 text-xs font-semibold">
                 {agencyWithdrawals.filter(w => isWithdrawalAvailableForClaim(w, lockClock)).length} Available
               </Badge>
             </div>
             
             {/* Info Banner */}
-            <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl p-3 border border-sky-200/30">
-              <p className="text-sky-600 text-xs text-center">
+            <div className="bg-gradient-to-r from-cyan-100 to-blue-100 rounded-xl p-3 border border-sky-300/60">
+              <p className="text-sky-800 text-xs text-center font-medium">
                 💡 All Level 5 Helpers can see all withdrawals • First-come-first-serve
               </p>
             </div>
