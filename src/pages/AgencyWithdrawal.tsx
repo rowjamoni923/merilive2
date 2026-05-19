@@ -221,8 +221,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     paymentMethods: [
       { value: "bkash", label: "bKash" },
       { value: "nagad", label: "Nagad" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   IN: {
@@ -232,8 +231,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₹",
     paymentMethods: [
       { value: "upi", label: "UPI" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   PK: {
@@ -243,8 +241,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "easypaisa", label: "Easypaisa" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   NP: {
@@ -254,8 +251,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "esewa", label: "eSewa" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   LK: {
@@ -265,8 +261,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "frimi", label: "FriMi" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   PH: {
@@ -276,8 +271,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₱",
     paymentMethods: [
       { value: "gcash", label: "GCash" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   ID: {
@@ -287,8 +281,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rp",
     paymentMethods: [
       { value: "gopay", label: "GoPay" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   VN: {
@@ -298,8 +291,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₫",
     paymentMethods: [
       { value: "momo", label: "MoMo" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   TH: {
@@ -309,8 +301,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "฿",
     paymentMethods: [
       { value: "promptpay", label: "PromptPay" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   MY: {
@@ -320,8 +311,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "RM",
     paymentMethods: [
       { value: "grabpay", label: "GrabPay" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   SG: {
@@ -331,8 +321,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "S$",
     paymentMethods: [
       { value: "paynow", label: "PayNow" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   JP: {
@@ -342,8 +331,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "¥",
     paymentMethods: [
       { value: "paypay", label: "PayPay" },
-      { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-      { value: "binance", label: "🪙 Binance Pay (Auto)" },
+      { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
     ]
   },
   KR: {
@@ -1804,7 +1792,7 @@ const AgencyWithdrawal = () => {
   const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; enabled: boolean; methods: string[] }>({
     flat_usd: 2,
     enabled: true,
-    methods: ['usdt', 'binance', 'crypto_auto'],
+    methods: ['usdt', 'crypto_auto'],
   });
   
   // Form state
@@ -1923,16 +1911,14 @@ const AgencyWithdrawal = () => {
   };
 
   const getAccountFieldLabel = () => {
-    if (paymentMethod === 'crypto_auto') return 'Crypto Wallet Address (USDT TRC20 / BEP20)';
-    if (paymentMethod === 'binance') return 'Binance Pay ID or Email';
+    if (paymentMethod === 'crypto_auto') return 'USDT Wallet Address (TRC20)';
     if (paymentMethod === 'upi') return 'UPI ID';
     if (paymentMethod === 'alipay') return 'Alipay Email / Account';
     return 'Wallet Number / Account Number';
   };
 
   const getAccountFieldPlaceholder = () => {
-    if (paymentMethod === 'crypto_auto') return 'Paste your USDT wallet address';
-    if (paymentMethod === 'binance') return 'Binance Pay ID (numeric) or email';
+    if (paymentMethod === 'crypto_auto') return 'Paste your USDT TRC20 wallet address';
     if (paymentMethod === 'upi') return 'Enter your UPI ID';
     if (paymentMethod === 'alipay') return 'Enter your Alipay email or account number';
     return 'Enter your wallet/account number';
@@ -1942,7 +1928,7 @@ const AgencyWithdrawal = () => {
 
   const getNormalizedAccountNumber = () => {
     const normalized = accountNumber.trim();
-    return ['crypto_auto', 'binance', 'upi', 'alipay'].includes(paymentMethod)
+    return ['crypto_auto', 'upi', 'alipay'].includes(paymentMethod)
       ? normalized
       : normalized.replace(/\s+/g, '');
   };
@@ -1955,13 +1941,6 @@ const AgencyWithdrawal = () => {
       return /^[a-zA-Z0-9]{20,100}$/.test(normalizedAccountNumber)
         ? null
         : 'Enter a valid crypto wallet address (20-100 chars, no spaces)';
-    }
-
-    if (paymentMethod === 'binance') {
-      // Binance Pay ID (numeric 5-20 digits) or email
-      const isEmail = emailAccountSchema.safeParse(normalizedAccountNumber).success;
-      const isId = /^\d{5,20}$/.test(normalizedAccountNumber);
-      return isEmail || isId ? null : 'Enter a valid Binance Pay ID or email';
     }
 
     if (paymentMethod === 'upi') {
@@ -2071,14 +2050,13 @@ const AgencyWithdrawal = () => {
     console.log('[Withdrawal] Country', selectedCountry, 'has helpers:', hasHelpers);
   }, [selectedCountry, countriesWithHelpers]);
 
-  // Official auto-credit methods (MeriCash Gateway + Binance) — shown ONLY for foreign
+  // Official auto-credit method (MeriCash USDT Gateway) — shown ONLY for foreign
   // agencies. Bangladesh / India / Pakistan are explicitly excluded for now (they will
   // continue using local payroll-helper methods only). Auto methods can be enabled for
   // these 3 countries later by removing them from AUTO_PAY_EXCLUDED_COUNTRIES.
   const AUTO_PAY_EXCLUDED_COUNTRIES = ['BD', 'IN', 'PK'];
   const OFFICIAL_AUTO_METHODS = [
-    { value: "crypto_auto", label: "🌐 MeriCash (Crypto Auto-Credit)" },
-    { value: "binance", label: "🪙 Binance Pay (Auto)" },
+    { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
   ];
 
   const getAvailablePaymentMethods = () => {
@@ -2221,7 +2199,7 @@ const AgencyWithdrawal = () => {
           enabled: awf.enabled !== false,
           methods: Array.isArray(awf.methods) && awf.methods.length > 0
             ? awf.methods.map((m: string) => m.toLowerCase()).filter((m: string) => m !== 'epay')
-            : ['usdt', 'binance', 'crypto_auto'],
+            : ['usdt', 'crypto_auto'],
         });
         console.log('[AgencyWithdrawal] Auto withdrawal fee from DB:', awf);
       }
@@ -2384,13 +2362,15 @@ const AgencyWithdrawal = () => {
        if (isAutoMethod(paymentMethod)) {
          console.log('[Withdrawal] Auto method - initiating MeriCash payout');
          const withdrawalId = (data as any)?.withdrawal_id;
-         // Default to USDT TRC20 for binance/crypto_auto; user can override later via admin
-         const payCurrency = paymentMethod === 'binance' ? 'usdtbep20' : 'usdttrc20';
+         // Withdrawals are USDT-only (TRC20 — lowest fee, fastest)
+         const payCurrency = 'usdttrc20';
+         const payNetwork = 'TRC20';
          if (withdrawalId) {
            const { error: payoutErr, data: payoutData } = await supabase.functions.invoke('swift-pay-create-payout', {
              body: {
                withdrawal_id: withdrawalId,
                pay_currency: payCurrency,
+               pay_network: payNetwork,
                pay_address: accountNumber.trim(),
              },
            });
@@ -2632,7 +2612,7 @@ const AgencyWithdrawal = () => {
                       <div className="flex items-center gap-2 text-info-700 text-sm">
                         <Globe className="w-4 h-4" />
                         <span>
-                          <strong>{paymentMethod === 'binance' ? 'Binance Pay (Auto)' : 'MeriCash (Crypto Auto-Credit)'}:</strong>{' '}
+                          <strong>MeriCash (USDT Auto-Credit):</strong>{' '}
                           Funds are credited automatically to your wallet via our payment gateway. Flat fee: <strong>${autoWithdrawalFee.flat_usd}</strong>.
                         </span>
                       </div>
@@ -2656,7 +2636,7 @@ const AgencyWithdrawal = () => {
                       <div className="flex items-center gap-2 text-warning-700 text-sm">
                         <AlertCircle className="w-4 h-4" />
                         <span>
-                          No local Level-5 payment helpers in your country. Using our official <strong>MeriCash / Binance auto-credit</strong> gateway.
+                          No local Level-5 payment helpers in your country. Using our official <strong>MeriCash USDT auto-credit</strong> gateway.
                         </span>
                       </div>
                     </div>
