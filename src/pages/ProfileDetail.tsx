@@ -822,31 +822,34 @@ const ProfileDetail = () => {
         {/* Subtle vignette */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.22) 100%)' }} />
 
-        {/* Slideshow Indicators — slim professional pills */}
+        {/* Slideshow Indicators — compact professional bars */}
         {posterImages.length > 1 && (
-          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-1.5 py-1 rounded-[5px] bg-foreground/15 backdrop-blur-md">
             {posterImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlideIndex(index)}
                 aria-label={`Slide ${index + 1}`}
-                className={`h-1 rounded-full transition-all duration-300 ${
+                className="group grid h-3 w-4 place-items-center"
+              >
+                <span
+                  className={`block h-0.5 rounded-[1px] transition-all duration-200 ${
                   index === currentSlideIndex
-                    ? "w-5 bg-white"
-                    : "w-1 bg-white/50 hover:bg-white/80"
+                    ? "w-3 bg-background"
+                    : "w-1.5 bg-background/45 group-hover:bg-background/75"
                 }`}
-                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.35)' }}
-              />
+                />
+              </button>
             ))}
             <button
               onClick={() => setIsPaused(!isPaused)}
               aria-label={isPaused ? 'Play' : 'Pause'}
-              className="ml-1.5 w-5 h-5 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center shadow-sm"
+              className="ml-0.5 grid h-4 w-5 place-items-center rounded-[4px] bg-background/85 backdrop-blur-md shadow-sm"
             >
               {isPaused ? (
-                <Play className="w-2.5 h-2.5 text-slate-700" />
+                <Play className="w-2.5 h-2.5 text-foreground" />
               ) : (
-                <Pause className="w-2.5 h-2.5 text-slate-700" />
+                <Pause className="w-2.5 h-2.5 text-foreground" />
               )}
             </button>
           </div>
