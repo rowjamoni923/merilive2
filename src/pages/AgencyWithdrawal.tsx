@@ -2145,7 +2145,7 @@ const AgencyWithdrawal = () => {
         setPaymentMethod(availableMethods[0].value);
       }
     }
-  }, [selectedCountry, hasLocalPayrollHelpers]);
+  }, [selectedCountry, hasLocalPayrollHelpers, helperConfiguredMethods]);
 
   const fetchData = async () => {
     try {
