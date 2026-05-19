@@ -36,6 +36,7 @@ import { LiveTeenPattiGame } from "./live-games/LiveTeenPattiGame";
 import { LiveLuckyNumberGame } from "./live-games/LiveLuckyNumberGame";
 import { LiveRocketRaceGame } from "./live-games/LiveRocketRaceGame";
 import { LiveRouletteGame } from "./live-games/LiveRouletteGame";
+import { GameErrorBoundary } from "./GameErrorBoundary";
 import { GameCategoryTabs } from "./GameCategoryTabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
