@@ -6,6 +6,7 @@ import {
   recordSessionEvent,
   setCurrentChannelName,
 } from '@/utils/sessionDebugBus';
+import { navigateInAppPath } from '@/utils/inAppNavigation';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
 const SESSION_CHECK_MIN_INTERVAL_MS = IS_NATIVE ? 20_000 : 60_000;
@@ -289,9 +290,9 @@ export const useSingleDeviceSession = (userId: string | null) => {
         // Fall back to local-only sign out if the global call fails (offline).
         await supabase.auth.signOut({ scope: 'local' });
       });
-      // Hard redirect to /auth on native so any in-memory React state is wiped.
+      // Soft route to auth — never force a WebView/page refresh.
       try {
-        window.location.replace('/auth');
+        navigateInAppPath('/auth', { replace: true });
       } catch { /* noop */ }
     } catch (error) {
       console.error('[SingleDevice] Force logout error:', error);
@@ -328,15 +329,7 @@ export const useSingleDeviceSession = (userId: string | null) => {
       
       if (isLoggingOut.current) return;
 
-      console.log('[SingleDevice] ✅ Starting periodic checks');
-      
-      checkIntervalRef.current = setInterval(async () => {
-        const isValid = await checkSessionValid();
-        if (!isValid) {
-          console.log('[SingleDevice] ❌ This device is OLD — forcing logout');
-          forceLogout();
-        }
-      }, PERIODIC_CHECK_INTERVAL_MS);
+      console.log('[SingleDevice] ✅ Realtime session guard active; periodic polling disabled');
     };
 
     setup();
