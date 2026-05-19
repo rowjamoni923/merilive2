@@ -110,13 +110,32 @@ const getReturnUrl = (): string => {
   return '/';
 };
 
+// Detect slow networks (Save-Data, 2g/3g, downlink<1.5 Mbps).
+// On such networks we skip heavy hero media (e.g. multi-MB GIF / video)
+// and let the CSS gradient stand alone — keeps Auth screen usable on 3G.
+const isSlowNetwork = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  const c: any = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  if (!c) return false;
+  if (c.saveData) return true;
+  if (typeof c.effectiveType === 'string' && /^(slow-2g|2g|3g)$/.test(c.effectiveType)) return true;
+  if (typeof c.downlink === 'number' && c.downlink > 0 && c.downlink < 1.5) return true;
+  return false;
+};
+
 const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
   // INSTANT BACKGROUND: branding is read from localStorage cache + preloaded
   // via useBrandingRealtime on module load, so the asset is already in the
   // browser cache. We render it immediately (no opacity gate, no fade-in).
   // The gradient sits behind as a 0-cost fallback in case the asset is missing.
   const [mediaFailed, setMediaFailed] = useState(false);
-  const showMedia = Boolean(branding.background_url && !mediaFailed);
+  const [slowNet] = useState(() => isSlowNetwork());
+  // GIFs are uncompressed-frame-by-frame heavy (current brand bg = 28 MB).
+  // On slow networks: drop GIF + video entirely. Static image still loads
+  // because Supabase render endpoint serves AVIF/WebP at ~50–150 KB.
+  const isHeavyType = branding.background_type === 'gif' || branding.background_type === 'video';
+  const skipMediaForNet = slowNet && isHeavyType;
+  const showMedia = Boolean(branding.background_url && !mediaFailed && !skipMediaForNet);
 
   useEffect(() => {
     setMediaFailed(false);
@@ -193,7 +212,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           className="absolute inset-0 w-full h-full object-cover"
           decoding="async"
           loading="eager"
-          fetchPriority="high"
+          fetchPriority={branding.background_type === 'gif' ? 'low' : 'high'}
           onError={() => setMediaFailed(true)}
           style={mediaStyle}
         />
