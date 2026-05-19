@@ -128,6 +128,8 @@ const Live = () => {
   // Per-stream Set of active viewer ids → makes ±1 idempotent against
   // repeat realtime packets (INSERT delivered twice, INSERT+UPDATE for same join, etc).
   const activeViewersByStreamRef = useRef<Map<string, Set<string>>>(new Map());
+  const reconnectTimerRef = useRef<number | null>(null);
+  const [rtKey, setRtKey] = useState(0);
 
   useEffect(() => {
     fetchLiveStreams();
@@ -235,17 +237,57 @@ const Live = () => {
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        // Auto-reconnect + full resync on disconnect (CHANNEL_ERROR / TIMED_OUT / CLOSED)
+        if (
+          status === 'CHANNEL_ERROR' ||
+          status === 'TIMED_OUT' ||
+          (status as string) === 'CLOSED'
+        ) {
+          if (reconnectTimerRef.current) return;
+          reconnectTimerRef.current = window.setTimeout(() => {
+            reconnectTimerRef.current = null;
+            // Reset idempotency tracker so post-reconnect counts match server truth
+            activeViewersByStreamRef.current.clear();
+            // Server-authoritative resync of viewer_count for every stream
+            fetchLiveStreams();
+            try { supabase.removeChannel(channel); } catch {}
+            // Force a fresh channel by bumping the re-subscribe key
+            setRtKey((k) => k + 1);
+          }, 1500);
+        } else if (status === 'SUBSCRIBED') {
+          // Fresh subscription → resync to capture anything missed while disconnected
+          activeViewersByStreamRef.current.clear();
+          fetchLiveStreams();
+        }
+      });
 
+
+    // Browser came back online or tab became visible → force resync
+    const handleOnline = () => {
+      activeViewersByStreamRef.current.clear();
+      fetchLiveStreams();
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') handleOnline();
+    };
+    window.addEventListener('online', handleOnline);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     // Zero-refresh: realtime channel is the single source of truth, no polling
     return () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      window.removeEventListener('online', handleOnline);
+      document.removeEventListener('visibilitychange', handleVisibility);
       activeViewersByStreamRef.current.clear();
       supabase.removeChannel(channel);
       cleanupAllPreloaded(); // Disconnect preloaded rooms when leaving Live page
     };
 
-  }, []);
+  }, [rtKey]);
 
   const totalViewers = streams.reduce((acc, stream) => acc + (stream.viewer_count || 0), 0);
 
