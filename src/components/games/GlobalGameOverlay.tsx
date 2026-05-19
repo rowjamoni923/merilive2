@@ -69,17 +69,21 @@ export function GlobalGameOverlay({
           </Button>
         </div>
 
-        {/* Live Game Board - Same for all locations */}
+        {/* Live Game Board - Same for all locations. Wrapped in GameErrorBoundary
+            so a crash inside any game shows a friendly retry card instead of a
+            blank Sheet. */}
         <div className="p-2 overflow-y-auto max-h-[80vh]">
-          <LiveGameBoard 
-            selectedGame={gameId} 
-            roomId={roomId}
-            onClose={() => {
-              setShowGame(false);
-              if (onClose) onClose();
-            }}
-            onOpenGifts={onOpenGifts}
-          />
+          <GameErrorBoundary gameName={gameId}>
+            <LiveGameBoard
+              selectedGame={gameId}
+              roomId={roomId}
+              onClose={() => {
+                setShowGame(false);
+                if (onClose) onClose();
+              }}
+              onOpenGifts={onOpenGifts}
+            />
+          </GameErrorBoundary>
         </div>
       </SheetContent>
     </Sheet>
