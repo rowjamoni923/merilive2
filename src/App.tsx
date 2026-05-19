@@ -166,33 +166,33 @@ const JoinAgency = lazy(lazyRetry(() => import("./pages/JoinAgency")));
 const BecomeSubAgent = lazy(lazyRetry(() => import("./pages/BecomeSubAgent")));
 const HelperDashboard = lazy(lazyRetry(() => import("./pages/HelperDashboard")));
 
-const PayrollHelperGuide = lazy(() => import("./pages/PayrollHelperGuide"));
-const AgencyDetails = lazy(() => import("./pages/AgencyDetails"));
-const AgencyPolicy = lazy(() => import("./pages/AgencyPolicy"));
-const PoliciesAndBenefits = lazy(() => import("./pages/PoliciesAndBenefits"));
-const PublicPolicies = lazy(() => import("./pages/PublicPolicies"));
-const PublicPrivacyPolicy = lazy(() => import("./pages/PublicPrivacyPolicy"));
-const PublicAccountDeletion = lazy(() => import("./pages/PublicAccountDeletion"));
-const PolicyDetail = lazy(() => import("./pages/PolicyDetail"));
-const GoogleLibraryOrderRules = lazy(() => import("./pages/GoogleLibraryOrderRules"));
-const About = lazy(() => import("./pages/About"));
-const PublicContact = lazy(() => import("./pages/PublicContact"));
-const SyncTest = lazy(() => import("./pages/SyncTest"));
-const HostTransferHistory = lazy(() => import("./pages/HostTransferHistory"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const AuthCallback = lazy(() => import("./pages/AuthCallback"));
-const Shop = lazy(() => import("./pages/Shop"));
-const Reels = lazy(() => import("./pages/Reels"));
-const VIP = lazy(() => import("./pages/VIP"));
-const Parcels = lazy(() => import("./pages/Parcels"));
-const PlaceholderPage = lazy(() => import("./components/common/PlaceholderPage"));
+const PayrollHelperGuide = lazy(lazyRetry(() => import("./pages/PayrollHelperGuide")));
+const AgencyDetails = lazy(lazyRetry(() => import("./pages/AgencyDetails")));
+const AgencyPolicy = lazy(lazyRetry(() => import("./pages/AgencyPolicy")));
+const PoliciesAndBenefits = lazy(lazyRetry(() => import("./pages/PoliciesAndBenefits")));
+const PublicPolicies = lazy(lazyRetry(() => import("./pages/PublicPolicies")));
+const PublicPrivacyPolicy = lazy(lazyRetry(() => import("./pages/PublicPrivacyPolicy")));
+const PublicAccountDeletion = lazy(lazyRetry(() => import("./pages/PublicAccountDeletion")));
+const PolicyDetail = lazy(lazyRetry(() => import("./pages/PolicyDetail")));
+const GoogleLibraryOrderRules = lazy(lazyRetry(() => import("./pages/GoogleLibraryOrderRules")));
+const About = lazy(lazyRetry(() => import("./pages/About")));
+const PublicContact = lazy(lazyRetry(() => import("./pages/PublicContact")));
+const SyncTest = lazy(lazyRetry(() => import("./pages/SyncTest")));
+const HostTransferHistory = lazy(lazyRetry(() => import("./pages/HostTransferHistory")));
+const NotFound = lazy(lazyRetry(() => import("./pages/NotFound")));
+const ResetPassword = lazy(lazyRetry(() => import("./pages/ResetPassword")));
+const AuthCallback = lazy(lazyRetry(() => import("./pages/AuthCallback")));
+const Shop = lazy(lazyRetry(() => import("./pages/Shop")));
+const Reels = lazy(lazyRetry(() => import("./pages/Reels")));
+const VIP = lazy(lazyRetry(() => import("./pages/VIP")));
+const Parcels = lazy(lazyRetry(() => import("./pages/Parcels")));
+const PlaceholderPage = lazy(lazyRetry(() => import("./components/common/PlaceholderPage")));
 
 // Games
-const GamesHub = lazy(() => import("./pages/games/GamesHub"));
-const RoulettePage = lazy(() => import("./pages/games/RoulettePage"));
-const FerrisWheelPage = lazy(() => import("./pages/games/FerrisWheelPage"));
-const TeenPattiPage = lazy(() => import("./pages/games/TeenPattiPage"));
+const GamesHub = lazy(lazyRetry(() => import("./pages/games/GamesHub")));
+const RoulettePage = lazy(lazyRetry(() => import("./pages/games/RoulettePage")));
+const FerrisWheelPage = lazy(lazyRetry(() => import("./pages/games/FerrisWheelPage")));
+const TeenPattiPage = lazy(lazyRetry(() => import("./pages/games/TeenPattiPage")));
 
 // Admin Pages - All lazy loaded (with chunk-failure retry)
 const AdminBlueprint = lazy(lazyRetry(() => import("./pages/admin/AdminBlueprint")));
