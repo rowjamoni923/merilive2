@@ -402,13 +402,13 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       
       {/* Animated Frame Layer - SVGA/Lottie */}
       {hasValidFrame && (activeFrameType === 'svga' || activeFrameType === 'lottie') && (
-        <div className="absolute pointer-events-none flex items-center justify-center overflow-visible [&_canvas]:!absolute [&_canvas]:!inset-0 [&_canvas]:!block [&_canvas]:!h-full [&_canvas]:!w-full [&_canvas]:!max-h-full [&_canvas]:!max-w-full" 
+        <div className="absolute pointer-events-none" 
           style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
           <Suspense fallback={null}>
             <UniversalFramePlayer
               src={activeFrameUrl}
               type={activeFrameType as any}
-              className="relative w-full h-full overflow-visible"
+              className="w-full h-full"
               loop={true}
               autoPlay={showAnimation}
               onError={handleFrameError}
