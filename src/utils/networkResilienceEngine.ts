@@ -9,7 +9,6 @@
  * - Zero visible "reconnecting" states
  */
 
-import { forceReconnectChannel, getConnectionStatus } from '@/hooks/useUniversalRealtime';
 import { getAdaptiveNetworkProfile, getConnectionTier } from '@/utils/connectionProfile';
 
 // ============= Connection Quality =============
@@ -100,17 +99,12 @@ const performInstantRecovery = async (reason: 'online' | 'resume' | 'silent-disc
     lastRecoveryAt = Date.now();
     console.log(`[NetworkEngine] ⚡ Instant recovery triggered (${reason})`);
 
-    // 1. Reconnect realtime only when needed
-    const { isConnected } = getConnectionStatus();
-    if (!isConnected || reason === 'online' || reason === 'silent-disconnect') {
-      forceReconnectChannel();
-    }
-
-    // 2. Measure actual latency to classify connection
+    // 1. Measure actual latency to classify connection.
+    // Supabase/native sockets recover themselves; no forced channel rebuild here.
     const latency = await measureLatency();
     updateQuality(classifyQuality(latency));
 
-    // 3. No data/auth refetch here. Realtime + request guards keep state fresh
+    // 2. No data/auth refetch here. Realtime + request guards keep state fresh
     // without any foreground/visibility-triggered refresh storm.
   })().finally(() => {
     recoveryInFlight = null;
@@ -161,6 +155,10 @@ const handleVisibilityChange = () => {
 
 // ============= Periodic Health Check =============
 const startHealthMonitor = () => {
+  // Zero-refresh policy: no app-wide polling/health loop. Network changes are
+  // handled by native/browser online/offline events only.
+  return;
+
   if (networkCheckInterval) return;
 
   const { healthCheckIntervalMs } = getAdaptiveNetworkProfile();
