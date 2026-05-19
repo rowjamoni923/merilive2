@@ -209,6 +209,8 @@ const AgencyDashboard = () => {
   const [pendingHosts, setPendingHosts] = useState<any[]>([]);
   const [approvingHostId, setApprovingHostId] = useState<string | null>(null);
   const [rejectingHostId, setRejectingHostId] = useState<string | null>(null);
+  const agencyIdRef = useRef<string | null>(null);
+  const currentUserIdRef = useRef<string | null>(null);
   
   // Host earnings and agency commission tracking
   const [totalHostEarningsFromTransfers, setTotalHostEarningsFromTransfers] = useState(0);
@@ -223,6 +225,14 @@ const AgencyDashboard = () => {
   const [subAgencyCount, setSubAgencyCount] = useState(0);
   const [subAgencies, setSubAgencies] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    agencyIdRef.current = agency?.id ?? null;
+  }, [agency?.id]);
+
+  useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
   
   // Initialize notification sound
   useEffect(() => {
