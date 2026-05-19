@@ -30,7 +30,7 @@ import {
 import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { sendGameWinNotification } from "@/services/gameWinNotificationService";
 import { stopAllGameSounds } from "@/hooks/useGameSoundManager";
-import { LiveGame3DStage } from "./LiveGame3DStage";
+// LiveGame3DStage removed — 3D visuals now live INSIDE each game (wheel/board) per spec
 import { LiveFerrisWheelGame } from "./live-games/LiveFerrisWheelGame";
 import { LiveTeenPattiGame } from "./live-games/LiveTeenPattiGame";
 import { LiveLuckyNumberGame } from "./live-games/LiveLuckyNumberGame";
@@ -480,13 +480,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
 
   return (
     <div className="live-game-shell w-full rounded-xl overflow-hidden relative z-20 pointer-events-auto">
-      {!isCurrentGameExternal && (
-        <LiveGame3DStage
-          gameId={activeGame || currentGame?.game_id || 'ferris-wheel'}
-          phase={gamePhase}
-          intensity={gamePhase === 'betting' ? 'idle' : 'active'}
-        />
-      )}
+      {/* 3D stage removed — each game renders its own 3D-styled board/wheel inline */}
       {/* Compact Header - HIDDEN for external/iframe games */}
       {!isCurrentGameExternal && (
         <div className="live-game-header flex items-center justify-between p-1.5 border-b border-border/35">
@@ -524,13 +518,13 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
               </motion.div>
             )}
             <div>
-              <h3 className="text-white font-bold text-[10px]">
+              <h3 className="text-white font-bold text-xs leading-tight drop-shadow-sm">
                 {currentGame?.game_name || 'Game'}
               </h3>
-              <div className="flex items-center gap-1 text-[9px]">
-                <span className="text-white/50">R#{currentRound?.round_number || 0}</span>
-                <span className="flex items-center gap-0.5 text-amber-400">
-                  <Users className="w-2 h-2" />
+              <div className="flex items-center gap-1.5 text-[10px] leading-tight">
+                <span className="text-white/80 font-semibold">R#{currentRound?.round_number || 0}</span>
+                <span className="flex items-center gap-0.5 text-amber-300 font-semibold">
+                  <Users className="w-2.5 h-2.5" />
                   {currentRound?.total_players || 0}
                 </span>
               </div>
