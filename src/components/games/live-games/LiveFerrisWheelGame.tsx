@@ -189,7 +189,16 @@ export function LiveFerrisWheelGame({
       }
     }
 
-    // Animate wheel
+    // Compute exact landing rotation so the FIXED top arrow points at the winner.
+    // Item i sits at angle (i*45 - 90) from center → top (-90°) corresponds to item 0.
+    // To land winIndex at the top: rotate by (360 - winIndex*45) mod 360 + N full spins.
+    const ANGLE_PER_ITEM = 360 / WHEEL_ITEMS.length;
+    const fullSpins = 3 + Math.floor(Math.random() * 2);
+    const targetRotation = wheelRotation + (fullSpins * 360) +
+      ((360 - winIndex * ANGLE_PER_ITEM) - (wheelRotation % 360) + 360) % 360;
+    setWheelRotation(targetRotation);
+
+    // Animate wheel (must match motion transition duration below: 5s)
     await new Promise(resolve => setTimeout(resolve, 4000));
     
     sounds.playFerrisWheelStop();
