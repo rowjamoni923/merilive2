@@ -28,8 +28,8 @@ describe("normalizeCountryCode", () => {
     expect(() => normalizeCountryCode({})).toThrow(/INVALID_COUNTRY_TYPE|string/);
   });
   it("throws on malformed code", () => {
-    expect(() => normalizeCountryCode("BAD")).toThrow(/INVALID_COUNTRY_CODE/);
-    expect(() => normalizeCountryCode("B1")).toThrow(/INVALID_COUNTRY_CODE/);
+    expect(() => normalizeCountryCode("BAD")).toThrow(expect.objectContaining({ code: "INVALID_COUNTRY_CODE" }));
+    expect(() => normalizeCountryCode("B1")).toThrow(expect.objectContaining({ code: "INVALID_COUNTRY_CODE" }));
   });
 });
 
@@ -42,10 +42,10 @@ describe("normalizeCountryList", () => {
     expect(normalizeCountryList(["bd", "PH", "", "global"])).toEqual(["BD", "PH", "GLOBAL"]);
   });
   it("throws on non-array input", () => {
-    expect(() => normalizeCountryList("BD")).toThrow(/INVALID_COUNTRY_LIST/);
+    expect(() => normalizeCountryList("BD")).toThrow(expect.objectContaining({ code: "INVALID_COUNTRY_LIST" }));
   });
   it("throws if any entry is malformed (no silent skip)", () => {
-    expect(() => normalizeCountryList(["BD", "BAD"])).toThrow(/INVALID_COUNTRY_CODE/);
+    expect(() => normalizeCountryList(["BD", "BAD"])).toThrow(expect.objectContaining({ code: "INVALID_COUNTRY_CODE" }));
   });
 });
 
@@ -58,12 +58,12 @@ describe("validateGatewayType", () => {
     expect(validateGatewayType("  GCash ")).toBe("gcash");
   });
   it("throws on empty/missing", () => {
-    expect(() => validateGatewayType("")).toThrow(/MISSING_GATEWAY_TYPE/);
-    expect(() => validateGatewayType(null)).toThrow(/MISSING_GATEWAY_TYPE/);
+    expect(() => validateGatewayType("")).toThrow(expect.objectContaining({ code: "MISSING_GATEWAY_TYPE" }));
+    expect(() => validateGatewayType(null)).toThrow(expect.objectContaining({ code: "MISSING_GATEWAY_TYPE" }));
   });
   it("throws on invalid characters (no silent acceptance)", () => {
-    expect(() => validateGatewayType("bkash-pro")).toThrow(/INVALID_GATEWAY_TYPE/);
-    expect(() => validateGatewayType("a")).toThrow(/INVALID_GATEWAY_TYPE/);
+    expect(() => validateGatewayType("bkash-pro")).toThrow(expect.objectContaining({ code: "INVALID_GATEWAY_TYPE" }));
+    expect(() => validateGatewayType("a")).toThrow(expect.objectContaining({ code: "INVALID_GATEWAY_TYPE" }));
   });
 });
 
@@ -92,14 +92,14 @@ describe("normalizeGatewayRow", () => {
     expect(out.config).toEqual({});
   });
   it("throws (NEVER silent) on missing id/name/type", () => {
-    expect(() => normalizeGatewayRow({ ...good, id: "" })).toThrow(/MISSING_GATEWAY_ID/);
-    expect(() => normalizeGatewayRow({ ...good, name: "" })).toThrow(/MISSING_GATEWAY_NAME/);
+    expect(() => normalizeGatewayRow({ ...good, id: "" })).toThrow(expect.objectContaining({ code: "MISSING_GATEWAY_ID" }));
+    expect(() => normalizeGatewayRow({ ...good, name: "" })).toThrow(expect.objectContaining({ code: "MISSING_GATEWAY_NAME" }));
     expect(() => normalizeGatewayRow({ ...good, gateway_type: null, config: {} })).toThrow(
       /MISSING_GATEWAY_TYPE/,
     );
   });
   it("throws on bad country codes inside the row", () => {
-    expect(() => normalizeGatewayRow({ ...good, country_codes: ["BAD"] })).toThrow(/INVALID_COUNTRY_CODE/);
+    expect(() => normalizeGatewayRow({ ...good, country_codes: ["BAD"] })).toThrow(expect.objectContaining({ code: "INVALID_COUNTRY_CODE" }));
   });
 });
 
@@ -138,26 +138,26 @@ describe("assertGatewayMatchesCountry — HARD GUARD before charging", () => {
     expect(() => assertGatewayMatchesCountry(g("wise", ["GLOBAL"]), "JP")).not.toThrow();
   });
   it("throws GATEWAY_COUNTRY_MISMATCH on wrong country", () => {
-    expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), "PH")).toThrow(/GATEWAY_COUNTRY_MISMATCH/);
+    expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), "PH")).toThrow(expect.objectContaining({ code: "GATEWAY_COUNTRY_MISMATCH" }));
   });
   it("throws GATEWAY_HAS_NO_COUNTRY on stale/empty codes", () => {
-    expect(() => assertGatewayMatchesCountry(g("legacy", []), "BD")).toThrow(/GATEWAY_HAS_NO_COUNTRY/);
+    expect(() => assertGatewayMatchesCountry(g("legacy", []), "BD")).toThrow(expect.objectContaining({ code: "GATEWAY_HAS_NO_COUNTRY" }));
   });
   it("throws USER_COUNTRY_UNKNOWN when user country missing and gateway not GLOBAL", () => {
-    expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), null)).toThrow(/USER_COUNTRY_UNKNOWN/);
-    expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), "")).toThrow(/USER_COUNTRY_UNKNOWN/);
+    expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), null)).toThrow(expect.objectContaining({ code: "USER_COUNTRY_UNKNOWN" }));
+    expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), "")).toThrow(expect.objectContaining({ code: "USER_COUNTRY_UNKNOWN" }));
   });
   it("throws MISSING_GATEWAY when no gateway provided", () => {
-    expect(() => assertGatewayMatchesCountry(null as any, "BD")).toThrow(/MISSING_GATEWAY/);
+    expect(() => assertGatewayMatchesCountry(null as any, "BD")).toThrow(expect.objectContaining({ code: "MISSING_GATEWAY" }));
   });
   it("throws MISSING_GATEWAY_TYPE when gateway_type is empty", () => {
     expect(() => assertGatewayMatchesCountry({ id: "g1", gateway_type: "", country_codes: ["BD"] }, "BD"))
-      .toThrow(/MISSING_GATEWAY_TYPE/);
+      .toThrow(expect.objectContaining({ code: "MISSING_GATEWAY_TYPE" }));
   });
   it("normalizes user country casing before matching", () => {
     expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), "bd")).not.toThrow();
   });
   it("throws INVALID_COUNTRY_CODE on user country garbage (never silent fallback)", () => {
-    expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), "BAD")).toThrow(/INVALID_COUNTRY_CODE/);
+    expect(() => assertGatewayMatchesCountry(g("bkash", ["BD"]), "BAD")).toThrow(expect.objectContaining({ code: "INVALID_COUNTRY_CODE" }));
   });
 });
