@@ -21,6 +21,13 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   packages: PkgLite[];
   initialPackageId?: string | null;
+  /** When "helper", skips package picker and tops up a helper's trader wallet. */
+  mode?: "user" | "helper";
+  helperId?: string | null;
+  helperCustomCoins?: number | null;
+  helperCustomPriceUsd?: number | null;
+  /** Called after successful credit so parent can refresh wallet display. */
+  onCredited?: (coins: number) => void;
 }
 
 const CRYPTO_OPTIONS = [
@@ -49,13 +56,28 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   return message;
 };
 
-export default function SwiftPayDepositModal({ open, onOpenChange, packages, initialPackageId }: Props) {
+export default function SwiftPayDepositModal({
+  open,
+  onOpenChange,
+  packages,
+  initialPackageId,
+  mode = "user",
+  helperId = null,
+  helperCustomCoins = null,
+  helperCustomPriceUsd = null,
+  onCredited,
+}: Props) {
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
   const [currency, setCurrency] = useState("usdttrc20");
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
+
+  // Helper mode synthesises a "package" from custom amounts
+  const helperPkg: PkgLite | null = mode === "helper" && helperCustomCoins && helperCustomPriceUsd
+    ? { id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" }
+    : null;
 
   useEffect(() => {
     if (!open) {
@@ -66,7 +88,11 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
       setCreating(false);
       return;
     }
-    // If caller pre-selected a package, jump straight to currency picker
+    if (mode === "helper" && helperPkg) {
+      setPkg(helperPkg);
+      setStep("pick_currency");
+      return;
+    }
     if (initialPackageId) {
       const pre = packages.find((p) => p.id === initialPackageId);
       if (pre) {
@@ -74,17 +100,26 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
         setStep("pick_currency");
       }
     }
-  }, [open, initialPackageId, packages]);
+  }, [open, initialPackageId, packages, mode, helperPkg]);
 
   const createDeposit = useCallback(async () => {
     if (!pkg) return;
     setCreating(true);
     try {
+      const requestBody: Record<string, unknown> = { pay_currency: currency };
+      if (mode === "helper" && helperId && helperCustomCoins && helperCustomPriceUsd) {
+        requestBody.target = "helper_wallet";
+        requestBody.helper_id = helperId;
+        requestBody.custom_coins = helperCustomCoins;
+        requestBody.custom_price_usd = helperCustomPriceUsd;
+      } else {
+        requestBody.package_id = pkg.id;
+      }
+
       const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
-        body: { package_id: pkg.id, pay_currency: currency },
+        body: requestBody,
       });
 
-      // supabase.functions.invoke puts the response body on error.context for non-2xx
       let errMsg: string | null = null;
       if (error) {
         try {
@@ -115,7 +150,7 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
     } finally {
       setCreating(false);
     }
-  }, [pkg, currency, toast]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd]);
 
   // Poll for credit status
   useEffect(() => {
@@ -131,9 +166,12 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
       if (data?.status === "credited") {
         setStep("done");
         toast({
-          title: "✅ Diamonds credited!",
-          description: `${fmt(deposit.coins_amount)} diamonds added to your balance.`,
+          title: mode === "helper" ? "✅ Trader Wallet topped up!" : "✅ Diamonds credited!",
+          description: mode === "helper"
+            ? `${fmt(deposit.coins_amount)} diamonds added to your Trader Wallet.`
+            : `${fmt(deposit.coins_amount)} diamonds added to your balance.`,
         });
+        onCredited?.(deposit.coins_amount);
       } else {
         supabase.functions.invoke("swift-pay-poll-deposits", {
           body: { topup_id: deposit.topup_id },
@@ -161,7 +199,9 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
             <Sparkles className="w-5 h-5" /> MeriCash — Crypto Auto-Credit
           </DialogTitle>
           <DialogDescription className="text-amber-100/70 text-xs">
-            Pay with crypto, diamonds credit automatically on blockchain confirmation.
+            {mode === "helper"
+              ? "Pay with crypto, diamonds credit automatically to your Trader Wallet on blockchain confirmation."
+              : "Pay with crypto, diamonds credit automatically on blockchain confirmation."}
           </DialogDescription>
         </DialogHeader>
 
@@ -186,9 +226,11 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
 
         {step === "pick_currency" && pkg && (
           <div className="space-y-4">
-            <button onClick={() => setStep("pick_pkg")} className="flex items-center gap-1 text-xs text-amber-200/80 hover:text-amber-200">
-              <ChevronLeft className="w-3 h-3" /> Back
-            </button>
+            {mode !== "helper" && (
+              <button onClick={() => setStep("pick_pkg")} className="flex items-center gap-1 text-xs text-amber-200/80 hover:text-amber-200">
+                <ChevronLeft className="w-3 h-3" /> Back
+              </button>
+            )}
             <div className="rounded-lg bg-slate-800/60 border border-amber-500/30 p-3">
               <p className="text-2xl font-black text-amber-200">{fmt(pkg.coins)} <span className="text-xs">diamonds</span></p>
               <p className="text-sm text-amber-100/80">${pkg.price_usd.toFixed(2)} USD</p>
@@ -253,7 +295,7 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
             <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
             <p className="text-lg font-bold text-emerald-300">Payment received!</p>
             <p className="text-sm text-amber-100/80">
-              {fmt(deposit.coins_amount)} diamonds added to your balance.
+              {fmt(deposit.coins_amount)} diamonds added to your {mode === "helper" ? "Trader Wallet" : "balance"}.
             </p>
             <Button onClick={() => onOpenChange(false)} className="w-full">Done</Button>
           </div>

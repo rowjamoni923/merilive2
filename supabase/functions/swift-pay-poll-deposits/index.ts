@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
   // Build the candidate list
   let query = admin
     .from("swift_pay_topups")
-    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, created_at")
+    .select("id, user_id, external_user_id, coins_amount, price_usd, payment_id, status, target_type, target_helper_id, created_at")
     .in("status", ["pending", "paid"])
     .order("created_at", { ascending: true })
     .limit(50);
@@ -71,7 +71,6 @@ Deno.serve(async (req) => {
   if (pErr) return json({ error: pErr.message }, 500);
   if (!pending || pending.length === 0) return json({ checked: 0, credited: 0 });
 
-  // Cache Swift Pay balances per external_user_id to minimise API calls
   const balanceCache = new Map<string, { balance: number; total_deposited: number }>();
   let credited = 0;
   const results: any[] = [];
@@ -90,7 +89,6 @@ Deno.serve(async (req) => {
         if (!balRes.ok || !balBody) {
           await admin.from("swift_pay_topups").update({
             last_polled_at: new Date().toISOString(),
-            poll_attempts: (await admin.from("swift_pay_topups").select("poll_attempts").eq("id", row.id).maybeSingle()).data?.poll_attempts ?? 0,
           }).eq("id", row.id);
           results.push({ id: row.id, skipped: "balance_unavailable", status: balRes.status });
           continue;
@@ -103,18 +101,17 @@ Deno.serve(async (req) => {
       }
 
       const expectedUsd = Number(row.price_usd);
-      // Sum of all other (already-credited or in-flight) topups for this user
+      // Scope prior sum by external_user_id (uniquely identifies Swift Pay sub-account
+      // — separate sub-account per user-diamonds vs per-helper-wallet).
       const { data: prior } = await admin
         .from("swift_pay_topups")
         .select("price_usd, status")
-        .eq("user_id", row.user_id)
+        .eq("external_user_id", row.external_user_id)
         .neq("id", row.id);
       const usedUsd = (prior ?? [])
         .filter((p: any) => ["paid", "credited"].includes(p.status))
         .reduce((s: number, p: any) => s + Number(p.price_usd || 0), 0);
 
-      // Has the user's lifetime deposit total covered ALL of their topups
-      // (prior credited + this one)? If yes, this row is paid.
       const isPaid = bal.total_deposited >= usedUsd + expectedUsd - 0.01;
       if (!isPaid) {
         await admin.from("swift_pay_topups").update({
@@ -131,16 +128,32 @@ Deno.serve(async (req) => {
         last_polled_at: new Date().toISOString(),
       }).eq("id", row.id).eq("status", "pending");
 
-      // Credit MeriLive diamonds (idempotent via payment_reference inside safe_credit_diamonds)
-      const { data: creditRes, error: creditErr } = await admin.rpc("safe_credit_diamonds", {
-        p_user_id: row.user_id,
-        p_amount: row.coins_amount,
-        p_gateway: "swift_pay",
-        p_order_id: row.id,
-        p_transaction_id: row.payment_id ?? row.id,
-        p_amount_usd: expectedUsd,
-        p_metadata: { source: "swift_pay_gateway", external_user_id: row.external_user_id },
-      });
+      // Route credit by target_type
+      const targetType = (row as any).target_type ?? "user_diamond";
+      let creditErr: any = null;
+      let creditRes: any = null;
+
+      if (targetType === "helper_wallet" && (row as any).target_helper_id) {
+        const { data, error } = await admin.rpc("credit_helper_wallet_from_swift_pay", {
+          p_helper_id: (row as any).target_helper_id,
+          p_diamonds: row.coins_amount,
+          p_topup_id: row.id,
+        });
+        creditErr = error;
+        creditRes = data;
+      } else {
+        const { data, error } = await admin.rpc("safe_credit_diamonds", {
+          p_user_id: row.user_id,
+          p_amount: row.coins_amount,
+          p_gateway: "swift_pay",
+          p_order_id: row.id,
+          p_transaction_id: row.payment_id ?? row.id,
+          p_amount_usd: expectedUsd,
+          p_metadata: { source: "swift_pay_gateway", external_user_id: row.external_user_id },
+        });
+        creditErr = error;
+        creditRes = data;
+      }
 
       if (creditErr) {
         await admin.from("swift_pay_topups").update({
@@ -157,7 +170,7 @@ Deno.serve(async (req) => {
       }).eq("id", row.id);
 
       credited++;
-      results.push({ id: row.id, credited: true, coins: row.coins_amount, result: creditRes });
+      results.push({ id: row.id, credited: true, coins: row.coins_amount, target: targetType, result: creditRes });
     } catch (e) {
       console.error("[swift-pay-poll-deposits] row error", row.id, e);
       results.push({ id: row.id, error: (e as Error).message });

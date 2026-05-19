@@ -56,36 +56,70 @@ Deno.serve(async (req) => {
     if (userErr || !user) return json({ error: "unauthorized" }, 401);
 
     const body = await req.json().catch(() => null) as
-      | { package_id?: string; pay_currency?: string }
+      | {
+          package_id?: string;
+          pay_currency?: string;
+          target?: "user_diamond" | "helper_wallet";
+          helper_id?: string;
+          custom_coins?: number;
+          custom_price_usd?: number;
+        }
       | null;
-    if (!body?.package_id || !body?.pay_currency) {
-      return json({ error: "package_id and pay_currency are required" }, 400);
+    if (!body?.pay_currency) {
+      return json({ error: "pay_currency is required" }, 400);
     }
     const payCurrency = String(body.pay_currency).toLowerCase().trim();
     if (!/^[a-z0-9_]{2,20}$/.test(payCurrency)) {
       return json({ error: "invalid pay_currency" }, 400);
     }
 
+    const target = body.target === "helper_wallet" ? "helper_wallet" : "user_diamond";
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Resolve the diamond package the user picked
-    const { data: pkg, error: pkgErr } = await admin
-      .from("coin_packages")
-      .select("id, coins_amount, bonus_coins, price_usd, is_active")
-      .eq("id", body.package_id)
-      .maybeSingle();
-    if (pkgErr || !pkg || !pkg.is_active) {
-      return json({ error: "package_not_found" }, 404);
-    }
-    const totalCoins = (pkg.coins_amount ?? 0) + (pkg.bonus_coins ?? 0);
-    const priceUsd = Number(pkg.price_usd);
-    if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
-      return json({ error: "invalid_package_price" }, 500);
+    let totalCoins = 0;
+    let priceUsd = 0;
+    let packageId: string | null = null;
+    let targetHelperId: string | null = null;
+    let externalUserId = `merilive_${user.id}`;
+
+    if (target === "helper_wallet") {
+      if (!body.helper_id || !body.custom_coins || !body.custom_price_usd) {
+        return json({ error: "helper_id, custom_coins, custom_price_usd are required" }, 400);
+      }
+      const { data: helper, error: hErr } = await admin
+        .from("topup_helpers")
+        .select("id, user_id, is_active")
+        .eq("id", body.helper_id)
+        .maybeSingle();
+      if (hErr || !helper) return json({ error: "helper_not_found" }, 404);
+      if (helper.user_id !== user.id) return json({ error: "forbidden" }, 403);
+      if (helper.is_active === false) return json({ error: "helper_inactive" }, 400);
+
+      totalCoins = Math.floor(Number(body.custom_coins));
+      priceUsd = Number(body.custom_price_usd);
+      if (!Number.isFinite(totalCoins) || totalCoins <= 0) return json({ error: "invalid_custom_coins" }, 400);
+      if (!Number.isFinite(priceUsd) || priceUsd <= 0) return json({ error: "invalid_custom_price_usd" }, 400);
+      targetHelperId = helper.id;
+      // Isolated Swift Pay sub-account per helper
+      externalUserId = `merilive_helper_${helper.id}`;
+    } else {
+      if (!body.package_id) return json({ error: "package_id is required" }, 400);
+      const { data: pkg, error: pkgErr } = await admin
+        .from("coin_packages")
+        .select("id, coins_amount, bonus_coins, price_usd, is_active")
+        .eq("id", body.package_id)
+        .maybeSingle();
+      if (pkgErr || !pkg || !pkg.is_active) {
+        return json({ error: "package_not_found" }, 404);
+      }
+      totalCoins = (pkg.coins_amount ?? 0) + (pkg.bonus_coins ?? 0);
+      priceUsd = Number(pkg.price_usd);
+      if (!Number.isFinite(priceUsd) || priceUsd <= 0) {
+        return json({ error: "invalid_package_price" }, 500);
+      }
+      packageId = pkg.id;
     }
 
-    // Stable external_user_id so all of this user's deposits share one
-    // Swift Pay sub-account (one balance ledger we can poll).
-    const externalUserId = `merilive_${user.id}`;
     const idempotencyKey = crypto.randomUUID();
 
     // Call Swift Pay: create deposit
@@ -115,16 +149,12 @@ Deno.serve(async (req) => {
       const gatewayMessage = gatewayErrorMessage(depositBody);
       console.error("[swift-pay-create-deposit] gateway error", depositRes.status, depositBody);
 
-      // NOWPayments rejects small packages before it can create an address. This is
-      // an expected business validation, not an edge-function outage; return a
-      // structured success transport response so the app shows a normal message
-      // instead of Lovable/Supabase treating it as a 502 runtime failure.
       if (isGatewayMinimumAmountError(gatewayMessage)) {
         return json({
           ok: false,
           error: "minimum_deposit_not_met",
           fallback: true,
-          message: "This crypto network requires a larger deposit amount. Please choose a bigger diamond package and try again.",
+          message: "This crypto network requires a larger deposit amount. Please choose a bigger amount and try again.",
           gateway_status: depositRes.status,
           details: depositBody,
         });
@@ -140,12 +170,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Persist pending top-up
     const { data: row, error: insErr } = await admin
       .from("swift_pay_topups")
       .insert({
         user_id: user.id,
-        package_id: pkg.id,
+        package_id: packageId,
         coins_amount: totalCoins,
         price_usd: priceUsd,
         pay_currency: payCurrency,
@@ -158,6 +187,8 @@ Deno.serve(async (req) => {
         expires_at: depositBody?.expires_at ?? null,
         raw_payload: depositBody,
         status: "pending",
+        target_type: target,
+        target_helper_id: targetHelperId,
       })
       .select("id, pay_address, pay_amount, pay_currency, pay_network, expires_at, status")
       .single();

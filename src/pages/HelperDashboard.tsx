@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
 import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
+import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 import { recordClientError } from "@/utils/clientErrorLog";
 
 interface TraderLevel {
@@ -96,6 +97,7 @@ const HelperDashboard = () => {
   const [processing, setProcessing] = useState(false);
   const [userFaceVerified, setUserFaceVerified] = useState(false);
   const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
+  const [showCryptoTopupModal, setShowCryptoTopupModal] = useState(false);
   
   // Real-time level progress hook
   const { 
@@ -1619,222 +1621,64 @@ const HelperDashboard = () => {
                   </div>
                 )}
 
-                <div>
-                  <Label className="text-slate-800 text-sm">Payment Method</Label>
-                  {paymentMethods.length > 0 ? (
-                    <>
-                      <div className="grid grid-cols-2 gap-2 mt-1">
-                        {paymentMethods.map((method) => {
-                          const getMethodIcon = (type: string) => {
-                            const lower = type.toLowerCase();
-                            if (lower.includes('binance') || lower.includes('crypto')) return '🟡';
-                            if (lower.includes('epay') || lower.includes('ewallet')) return '💚';
-                            if (lower.includes('bank')) return '🏦';
-                            return '💳';
-                          };
-                          
-                          return (
-                            <button
-                              key={method.id}
-                              onClick={() => {
-                                setTopupPaymentMethod(method.method_name);
-                                setSelectedPaymentMethod(method);
-                              }}
-                              className={cn(
-                                "p-3 rounded-lg border text-sm transition-all flex items-center gap-2",
-                                topupPaymentMethod === method.method_name
- ?"bg-emerald-500 border-emerald-400 text-slate-900"
-                                  : "bg-slate-200 border-slate-300 text-slate-500 hover:border-emerald-500"
-                              )}
-                            >
-                              {method.logo_url ? (
-                                <img src={method.logo_url} alt={method.method_name} className="w-6 h-6 rounded object-contain bg-amber-50/80" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                              ) : (
-                                <span className="text-lg">{getMethodIcon(method.method_type)}</span>
-                              )}
-                              <span>{method.method_name}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      
-                      {/* Show selected payment method details with Copy buttons */}
-                      {selectedPaymentMethod && (
-                        <div className="mt-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                          <p className="text-emerald-700 font-semibold text-sm mb-3">{selectedPaymentMethod.method_name}</p>
-                          
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-slate-600 text-xs">Account Name:</span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-slate-800 text-sm">{selectedPaymentMethod.account_name}</span>
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(selectedPaymentMethod.account_name);
-                                    toast({ title: "Copied! ✅", description: "Account name copied" });
-                                  }}
-                                  className="p-1.5 rounded bg-emerald-100 hover:bg-emerald-500/30 transition-colors"
-                                >
-                                  <Copy className="w-3.5 h-3.5 text-emerald-700" />
-                                </button>
-                              </div>
-                            </div>
-                            
-                            <div className="flex justify-between items-center">
-                              <span className="text-slate-600 text-xs">ID/Number:</span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-emerald-700 font-mono text-sm">{selectedPaymentMethod.account_number}</span>
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(selectedPaymentMethod.account_number);
-                                    toast({ title: "Copied! ✅", description: "Account ID/Number copied" });
-                                  }}
-                                  className="p-1.5 rounded bg-emerald-100 hover:bg-emerald-500/30 transition-colors"
-                                >
-                                  <Copy className="w-3.5 h-3.5 text-emerald-700" />
-                                </button>
-                              </div>
-                            </div>
-                            
-                            {selectedPaymentMethod.bank_name && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-slate-600 text-xs">Bank:</span>
-                                <span className="text-slate-500 text-sm">{selectedPaymentMethod.bank_name}</span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {selectedPaymentMethod.instructions && (
-                            <p className="text-slate-600 text-xs mt-3 italic border-t border-emerald-500/20 pt-2">
-                              {selectedPaymentMethod.instructions}
-                            </p>
-                          )}
-                          
-                          {/* Copy All Button */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const text = `${selectedPaymentMethod.method_name}\nAccount: ${selectedPaymentMethod.account_name}\nID/Number: ${selectedPaymentMethod.account_number}${selectedPaymentMethod.bank_name ? `\nBank: ${selectedPaymentMethod.bank_name}` : ''}${selectedPaymentMethod.instructions ? `\nInstructions: ${selectedPaymentMethod.instructions}` : ''}`;
-                              navigator.clipboard.writeText(text);
-                              toast({ title: "All details copied! ✅", description: "Payment details copied to clipboard" });
-                            }}
-                            className="w-full mt-3 border-emerald-500/50 text-emerald-700 hover:bg-emerald-100"
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy All Details
-                          </Button>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="mt-2 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-center">
-                      <p className="text-amber-700 text-sm font-medium">⚠️ No payment methods available</p>
-                      <p className="text-slate-600 text-xs mt-1">Please contact admin to configure payment methods</p>
-                    </div>
-                  )}
+                {/* Auto Crypto Gateway (replaces Binance/ePay manual flow) */}
+                <div className="rounded-xl border border-amber-300/60 bg-gradient-to-br from-amber-50 to-yellow-50 p-3">
+                  <p className="text-amber-800 text-xs font-semibold mb-1">⚡ Instant Auto Top-Up</p>
+                  <p className="text-slate-600 text-[11px] mb-2">
+                    Pay with USDT / BTC / BNB / ETH — diamonds credit to your Trader Wallet automatically on blockchain confirmation. No proof upload, no admin wait.
+                  </p>
                 </div>
-
-                <div>
-                  <Label className="text-slate-800 text-sm">
-                    Transaction ID <span className="text-red-700">*</span>
-                  </Label>
-                  <Input
-                    placeholder="Enter transaction ID (Required)"
-                    value={topupTransactionId}
-                    onChange={(e) => setTopupTransactionId(e.target.value)}
-                    className={cn(
-                      "bg-white border-slate-300 text-slate-800 mt-1",
-                      !topupTransactionId.trim() && topupAmount ? "border-red-500/50" : ""
-                    )}
-                  />
-                  {!topupTransactionId.trim() && topupAmount && (
-                    <p className="text-red-700 text-xs mt-1">Transaction ID is required</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label className="text-slate-800 text-sm">
-                    Payment Screenshot <span className="text-red-700">*</span>
-                  </Label>
-                  <div className="mt-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setTopupProof(e.target.files?.[0] || null)}
-                      className="hidden"
-                      id="topup-proof"
-                    />
-                    <label
-                      htmlFor="topup-proof"
-                      className={cn(
-                        "flex items-center gap-2 p-3 rounded-lg border border-dashed cursor-pointer hover:bg-slate-200",
-                        !topupProof && topupAmount 
-                          ? "border-red-500/50 bg-red-500/10" 
-                          : "border-slate-300 bg-slate-100"
-                      )}
-                    >
-                      <Upload className={cn("w-5 h-5", topupProof ? "text-emerald-700" : "text-slate-600")} />
-                      <span className={cn("text-sm", topupProof ? "text-emerald-700" : "text-slate-600")}>
-                        {topupProof ? `✓ ${topupProof.name}` : "Upload payment proof (Required)"}
-                      </span>
-                    </label>
-                    {!topupProof && topupAmount && (
-                      <p className="text-red-700 text-xs mt-1">Payment screenshot is required</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-slate-800 text-sm">Note (Optional)</Label>
-                  <Textarea
-                    placeholder="Any additional details..."
-                    value={topupNote}
-                    onChange={(e) => setTopupNote(e.target.value)}
-                    className="bg-white border-slate-300 text-slate-800 mt-1"
-                    rows={2}
-                  />
-                </div>
-
-                {/* Validation Summary */}
-                {(selectedDiamondPackage || (customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000)) && (
-                  <div className={cn(
-                    "p-3 rounded-lg border",
-                    validatePaymentInfo().valid 
-                      ? "bg-emerald-500/10 border-emerald-500/30" 
-                      : "bg-amber-500/10 border-amber-500/30"
-                  )}>
-                    <p className={cn(
-                      "text-xs font-medium",
-                      validatePaymentInfo().valid ? "text-emerald-700" : "text-amber-700"
-                    )}>
-                      {validatePaymentInfo().valid 
-                        ? "✓ All required information provided" 
-                        : `⚠ ${validatePaymentInfo().message}`}
-                    </p>
-                  </div>
-                )}
 
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setShowTopupForm(false)}
                     className="flex-1 border-slate-300 text-slate-500"
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    onClick={handleManualTopup}
-                    disabled={processing || !validatePaymentInfo().valid}
-                    className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500"
+                  <Button
+                    onClick={() => {
+                      const coins = selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0;
+                      if (!coins || coins < 500000) {
+                        toast({ title: "Select amount", description: "Choose a package or enter a custom amount (min 5,00,000)", variant: "destructive" });
+                        return;
+                      }
+                      if (!helperId) {
+                        toast({ title: "Helper not loaded", description: "Please refresh the page", variant: "destructive" });
+                        return;
+                      }
+                      setShowCryptoTopupModal(true);
+                    }}
+                    disabled={!(selectedDiamondPackage || (customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000))}
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 font-bold"
                   >
-                    {processing ? "Submitting..." : "Submit Request"}
+                    ⚡ Pay with Crypto
                   </Button>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Crypto Auto Top-Up Modal (helper trader wallet mode) */}
+        {helperId && (
+          <SwiftPayDepositModal
+            open={showCryptoTopupModal}
+            onOpenChange={setShowCryptoTopupModal}
+            packages={[]}
+            mode="helper"
+            helperId={helperId}
+            helperCustomCoins={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
+            helperCustomPriceUsd={Number(calculateUSD(selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0).toFixed(2))}
+            onCredited={(coins) => {
+              setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins } : prev);
+              setShowTopupForm(false);
+              setSelectedDiamondPackage(null);
+              setCustomDiamondAmount('');
+            }}
+          />
+        )}
 
         {/* Trader Levels */}
         <Card className="bg-white border-amber-200/60 shadow-sm">
