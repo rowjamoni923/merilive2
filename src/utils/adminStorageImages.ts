@@ -17,10 +17,11 @@ export interface AdminStoragePath {
   path: string;
 }
 const PRIVATE_STORAGE_BUCKETS = new Set([
-  'face-verification', 'host-verification', 'payment-proofs', 'payment-screenshots',
-  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings', 'chat-media',
+  'payment-proofs', 'payment-screenshots',
+  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
 ]);
-const PUBLIC_VERIFICATION_BUCKETS = new Set(['face-verification', 'host-verification']);
+// face-verification, host-verification and chat-media are public buckets — serve direct public URL.
+const PUBLIC_VERIFICATION_BUCKETS = new Set(['face-verification', 'host-verification', 'chat-media']);
 const KNOWN_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'avatars', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
@@ -177,14 +178,11 @@ const publicStorageObjectExists = async (url: string) => {
   return exists;
 };
 
-const resolvePublicVerificationUrl = async (storagePath: AdminStoragePath, rawValue: string, defaultBucket?: string) => {
+const resolvePublicVerificationUrl = async (storagePath: AdminStoragePath, _rawValue: string, _defaultBucket?: string) => {
   if (!PUBLIC_VERIFICATION_BUCKETS.has(storagePath.bucket)) return null;
-  const publicUrl = getPublicStorageUrl(storagePath);
-  // Face/host verification buckets are frequently private while rows still store
-  // Supabase public-style URLs. Never trust the URL shape alone; only use public
-  // URLs when the object is actually publicly reachable, otherwise fall through
-  // to admin signing/download so videos and photos render in review screens.
-  return (await publicStorageObjectExists(publicUrl)) ? publicUrl : null;
+  // Bucket is public — return direct URL. No HEAD probe (it was freezing the
+  // admin page when many tiles loaded at once), no signing, no blob download.
+  return getPublicStorageUrl(storagePath);
 };
 
 const usefulMimeType = (type?: string | null) => {
@@ -377,28 +375,11 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
   if (!candidates.length) return value;
 
   for (const candidate of candidates) {
-    // Verification videos often arrive with inconsistent public/private URL
-    // shape or storage Content-Type. Download through the admin signer first so
-    // the edge function can sniff bytes and return a correctly typed blob URL.
-    if (
-      (candidate.bucket === "face-verification" || candidate.bucket === "host-verification")
-      && shouldStreamSignedStoragePath(candidate)
-    ) {
-      const downloaded = await downloadAdminStoragePathAsObjectUrl(candidate);
-      if (downloaded) return downloaded;
-    }
-
+    // Public verification buckets → direct public URL, no signing, no probe.
     const publicUrl = await resolvePublicVerificationUrl(candidate, raw, defaultBucket);
     if (publicUrl) return publicUrl;
 
-    if (
-      (candidate.bucket === "face-verification" || candidate.bucket === "host-verification")
-      && shouldDownloadPrivateImageFirst(candidate)
-    ) {
-      const downloaded = await downloadAdminStoragePathAsObjectUrl(candidate);
-      if (downloaded) return downloaded;
-    }
-
+    // Private buckets still go through the admin signer.
     const signed = await signAdminStoragePath(candidate);
     if (signed) return signed;
   }
