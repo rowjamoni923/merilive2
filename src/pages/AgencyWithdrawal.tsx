@@ -1788,9 +1788,10 @@ const AgencyWithdrawal = () => {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_EXCHANGE_RATES);
   const [hasLocalPayrollHelpers, setHasLocalPayrollHelpers] = useState<boolean | null>(null);
   const [countriesWithHelpers, setCountriesWithHelpers] = useState<string[]>([]);
-  // Auto Withdrawal Fee (admin-configurable, flat USD) — applies to MeriCash / Binance / USDT / Crypto auto methods
-  const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; enabled: boolean; methods: string[] }>({
+  // Auto Withdrawal Fee (admin-configurable: flat USD + percent of USD) — applies to MeriCash / Binance / USDT / Crypto auto methods
+  const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number; percent: number; enabled: boolean; methods: string[] }>({
     flat_usd: 2,
+    percent: 0,
     enabled: true,
     methods: ['usdt', 'crypto_auto'],
   });
@@ -1854,9 +1855,12 @@ const AgencyWithdrawal = () => {
     const localAmount = localAmountOverride !== undefined ? localAmountOverride : parseFloat(amount || '0');
     const beansAmount = localToBeans(localAmount);
 
-    // Auto method override (admin-controlled flat USD)
+    // Auto method override (admin-controlled: flat USD + percent of USD)
     if (isAutoMethod()) {
-      return Math.max(0, Number(autoWithdrawalFee.flat_usd) || 0);
+      const usdAmount = localToUsd(localAmount);
+      const flat = Math.max(0, Number(autoWithdrawalFee.flat_usd) || 0);
+      const pct = Math.max(0, Number(autoWithdrawalFee.percent) || 0);
+      return flat + (usdAmount * pct) / 100;
     }
 
     // Below free limit = no fee
@@ -2196,6 +2200,7 @@ const AgencyWithdrawal = () => {
           : awfData.setting_value;
         setAutoWithdrawalFee({
           flat_usd: typeof awf.flat_usd === 'number' ? awf.flat_usd : 2,
+          percent: typeof awf.percent === 'number' ? awf.percent : 0,
           enabled: awf.enabled !== false,
           methods: Array.isArray(awf.methods) && awf.methods.length > 0
             ? awf.methods.map((m: string) => m.toLowerCase()).filter((m: string) => m !== 'epay')
@@ -2613,7 +2618,11 @@ const AgencyWithdrawal = () => {
                         <Globe className="w-4 h-4" />
                         <span>
                           <strong>MeriCash (USDT Auto-Credit):</strong>{' '}
-                          Funds are credited automatically to your wallet via our payment gateway. Flat fee: <strong>${autoWithdrawalFee.flat_usd}</strong>.
+                          Funds are credited automatically to your wallet via our payment gateway. Fee:{' '}
+                          <strong>
+                            ${autoWithdrawalFee.flat_usd}
+                            {autoWithdrawalFee.percent > 0 && <> + {autoWithdrawalFee.percent}%</>}
+                          </strong>.
                         </span>
                       </div>
                     </div>
