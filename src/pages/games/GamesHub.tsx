@@ -202,13 +202,19 @@ export default function GamesHub() {
                         <Star className="w-3 h-3 text-yellow-900" fill="currentColor" />
                       </div>
 
-                      {game.logo_url && (
-                        <img
-                          src={getProxiedUrl(game.logo_url)}
-                          alt={game.game_name}
-                          className="absolute top-2 left-2 w-10 h-10 rounded-lg object-cover"
-                        />
-                      )}
+                      {(() => {
+                        const logo = resolveGameLogo(game);
+                        return logo ? (
+                          <img
+                            src={logo}
+                            alt={game.game_name}
+                            loading="lazy"
+                            width={40}
+                            height={40}
+                            className="absolute top-2 left-2 w-10 h-10 rounded-lg object-contain bg-white/10 backdrop-blur-sm p-1"
+                          />
+                        ) : null;
+                      })()}
 
                       <div className="relative z-10 h-full flex flex-col justify-end text-left">
                         <span className="text-3xl mb-1">{game.game_emoji}</span>
