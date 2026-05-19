@@ -1,6 +1,11 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer, { type AnimationType, detectAnimationType } from './UniversalAnimationPlayer';
+import {
+  isAnimationDebugEnabled,
+  logAnimationCompletion,
+  type AnimationCompletionSource,
+} from '@/utils/animationDebug';
 
 const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
 
