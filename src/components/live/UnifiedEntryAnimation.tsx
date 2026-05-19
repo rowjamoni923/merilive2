@@ -12,8 +12,7 @@ import React, { useEffect, useState, useMemo, useCallback, memo, forwardRef, use
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 export interface EntryAnimation {
   id: string;
   userId: string;
@@ -214,15 +213,17 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
               transformOrigin: 'center center',
             }}
           >
-            <SVGAPlayerWithAudio
+            <FixedAnimationFrame
               src={displayAnimationUrl}
+              size="fill"
+              type="svga"
               loop={false}
-              autoPlay={true}
+              muted={false}
               volume={soundPlayedRef.current ? 0 : 0.8}
               soundUrl={soundPlayedRef.current ? null : (entry.soundUrl ?? null)}
               onComplete={handleAnimationComplete}
               onError={handleSvgaError}
-              className="w-full h-full"
+              center={false}
             />
           </div>
         </motion.div>
@@ -257,14 +258,14 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
             transformOrigin: 'center center',
           }}
         >
-          <UniversalAnimationPlayer
+          <FixedAnimationFrame
             src={displayAnimationUrl}
-            className="w-full h-full"
+            size="fill"
             loop={animationType === 'image'}
-            autoPlay={true}
             muted={false}
             onComplete={handleAnimationComplete}
             onError={() => handleAnimationComplete()}
+            center={false}
           />
         </div>
       </motion.div>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { InlineLevelBadge, LevelBadge } from "@/components/common/LevelBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 interface EntranceUser {
   id: string;
@@ -182,11 +182,14 @@ const CustomEntranceNotification = ({ user, animationUrl }: { user: EntranceUser
       >
         {/* Full-screen animation layer */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <UniversalAnimationPlayer
+          <FixedAnimationFrame
             src={animationUrl}
-            className="w-full h-full max-w-md max-h-96 object-contain"
+            width="100%"
+            height="100%"
+            className="max-w-md max-h-96 object-contain"
             loop={false}
-            autoPlay
+            muted={false}
+            center={false}
           />
         </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -45,7 +46,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import SVGAPreviewWithMuteToggle from "@/components/admin/SVGAPreviewWithMuteToggle";
-import { UniversalAnimationPlayer } from "@/features/shared/animations";
+
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { LazyImage } from "@/components/LazyImage";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -874,11 +875,11 @@ const AdminShop = () => {
                           showMuteButton={true}
                         />
                       ) : formData.file_type === 'lottie' ? (
-                        <UniversalAnimationPlayer 
-                          src={previewFile} 
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
+                        <FixedAnimationFrame
+                          src={previewFile}
+                          size="fill"
+                          center={false}
+                          loop
                         />
                       ) : formData.file_type === 'video' ? (
                         <video src={previewFile} className="w-full h-full object-contain" controls autoPlay muted loop />
@@ -1232,11 +1233,9 @@ const AdminShop = () => {
                 const url = getAnimationUrl(fullscreenPreviewItem);
                 if (!url) return <p className="text-white/50">No animation file</p>;
                 if (isSVGA(url)) return (
-                  <Suspense fallback={<div className="w-40 h-40 bg-purple-500/20 animate-pulse rounded-full" />}>
-                    <UniversalAnimationPlayer src={url} className="w-full h-full" loop autoPlay muted={false} />
-                  </Suspense>
+                  <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />
                 );
-                if (isLottie(url)) return <UniversalAnimationPlayer src={url} className="w-full h-full" loop autoPlay muted={false} />;
+                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
                 if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;
                 return <img src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />;
               })()}

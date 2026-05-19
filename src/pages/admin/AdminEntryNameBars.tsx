@@ -17,8 +17,7 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 // Lazy load SVGA player
 const SVGAPreviewWithMuteToggle = lazy(() => import("@/components/admin/SVGAPreviewWithMuteToggle"));
-const UniversalAnimationPlayer = lazy(() => import("@/components/common/UniversalAnimationPlayer"));
-
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface EntryNameBar {
   id: string;
   name: string;
@@ -451,11 +450,10 @@ const AdminEntryNameBars = () => {
                       containerClassName="w-full h-16"
                     />
                   ) : nameBar.animation_url ? (
-                    <UniversalAnimationPlayer
+                    <FixedAnimationFrame size="fill" center={false}
                       src={nameBar.animation_url}
                       className="w-full h-16 object-contain"
                       loop
-                      autoPlay
                       muted
                     />
                   ) : (

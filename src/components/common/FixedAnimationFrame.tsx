@@ -13,6 +13,7 @@ export type AnimationSizePreset =
   | 'card'         // 160×160 — shop cards, gift drawer
   | 'preview'      // 240×240 — preview dialogs
   | 'large'        // 360×360 — admin preview, big cards
+  | 'fill'         // 100% × 100% — fill an already-sized parent (admin grid cells)
   | 'full-square'  // 90vmin square — fullscreen preview modal (Shop tap-to-play)
   | 'fullscreen';  // 100vw × 100vh — in-room entry/full-screen gift overlay
 
@@ -21,6 +22,7 @@ const SIZE_STYLES: Record<AnimationSizePreset, React.CSSProperties> = {
   card:         { width: 160, height: 160 },
   preview:      { width: 240, height: 240 },
   large:        { width: 360, height: 360 },
+  fill:         { width: '100%', height: '100%' },
   'full-square':{ width: '90vmin', height: '90vmin', maxWidth: '90vw', maxHeight: '90vh' },
   fullscreen:   { width: '100vw', height: '100vh' },
 };
@@ -37,9 +39,13 @@ export interface FixedAnimationFrameProps {
   autoPlay?: boolean;
   /** muted = false plays embedded SVGA audio. Default true. */
   muted?: boolean;
+  /** SVGA only — 0..1 audio volume (passed to SVGAPlayerWithAudio). Default 0.8. */
+  volume?: number;
   onLoad?: () => void;
   onError?: (err: Error) => void;
   onComplete?: () => void;
+  /** SVGA only — fires once embedded/fallback audio source is resolved. */
+  onAudioExtracted?: (audioUrl: string | null) => void;
   /** Wrapper class — does NOT affect dimensions, only positioning/background. */
   className?: string;
   /** Center the frame within its parent (default true). */
@@ -79,9 +85,11 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   loop = true,
   autoPlay = true,
   muted = true,
+  volume = 0.8,
   onLoad,
   onError,
   onComplete,
+  onAudioExtracted,
   className,
   center = true,
   background = 'none',
@@ -132,9 +140,11 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             className="w-full h-full"
             loop={loop}
             autoPlay={autoPlay}
+            volume={volume}
             onLoad={onLoad}
             onComplete={onComplete}
             onError={onError}
+            onAudioExtracted={onAudioExtracted}
             soundUrl={soundUrl}
           />
         </Suspense>

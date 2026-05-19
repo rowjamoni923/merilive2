@@ -62,7 +62,7 @@ import { toast } from "sonner";
 import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { LazyImage } from "@/components/LazyImage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
@@ -1575,8 +1575,8 @@ export default function AdminGifts() {
               {(() => {
                 const url = fullscreenPreviewGift.animation_url;
                 if (!url) return <p className="text-white/50">No animation file</p>;
-                if (isSVGA(url)) return <UniversalAnimationPlayer src={url} type="svga" className="w-full h-full" loop autoPlay muted={false} />;
-                if (isLottie(url)) return <UniversalAnimationPlayer src={url} type="lottie" className="w-full h-full" loop autoPlay muted={false} />;
+                if (isSVGA(url)) return <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />;
+                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
                 if (isVideoOrGif(url)) return url.endsWith('.gif') 
                   ? <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   : <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;

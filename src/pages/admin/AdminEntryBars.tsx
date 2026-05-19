@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Play, Eye, Volume2, Sparkles, Image } from "lucide-react";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
@@ -352,12 +352,11 @@ const AdminEntryBars = () => {
                       alt={item.name} 
                       className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   ) : item.animation_url ? (
-                    <div className="w-full h-full">
-                      <UniversalAnimationPlayer
+                    <div >
+                      <FixedAnimationFrame size="fill" center={false}
                         src={item.animation_url}
                         className="w-full h-full object-cover"
                         loop
-                        autoPlay
                       />
                     </div>
                   ) : (
@@ -525,11 +524,10 @@ const AdminEntryBars = () => {
                 </div>
                 {formData.animation_url && (
                   <div className="h-20 bg-black/30 rounded-lg overflow-hidden flex items-center justify-center">
-                    <UniversalAnimationPlayer
+                    <FixedAnimationFrame size="fill" center={false}
                       src={formData.animation_url}
                       className="h-full object-contain"
                       loop
-                      autoPlay
                     />
                   </div>
                 )}
@@ -655,11 +653,10 @@ const AdminEntryBars = () => {
           </DialogHeader>
           <div className="flex items-center justify-center min-h-[400px]">
             {previewUrl && (
-              <UniversalAnimationPlayer
+              <FixedAnimationFrame size="fill" center={false}
                 src={previewUrl}
                 className="max-w-full max-h-[60vh] object-contain"
                 loop
-                autoPlay
                 muted={false}
               />
             )}

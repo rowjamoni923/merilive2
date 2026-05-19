@@ -10,7 +10,7 @@ import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hoo
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
-const UniversalAnimationPlayer = lazy(() => import("@/components/common/UniversalAnimationPlayer"));
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 // Gift data types
 export interface GiftData {
@@ -554,12 +554,13 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                           muted={true}
                         />
                       ) : (
-                        <UniversalAnimationPlayer
+                        <FixedAnimationFrame
                           src={selectedGift.animation_url}
-                          className="w-6 h-6"
-                          loop={true}
-                          autoPlay={true}
-                          muted={true}
+                          width={24}
+                          height={24}
+                          loop
+                          muted
+                          center={false}
                         />
                       )}
                     </Suspense>

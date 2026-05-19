@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, CreditCard } from "lucide-react";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
@@ -279,7 +279,7 @@ const AdminNobleCards = () => {
               <CardContent>
                 <div className="aspect-[3/1] bg-gradient-to-r from-rose-500/20 to-pink-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                   {item.animation_url ? (
-                    <UniversalAnimationPlayer src={item.animation_url} className="w-full h-full" loop autoPlay />
+                    <FixedAnimationFrame size="fill" center={false} src={item.animation_url}  loop />
                   ) : item.preview_url ? (
                     <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
                   ) : (
@@ -351,7 +351,7 @@ const AdminNobleCards = () => {
             </div>
             {formData.animation_url && (
               <div className="aspect-[3/1] bg-muted rounded-lg overflow-hidden">
-                <UniversalAnimationPlayer src={formData.animation_url} className="w-full h-full" loop autoPlay />
+                <FixedAnimationFrame size="fill" center={false} src={formData.animation_url}  loop />
               </div>
             )}
           </div>
@@ -367,7 +367,7 @@ const AdminNobleCards = () => {
           <DialogHeader><DialogTitle>Animation Preview</DialogTitle></DialogHeader>
           {previewUrl && (
             <div className="aspect-[3/1] bg-black rounded-lg overflow-hidden">
-              <UniversalAnimationPlayer src={previewUrl} className="w-full h-full" loop autoPlay />
+              <FixedAnimationFrame size="fill" center={false} src={previewUrl}  loop />
             </div>
           )}
         </DialogContent>

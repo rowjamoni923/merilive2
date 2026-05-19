@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, Medal } from "lucide-react";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
@@ -316,11 +316,10 @@ const AdminVIPMedals = () => {
               <CardContent>
                 <div className="aspect-square bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
                   {item.animation_url ? (
-                    <UniversalAnimationPlayer
+                    <FixedAnimationFrame size="fill" center={false}
                       src={item.animation_url}
-                      className="w-full h-full"
+                      
                       loop
-                      autoPlay
                     />
                   ) : item.preview_url ? (
                     <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
@@ -440,11 +439,10 @@ const AdminVIPMedals = () => {
 
             {formData.animation_url && (
               <div className="aspect-square bg-muted rounded-lg overflow-hidden max-w-[200px] mx-auto">
-                <UniversalAnimationPlayer
+                <FixedAnimationFrame size="fill" center={false}
                   src={formData.animation_url}
-                  className="w-full h-full"
+                  
                   loop
-                  autoPlay
                 />
               </div>
             )}
@@ -467,11 +465,10 @@ const AdminVIPMedals = () => {
           </DialogHeader>
           {previewUrl && (
             <div className="aspect-square bg-black rounded-lg overflow-hidden">
-              <UniversalAnimationPlayer
+              <FixedAnimationFrame size="fill" center={false}
                 src={previewUrl}
-                className="w-full h-full"
+                
                 loop
-                autoPlay
               />
             </div>
           )}

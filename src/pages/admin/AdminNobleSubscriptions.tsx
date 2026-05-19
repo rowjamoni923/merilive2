@@ -14,8 +14,7 @@ import {
   Crown, Plus, Edit2, Trash2, Sparkles, Gem, Shield, Ghost, EyeOff,
   Lock, TrendingUp, Coins, Calendar, Zap, RefreshCw, Upload
 } from "lucide-react";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
-
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface NobleCard {
   id: string;
   rank_code: string;
@@ -233,12 +232,12 @@ const AdminNobleSubscriptions = () => {
                 <div className="flex gap-2 pt-2 border-t border-slate-800">
                   {card.entrance_animation_url && (
                     <div className="w-14 h-14 bg-slate-800 rounded overflow-hidden">
-                      <UniversalAnimationPlayer src={card.entrance_animation_url} className="w-full h-full" loop autoPlay />
+                      <FixedAnimationFrame size="fill" center={false} src={card.entrance_animation_url}  loop />
                     </div>
                   )}
                   {card.custom_avatar_frame_url && (
                     <div className="w-14 h-14 bg-slate-800 rounded overflow-hidden">
-                      <UniversalAnimationPlayer src={card.custom_avatar_frame_url} className="w-full h-full" loop autoPlay />
+                      <FixedAnimationFrame size="fill" center={false} src={card.custom_avatar_frame_url}  loop />
                     </div>
                   )}
                 </div>
@@ -396,7 +395,7 @@ const AdminNobleSubscriptions = () => {
                       />
                       {(form as any)[key] && (key === 'entrance_animation_url' || key === 'custom_avatar_frame_url' || key === 'custom_chat_bubble_url') && (
                         <div className="mt-2 w-20 h-20 bg-slate-900 rounded overflow-hidden">
-                          <UniversalAnimationPlayer src={(form as any)[key]} className="w-full h-full" loop autoPlay />
+                          <FixedAnimationFrame size="fill" center={false} src={(form as any)[key]}  loop />
                         </div>
                       )}
                     </div>

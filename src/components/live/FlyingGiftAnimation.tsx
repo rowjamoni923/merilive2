@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useCallback, memo, forwardRef, Suspense, lazy, useRef, useMemo } from "react";
+import React, { useEffect, useState, useCallback, memo, forwardRef, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
-
-const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 export interface FlyingGift {
   id: string;
@@ -186,18 +185,18 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
             position: 'absolute', top: '50%', left: '50%', width: '100%', height: '100%',
             transform: 'translate(-50%, -50%) scale(1.6)', transformOrigin: 'center',
           }}>
-            <Suspense fallback={null}>
-              <SVGAPlayerWithAudio
-                src={displayAnimationUrl}
-                loop={false}
-                autoPlay={true}
-                volume={0.8}
-                soundUrl={gift.soundUrl}
-                onComplete={handleAnimationComplete}
-                onError={handleSvgaError}
-                className="w-full h-full"
-              />
-            </Suspense>
+            <FixedAnimationFrame
+              src={displayAnimationUrl}
+              size="fill"
+              type="svga"
+              loop={false}
+              muted={false}
+              volume={0.8}
+              soundUrl={gift.soundUrl}
+              onComplete={handleAnimationComplete}
+              onError={handleSvgaError}
+              center={false}
+            />
           </div>
         </motion.div>
       );

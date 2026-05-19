@@ -8,7 +8,7 @@ import {
   ensureValidLevel, 
   formatLevel 
 } from "@/features/shared/level";
-import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 const getNameBarAnimationType = (url?: string): 'svga' | 'gif' | 'image' | null => {
   if (!url) return null;
@@ -154,14 +154,16 @@ const EntryNameBarAnimationInner = memo(({
               {/* Layer 1: SVGA background */}
               {hasSvga && cleanAnimUrl && (
                 <div className="absolute inset-0 z-[1]">
-                  <SVGAPlayerWithAudio
+                  <FixedAnimationFrame
                     src={cleanAnimUrl}
+                    size="fill"
+                    type="svga"
                     loop={false}
-                    autoPlay={true}
+                    muted={false}
                     volume={0}
                     onComplete={handleSvgaComplete}
                     onError={handleSvgaError}
-                    className="w-full h-full"
+                    center={false}
                   />
                 </div>
               )}

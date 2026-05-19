@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback, Suspense, lazy, useRef, memo } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-// Lazy load SVGA player with audio for entry animations
-const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 interface EntryBannerAnimationProps {
   userName: string;
@@ -140,20 +138,16 @@ const EntryBannerAnimationInner = memo(({
                 transformOrigin: 'center center',
               }}
             >
-              <Suspense fallback={
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-12 h-12 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                </div>
-              }>
-                <SVGAPlayerWithAudio
-                  src={animationUrl!}
-                  loop={false}
-                  autoPlay={true}
-                  volume={0.8}
-                  onComplete={handleAnimationComplete}
-                  className="w-full h-full"
-                />
-              </Suspense>
+              <FixedAnimationFrame
+                src={animationUrl!}
+                size="fill"
+                type="svga"
+                loop={false}
+                muted={false}
+                volume={0.8}
+                onComplete={handleAnimationComplete}
+                center={false}
+              />
               
               {/* User Name Overlay - Positioned in CENTER */}
               <div className="absolute inset-0 flex items-center justify-center">

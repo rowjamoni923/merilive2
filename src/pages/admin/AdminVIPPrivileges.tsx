@@ -15,8 +15,7 @@ import {
   Upload, Save, Image, Play, MessageCircle, Star, X,
   RefreshCw, Shield, EyeOff, Ghost, Coins, Calendar, Zap, Lock, TrendingUp
 } from "lucide-react";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
-
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface VIPTier {
   id: string;
   tier_code: string;
@@ -291,11 +290,10 @@ const AdminVIPPrivileges = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
                     {tier.badge_animation_url ? (
-                      <UniversalAnimationPlayer
+                      <FixedAnimationFrame size="fill" center={false}
                         src={tier.badge_animation_url}
                         className="w-10 h-10"
                         loop
-                        autoPlay
                       />
                     ) : (
                       <Crown className="w-6 h-6 text-white" />
@@ -353,11 +351,10 @@ const AdminVIPPrivileges = () => {
                   {tier.frame_animation_url && (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden">
-                        <UniversalAnimationPlayer
+                        <FixedAnimationFrame size="fill" center={false}
                           src={tier.frame_animation_url}
-                          className="w-full h-full"
+                          
                           loop
-                          autoPlay
                         />
                       </div>
                       <p className="text-xs text-slate-500 mt-1">Frame</p>
@@ -366,11 +363,10 @@ const AdminVIPPrivileges = () => {
                   {tier.entry_animation_url && (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden">
-                        <UniversalAnimationPlayer
+                        <FixedAnimationFrame size="fill" center={false}
                           src={tier.entry_animation_url}
-                          className="w-full h-full"
+                          
                           loop
-                          autoPlay
                         />
                       </div>
                       <p className="text-xs text-slate-500 mt-1">Entry</p>
@@ -379,11 +375,10 @@ const AdminVIPPrivileges = () => {
                   {tier.bubble_animation_url && (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-slate-800 rounded-lg overflow-hidden">
-                        <UniversalAnimationPlayer
+                        <FixedAnimationFrame size="fill" center={false}
                           src={tier.bubble_animation_url}
-                          className="w-full h-full"
+                          
                           loop
-                          autoPlay
                         />
                       </div>
                       <p className="text-xs text-slate-500 mt-1">Bubble</p>
@@ -696,11 +691,10 @@ const AdminVIPPrivileges = () => {
                     {tierForm.frame_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <UniversalAnimationPlayer
+                          <FixedAnimationFrame size="fill" center={false}
                             src={tierForm.frame_animation_url}
-                            className="w-full h-full"
+                            
                             loop
-                            autoPlay
                           />
                         </div>
                         <Button
@@ -750,11 +744,10 @@ const AdminVIPPrivileges = () => {
                     {tierForm.entry_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <UniversalAnimationPlayer
+                          <FixedAnimationFrame size="fill" center={false}
                             src={tierForm.entry_animation_url}
-                            className="w-full h-full"
+                            
                             loop
-                            autoPlay
                           />
                         </div>
                         <Button
@@ -804,11 +797,10 @@ const AdminVIPPrivileges = () => {
                     {tierForm.bubble_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <UniversalAnimationPlayer
+                          <FixedAnimationFrame size="fill" center={false}
                             src={tierForm.bubble_animation_url}
-                            className="w-full h-full"
+                            
                             loop
-                            autoPlay
                           />
                         </div>
                         <Button
@@ -858,11 +850,10 @@ const AdminVIPPrivileges = () => {
                     {tierForm.badge_animation_url ? (
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-slate-900 rounded-lg overflow-hidden">
-                          <UniversalAnimationPlayer
+                          <FixedAnimationFrame size="fill" center={false}
                             src={tierForm.badge_animation_url}
-                            className="w-full h-full"
+                            
                             loop
-                            autoPlay
                           />
                         </div>
                         <Button
