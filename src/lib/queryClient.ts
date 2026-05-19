@@ -5,11 +5,15 @@ import { getAdaptiveNetworkProfile } from '@/utils/connectionProfile';
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 300,
+      // Treat data as stale almost immediately so navigation always
+      // triggers a background refetch — UI keeps showing previous data
+      // (placeholderData) so there's no flicker, but the user sees the
+      // latest values within ~1 RTT instead of cached snapshots.
+      staleTime: 1000 * 15,
       gcTime: 1000 * 60 * 120,
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
+      refetchOnMount: 'always',
+      refetchOnReconnect: true,
       retry: (failureCount: number) => {
         const { queryRetryCount } = getAdaptiveNetworkProfile();
         return failureCount < queryRetryCount;
