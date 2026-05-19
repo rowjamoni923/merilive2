@@ -337,10 +337,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                 onClick={() => {
                   setSelectedLevel(level.level_number);
                   if (level.level_number !== 5) setPayrollRequested(false);
-                  setSelectedPaymentMethod(null);
-                  setTransactionId("");
-                  setScreenshot(null);
-                  setScreenshotPreview(null);
+                  setPaidConfirmed(false);
                 }}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98]",
