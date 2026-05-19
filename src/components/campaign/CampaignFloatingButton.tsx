@@ -99,11 +99,13 @@ function CampaignFloatingButton() {
   const [helperTransactionId, setHelperTransactionId] = useState('');
   const [helperPaymentProof, setHelperPaymentProof] = useState<string | null>(null);
   const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
+  const [gateways, setGateways] = useState<AutoGateway[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
   const appState = useAppState();
   const location = useLocation();
+  const navigate = useNavigate();
   // Profile page has wallet/beans cards stacked above bottom-nav — push the
   // floating button higher so the 150% bonus pill never overlaps "MY BEANS".
   const isProfileRoute = location.pathname.startsWith('/profile');
