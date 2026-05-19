@@ -319,7 +319,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                                 {gift.icon_url.toLowerCase().endsWith('.svga') ? (
                                   <SVGAPlayer
                                     src={gift.icon_url}
-                                    className="w-10 h-10"
+                                    className="w-10 h-10 [&_canvas]:!w-full [&_canvas]:!h-full"
                                     loop={true}
                                     autoPlay={true}
                                     muted={true}
@@ -327,7 +327,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                                 ) : gift.icon_url.toLowerCase().endsWith('.json') ? (
                                   <UniversalAnimationPlayer
                                     src={gift.icon_url}
-                                    className="w-10 h-10"
+                                      className="w-10 h-10 [&_canvas]:!w-full [&_canvas]:!h-full"
                                     loop={true}
                                     autoPlay={true}
                                     muted={true}
@@ -407,7 +407,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                     {selectedGift.icon_url.toLowerCase().endsWith('.svga') ? (
                       <SVGAPlayer
                         src={selectedGift.icon_url}
-                        className="w-8 h-8"
+                        className="w-8 h-8 [&_canvas]:!w-full [&_canvas]:!h-full"
                         loop={true}
                         autoPlay={true}
                         muted={true}
@@ -415,7 +415,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                     ) : selectedGift.icon_url.toLowerCase().endsWith('.json') ? (
                       <UniversalAnimationPlayer
                         src={selectedGift.icon_url}
-                        className="w-8 h-8"
+                          className="w-8 h-8 [&_canvas]:!w-full [&_canvas]:!h-full"
                         loop={true}
                         autoPlay={true}
                         muted={true}
