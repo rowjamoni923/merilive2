@@ -34,6 +34,21 @@ const CRYPTO_OPTIONS = [
 
 type Step = "pick_pkg" | "pick_currency" | "pay" | "done";
 
+const MINIMUM_DEPOSIT_MESSAGE =
+  "This crypto network requires a larger deposit amount. Please choose a bigger diamond package and try again.";
+
+const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
+  const code = String(payload?.error ?? "").toLowerCase();
+  const message = String(payload?.message || payload?.details?.error || payload?.error || fallback || "Gateway error");
+  const lower = message.toLowerCase();
+
+  if (code === "minimum_deposit_not_met" || lower.includes("less than minimal") || lower.includes("less than minimum")) {
+    return MINIMUM_DEPOSIT_MESSAGE;
+  }
+
+  return message;
+};
+
 export default function SwiftPayDepositModal({ open, onOpenChange, packages, initialPackageId }: Props) {
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
@@ -76,22 +91,18 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
           const ctx: any = (error as any).context;
           if (ctx && typeof ctx.json === "function") {
             const parsed = await ctx.json();
-            errMsg = parsed?.details?.error || parsed?.error || null;
+            errMsg = getDepositErrorMessage(parsed, null);
           }
         } catch { /* ignore */ }
-        errMsg = errMsg || error.message || "Gateway error";
-      } else if (data?.error) {
-        errMsg = data?.details?.error || data.error;
+        errMsg = errMsg || getDepositErrorMessage(null, error.message);
+      } else if (data?.error || data?.ok === false) {
+        errMsg = getDepositErrorMessage(data, null);
       }
 
       if (errMsg) {
-        const lower = errMsg.toLowerCase();
-        const friendly = lower.includes("less than minimal") || lower.includes("minimum")
-          ? `This crypto requires a larger amount. Please pick a bigger diamond package, or choose a different currency (e.g. USDT TRC20).`
-          : errMsg;
         toast({
           title: "Could not start deposit",
-          description: friendly,
+          description: errMsg,
           variant: "destructive",
         });
         setCreating(false);
