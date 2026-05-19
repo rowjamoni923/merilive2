@@ -192,20 +192,21 @@ const EntranceAnimationInner = memo(({
               transformOrigin: 'center center',
             }}
           >
-            <SVGAPlayerWithAudio
-                src={displayAnimationUrl}
-                loop={false}
-                autoPlay={true}
-                volume={soundPlayedRef.current ? 0 : 0.7}
-                soundUrl={soundPlayedRef.current ? null : soundUrl}
-                onComplete={handleAnimationComplete}
-                onError={(err) => {
-                  console.error('[EntranceAnimation] ❌ SVGA ERROR:', err?.message || err);
-                  // On SVGA error, still complete the animation to avoid stuck state
-                  handleAnimationComplete();
-                }}
-                className="w-full h-full"
-              />
+            <FixedAnimationFrame
+              src={displayAnimationUrl}
+              size="fill"
+              type="svga"
+              loop={false}
+              muted={false}
+              volume={soundPlayedRef.current ? 0 : 0.7}
+              soundUrl={soundPlayedRef.current ? null : soundUrl}
+              onComplete={handleAnimationComplete}
+              onError={(err) => {
+                console.error('[EntranceAnimation] ❌ SVGA ERROR:', err?.message || err);
+                handleAnimationComplete();
+              }}
+              center={false}
+            />
           </div>
         </motion.div>
       );
