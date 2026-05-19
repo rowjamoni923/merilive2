@@ -472,6 +472,16 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         clearHostVideoRecoveryTimer();
         setIsJoined(false);
         setConnectionState('DISCONNECTED');
+        if (config.role === 'audience') {
+          clearViewerHardReconnectTimer();
+          const lastConfig = lastConfigRef.current;
+          if (lastConfig && !isLeavingRef.current && !isJoiningRef.current) {
+            setTimeout(() => {
+              if (!lastConfigRef.current || isLeavingRef.current || isJoiningRef.current) return;
+              joinChannel({ ...lastConfig, preloadedRoom: undefined }).catch((err) => options.onError?.(err));
+            }, 300);
+          }
+        }
       });
 
       // Capture local tracks as they publish (covers late-publish & re-publish after recovery)
