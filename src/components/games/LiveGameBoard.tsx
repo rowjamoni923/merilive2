@@ -698,37 +698,37 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
       </AnimatePresence>
       )}
 
-      {/* Top Compact Premium Bet Controls - HIDDEN for external games */}
+      {/* Obsidian Gold Bet Chips Bar */}
       {!isCurrentGameExternal && phase === 'betting' && activeGame !== 'roulette' && (
-        <div className="px-2 py-1.5 bg-gradient-to-r from-purple-900/40 via-black/40 to-pink-900/40 border-b border-white/10">
-          <div className="flex items-center justify-between gap-2">
-            {/* Preset Bet Chips - Left side */}
-            <div className="flex items-center gap-1">
-              {presetBets.map((amount) => (
+        <div className="flex items-center justify-between gap-2 px-3 py-2.5 bg-gradient-to-r from-[#1A1B2E] to-[#12121D] border-b border-white/5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            {presetBets.map((amount) => {
+              const isActive = betAmount === amount;
+              const tooHigh = amount > userCoins;
+              return (
                 <motion.button
                   key={amount}
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={() => setBetAmount(amount)}
-                  disabled={amount > userCoins}
+                  disabled={tooHigh}
                   className={cn(
-                    "px-2 py-1 rounded-full text-[9px] font-bold transition-all",
-                    betAmount === amount
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 ring-1 ring-white/30"
-                      : amount > userCoins
-                        ? "bg-white/5 text-white/30"
-                        : "bg-white/10 text-white/80 hover:bg-white/20"
+                    "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-[10px] font-black tabular-nums transition-all",
+                    isActive
+                      ? "border-2 border-[#D4AF37] bg-gradient-to-b from-[#F9E498] to-[#D4AF37] text-[#1A1B2E] shadow-[0_0_12px_rgba(212,175,55,0.45)] ring-2 ring-black/30"
+                      : tooHigh
+                        ? "border border-white/5 bg-white/[0.02] text-white/25 cursor-not-allowed"
+                        : "border border-white/10 bg-white/5 text-white/70 hover:border-[#D4AF37]/50 hover:text-white"
                   )}
                 >
                   {formatBetAmount(amount)}
                 </motion.button>
-              ))}
-            </div>
-            
-            {/* Current Bet Display - Right side */}
-            <div className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-amber-500/30 to-yellow-500/30 rounded-full border border-amber-500/40 shadow-lg shadow-amber-500/10">
-              <Coins className="w-3 h-3 text-amber-400" />
-              <span className="text-amber-300 font-bold text-xs">{betAmount.toLocaleString()}</span>
-            </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/40 rounded-xl shrink-0">
+            <Coins className="w-3 h-3 text-[#D4AF37]" />
+            <span className="text-[#D4AF37] font-black text-xs tabular-nums">{betAmount.toLocaleString()}</span>
           </div>
         </div>
       )}
