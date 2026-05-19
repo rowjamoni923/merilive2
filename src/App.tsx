@@ -826,11 +826,12 @@ const App = () => {
             return;
           }
 
-          console.warn('[App] 🚨 Global app re-entry signal received. Reloading app...');
+          console.warn('[App] 🚨 Global app re-entry signal received. Soft-resetting route/cache without reload...');
 
           setTimeout(() => {
-            window.location.replace('/');
-            window.location.reload();
+            queryClient.invalidateQueries({ refetchType: 'active' });
+            window.history.replaceState(null, '', '/');
+            window.dispatchEvent(new PopStateEvent('popstate'));
           }, 350);
         }
       )
