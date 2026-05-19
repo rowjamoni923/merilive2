@@ -1,6 +1,7 @@
 import React, { useState, Suspense, lazy, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
+import { logAnimationCompletion, type AnimationCompletionSource } from '@/utils/animationDebug';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
