@@ -233,18 +233,14 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
   if (error) {
     return (
-      <div className={cn("flex items-center justify-center bg-black/20 rounded-lg", className)}>
-        <div className="w-8 h-8 rounded-lg bg-white/5" />
-      </div>
+      <div className={cn("bg-transparent", className)} aria-hidden="true" />
     );
   }
 
   return (
     <div className={cn("relative", className)}>
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
-          <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-        </div>
+        <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
       <div ref={containerRef} className="w-full h-full" />
     </div>
