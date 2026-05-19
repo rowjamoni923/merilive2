@@ -254,23 +254,28 @@ const FullScreenGiftAnimation = ({
     setTimeout(onComplete, 200);
   }, [onComplete]);
 
-  // Safety timeout for animations - CRITICAL: Empty deps - run ONLY ONCE on mount
+  // Safety timeout for static images ONLY — animated formats (SVGA/Lottie/Video/VAP)
+  // dismiss via the player's own onComplete fired at the EXACT native duration.
+  // NO fixed timer is allowed for animated gifts.
   useEffect(() => {
     mountedRef.current = true;
-    
-    // CRITICAL: Prevent re-initialization on re-renders
+
     if (animationStartedRef.current) {
       console.log('[FullScreenGiftAnimation] ⚠️ Already started, skipping re-init');
       return;
     }
     animationStartedRef.current = true;
-    
+
+    // Only static images (PNG/GIF/WebP) need a fixed dismiss timer.
+    if (animationType !== 'image' && animationType !== 'none') {
+      return () => { mountedRef.current = false; };
+    }
+
     const timer = setTimeout(() => {
       if (mountedRef.current && !completedRef.current) {
-        console.log('[FullScreenGiftAnimation] Safety timeout - dismissing');
         handleAnimationEnd();
       }
-    }, getDuration());
+    }, 800); // 800ms for static images
 
     return () => {
       mountedRef.current = false;
