@@ -311,12 +311,15 @@ describe("BetHistoryPanel — history shows audit chain for each game", () => {
       expect(screen.getByText("Teen Patti")).toBeInTheDocument();
     });
 
-    // Roulette win: +5,000 with balance 45,000 → 50,000
+    // Roulette win: +5,000 with balance chain 45,000 → 50,000
     expect(screen.getByText("+5,000")).toBeInTheDocument();
-    expect(screen.getByText("50,000")).toBeInTheDocument();
+    expect(screen.getByText("45,000")).toBeInTheDocument();
 
-    // Teen Patti bet: -1,000 with balance 50,000 → 49,000
+    // Teen Patti bet: -1,000 with balance chain 50,000 → 49,000
     expect(screen.getByText("-1,000")).toBeInTheDocument();
     expect(screen.getByText("49,000")).toBeInTheDocument();
+
+    // "50,000" appears twice (win-after AND bet-before) — both rows render.
+    expect(screen.getAllByText("50,000")).toHaveLength(2);
   });
 });
