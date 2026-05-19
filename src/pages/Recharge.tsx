@@ -3612,6 +3612,18 @@ const Recharge = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <SwiftPayDepositModal
+        open={showSwiftPayModal}
+        onOpenChange={setShowSwiftPayModal}
+        packages={packages.map((p: any) => ({
+          id: p.id,
+          coins: p.coins,
+          bonus_percentage: p.bonus_percentage,
+          price_usd: Number(p.price ?? p.price_usd ?? 0),
+          name: p.name,
+        }))}
+      />
     </div>
   );
 };
