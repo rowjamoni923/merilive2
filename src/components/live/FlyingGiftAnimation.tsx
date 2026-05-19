@@ -115,17 +115,16 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     return () => cancelAnimationFrame(rafId);
   }, [gift.count, gift.comboKey]);
 
-  // Dismiss timer — also resets on combo merge so combo banner stays alive
+  // Dismiss timer — SVGA uses its OWN native duration via onComplete (no fixed timer).
+  // Non-SVGA banner stays 3.5s — RESETS on every combo bump.
   useEffect(() => {
     mountedRef.current = true;
 
-    if (isSVGA && !svgaError && !animationStartedRef.current) {
+    if (isSVGA && !svgaError) {
+      // SVGA path: NO fixed timer. SVGAPlayerWithAudio fires onComplete at
+      // the exact frames/FPS duration — that drives handleAnimationComplete.
       animationStartedRef.current = true;
-      // SVGA: let onComplete handle it, but safety timeout at 8s
-      const safety = setTimeout(() => {
-        if (mountedRef.current && !completedRef.current) handleAnimationComplete();
-      }, 8000);
-      return () => { mountedRef.current = false; clearTimeout(safety); };
+      return () => { mountedRef.current = false; };
     }
 
     // Non-SVGA: show banner for 3.5 seconds — RESET on every combo bump
