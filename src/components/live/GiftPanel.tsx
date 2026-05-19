@@ -554,12 +554,13 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                           muted={true}
                         />
                       ) : (
-                        <UniversalAnimationPlayer
+                        <FixedAnimationFrame
                           src={selectedGift.animation_url}
-                          className="w-6 h-6"
-                          loop={true}
-                          autoPlay={true}
-                          muted={true}
+                          width={24}
+                          height={24}
+                          loop
+                          muted
+                          center={false}
                         />
                       )}
                     </Suspense>
