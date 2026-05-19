@@ -73,7 +73,7 @@ const PURCHASED_KEY = 'campaign_purchased_';
 
 const getCampaignSessionKey = (campaignId: string) => `${SESSION_KEY}_${campaignId}`;
 
-type PaymentTab = 'google' | 'recommend' | 'skrill';
+type PaymentTab = 'google' | 'local' | string; // string = auto gateway id
 type PopupView = 'main' | 'payment_select' | 'payment_number';
 type PaymentStep = 'form' | 'processing' | 'pending';
 
