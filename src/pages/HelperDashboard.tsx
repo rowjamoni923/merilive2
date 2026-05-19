@@ -1076,7 +1076,7 @@ const HelperDashboard = () => {
         }}
       >
         {/* ambient blooms */}
-        <div className="pointer-events-none absolute -top-24 -left-12 w-64 h-64 bg-amber-500/15 rounded-full blur-[70px]" />
+        <div className="pointer-events-none absolute -top-24 -left-12 w-64 h-64 bg-gradient-to-r from-amber-400 to-yellow-500 text-white/15 rounded-full blur-[70px]" />
         <div className="pointer-events-none absolute -top-24 -right-12 w-64 h-64 bg-fuchsia-600/12 rounded-full blur-[70px]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent" />
         <div
@@ -1146,7 +1146,7 @@ const HelperDashboard = () => {
             }}
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-white/[0.10] to-transparent" />
-            <div className="pointer-events-none absolute -bottom-12 -right-12 w-44 h-44 rounded-full bg-amber-500/15 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -right-12 w-44 h-44 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-white/15 blur-3xl" />
 
             <div className="relative flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -1464,7 +1464,7 @@ const HelperDashboard = () => {
                     <Gem className="w-4 h-4 text-violet-600" />
                     <span className="text-slate-900 text-sm font-medium">Your Level {helperData?.trader_level || 1} Rate</span>
                   </div>
-                  <Badge className="bg-purple-500/30 text-violet-600">
+                  <Badge className="bg-gradient-to-r from-violet-500 to-violet-600 text-white/30 text-violet-600">
                     {levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}
                   </Badge>
                 </div>
@@ -1606,7 +1606,7 @@ const HelperDashboard = () => {
                         className="bg-white border-purple-300 text-slate-900 text-center text-lg font-bold"
                       />
                       {parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000 && (
-                        <div className="p-2 bg-purple-500/10 rounded-lg border border-violet-200/30">
+                        <div className="p-2 bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 rounded-lg border border-violet-200/30">
                           <p className="text-violet-600 text-sm text-center">
                             💎 {formatDiamonds(parseInt(customDiamondAmount.replace(/,/g, '')))} = ${calculateUSD(parseInt(customDiamondAmount.replace(/,/g, ''))).toFixed(2)}
                           </p>
@@ -1742,7 +1742,7 @@ const HelperDashboard = () => {
                         <div className="flex items-center gap-2">
                           <p className="text-slate-900 font-bold">{level.level_name}</p>
                           {isCurrent && (
- <Badge className="bg-green-500 text-slate-900 text-[10px]">Current</Badge>
+ <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-slate-900 text-[10px]">Current</Badge>
                           )}
                         </div>
                         <p className="text-slate-700 text-xs">{level.description}</p>
@@ -1801,7 +1801,7 @@ const HelperDashboard = () => {
                   
                   {/* For levels 2-4: Show info that they can upgrade via manual top-up */}
                   {canUpgrade && !hasPendingRequest && level.level_number >= 2 && level.level_number <= 4 && (
-                    <div className="mt-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-200/30">
+                    <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10 border border-emerald-200/30">
                       <p className="text-emerald-600 text-xs">
                         💡 Use <strong>Manual Top-up</strong> above to add ${level.upgrade_cost_usd} to your wallet and upgrade to this level automatically.
                       </p>
@@ -1815,7 +1815,7 @@ const HelperDashboard = () => {
                         <Clock className="w-4 h-4 text-amber-700" />
                         <span className="text-amber-700 text-xs">Upgrade request pending...</span>
                       </div>
-                      <Badge className="bg-amber-500/30 text-amber-700 text-[10px]">Pending</Badge>
+                      <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/30 text-amber-700 text-[10px]">Pending</Badge>
                     </div>
                   )}
                   
@@ -1825,12 +1825,12 @@ const HelperDashboard = () => {
                         <CheckCircle className="w-4 h-4 text-emerald-600" />
                         <span className="text-emerald-600 text-xs">Upgrade approved! Level updated.</span>
                       </div>
-                      <Badge className="bg-green-500/30 text-emerald-600 text-[10px]">Approved</Badge>
+                      <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/30 text-emerald-600 text-[10px]">Approved</Badge>
                     </div>
                   )}
                   
                   {level.level_number === 5 && isCurrent && (
-                    <div className="mt-3 p-3 rounded-lg bg-purple-500/10 border border-violet-200/30">
+                    <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border border-violet-200/30">
                       <p className="text-violet-600 text-xs">
                         <strong>Payroll Benefits:</strong> Receive agency withdrawal requests (5,000 - 100,000 beans) and earn commission on every transaction.
                       </p>
@@ -1853,7 +1853,7 @@ const HelperDashboard = () => {
                             <Clock className="w-4 h-4 text-amber-700" />
                             <span className="text-amber-700 text-xs">Payroll application pending...</span>
                           </div>
-                          <Badge className="bg-amber-500/30 text-amber-700 text-[10px]">Pending</Badge>
+                          <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/30 text-amber-700 text-[10px]">Pending</Badge>
                         </div>
                       )}
                       
@@ -2148,10 +2148,10 @@ const HelperDashboard = () => {
                     <Button 
                       onClick={handleSearchUser}
                       disabled={transferSearching || !transferSearchQuery.trim()}
-                      className="bg-cyan-500 hover:bg-cyan-600"
+                      className="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white shadow-md shadow-sky-500/30"
                     >
                       {transferSearching ? (
- <div className="w-4 h-4 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
+ <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <Search className="w-4 h-4" />
                       )}
@@ -2165,8 +2165,8 @@ const HelperDashboard = () => {
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar className="w-12 h-12 border-2 border-sky-200">
                         <AvatarImage src={searchedUser.avatar_url} />
-                        <AvatarFallback className="bg-cyan-500">
- <User className="w-5 h-5 text-slate-900" />
+                        <AvatarFallback className="bg-gradient-to-r from-sky-500 to-sky-600 text-white">
+ <User className="w-5 h-5 text-white" />
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -2194,7 +2194,7 @@ const HelperDashboard = () => {
                     >
                       {transferProcessing ? (
                         <div className="flex items-center gap-2">
- <div className="w-4 h-4 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
+ <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
                           Processing...
                         </div>
                       ) : (
@@ -2223,10 +2223,10 @@ const HelperDashboard = () => {
                     <Button 
                       onClick={handleSearchAgency}
                       disabled={transferSearching || !transferSearchQuery.trim()}
-                      className="bg-purple-500 hover:bg-purple-600"
+                      className="bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-md shadow-violet-500/30"
                     >
                       {transferSearching ? (
- <div className="w-4 h-4 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
+ <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <Search className="w-4 h-4" />
                       )}
@@ -2270,7 +2270,7 @@ const HelperDashboard = () => {
                     >
                       {transferProcessing ? (
                         <div className="flex items-center gap-2">
- <div className="w-4 h-4 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
+ <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
                           Processing...
                         </div>
                       ) : (
@@ -2315,7 +2315,7 @@ const HelperDashboard = () => {
                   >
                     {transferProcessing ? (
                       <div className="flex items-center gap-2">
- <div className="w-4 h-4 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
+ <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
                         Processing...
                       </div>
                     ) : (
@@ -2354,16 +2354,16 @@ const HelperDashboard = () => {
                   className={cn(
                     "p-3 rounded-xl border",
                     transfer.sender_type === 'trader_to_user' 
-                      ? "bg-cyan-500/10 border-sky-200/30"
-                      : "bg-purple-500/10 border-violet-200/30"
+                      ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white/10 border-sky-200/30"
+                      : "bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border-violet-200/30"
                   )}
                 >
                   <div className="flex items-center gap-3">
                     {transfer.sender_type === 'trader_to_user' ? (
                       <Avatar className="w-10 h-10 border-2 border-sky-200">
                         <AvatarImage src={transfer.receiver?.avatar_url} />
-                        <AvatarFallback className="bg-cyan-500">
- <User className="w-4 h-4 text-slate-900" />
+                        <AvatarFallback className="bg-gradient-to-r from-sky-500 to-sky-600 text-white">
+ <User className="w-4 h-4 text-white" />
                         </AvatarFallback>
                       </Avatar>
                     ) : (

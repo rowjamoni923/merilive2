@@ -1275,11 +1275,11 @@ const Level5HelperDashboard = () => {
 
   const getStatusBadge = (status: string) => {
     const configs: Record<string, { color: string; icon: any; label: string }> = {
-      pending: { color: "bg-yellow-500", icon: Clock, label: "Pending" },
-      paid: { color: "bg-blue-500", icon: DollarSign, label: "Paid" },
-      screenshot_submitted: { color: "bg-purple-500", icon: Image, label: "Submitted" },
-      approved: { color: "bg-green-500", icon: CheckCircle, label: "Approved" },
-      rejected: { color: "bg-red-500", icon: XCircle, label: "Rejected" }
+      pending: { color: "bg-gradient-to-r from-amber-400 to-yellow-500 text-white", icon: Clock, label: "Pending" },
+      paid: { color: "bg-gradient-to-r from-sky-500 to-sky-600 text-white", icon: DollarSign, label: "Paid" },
+      screenshot_submitted: { color: "bg-gradient-to-r from-violet-500 to-violet-600 text-white", icon: Image, label: "Submitted" },
+      approved: { color: "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white", icon: CheckCircle, label: "Approved" },
+      rejected: { color: "bg-gradient-to-r from-rose-500 to-rose-600 text-white", icon: XCircle, label: "Rejected" }
     };
     return configs[status] || configs.pending;
   };
@@ -1312,7 +1312,7 @@ const Level5HelperDashboard = () => {
           boxShadow: "0 12px 28px -18px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.6)",
         }}
       >
-        <div className="pointer-events-none absolute -top-24 -left-12 w-64 h-64 bg-amber-500/15 rounded-full blur-[70px]" />
+        <div className="pointer-events-none absolute -top-24 -left-12 w-64 h-64 bg-gradient-to-r from-amber-400 to-yellow-500 text-white/15 rounded-full blur-[70px]" />
         <div className="pointer-events-none absolute -top-24 -right-12 w-64 h-64 bg-violet-500/10 rounded-full blur-[70px]" />
 
         <div className="relative flex items-center gap-3 mb-4">
@@ -1377,18 +1377,18 @@ const Level5HelperDashboard = () => {
       <div className="px-4 mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full bg-slate-50 rounded-xl p-1 grid grid-cols-5">
- <TabsTrigger value="agency-withdrawals" className="data-[state=active]:bg-orange-500 data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
+ <TabsTrigger value="agency-withdrawals" className="data-[state=active]:bg-gradient-to-r from-orange-400 to-orange-500 text-white data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
               <Building2 className="w-3 h-3 mr-0.5" />
               Agency
               {agencyWithdrawals.length > 0 && (
- <Badge className="ml-0.5 bg-red-500 text-slate-900 text-[8px] h-4 px-1">{agencyWithdrawals.length}</Badge>
+ <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-slate-900 text-[8px] h-4 px-1">{agencyWithdrawals.length}</Badge>
               )}
             </TabsTrigger>
- <TabsTrigger value="orders" className="data-[state=active]:bg-blue-500 data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
+ <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-to-r from-sky-500 to-sky-600 text-white data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
               <Package className="w-3 h-3 mr-0.5" />
               Orders
               {pendingOrdersCount > 0 && (
- <Badge className="ml-0.5 bg-red-500 text-slate-900 text-[8px] h-4 px-1">{pendingOrdersCount}</Badge>
+ <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-slate-900 text-[8px] h-4 px-1">{pendingOrdersCount}</Badge>
               )}
             </TabsTrigger>
  <TabsTrigger value="country-methods" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
@@ -1407,7 +1407,7 @@ const Level5HelperDashboard = () => {
               <Bell className="w-3 h-3 mr-0.5" />
               Inbox
               {unreadAdminMessages > 0 && (
- <Badge className="ml-0.5 bg-red-500 text-slate-900 text-[8px] h-4 px-1">{unreadAdminMessages}</Badge>
+ <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-slate-900 text-[8px] h-4 px-1">{unreadAdminMessages}</Badge>
               )}
             </TabsTrigger>
           </TabsList>
@@ -1476,10 +1476,10 @@ const Level5HelperDashboard = () => {
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <Badge className={cn(
                               "text-xs",
-                              isAvailable ? "bg-yellow-500" : 
-                              isLockedByOther ? "bg-orange-500 animate-pulse" :
-                              isLockedByMe ? "bg-cyan-500" :
-                              isProcessing ? "bg-blue-500" :
+                              isAvailable ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-white" : 
+                              isLockedByOther ? "bg-gradient-to-r from-orange-400 to-orange-500 text-white animate-pulse" :
+                              isLockedByMe ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white" :
+                              isProcessing ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white" :
                               "bg-slate-300"
                             )}>
                               {isAvailable ? "🟡 Pending" :
@@ -1635,9 +1635,9 @@ const Level5HelperDashboard = () => {
                           </p>
                           <Badge className={cn(
                             "text-[10px]",
-                            order.status === 'pending' && "bg-yellow-500",
-                            order.status === 'completed' && "bg-green-500",
-                            order.status === 'cancelled' && "bg-red-500"
+                            order.status === 'pending' && "bg-gradient-to-r from-amber-400 to-yellow-500 text-white",
+                            order.status === 'completed' && "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white",
+                            order.status === 'cancelled' && "bg-gradient-to-r from-rose-500 to-rose-600 text-white"
                           )}>
                             {order.status}
                           </Badge>
@@ -1714,7 +1714,7 @@ const Level5HelperDashboard = () => {
                       <div className="flex gap-2 mt-3 pt-3 border-t border-slate-200">
                         <Button
                           size="sm"
- className="flex-1 bg-green-500 hover:bg-green-600 text-slate-900 text-xs"
+ className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:bg-green-600 text-slate-900 text-xs"
                           onClick={async () => {
                             setProcessing(true);
                             try {
@@ -1839,7 +1839,7 @@ const Level5HelperDashboard = () => {
               <Button 
                 size="sm" 
                 onClick={() => setShowCountryPaymentDialog(true)}
- className="bg-emerald-500 hover:bg-emerald-600 text-slate-900 text-xs h-8"
+ className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/30 text-slate-900 text-xs h-8"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Add Method
@@ -1854,7 +1854,7 @@ const Level5HelperDashboard = () => {
                   <p className="text-xs text-slate-500 mt-1">Add payment methods for your assigned countries</p>
                   <Button 
                     onClick={() => setShowCountryPaymentDialog(true)}
-                    className="mt-4 bg-emerald-500 hover:bg-emerald-600"
+                    className="mt-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/30"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Payment Method
@@ -2110,19 +2110,19 @@ const Level5HelperDashboard = () => {
                       const statusConfig = {
                         completed: {
                           card: 'border-l-green-500',
-                          badge: 'bg-green-500',
+                          badge: 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white',
                           amount: 'text-emerald-600',
                           label: 'Completed'
                         },
                         processing: {
                           card: 'border-l-blue-500',
-                          badge: 'bg-blue-500',
+                          badge: 'bg-gradient-to-r from-sky-500 to-sky-600 text-white',
                           amount: 'text-sky-700',
                           label: 'Processing'
                         },
                         rejected: {
                           card: 'border-l-red-500',
-                          badge: 'bg-red-500',
+                          badge: 'bg-gradient-to-r from-rose-500 to-rose-600 text-white',
                           amount: 'text-rose-600',
                           label: 'Rejected'
                         }
@@ -2191,7 +2191,7 @@ const Level5HelperDashboard = () => {
                                 {order.user?.display_name || 'User'}
                               </p>
                               <p className="text-slate-700 text-[10px]">ID: {order.user?.app_uid}</p>
-                              <Badge className="bg-green-500 text-[10px] mt-1">Completed</Badge>
+                              <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] mt-1">Completed</Badge>
                             </div>
                             <div className="text-right">
                               <p className="text-emerald-600 font-bold text-sm">
@@ -2267,10 +2267,10 @@ const Level5HelperDashboard = () => {
                         <div className="flex items-center gap-2">
  <p className="font-semibold text-slate-900 text-sm">{msg.title}</p>
                           {msg.priority === 'urgent' && (
-                            <Badge className="bg-red-500 text-[10px]">Urgent</Badge>
+                            <Badge className="bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[10px]">Urgent</Badge>
                           )}
                           {msg.priority === 'high' && (
-                            <Badge className="bg-orange-500 text-[10px]">Important</Badge>
+                            <Badge className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px]">Important</Badge>
                           )}
                           {msg.has_replies && (
                             <Badge className="bg-emerald-50 text-emerald-600 text-[10px]">
@@ -2322,10 +2322,10 @@ const Level5HelperDashboard = () => {
                 </DialogTitle>
                 <div className="flex items-center gap-2 mt-0.5">
                   {selectedMessage?.priority === 'urgent' && (
-                    <Badge className="bg-red-500 text-[9px] px-1.5 py-0">Urgent</Badge>
+                    <Badge className="bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[9px] px-1.5 py-0">Urgent</Badge>
                   )}
                   {selectedMessage?.priority === 'high' && (
-                    <Badge className="bg-orange-500 text-[9px] px-1.5 py-0">Important</Badge>
+                    <Badge className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[9px] px-1.5 py-0">Important</Badge>
                   )}
                   <span className="text-[10px] text-slate-500">
                     {selectedMessage && format(new Date(selectedMessage.created_at), 'dd MMM yyyy, HH:mm')}
@@ -2338,7 +2338,7 @@ const Level5HelperDashboard = () => {
           {/* Scrollable Chat Area */}
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
             {/* Original Admin Message */}
-            <div className="bg-purple-500/10 border border-violet-200/20 rounded-xl p-3 mr-8">
+            <div className="bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border border-violet-200/20 rounded-xl p-3 mr-8">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Crown className="w-3 h-3 text-violet-600" />
                 <span className="text-[10px] text-violet-600 font-medium">Admin</span>
@@ -2362,8 +2362,8 @@ const Level5HelperDashboard = () => {
                     className={cn(
                       "rounded-xl p-3",
                       reply.sender_type === 'helper' 
-                        ? "bg-cyan-500/10 border border-sky-200/20 ml-8" 
-                        : "bg-purple-500/10 border border-violet-200/20 mr-8"
+                        ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white/10 border border-sky-200/20 ml-8" 
+                        : "bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border border-violet-200/20 mr-8"
                     )}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
@@ -2419,7 +2419,7 @@ const Level5HelperDashboard = () => {
                   size="sm"
                   variant="ghost"
                   onClick={() => setReplyScreenshot(null)}
-                  className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-red-500 hover:bg-red-600 rounded-full"
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-gradient-to-r from-rose-500 to-rose-600 text-white hover:bg-red-600 rounded-full"
                 >
                   <X className="w-3 h-3" />
                 </Button>
@@ -2566,7 +2566,7 @@ const Level5HelperDashboard = () => {
 
             {/* Merchant Number Section - hide for auto gateways */}
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
-            <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-500/10">
+            <div className="border border-amber-500/30 rounded-xl p-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
@@ -2604,7 +2604,7 @@ const Level5HelperDashboard = () => {
             <Button 
               onClick={handleAddPaymentMethod}
               disabled={processing}
-              className="bg-cyan-500 hover:bg-cyan-600"
+              className="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white shadow-md shadow-sky-500/30"
             >
               {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Add Method
@@ -2687,7 +2687,7 @@ const Level5HelperDashboard = () => {
                   <Button 
                     onClick={() => handleProcessWithdrawal('mark_paid')}
                     disabled={processing}
-                    className="w-full bg-blue-500 hover:bg-blue-600"
+                    className="w-full bg-gradient-to-r from-sky-500 to-sky-600 text-white hover:bg-blue-600"
                   >
                     {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     <DollarSign className="w-4 h-4 mr-2" />
@@ -2996,7 +2996,7 @@ const Level5HelperDashboard = () => {
 
             {/* ═══ ZiniPay Gateway (Personal Account Auto Pay) ═══ */}
             {paymentType === 'zinipay' && (
-              <div className="border border-emerald-200/30 rounded-xl p-3 bg-emerald-500/10 space-y-3">
+              <div className="border border-emerald-200/30 rounded-xl p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">⚡</span>
                   <p className="text-emerald-600 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
@@ -3046,7 +3046,7 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
-                <div className="bg-yellow-500/10 border border-amber-200/30 rounded-lg p-2">
+                <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10 border border-amber-200/30 rounded-lg p-2">
                   <p className="text-[10px] text-amber-600">
                     ⚠️ Create an account on zinipay.com, then go to Dashboard → Brands → copy the Brand Key/API Key. Add this number to your ZiniPay dashboard too!
                   </p>
@@ -3062,7 +3062,7 @@ const Level5HelperDashboard = () => {
               const isLegacy = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
               if (!matched || isLegacy) return null;
               return (
-                <div className="border border-violet-200/30 rounded-xl p-3 bg-purple-500/10 space-y-3">
+                <div className="border border-violet-200/30 rounded-xl p-3 bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 space-y-3">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">⚡</span>
                     <p className="text-violet-600 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
@@ -3118,7 +3118,7 @@ const Level5HelperDashboard = () => {
 
             {/* SSLCommerz / AamarPay Gateway Credentials */}
             {(paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (
-              <div className="border border-sky-200/30 rounded-xl p-3 bg-cyan-500/10 space-y-3">
+              <div className="border border-sky-200/30 rounded-xl p-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white/10 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{paymentType === 'sslcommerz' ? '🔐' : '💰'}</span>
                   <p className="text-sky-600 font-semibold text-sm">
@@ -3180,7 +3180,7 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
-                <div className="bg-yellow-500/10 border border-amber-200/30 rounded-lg p-2">
+                <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10 border border-amber-200/30 rounded-lg p-2">
                   <p className="text-[10px] text-amber-600">
                     ⚠️ {paymentType === 'sslcommerz' 
                       ? 'Get credentials from sslcommerz.com → Merchant Panel → API/Integration' 
@@ -3215,7 +3215,7 @@ const Level5HelperDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setPaymentLogoFile(null)}
- className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-slate-900 text-xs"
+ className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-full flex items-center justify-center text-slate-900 text-xs"
                     >
                       ×
                     </button>
@@ -3243,7 +3243,7 @@ const Level5HelperDashboard = () => {
 
             {/* Merchant Number Section - hide for auto gateways */}
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
-            <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-500/10">
+            <div className="border border-amber-500/30 rounded-xl p-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
@@ -3281,7 +3281,7 @@ const Level5HelperDashboard = () => {
             <Button 
               onClick={handleAddCountryPaymentMethod}
               disabled={processing || !selectedCountry || !accountName.trim() || (paymentType !== 'zinipay' && !accountNumber.trim())}
-              className="bg-emerald-500 hover:bg-emerald-600"
+              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/30"
             >
               {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Add Method
@@ -3319,7 +3319,7 @@ const Level5HelperDashboard = () => {
                   <p className="text-slate-700 text-sm">Code: {selectedAgencyWithdrawal.agency?.agency_code}</p>
                   <Badge className={cn(
                     "text-xs mt-1",
-                    selectedAgencyWithdrawal.status === 'pending' ? "bg-yellow-500" : "bg-blue-500"
+                    selectedAgencyWithdrawal.status === 'pending' ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-white" : "bg-gradient-to-r from-sky-500 to-sky-600 text-white"
                   )}>
                     {selectedAgencyWithdrawal.status}
                   </Badge>
@@ -3404,7 +3404,7 @@ const Level5HelperDashboard = () => {
                   <div className="space-y-2 text-sm">
                     {/* Local Amount - FIRST */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
-                      <div className="flex items-center justify-between bg-emerald-500/10 rounded-lg p-2 border border-emerald-200/20">
+                      <div className="flex items-center justify-between bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10 rounded-lg p-2 border border-emerald-200/20">
                         <span className="text-slate-700">Payable Local Amount:</span>
                         <span className="text-emerald-600 font-bold text-lg">
                           {(() => {
@@ -3452,7 +3452,7 @@ const Level5HelperDashboard = () => {
                               navigator.clipboard.writeText((selectedAgencyWithdrawal.payment_details as any).account_number);
                               toast({ title: "✅ Copied!", description: "Number copied to clipboard" });
                             }}
-                            className="p-1 bg-cyan-100 hover:bg-cyan-500/40 rounded-md transition-colors"
+                            className="p-1 bg-cyan-100 hover:bg-gradient-to-r from-sky-500 to-sky-600 text-white/40 rounded-md transition-colors"
                           >
                             <Copy className="w-3.5 h-3.5 text-sky-600" />
                           </button>
@@ -3526,7 +3526,7 @@ const Level5HelperDashboard = () => {
                         className={cn(
                           "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all",
                           screenshotFile 
-                            ? "border-emerald-200 bg-green-500/10" 
+                            ? "border-emerald-200 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10" 
                             : "border-slate-200 hover:border-sky-200 bg-slate-50"
                         )}
                       >
