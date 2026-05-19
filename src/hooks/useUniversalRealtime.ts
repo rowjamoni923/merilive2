@@ -339,6 +339,7 @@ export const subscribeToTables = (
   void initializeUniversalChannel();
 
   return () => {
+    const tablesBeforeDelete = getActiveMonitoredTables().map((item) => item.table).sort().join('|');
     subscribers.delete(subscriberId);
     const remainingTables = getActiveMonitoredTables().map((item) => item.table).sort().join('|');
 
@@ -362,7 +363,7 @@ export const subscribeToTables = (
     }
 
     // Remaining subscribers changed target tables => rebuild subscriptions
-    if (nextTables !== remainingTables) scheduleChannelRebuild();
+    if (tablesBeforeDelete !== remainingTables) scheduleChannelRebuild();
   };
 };
 
