@@ -318,6 +318,27 @@ function CampaignFloatingButton() {
     setLoadingMethods(false);
   }, [userCountryCode]);
 
+  const fetchGateways = useCallback(async () => {
+    if (!userCountryCode) return;
+    try {
+      const { data } = await supabase
+        .from('payment_gateways')
+        .select('id, name, gateway_type, country_codes, logo_url')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+      const cc = (userCountryCode || '').toUpperCase();
+      const filtered = (data || []).filter((g: any) => {
+        const codes: string[] = Array.isArray(g.country_codes) ? g.country_codes.map((c: string) => String(c).toUpperCase()) : [];
+        if (codes.length === 0) return false;
+        if (codes.includes('GLOBAL')) return true;
+        return cc ? codes.includes(cc) : false;
+      });
+      setGateways(filtered.map((g: any) => ({ id: g.id, name: g.name, gateway_type: g.gateway_type, logo_url: g.logo_url })));
+    } catch (e) {
+      console.error('Error fetching campaign gateways:', e);
+    }
+  }, [userCountryCode]);
+
   if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || purchased) return null;
 
   const template: CampaignTemplate = CAMPAIGN_TEMPLATES.find(t => t.id === campaign.template_id) || CAMPAIGN_TEMPLATES[0];
