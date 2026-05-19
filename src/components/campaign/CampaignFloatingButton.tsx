@@ -369,16 +369,23 @@ function CampaignFloatingButton() {
   };
 
   const handleBuyNow = async () => {
-    // On web, Google Play is not available — start the user on the Recommend
-    // (Local Pay) tab so helper numbers (bKash/Nagad/etc.) are shown immediately.
-    const initialTab: PaymentTab = isPlayStoreNative ? 'google' : 'recommend';
-    setSelectedPaymentTab(initialTab);
+    // Start with Google Play on native, otherwise pick the first available
+    // auto gateway (or local methods) — the Recommend tab is gone, every
+    // gateway from the topup page now shows up here directly.
     setPopupView('payment_select');
     await Promise.all([
       fetchMatchedPackage(campaign),
-      // Eagerly prefetch local methods so the Recommend tab never appears empty.
       fetchHelperPaymentMethods(),
+      fetchGateways(),
     ]);
+    // Default selection: Google Play on Android native, else first auto
+    // gateway, else local pay if helper methods exist.
+    setSelectedPaymentTab((prev) => {
+      if (isPlayStoreNative) return 'google';
+      if (gateways.length > 0) return gateways[0].id;
+      if (helperMethods.length > 0) return 'local';
+      return prev;
+    });
   };
 
   const resetHelperForm = () => {
@@ -400,12 +407,8 @@ function CampaignFloatingButton() {
   const handleSelectPayment = async (tab: PaymentTab) => {
     setSelectedPaymentTab(tab);
 
-    if (tab === 'recommend') {
+    if (tab === 'local') {
       await Promise.all([fetchHelperPaymentMethods(), matchedPackage ? Promise.resolve() : fetchMatchedPackage(campaign)]);
-      return;
-    }
-
-    if (tab === 'skrill') {
       return;
     }
   };
@@ -413,11 +416,9 @@ function CampaignFloatingButton() {
   const handleContinueSelectedPayment = async () => {
     if (selectedPaymentTab === 'google') {
       if (!isPlayStoreNative) {
-        // Web/iOS — gracefully redirect the user to local methods instead of
-        // an unprofessional toast pop. Prefetch in case the user lands here
-        // without having opened the Recommend tab yet.
-        setSelectedPaymentTab('recommend');
-        await fetchHelperPaymentMethods();
+        // Web/iOS — gracefully redirect the user to Recharge so they can pick
+        // a payment gateway that works in their browser.
+        navigate(`/recharge?campaign_id=${campaign.id}`);
         return;
       }
       try {
@@ -445,7 +446,7 @@ function CampaignFloatingButton() {
       return;
     }
 
-    if (selectedPaymentTab === 'recommend') {
+    if (selectedPaymentTab === 'local') {
       if (!selectedLocalMethodName) {
         toast({ title: 'Select payment method', description: 'Please choose Nagad, Bkash, Rocket or another available method.', variant: 'destructive' });
         return;
@@ -461,10 +462,15 @@ function CampaignFloatingButton() {
       return;
     }
 
-    if (selectedPaymentTab === 'skrill') {
-      toast({ title: 'Skrill', description: 'Skrill payment coming soon' });
+    // Any other auto gateway (selectedPaymentTab === gateway.id) — hand off to
+    // the full Recharge page so the user gets the same flow as topup.
+    const gw = gateways.find((g) => g.id === selectedPaymentTab);
+    if (gw) {
+      setShowPopup(false);
+      navigate(`/recharge?campaign_id=${campaign.id}`);
     }
   };
+
 
   const handleShowNextNumber = () => {
     if (filteredHelperMethods.length > 1) {
