@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Shop Preview Harness</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; }
+    [role="tablist"] { display: flex; gap: 8px; margin-bottom: 12px; }
+    [role="tab"] { padding: 6px 10px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+    [role="tab"][aria-selected="true"] { background: #111; color: #fff; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .card { border: 1px solid #ddd; padding: 12px; cursor: pointer; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; }
+    .modal[data-open="true"] { display: flex; }
+    .preview { background: #fff; padding: 16px; min-width: 320px; min-height: 320px; }
+    .preview-media { width: 240px; height: 240px; background: #eee; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+  <h1>Shop</h1>
+  <div role="tablist" id="tablist"></div>
+  <div id="grid" class="grid"></div>
+
+  <div class="modal" id="modal" data-open="false" role="dialog" aria-modal="true">
+    <div class="preview" data-testid="full-screen-preview">
+      <h2 data-testid="preview-title"></h2>
+      <div class="preview-media" data-testid="preview-media"></div>
+      <button data-testid="preview-close">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Track navigations / reloads. The harness must NEVER reload on tab switch or preview open.
+    window.__RELOAD_COUNT__ = Number(sessionStorage.getItem("__RELOAD_COUNT__") || "0") + 1;
+    sessionStorage.setItem("__RELOAD_COUNT__", String(window.__RELOAD_COUNT__));
+    window.__NAV_EVENTS__ = [];
+    window.addEventListener("beforeunload", () => {
+      window.__NAV_EVENTS__.push({ type: "beforeunload", at: Date.now() });
+    });
+
+    const TABS = [
+      { id: "avatar_frames", label: "Avatar Frames" },
+      { id: "entry_effects", label: "Entry Effects" },
+      { id: "vehicles",      label: "Vehicles" },
+      { id: "chat_bubbles",  label: "Chat Bubbles" },
+    ];
+
+    const ITEMS = {
+      avatar_frames: [
+        { id: "af1", name: "Gold Frame",  media: "frame.svga" },
+        { id: "af2", name: "Ruby Frame",  media: "frame2.svga" },
+      ],
+      entry_effects: [
+        { id: "ee1", name: "Dragon Entry", media: "dragon.svga" },
+        { id: "ee2", name: "Phoenix Entry", media: "phoenix.svga" },
+      ],
+      vehicles: [
+        { id: "v1", name: "Sports Car", media: "car.svga" },
+        { id: "v2", name: "Yacht",      media: "yacht.svga" },
+      ],
+      chat_bubbles: [
+        { id: "cb1", name: "Royal Bubble", media: "bubble.svga" },
+        { id: "cb2", name: "Neon Bubble",  media: "bubble2.svga" },
+      ],
+    };
+
+    let active = TABS[0].id;
+    const tablist = document.getElementById("tablist");
+    const grid = document.getElementById("grid");
+    const modal = document.getElementById("modal");
+    const previewTitle = modal.querySelector('[data-testid="preview-title"]');
+    const previewMedia = modal.querySelector('[data-testid="preview-media"]');
+
+    function renderTabs() {
+      tablist.innerHTML = "";
+      for (const t of TABS) {
+        const b = document.createElement("button");
+        b.setAttribute("role", "tab");
+        b.setAttribute("data-tab", t.id);
+        b.setAttribute("aria-selected", String(t.id === active));
+        b.textContent = t.label;
+        b.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          active = t.id;
+          renderTabs();
+          renderGrid();
+        });
+        tablist.appendChild(b);
+      }
+    }
+
+    function renderGrid() {
+      grid.setAttribute("data-active-tab", active);
+      grid.innerHTML = "";
+      for (const item of ITEMS[active]) {
+        const c = document.createElement("div");
+        c.className = "card";
+        c.setAttribute("data-testid", "shop-item");
+        c.setAttribute("data-id", item.id);
+        c.textContent = item.name;
+        c.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          openPreview(item);
+        });
+        grid.appendChild(c);
+      }
+    }
+
+    function openPreview(item) {
+      previewTitle.textContent = item.name;
+      previewMedia.setAttribute("data-src", item.media);
+      previewMedia.textContent = item.media;
+      modal.setAttribute("data-open", "true");
+      modal.setAttribute("data-item-id", item.id);
+      modal.setAttribute("data-from-tab", active);
+    }
+
+    modal.querySelector('[data-testid="preview-close"]').addEventListener("click", (ev) => {
+      ev.preventDefault();
+      modal.setAttribute("data-open", "false");
+      modal.removeAttribute("data-item-id");
+    });
+
+    renderTabs();
+    renderGrid();
+  </script>
+</body>
+</html>
