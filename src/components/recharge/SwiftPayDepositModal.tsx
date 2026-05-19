@@ -122,24 +122,24 @@ export default function SwiftPayDepositModal({
       setCreating(false);
       return;
     }
-    if (mode === "helper" && helperPkg) {
-      setPkg(helperPkg);
-      setStep("pick_currency");
+    if (mode === "helper" && helperCustomCoins && helperCustomPriceUsd) {
+      setPkg({ id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" });
+      setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       return;
     }
-    if (mode === "user" && userCustomPkg) {
-      setPkg(userCustomPkg);
-      setStep("pick_currency");
+    if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+      setPkg({ id: `custom_${userCustomPriceUsd}`, coins: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" });
+      setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       return;
     }
     if (initialPackageId) {
       const pre = packages.find((p) => p.id === initialPackageId);
       if (pre) {
         setPkg(pre);
-        setStep("pick_currency");
+        setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       }
     }
-  }, [open, initialPackageId, packages, mode, helperPkg, userCustomPkg]);
+  }, [open, initialPackageId, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomLabel]);
 
   // Auto-select recommended crypto whenever the selected package changes
   useEffect(() => {
