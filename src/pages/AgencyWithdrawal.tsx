@@ -2054,40 +2054,40 @@ const AgencyWithdrawal = () => {
     console.log('[Withdrawal] Country', selectedCountry, 'has helpers:', hasHelpers);
   }, [selectedCountry, countriesWithHelpers]);
 
-  // Official auto-credit method (MeriCash USDT Gateway) — shown ONLY for foreign
-  // agencies. Bangladesh / India / Pakistan are explicitly excluded for now (they will
-  // continue using local payroll-helper methods only). Auto methods can be enabled for
-  // these 3 countries later by removing them from AUTO_PAY_EXCLUDED_COUNTRIES.
+  // Country-strict payment method rules (Pkg41):
+  //   • BD / IN / PK with a Level-5 payroll helper → LOCAL methods ONLY (no auto gateway).
+  //   • BD / IN / PK with NO Level-5 helper       → AUTO gateway ONLY (fallback so withdrawal isn't blocked).
+  //   • All other countries with a Level-5 helper → LOCAL + AUTO (user picks).
+  //   • All other countries with NO Level-5 helper → AUTO ONLY.
+  // Each country only ever sees its own payment methods — no cross-country leakage.
   const AUTO_PAY_EXCLUDED_COUNTRIES = ['BD', 'IN', 'PK'];
   const OFFICIAL_AUTO_METHODS = [
     { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
   ];
 
   const getAvailablePaymentMethods = () => {
-    if (!countryConfig) return [];
+    if (!selectedCountry || !countryConfig) return [];
 
-    const autoAllowed = !AUTO_PAY_EXCLUDED_COUNTRIES.includes(selectedCountry);
-    const autoMethods = autoAllowed ? OFFICIAL_AUTO_METHODS : [];
+    const isExcluded = AUTO_PAY_EXCLUDED_COUNTRIES.includes(selectedCountry);
 
-    // Strip any legacy ePay entries and any auto-method duplicates injected into country configs
+    // Only this country's local methods — strip any legacy auto entries baked into the country config
     const localMethods = countryConfig.paymentMethods.filter(
       m => m.value !== 'epay' && m.value !== 'crypto_auto' && m.value !== 'binance'
     );
 
     if (hasLocalPayrollHelpers === null) {
-      // Still loading — show local + auto (where allowed)
-      return [...localMethods, ...autoMethods];
+      // Helper-availability still loading: don't guess auto, show local for now
+      return localMethods;
     }
 
     if (hasLocalPayrollHelpers) {
-      // Local Level-5 helpers exist → show local (lower fee) first, then auto (if allowed)
-      return [...localMethods, ...autoMethods];
+      // Has Level-5 helper in this country:
+      //   excluded (BD/IN/PK) → local only; others → local + auto (user choice)
+      return isExcluded ? localMethods : [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
 
-    // No local helpers
-    if (autoMethods.length > 0) return autoMethods;
-    // Excluded country with no helpers: fall back to local methods so UI is never empty
-    return localMethods;
+    // No Level-5 helper anywhere in this country → auto gateway only (applies to every country incl. BD/IN/PK)
+    return [...OFFICIAL_AUTO_METHODS];
   };
 
   // Update payment method when country or helper availability changes
