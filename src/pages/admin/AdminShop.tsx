@@ -1233,11 +1233,9 @@ const AdminShop = () => {
                 const url = getAnimationUrl(fullscreenPreviewItem);
                 if (!url) return <p className="text-white/50">No animation file</p>;
                 if (isSVGA(url)) return (
-                  <Suspense fallback={<div className="w-40 h-40 bg-purple-500/20 animate-pulse rounded-full" />}>
-                    <UniversalAnimationPlayer src={url} className="w-full h-full" loop autoPlay muted={false} />
-                  </Suspense>
+                  <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />
                 );
-                if (isLottie(url)) return <UniversalAnimationPlayer src={url} className="w-full h-full" loop autoPlay muted={false} />;
+                if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
                 if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;
                 return <img src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />;
               })()}
