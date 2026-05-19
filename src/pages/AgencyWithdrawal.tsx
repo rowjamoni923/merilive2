@@ -1809,8 +1809,9 @@ const AgencyWithdrawal = () => {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
 
-  // Get current country config
-  const countryConfig = selectedCountry ? (COUNTRY_CONFIGS[selectedCountry] || COUNTRY_CONFIGS.BD) : COUNTRY_CONFIGS.BD;
+  // Country-strict: only ever use the selected country's own config. Never fall back to BD
+  // (would leak BD methods like bKash/Nagad into other countries). Returns null when no country picked yet.
+  const countryConfig = selectedCountry ? (COUNTRY_CONFIGS[selectedCountry] ?? null) : null;
 
   // Convert beans to USD
   const beansToUsd = (beans: number) => {
