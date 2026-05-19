@@ -108,6 +108,8 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   background = 'none',
   fallbackEmoji = '🎁',
   soundUrl = null,
+  debug,
+  debugTag,
 }) => {
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
@@ -119,6 +121,18 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
 
   const resolvedType = type || detectAnimationType(src);
   const useAudioPlayer = resolvedType === 'svga' && !muted;
+
+  const debugActive = debug ?? isAnimationDebugEnabled();
+  const mountTimeRef = useRef<number>(Date.now());
+  const handleDebugComplete = (source: AnimationCompletionSource) => {
+    if (!debugActive) return;
+    const elapsed = Date.now() - mountTimeRef.current;
+    logAnimationCompletion(
+      `FixedAnimationFrame${debugTag ? `:${debugTag}` : ''}`,
+      source,
+      { elapsed, src },
+    );
+  };
 
   if (!src) {
     return (
