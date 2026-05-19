@@ -3,6 +3,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import errorLoggingService from '@/services/ErrorLoggingService';
+import { isChunkLoadError, scheduleChunkLoadRecovery } from '@/utils/lazyRetry';
 
 interface Props {
   children: ReactNode;
@@ -14,6 +15,7 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  recovering: boolean;
 }
 
 /**
@@ -26,7 +28,8 @@ class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      recovering: false
     };
   }
 
@@ -35,6 +38,11 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    if (isChunkLoadError(error)) {
+      this.setState({ recovering: true });
+      void scheduleChunkLoadRecovery(error, error.message);
+    }
+
     // Log error to our tracking system
     errorLoggingService.logRenderError(error, this.props.componentName || 'Unknown Component');
     
@@ -58,20 +66,22 @@ class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      return (
+        const isRecoveringChunk = this.state.recovering && this.state.error && isChunkLoadError(this.state.error);
+
+        return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
           <Card className="max-w-md w-full bg-card border-destructive/20">
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
-                <AlertTriangle className="w-8 h-8 text-destructive" />
+                {isRecoveringChunk ? <RefreshCw className="w-8 h-8 text-destructive animate-spin" /> : <AlertTriangle className="w-8 h-8 text-destructive" />}
               </div>
               <CardTitle className="text-xl text-foreground">
-                Something went wrong
+                {isRecoveringChunk ? 'Updating MeriLive' : 'Something went wrong'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground text-center text-sm">
-                An error occurred on this page. We're working to fix it.
+                {isRecoveringChunk ? 'Please wait while the app refreshes safely.' : "An error occurred on this page. We're working to fix it."}
               </p>
               
               {this.state.error && (
