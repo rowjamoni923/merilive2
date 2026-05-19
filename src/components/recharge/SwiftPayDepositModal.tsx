@@ -56,13 +56,28 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   return message;
 };
 
-export default function SwiftPayDepositModal({ open, onOpenChange, packages, initialPackageId }: Props) {
+export default function SwiftPayDepositModal({
+  open,
+  onOpenChange,
+  packages,
+  initialPackageId,
+  mode = "user",
+  helperId = null,
+  helperCustomCoins = null,
+  helperCustomPriceUsd = null,
+  onCredited,
+}: Props) {
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
   const [currency, setCurrency] = useState("usdttrc20");
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
+
+  // Helper mode synthesises a "package" from custom amounts
+  const helperPkg: PkgLite | null = mode === "helper" && helperCustomCoins && helperCustomPriceUsd
+    ? { id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" }
+    : null;
 
   useEffect(() => {
     if (!open) {
@@ -73,7 +88,11 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
       setCreating(false);
       return;
     }
-    // If caller pre-selected a package, jump straight to currency picker
+    if (mode === "helper" && helperPkg) {
+      setPkg(helperPkg);
+      setStep("pick_currency");
+      return;
+    }
     if (initialPackageId) {
       const pre = packages.find((p) => p.id === initialPackageId);
       if (pre) {
@@ -81,7 +100,7 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
         setStep("pick_currency");
       }
     }
-  }, [open, initialPackageId, packages]);
+  }, [open, initialPackageId, packages, mode, helperPkg]);
 
   const createDeposit = useCallback(async () => {
     if (!pkg) return;
