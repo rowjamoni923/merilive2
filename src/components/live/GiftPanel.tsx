@@ -548,7 +548,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                       {selectedGift.animation_url.toLowerCase().endsWith('.svga') ? (
                         <SVGAPlayer
                           src={selectedGift.animation_url}
-                          className="w-6 h-6 [&_canvas]:!w-full [&_canvas]:!h-full"
+                          className="w-6 h-6"
                           loop={true}
                           autoPlay={true}
                           muted={true}
@@ -556,7 +556,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                       ) : (
                         <UniversalAnimationPlayer
                           src={selectedGift.animation_url}
-                            className="w-6 h-6 [&_canvas]:!w-full [&_canvas]:!h-full"
+                          className="w-6 h-6"
                           loop={true}
                           autoPlay={true}
                           muted={true}

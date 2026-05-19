@@ -6,8 +6,6 @@ import Lottie from 'lottie-react';
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
 const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
 
-const getUrlPath = (url: string) => url.split('?')[0].split('#')[0].toLowerCase();
-
 export type FrameType = 'svga' | 'lottie' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
 interface UniversalFramePlayerProps {
@@ -27,7 +25,7 @@ interface UniversalFramePlayerProps {
 const detectFrameType = (url: string): FrameType => {
   if (!url) return 'static';
   
-  const lowercaseUrl = getUrlPath(url);
+  const lowercaseUrl = url.toLowerCase();
   
   if (lowercaseUrl.endsWith('.svga')) return 'svga';
   if (lowercaseUrl.endsWith('.json')) return 'lottie';
@@ -93,7 +91,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
         }>
           <SVGAPlayerWithAudio
             src={src}
-            className={cn("w-full h-full [&_canvas]:!w-full [&_canvas]:!h-full", className)}
+            className={className}
             loop={loop}
             autoPlay={autoPlay}
             onLoad={onLoad}
@@ -110,7 +108,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
       }>
         <SVGAPlayer
           src={src}
-          className={cn("w-full h-full [&_canvas]:!w-full [&_canvas]:!h-full", className)}
+          className={className}
           loop={loop}
           autoPlay={autoPlay}
           muted={muted}

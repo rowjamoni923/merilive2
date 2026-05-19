@@ -924,32 +924,14 @@ const AdminFaceVerification = () => {
 
       {/* Detail Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="admin-content max-w-2xl max-h-[92vh] overflow-y-auto border-0 p-0 text-white shadow-[0_30px_120px_-20px_rgba(201,168,76,0.35)] animate-scale-in
-          bg-[radial-gradient(ellipse_at_top,_rgba(201,168,76,0.18),_transparent_55%),linear-gradient(180deg,_#0b0b14_0%,_#0d0d18_45%,_#0a0a12_100%)]
-          ring-1 ring-[hsl(45,65%,55%)]/25">
-          {/* Luxury gold hairline + glow header */}
-          <div className="relative overflow-hidden">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(240,215,140,0.22),transparent_60%)]" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(45,75%,60%)]/70 to-transparent" />
-            <DialogHeader className="relative px-6 pt-6 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="relative h-11 w-11 rounded-xl flex items-center justify-center
-                  bg-gradient-to-br from-[#c9a84c] via-[#f0d78c] to-[#8b6f1f] shadow-[0_8px_24px_-8px_rgba(201,168,76,0.6),inset_0_1px_0_rgba(255,255,255,0.35)]">
-                  <ScanFace className="w-5 h-5 text-black/85" />
-                </div>
-                <div className="min-w-0">
-                  <DialogTitle className="text-xl font-semibold tracking-tight bg-gradient-to-r from-[#f5e7b0] via-[#fff7d6] to-[#c9a84c] bg-clip-text text-transparent">
-                    Verification Details
-                  </DialogTitle>
-                  <DialogDescription className="text-[13px] text-white/55 mt-0.5">
-                    Review submission · take action · audit trail recorded
-                  </DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
-            <div className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[hsl(45,55%,55%)]/40 to-transparent" />
-          </div>
-          <div className="px-6 pb-6 pt-2">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ScanFace className="w-5 h-5 text-purple-500" />
+              Verification Details
+            </DialogTitle>
+            <DialogDescription>Review submission and take action</DialogDescription>
+          </DialogHeader>
 
           {selectedSubmission && (() => {
             const { steps, completed, total, percentage } = getCompletionData(selectedSubmission);
@@ -1405,7 +1387,6 @@ const AdminFaceVerification = () => {
               </div>
             );
           })()}
-          </div>
         </DialogContent>
       </Dialog>
 
@@ -1413,22 +1394,15 @@ const AdminFaceVerification = () => {
 
       {/* Action Modal */}
       <Dialog open={showActionModal} onOpenChange={setShowActionModal}>
-        <DialogContent className="admin-content max-w-md border-0 p-0 text-white shadow-[0_24px_80px_-20px_rgba(201,168,76,0.4)] animate-scale-in
-          bg-[radial-gradient(ellipse_at_top,_rgba(201,168,76,0.2),_transparent_55%),linear-gradient(180deg,_#0b0b14_0%,_#0d0d18_50%,_#0a0a12_100%)]
-          ring-1 ring-[hsl(45,65%,55%)]/25">
-          <div className="relative overflow-hidden px-6 pt-6 pb-4">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(45,75%,60%)]/70 to-transparent" />
-            <DialogHeader>
-              <DialogTitle className="text-lg font-semibold tracking-tight bg-gradient-to-r from-[#f5e7b0] via-[#fff7d6] to-[#c9a84c] bg-clip-text text-transparent">
-                {actionType === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
-              </DialogTitle>
-              <DialogDescription className="text-[13px] text-white/55 mt-0.5">
-                {actionType === 'approve' ? 'Select gender and click Host or User to convert instantly' : 'Provide a reason for rejection'}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[hsl(45,55%,55%)]/40 to-transparent" />
-          </div>
-          <div className="px-6 pb-6 pt-2">
+        <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white text-lg">
+              {actionType === 'approve' ? '✅ Confirm Approval' : '❌ Confirm Rejection'}
+            </DialogTitle>
+            <DialogDescription className="text-white/50">
+              {actionType === 'approve' ? 'Select gender and click Host or User to convert instantly' : 'Provide a reason for rejection'}
+            </DialogDescription>
+          </DialogHeader>
           <div className="space-y-5">
             {actionType === 'approve' && (
               <>
@@ -1575,7 +1549,6 @@ const AdminFaceVerification = () => {
               </Button>
             )}
           </DialogFooter>
-          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -52,18 +52,12 @@ export const clearAllFrameCaches = () => {
   userFrameInfoCache.clear();
   resolvedFrameUrlCache.clear();
   levelFrameCache.clear();
-  try {
-    sessionStorage.setItem('meri_frame_cache_bust', String(Date.now()));
-  } catch {}
   notify();
 };
 
 export const clearUserFrameCacheById = (userId: string) => {
   userFrameInfoCache.delete(userId);
   resolvedFrameUrlCache.delete(userId);
-  try {
-    sessionStorage.setItem(`meri_frame_cache_bust_${userId}`, String(Date.now()));
-  } catch {}
   notify();
 };
 

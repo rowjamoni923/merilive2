@@ -134,7 +134,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
         <Suspense fallback={<LoadingSpinner />}>
           <SVGAPlayerWithAudio
             src={src}
-            className={cn("w-full h-full [&_canvas]:!w-full [&_canvas]:!h-full", className)}
+            className={className}
             loop={loop}
             autoPlay={autoPlay}
             onLoad={onLoad}
@@ -151,7 +151,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
       <Suspense fallback={<LoadingSpinner />}>
         <SVGAPlayer
           src={src}
-          className={cn("w-full h-full [&_canvas]:!w-full [&_canvas]:!h-full", className)}
+          className={className}
           loop={loop}
           autoPlay={autoPlay}
           muted={muted}
