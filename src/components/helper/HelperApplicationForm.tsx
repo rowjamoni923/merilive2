@@ -153,94 +153,71 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     }
   };
 
-  const isFreeLevel = selectedLevel === 1;
-  const isPaidLevel = selectedLevel >= 2 && selectedLevel <= 5;
   const selectedLevelData = levels.find(l => l.level_number === selectedLevel);
+  const upgradeCost = Number(selectedLevelData?.upgrade_cost_usd || 0);
+  const isPaidLevel = upgradeCost > 0;
+  const isFreeLevel = !isPaidLevel;
+  const diamondsForUpgrade = Math.floor(upgradeCost * diamondsPerUsd);
 
-  const handleSubmit = async () => {
-    if (isFreeLevel && !contactWhatsapp && !contactTelegram) {
-      toast({ title: "Contact Required", description: "Provide WhatsApp or Telegram", variant: "destructive" });
+  /** Validate the form (everything except the actual payment). */
+  const validateForm = (): string | null => {
+    if (!contactWhatsapp && !contactTelegram) {
+      return "Provide WhatsApp or Telegram so we can reach you";
+    }
+    if (selectedLevel === 5) {
+      if (!idCardFront || !idCardBack) return "Upload both front and back of your ID card";
+      if (!idCardName.trim()) return "Enter the name on your ID card";
+      if (!idCardNumber.trim()) return "Enter your ID card number";
+      if (!fullAddress.trim()) return "Enter your full address";
+      if (!country.trim()) return "Enter your country";
+    }
+    if (isPaidLevel && diamondsPerUsd <= 0) {
+      return "Diamond rate not loaded yet — try again in a moment";
+    }
+    return null;
+  };
+
+  /** Open the crypto payment modal after validating the form. */
+  const handlePayWithCrypto = async () => {
+    const err = validateForm();
+    if (err) {
+      toast({ title: "Required", description: err, variant: "destructive" });
       return;
     }
-    
-    if (isPaidLevel) {
-      if (!selectedPaymentMethod) {
-        toast({ title: "Payment Method Required", variant: "destructive" });
-        return;
-      }
-      if (!transactionId.trim()) {
-        toast({ title: "Transaction ID Required", variant: "destructive" });
-        return;
-      }
-      if (!screenshot) {
-        toast({ title: "Screenshot Required", variant: "destructive" });
-        return;
-      }
+    // Block if an application already exists
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({ title: "Not logged in", variant: "destructive" });
+      return;
     }
-
-    // Level 5 specific validations
-    if (selectedLevel === 5) {
-      if (!idCardFront || !idCardBack) {
-        toast({ title: "ID Card Required", description: "Upload both front and back of your ID card", variant: "destructive" });
-        return;
-      }
-      if (!idCardName.trim()) {
-        toast({ title: "Name Required", description: "Enter the name on your ID card", variant: "destructive" });
-        return;
-      }
-      if (!idCardNumber.trim()) {
-        toast({ title: "ID Number Required", description: "Enter your ID card number", variant: "destructive" });
-        return;
-      }
-      if (!fullAddress.trim()) {
-        toast({ title: "Address Required", description: "Enter your full address", variant: "destructive" });
-        return;
-      }
-      if (!country.trim()) {
-        toast({ title: "Country Required", variant: "destructive" });
-        return;
-      }
+    const { data: existingApp } = await supabase
+      .from('helper_applications')
+      .select('id, status')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (existingApp) {
+      toast({ title: "Application Exists", description: `Status: ${existingApp.status}`, variant: "destructive" });
+      return;
     }
+    setPaidConfirmed(false);
+    setSwiftPayOpen(true);
+  };
 
+  /** Called after the user actually submits — for free level OR after crypto payment succeeds. */
+  const submitApplication = async (paymentTopupId?: string) => {
+    if (!paidConfirmed && isPaidLevel && !paymentTopupId) {
+      // safety net
+      toast({ title: "Payment not confirmed yet", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      const { data: existingApp } = await supabase
-        .from('helper_applications')
-        .select('id, status')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existingApp) {
-        toast({ title: "Application Exists", description: `Status: ${existingApp.status}`, variant: "destructive" });
-        return;
-      }
-
-      let screenshotUrl = null;
-      
-      if (isPaidLevel && screenshot) {
-        setUploadingScreenshot(true);
-        const fileName = `helper-applications/${user.id}/${Date.now()}-${screenshot.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from('payment-screenshots')
-          .upload(fileName, screenshot);
-        
-        if (uploadError) throw uploadError;
-        
-        const { data: urlData } = supabase.storage
-          .from('payment-screenshots')
-          .getPublicUrl(fileName);
-        
-        screenshotUrl = urlData.publicUrl;
-        setUploadingScreenshot(false);
-      }
-
       // Upload ID card images for Level 5
-      let idCardFrontUrl = null;
-      let idCardBackUrl = null;
-      
+      let idCardFrontUrl: string | null = null;
+      let idCardBackUrl: string | null = null;
       if (selectedLevel === 5) {
         if (idCardFront) {
           const frontName = `helper-id-cards/${user.id}/${Date.now()}-front-${idCardFront.name}`;
@@ -263,11 +240,12 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
       }
 
       const paymentDetails = isPaidLevel ? {
-        method_id: selectedPaymentMethod?.id,
-        method_name: selectedPaymentMethod?.method_name,
-        transaction_id: transactionId,
-        screenshot_url: screenshotUrl,
-        amount_usd: selectedLevelData?.upgrade_cost_usd || 0
+        method: 'swift_pay_crypto',
+        method_name: 'MeriCash Crypto Gateway',
+        topup_id: paymentTopupId || null,
+        amount_usd: upgradeCost,
+        diamonds_credited: diamondsForUpgrade,
+        auto_verified: true,
       } : null;
 
       const { error } = await supabase
@@ -278,14 +256,13 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           requested_level: selectedLevel,
           payroll_requested: selectedLevel === 5 ? payrollRequested : false,
           contact_phone: null,
-          contact_whatsapp: isFreeLevel ? contactWhatsapp || null : null,
-          contact_telegram: isFreeLevel ? contactTelegram || null : null,
-          reason: isFreeLevel ? reason || null : null,
-          payment_method: isPaidLevel ? selectedPaymentMethod?.method_name : null,
+          contact_whatsapp: contactWhatsapp || null,
+          contact_telegram: contactTelegram || null,
+          reason: reason || null,
+          payment_method: isPaidLevel ? 'MeriCash Crypto Gateway' : null,
           payment_details: paymentDetails,
-          payment_screenshot_url: screenshotUrl,
-          payment_transaction_id: isPaidLevel ? transactionId : null,
-          // Level 5 ID verification fields
+          payment_screenshot_url: null,
+          payment_transaction_id: paymentTopupId || null,
           id_card_front_url: idCardFrontUrl,
           id_card_back_url: idCardBackUrl,
           id_card_name: selectedLevel === 5 ? idCardName || null : null,
@@ -297,13 +274,29 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
 
       if (error) throw error;
 
-      toast({ title: "Application Submitted! 🎉" });
+      toast({
+        title: "Application Submitted! 🎉",
+        description: isPaidLevel ? `${diamondsForUpgrade.toLocaleString()} diamonds credited to your balance.` : undefined,
+      });
       onSuccess?.();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
-      setUploadingScreenshot(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (isFreeLevel) {
+      const err = validateForm();
+      if (err) {
+        toast({ title: "Required", description: err, variant: "destructive" });
+        return;
+      }
+      await submitApplication();
+    } else {
+      // Paid path goes through the crypto modal
+      await handlePayWithCrypto();
     }
   };
 
