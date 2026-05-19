@@ -148,31 +148,15 @@ export const InCallChat = memo(({
             {messages.map((msg) => {
               const isMe = msg.senderId === userId;
               return (
-                <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0, x: isMe ? 20 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={cn(
-                    "flex",
-                    isMe ? "justify-end" : "justify-start"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "max-w-[75%] px-3 py-1.5 rounded-2xl text-xs",
-                      isMe
-                        ? "bg-gradient-to-r from-purple-500/80 to-pink-500/80 text-white rounded-br-sm"
-                        : "bg-white/15 text-white/90 rounded-bl-sm"
-                    )}
-                  >
-                    {!isMe && (
-                      <span className="text-[10px] font-bold text-pink-300 block mb-0.5">
-                        {msg.senderName}
-                      </span>
-                    )}
-                    {msg.message}
-                  </div>
-                </motion.div>
+                <div key={msg.id} className={cn("w-full", isMe && "text-right")}>
+                  <RoomChatBubble
+                    id={msg.id}
+                    userName={isMe ? "You" : msg.senderName}
+                    message={msg.message}
+                    userLevel={1}
+                    isHost={false}
+                  />
+                </div>
               );
             })}
           </div>
