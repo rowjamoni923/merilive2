@@ -261,16 +261,14 @@ export const GiftSwipeableGrid = memo(({
 
       {/* Page Dots */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-1.5 py-1.5">
+        <div className="flex justify-center items-center gap-1 py-1.5">
           {Array.from({ length: totalPages }).map((_, index) => (
             <button
               key={index}
               onClick={() => handlePageClick(index)}
               className={cn(
-                "rounded-full transition-all duration-150",
-                currentPage === index 
-                  ? "bg-gradient-to-r from-pink-500 to-purple-500 w-5 h-2" 
-                  : "bg-white/25 w-1.5 h-1.5"
+                "h-1 rounded-full transition-all duration-300",
+                currentPage === index ? "w-4 bg-white" : "w-1 bg-white/50"
               )}
               style={{ WebkitTapHighlightColor: 'transparent' }}
               aria-label={`Page ${index + 1}`}
