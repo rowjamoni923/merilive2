@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { RoomChatBubble } from "@/components/chat/UnifiedChatMessage";
 
 interface ChatMessage {
   id: string;
