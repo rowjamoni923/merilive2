@@ -269,128 +269,23 @@ export function AdminMediaFrame({
   if (effectiveMediaKind === "video") {
     const sourceType = blobMimeType || getVideoMimeType(displaySrc);
     const canOpenOriginal = !displaySrc.startsWith("blob:");
-    const requestFullscreen = () => {
-      const el = videoElRef.current as any;
-      if (!el) return;
-      const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen || el.msRequestFullscreen;
-      if (fn) {
-        try { fn.call(el); } catch { /* noop */ }
-      }
-    };
     return (
-      <div className={cn("relative overflow-hidden rounded-lg border border-border bg-black", className)}>
-        <video
-          key={`${displaySrc}-${retryNonce}`}
-          controls
-          playsInline
-          preload="metadata"
-          muted={autoPlay}
-          autoPlay={autoPlay}
-          poster={displayPoster || undefined}
-          className={cn("h-full w-full bg-black object-contain", mediaClassName)}
-          onError={(e) => {
-            const err = (e.currentTarget as HTMLVideoElement).error;
-            const code = err?.code;
-            const reason =
-              code === 1 ? "Playback aborted."
-              : code === 2 ? "Network error while loading video."
-              : code === 3 ? "Video is corrupted or cannot be decoded."
-              : code === 4 ? "Video format or MIME type not supported by this browser."
-              : "Unknown playback error.";
-            setFailReason(reason);
-            setVideoLoading(false);
-            setFailed(true);
-          }}
-          onLoadStart={() => { setVideoLoading(true); }}
-          onWaiting={() => { setVideoLoading(true); }}
-          onStalled={() => { setVideoLoading(true); }}
-          onLoadedMetadata={(e) => {
-            const d = (e.currentTarget as HTMLVideoElement).duration;
-            if (Number.isFinite(d) && d > 0) setVideoDuration(d);
-          }}
-          onDurationChange={(e) => {
-            const d = (e.currentTarget as HTMLVideoElement).duration;
-            if (Number.isFinite(d) && d > 0) setVideoDuration(d);
-          }}
-          onTimeUpdate={(e) => {
-            setVideoTime((e.currentTarget as HTMLVideoElement).currentTime || 0);
-          }}
-          onLoadedData={() => { setFailed(false); setVideoLoading(false); }}
-          onCanPlay={() => { setFailed(false); setVideoLoading(false); }}
-          onPlaying={() => { setVideoLoading(false); }}
-          controlsList="nodownload"
-          ref={(el) => {
-            videoElRef.current = el;
-            if (el && el.dataset.adminLoadedSrc !== `${displaySrc}-${retryNonce}`) {
-              el.dataset.adminLoadedSrc = `${displaySrc}-${retryNonce}`;
-              try { el.load(); } catch { /* noop */ }
-            }
-          }}
-          {...({
-            "webkit-playsinline": "true",
-            "x5-video-player-type": "h5",
-            "x5-video-player-fullscreen": "false",
-          } as Record<string, string>)}
-        >
-          {sourceType ? <source src={displaySrc} type={sourceType} /> : <source src={displaySrc} />}
-          {sourceType && <source src={displaySrc} />}
-        </video>
-
-        {videoLoading && !failed && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 backdrop-blur-sm">
-            <Loader2 className="h-6 w-6 animate-spin text-white" />
-            <span className="text-[11px] font-medium text-white/90">Loading video…</span>
-          </div>
-        )}
-
-        {/* Time + progress overlay — visible even when playback fails mid-way */}
-        {(videoDuration > 0 || videoTime > 0) && (
-          <div className="pointer-events-none absolute bottom-12 left-2 right-2 flex items-center gap-2 rounded-md bg-black/60 px-2 py-1 backdrop-blur-sm">
-            <span className="text-[11px] font-semibold tabular-nums text-white">
-              {formatMediaTime(videoTime)} <span className="text-white/60">/ {formatMediaTime(videoDuration)}</span>
-            </span>
-            <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/20">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-150"
-                style={{ width: videoDuration > 0 ? `${Math.min(100, (videoTime / videoDuration) * 100)}%` : "0%" }}
-              />
-            </div>
-          </div>
-        )}
-
-
-        <div className="absolute top-2 right-2 flex items-center gap-1">
-          <button
-            type="button"
-            onClick={requestFullscreen}
-            className="inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
-            title="Fullscreen"
-          >
-            <Maximize2 className="h-3 w-3" /> Fullscreen
-          </button>
-          <button
-            type="button"
-            onClick={() => { setFailed(false); setFailReason(""); setVideoLoading(true); setRetryNonce((n) => n + 1); }}
-            className="inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
-            title="Reload video"
-          >
-            <RefreshCw className="h-3 w-3" /> Reload
-          </button>
-          {canOpenOriginal && (
-            <a
-              href={displaySrc}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white hover:bg-black/85"
-              title="Open video in new tab"
-            >
-              <ExternalLink className="h-3 w-3" /> Open
-            </a>
-          )}
-        </div>
-      </div>
+      <AdminLuxuryVideoPlayer
+        src={displaySrc}
+        poster={displayPoster}
+        mimeType={sourceType}
+        className={className}
+        mediaClassName={mediaClassName}
+        autoPlay={autoPlay}
+        canOpenOriginal={canOpenOriginal}
+        retryKey={retryNonce}
+        onRetry={() => { setFailed(false); setFailReason(""); setVideoLoading(true); setRetryNonce((n) => n + 1); }}
+        onError={(reason) => { setFailReason(reason); setVideoLoading(false); setFailed(true); }}
+        onTimeUpdate={(c, d) => { setVideoTime(c); if (d > 0) setVideoDuration(d); }}
+      />
     );
   }
+
 
   const image = (
     <img
