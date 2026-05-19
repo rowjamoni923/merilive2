@@ -3,7 +3,7 @@
  * Uses admin-selected template for popup styling.
  * Payment methods shown inline (no navigation to /recharge).
  */
-import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Copy, Check, Upload } from 'lucide-react';
@@ -121,6 +121,21 @@ function CampaignFloatingButton() {
   const bottomOffset = isProfileRoute
     ? 'calc(var(--bottom-nav-height, 64px) + 240px)'
     : 'calc(var(--bottom-nav-height, 64px) + 110px)';
+
+  const normalizePaymentKey = useCallback((value: string | null | undefined) => {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }, []);
+
+  const excludedHelperMethodTypes = useMemo(() => new Set([
+    'epay', 'epay_global', 'epay-global',
+    'binance', 'binance_pay', 'binancepay', 'binance-pay',
+  ]), []);
+
+  const isExcludedHelperMethod = useCallback((value: string | null | undefined) => {
+    if (!value) return false;
+    const key = String(value).trim().toLowerCase().replace(/\s+/g, '_');
+    return excludedHelperMethodTypes.has(key);
+  }, [excludedHelperMethodTypes]);
 
   useEffect(() => {
     (async () => {
@@ -253,44 +268,82 @@ function CampaignFloatingButton() {
   const fetchHelperPaymentMethods = useCallback(async () => {
     setLoadingMethods(true);
     try {
+      const GLOBAL_METHOD_TYPES = ['crypto', 'usdt', 'trc20', 'erc20', 'btc', 'eth', 'cryptocurrency'];
       const [legacyRes, countryRes] = await Promise.all([
-        supabase.from('helper_payment_methods').select('id, helper_id, account_name, account_number, is_active, method_type, additional_info').eq('is_active', true),
-        supabase.from('helper_country_payment_methods').select('id, helper_id, country_code, payment_method_name, icon_url, is_active, account_name, account_number, logo_url, method_type, additional_info').eq('country_code', userCountryCode).eq('is_active', true),
+        supabase
+          .from('helper_payment_methods')
+          .select('id, helper_id, account_name, account_number, is_active, method_type, country_code, logo_url, additional_info')
+          .eq('is_active', true)
+          .or(`country_code.eq.${userCountryCode},country_code.is.null`),
+        supabase
+          .from('helper_country_payment_methods')
+          .select('id, helper_id, country_code, payment_method_name, payment_type, icon_url, is_active, account_name, account_number, logo_url, method_type, instructions, display_order, additional_info')
+          .eq('country_code', userCountryCode)
+          .eq('is_active', true),
       ]);
 
       const legacyNorm = (legacyRes.data || []).map((m: any) => ({
         id: m.id,
         helper_id: m.helper_id,
+        country_code: m.country_code || userCountryCode,
         method_name: m.method_type,
         method_type: m.method_type,
         account_name: m.account_name,
         account_number: m.account_number,
-        logo_url: (m.additional_info as any)?.logo_url || null,
+        logo_url: m.logo_url || (m.additional_info as any)?.logo_url || (m.additional_info as any)?.icon_url || null,
         instructions: (m.additional_info as any)?.instructions || null,
         additional_info: m.additional_info || null,
       }));
 
-      const countryNorm = (countryRes.data || []).map((m: any) => ({
-        id: m.id,
-        helper_id: m.helper_id || `country-${m.id}`,
-        method_name: m.payment_method_name,
-        method_type: m.method_type || m.payment_method_name,
-        account_name: m.account_name || m.payment_method_name,
-        account_number: m.account_number || '',
-        logo_url: m.logo_url || m.icon_url || null,
-        instructions: (m.additional_info as any)?.instructions || null,
-        additional_info: m.additional_info || null,
-      }));
+      const countryNorm = (countryRes.data || []).flatMap((m: any) => {
+        const matchedLegacy = legacyNorm.filter((legacy: any) =>
+          normalizePaymentKey(legacy.method_type) === normalizePaymentKey(m.payment_method_name)
+        );
 
-      const combined = [...legacyNorm, ...countryNorm].filter(m => Boolean(m.account_number));
+        if (matchedLegacy.length === 0) {
+          return [{
+            id: m.id,
+            helper_id: m.helper_id || `country-${m.id}`,
+            country_code: m.country_code,
+            method_name: m.payment_method_name,
+            method_type: m.method_type || m.payment_type || m.payment_method_name,
+            account_name: m.account_name || m.payment_method_name,
+            account_number: m.account_number || '',
+            logo_url: m.logo_url || m.icon_url || (m.additional_info as any)?.logo_url || null,
+            instructions: m.instructions || (m.additional_info as any)?.instructions || null,
+            additional_info: { ...(m.additional_info || {}), display_order: m.display_order },
+          }];
+        }
+
+        return matchedLegacy.map((legacy: any) => ({
+          id: `${m.id}-${legacy.id}`,
+          helper_id: legacy.helper_id,
+          country_code: m.country_code,
+          method_name: m.payment_method_name,
+          method_type: m.method_type || m.payment_type || legacy.method_type || m.payment_method_name,
+          account_name: legacy.account_name,
+          account_number: legacy.account_number,
+          logo_url: m.logo_url || m.icon_url || legacy.logo_url || (m.additional_info as any)?.logo_url || null,
+          instructions: m.instructions || legacy.instructions || null,
+          additional_info: { ...(legacy.additional_info || {}), ...(m.additional_info || {}), display_order: m.display_order },
+        }));
+      });
+
+      const combined = [...legacyNorm, ...countryNorm].filter((m) => (
+        Boolean(m.account_number)
+        && !isExcludedHelperMethod(m.method_type)
+        && !isExcludedHelperMethod(m.method_name)
+        && !GLOBAL_METHOD_TYPES.includes(String(m.method_name || '').toLowerCase())
+      ));
       const helperIds = [...new Set(combined.map(m => m.helper_id).filter((id: string) => !id.startsWith('country-')))];
 
       let validHelperIds = new Set<string>();
       if (helperIds.length > 0) {
         const { data: helpers } = await supabase
           .from('topup_helpers')
-          .select('id, user_id, wallet_balance, trader_level, payroll_enabled, is_active, is_verified')
-          .in('id', helperIds);
+          .select('id, user_id, wallet_balance, country_code, trader_level, payroll_enabled, is_active, is_verified')
+          .in('id', helperIds)
+          .eq('country_code', userCountryCode);
 
         const userIds = (helpers || []).map(h => h.user_id).filter(Boolean);
         const agencyResults = await Promise.all(userIds.map(uid => supabase.rpc('get_agency_diamond_balance', { owner_user_id: uid })));
@@ -308,10 +361,19 @@ function CampaignFloatingButton() {
       const valid = combined.filter(m => validHelperIds.has(m.helper_id));
       const seen = new Set<string>();
       const unique = valid.filter(m => {
-        const key = `${m.method_name}-${m.account_number}`;
+        const gatewayType = String(m.additional_info?.gateway_type || 'manual').toLowerCase();
+        const key = `${normalizePaymentKey(m.method_name)}-${gatewayType}-${String(m.account_number || '').trim()}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
+      }).sort((a, b) => {
+        const an = String(a.method_name || '').toLowerCase();
+        const bn = String(b.method_name || '').toLowerCase();
+        if (an !== bn) return an.localeCompare(bn);
+        const ao = Number(a.additional_info?.display_order ?? 9999);
+        const bo = Number(b.additional_info?.display_order ?? 9999);
+        if (ao !== bo) return ao - bo;
+        return String(a.account_number || '').localeCompare(String(b.account_number || ''));
       });
 
       const availableMethodNames = Array.from(new Set(unique.map((method) => method.method_name.toLowerCase())));
@@ -328,7 +390,7 @@ function CampaignFloatingButton() {
     } finally {
       setLoadingMethods(false);
     }
-  }, [userCountryCode]);
+  }, [isExcludedHelperMethod, normalizePaymentKey, userCountryCode]);
 
   const fetchGateways = useCallback(async () => {
     if (!userCountryCode) {
@@ -362,6 +424,13 @@ function CampaignFloatingButton() {
       return [MERICASH_GATEWAY];
     }
   }, [userCountryCode]);
+
+  useEffect(() => {
+    if (selectedPaymentTab === 'local' && !loadingMethods && helperMethods.length === 0) {
+      setSelectedPaymentTab(gateways[0]?.id || (isPlayStoreNative ? 'google' : 'mericash'));
+      setSelectedLocalMethodName(null);
+    }
+  }, [gateways, helperMethods.length, isPlayStoreNative, loadingMethods, selectedPaymentTab]);
 
   if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || purchased) return null;
 
