@@ -34,7 +34,7 @@ const CRYPTO_OPTIONS = [
 
 type Step = "pick_pkg" | "pick_currency" | "pay" | "done";
 
-export default function SwiftPayDepositModal({ open, onOpenChange, packages }: Props) {
+export default function SwiftPayDepositModal({ open, onOpenChange, packages, initialPackageId }: Props) {
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
@@ -49,8 +49,17 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages }: P
       setCurrency("usdttrc20");
       setDeposit(null);
       setCreating(false);
+      return;
     }
-  }, [open]);
+    // If caller pre-selected a package, jump straight to currency picker
+    if (initialPackageId) {
+      const pre = packages.find((p) => p.id === initialPackageId);
+      if (pre) {
+        setPkg(pre);
+        setStep("pick_currency");
+      }
+    }
+  }, [open, initialPackageId, packages]);
 
   const createDeposit = useCallback(async () => {
     if (!pkg) return;
