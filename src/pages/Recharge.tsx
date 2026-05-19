@@ -3664,7 +3664,11 @@ const Recharge = () => {
 
       <SwiftPayDepositModal
         open={showSwiftPayModal}
-        onOpenChange={setShowSwiftPayModal}
+        onOpenChange={(v) => {
+          setShowSwiftPayModal(v);
+          if (!v) setMericashInitialPackageId(null);
+        }}
+        initialPackageId={mericashInitialPackageId}
         packages={packages.map((p: any) => ({
           id: p.id,
           coins: p.coins,
