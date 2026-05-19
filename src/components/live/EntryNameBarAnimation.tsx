@@ -8,7 +8,7 @@ import {
   ensureValidLevel, 
   formatLevel 
 } from "@/features/shared/level";
-import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 const getNameBarAnimationType = (url?: string): 'svga' | 'gif' | 'image' | null => {
   if (!url) return null;
