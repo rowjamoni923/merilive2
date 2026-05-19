@@ -120,7 +120,7 @@ const stubCreateElement = (drawImageSpy: ReturnType<typeof vi.fn>) => {
     }
     if (tag === 'canvas') {
       const captureTrack = makeMediaStreamTrack('video');
-      (el as any).captureStream = vi.fn(() => new MediaStream([captureTrack]));
+      (el as any).captureStream = vi.fn(() => new MediaStream([captureTrack as any]));
       (el as any).getContext = vi.fn(() => ({
         drawImage: drawImageSpy,
         getImageData: () => ({
