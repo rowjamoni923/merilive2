@@ -89,11 +89,9 @@ export const PremiumLiveStreamCard = ({
           : (hostAvatar || DEFAULT_THUMB);
         const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== DEFAULT_THUMB;
         const primarySrc = hasLiveThumb
-
-        const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== DEFAULT_THUMB;
-        const primarySrc = hasLiveThumb
           ? enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
           : avatarFallback;
+
         return (
           <img
             src={primarySrc}
