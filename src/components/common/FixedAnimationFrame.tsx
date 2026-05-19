@@ -203,11 +203,11 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
       ) : (
         <UniversalAnimationPlayer
           src={src}
-          type={type}
+          type={safeType}
           className="w-full h-full"
           loop={loop}
           autoPlay={autoPlay}
-          muted={muted}
+          muted={safeMuted}
           onLoad={onLoad}
           onError={onError}
           onComplete={onComplete}
