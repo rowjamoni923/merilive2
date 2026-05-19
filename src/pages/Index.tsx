@@ -432,8 +432,19 @@ const Index = () => {
             decoding="async"
             onError={(e) => {
               const img = e.currentTarget;
+              // 1st fallback: live thumbnail raw URL if CDN proxy failed.
               if (user.isLive && user.liveThumbnailUrl && img.src !== user.liveThumbnailUrl) {
                 img.src = user.liveThumbnailUrl;
+                return;
+              }
+              // 2nd fallback: stable AI placeholder for hosts/females so the
+              // card never renders as a blank gray box (Pkg covers broken
+              // avatar URLs from private buckets / dead links).
+              const isHostLike = !!(user.is_host || user.gender === 'female');
+              const fallback = isHostLike ? getDisplayAvatar(user.id, null) : DEFAULT_AVATAR;
+              if (img.src !== fallback && !img.dataset.fellBack) {
+                img.dataset.fellBack = "1";
+                img.src = fallback;
               }
             }}
           />
