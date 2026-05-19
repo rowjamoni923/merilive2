@@ -182,11 +182,14 @@ const CustomEntranceNotification = ({ user, animationUrl }: { user: EntranceUser
       >
         {/* Full-screen animation layer */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <UniversalAnimationPlayer
+          <FixedAnimationFrame
             src={animationUrl}
-            className="w-full h-full max-w-md max-h-96 object-contain"
+            width="100%"
+            height="100%"
+            className="max-w-md max-h-96 object-contain"
             loop={false}
-            autoPlay
+            muted={false}
+            center={false}
           />
         </div>
 
