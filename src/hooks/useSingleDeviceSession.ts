@@ -295,6 +295,24 @@ export const useSingleDeviceSession = (userId: string | null) => {
   }, []);
 
   // When userId changes (new login), force a new session ID and register immediately
+  // Track explicit Supabase SIGNED_IN events — only those are real fresh logins.
+  // Page reload / token refresh / initial session restore do NOT emit SIGNED_IN.
+  const freshSignInUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user?.id) {
+        freshSignInUserIdRef.current = session.user.id;
+        // Also stamp a localStorage marker so a fast reload right after login
+        // doesn't lose the "fresh" semantics across the page reload.
+        try {
+          localStorage.setItem('meri_fresh_signin_uid', session.user.id);
+          localStorage.setItem('meri_fresh_signin_at', String(Date.now()));
+        } catch { /* noop */ }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   useEffect(() => {
     if (!userId) {
       isRegistered.current = false;
@@ -303,10 +321,36 @@ export const useSingleDeviceSession = (userId: string | null) => {
       return;
     }
 
-    // Detect ACTUAL fresh login vs page reload
-    // Fresh login = userId changed AND it's different from the stored userId in localStorage
+    // Fresh login is determined by EITHER:
+    //   (a) Supabase emitted SIGNED_IN for this userId in this tab, OR
+    //   (b) A SIGNED_IN marker was stored in localStorage within the last 30s
+    //       (covers fast reload right after sign-in), OR
+    //   (c) Legacy heuristic — stored userId mismatch (covers edge cases where
+    //       the auth listener attached after the event already fired).
     const storedUserId = getStoredUserId();
-    const isFreshLogin = prevUserId.current !== userId && storedUserId !== userId;
+    let isFreshLogin = freshSignInUserIdRef.current === userId;
+    if (!isFreshLogin) {
+      try {
+        const markerUid = localStorage.getItem('meri_fresh_signin_uid');
+        const markerAt = Number(localStorage.getItem('meri_fresh_signin_at') || '0');
+        if (markerUid === userId && Date.now() - markerAt < 30_000) {
+          isFreshLogin = true;
+        }
+      } catch { /* noop */ }
+    }
+    if (!isFreshLogin && prevUserId.current !== userId && storedUserId !== userId) {
+      isFreshLogin = true;
+    }
+
+    // Consume marker so a later reload doesn't keep rotating session id.
+    if (isFreshLogin) {
+      try {
+        localStorage.removeItem('meri_fresh_signin_uid');
+        localStorage.removeItem('meri_fresh_signin_at');
+      } catch { /* noop */ }
+      freshSignInUserIdRef.current = null;
+    }
+
     prevUserId.current = userId;
     setStoredUserId(userId);
 
@@ -317,14 +361,14 @@ export const useSingleDeviceSession = (userId: string | null) => {
       // On fresh login, always generate new session ID so THIS device wins
       // On page reload (same userId in localStorage), just re-register the existing session
       await registerSession(isFreshLogin);
-      
+
       // Wait for DB propagation before starting checks (+ jitter to avoid synchronized spikes)
       const startupJitterMs = Math.floor(Math.random() * 8000);
       await new Promise(resolve => setTimeout(resolve, 5000 + startupJitterMs));
-      
+
       if (isLoggingOut.current) return;
 
-      console.log('[SingleDevice] ✅ Realtime session guard active; periodic polling disabled');
+      console.log('[SingleDevice] ✅ Realtime session guard active; periodic polling disabled', { isFreshLogin });
     };
 
     setup();
@@ -345,42 +389,43 @@ export const useSingleDeviceSession = (userId: string | null) => {
     setCurrentChannelName(channelName);
     recordSessionEvent('channel.subscribe', { channel: channelName, sessionId: sessionId.current });
 
+    // Listen on the dedicated `user_active_sessions` mirror — it IS in the
+    // supabase_realtime publication (profiles is not), so the old device gets
+    // the new session_id within ~1s and triggers forceLogout instantly.
+    const handlePayload = (payload: any, source: 'INSERT' | 'UPDATE') => {
+      const newSessionId = (payload.new as { session_id?: string } | null)?.session_id;
+      recordSessionEvent('realtime.update', {
+        channel: channelName,
+        source,
+        incomingSessionId: newSessionId,
+        mySessionId: sessionId.current,
+      });
+      if (isInGracePeriod()) {
+        console.log('[SingleDevice] 🛡️ Realtime change ignored — grace period active');
+        recordSessionEvent('realtime.ignored.grace', { channel: channelName });
+        return;
+      }
+      if (!isRegistered.current) {
+        recordSessionEvent('realtime.ignored.unregistered', { channel: channelName });
+        return;
+      }
+      if (newSessionId && newSessionId !== sessionId.current) {
+        console.log('[SingleDevice] 🔄 Another device logged in — THIS (old) device logging out');
+        forceLogout();
+      }
+    };
+
     const channel = supabase
       .channel(channelName)
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`,
-        },
-        (payload) => {
-          const newSessionId = (payload.new as { active_session_id?: string } | null)?.active_session_id;
-          recordSessionEvent('realtime.update', {
-            channel: channelName,
-            incomingSessionId: newSessionId,
-            mySessionId: sessionId.current,
-          });
-
-          // ✅ CRITICAL: Don't react during grace period (this is the NEW device)
-          if (isInGracePeriod()) {
-            console.log('[SingleDevice] 🛡️ Realtime change ignored — grace period active');
-            recordSessionEvent('realtime.ignored.grace', { channel: channelName });
-            return;
-          }
-
-          // Don't react until this device has finished registering
-          if (!isRegistered.current) {
-            recordSessionEvent('realtime.ignored.unregistered', { channel: channelName });
-            return;
-          }
-
-          if (newSessionId && newSessionId !== sessionId.current) {
-            console.log('[SingleDevice] 🔄 Another device logged in — THIS (old) device logging out');
-            forceLogout();
-          }
-        }
+        { event: 'UPDATE', schema: 'public', table: 'user_active_sessions', filter: `user_id=eq.${userId}` },
+        (payload) => handlePayload(payload, 'UPDATE')
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'user_active_sessions', filter: `user_id=eq.${userId}` },
+        (payload) => handlePayload(payload, 'INSERT')
       )
       .subscribe();
 

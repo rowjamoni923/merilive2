@@ -11850,6 +11850,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_active_sessions: {
+        Row: {
+          device_info: Json | null
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          device_info?: Json | null
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          device_info?: Json | null
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_beans_exchange_history: {
         Row: {
           beans_amount: number
