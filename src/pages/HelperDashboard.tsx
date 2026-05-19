@@ -1375,17 +1375,17 @@ const HelperDashboard = () => {
                     "0 6px 14px -6px rgba(139,92,246,0.7), inset 0 1px 0 rgba(255,255,255,0.45)",
                 }}
               >
-                <Banknote className="w-5 h-5 text-violet-50" />
+                <Banknote className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-violet-50 font-bold text-sm leading-none">
+                <p className="text-violet-900 font-bold text-sm leading-none">
                   💎 Level 5 Dashboard
                 </p>
-                <p className="text-violet-100/75 text-[11px] mt-1">
+                <p className="text-violet-700 text-[11px] mt-1 font-medium">
                   Access payroll & withdrawal processing
                 </p>
               </div>
-              <ArrowLeft className="w-4 h-4 text-violet-50/70 rotate-180 shrink-0" />
+              <ArrowLeft className="w-4 h-4 text-violet-700 rotate-180 shrink-0" />
             </div>
           </div>
         )}
@@ -1400,13 +1400,13 @@ const HelperDashboard = () => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
- <FileText className="w-5 h-5 text-slate-900" />
+              <FileText className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-slate-900 font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-slate-500 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-indigo-900 font-semibold text-sm">📖 Payroll Helper Guide</p>
+              <p className="text-indigo-700/80 text-[11px] font-medium">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-slate-700" />
+            <ArrowRight className="w-4 h-4 text-indigo-700" />
           </div>
         </div>
 
@@ -1464,7 +1464,7 @@ const HelperDashboard = () => {
                     <Gem className="w-4 h-4 text-violet-600" />
                     <span className="text-slate-900 text-sm font-medium">Your Level {helperData?.trader_level || 1} Rate</span>
                   </div>
-                  <Badge className="bg-gradient-to-r from-violet-500 to-violet-600 text-white/30 text-violet-600">
+                  <Badge className="bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-sm border-0">
                     {levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}
                   </Badge>
                 </div>
@@ -1484,7 +1484,7 @@ const HelperDashboard = () => {
                 {/* Level pricing reminder */}
                 {levelPricing && (
                   <div className="text-center p-2 bg-slate-50 rounded-lg">
-                    <p className="text-xs text-white/80">
+                    <p className="text-xs text-slate-700">
                       Level {helperData?.trader_level || 1} Rate: <span className="text-emerald-600 font-semibold">{levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}</span>
                     </p>
                   </div>
@@ -1505,7 +1505,7 @@ const HelperDashboard = () => {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
- <Gem className="w-5 h-5 text-slate-900" />
+ <Gem className="w-5 h-5 text-white" />
                       </div>
                       {selectedDiamondPackage ? (
                         <div className="text-left">
@@ -1524,7 +1524,7 @@ const HelperDashboard = () => {
                       "w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-transform duration-200",
                       showDiamondPackages && "rotate-180"
                     )}>
- <ArrowLeft className="w-4 h-4 text-slate-900 -rotate-90" />
+ <ArrowLeft className="w-4 h-4 text-slate-700 -rotate-90" />
                     </div>
                   </button>
                   
