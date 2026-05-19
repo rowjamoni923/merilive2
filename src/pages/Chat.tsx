@@ -814,6 +814,15 @@ const Chat = () => {
         }
       )
       .on(
+        'broadcast',
+        { event: 'gift_animation' },
+        (payload: any) => {
+          if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.content) return;
+          if (payload.payload?.senderId === currentUserId) return;
+          playGiftAnimationFromContent(payload.payload.content, payload.payload.senderId, true);
+        }
+      )
+      .on(
         'postgres_changes',
         {
           event: 'INSERT',
