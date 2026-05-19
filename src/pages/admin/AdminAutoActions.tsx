@@ -250,6 +250,8 @@ export default function AdminAutoActions() {
           <AdminPagination
             page={page}
             totalPages={totalPages}
+            totalCount={total}
+            pageSize={PAGE_SIZE}
             onPageChange={setPage}
           />
         </CardContent>
