@@ -54,6 +54,13 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const startTimeRef = useRef<number>(0);
   const expectedDurationRef = useRef<number>(0);
 
+  const resumeLoopingAnimation = useCallback(() => {
+    if (!loop || !autoPlay || !mountedRef.current || !playerRef.current) return;
+    try {
+      playerRef.current.startAnimation();
+    } catch (e) {}
+  }, [loop, autoPlay]);
+
   const cleanupAudio = useCallback(() => {
     activeHowlsRef.current.forEach(h => { try { h.stop(); h.unload(); } catch {} });
     activeHowlsRef.current = [];
@@ -88,8 +95,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
 
   useEffect(() => {
-    if (animationStartedRef.current) return;
-    animationStartedRef.current = true;
     mountedRef.current = true;
     completedRef.current = false;
     
@@ -109,7 +114,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
         player.loops = loop ? 0 : 1;
-        player.clearsAfterStop = true;
+        player.clearsAfterStop = !loop;
 
         const videoItem = await loadSVGA(src);
         if (!mountedRef.current) return;
@@ -179,6 +184,10 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
               }
             }, exactDuration + safetyBuffer);
           }
+        } else {
+          player.onFinished(() => {
+            requestAnimationFrame(resumeLoopingAnimation);
+          });
         }
         
       } catch (err) {
@@ -193,8 +202,14 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
     loadAndPlay();
 
+    const handleResume = () => resumeLoopingAnimation();
+    document.addEventListener('visibilitychange', handleResume);
+    window.addEventListener('focus', handleResume);
+
     return () => {
       mountedRef.current = false;
+      document.removeEventListener('visibilitychange', handleResume);
+      window.removeEventListener('focus', handleResume);
       cleanupAudio();
       if (completionTimerRef.current) {
         clearTimeout(completionTimerRef.current);
@@ -208,7 +223,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         playerRef.current = null;
       }
     };
-  }, [src]);
+  }, [src, loop, autoPlay, volume, soundUrl, handleAnimationComplete, cleanupAudio, resumeLoopingAnimation, onLoad, onError, onAudioExtracted]);
 
   if (error) {
     return (
