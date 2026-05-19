@@ -3,7 +3,7 @@
  * Uses admin-selected template for popup styling.
  * Payment methods shown inline (no navigation to /recharge).
  */
-import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type ChangeEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Copy, Check, Upload } from 'lucide-react';
@@ -121,6 +121,21 @@ function CampaignFloatingButton() {
   const bottomOffset = isProfileRoute
     ? 'calc(var(--bottom-nav-height, 64px) + 240px)'
     : 'calc(var(--bottom-nav-height, 64px) + 110px)';
+
+  const normalizePaymentKey = useCallback((value: string | null | undefined) => {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }, []);
+
+  const excludedHelperMethodTypes = useMemo(() => new Set([
+    'epay', 'epay_global', 'epay-global',
+    'binance', 'binance_pay', 'binancepay', 'binance-pay',
+  ]), []);
+
+  const isExcludedHelperMethod = useCallback((value: string | null | undefined) => {
+    if (!value) return false;
+    const key = String(value).trim().toLowerCase().replace(/\s+/g, '_');
+    return excludedHelperMethodTypes.has(key);
+  }, [excludedHelperMethodTypes]);
 
   useEffect(() => {
     (async () => {
