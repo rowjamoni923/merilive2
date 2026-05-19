@@ -39,6 +39,13 @@ interface AvatarWithFrameProps {
   name?: string;
   level?: number;
   isHost?: boolean;
+  /** When known, callers can pass gender to skip the cache lookup. */
+  gender?: 'male' | 'female' | null;
+  /**
+   * Force owner-mode (no AI placeholder). When undefined, AvatarWithFrame
+   * auto-detects ownership by comparing userId to the signed-in viewer.
+   */
+  isOwner?: boolean;
   size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   showFrame?: boolean;
   showAnimation?: boolean;
@@ -49,6 +56,7 @@ interface AvatarWithFrameProps {
   onClick?: () => void;
   frameId?: string | null;
 }
+
 
 // Size configurations
 // Avatar fills the FULL container so no white ring shows between avatar and frame.
