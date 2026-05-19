@@ -128,26 +128,88 @@ const Live = () => {
   useEffect(() => {
     fetchLiveStreams();
 
-    // Real-time subscription for live streams AND stream_viewers (for viewer count)
+    // Realtime: surgical viewer_count updates + full refetch only on stream add/remove
     const channel = supabase
-      .channel('live-streams-realtime')
+      .channel(`live-streams-realtime-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'live_streams' },
-        () => {
-          console.log('[Live] Streams updated');
-          fetchLiveStreams();
+        { event: 'UPDATE', schema: 'public', table: 'live_streams' },
+        (payload) => {
+          const next = payload.new as any;
+          if (!next?.id) return;
+          // Stream ended → drop it; otherwise patch in place (instant viewer_count)
+          if (next.is_active === false) {
+            setStreams((prev) => prev.filter((s) => s.id !== next.id));
+            return;
+          }
+          setStreams((prev) => {
+            const idx = prev.findIndex((s) => s.id === next.id);
+            if (idx === -1) {
+              // New live stream appeared → full refetch to get host data
+              fetchLiveStreams();
+              return prev;
+            }
+            const updated = [...prev];
+            updated[idx] = {
+              ...updated[idx],
+              viewer_count: next.viewer_count ?? updated[idx].viewer_count,
+              title: next.title ?? updated[idx].title,
+              thumbnail_url: next.thumbnail_url ?? updated[idx].thumbnail_url,
+              last_heartbeat: next.last_heartbeat ?? updated[idx].last_heartbeat,
+            } as any;
+            return updated;
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'live_streams' },
+        () => fetchLiveStreams()
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'live_streams' },
+        (payload) => {
+          const oldId = (payload.old as any)?.id;
+          if (oldId) setStreams((prev) => prev.filter((s) => s.id !== oldId));
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'stream_viewers' },
-        () => {
-          console.log('[Live] Viewer change detected, refreshing counts');
-          fetchLiveStreams();
+        (payload) => {
+          // Instantly bump the affected stream's viewer count without full refetch.
+          // join/leave RPCs also update live_streams.viewer_count, so the UPDATE
+          // handler above will reconcile to the exact server value within ~1 frame.
+          const row: any = (payload.new as any) ?? (payload.old as any);
+          const streamId = row?.stream_id;
+          if (!streamId) return;
+          setStreams((prev) => {
+            const idx = prev.findIndex((s) => s.id === streamId);
+            if (idx === -1) return prev;
+            const delta =
+              payload.eventType === 'INSERT' ? 1 :
+              payload.eventType === 'DELETE' ? -1 :
+              // UPDATE: left_at NULL→set means leave, set→NULL means rejoin
+              (() => {
+                const oldLeft = (payload.old as any)?.left_at;
+                const newLeft = (payload.new as any)?.left_at;
+                if (!oldLeft && newLeft) return -1;
+                if (oldLeft && !newLeft) return 1;
+                return 0;
+              })();
+            if (delta === 0) return prev;
+            const updated = [...prev];
+            updated[idx] = {
+              ...updated[idx],
+              viewer_count: Math.max(0, (updated[idx].viewer_count || 0) + delta),
+            } as any;
+            return updated;
+          });
         }
       )
       .subscribe();
+
 
     // Zero-refresh: realtime channel is the single source of truth, no polling
     return () => {
