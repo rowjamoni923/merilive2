@@ -374,16 +374,14 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
 
               {/* Tiny Page Dots */}
               {totalPages > 1 && (
-                <div className="flex justify-center gap-[2px] py-0.5">
+                <div className="flex justify-center items-center gap-1 py-1">
                   {Array.from({ length: totalPages }).map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentPage(index)}
                       className={cn(
-                        "rounded-full transition-all",
-                        currentPage === index 
-                          ? "bg-pink-500 w-[5px] h-[2px]" 
-                          : "bg-white/30 w-[2px] h-[2px]"
+                        "h-1 rounded-full transition-all duration-300",
+                        currentPage === index ? "w-4 bg-white" : "w-1 bg-white/50"
                       )}
                     />
                   ))}
