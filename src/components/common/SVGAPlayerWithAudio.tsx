@@ -157,18 +157,25 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         const fps = videoItem?.FPS || 24;
         const exactDuration = frames > 0 ? (frames / fps) * 1000 : 0;
 
+        expectedDurationRef.current = exactDuration;
+        const fileTag = src.split('/').pop()?.split('?')[0] || 'svga';
+        console.log(
+          `[SVGAPlayerWithAudio] 📥 Loaded "${fileTag}" | frames=${frames} | fps=${fps} | nativeDuration=${exactDuration.toFixed(0)}ms | loop=${loop} | audio=${audioFound}`
+        );
+
         player.setVideoItem(videoItemToUse);
         setLoading(false);
         onLoad?.();
 
         if (autoPlay) {
+          startTimeRef.current = Date.now();
           player.startAnimation();
         }
 
         if (!loop) {
           player.onFinished(() => {
             if (mountedRef.current && !completedRef.current) {
-              handleAnimationComplete();
+              handleAnimationComplete('native');
             }
           });
 
@@ -177,7 +184,10 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
             const safetyBuffer = Math.min(1500, exactDuration * 0.2);
             completionTimerRef.current = setTimeout(() => {
               if (mountedRef.current && !completedRef.current) {
-                handleAnimationComplete();
+                console.warn(
+                  `[SVGAPlayerWithAudio] ⚠️ Native onFinished did NOT fire within ${(exactDuration + safetyBuffer).toFixed(0)}ms — triggering safety fallback for "${fileTag}"`
+                );
+                handleAnimationComplete('safety-timer');
               }
             }, exactDuration + safetyBuffer);
           }
