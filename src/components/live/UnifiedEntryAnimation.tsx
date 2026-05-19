@@ -213,15 +213,17 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
               transformOrigin: 'center center',
             }}
           >
-            <SVGAPlayerWithAudio
+            <FixedAnimationFrame
               src={displayAnimationUrl}
+              size="fill"
+              type="svga"
               loop={false}
-              autoPlay={true}
+              muted={false}
               volume={soundPlayedRef.current ? 0 : 0.8}
               soundUrl={soundPlayedRef.current ? null : (entry.soundUrl ?? null)}
               onComplete={handleAnimationComplete}
               onError={handleSvgaError}
-              className="w-full h-full"
+              center={false}
             />
           </div>
         </motion.div>
