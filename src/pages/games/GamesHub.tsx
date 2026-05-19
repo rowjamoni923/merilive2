@@ -9,6 +9,19 @@ import { useUserBalance } from "@/hooks/useUserBalance";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { useGameToken } from "@/hooks/useGameToken";
+import ferrisWheelLogo from "@/assets/ferris-wheel.svg";
+import rouletteLogo from "@/assets/roulette-wheel.png";
+import teenPattiLogo from "@/assets/teen-patti-logo.png";
+
+// Main-app parity: built-in logo fallbacks keyed by game_id
+const BUILTIN_GAME_LOGOS: Record<string, string> = {
+  "ferris-wheel": ferrisWheelLogo,
+  "roulette": rouletteLogo,
+  "teen-patti": teenPattiLogo,
+};
+
+const resolveGameLogo = (game: { game_id: string; logo_url?: string }) =>
+  game.logo_url ? getProxiedUrl(game.logo_url) : BUILTIN_GAME_LOGOS[game.game_id] || null;
 
 interface GameSetting {
   id: string;
