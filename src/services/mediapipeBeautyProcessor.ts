@@ -672,6 +672,8 @@ export function stopBeautyProcessing() {
     _processingCanvas = null;
   }
 
+  _activeInputStream = null;
+  _activeOutputStream = null;
   _processing = false;
   console.log('[MediaPipeBeauty] Processing stopped');
 }
