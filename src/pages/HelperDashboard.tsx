@@ -120,6 +120,8 @@ const HelperDashboard = () => {
   const [uploadingProof, setUploadingProof] = useState(false);
   const [transactionId, setTransactionId] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
+  const [showUpgradeCryptoModal, setShowUpgradeCryptoModal] = useState(false);
+  const [upgradeDiamondsPerUsd, setUpgradeDiamondsPerUsd] = useState<number>(7000);
   
   // Payroll application modal state
   const [showPayrollModal, setShowPayrollModal] = useState(false);
