@@ -125,8 +125,14 @@ const Live = () => {
     }
   };
 
+  // Per-stream Set of active viewer ids → makes ±1 idempotent against
+  // repeat realtime packets (INSERT delivered twice, INSERT+UPDATE for same join, etc).
+  const activeViewersByStreamRef = useRef<Map<string, Set<string>>>(new Map());
+
   useEffect(() => {
     fetchLiveStreams();
+
+
 
     // Realtime: surgical viewer_count updates + full refetch only on stream add/remove
     const channel = supabase
