@@ -103,15 +103,8 @@ export default function SwiftPayDepositModal({
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
 
-  // Helper mode synthesises a "package" from custom amounts
-  const helperPkg: PkgLite | null = mode === "helper" && helperCustomCoins && helperCustomPriceUsd
-    ? { id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" }
-    : null;
 
-  // User custom mode (e.g. helper application fee)
-  const userCustomPkg: PkgLite | null = mode === "user" && userCustomCoins && userCustomPriceUsd
-    ? { id: `custom_${userCustomPriceUsd}`, coins: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" }
-    : null;
+
 
   useEffect(() => {
     if (!open) {
