@@ -85,8 +85,11 @@ export const PremiumLiveStreamCard = ({
           host's avatar (profile_photo_url) so offline hosts still render. */}
       {(() => {
         const avatarFallback = hostId
-          ? getDisplayAvatar(hostId, hostAvatar || null)
+          ? getDisplayAvatar(hostId, hostAvatar || null, { gender: hostGender ?? "female", isOwner })
           : (hostAvatar || DEFAULT_THUMB);
+        const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== DEFAULT_THUMB;
+        const primarySrc = hasLiveThumb
+
         const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== DEFAULT_THUMB;
         const primarySrc = hasLiveThumb
           ? enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
