@@ -381,10 +381,10 @@ export function LiveFerrisWheelGame({
             <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 w-3 h-12 bg-gradient-to-b from-gray-400 to-gray-600 rounded-b-lg shadow-lg" />
             <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-16 h-2 bg-gradient-to-r from-gray-500 via-gray-400 to-gray-500 rounded-lg shadow-lg" />
             
-            {/* Spinning Wheel - Code-based design */}
+            {/* Spinning Wheel - lands so top arrow aligns with the winning item */}
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
-              animate={{ rotate: isSpinning ? 1080 : 0 }}
+              animate={{ rotate: wheelRotation }}
               transition={{ duration: 5, ease: [0.2, 0.8, 0.2, 1] }}
             >
               {/* Wheel Background */}
