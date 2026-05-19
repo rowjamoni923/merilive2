@@ -478,10 +478,10 @@ export function LiveRouletteGame({
           {autoPlayPhase === 'betting' ? `${autoPlayTimeLeft}s` : '🎰'}
         </div>
         
-        <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">Results:</span>
+        <span className="text-[11px] text-amber-200 font-semibold whitespace-nowrap drop-shadow">Results:</span>
         <div className="flex gap-1">
           {recentResults.length === 0 ? (
-            <span className="text-[10px] text-gray-500">-</span>
+            <span className="text-[10px] text-white/60">—</span>
           ) : (
             recentResults.map((num, i) => (
               <motion.div
