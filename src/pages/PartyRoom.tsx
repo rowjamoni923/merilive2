@@ -2235,10 +2235,16 @@ const PartyRoom = () => {
           countryFlag: room.host.country_flag || '🌍',
           beansCount: totalRoomBeans,
           isSpeaking: true,
-          isMuted: !isAudioEnabled,
-          isVideoOff: !isVideoEnabled,
+          // Mic/cam flags must reflect the HOST's own publishing state.
+          // Viewers don't publish, so using their local !isAudioEnabled/!isVideoEnabled
+          // would falsely flag the host as muted/video-off and render the avatar
+          // even though the host's tracks are subscribed and playing.
+          isMuted: isHost ? !isAudioEnabled : false,
+          isVideoOff: isHost ? !isVideoEnabled : false,
           isHost: true,
-          stream: isHost ? localStream : null
+          // Host's own preview uses localStream; viewers consume the host's
+          // remote stream via getPeerStream(host.id) inside UnifiedPartyRoom.
+          stream: isHost ? localStream : getPeerStream(room.host.id)
         } : null}
         hostCountryFlag={room.host?.country_flag || '🌍'}
         participants={participants
