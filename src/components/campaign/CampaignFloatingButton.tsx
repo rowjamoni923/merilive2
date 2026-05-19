@@ -341,8 +341,9 @@ function CampaignFloatingButton() {
       if (helperIds.length > 0) {
         const { data: helpers } = await supabase
           .from('topup_helpers')
-          .select('id, user_id, wallet_balance, trader_level, payroll_enabled, is_active, is_verified')
-          .in('id', helperIds);
+          .select('id, user_id, wallet_balance, country_code, trader_level, payroll_enabled, is_active, is_verified')
+          .in('id', helperIds)
+          .eq('country_code', userCountryCode);
 
         const userIds = (helpers || []).map(h => h.user_id).filter(Boolean);
         const agencyResults = await Promise.all(userIds.map(uid => supabase.rpc('get_agency_diamond_balance', { owner_user_id: uid })));
@@ -423,6 +424,13 @@ function CampaignFloatingButton() {
       return [MERICASH_GATEWAY];
     }
   }, [userCountryCode]);
+
+  useEffect(() => {
+    if (selectedPaymentTab === 'local' && !loadingMethods && helperMethods.length === 0) {
+      setSelectedPaymentTab(gateways[0]?.id || (isPlayStoreNative ? 'google' : 'mericash'));
+      setSelectedLocalMethodName(null);
+    }
+  }, [gateways, helperMethods.length, isPlayStoreNative, loadingMethods, selectedPaymentTab]);
 
   if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || purchased) return null;
 
