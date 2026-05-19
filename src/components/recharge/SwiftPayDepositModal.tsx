@@ -70,6 +70,22 @@ type Step = "pick_pkg" | "pick_currency" | "pay" | "done";
 const MINIMUM_DEPOSIT_MESSAGE =
   "This crypto network requires a larger deposit amount. Please choose a bigger diamond package and try again.";
 
+// Detect upstream gateway "currency not enabled / not supported" errors so we can
+// automatically fall back to another enabled crypto network instead of failing.
+const isCurrencyDisabledError = (payload: any, fallback?: string | null) => {
+  const code = String(payload?.error ?? "").toLowerCase();
+  const message = String(payload?.message || payload?.details?.error || payload?.error || fallback || "").toLowerCase();
+  if (code.includes("currency") || code.includes("disabled") || code.includes("unsupported")) return true;
+  return (
+    message.includes("currency not enabled")
+    || message.includes("currency is not enabled")
+    || message.includes("not enabled")
+    || message.includes("not supported")
+    || message.includes("unsupported currency")
+    || message.includes("disabled")
+  );
+};
+
 const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   const code = String(payload?.error ?? "").toLowerCase();
   const message = String(payload?.message || payload?.details?.error || payload?.error || fallback || "Gateway error");
@@ -80,6 +96,14 @@ const getDepositErrorMessage = (payload: any, fallback?: string | null) => {
   }
 
   return message;
+};
+
+// Compute total diamonds including bonus_percentage (always applied — bonus is
+// part of the published amount the user expects to receive).
+const getBonusInclusiveCoins = (p: { coins: number; bonus_percentage?: number }) => {
+  const bonusPct = Number(p.bonus_percentage ?? 0);
+  const bonus = bonusPct > 0 ? Math.floor((p.coins * bonusPct) / 100) : 0;
+  return { total: p.coins + bonus, bonus, bonusPct };
 };
 
 export default function SwiftPayDepositModal({
