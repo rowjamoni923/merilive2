@@ -1,6 +1,11 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer, { type AnimationType, detectAnimationType } from './UniversalAnimationPlayer';
+import {
+  isAnimationDebugEnabled,
+  logAnimationCompletion,
+  type AnimationCompletionSource,
+} from '@/utils/animationDebug';
 
 const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
 
@@ -55,6 +60,14 @@ export interface FixedAnimationFrameProps {
   fallbackEmoji?: string;
   /** Optional admin-uploaded sound URL — used for SVGA with no embedded audio. */
   soundUrl?: string | null;
+  /**
+   * When true, logs onComplete timing with provenance ('native' vs 'safety-timer')
+   * for both SVGAPlayerWithAudio and UniversalAnimationPlayer paths.
+   * Also auto-enabled by `localStorage.svgaDebug = '1'` or `window.__SVGA_DEBUG__ = true`.
+   */
+  debug?: boolean;
+  /** Optional label appended to debug logs to identify the call site. */
+  debugTag?: string;
 }
 
 const BG_CLASSES: Record<NonNullable<FixedAnimationFrameProps['background']>, string> = {
@@ -95,6 +108,8 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   background = 'none',
   fallbackEmoji = '🎁',
   soundUrl = null,
+  debug,
+  debugTag,
 }) => {
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
@@ -106,6 +121,18 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
 
   const resolvedType = type || detectAnimationType(src);
   const useAudioPlayer = resolvedType === 'svga' && !muted;
+
+  const debugActive = debug ?? isAnimationDebugEnabled();
+  const mountTimeRef = useRef<number>(Date.now());
+  const handleDebugComplete = (source: AnimationCompletionSource) => {
+    if (!debugActive) return;
+    const elapsed = Date.now() - mountTimeRef.current;
+    logAnimationCompletion(
+      `FixedAnimationFrame${debugTag ? `:${debugTag}` : ''}`,
+      source,
+      { elapsed, src },
+    );
+  };
 
   if (!src) {
     return (
@@ -143,6 +170,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
             volume={volume}
             onLoad={onLoad}
             onComplete={onComplete}
+            onCompleteDebug={handleDebugComplete}
             onError={onError}
             onAudioExtracted={onAudioExtracted}
             soundUrl={soundUrl}
@@ -159,6 +187,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           onLoad={onLoad}
           onError={onError}
           onComplete={onComplete}
+          onCompleteDebug={handleDebugComplete}
           fallbackEmoji={fallbackEmoji}
         />
       )}

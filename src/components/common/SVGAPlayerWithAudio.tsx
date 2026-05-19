@@ -5,6 +5,12 @@ import { getSVGAModule } from '@/utils/svgaPrewarm';
 import { extractAudioFromSVGA } from '@/utils/svgaAudioExtractor';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { Howl } from 'howler';
+import {
+  isAnimationDebugEnabled,
+  logAnimationCompletion,
+  type AnimationCompletionSource,
+} from '@/utils/animationDebug';
+
 
 interface SVGAPlayerWithAudioProps {
   src: string;
@@ -14,6 +20,8 @@ interface SVGAPlayerWithAudioProps {
   onLoad?: () => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  /** Receives onComplete with provenance ('native' = SVGA onFinished fired, 'safety-timer' = duration-based fallback). */
+  onCompleteDebug?: (source: AnimationCompletionSource) => void;
   onAudioExtracted?: (audioUrl: string | null) => void;
   volume?: number;
   /** Optional admin-uploaded sound URL — used as fallback when SVGA has no embedded audio */
@@ -28,6 +36,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   onLoad,
   onError,
   onComplete,
+  onCompleteDebug,
   onAudioExtracted,
   volume = 0.8,
   soundUrl = null,
@@ -52,17 +61,14 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     activeAudiosRef.current = [];
   }, []);
 
-  const handleAnimationComplete = useCallback((source: 'native' | 'safety-timer' | 'unknown' = 'unknown') => {
+  const handleAnimationComplete = useCallback((source: AnimationCompletionSource = 'unknown') => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
 
     const elapsed = startTimeRef.current > 0 ? Date.now() - startTimeRef.current : 0;
     const expected = expectedDurationRef.current;
-    const drift = expected > 0 ? elapsed - expected : 0;
-    const icon = source === 'native' ? '✅' : source === 'safety-timer' ? '⚠️' : '❔';
-    console.log(
-      `[SVGAPlayerWithAudio] ${icon} onComplete (${source}) | elapsed=${elapsed}ms | expected=${expected}ms | drift=${drift > 0 ? '+' : ''}${drift}ms | src=${src.split('/').pop()?.split('?')[0]}`
-    );
+    logAnimationCompletion('SVGAPlayerWithAudio', source, { elapsed, expected, src });
+    onCompleteDebug?.(source);
 
     if (completionTimerRef.current) {
       clearTimeout(completionTimerRef.current);
@@ -78,7 +84,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     
     setTimeout(() => cleanupAudio(), 500);
     onComplete?.();
-  }, [onComplete, cleanupAudio, src]);
+  }, [onComplete, onCompleteDebug, cleanupAudio, src]);
+
 
   useEffect(() => {
     if (animationStartedRef.current) return;
@@ -184,9 +191,11 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
             const safetyBuffer = Math.min(1500, exactDuration * 0.2);
             completionTimerRef.current = setTimeout(() => {
               if (mountedRef.current && !completedRef.current) {
-                console.warn(
-                  `[SVGAPlayerWithAudio] ⚠️ Native onFinished did NOT fire within ${(exactDuration + safetyBuffer).toFixed(0)}ms — triggering safety fallback for "${fileTag}"`
-                );
+                if (isAnimationDebugEnabled()) {
+                  console.warn(
+                    `[SVGAPlayerWithAudio] ⚠️ Native onFinished did NOT fire within ${(exactDuration + safetyBuffer).toFixed(0)}ms — triggering safety fallback for "${fileTag}"`
+                  );
+                }
                 handleAnimationComplete('safety-timer');
               }
             }, exactDuration + safetyBuffer);

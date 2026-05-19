@@ -1,6 +1,7 @@
 import React, { useState, Suspense, lazy, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
+import { logAnimationCompletion, type AnimationCompletionSource } from '@/utils/animationDebug';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -19,6 +20,8 @@ interface UniversalAnimationPlayerProps {
   onLoad?: () => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  /** Provenance-aware onComplete callback ('native' for true end-of-animation, 'safety-timer' for SVGA fallback). */
+  onCompleteDebug?: (source: AnimationCompletionSource) => void;
   showControls?: boolean;
   fallbackEmoji?: string;
 }
@@ -76,6 +79,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   onLoad,
   onError,
   onComplete,
+  onCompleteDebug,
   showControls = false,
   fallbackEmoji = '🎁',
 }) => {
@@ -86,6 +90,20 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const animationType = type || detectAnimationType(src);
+  const startTimeRef = useRef<number>(Date.now());
+  const completedRef = useRef(false);
+  useEffect(() => { startTimeRef.current = Date.now(); completedRef.current = false; }, [src]);
+
+  const fireComplete = (source: AnimationCompletionSource) => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    logAnimationCompletion('UniversalAnimationPlayer', source, {
+      elapsed: Date.now() - startTimeRef.current,
+      src,
+    });
+    onCompleteDebug?.(source);
+    onComplete?.();
+  };
 
   // Load Lottie JSON data
   useEffect(() => {
@@ -139,6 +157,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             autoPlay={autoPlay}
             onLoad={onLoad}
             onComplete={onComplete}
+            onCompleteDebug={(s) => { completedRef.current = true; onCompleteDebug?.(s); }}
             onError={(err) => {
               setHasError(true);
               onError?.(err);
@@ -176,7 +195,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           autoPlay={autoPlay}
           muted={muted}
           onLoad={onLoad}
-          onComplete={onComplete}
+          onComplete={() => fireComplete('native')}
           onError={(err) => {
             setHasError(true);
             onError?.(err);
@@ -197,7 +216,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           autoplay={autoPlay}
           className={className}
-          onComplete={() => !loop && onComplete?.()}
+          onComplete={() => !loop && fireComplete('native')}
           onDOMLoaded={onLoad}
         />
       );
@@ -231,7 +250,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             setMediaLoaded(true);
             onLoad?.();
           }}
-          onEnded={() => !loop && onComplete?.()}
+          onEnded={() => !loop && fireComplete('native')}
           onError={() => {
             setHasError(true);
             onError?.(new Error('Video load failed'));
