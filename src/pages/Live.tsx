@@ -5,7 +5,7 @@ import { PremiumLiveStreamCard } from "@/components/home/PremiumLiveStreamCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { preloadAllStreams, cleanupAllPreloaded, isStreamPreloaded } from "@/services/liveStreamPreloader";
+import { preloadAllStreams, cleanupAllPreloaded, isStreamPreloaded, markPreloadedStreamForHandoff } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 
 interface LiveStream {
@@ -345,6 +345,7 @@ const Live = () => {
               <div 
                 key={stream.id} 
                 onClick={() => {
+                  markPreloadedStreamForHandoff(stream.id);
                   import("@/pages/LiveStream").catch(() => {});
                   navigate(`/live/${stream.id}`);
                 }}
