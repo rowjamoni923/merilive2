@@ -43,7 +43,6 @@ import { recordClientError } from "@/utils/clientErrorLog";
 // Lazy load SVGAPlayerWithAudio for full-screen entry animation previews with sound
 const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
 
-const getCleanAssetPath = (url?: string | null) => url?.split('?')[0].split('#')[0].toLowerCase() ?? '';
 const isAnimatedAssetUrl = (url?: string | null) => /\.(svga|json)(\?|#|$)/i.test(url ?? '');
 const resolveShopAssetUrl = (item: Pick<ShopItem, 'preview_url' | 'animation_url' | 'animation_file_url'>) =>
   item.animation_file_url || item.animation_url || item.preview_url || '';
@@ -628,16 +627,16 @@ const Shop = () => {
                     border: '1px solid rgba(217,182,107,0.3)',
                   }}
                 >
-                  {selectedItem.animation_file_url?.endsWith('.svga') || selectedItem.animation_file_url?.endsWith('.json') ? (
-                    isEntryAnimationCategory(selectedItem.category) && selectedItem.animation_file_url?.endsWith('.svga') ? (
+                  {isAnimatedAssetUrl(resolveShopAssetUrl(selectedItem)) ? (
+                    isEntryAnimationCategory(selectedItem.category) && /\.svga(\?|#|$)/i.test(resolveShopAssetUrl(selectedItem)) ? (
                       <Suspense fallback={
                         <div className="w-full h-full flex items-center justify-center">
                           <div className="w-8 h-8 border-3 border-amber-400/30 border-t-amber-500 rounded-full animate-spin" />
                         </div>
                       }>
                         <SVGAPlayerWithAudio
-                          src={selectedItem.animation_file_url || ''}
-                          className="max-w-[85%] max-h-[85%] object-contain"
+                          src={resolveShopAssetUrl(selectedItem)}
+                          className="w-[85%] h-[85%] [&_canvas]:!w-full [&_canvas]:!h-full"
                           loop={true}
                           autoPlay={true}
                           volume={0}
@@ -646,10 +645,11 @@ const Shop = () => {
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <UniversalAnimationPlayer
-                          src={selectedItem.animation_file_url || ''}
-                          className={`max-w-[85%] max-h-[85%] ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          src={resolveShopAssetUrl(selectedItem)}
+                          className={`w-[85%] h-[85%] [&_canvas]:!w-full [&_canvas]:!h-full ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
                           loop
                           autoPlay
+                          muted
                         />
                       </div>
                     )
