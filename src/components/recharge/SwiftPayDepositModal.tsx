@@ -34,10 +34,10 @@ interface Props {
   onCredited?: (coins: number, topupId?: string) => void;
 }
 
-// Recommendation logic:
-//  - Small payments (< $20): BEP20 is recommended (low minimum, BSC fast & cheap for small amounts)
-//  - Large payments (≥ $20): TRC20 is recommended (lowest fee on Tron for bigger amounts)
-const LARGE_PAYMENT_THRESHOLD_USD = 20;
+// Recommendation logic (per owner directive):
+//  - Small payments (< $10): ERC20 is recommended (accepts small amounts)
+//  - Large payments (≥ $10): TRC20 is recommended (lowest fee for bigger amounts)
+const LARGE_PAYMENT_THRESHOLD_USD = 10;
 
 const BASE_CRYPTO_OPTIONS = [
   { value: "usdttrc20", label: "USDT (TRC20)" },
@@ -49,7 +49,7 @@ const BASE_CRYPTO_OPTIONS = [
 ];
 
 const getRecommendedCurrency = (priceUsd: number | null | undefined) => {
-  if (!priceUsd || priceUsd < LARGE_PAYMENT_THRESHOLD_USD) return "usdtbep20";
+  if (!priceUsd || priceUsd < LARGE_PAYMENT_THRESHOLD_USD) return "usdterc20";
   return "usdttrc20";
 };
 
@@ -58,7 +58,7 @@ const getCryptoOptions = (priceUsd: number | null | undefined) => {
   return BASE_CRYPTO_OPTIONS.map((o) => {
     if (o.value !== recommended) return o;
     const suffix =
-      recommended === "usdtbep20"
+      recommended === "usdterc20"
         ? " — recommended for small payments"
         : " — recommended, lowest fee";
     return { ...o, label: `${o.label}${suffix}` };
