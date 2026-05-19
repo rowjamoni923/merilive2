@@ -9,7 +9,7 @@
  * - Zero visible "reconnecting" states
  */
 
-import { getAdaptiveNetworkProfile, getConnectionTier } from '@/utils/connectionProfile';
+import { getConnectionTier } from '@/utils/connectionProfile';
 
 // ============= Connection Quality =============
 type ConnectionQuality = 'excellent' | 'good' | 'slow' | 'offline';
@@ -157,34 +157,6 @@ const handleVisibilityChange = () => {
 const startHealthMonitor = () => {
   // Zero-refresh policy: no app-wide polling/health loop. Network changes are
   // handled by native/browser online/offline events only.
-  return;
-
-  if (networkCheckInterval) return;
-
-  const { healthCheckIntervalMs } = getAdaptiveNetworkProfile();
-
-  // Adaptive cadence by network quality (e.g., slower cadence on 2G/3G)
-  networkCheckInterval = setInterval(async () => {
-    if (isAdminRoute()) return;
-    if (!navigator.onLine) {
-      updateQuality('offline');
-      return;
-    }
-
-    // Avoid background churn when app is hidden
-    if (document.visibilityState === 'hidden') return;
-
-    const latency = await measureLatency();
-    const quality = classifyQuality(latency);
-    const wasOffline = currentQuality === 'offline';
-    updateQuality(quality);
-
-    // If we just recovered from offline state, run one guarded recovery pass
-    if (wasOffline && quality !== 'offline') {
-      console.log('[NetworkEngine] ⚠️ Silent disconnection recovered — forcing recovery');
-      void performInstantRecovery('silent-disconnect');
-    }
-  }, healthCheckIntervalMs);
 };
 
 // ============= Native App Integration =============
