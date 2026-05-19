@@ -9,6 +9,19 @@ import { useUserBalance } from "@/hooks/useUserBalance";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { useGameToken } from "@/hooks/useGameToken";
+import ferrisWheelLogo from "@/assets/ferris-wheel.svg";
+import rouletteLogo from "@/assets/roulette-wheel.png";
+import teenPattiLogo from "@/assets/teen-patti-logo.png";
+
+// Main-app parity: built-in logo fallbacks keyed by game_id
+const BUILTIN_GAME_LOGOS: Record<string, string> = {
+  "ferris-wheel": ferrisWheelLogo,
+  "roulette": rouletteLogo,
+  "teen-patti": teenPattiLogo,
+};
+
+const resolveGameLogo = (game: { game_id: string; logo_url?: string }) =>
+  game.logo_url ? getProxiedUrl(game.logo_url) : BUILTIN_GAME_LOGOS[game.game_id] || null;
 
 interface GameSetting {
   id: string;
@@ -96,7 +109,14 @@ export default function GamesHub() {
             {/* Game header */}
             <div className="flex items-center justify-between px-4 py-3 bg-black/80 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <span className="text-xl">{activeGame.game_emoji}</span>
+                {(() => {
+                  const logo = resolveGameLogo(activeGame);
+                  return logo ? (
+                    <img src={logo} alt={activeGame.game_name} width={24} height={24} className="w-6 h-6 rounded object-contain" />
+                  ) : (
+                    <span className="text-xl">{activeGame.game_emoji}</span>
+                  );
+                })()}
                 <span className="text-white font-semibold">{activeGame.game_name}</span>
               </div>
               <div className="flex items-center gap-3">
@@ -189,13 +209,19 @@ export default function GamesHub() {
                         <Star className="w-3 h-3 text-yellow-900" fill="currentColor" />
                       </div>
 
-                      {game.logo_url && (
-                        <img
-                          src={getProxiedUrl(game.logo_url)}
-                          alt={game.game_name}
-                          className="absolute top-2 left-2 w-10 h-10 rounded-lg object-cover"
-                        />
-                      )}
+                      {(() => {
+                        const logo = resolveGameLogo(game);
+                        return logo ? (
+                          <img
+                            src={logo}
+                            alt={game.game_name}
+                            loading="lazy"
+                            width={40}
+                            height={40}
+                            className="absolute top-2 left-2 w-10 h-10 rounded-lg object-contain bg-white/10 backdrop-blur-sm p-1"
+                          />
+                        ) : null;
+                      })()}
 
                       <div className="relative z-10 h-full flex flex-col justify-end text-left">
                         <span className="text-3xl mb-1">{game.game_emoji}</span>
@@ -232,15 +258,21 @@ export default function GamesHub() {
                         "group active:scale-[0.95] transition-transform"
                       )}
                     >
-                      {game.logo_url ? (
-                        <img
-                          src={getProxiedUrl(game.logo_url)}
-                          alt={game.game_name}
-                          className="w-10 h-10 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <span className="text-2xl">{game.game_emoji}</span>
-                      )}
+                      {(() => {
+                        const logo = resolveGameLogo(game);
+                        return logo ? (
+                          <img
+                            src={logo}
+                            alt={game.game_name}
+                            loading="lazy"
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-lg object-contain"
+                          />
+                        ) : (
+                          <span className="text-2xl">{game.game_emoji}</span>
+                        );
+                      })()}
                       <p className="text-white text-xs font-medium text-center truncate w-full">
                         {game.game_name}
                       </p>
