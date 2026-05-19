@@ -1,14 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
-import { toast } from 'sonner';
 import {
   getLocallyReadAgencyHostRequestIds,
   markAgencyHostRequestAsRead,
   markAgencyHostRequestsAsRead,
 } from '@/utils/agencyHostRequestReadState';
-import { buildSupportReplyLink } from '@/utils/supportNotificationLink';
-import { openInApp } from '@/utils/inAppNavigation';
 
 export interface Notification {
   id: string;
