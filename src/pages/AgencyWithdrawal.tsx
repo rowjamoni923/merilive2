@@ -2376,8 +2376,8 @@ const AgencyWithdrawal = () => {
 
        // Helper notifications are now sent automatically by a database trigger
        // when the agency_withdrawals row is created.
-       if (paymentMethod === 'epay') {
-         console.log('[Withdrawal] ePay method - helper notification skipped, goes to Admin Panel');
+       if (isAutoMethod(paymentMethod)) {
+         console.log('[Withdrawal] Auto method (Swift Pay / Binance) - auto-credit via gateway, helper notification skipped');
        } else {
          console.log('[Withdrawal] Helper notifications will be sent automatically to same-country active Level 5 payroll helpers');
        }
