@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   Crown, Star, Shield, Gem, CheckCircle2, Loader2,
   MessageCircle, Send, DollarSign, Banknote,
-  ArrowRight, Copy, Upload, CreditCard, MapPin
+  ArrowRight, Copy, Upload, CreditCard, MapPin, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 
 interface TraderLevel {
   level_number: number;
