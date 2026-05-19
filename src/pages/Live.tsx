@@ -23,7 +23,10 @@ interface LiveStream {
     host_level: number | null;
     user_level: number | null;
     is_verified: boolean | null;
+    is_host?: boolean | null;
+    gender?: string | null;
   } | null;
+
 }
 
 const Live = () => {
