@@ -654,7 +654,7 @@ const Recharge = () => {
       const uniqueGlobal = globalNormalized.filter(m => !existingIds.has(m.id));
 
       // PERMANENT FILTER: ePay + Binance are removed from helper top-up listings.
-      // Our Swift Pay Gateway is the only auto-credit path for top-up. To re-enable,
+      // Our MeriCash Gateway is the only auto-credit path for top-up. To re-enable,
       // remove the matching method_type strings below.
       const EXCLUDED_HELPER_METHOD_TYPES = new Set([
         'epay', 'epay_global', 'epay-global',
@@ -2765,7 +2765,7 @@ const Recharge = () => {
               </div>
             )}
 
-            {/* Swift Pay — Crypto Auto-Credit (recommended for all countries) */}
+            {/* MeriCash — Crypto Auto-Credit (recommended for all countries) */}
             <button
               type="button"
               onClick={() => setShowSwiftPayModal(true)}
@@ -2777,7 +2777,7 @@ const Recharge = () => {
               </div>
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-sm font-black text-amber-700">Swift Pay — Crypto Auto-Credit</p>
+                  <p className="text-sm font-black text-amber-700">MeriCash — Crypto Auto-Credit</p>
                   <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500 text-white">RECOMMENDED</span>
                 </div>
                 <p className="text-[11px] text-gray-600 mt-0.5">USDT · BTC · BNB · ETH · ⚡ Instant auto-credit · No helper wait</p>
