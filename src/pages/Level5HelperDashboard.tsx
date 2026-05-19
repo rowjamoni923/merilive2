@@ -1304,7 +1304,7 @@ const Level5HelperDashboard = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 p-4 rounded-b-3xl">
         <div className="flex items-center gap-3 mb-3">
- <Button variant="ghost" size="icon" className="text-white hover:bg-amber-100/80" onClick={() => navigate(-1)}>
+ <Button variant="ghost" size="icon" className="text-white hover:bg-amber-50/80" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
@@ -1314,7 +1314,7 @@ const Level5HelperDashboard = () => {
           <Button 
             variant="ghost" 
             size="icon" 
- className="text-white hover:bg-amber-100/80 relative"
+ className="text-white hover:bg-amber-50/80 relative"
             onClick={() => { setActiveTab("notifications"); markNotificationsRead(); }}
           >
             <Bell className="w-5 h-5" />
@@ -1328,19 +1328,19 @@ const Level5HelperDashboard = () => {
 
         {/* Stats - Mobile Optimized */}
         <div className="grid grid-cols-4 gap-1.5">
-          <div className="bg-amber-100/80 backdrop-blur-sm rounded-xl p-2 text-center">
+          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl p-2 text-center">
  <p className="text-base font-bold text-slate-900">{agencyWithdrawals.length}</p>
  <p className="text-[9px] text-slate-700/60">Agency</p>
           </div>
-          <div className="bg-amber-100/80 backdrop-blur-sm rounded-xl p-2 text-center">
+          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl p-2 text-center">
  <p className="text-base font-bold text-slate-900">{withdrawalRequests.filter(w => w.status ==='pending').length}</p>
  <p className="text-[9px] text-slate-700/60">Pending</p>
           </div>
-          <div className="bg-amber-100/80 backdrop-blur-sm rounded-xl p-2 text-center">
+          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl p-2 text-center">
  <p className="text-base font-bold text-slate-900">{countryPaymentMethods.length}</p>
  <p className="text-[9px] text-slate-700/60">Methods</p>
           </div>
-          <div className="bg-amber-100/80 backdrop-blur-sm rounded-xl p-2 text-center overflow-hidden">
+          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl p-2 text-center overflow-hidden">
  <p className="text-xs font-bold text-slate-900 truncate">
               {(() => {
                 const totalWallet = (helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0);
@@ -1358,7 +1358,7 @@ const Level5HelperDashboard = () => {
         <div className="mt-3">
           <Button
             onClick={() => navigate('/helper-dashboard')}
- className="w-full bg-amber-100/70 hover:bg-amber-100/90 text-slate-900 border border-slate-200/20"
+ className="w-full bg-amber-50/70 hover:bg-amber-50/90 text-slate-900 border border-slate-200/20"
           >
             <DollarSign className="w-4 h-4 mr-2" />
             Open Manual Top-up
@@ -1369,7 +1369,7 @@ const Level5HelperDashboard = () => {
       {/* Main Tabs */}
       <div className="px-4 mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-slate-100 rounded-xl p-1 grid grid-cols-5">
+          <TabsList className="w-full bg-slate-50 rounded-xl p-1 grid grid-cols-5">
  <TabsTrigger value="agency-withdrawals" className="data-[state=active]:bg-orange-500 data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
               <Building2 className="w-3 h-3 mr-0.5" />
               Agency
@@ -1384,17 +1384,17 @@ const Level5HelperDashboard = () => {
  <Badge className="ml-0.5 bg-red-500 text-slate-900 text-[8px] h-4 px-1">{pendingOrdersCount}</Badge>
               )}
             </TabsTrigger>
- <TabsTrigger value="country-methods" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
+ <TabsTrigger value="country-methods" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
               <CreditCard className="w-3 h-3 mr-0.5" />
               Methods
             </TabsTrigger>
- <TabsTrigger value="history" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
+ <TabsTrigger value="history" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-500 data-[state=active]:to-sky-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
               <Clock className="w-3 h-3 mr-0.5" />
               History
             </TabsTrigger>
             <TabsTrigger 
               value="inbox" 
- className="data-[state=active]:bg-purple-500 data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1 relative"
+ className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1 relative"
               onClick={() => markAdminMessagesRead()}
             >
               <Bell className="w-3 h-3 mr-0.5" />
@@ -1408,18 +1408,18 @@ const Level5HelperDashboard = () => {
           {/* Agency Withdrawals Tab */}
           <TabsContent value="agency-withdrawals" className="mt-4 space-y-3">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-slate-800 font-semibold text-sm flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-orange-700" />
+              <h3 className="text-slate-900 font-semibold text-sm flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-orange-600" />
                 All Agency Withdrawals
               </h3>
-              <Badge className="bg-emerald-100 text-emerald-700 text-xs">
+              <Badge className="bg-emerald-50 text-emerald-600 text-xs">
                 {agencyWithdrawals.filter(w => isWithdrawalAvailableForClaim(w, lockClock)).length} Available
               </Badge>
             </div>
             
             {/* Info Banner */}
-            <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl p-3 border border-cyan-500/30">
-              <p className="text-cyan-700 text-xs text-center">
+            <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl p-3 border border-sky-200/30">
+              <p className="text-sky-600 text-xs text-center">
                 💡 All Level 5 Helpers can see all withdrawals • First-come-first-serve
               </p>
             </div>
@@ -1428,7 +1428,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-8 text-center">
                   <Building2 className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-600">No pending agency withdrawals</p>
+                  <p className="text-slate-700">No pending agency withdrawals</p>
                   <p className="text-xs text-slate-500 mt-1">
                     All withdrawals are cleared 🎉
                   </p>
@@ -1450,22 +1450,22 @@ const Level5HelperDashboard = () => {
                     key={withdrawal.id}
                     className={cn(
                       "bg-white border-amber-200/60 shadow-sm transition-all",
-                      isLockedByOther ? "border-orange-500/50" : "",
+                      isLockedByOther ? "border-orange-200/50" : "",
                       isLockedByMe && "border-l-4 border-l-cyan-500",
                       isProcessing && "border-l-4 border-l-blue-500"
                     )}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12 border-2 border-orange-500">
+                        <Avatar className="w-12 h-12 border-2 border-orange-200">
                           <AvatarImage src={withdrawal.agency?.logo_url} />
-                          <AvatarFallback className="bg-orange-100">
-                            <Building2 className="w-5 h-5 text-orange-700" />
+                          <AvatarFallback className="bg-orange-50">
+                            <Building2 className="w-5 h-5 text-orange-600" />
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
  <p className="text-slate-900 font-semibold truncate">{withdrawal.agency?.name ||'Unknown Agency'}</p>
-                          <p className="text-slate-600 text-xs">Code: {withdrawal.agency?.agency_code}</p>
+                          <p className="text-slate-700 text-xs">Code: {withdrawal.agency?.agency_code}</p>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <Badge className={cn(
                               "text-xs",
@@ -1482,7 +1482,7 @@ const Level5HelperDashboard = () => {
                                withdrawal.status}
                             </Badge>
                             {(withdrawal.country_code || (withdrawal.payment_details as any)?.country_code) && (
-                              <Badge variant="outline" className="text-xs text-slate-600">
+                              <Badge variant="outline" className="text-xs text-slate-700">
                                 {(() => {
                                   const cc = withdrawal.country_code || (withdrawal.payment_details as any)?.country_code;
                                   const nameMap: Record<string, string> = { BD: 'Bangladesh', IN: 'India', PK: 'Pakistan', NP: 'Nepal', ID: 'Indonesia', PH: 'Philippines', MY: 'Malaysia', TH: 'Thailand', VN: 'Vietnam', LK: 'Sri Lanka', AE: 'UAE', SA: 'Saudi Arabia', US: 'USA', GB: 'UK' };
@@ -1493,12 +1493,12 @@ const Level5HelperDashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-emerald-700 font-bold flex items-center justify-end gap-1">
+                          <p className="text-emerald-600 font-bold flex items-center justify-end gap-1">
                             <Beans3DIcon size={16} />
                             {resolveNetWithdrawalBeans(withdrawal).toLocaleString()}
                           </p>
                           {withdrawal.local_currency_amount && withdrawal.currency_code && (
-                            <p className="text-slate-600 text-xs">
+                            <p className="text-slate-700 text-xs">
                               ≈ {withdrawal.currency_code} {withdrawal.local_currency_amount.toLocaleString()}
                             </p>
                           )}
@@ -1549,11 +1549,11 @@ const Level5HelperDashboard = () => {
                       
                       {/* Show processing indicator with helper name */}
                       {isLockedByOther && (
-                        <div className="mt-3 p-2 bg-orange-100 rounded-lg border border-orange-500/30">
+                        <div className="mt-3 p-2 bg-orange-50 rounded-lg border border-orange-200/30">
                           <div className="flex items-center justify-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin text-orange-700" />
+                            <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
                             <div className="text-center">
-                              <p className="text-orange-700 text-xs font-medium">
+                              <p className="text-orange-600 text-xs font-medium">
                                 Being processed by:
                               </p>
                               <p className="text-orange-600 text-sm font-bold">
@@ -1566,8 +1566,8 @@ const Level5HelperDashboard = () => {
                       
                       {/* Show submitted status */}
                       {isProcessing && (
-                        <div className="mt-3 p-2 bg-blue-100 rounded-lg border border-blue-500/30 text-center">
-                          <p className="text-blue-700 text-xs flex items-center justify-center gap-1">
+                        <div className="mt-3 p-2 bg-sky-50 rounded-lg border border-sky-200/30 text-center">
+                          <p className="text-sky-700 text-xs flex items-center justify-center gap-1">
                             <CheckCircle className="w-3 h-3" />
                             Submitted - Waiting for admin approval
                           </p>
@@ -1583,11 +1583,11 @@ const Level5HelperDashboard = () => {
           {/* Orders Tab */}
           <TabsContent value="orders" className="mt-4 space-y-3">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-slate-800 font-semibold text-sm flex items-center gap-2">
-                <Package className="w-4 h-4 text-blue-700" />
+              <h3 className="text-slate-900 font-semibold text-sm flex items-center gap-2">
+                <Package className="w-4 h-4 text-sky-700" />
                 Payroll Orders
               </h3>
-              <Badge className="bg-blue-100 text-blue-700 text-xs">
+              <Badge className="bg-sky-50 text-sky-700 text-xs">
                 {helperOrders.length} total
               </Badge>
             </div>
@@ -1596,7 +1596,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-8 text-center">
                   <Package className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-600">No orders yet</p>
+                  <p className="text-slate-700">No orders yet</p>
                   <p className="text-xs text-slate-500 mt-1">
                     Orders from users will appear here
                   </p>
@@ -1615,9 +1615,9 @@ const Level5HelperDashboard = () => {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10 border-2 border-blue-500">
+                      <Avatar className="w-10 h-10 border-2 border-sky-200">
                         <AvatarImage src={order.user?.avatar_url} />
-                        <AvatarFallback className="bg-blue-100 text-blue-700">
+                        <AvatarFallback className="bg-sky-50 text-sky-700">
                           {order.user?.display_name?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
@@ -1635,17 +1635,17 @@ const Level5HelperDashboard = () => {
                             {order.status}
                           </Badge>
                         </div>
-                        <p className="text-slate-600 text-xs">ID: {order.user?.app_uid}</p>
+                        <p className="text-slate-700 text-xs">ID: {order.user?.app_uid}</p>
                         <p className="text-slate-500 text-[10px]">
                           {format(new Date(order.created_at), 'dd MMM yyyy, hh:mm a')}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-emerald-700 font-bold">{order.coin_amount?.toLocaleString()} 💎</p>
-                        <p className="text-slate-600 text-xs">
+                        <p className="text-emerald-600 font-bold">{order.coin_amount?.toLocaleString()} 💎</p>
+                        <p className="text-slate-700 text-xs">
                           {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                         </p>
-                        <Badge variant="outline" className="text-[10px] text-slate-600 mt-1">
+                        <Badge variant="outline" className="text-[10px] text-slate-700 mt-1">
                           {order.payment_method}
                         </Badge>
                       </div>
@@ -1654,19 +1654,19 @@ const Level5HelperDashboard = () => {
                     {/* Transaction ID and Payment Details */}
                     {order.payment_details && (
                       <div className="mt-3 pt-3 border-t border-slate-200">
-                        <div className="bg-amber-100/70 rounded-lg p-3">
-                          <p className="text-slate-600 text-xs mb-2">📝 Payment Details</p>
+                        <div className="bg-amber-50/70 rounded-lg p-3">
+                          <p className="text-slate-700 text-xs mb-2">📝 Payment Details</p>
                           {(order.payment_details.transaction_id || order.payment_details.user_transaction_id) && (
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-slate-500 text-xs">Transaction ID:</span>
-                              <span className="text-yellow-700 font-mono text-sm font-bold">
+                              <span className="text-amber-600 font-mono text-sm font-bold">
                                 {order.payment_details.transaction_id || order.payment_details.user_transaction_id}
                               </span>
                             </div>
                           )}
                           {order.payment_details.manual_review_required && (
                             <div className="mb-2">
-                              <span className="inline-block px-2 py-0.5 rounded bg-amber-100 border border-amber-500/40 text-amber-700 text-[10px] font-bold">
+                              <span className="inline-block px-2 py-0.5 rounded bg-amber-50 border border-amber-500/40 text-amber-700 text-[10px] font-bold">
                                 ⚠ MANUAL REVIEW (auto-verify missed)
                               </span>
                             </div>
@@ -1680,7 +1680,7 @@ const Level5HelperDashboard = () => {
                           {order.payment_details.account_number && (
                             <div className="flex items-center justify-between">
                               <span className="text-slate-500 text-xs">Number:</span>
-                              <span className="text-green-700 text-xs font-mono">{order.payment_details.account_number}</span>
+                              <span className="text-emerald-600 text-xs font-mono">{order.payment_details.account_number}</span>
                             </div>
                           )}
                         </div>
@@ -1693,7 +1693,7 @@ const Level5HelperDashboard = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="w-full text-xs text-blue-700 border-blue-500/50"
+                          className="w-full text-xs text-sky-700 border-sky-200/50"
                           onClick={() => imageViewer.openImage(order.user_payment_proof)}
                         >
                           <Eye className="w-3 h-3 mr-1" />
@@ -1783,7 +1783,7 @@ const Level5HelperDashboard = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="flex-1 text-red-700 border-red-500/50 hover:bg-red-100 text-xs"
+                          className="flex-1 text-rose-600 border-rose-200/50 hover:bg-rose-50 text-xs"
                           onClick={async () => {
                             setProcessing(true);
                             try {
@@ -1825,8 +1825,8 @@ const Level5HelperDashboard = () => {
           {/* Country Payment Methods Tab */}
           <TabsContent value="country-methods" className="mt-4 space-y-3">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-slate-800 font-semibold text-sm flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-emerald-700" />
+              <h3 className="text-slate-900 font-semibold text-sm flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-emerald-600" />
                 Country Payment Methods
               </h3>
               <Button 
@@ -1843,7 +1843,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-8 text-center">
                   <CreditCard className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-600">No payment methods added</p>
+                  <p className="text-slate-700">No payment methods added</p>
                   <p className="text-xs text-slate-500 mt-1">Add payment methods for your assigned countries</p>
                   <Button 
                     onClick={() => setShowCountryPaymentDialog(true)}
@@ -1867,7 +1867,7 @@ const Level5HelperDashboard = () => {
                   <CardHeader className="pb-2">
  <CardTitle className="text-sm text-slate-900 flex items-center gap-2">
                       🌍 {country}
-                      <Badge className="bg-slate-200 text-xs">{methods.length} methods</Badge>
+                      <Badge className="bg-slate-100 text-xs">{methods.length} methods</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
@@ -1876,7 +1876,7 @@ const Level5HelperDashboard = () => {
                       return (
                         <div 
                           key={method.id}
-                          className="flex items-center gap-3 p-3 bg-slate-100 rounded-xl"
+                          className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl"
                         >
                           <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-r", config.color)}>
                             <span className="text-lg">{config.icon}</span>
@@ -1885,11 +1885,11 @@ const Level5HelperDashboard = () => {
                             <div className="flex items-center gap-2">
  <p className="text-slate-900 font-medium text-sm">{method.method_name}</p>
                               {method.is_merchant && (
-                                <Badge className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>
+                                <Badge className="bg-amber-50 text-amber-700 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>
                               )}
                             </div>
-                            <p className="text-slate-600 text-xs truncate">{method.account_name}</p>
-                            <p className="text-emerald-700 text-xs font-mono">{method.account_number}</p>
+                            <p className="text-slate-700 text-xs truncate">{method.account_name}</p>
+                            <p className="text-emerald-600 text-xs font-mono">{method.account_number}</p>
                             {method.merchant_number && (
                               <p className="text-amber-700 text-xs font-mono">Merchant: {method.merchant_number}</p>
                             )}
@@ -1897,7 +1897,7 @@ const Level5HelperDashboard = () => {
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="text-red-700 hover:bg-red-100"
+                            className="text-rose-600 hover:bg-rose-50"
                             onClick={() => handleDeleteCountryPaymentMethod(method.id)}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1917,7 +1917,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-8 text-center">
                   <Banknote className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-600">No withdrawal requests yet</p>
+                  <p className="text-slate-700">No withdrawal requests yet</p>
                   <p className="text-xs text-slate-500 mt-1">Requests will appear here when agencies submit withdrawals</p>
                 </CardContent>
               </Card>
@@ -1934,9 +1934,9 @@ const Level5HelperDashboard = () => {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12 border-2 border-slate-300">
+                        <Avatar className="w-12 h-12 border-2 border-slate-200">
                           <AvatarImage src={request.agency?.logo_url || request.host?.avatar_url} />
-                          <AvatarFallback className="bg-slate-200">
+                          <AvatarFallback className="bg-slate-100">
                             {request.agency ? <Building2 className="w-5 h-5" /> : <User className="w-5 h-5" />}
                           </AvatarFallback>
                         </Avatar>
@@ -1950,13 +1950,13 @@ const Level5HelperDashboard = () => {
                               {statusConfig.label}
                             </Badge>
                           </div>
-                          <p className="text-xs text-slate-600">
+                          <p className="text-xs text-slate-700">
                             {format(new Date(request.created_at), 'dd MMM yyyy, HH:mm')}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-green-700">${request.usd_amount}</p>
-                          <p className="text-xs text-slate-600">
+                          <p className="font-bold text-emerald-600">${request.usd_amount}</p>
+                          <p className="text-xs text-slate-700">
                             {request.currency_code} {request.local_amount?.toLocaleString()}
                           </p>
                         </div>
@@ -1965,8 +1965,8 @@ const Level5HelperDashboard = () => {
                       
                       {request.diamond_reward > 0 && (
                         <div className="mt-2 pt-2 border-t border-slate-200 flex items-center gap-2">
-                          <Gem className="w-4 h-4 text-cyan-700" />
-                          <span className="text-xs text-cyan-700">+{request.diamond_reward.toLocaleString()} diamonds reward</span>
+                          <Gem className="w-4 h-4 text-sky-600" />
+                          <span className="text-xs text-sky-600">+{request.diamond_reward.toLocaleString()} diamonds reward</span>
                         </div>
                       )}
                     </CardContent>
@@ -1990,7 +1990,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-8 text-center">
                   <CreditCard className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-600">No payment methods added</p>
+                  <p className="text-slate-700">No payment methods added</p>
                   <p className="text-xs text-slate-500 mt-1">Add your payment methods to receive payments</p>
                 </CardContent>
               </Card>
@@ -2012,24 +2012,24 @@ const Level5HelperDashboard = () => {
                             <div className="flex items-center gap-2 mb-2">
  <p className="font-semibold text-slate-900">{typeConfig.label}</p>
                               {method.country_code && (
-                                <Badge className="bg-blue-100 text-blue-700 text-[10px]">{method.country_code}</Badge>
+                                <Badge className="bg-sky-50 text-sky-700 text-[10px]">{method.country_code}</Badge>
                               )}
                               {method.is_default && (
-                                <Badge className="bg-green-100 text-green-700 text-[10px]">Default</Badge>
+                                <Badge className="bg-emerald-50 text-emerald-600 text-[10px]">Default</Badge>
                               )}
                             </div>
                           
                           {/* Account Name with Copy */}
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className="text-sm text-slate-600 truncate">{method.account_name}</p>
+                            <p className="text-sm text-slate-700 truncate">{method.account_name}</p>
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(method.account_name);
                                 toast({ title: "Copied! ✅", description: "Account name copied" });
                               }}
-                              className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors flex-shrink-0"
+                              className="p-1 rounded bg-slate-100 hover:bg-slate-100 transition-colors flex-shrink-0"
                             >
-                              <Copy className="w-3 h-3 text-emerald-700" />
+                              <Copy className="w-3 h-3 text-emerald-600" />
                             </button>
                           </div>
                           
@@ -2041,16 +2041,16 @@ const Level5HelperDashboard = () => {
                                 navigator.clipboard.writeText(method.account_number);
                                 toast({ title: "Copied! ✅", description: "Account number copied" });
                               }}
-                              className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors flex-shrink-0"
+                              className="p-1 rounded bg-slate-100 hover:bg-slate-100 transition-colors flex-shrink-0"
                             >
-                              <Copy className="w-3 h-3 text-emerald-700" />
+                              <Copy className="w-3 h-3 text-emerald-600" />
                             </button>
                           </div>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-700 hover:text-red-600 hover:bg-red-100 flex-shrink-0"
+                          className="text-rose-600 hover:text-red-600 hover:bg-rose-50 flex-shrink-0"
                           onClick={() => handleDeletePaymentMethod(method.id)}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -2066,11 +2066,11 @@ const Level5HelperDashboard = () => {
           {/* History Tab - Completed Orders & Withdrawals */}
           <TabsContent value="history" className="mt-4 space-y-3">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-slate-800 font-semibold text-sm flex items-center gap-2">
-                <Clock className="w-4 h-4 text-cyan-700" />
+              <h3 className="text-slate-900 font-semibold text-sm flex items-center gap-2">
+                <Clock className="w-4 h-4 text-sky-600" />
                 Transaction History
               </h3>
-              <Badge className="bg-cyan-100 text-cyan-700 text-xs">
+              <Badge className="bg-cyan-100 text-sky-600 text-xs">
                 {completedOrders.length + completedWithdrawals.length} records
               </Badge>
             </div>
@@ -2079,7 +2079,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-8 text-center">
                   <Clock className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-600">No transaction history yet</p>
+                  <p className="text-slate-700">No transaction history yet</p>
                   <p className="text-xs text-slate-500 mt-1">
                     Your processing, completed, and rejected records will appear here
                   </p>
@@ -2090,7 +2090,7 @@ const Level5HelperDashboard = () => {
                 {/* Agency Withdrawal History */}
                 {completedWithdrawals.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs text-orange-700 font-medium">💰 Agency Withdrawal History</p>
+                    <p className="text-xs text-orange-600 font-medium">💰 Agency Withdrawal History</p>
                     {completedWithdrawals.map((withdrawal) => {
                       const displayStatus = withdrawal.status === 'approved' ? 'completed' : withdrawal.status;
                       const grossReward = Number(withdrawal.diamond_reward ?? 0);
@@ -2104,19 +2104,19 @@ const Level5HelperDashboard = () => {
                         completed: {
                           card: 'border-l-green-500',
                           badge: 'bg-green-500',
-                          amount: 'text-emerald-700',
+                          amount: 'text-emerald-600',
                           label: 'Completed'
                         },
                         processing: {
                           card: 'border-l-blue-500',
                           badge: 'bg-blue-500',
-                          amount: 'text-blue-700',
+                          amount: 'text-sky-700',
                           label: 'Processing'
                         },
                         rejected: {
                           card: 'border-l-red-500',
                           badge: 'bg-red-500',
-                          amount: 'text-red-700',
+                          amount: 'text-rose-600',
                           label: 'Rejected'
                         }
                       } as const;
@@ -2126,9 +2126,9 @@ const Level5HelperDashboard = () => {
                         <Card key={withdrawal.id} className={cn("bg-white border-amber-200/60 shadow-sm border-l-4", config.card)}>
                           <CardContent className="p-3">
                             <div className="flex items-center gap-3">
-                              <Avatar className="w-10 h-10 border-2 border-slate-300">
+                              <Avatar className="w-10 h-10 border-2 border-slate-200">
                                 <AvatarImage src={withdrawal.agency?.logo_url} />
-                                <AvatarFallback className="bg-slate-200 text-orange-700">
+                                <AvatarFallback className="bg-slate-100 text-orange-600">
                                   <Building2 className="w-4 h-4" />
                                 </AvatarFallback>
                               </Avatar>
@@ -2136,13 +2136,13 @@ const Level5HelperDashboard = () => {
  <p className="text-slate-900 font-medium text-sm truncate">
                                   {withdrawal.agency?.name || 'Agency'}
                                 </p>
-                                <p className="text-slate-600 text-[10px]">
+                                <p className="text-slate-700 text-[10px]">
                                   Code: {withdrawal.agency?.agency_code}
                                 </p>
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                                   <Badge className={cn("text-[10px]", config.badge)}>{config.label}</Badge>
                                   {transactionId && (
-                                    <span className="text-yellow-700 text-[10px] font-mono truncate max-w-[130px]">
+                                    <span className="text-amber-600 text-[10px] font-mono truncate max-w-[130px]">
                                       TX: {transactionId}
                                     </span>
                                   )}
@@ -2152,7 +2152,7 @@ const Level5HelperDashboard = () => {
                                 <p className={cn("font-bold text-sm", config.amount)}>
                                   {helperReward.toLocaleString()} 💎
                                 </p>
-                                <p className="text-cyan-700 text-[10px]">Net diamonds after admin fee</p>
+                                <p className="text-sky-600 text-[10px]">Net diamonds after admin fee</p>
                                 <p className="text-slate-500 text-[10px]">
                                   {format(new Date(withdrawal.processed_at || withdrawal.requested_at), 'dd MMM')}
                                 </p>
@@ -2168,14 +2168,14 @@ const Level5HelperDashboard = () => {
                 {/* Completed Orders */}
                 {completedOrders.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs text-blue-700 font-medium mt-4">📦 Payroll Orders</p>
+                    <p className="text-xs text-sky-700 font-medium mt-4">📦 Payroll Orders</p>
                     {completedOrders.map((order) => (
                       <Card key={order.id} className="bg-white border-amber-200/60 shadow-sm border-l-4 border-l-green-500">
                         <CardContent className="p-3">
                           <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10 border-2 border-blue-500">
+                            <Avatar className="w-10 h-10 border-2 border-sky-200">
                               <AvatarImage src={order.user?.avatar_url} />
-                              <AvatarFallback className="bg-blue-100 text-blue-700">
+                              <AvatarFallback className="bg-sky-50 text-sky-700">
                                 {order.user?.display_name?.charAt(0) || 'U'}
                               </AvatarFallback>
                             </Avatar>
@@ -2183,14 +2183,14 @@ const Level5HelperDashboard = () => {
  <p className="text-slate-900 font-medium text-sm truncate">
                                 {order.user?.display_name || 'User'}
                               </p>
-                              <p className="text-slate-600 text-[10px]">ID: {order.user?.app_uid}</p>
+                              <p className="text-slate-700 text-[10px]">ID: {order.user?.app_uid}</p>
                               <Badge className="bg-green-500 text-[10px] mt-1">Completed</Badge>
                             </div>
                             <div className="text-right">
-                              <p className="text-emerald-700 font-bold text-sm">
+                              <p className="text-emerald-600 font-bold text-sm">
                                 {order.coin_amount?.toLocaleString()} 💎
                               </p>
-                              <p className="text-slate-600 text-xs">
+                              <p className="text-slate-700 text-xs">
                                 {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                               </p>
                               <p className="text-slate-500 text-[10px]">
@@ -2210,11 +2210,11 @@ const Level5HelperDashboard = () => {
           {/* Inbox Tab - Admin Messages */}
           <TabsContent value="inbox" className="mt-4 space-y-2">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-slate-800 font-semibold text-sm flex items-center gap-2">
-                <Bell className="w-4 h-4 text-purple-700" />
+              <h3 className="text-slate-900 font-semibold text-sm flex items-center gap-2">
+                <Bell className="w-4 h-4 text-violet-600" />
                 Admin Messages
               </h3>
-              <Badge className="bg-purple-100 text-purple-700 text-xs">
+              <Badge className="bg-violet-50 text-violet-600 text-xs">
                 {adminMessages.length} messages
               </Badge>
             </div>
@@ -2223,7 +2223,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-white border-amber-200/60 shadow-sm">
                 <CardContent className="p-8 text-center">
                   <Bell className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-600">No messages from admin</p>
+                  <p className="text-slate-700">No messages from admin</p>
                   <p className="text-xs text-slate-500 mt-1">
                     Important announcements will appear here
                   </p>
@@ -2235,7 +2235,7 @@ const Level5HelperDashboard = () => {
                   key={msg.id} 
                   onClick={() => openMessageDetail(msg)}
                   className={cn(
-                    "bg-white border-amber-200/60 shadow-sm cursor-pointer hover:bg-slate-100 transition-colors",
+                    "bg-white border-amber-200/60 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors",
                     !msg.is_read && "border-l-4 border-l-purple-500",
                     msg.priority === 'urgent' && "border-l-4 border-l-red-500",
                     msg.priority === 'high' && "border-l-4 border-l-orange-500"
@@ -2245,15 +2245,15 @@ const Level5HelperDashboard = () => {
                     <div className="flex items-start gap-3">
                       <div className={cn(
                         "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
-                        msg.priority === 'urgent' ? "bg-red-100" :
-                        msg.priority === 'high' ? "bg-orange-100" : "bg-purple-100"
+                        msg.priority === 'urgent' ? "bg-rose-50" :
+                        msg.priority === 'high' ? "bg-orange-50" : "bg-violet-50"
                       )}>
                         {msg.priority === 'urgent' ? (
-                          <AlertCircle className="w-5 h-5 text-red-500" />
+                          <AlertCircle className="w-5 h-5 text-rose-500" />
                         ) : msg.priority === 'high' ? (
                           <AlertCircle className="w-5 h-5 text-orange-500" />
                         ) : (
-                          <Crown className="w-5 h-5 text-purple-500" />
+                          <Crown className="w-5 h-5 text-violet-500" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -2266,18 +2266,18 @@ const Level5HelperDashboard = () => {
                             <Badge className="bg-orange-500 text-[10px]">Important</Badge>
                           )}
                           {msg.has_replies && (
-                            <Badge className="bg-green-100 text-green-700 text-[10px]">
+                            <Badge className="bg-emerald-50 text-emerald-600 text-[10px]">
                               <MessageCircle className="w-2 h-2 mr-0.5" />
                               Replied
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-slate-600 mt-1 line-clamp-2">{msg.message}</p>
+                        <p className="text-xs text-slate-700 mt-1 line-clamp-2">{msg.message}</p>
                         <div className="flex items-center justify-between mt-1">
                           <p className="text-[10px] text-slate-500">
                             {format(new Date(msg.created_at), 'dd MMM yyyy, HH:mm')}
                           </p>
-                          <div className="flex items-center gap-1 text-purple-700">
+                          <div className="flex items-center gap-1 text-violet-600">
                             <Reply className="w-3 h-3" />
                             <span className="text-[10px]">Tap to reply</span>
                           </div>
@@ -2300,13 +2300,13 @@ const Level5HelperDashboard = () => {
             <div className="flex items-center gap-3">
               <div className={cn(
                 "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
-                selectedMessage?.priority === 'urgent' ? "bg-red-100" :
-                selectedMessage?.priority === 'high' ? "bg-orange-100" : "bg-purple-100"
+                selectedMessage?.priority === 'urgent' ? "bg-rose-50" :
+                selectedMessage?.priority === 'high' ? "bg-orange-50" : "bg-violet-50"
               )}>
                 <Crown className={cn(
                   "w-4 h-4",
-                  selectedMessage?.priority === 'urgent' ? "text-red-500" :
-                  selectedMessage?.priority === 'high' ? "text-orange-500" : "text-purple-500"
+                  selectedMessage?.priority === 'urgent' ? "text-rose-500" :
+                  selectedMessage?.priority === 'high' ? "text-orange-500" : "text-violet-500"
                 )} />
               </div>
               <div className="flex-1 min-w-0">
@@ -2331,10 +2331,10 @@ const Level5HelperDashboard = () => {
           {/* Scrollable Chat Area */}
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
             {/* Original Admin Message */}
-            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 mr-8">
+            <div className="bg-purple-500/10 border border-violet-200/20 rounded-xl p-3 mr-8">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <Crown className="w-3 h-3 text-purple-700" />
-                <span className="text-[10px] text-purple-700 font-medium">Admin</span>
+                <Crown className="w-3 h-3 text-violet-600" />
+                <span className="text-[10px] text-violet-600 font-medium">Admin</span>
                 <span className="text-[10px] text-slate-500">
                   {selectedMessage && format(new Date(selectedMessage.created_at), 'dd MMM, HH:mm')}
                 </span>
@@ -2345,7 +2345,7 @@ const Level5HelperDashboard = () => {
             {/* Replies Thread */}
             {loadingReplies ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-purple-700" />
+                <Loader2 className="w-5 h-5 animate-spin text-violet-600" />
               </div>
             ) : messageReplies.length > 0 ? (
               <div className="space-y-2">
@@ -2355,19 +2355,19 @@ const Level5HelperDashboard = () => {
                     className={cn(
                       "rounded-xl p-3",
                       reply.sender_type === 'helper' 
-                        ? "bg-cyan-500/10 border border-cyan-500/20 ml-8" 
-                        : "bg-purple-500/10 border border-purple-500/20 mr-8"
+                        ? "bg-cyan-500/10 border border-sky-200/20 ml-8" 
+                        : "bg-purple-500/10 border border-violet-200/20 mr-8"
                     )}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
                       {reply.sender_type === 'helper' ? (
-                        <User className="w-3 h-3 text-cyan-700" />
+                        <User className="w-3 h-3 text-sky-600" />
                       ) : (
-                        <Crown className="w-3 h-3 text-purple-700" />
+                        <Crown className="w-3 h-3 text-violet-600" />
                       )}
                       <span className={cn(
                         "text-[10px] font-medium",
-                        reply.sender_type === 'helper' ? "text-cyan-700" : "text-purple-700"
+                        reply.sender_type === 'helper' ? "text-sky-600" : "text-violet-600"
                       )}>
                         {reply.sender_type === 'helper' ? 'You' : 'Admin'}
                       </span>
@@ -2387,7 +2387,7 @@ const Level5HelperDashboard = () => {
                           <img 
                             src={reply.screenshot_url} 
                             alt="Screenshot" 
-                            className="w-full max-w-[200px] h-auto max-h-32 rounded-lg border border-slate-300 hover:opacity-80 transition-opacity object-cover"
+                            className="w-full max-w-[200px] h-auto max-h-32 rounded-lg border border-slate-200 hover:opacity-80 transition-opacity object-cover"
                           />
                         </a>
                       </div>
@@ -2406,7 +2406,7 @@ const Level5HelperDashboard = () => {
                 <img 
                   src={URL.createObjectURL(replyScreenshot)} 
                   alt="Screenshot preview" 
-                  className="h-16 rounded-lg border border-slate-300"
+                  className="h-16 rounded-lg border border-slate-200"
                 />
                 <Button
                   size="sm"
@@ -2423,7 +2423,7 @@ const Level5HelperDashboard = () => {
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder="Type your reply..."
- className="bg-slate-100 border-slate-200 text-slate-900 text-sm resize-none min-h-[44px] max-h-[80px] mb-2"
+ className="bg-slate-50 border-slate-200 text-slate-900 text-sm resize-none min-h-[44px] max-h-[80px] mb-2"
               rows={1}
             />
             
@@ -2444,7 +2444,7 @@ const Level5HelperDashboard = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => document.getElementById('reply-screenshot')?.click()}
-                  className="border-slate-300 text-slate-500 hover:bg-slate-100 h-9 text-xs"
+                  className="border-slate-200 text-slate-500 hover:bg-slate-50 h-9 text-xs"
                 >
                   <ImagePlus className="w-3.5 h-3.5 mr-1" />
                   Add Screenshot
@@ -2481,10 +2481,10 @@ const Level5HelperDashboard = () => {
             <div>
               <Label className="text-slate-500">Country *</Label>
               <Select value={selectedPaymentCountry} onValueChange={setSelectedPaymentCountry}>
- <SelectTrigger className="bg-slate-100 border-slate-200 text-slate-900 mt-1">
+ <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-100 border-slate-200">
+                <SelectContent className="bg-slate-50 border-slate-200">
                   {assignedCountries.length > 0 ? (
                     assignedCountries.map((code) => {
                       const rate = currencyRates.find(r => r.country_code === code);
@@ -2506,10 +2506,10 @@ const Level5HelperDashboard = () => {
             <div>
               <Label className="text-slate-500">Payment Type</Label>
               <Select value={paymentType} onValueChange={setPaymentType}>
- <SelectTrigger className="bg-slate-100 border-slate-200 text-slate-900 mt-1">
+ <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-100 border-slate-200">
+                <SelectContent className="bg-slate-50 border-slate-200">
                   {availablePaymentMethods.map((method) => {
                     const config = getPaymentTypeConfig(method.method_type);
                     return (
@@ -2531,7 +2531,7 @@ const Level5HelperDashboard = () => {
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 placeholder="Enter account holder name"
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
               />
             </div>
 
@@ -2541,7 +2541,7 @@ const Level5HelperDashboard = () => {
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
                 placeholder="Enter account number"
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
               />
             </div>
 
@@ -2552,7 +2552,7 @@ const Level5HelperDashboard = () => {
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="Enter bank name"
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                 />
               </div>
             )}
@@ -2566,7 +2566,7 @@ const Level5HelperDashboard = () => {
                   id="is-merchant-legacy"
                   checked={isMerchant}
                   onChange={(e) => setIsMerchant(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300"
+                  className="w-4 h-4 rounded border-slate-200"
                 />
                 <Label htmlFor="is-merchant-legacy" className="text-amber-700 font-medium text-sm cursor-pointer">
                   ⚡ This is a Merchant Account (Auto-Verify)
@@ -2579,7 +2579,7 @@ const Level5HelperDashboard = () => {
                     value={merchantNumber}
                     onChange={(e) => setMerchantNumber(e.target.value)}
                     placeholder="Enter merchant number"
- className="bg-slate-100 border-amber-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-amber-500/30 text-slate-900 mt-1"
                   />
                   <p className="text-xs text-amber-700/70 mt-1">
                     Payments to this merchant will be auto-verified
@@ -2616,18 +2616,18 @@ const Level5HelperDashboard = () => {
           {selectedWithdrawal && (
             <div className="space-y-4">
               {/* Amount Info */}
-              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl p-4 border border-green-500/30">
+              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl p-4 border border-emerald-200/30">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-green-700">${selectedWithdrawal.usd_amount}</p>
-                  <p className="text-sm text-slate-600 mt-1">
+                  <p className="text-3xl font-bold text-emerald-600">${selectedWithdrawal.usd_amount}</p>
+                  <p className="text-sm text-slate-700 mt-1">
                     ≈ {selectedWithdrawal.currency_code} {selectedWithdrawal.local_amount?.toLocaleString()}
                   </p>
                 </div>
                 
                 {selectedWithdrawal.diamond_reward > 0 && (
-                  <div className="mt-3 pt-3 border-t border-green-500/30 flex items-center justify-center gap-2">
-                    <Gem className="w-5 h-5 text-cyan-700" />
-                    <span className="text-cyan-700 font-semibold">
+                  <div className="mt-3 pt-3 border-t border-emerald-200/30 flex items-center justify-center gap-2">
+                    <Gem className="w-5 h-5 text-sky-600" />
+                    <span className="text-sky-600 font-semibold">
                       +{selectedWithdrawal.diamond_reward.toLocaleString()} diamonds after approval
                     </span>
                   </div>
@@ -2640,7 +2640,7 @@ const Level5HelperDashboard = () => {
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={selectedWithdrawal.agency?.logo_url || selectedWithdrawal.host?.avatar_url} />
-                      <AvatarFallback className="bg-slate-200">
+                      <AvatarFallback className="bg-slate-100">
                         {selectedWithdrawal.agency ? <Building2 className="w-5 h-5" /> : <User className="w-5 h-5" />}
                       </AvatarFallback>
                     </Avatar>
@@ -2649,7 +2649,7 @@ const Level5HelperDashboard = () => {
                         {selectedWithdrawal.agency?.name || selectedWithdrawal.host?.display_name}
                       </p>
                       {selectedWithdrawal.agency?.agency_code && (
-                        <p className="text-xs text-slate-600">Code: {selectedWithdrawal.agency.agency_code}</p>
+                        <p className="text-xs text-slate-700">Code: {selectedWithdrawal.agency.agency_code}</p>
                       )}
                     </div>
                   </div>
@@ -2658,7 +2658,7 @@ const Level5HelperDashboard = () => {
 
               {/* Status */}
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <span className="text-slate-600">Status</span>
+                <span className="text-slate-700">Status</span>
  <Badge className={cn("text-slate-900", getStatusBadge(selectedWithdrawal.status).color)}>
                   {getStatusBadge(selectedWithdrawal.status).label}
                 </Badge>
@@ -2673,7 +2673,7 @@ const Level5HelperDashboard = () => {
                       value={helperNotes}
                       onChange={(e) => setHelperNotes(e.target.value)}
                       placeholder="Add any notes..."
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                       rows={2}
                     />
                   </div>
@@ -2703,17 +2703,17 @@ const Level5HelperDashboard = () => {
                       />
                       <label 
                         htmlFor="screenshot-upload"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-cyan-500 transition-colors"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-sky-200 transition-colors"
                       >
                         {screenshotFile ? (
                           <div className="text-center">
                             <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                            <p className="text-sm text-slate-600">{screenshotFile.name}</p>
+                            <p className="text-sm text-slate-700">{screenshotFile.name}</p>
                           </div>
                         ) : (
                           <div className="text-center">
                             <Camera className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-                            <p className="text-sm text-slate-600">Click to upload screenshot</p>
+                            <p className="text-sm text-slate-700">Click to upload screenshot</p>
                           </div>
                         )}
                       </label>
@@ -2726,7 +2726,7 @@ const Level5HelperDashboard = () => {
                       value={helperNotes}
                       onChange={(e) => setHelperNotes(e.target.value)}
                       placeholder="Add any notes..."
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                       rows={2}
                     />
                   </div>
@@ -2744,18 +2744,18 @@ const Level5HelperDashboard = () => {
               )}
 
               {selectedWithdrawal.status === 'screenshot_submitted' && (
-                <div className="text-center p-4 bg-purple-100 rounded-xl border border-purple-500/30">
-                  <Clock className="w-8 h-8 text-purple-700 mx-auto mb-2" />
-                  <p className="text-purple-700 font-semibold">Waiting for Admin Approval</p>
-                  <p className="text-xs text-purple-700 mt-1">You'll receive diamonds once approved</p>
+                <div className="text-center p-4 bg-violet-50 rounded-xl border border-violet-200/30">
+                  <Clock className="w-8 h-8 text-violet-600 mx-auto mb-2" />
+                  <p className="text-violet-600 font-semibold">Waiting for Admin Approval</p>
+                  <p className="text-xs text-violet-600 mt-1">You'll receive diamonds once approved</p>
                 </div>
               )}
 
               {selectedWithdrawal.status === 'approved' && (
-                <div className="text-center p-4 bg-green-100 rounded-xl border border-green-500/30">
-                  <CheckCircle className="w-8 h-8 text-green-700 mx-auto mb-2" />
-                  <p className="text-green-700 font-semibold">Approved!</p>
-                  <p className="text-xs text-green-700 mt-1">
+                <div className="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-200/30">
+                  <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+                  <p className="text-emerald-600 font-semibold">Approved!</p>
+                  <p className="text-xs text-emerald-600 mt-1">
                     +{selectedWithdrawal.diamond_reward.toLocaleString()} diamonds credited
                   </p>
                 </div>
@@ -2789,10 +2789,10 @@ const Level5HelperDashboard = () => {
             <div>
               <Label className="text-slate-500">Select Country *</Label>
               <Select value={selectedCountry} onValueChange={setSelectedCountry}>
- <SelectTrigger className="bg-slate-100 border-slate-200 text-slate-900 mt-1">
+ <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
                   <SelectValue placeholder="Choose a country..." />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-100 border-slate-200 max-h-60">
+                <SelectContent className="bg-slate-50 border-slate-200 max-h-60">
                   {[
                     { code: 'BD', name: '🇧🇩 Bangladesh', currency: 'BDT' },
                     { code: 'IN', name: '🇮🇳 India', currency: 'INR' },
@@ -2886,10 +2886,10 @@ const Level5HelperDashboard = () => {
             <div>
               <Label className="text-slate-500">Payment Method Type *</Label>
               <Select value={paymentType} onValueChange={setPaymentType}>
- <SelectTrigger className="bg-slate-100 border-slate-200 text-slate-900 mt-1">
+ <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
                   <SelectValue placeholder={selectedCountry ? "Select payment method..." : "Select a country first"} />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-100 border-slate-200 max-h-72">
+                <SelectContent className="bg-slate-50 border-slate-200 max-h-72">
                   {/* ═══ AUTO PAYMENT GATEWAYS — country specific (from payment_gateways table) ═══ */}
                   {countryGateways.filter(g => g.is_integrated).length > 0 && (
                     <div className="px-2 py-1 text-[10px] text-amber-700 font-bold uppercase tracking-wider">
@@ -2905,7 +2905,7 @@ const Level5HelperDashboard = () => {
                     ))}
 
                   {/* ═══ MANUAL METHODS — universal fallbacks (always visible) ═══ */}
-                  <div className="px-2 py-1 text-[10px] text-slate-600 font-bold uppercase tracking-wider mt-1">
+                  <div className="px-2 py-1 text-[10px] text-slate-700 font-bold uppercase tracking-wider mt-1">
                     📝 Manual Methods
                   </div>
  <SelectItem value="bkash" className="text-slate-900">📱 bKash</SelectItem>
@@ -2958,7 +2958,7 @@ const Level5HelperDashboard = () => {
                   value={accountName}
                   onChange={(e) => setAccountName(e.target.value)}
                   placeholder="Enter account holder name"
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                 />
               </div>
             )}
@@ -2970,7 +2970,7 @@ const Level5HelperDashboard = () => {
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
                   placeholder="Enter account number or wallet address"
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                 />
               </div>
             )}
@@ -2982,19 +2982,19 @@ const Level5HelperDashboard = () => {
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="Enter bank name"
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                 />
               </div>
             )}
 
             {/* ═══ ZiniPay Gateway (Personal Account Auto Pay) ═══ */}
             {paymentType === 'zinipay' && (
-              <div className="border border-emerald-500/30 rounded-xl p-3 bg-emerald-500/10 space-y-3">
+              <div className="border border-emerald-200/30 rounded-xl p-3 bg-emerald-500/10 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">⚡</span>
-                  <p className="text-emerald-700 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
+                  <p className="text-emerald-600 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
                 </div>
-                <p className="text-xs text-emerald-700/70 mb-2">
+                <p className="text-xs text-emerald-600/70 mb-2">
                   🎯 Auto payment using personal bKash/Nagad number. No merchant account needed!
                 </p>
 
@@ -3002,10 +3002,10 @@ const Level5HelperDashboard = () => {
                 <div>
                   <Label className="text-slate-500 text-xs">Display As (visible to users) *</Label>
                   <Select value={gatewayDisplayMethod} onValueChange={setGatewayDisplayMethod}>
- <SelectTrigger className="bg-slate-100 border-emerald-500/30 text-slate-900 mt-1">
+ <SelectTrigger className="bg-slate-50 border-emerald-200/30 text-slate-900 mt-1">
                       <SelectValue placeholder="Select method..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-100 border-slate-200">
+                    <SelectContent className="bg-slate-50 border-slate-200">
  <SelectItem value="bkash" className="text-slate-900">📱 bKash</SelectItem>
  <SelectItem value="nagad" className="text-slate-900">💳 Nagad</SelectItem>
  <SelectItem value="rocket" className="text-slate-900">🚀 Rocket</SelectItem>
@@ -3021,13 +3021,13 @@ const Level5HelperDashboard = () => {
                     value={gatewayDisplayNumber}
                     onChange={(e) => setGatewayDisplayNumber(e.target.value)}
                     placeholder="e.g., 01700000000"
- className="bg-slate-100 border-emerald-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-emerald-200/30 text-slate-900 mt-1"
                   />
                 </div>
 
                 {/* ZiniPay API Key */}
-                <div className="border-t border-emerald-500/20 pt-2 mt-2">
-                  <p className="text-[10px] text-emerald-700/50 mb-2">🔒 ZiniPay Credentials (hidden from users)</p>
+                <div className="border-t border-emerald-200/20 pt-2 mt-2">
+                  <p className="text-[10px] text-emerald-600/50 mb-2">🔒 ZiniPay Credentials (hidden from users)</p>
                 </div>
                 <div>
                   <Label className="text-slate-500 text-xs">ZiniPay API Key *</Label>
@@ -3035,12 +3035,12 @@ const Level5HelperDashboard = () => {
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
                     placeholder="zp_api_xxxxx"
- className="bg-slate-100 border-emerald-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-emerald-200/30 text-slate-900 mt-1"
                     type="password"
                   />
                 </div>
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
-                  <p className="text-[10px] text-yellow-600">
+                <div className="bg-yellow-500/10 border border-amber-200/30 rounded-lg p-2">
+                  <p className="text-[10px] text-amber-600">
                     ⚠️ Create an account on zinipay.com, then go to Dashboard → Brands → copy the Brand Key/API Key. Add this number to your ZiniPay dashboard too!
                   </p>
                 </div>
@@ -3055,12 +3055,12 @@ const Level5HelperDashboard = () => {
               const isLegacy = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
               if (!matched || isLegacy) return null;
               return (
-                <div className="border border-purple-500/30 rounded-xl p-3 bg-purple-500/10 space-y-3">
+                <div className="border border-violet-200/30 rounded-xl p-3 bg-purple-500/10 space-y-3">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">⚡</span>
-                    <p className="text-purple-700 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
+                    <p className="text-violet-600 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
                   </div>
-                  <p className="text-xs text-purple-700/70 mb-2">
+                  <p className="text-xs text-violet-600/70 mb-2">
                     🌍 Country: <strong>{selectedCountry}</strong> · Auto verification will credit diamonds instantly when payment confirms.
                   </p>
 
@@ -3070,7 +3070,7 @@ const Level5HelperDashboard = () => {
                       value={gatewayDisplayMethod}
                       onChange={(e) => setGatewayDisplayMethod(e.target.value)}
                       placeholder={`e.g., ${matched.name}`}
- className="bg-slate-100 border-purple-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-violet-200/30 text-slate-900 mt-1"
                     />
                   </div>
                   <div>
@@ -3079,12 +3079,12 @@ const Level5HelperDashboard = () => {
                       value={gatewayDisplayNumber}
                       onChange={(e) => setGatewayDisplayNumber(e.target.value)}
                       placeholder="e.g., merchant phone, UPI ID, etc."
- className="bg-slate-100 border-purple-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-violet-200/30 text-slate-900 mt-1"
                     />
                   </div>
 
-                  <div className="border-t border-purple-500/20 pt-2 mt-2">
-                    <p className="text-[10px] text-purple-700/50 mb-2">🔒 {matched.name} Credentials (hidden from users)</p>
+                  <div className="border-t border-violet-200/20 pt-2 mt-2">
+                    <p className="text-[10px] text-violet-600/50 mb-2">🔒 {matched.name} Credentials (hidden from users)</p>
                   </div>
                   <div>
                     <Label className="text-slate-500 text-xs">API Key / Merchant ID *</Label>
@@ -3092,7 +3092,7 @@ const Level5HelperDashboard = () => {
                       value={accountName}
                       onChange={(e) => setAccountName(e.target.value)}
                       placeholder="Enter API key or merchant ID"
- className="bg-slate-100 border-purple-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-violet-200/30 text-slate-900 mt-1"
                     />
                   </div>
                   <div>
@@ -3101,7 +3101,7 @@ const Level5HelperDashboard = () => {
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value)}
                       placeholder="Enter API secret or salt key"
- className="bg-slate-100 border-purple-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-violet-200/30 text-slate-900 mt-1"
                       type="password"
                     />
                   </div>
@@ -3111,14 +3111,14 @@ const Level5HelperDashboard = () => {
 
             {/* SSLCommerz / AamarPay Gateway Credentials */}
             {(paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (
-              <div className="border border-cyan-500/30 rounded-xl p-3 bg-cyan-500/10 space-y-3">
+              <div className="border border-sky-200/30 rounded-xl p-3 bg-cyan-500/10 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{paymentType === 'sslcommerz' ? '🔐' : '💰'}</span>
-                  <p className="text-cyan-600 font-semibold text-sm">
+                  <p className="text-sky-600 font-semibold text-sm">
                     {paymentType === 'sslcommerz' ? 'SSLCommerz' : 'AamarPay'} Gateway Setup
                   </p>
                 </div>
-                <p className="text-xs text-cyan-700/70 mb-2">
+                <p className="text-xs text-sky-600/70 mb-2">
                   ⚡ Auto Payment: Users pay via gateway. Diamonds credited instantly. Gateway name is hidden from users.
                 </p>
 
@@ -3126,10 +3126,10 @@ const Level5HelperDashboard = () => {
                 <div>
                   <Label className="text-slate-500 text-xs">Display As (User will see this) *</Label>
                   <Select value={gatewayDisplayMethod} onValueChange={setGatewayDisplayMethod}>
- <SelectTrigger className="bg-slate-100 border-cyan-500/30 text-slate-900 mt-1">
+ <SelectTrigger className="bg-slate-50 border-sky-200/30 text-slate-900 mt-1">
                       <SelectValue placeholder="Select display method..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-100 border-slate-200">
+                    <SelectContent className="bg-slate-50 border-slate-200">
  <SelectItem value="bkash" className="text-slate-900">📱 bKash</SelectItem>
  <SelectItem value="nagad" className="text-slate-900">💳 Nagad</SelectItem>
  <SelectItem value="rocket" className="text-slate-900">🚀 Rocket</SelectItem>
@@ -3145,12 +3145,12 @@ const Level5HelperDashboard = () => {
                     value={gatewayDisplayNumber}
                     onChange={(e) => setGatewayDisplayNumber(e.target.value)}
                     placeholder="e.g., 01700000000 (bKash/Nagad number)"
- className="bg-slate-100 border-cyan-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-sky-200/30 text-slate-900 mt-1"
                   />
                 </div>
 
-                <div className="border-t border-cyan-500/20 pt-2 mt-2">
-                  <p className="text-[10px] text-cyan-700/50 mb-2">🔒 Gateway Credentials (hidden from users)</p>
+                <div className="border-t border-sky-200/20 pt-2 mt-2">
+                  <p className="text-[10px] text-sky-600/50 mb-2">🔒 Gateway Credentials (hidden from users)</p>
                 </div>
                 <div>
                   <Label className="text-slate-500 text-xs">Store ID *</Label>
@@ -3158,7 +3158,7 @@ const Level5HelperDashboard = () => {
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
                     placeholder={paymentType === 'sslcommerz' ? 'e.g., merilivestore' : 'e.g., aamarpaystore'}
- className="bg-slate-100 border-cyan-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-sky-200/30 text-slate-900 mt-1"
                   />
                 </div>
                 <div>
@@ -3169,12 +3169,12 @@ const Level5HelperDashboard = () => {
                     value={accountNumber}
                     onChange={(e) => setAccountNumber(e.target.value)}
                     placeholder={paymentType === 'sslcommerz' ? 'Enter store password' : 'Enter signature key'}
- className="bg-slate-100 border-cyan-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-sky-200/30 text-slate-900 mt-1"
                     type="password"
                   />
                 </div>
-                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
-                  <p className="text-[10px] text-yellow-600">
+                <div className="bg-yellow-500/10 border border-amber-200/30 rounded-lg p-2">
+                  <p className="text-[10px] text-amber-600">
                     ⚠️ {paymentType === 'sslcommerz' 
                       ? 'Get credentials from sslcommerz.com → Merchant Panel → API/Integration' 
                       : 'Get credentials from aamarpay.com → Merchant Dashboard → API Keys'}
@@ -3189,7 +3189,7 @@ const Level5HelperDashboard = () => {
                 value={methodInstructions}
                 onChange={(e) => setMethodInstructions(e.target.value)}
                 placeholder="Any special instructions for payment..."
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                 rows={2}
               />
             </div>
@@ -3203,7 +3203,7 @@ const Level5HelperDashboard = () => {
                     <img 
                       src={URL.createObjectURL(paymentLogoFile)} 
                       alt="Logo preview" 
-                      className="w-16 h-16 rounded-lg object-cover border border-slate-300"
+                      className="w-16 h-16 rounded-lg object-cover border border-slate-200"
                     />
                     <button
                       type="button"
@@ -3214,9 +3214,9 @@ const Level5HelperDashboard = () => {
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-pink-500 transition-colors">
-                    <Upload className="w-5 h-5 text-slate-600" />
-                    <span className="text-xs text-slate-600 mt-1">Logo</span>
+                  <label className="flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed border-slate-200 rounded-lg cursor-pointer hover:border-pink-200 transition-colors">
+                    <Upload className="w-5 h-5 text-slate-700" />
+                    <span className="text-xs text-slate-700 mt-1">Logo</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -3243,7 +3243,7 @@ const Level5HelperDashboard = () => {
                   id="is-merchant-country"
                   checked={isMerchant}
                   onChange={(e) => setIsMerchant(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300"
+                  className="w-4 h-4 rounded border-slate-200"
                 />
                 <Label htmlFor="is-merchant-country" className="text-amber-700 font-medium text-sm cursor-pointer">
                   ⚡ This is a Merchant Account (Auto-Verify)
@@ -3256,7 +3256,7 @@ const Level5HelperDashboard = () => {
                     value={merchantNumber}
                     onChange={(e) => setMerchantNumber(e.target.value)}
                     placeholder="Enter merchant number"
- className="bg-slate-100 border-amber-500/30 text-slate-900 mt-1"
+ className="bg-slate-50 border-amber-500/30 text-slate-900 mt-1"
                   />
                   <p className="text-xs text-amber-700/70 mt-1">
                     Payments to this merchant will be auto-verified
@@ -3292,7 +3292,7 @@ const Level5HelperDashboard = () => {
         <DialogContent className="bg-white border-slate-200 max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
  <DialogTitle className="text-slate-900 flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-orange-700" />
+              <Building2 className="w-5 h-5 text-orange-600" />
               Agency Withdrawal
             </DialogTitle>
           </DialogHeader>
@@ -3301,15 +3301,15 @@ const Level5HelperDashboard = () => {
             <div className="space-y-4">
               {/* Agency Info */}
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <Avatar className="w-14 h-14 border-2 border-orange-500">
+                <Avatar className="w-14 h-14 border-2 border-orange-200">
                   <AvatarImage src={selectedAgencyWithdrawal.agency?.logo_url} />
-                  <AvatarFallback className="bg-orange-100">
-                    <Building2 className="w-6 h-6 text-orange-700" />
+                  <AvatarFallback className="bg-orange-50">
+                    <Building2 className="w-6 h-6 text-orange-600" />
                   </AvatarFallback>
                 </Avatar>
                 <div>
  <p className="text-slate-900 font-semibold">{selectedAgencyWithdrawal.agency?.name}</p>
-                  <p className="text-slate-600 text-sm">Code: {selectedAgencyWithdrawal.agency?.agency_code}</p>
+                  <p className="text-slate-700 text-sm">Code: {selectedAgencyWithdrawal.agency?.agency_code}</p>
                   <Badge className={cn(
                     "text-xs mt-1",
                     selectedAgencyWithdrawal.status === 'pending' ? "bg-yellow-500" : "bg-blue-500"
@@ -3320,11 +3320,11 @@ const Level5HelperDashboard = () => {
               </div>
 
               {/* Amount Info - Local Amount (after fee) */}
-              <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl p-4 border border-emerald-500/30">
+              <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl p-4 border border-emerald-200/30">
                 <div className="text-center flex flex-col items-center">
                   <div className="flex items-center gap-2 justify-center">
                     <span className="text-3xl">💰</span>
-                    <p className="text-3xl font-bold text-emerald-700">
+                    <p className="text-3xl font-bold text-emerald-600">
                       {(() => {
                         const pd = selectedAgencyWithdrawal.payment_details as any;
                         const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
@@ -3335,7 +3335,7 @@ const Level5HelperDashboard = () => {
                       })()}
                     </p>
                   </div>
-                  <p className="text-slate-600 text-xs mt-1">Payable Amount After Fee</p>
+                  <p className="text-slate-700 text-xs mt-1">Payable Amount After Fee</p>
                 </div>
               </div>
 
@@ -3343,16 +3343,16 @@ const Level5HelperDashboard = () => {
               {selectedAgencyWithdrawal.payment_details && (
                 <div className="bg-slate-50 rounded-xl p-4">
  <p className="text-slate-900 font-semibold mb-3 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-cyan-700" />
+                    <CreditCard className="w-4 h-4 text-sky-600" />
                     📝 Payment Details
                   </p>
                   
                   {/* Transaction ID - Highlighted */}
                   {(selectedAgencyWithdrawal.payment_details as any)?.transaction_id && (
-                    <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-3 mb-3 border border-yellow-500/30">
+                    <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-3 mb-3 border border-amber-200/30">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-600 text-xs">Transaction ID:</span>
-                        <span className="text-yellow-700 font-mono text-lg font-bold">
+                        <span className="text-slate-700 text-xs">Transaction ID:</span>
+                        <span className="text-amber-600 font-mono text-lg font-bold">
                           {(selectedAgencyWithdrawal.payment_details as any).transaction_id}
                         </span>
                       </div>
@@ -3360,7 +3360,7 @@ const Level5HelperDashboard = () => {
                   )}
                   
                   {/* Highlighted Payment Method Info - Country Name + Method + Time */}
-                  <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg p-3 mb-3 border border-cyan-500/30">
+                  <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg p-3 mb-3 border border-sky-200/30">
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                       {/* Country with Full Name */}
                       {(() => {
@@ -3368,17 +3368,17 @@ const Level5HelperDashboard = () => {
                         const flagMap: Record<string, string> = { BD: '🇧🇩', IN: '🇮🇳', PK: '🇵🇰', NP: '🇳🇵', ID: '🇮🇩', PH: '🇵🇭', MY: '🇲🇾', TH: '🇹🇭', VN: '🇻🇳', LK: '🇱🇰', AE: '🇦🇪', SA: '🇸🇦', US: '🇺🇸', GB: '🇬🇧' };
                         const nameMap: Record<string, string> = { BD: 'Bangladesh', IN: 'India', PK: 'Pakistan', NP: 'Nepal', ID: 'Indonesia', PH: 'Philippines', MY: 'Malaysia', TH: 'Thailand', VN: 'Vietnam', LK: 'Sri Lanka', AE: 'UAE', SA: 'Saudi Arabia', US: 'USA', GB: 'UK' };
                         return (
-                          <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg">
+                          <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg">
                             <span className="text-lg">{flagMap[cc] || '🌍'}</span>
-                            <span className="text-slate-800 font-bold">{nameMap[cc] || cc || 'Unknown'}</span>
+                            <span className="text-slate-900 font-bold">{nameMap[cc] || cc || 'Unknown'}</span>
                           </div>
                         );
                       })()}
                       
-                      <span className="text-slate-600">•</span>
+                      <span className="text-slate-700">•</span>
                       
                       {/* Payment Method Name */}
-                      <div className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 px-3 py-1.5 rounded-lg border border-pink-500/40">
+                      <div className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 px-3 py-1.5 rounded-lg border border-pink-200/40">
                         <span className="text-pink-600 font-bold text-sm">
                           {selectedAgencyWithdrawal.payment_method || 'N/A'}
                         </span>
@@ -3387,7 +3387,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* Request Time */}
                     <div className="mt-2 text-center">
-                      <span className="text-slate-600 text-xs">
+                      <span className="text-slate-700 text-xs">
                         🕐 {format(new Date(selectedAgencyWithdrawal.requested_at), 'dd MMM yyyy, hh:mm a')}
                       </span>
                     </div>
@@ -3397,9 +3397,9 @@ const Level5HelperDashboard = () => {
                   <div className="space-y-2 text-sm">
                     {/* Local Amount - FIRST */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
-                      <div className="flex items-center justify-between bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
-                        <span className="text-slate-600">Payable Local Amount:</span>
-                        <span className="text-emerald-700 font-bold text-lg">
+                      <div className="flex items-center justify-between bg-emerald-500/10 rounded-lg p-2 border border-emerald-200/20">
+                        <span className="text-slate-700">Payable Local Amount:</span>
+                        <span className="text-emerald-600 font-bold text-lg">
                           {(() => {
                             const pd = selectedAgencyWithdrawal.payment_details as any;
                             const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
@@ -3414,9 +3414,9 @@ const Level5HelperDashboard = () => {
                     
                     {/* USD Amount */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.usd_amount && (
-                      <div className="flex items-center justify-between bg-amber-100/70 rounded-lg p-2">
-                        <span className="text-slate-600">Payable USD Amount:</span>
-                        <span className="text-cyan-700 font-bold">
+                      <div className="flex items-center justify-between bg-amber-50/70 rounded-lg p-2">
+                        <span className="text-slate-700">Payable USD Amount:</span>
+                        <span className="text-sky-600 font-bold">
                           ${resolveNetWithdrawalUsd(selectedAgencyWithdrawal).toFixed(2)}
                         </span>
                       </div>
@@ -3424,9 +3424,9 @@ const Level5HelperDashboard = () => {
 
                     {/* Account Name */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_name && (
-                      <div className="flex items-center justify-between bg-amber-100/70 rounded-lg p-2">
-                        <span className="text-slate-600">Paid to:</span>
-                        <span className="text-green-700 font-semibold">
+                      <div className="flex items-center justify-between bg-amber-50/70 rounded-lg p-2">
+                        <span className="text-slate-700">Paid to:</span>
+                        <span className="text-emerald-600 font-semibold">
                           {(selectedAgencyWithdrawal.payment_details as any).account_name}
                         </span>
                       </div>
@@ -3434,10 +3434,10 @@ const Level5HelperDashboard = () => {
                     
                     {/* Account Number with Copy */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_number && (
-                      <div className="flex items-center justify-between bg-amber-100/70 rounded-lg p-2">
-                        <span className="text-slate-600">Number:</span>
+                      <div className="flex items-center justify-between bg-amber-50/70 rounded-lg p-2">
+                        <span className="text-slate-700">Number:</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-green-700 font-mono font-semibold">
+                          <span className="text-emerald-600 font-mono font-semibold">
                             {(selectedAgencyWithdrawal.payment_details as any).account_number}
                           </span>
                           <button
@@ -3447,7 +3447,7 @@ const Level5HelperDashboard = () => {
                             }}
                             className="p-1 bg-cyan-100 hover:bg-cyan-500/40 rounded-md transition-colors"
                           >
-                            <Copy className="w-3.5 h-3.5 text-cyan-700" />
+                            <Copy className="w-3.5 h-3.5 text-sky-600" />
                           </button>
                         </div>
                       </div>
@@ -3455,8 +3455,8 @@ const Level5HelperDashboard = () => {
                     
                     {/* Bank Name if exists */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.bank_name && (
-                      <div className="flex items-center justify-between bg-amber-100/70 rounded-lg p-2">
-                        <span className="text-slate-600">Bank:</span>
+                      <div className="flex items-center justify-between bg-amber-50/70 rounded-lg p-2">
+                        <span className="text-slate-700">Bank:</span>
  <span className="text-slate-900 font-medium">
                           {(selectedAgencyWithdrawal.payment_details as any).bank_name}
                         </span>
@@ -3465,8 +3465,8 @@ const Level5HelperDashboard = () => {
                     
                     {/* Additional Info */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.additional_info && (
-                      <div className="bg-amber-100/70 rounded-lg p-2">
-                        <span className="text-slate-600 text-xs block mb-1">Additional Info:</span>
+                      <div className="bg-amber-50/70 rounded-lg p-2">
+                        <span className="text-slate-700 text-xs block mb-1">Additional Info:</span>
  <span className="text-slate-900 text-sm">
                           {(selectedAgencyWithdrawal.payment_details as any).additional_info}
                         </span>
@@ -3480,10 +3480,10 @@ const Level5HelperDashboard = () => {
               {(selectedAgencyWithdrawal.payment_details as any)?.payment_screenshot_url && (
                 <div className="bg-slate-50 rounded-xl p-4">
  <p className="text-slate-900 font-semibold mb-3 flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-blue-700" />
+                    <Eye className="w-4 h-4 text-sky-700" />
                     📸 Agency Payment Screenshot
                   </p>
-                  <div className="rounded-xl overflow-hidden border-2 border-blue-500/30">
+                  <div className="rounded-xl overflow-hidden border-2 border-sky-200/30">
                     <img 
                       src={(selectedAgencyWithdrawal.payment_details as any).payment_screenshot_url} 
                       alt="Agency payment proof" 
@@ -3496,7 +3496,7 @@ const Level5HelperDashboard = () => {
               )}
 
               {/* Request Time */}
-              <div className="text-center text-sm text-slate-600">
+              <div className="text-center text-sm text-slate-700">
                 Requested: {format(new Date(selectedAgencyWithdrawal.requested_at), 'dd MMM yyyy, hh:mm a')}
               </div>
 
@@ -3519,20 +3519,20 @@ const Level5HelperDashboard = () => {
                         className={cn(
                           "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all",
                           screenshotFile 
-                            ? "border-green-500 bg-green-500/10" 
-                            : "border-slate-300 hover:border-cyan-500 bg-slate-50"
+                            ? "border-emerald-200 bg-green-500/10" 
+                            : "border-slate-200 hover:border-sky-200 bg-slate-50"
                         )}
                       >
                         {screenshotFile ? (
                           <div className="text-center">
-                            <CheckCircle className="w-8 h-8 text-green-700 mx-auto mb-2" />
-                            <p className="text-green-700 text-sm">{screenshotFile.name}</p>
+                            <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+                            <p className="text-emerald-600 text-sm">{screenshotFile.name}</p>
                             <p className="text-xs text-slate-500">Click to change</p>
                           </div>
                         ) : (
                           <div className="text-center">
-                            <Camera className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                            <p className="text-slate-600 text-sm">Select Screenshot</p>
+                            <Camera className="w-8 h-8 text-slate-700 mx-auto mb-2" />
+                            <p className="text-slate-700 text-sm">Select Screenshot</p>
                           </div>
                         )}
                       </label>
@@ -3547,7 +3547,7 @@ const Level5HelperDashboard = () => {
                       onChange={(e) => setHelperTransactionId(e.target.value)}
                       placeholder="e.g. TRX123456789"
                       maxLength={120}
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1 font-mono"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1 font-mono"
                     />
                     <p className="text-[10px] text-slate-500 mt-1">Required — paste the payment reference / TX ID (min 4 characters)</p>
                   </div>
@@ -3560,7 +3560,7 @@ const Level5HelperDashboard = () => {
                       onChange={(e) => setHelperNotes(e.target.value)}
                       placeholder="Any additional info for admin..."
                       maxLength={500}
- className="bg-slate-100 border-slate-200 text-slate-900 mt-1"
+ className="bg-slate-50 border-slate-200 text-slate-900 mt-1"
                       rows={2}
                     />
                   </div>
@@ -3583,10 +3583,10 @@ const Level5HelperDashboard = () => {
 
               {/* Processing Status */}
               {selectedAgencyWithdrawal.status === 'processing' && (
-                <div className="text-center p-4 bg-blue-100 rounded-xl border border-blue-500/30">
-                  <Clock className="w-8 h-8 text-blue-700 mx-auto mb-2" />
+                <div className="text-center p-4 bg-sky-50 rounded-xl border border-sky-200/30">
+                  <Clock className="w-8 h-8 text-sky-700 mx-auto mb-2" />
                   <p className="text-blue-600 font-semibold">Waiting for Admin Approval</p>
-                  <p className="text-xs text-blue-700 mt-1">Agency has been notified</p>
+                  <p className="text-xs text-sky-700 mt-1">Agency has been notified</p>
                 </div>
               )}
 
