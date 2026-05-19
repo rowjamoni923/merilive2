@@ -1,5 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  normalizeCountryCode,
+  normalizeGatewayRow,
+  gatewayServesCountry,
+  PaymentValidationError,
+} from '@/features/payments/gatewayValidation';
 
 export interface CountryPaymentGateway {
   id: string;
@@ -39,16 +45,36 @@ export const useCountryPaymentGateways = (countryCode?: string | null) => {
       console.error('[useCountryPaymentGateways] Load error:', error);
       setGateways([]);
     } else {
-      const all = (data || []) as CountryPaymentGateway[];
-      // Client-side country filter (PostgREST array overlap is finicky)
-      const cc = countryCode?.toUpperCase();
-      const filtered = cc
-        ? all.filter(g => {
-            const codes = (g.country_codes || []).map((c) => String(c).toUpperCase());
-            return codes.includes(cc) || codes.includes('GLOBAL');
-          })
-        : all;
-      setGateways(filtered);
+      const raw = (data || []) as unknown[];
+      // Normalize country code once with strict validation (throws on garbage input).
+      let cc: string | null = null;
+      try {
+        cc = countryCode ? normalizeCountryCode(countryCode) : null;
+      } catch (e) {
+        if (e instanceof PaymentValidationError) {
+          console.error('[useCountryPaymentGateways] Bad country code:', e.code, e.message);
+          cc = null; // fail closed: no gateways
+        } else {
+          throw e;
+        }
+      }
+      // Normalize each row defensively; skip (and log) any malformed row instead of crashing.
+      const normalized = raw.flatMap((row) => {
+        try {
+          return [normalizeGatewayRow(row)];
+        } catch (e) {
+          if (e instanceof PaymentValidationError) {
+            console.warn('[useCountryPaymentGateways] Dropping invalid gateway row:', e.code, e.details);
+            return [];
+          }
+          throw e;
+        }
+      });
+      const filtered = cc !== null
+        ? normalized.filter((g) => gatewayServesCountry(g, cc))
+        : normalized;
+      // Cast back to legacy shape consumers expect.
+      setGateways(filtered as unknown as CountryPaymentGateway[]);
     }
     setLoading(false);
   }, [countryCode]);
