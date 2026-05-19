@@ -557,189 +557,91 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           </div>
         )}
 
-        {/* PAYMENT SECTION - Level 2-5 */}
+        {/* PAYMENT SECTION — Crypto auto gateway */}
         {isPaidLevel && (
-          <div className="space-y-3 bg-white rounded-xl p-3 border border-amber-200/60">
-            <Label className="text-xs font-semibold flex items-center gap-1.5">
-              💳 Payment Information
+          <div className="space-y-3 bg-gradient-to-br from-amber-500/10 to-yellow-500/10 rounded-xl p-3 border border-amber-500/30">
+            <Label className="text-xs font-semibold flex items-center gap-1.5 text-amber-700">
+              <Sparkles className="w-3.5 h-3.5" />
+              Payment — MeriCash Crypto (Auto)
             </Label>
-            
-            {/* Payment Methods */}
-            <div className="grid grid-cols-2 gap-2">
-              {paymentMethods.map((method) => (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => setSelectedPaymentMethod(method)}
-                  className={cn(
-                    "p-2.5 rounded-lg border text-xs transition-all flex items-center gap-2 active:scale-95",
-                    selectedPaymentMethod?.id === method.id
-                      ? "bg-emerald-500 border-emerald-500 text-white"
-                      : "bg-white border-amber-200/60 hover:border-emerald-500"
-                  )}
-                >
-                  <span className="text-base">{getMethodIcon(method.method_type)}</span>
-                  <span className="font-medium truncate">{method.method_name}</span>
-                </button>
-              ))}
+            <div className="bg-white/70 rounded-lg p-3 space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-slate-600">Level cost</span>
+                <span className="font-bold text-emerald-600">${upgradeCost}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-slate-600">Diamonds you receive</span>
+                <span className="font-bold text-amber-600">
+                  {diamondsForUpgrade > 0 ? diamondsForUpgrade.toLocaleString() : "…"}
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500 pt-1">
+                Pay in crypto (USDT/BTC/ETH/BNB). Diamonds credit to your balance automatically once the blockchain confirms — no admin wait.
+              </p>
             </div>
-
-            {/* Payment Details */}
-            {selectedPaymentMethod && (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 space-y-2">
-                <p className="font-semibold text-emerald-600 text-sm">
-                  {selectedPaymentMethod.method_name}
-                </p>
-                
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center bg-white rounded-lg px-2.5 py-2">
-                    <span className="text-[10px] text-slate-500">Account:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-medium text-white">{selectedPaymentMethod.account_name}</span>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(selectedPaymentMethod.account_name, "Account")}
-                        className="p-1 rounded bg-emerald-500/20 active:bg-emerald-500/40"
-                      >
-                        <Copy className="w-3 h-3 text-emerald-600" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center bg-white rounded-lg px-2.5 py-2">
-                    <span className="text-[10px] text-slate-500">ID/Number:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-mono text-emerald-600 max-w-[140px] truncate">
-                        {selectedPaymentMethod.account_number}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(selectedPaymentMethod.account_number, "Number")}
-                        className="p-1 rounded bg-emerald-500/20 active:bg-emerald-500/40"
-                      >
-                        <Copy className="w-3 h-3 text-emerald-600" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {selectedPaymentMethod.instructions && (
-                    <p className="text-[10px] text-slate-500 pt-1">
-                      {selectedPaymentMethod.instructions}
-                    </p>
-                  )}
-                </div>
-
-                <div className="text-[11px] text-orange-600 bg-orange-500/10 px-2.5 py-1.5 rounded-lg border border-orange-500/20">
-                  ⚠️ Pay exactly <span className="font-bold">${selectedLevelData?.upgrade_cost_usd}</span> to this account
-                </div>
+            {paidConfirmed && (
+              <div className="flex items-center gap-2 text-[11px] text-emerald-600 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/30">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Payment received — diamonds credited. Submitting application…
               </div>
             )}
+          </div>
+        )}
 
-            {/* Transaction ID */}
-            <div className="space-y-1.5">
-              <Label className="text-[10px] text-slate-500">Transaction ID *</Label>
+        {/* CONTACT SECTION — All levels */}
+        <div className="space-y-3">
+          <Label className="text-xs font-semibold">Contact Information</Label>
+
+          <div className="space-y-2">
+            <div className="relative">
+              <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
               <Input
-                placeholder="Enter transaction ID"
-                value={transactionId}
-                onChange={(e) => setTransactionId(e.target.value)}
-                className="h-10 bg-white border-amber-200/60 text-sm"
+                placeholder="WhatsApp Number"
+                value={contactWhatsapp}
+                onChange={(e) => setContactWhatsapp(e.target.value)}
+                className="pl-10 h-10"
               />
             </div>
 
-            {/* Screenshot */}
-            <div className="space-y-1.5">
-              <Label className="text-[10px] text-slate-500">Payment Screenshot *</Label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              
-              {screenshotPreview ? (
-                <div className="relative">
-                  <img 
-                    src={screenshotPreview} 
-                    alt="Screenshot" 
-                    className="w-full h-24 object-cover rounded-lg border border-amber-200/60"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setScreenshot(null); setScreenshotPreview(null); }}
-                    className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-16 border border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center gap-1 bg-white active:bg-slate-100"
-                >
-                  <Upload className="w-4 h-4 text-slate-500" />
-                  <span className="text-[10px] text-slate-500">Upload screenshot</span>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* CONTACT SECTION - Level 1 Only */}
-        {isFreeLevel && (
-          <div className="space-y-3">
-            <Label className="text-xs font-semibold">Contact Information</Label>
-            
-            <div className="space-y-2">
-              <div className="relative">
-                <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
-                <Input
-                  placeholder="WhatsApp Number"
-                  value={contactWhatsapp}
-                  onChange={(e) => setContactWhatsapp(e.target.value)}
-                  className="pl-10 h-10"
-                />
-              </div>
-              
-              <div className="relative">
-                <Send className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
-                <Input
-                  placeholder="Telegram Username"
-                  value={contactTelegram}
-                  onChange={(e) => setContactTelegram(e.target.value)}
-                  className="pl-10 h-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-[10px] text-muted-foreground">Message (Optional)</Label>
-              <Textarea
-                placeholder="Tell us about yourself..."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={2}
-                className="text-sm resize-none"
+            <div className="relative">
+              <Send className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+              <Input
+                placeholder="Telegram Username"
+                value={contactTelegram}
+                onChange={(e) => setContactTelegram(e.target.value)}
+                className="pl-10 h-10"
               />
             </div>
           </div>
-        )}
+
+          <div className="space-y-1.5">
+            <Label className="text-[10px] text-muted-foreground">Message (Optional)</Label>
+            <Textarea
+              placeholder="Tell us about yourself..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              className="text-sm resize-none"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Fixed Footer */}
       <div className="pt-3 flex-shrink-0 space-y-2 border-t">
         <Button
           onClick={handleSubmit}
-          disabled={submitting || uploadingScreenshot}
+          disabled={submitting}
           className="w-full h-11 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
         >
-          {submitting || uploadingScreenshot ? (
+          {submitting ? (
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : isPaidLevel ? (
+            <Sparkles className="w-4 h-4 mr-2" />
           ) : (
             <ArrowRight className="w-4 h-4 mr-2" />
           )}
-          {uploadingScreenshot ? "Uploading..." : "Submit Application"}
+          {isPaidLevel ? `Pay $${upgradeCost} with Crypto` : "Submit Application"}
         </Button>
 
         {onClose && (
@@ -748,6 +650,23 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           </Button>
         )}
       </div>
+
+      {/* MeriCash Crypto Payment Modal */}
+      <SwiftPayDepositModal
+        open={swiftPayOpen}
+        onOpenChange={setSwiftPayOpen}
+        packages={[]}
+        mode="user"
+        userCustomCoins={diamondsForUpgrade}
+        userCustomPriceUsd={upgradeCost}
+        userCustomLabel={`Helper Level ${selectedLevel} Upgrade`}
+        onCredited={async (_coins) => {
+          setPaidConfirmed(true);
+          // Close payment modal and submit application automatically
+          setSwiftPayOpen(false);
+          await submitApplication("swift_pay_auto");
+        }}
+      />
     </div>
   );
 };
