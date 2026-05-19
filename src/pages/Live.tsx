@@ -128,6 +128,8 @@ const Live = () => {
   // Per-stream Set of active viewer ids → makes ±1 idempotent against
   // repeat realtime packets (INSERT delivered twice, INSERT+UPDATE for same join, etc).
   const activeViewersByStreamRef = useRef<Map<string, Set<string>>>(new Map());
+  const reconnectTimerRef = useRef<number | null>(null);
+  const [rtKey, setRtKey] = useState(0);
 
   useEffect(() => {
     fetchLiveStreams();
