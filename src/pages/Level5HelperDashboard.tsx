@@ -1351,7 +1351,7 @@ const Level5HelperDashboard = () => {
               className="bg-white/80 backdrop-blur-md rounded-2xl px-2 py-2.5 text-center border border-amber-200/60 shadow-[0_2px_10px_rgba(146,64,14,0.06)]"
             >
               <p className="text-sm font-extrabold text-slate-900 truncate">{s.val}</p>
-              <p className="text-[9px] font-medium text-slate-500 mt-0.5">{s.label}</p>
+              <p className="text-[9px] font-semibold text-slate-700 mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
