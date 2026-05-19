@@ -1892,42 +1892,48 @@ const HelperDashboard = () => {
         </Card>
       </div>
 
-      {/* Upgrade Application Modal */}
+      {/* Upgrade Application Modal — Premium Light */}
       <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
-        <DialogContent className="bg-white border-slate-200 max-w-md">
+        <DialogContent className="bg-white border border-amber-200/60 max-w-md rounded-2xl shadow-2xl shadow-amber-500/10">
           <DialogHeader>
-            <DialogTitle className="text-slate-900 flex items-center gap-2">
-              <Crown className="w-5 h-5 text-violet-600" />
+            <DialogTitle className="text-slate-900 flex items-center gap-2 text-lg font-bold">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-md shadow-amber-500/30">
+                <Crown className="w-5 h-5 text-white" />
+              </div>
               Apply for {selectedUpgradeLevel?.level_name}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
-            <div className="bg-slate-50 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-amber-50 via-white to-amber-50/60 border border-amber-200/70 rounded-2xl p-4 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-slate-700">Upgrade Cost</span>
-                <span className="text-2xl font-bold text-amber-700">${selectedUpgradeLevel?.upgrade_cost_usd}</span>
+                <span className="text-slate-600 text-sm font-medium">Upgrade Cost</span>
+                <span className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-amber-600 to-yellow-600">
+                  ${selectedUpgradeLevel?.upgrade_cost_usd}
+                </span>
               </div>
             </div>
 
-            {/* Auto Crypto Gateway — replaces manual ePay/Binance flow */}
-            <div className="rounded-xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-yellow-50 p-3">
-              <p className="text-amber-700 text-xs font-semibold mb-1">⚡ Instant Auto-Verified Payment</p>
-              <p className="text-slate-700 text-[11px]">
-                Pay with USDT / BTC / BNB / ETH — your Level {selectedUpgradeLevel?.level_number} application is auto-submitted the moment the blockchain confirms. No screenshot, no transaction ID, no admin wait.
+            <div className="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-4">
+              <p className="text-emerald-700 text-sm font-semibold mb-1.5 flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Instant Auto-Verified Payment
+              </p>
+              <p className="text-slate-600 text-xs leading-relaxed">
+                Pay with USDT / BTC / BNB / ETH — your Level {selectedUpgradeLevel?.level_number} application is auto-submitted the moment the blockchain confirms. No screenshot, no transaction ID, no waiting.
               </p>
               {selectedUpgradeLevel && selectedUpgradeLevel.upgrade_cost_usd > 0 && (
-                <p className="text-emerald-600 text-[11px] mt-2">
-                  You will also receive ≈ {Math.floor(selectedUpgradeLevel.upgrade_cost_usd * upgradeDiamondsPerUsd).toLocaleString()} 💎 diamonds in your account.
+                <p className="text-emerald-700 text-xs font-semibold mt-3 pt-3 border-t border-emerald-200/60">
+                  + {Math.floor(selectedUpgradeLevel.upgrade_cost_usd * upgradeDiamondsPerUsd).toLocaleString()} 💎 diamonds will be credited
                 </p>
               )}
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <Button
                 variant="outline"
                 onClick={() => setShowUpgradeModal(false)}
-                className="flex-1 border-slate-200 text-slate-500"
+                className="flex-1 border-slate-200 text-slate-600 hover:bg-slate-50"
               >
                 Cancel
               </Button>
@@ -1940,14 +1946,15 @@ const HelperDashboard = () => {
                   setShowUpgradeCryptoModal(true);
                 }}
                 disabled={processing}
-                className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 font-bold"
+                className="flex-1 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-bold shadow-lg shadow-amber-500/30 border-0"
               >
-                ⚡ Pay ${selectedUpgradeLevel?.upgrade_cost_usd} with Crypto
+                Pay ${selectedUpgradeLevel?.upgrade_cost_usd}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
 
       {/* Auto Crypto Gateway for Helper Upgrade Application */}
       {selectedUpgradeLevel && selectedUpgradeLevel.upgrade_cost_usd > 0 && (
