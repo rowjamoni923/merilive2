@@ -1,0 +1,2 @@
+ALTER TABLE public.face_verification_submissions
+  DROP CONSTRAINT IF EXISTS face_verification_submissions_reviewed_by_fkey;
