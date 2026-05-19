@@ -2109,11 +2109,27 @@ const Recharge = () => {
 
   // currentHelperMethod is now defined at the top of the component
 
+  // "Recommend / Offers" tab and payment-method button are gated by whether
+  // a Level-5 payroll helper in the user's country has actually added a
+  // local payment method. No method = no Recommend anywhere. MeriCash (crypto
+  // auto) + Google Play stay visible in every country.
+  const hasLocalRecommendedMethod = helperPaymentMethods.length > 0;
+
   const tabs = [
     { id: "google" as TabType, label: "💎 Diamonds", icon: <Diamond className="w-4 h-4" /> },
-    { id: "recommend" as TabType, label: "🎁 Offers", icon: <Star className="w-4 h-4" /> },
+    ...(hasLocalRecommendedMethod
+      ? [{ id: "recommend" as TabType, label: "🎁 Offers", icon: <Star className="w-4 h-4" /> }]
+      : []),
     { id: "helper" as TabType, label: "👥 Helpers", icon: <Crown className="w-4 h-4" /> },
   ];
+
+  // Auto-correct selection if Recommend disappears under user
+  useEffect(() => {
+    if (!hasLocalRecommendedMethod) {
+      if (selectedTab === 'recommend') setSelectedTab('google');
+      if (selectedPaymentMethod === 'local') setSelectedPaymentMethod('playstore');
+    }
+  }, [hasLocalRecommendedMethod, selectedTab, selectedPaymentMethod]);
 
   const availableGateways = gateways.filter(g => 
     !currencyRate || g.supported_currencies.includes(currencyRate.currency_code) || g.supported_currencies.includes('USD')
