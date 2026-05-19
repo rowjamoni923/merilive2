@@ -28,9 +28,9 @@ const removeChannelMock = vi.fn();
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    from: (...args: unknown[]) => fromMock(...args),
-    channel: (...args: unknown[]) => channelMock(...args),
-    removeChannel: (...args: unknown[]) => removeChannelMock(...args),
+    from: (table: string) => fromMock(table),
+    channel: (name: string) => channelMock(name),
+    removeChannel: (ch: unknown) => removeChannelMock(ch),
   },
 }));
 
@@ -136,7 +136,7 @@ describe("useCountryPaymentGateways — UI regression guard", () => {
     renderHook(() => useCountryPaymentGateways("BD"));
     await waitFor(() => expect(fromMock).toHaveBeenCalledWith("payment_gateways"));
 
-    const selectArg = selectMock.mock.calls[0]?.[0] as string;
+    const selectArg = (selectMock.mock.calls[0] as unknown[] | undefined)?.[0] as string;
     expect(selectArg).toContain("gateway_type"); // correct schema column
     expect(selectArg).not.toContain("gateway_code"); // crash-causing column must NOT be queried
     expect(eqMock).toHaveBeenCalledWith("is_active", true);
