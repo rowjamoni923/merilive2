@@ -216,7 +216,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           autoplay={autoPlay}
           className={className}
-          onComplete={() => !loop && onComplete?.()}
+          onComplete={() => !loop && fireComplete('native')}
           onDOMLoaded={onLoad}
         />
       );
