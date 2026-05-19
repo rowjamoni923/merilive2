@@ -62,22 +62,24 @@ import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
 /**
  * Resolve the card avatar for the homepage feed.
- * - If host has uploaded avatar → use it.
- * - If viewer is the host themselves (own card) → show raw (no placeholder)
- *   so they know to upload one.
- * - Otherwise (other viewers, including main owner viewing other hosts) → use
- *   stable AI placeholder so the card never appears blank.
+ * - If profile has uploaded avatar → use it.
+ * - If viewer IS the profile owner → show raw empty (no placeholder, nudges
+ *   them to upload). DEFAULT_AVATAR keeps the gray slot.
+ * - Otherwise → stable AI placeholder: female pool for hosts/female profiles,
+ *   male pool for male profiles.
  */
 function resolveFeedAvatar(
-  hostId: string,
+  profileId: string,
   avatarUrl: string | null | undefined,
   viewerId: string | null,
-  isHost: boolean
+  gender: "female" | "male" | null | undefined,
 ): string {
   if (avatarUrl && avatarUrl.trim().length > 0) return avatarUrl;
-  if (isHost) return getDisplayAvatar(hostId, avatarUrl);
-  return DEFAULT_AVATAR;
+  const isOwner = !!viewerId && viewerId === profileId;
+  if (isOwner) return DEFAULT_AVATAR;
+  return getDisplayAvatar(profileId, null, { gender: gender === "male" ? "male" : "female" });
 }
+
 
 type SubTab = "popular" | "live" | "new" | "following";
 
@@ -423,7 +425,7 @@ const Index = () => {
           <img
             src={(user.isLive && user.liveThumbnailUrl)
               ? enhanceThumbnail(user.liveThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
-              : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, !!(user.is_host || user.gender === 'female'))}
+              : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'))}
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover"
             style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
@@ -437,15 +439,18 @@ const Index = () => {
                 img.src = user.liveThumbnailUrl;
                 return;
               }
-              // 2nd fallback: stable AI placeholder for hosts/females so the
-              // card never renders as a blank gray box (Pkg covers broken
-              // avatar URLs from private buckets / dead links).
-              const isHostLike = !!(user.is_host || user.gender === 'female');
-              const fallback = isHostLike ? getDisplayAvatar(user.id, null) : DEFAULT_AVATAR;
+              // 2nd fallback: stable AI placeholder (gender-aware) so the
+              // card never renders blank. Owners still see DEFAULT_AVATAR.
+              const isOwner = !!currentUserId && currentUserId === user.id;
+              const gender: 'female' | 'male' = (user.is_host || user.gender === 'female')
+                ? 'female'
+                : (user.gender === 'male' ? 'male' : 'female');
+              const fallback = isOwner ? DEFAULT_AVATAR : getDisplayAvatar(user.id, null, { gender });
               if (img.src !== fallback && !img.dataset.fellBack) {
                 img.dataset.fellBack = "1";
                 img.src = fallback;
               }
+
             }}
           />
 
@@ -503,7 +508,7 @@ const Index = () => {
                 <div className="ring-1 ring-white/30 rounded-full">
                   <AvatarWithFrame
                     userId={user.id}
-                    src={resolveFeedAvatar(user.id, user.avatar_url, currentUserId, !!(user.is_host || user.gender === 'female'))}
+                    src={resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'))}
                     name={user.display_name || "U"}
                     level={displayLevel}
                     isHost={user.gender === 'female' || user.is_host || false}

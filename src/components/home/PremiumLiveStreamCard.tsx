@@ -15,6 +15,10 @@ interface PremiumLiveStreamCardProps {
   hostId?: string;
   hostName: string;
   hostAvatar: string;
+  /** 'female' (default) → female placeholder pool. 'male' → male pool. */
+  hostGender?: "female" | "male" | null;
+  /** True when the signed-in viewer is the card's host. Owner never sees their own placeholder. */
+  isOwner?: boolean;
   thumbnailUrl: string;
   viewerCount: number;
   country: string;
@@ -35,6 +39,8 @@ export const PremiumLiveStreamCard = ({
   hostId,
   hostName,
   hostAvatar,
+  hostGender,
+  isOwner = false,
   thumbnailUrl,
   viewerCount,
   country,
@@ -50,6 +56,7 @@ export const PremiumLiveStreamCard = ({
   streamType = "live",
   onClick,
 }: PremiumLiveStreamCardProps) => {
+
   
   // Get stream type badge config
   const getStreamTypeBadge = () => {
@@ -78,12 +85,13 @@ export const PremiumLiveStreamCard = ({
           host's avatar (profile_photo_url) so offline hosts still render. */}
       {(() => {
         const avatarFallback = hostId
-          ? getDisplayAvatar(hostId, hostAvatar || null)
+          ? getDisplayAvatar(hostId, hostAvatar || null, { gender: hostGender ?? "female", isOwner })
           : (hostAvatar || DEFAULT_THUMB);
         const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== DEFAULT_THUMB;
         const primarySrc = hasLiveThumb
           ? enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
           : avatarFallback;
+
         return (
           <img
             src={primarySrc}

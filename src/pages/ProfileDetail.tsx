@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -668,8 +670,17 @@ const ProfileDetail = () => {
     if (posterImages.length > 0) {
       return posterImages[currentSlideIndex]?.image_url;
     }
-    return profile?.cover_url || profile?.avatar_url || "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=800";
-  }, [posterImages, currentSlideIndex, profile]);
+    // Cover priority: cover_url → avatar_url → AI placeholder (gender-aware,
+    // owner sees blank/default so they're nudged to upload).
+    const real = profile?.cover_url || profile?.avatar_url;
+    if (real) return real;
+    if (isOwnProfile) return "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=800";
+    const gender: 'female' | 'male' = ((profile as any)?.is_host || profile?.gender === 'female' || profile?.gender === 'Female')
+      ? 'female'
+      : (profile?.gender === 'male' || profile?.gender === 'Male' ? 'male' : 'female');
+    return getDisplayAvatar(profile?.id || '', null, { gender });
+  }, [posterImages, currentSlideIndex, profile, isOwnProfile]);
+
 
   if (loading && !profile) {
     return (
@@ -935,7 +946,13 @@ const ProfileDetail = () => {
             <div className="relative flex-shrink-0 w-24 h-24">
               <FramedAvatarWithPrivileges
                 userId={profile.id}
-                src={profile.avatar_url}
+                src={getDisplayAvatar(profile.id, profile.avatar_url, {
+                  isOwner: isOwnProfile,
+                  gender: ((profile as any)?.is_host || profile?.gender === 'female' || profile?.gender === 'Female')
+                    ? 'female'
+                    : (profile?.gender === 'male' || profile?.gender === 'Male' ? 'male' : 'female'),
+                })}
+
                 name={profile.display_name || "U"}
                 level={level}
                 size="lg"
