@@ -308,11 +308,19 @@ export default function AdminEntryBanners() {
             <div className="h-20 bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-lg flex items-center justify-center overflow-hidden">
               {banner.preview_url ? (
                 <img src={banner.preview_url} alt={banner.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
-              ) : banner.animation_url.endsWith('.svga') ? (
+              ) : banner.animation_url?.toLowerCase().split('?')[0].endsWith('.svga') ? (
                 <SVGAPreviewWithMuteToggle
                   src={banner.animation_url}
                   className="w-full h-full object-contain"
                   containerClassName="w-full h-full"
+                />
+              ) : banner.animation_url ? (
+                <UniversalAnimationPlayer
+                  src={banner.animation_url}
+                  className="w-full h-full object-contain"
+                  loop
+                  autoPlay
+                  muted
                 />
               ) : (
                 <Sparkles className="w-8 h-8 text-purple-400" />
