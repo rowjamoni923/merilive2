@@ -929,8 +929,16 @@ const Recharge = () => {
         return;
       }
 
-      console.log('[Recharge] Admin payment methods loaded:', (data || []).length);
-      setAdminPaymentMethods(data || []);
+      // Filter out ePay + Binance — permanently removed from helper/top-up flow.
+      const EXCLUDED_ADMIN_METHODS = new Set([
+        'epay', 'epay_global', 'binance', 'binance_pay', 'binancepay',
+      ]);
+      const filtered = (data || []).filter((m: any) => {
+        const key = String(m.method_type || m.name || '').trim().toLowerCase().replace(/\s+/g, '_');
+        return !EXCLUDED_ADMIN_METHODS.has(key);
+      });
+      console.log('[Recharge] Admin payment methods loaded:', filtered.length, '(filtered from', (data || []).length, ')');
+      setAdminPaymentMethods(filtered);
     } catch (error) {
       console.error('[Recharge] Error fetching admin payment methods:', error);
       recordClientError({ label: "Recharge.fetchAdminPaymentMethods", message: error instanceof Error ? error.message : String(error) });
