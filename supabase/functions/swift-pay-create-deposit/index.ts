@@ -119,10 +119,11 @@ Deno.serve(async (req) => {
       // an expected business validation, not an edge-function outage; return a
       // structured success transport response so the app shows a normal message
       // instead of Lovable/Supabase treating it as a 502 runtime failure.
-      if (depositRes.status === 400 && isGatewayMinimumAmountError(gatewayMessage)) {
+      if (isGatewayMinimumAmountError(gatewayMessage)) {
         return json({
           ok: false,
           error: "minimum_deposit_not_met",
+          fallback: true,
           message: "This crypto network requires a larger deposit amount. Please choose a bigger diamond package and try again.",
           gateway_status: depositRes.status,
           details: depositBody,

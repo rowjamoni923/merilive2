@@ -95,7 +95,7 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
           }
         } catch { /* ignore */ }
         errMsg = errMsg || getDepositErrorMessage(null, error.message);
-      } else if (data?.error || data?.ok === false) {
+      } else if (data?.error || data?.ok === false || data?.fallback) {
         errMsg = getDepositErrorMessage(data, null);
       }
 
