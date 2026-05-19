@@ -245,14 +245,18 @@ const AdminPaymentGateways = () => {
 
       const [gwRes, userRes] = await Promise.all([
         gatewayIds.length
-          ? supabase.from('payment_gateways').select('id, name, gateway_code').in('id', gatewayIds)
+          ? supabase.from('payment_gateways').select('id, name, gateway_type, config').in('id', gatewayIds)
           : Promise.resolve({ data: [] as any[] }),
         userIds.length
           ? supabase.from('profiles').select('id, display_name, avatar_url, app_uid').in('id', userIds)
           : Promise.resolve({ data: [] as any[] }),
       ]);
 
-      const gwMap = new Map((gwRes.data || []).map((g: any) => [g.id, g]));
+      const gwMap = new Map((gwRes.data || []).map((g: any) => [g.id, {
+        id: g.id,
+        name: g.name,
+        gateway_code: g.gateway_type || g.config?.gateway_code || '',
+      }]));
       const userMap = new Map((userRes.data || []).map((u: any) => [u.id, u]));
 
       setTransactions(

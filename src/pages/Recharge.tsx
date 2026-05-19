@@ -1346,6 +1346,8 @@ const Recharge = () => {
 
   const fetchGateways = async () => {
     try {
+      if (!userCountryCode) return;
+
       const { data, error } = await supabase
         .from('payment_gateways')
         .select('id, name, gateway_type, config, supported_currencies, country_codes, logo_url')
@@ -1359,7 +1361,8 @@ const Recharge = () => {
       const cc = (userCountryCode || '').toUpperCase();
       const countryFiltered = (data || []).filter((g: any) => {
         const codes: string[] = Array.isArray(g.country_codes) ? g.country_codes.map((c: string) => String(c).toUpperCase()) : [];
-        if (codes.length === 0) return true; // global
+        if (codes.length === 0) return false; // no country binding = legacy/stale, do not show as local gateway
+        if (codes.includes('GLOBAL')) return true;
         return cc ? codes.includes(cc) : false;
       });
       const dataFiltered = countryFiltered;

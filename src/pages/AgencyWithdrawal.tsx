@@ -2134,7 +2134,9 @@ const AgencyWithdrawal = () => {
         .maybeSingle();
       
       if (beansRateData?.setting_value) {
-        const rateValue = beansRateData.setting_value as { rate?: number };
+        const rateValue = typeof beansRateData.setting_value === 'string'
+          ? JSON.parse(beansRateData.setting_value)
+          : beansRateData.setting_value as { rate?: number };
         if (rateValue?.rate) {
           setCoinsToUsdRate(rateValue.rate);
         }
@@ -2147,7 +2149,9 @@ const AgencyWithdrawal = () => {
           .maybeSingle();
         
         if (settingsData?.setting_value) {
-          const commissionSettings = settingsData.setting_value as unknown as CommissionSettings;
+          const commissionSettings = typeof settingsData.setting_value === 'string'
+            ? JSON.parse(settingsData.setting_value)
+            : settingsData.setting_value as CommissionSettings;
           if (commissionSettings?.coins_to_dollar_rate) {
             setCoinsToUsdRate(commissionSettings.coins_to_dollar_rate);
           }

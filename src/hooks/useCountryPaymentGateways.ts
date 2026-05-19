@@ -41,11 +41,12 @@ export const useCountryPaymentGateways = (countryCode?: string | null) => {
     } else {
       const all = (data || []) as CountryPaymentGateway[];
       // Client-side country filter (PostgREST array overlap is finicky)
-      const filtered = countryCode
-        ? all.filter(g =>
-            (g.country_codes || []).includes(countryCode) ||
-            (g.country_codes || []).includes('GLOBAL')
-          )
+      const cc = countryCode?.toUpperCase();
+      const filtered = cc
+        ? all.filter(g => {
+            const codes = (g.country_codes || []).map((c) => String(c).toUpperCase());
+            return codes.includes(cc) || codes.includes('GLOBAL');
+          })
         : all;
       setGateways(filtered);
     }

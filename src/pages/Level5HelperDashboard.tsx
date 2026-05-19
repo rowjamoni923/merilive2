@@ -352,15 +352,9 @@ const Level5HelperDashboard = () => {
         .subscribe();
     }
 
-    // ADDITIONAL: Auto-refresh every 10 seconds as a backup for realtime delays
-    const refreshInterval = setInterval(() => {
-      loadAgencyWithdrawals();
-    }, 10000);
-
     return () => { 
       supabase.removeChannel(channel); 
       if (agencyChannel) supabase.removeChannel(agencyChannel);
-      clearInterval(refreshInterval);
     };
   }, [helperData?.id, agencyId]);
 
