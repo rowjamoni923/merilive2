@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, memo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
