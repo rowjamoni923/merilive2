@@ -325,7 +325,7 @@ export default function SwiftPayDepositModal({
                     <p className="text-sm font-bold text-amber-100 mt-1">${p.price_usd.toFixed(2)}</p>
                   </button>
                 );
-              })
+              })}
             </div>
           </div>
         )}
