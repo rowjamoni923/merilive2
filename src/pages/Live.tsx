@@ -50,7 +50,7 @@ const Live = () => {
       // First trigger server-side cleanup of stale streams
       try { await supabase.rpc('cleanup_stale_live_streams'); } catch(_) {}
       
-      const { data, error } = await supabase
+      const { data: streamRows, error } = await supabase
         .from('live_streams')
         .select(`
           id,
@@ -59,30 +59,27 @@ const Live = () => {
           thumbnail_url,
           viewer_count,
           is_active,
-          last_heartbeat,
-          host:profiles!live_streams_host_id_fkey(
-            id,
-            display_name,
-            avatar_url,
-            country_flag,
-            host_level,
-            user_level,
-            is_verified,
-            is_host,
-            gender,
-            total_recharged,
-            total_earnings,
-            weekly_earnings,
-            max_user_level
-          )
+          last_heartbeat
         `)
         .eq('is_active', true)
         .order('viewer_count', { ascending: false });
 
       if (error) throw error;
+
+      // Fetch host data via profiles_public view (profiles base table has no public SELECT)
+      const hostIds = Array.from(new Set(((streamRows || []) as any[]).map(s => s.host_id).filter(Boolean)));
+      let hostMap = new Map<string, any>();
+      if (hostIds.length > 0) {
+        const { data: hostsData } = await supabase
+          .from('profiles_public')
+          .select('id, display_name, avatar_url, country_flag, host_level, user_level, is_verified, is_host, gender, total_recharged, total_earnings, weekly_earnings, max_user_level')
+          .in('id', hostIds);
+        hostMap = new Map(((hostsData || []) as any[]).map(h => [h.id, h]));
+      }
+
       const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
-      const nextStreams = await Promise.all(((data || []) as any[]).map(async (s: any) => {
-        const host = Array.isArray(s.host) ? s.host[0] : s.host;
+      const nextStreams = await Promise.all(((streamRows || []) as any[]).map(async (s: any) => {
+        const host = hostMap.get(s.host_id) || null;
         const resolvedLevel = host
           ? await resolveLevelFromTiers({
               id: host.id,
@@ -99,6 +96,7 @@ const Live = () => {
 
         return { ...s, host: host ? { ...host, user_level: resolvedLevel, host_level: resolvedLevel } : null };
       })) as LiveStream[];
+
       setStreams(nextStreams);
       try {
         window.sessionStorage.setItem("live-streams-cache-v1", JSON.stringify(nextStreams));
