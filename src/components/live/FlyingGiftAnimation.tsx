@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useCallback, memo, forwardRef, Suspense, lazy, useRef, useMemo } from "react";
+import React, { useEffect, useState, useCallback, memo, forwardRef, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
-
-const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 export interface FlyingGift {
   id: string;
