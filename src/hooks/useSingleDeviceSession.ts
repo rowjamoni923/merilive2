@@ -389,23 +389,45 @@ export const useSingleDeviceSession = (userId: string | null) => {
     setCurrentChannelName(channelName);
     recordSessionEvent('channel.subscribe', { channel: channelName, sessionId: sessionId.current });
 
+    // Listen on the dedicated `user_active_sessions` mirror — it IS in the
+    // supabase_realtime publication (profiles is not), so the old device gets
+    // the new session_id within ~1s and triggers forceLogout instantly.
+    const handlePayload = (payload: any, source: 'INSERT' | 'UPDATE') => {
+      const newSessionId = (payload.new as { session_id?: string } | null)?.session_id;
+      recordSessionEvent('realtime.update', {
+        channel: channelName,
+        source,
+        incomingSessionId: newSessionId,
+        mySessionId: sessionId.current,
+      });
+      if (isInGracePeriod()) {
+        console.log('[SingleDevice] 🛡️ Realtime change ignored — grace period active');
+        recordSessionEvent('realtime.ignored.grace', { channel: channelName });
+        return;
+      }
+      if (!isRegistered.current) {
+        recordSessionEvent('realtime.ignored.unregistered', { channel: channelName });
+        return;
+      }
+      if (newSessionId && newSessionId !== sessionId.current) {
+        console.log('[SingleDevice] 🔄 Another device logged in — THIS (old) device logging out');
+        forceLogout();
+      }
+    };
+
     const channel = supabase
       .channel(channelName)
       .on(
         'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`,
-        },
-        (payload) => {
-          const newSessionId = (payload.new as { active_session_id?: string } | null)?.active_session_id;
-          recordSessionEvent('realtime.update', {
-            channel: channelName,
-            incomingSessionId: newSessionId,
-            mySessionId: sessionId.current,
-          });
+        { event: 'UPDATE', schema: 'public', table: 'user_active_sessions', filter: `user_id=eq.${userId}` },
+        (payload) => handlePayload(payload, 'UPDATE')
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'user_active_sessions', filter: `user_id=eq.${userId}` },
+        (payload) => handlePayload(payload, 'INSERT')
+      )
+      .subscribe();
 
           // ✅ CRITICAL: Don't react during grace period (this is the NEW device)
           if (isInGracePeriod()) {
