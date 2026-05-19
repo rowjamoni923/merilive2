@@ -814,11 +814,6 @@ const Recharge = () => {
           return isLevel5PayrollHelper && hasMinBalance && isVerified && isHelperActive && Boolean(m.account_number);
         }
         
-        // Methods without a helper record (orphaned country/global entries) — only show if they have account info
-        if (m.source === 'global' || m.source === 'country') {
-          return Boolean(m.account_number);
-        }
-
         return false;
       });
 
@@ -2109,9 +2104,9 @@ const Recharge = () => {
 
   // currentHelperMethod is now defined at the top of the component
 
-  // "Recommend / Offers" tab and payment-method button are gated by whether
+  // Local Pay is gated by whether
   // a Level-5 payroll helper in the user's country has actually added a
-  // local payment method. No method = no Recommend anywhere. MeriCash (crypto
+  // local payment method. No method = no Local Pay button. MeriCash (crypto
   // auto) + Google Play stay visible in every country.
   const hasLocalRecommendedMethod = helperPaymentMethods.length > 0;
 
@@ -2556,7 +2551,7 @@ const Recharge = () => {
                   </div>
                 </button>
 
-                {/* MeriCash — Crypto Auto-Credit (styled like Google Play, with RECOMMENDED ribbon) */}
+                {/* MeriCash — Crypto Auto-Credit */}
                 <button
                   onClick={() => setSelectedPaymentMethod('mericash')}
                   className={cn(
@@ -2566,10 +2561,6 @@ const Recharge = () => {
                       : "bg-white border-2 border-gray-100 hover:border-amber-400/50 shadow-sm"
                   )}
                 >
-                  {/* RECOMMENDED ribbon */}
-                  <span className="absolute -top-0 -right-0 text-[8px] font-black px-1.5 py-0.5 rounded-bl-lg bg-rose-500 text-white tracking-wider shadow">
-                    RECOMMENDED
-                  </span>
                   <div className="relative flex items-center gap-2">
                     <div className={cn(
                       "w-8 h-8 rounded-xl flex items-center justify-center text-base",
@@ -2673,7 +2664,7 @@ const Recharge = () => {
                           "font-bold text-[13px]",
                           selectedPaymentMethod === 'local' ? "text-heading" : "text-heading"
                         )}>
-                          Recommend
+                          Local Pay
                         </p>
                         <p className={cn(
                           "text-[10px] truncate max-w-[70px] font-medium",

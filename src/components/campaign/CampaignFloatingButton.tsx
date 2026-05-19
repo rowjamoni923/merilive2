@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { PLAY_STORE_PRODUCTS } from '@/sdk/PlayStoreBillingSDK';
 import { useAppState } from '@/hooks/useAppState';
+import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
 
 interface AutoGateway {
   id: string;
@@ -20,6 +21,13 @@ interface AutoGateway {
   gateway_type: string;
   logo_url: string | null;
 }
+
+const MERICASH_GATEWAY: AutoGateway = {
+  id: 'mericash',
+  name: 'MeriCash',
+  gateway_type: 'mericash',
+  logo_url: null,
+};
 
 interface Campaign {
   id: string;
@@ -100,6 +108,7 @@ function CampaignFloatingButton() {
   const [helperPaymentProof, setHelperPaymentProof] = useState<string | null>(null);
   const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
   const [gateways, setGateways] = useState<AutoGateway[]>([]);
+  const [showSwiftPayModal, setShowSwiftPayModal] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
@@ -296,7 +305,7 @@ function CampaignFloatingButton() {
         });
       }
 
-      const valid = combined.filter(m => validHelperIds.has(m.helper_id) || m.helper_id.startsWith('country-'));
+      const valid = combined.filter(m => validHelperIds.has(m.helper_id));
       const seen = new Set<string>();
       const unique = valid.filter(m => {
         const key = `${m.method_name}-${m.account_number}`;
@@ -312,14 +321,20 @@ function CampaignFloatingButton() {
         if (availableMethodNames.length === 0) return null;
         return prev && availableMethodNames.includes(prev) ? prev : availableMethodNames[0];
       });
+      return unique;
     } catch (e) {
       console.error('Error fetching helper payment methods:', e);
+      return [] as HelperMethod[];
+    } finally {
+      setLoadingMethods(false);
     }
-    setLoadingMethods(false);
   }, [userCountryCode]);
 
   const fetchGateways = useCallback(async () => {
-    if (!userCountryCode) return;
+    if (!userCountryCode) {
+      setGateways([MERICASH_GATEWAY]);
+      return [MERICASH_GATEWAY];
+    }
     try {
       const { data } = await supabase
         .from('payment_gateways')
@@ -333,9 +348,18 @@ function CampaignFloatingButton() {
         if (codes.includes('GLOBAL')) return true;
         return cc ? codes.includes(cc) : false;
       });
-      setGateways(filtered.map((g: any) => ({ id: g.id, name: g.name, gateway_type: g.gateway_type, logo_url: g.logo_url })));
+      const mapped = filtered.map((g: any) => ({ id: g.id, name: g.name, gateway_type: g.gateway_type, logo_url: g.logo_url }));
+      const withoutMeriCashDuplicate = mapped.filter((g) => {
+        const key = `${g.name} ${g.gateway_type}`.toLowerCase();
+        return !key.includes('mericash') && !key.includes('meri cash') && !key.includes('swift');
+      });
+      const nextGateways = [MERICASH_GATEWAY, ...withoutMeriCashDuplicate];
+      setGateways(nextGateways);
+      return nextGateways;
     } catch (e) {
       console.error('Error fetching campaign gateways:', e);
+      setGateways([MERICASH_GATEWAY]);
+      return [MERICASH_GATEWAY];
     }
   }, [userCountryCode]);
 
@@ -369,23 +393,13 @@ function CampaignFloatingButton() {
   };
 
   const handleBuyNow = async () => {
-    // Start with Google Play on native, otherwise pick the first available
-    // auto gateway (or local methods) — the Recommend tab is gone, every
-    // gateway from the topup page now shows up here directly.
     setPopupView('payment_select');
-    await Promise.all([
+    const [, helperList, gatewayList] = await Promise.all([
       fetchMatchedPackage(campaign),
       fetchHelperPaymentMethods(),
       fetchGateways(),
     ]);
-    // Default selection: Google Play on Android native, else first auto
-    // gateway, else local pay if helper methods exist.
-    setSelectedPaymentTab((prev) => {
-      if (isPlayStoreNative) return 'google';
-      if (gateways.length > 0) return gateways[0].id;
-      if (helperMethods.length > 0) return 'local';
-      return prev;
-    });
+    setSelectedPaymentTab(isPlayStoreNative ? 'google' : (gatewayList?.[0]?.id || (helperList?.length ? 'local' : 'mericash')));
   };
 
   const resetHelperForm = () => {
@@ -467,7 +481,11 @@ function CampaignFloatingButton() {
     const gw = gateways.find((g) => g.id === selectedPaymentTab);
     if (gw) {
       setShowPopup(false);
-      navigate(`/recharge?campaign_id=${campaign.id}`);
+      if (gw.id === 'mericash') {
+        setShowSwiftPayModal(true);
+      } else {
+        navigate(`/recharge?campaign_id=${campaign.id}`);
+      }
     }
   };
 
@@ -1292,6 +1310,29 @@ function CampaignFloatingButton() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {campaign && (
+        <SwiftPayDepositModal
+          open={showSwiftPayModal}
+          onOpenChange={(open) => setShowSwiftPayModal(open)}
+          packages={matchedPackage ? [{
+            id: matchedPackage.id,
+            coins: matchedPackage.coins_amount,
+            price_usd: matchedPackage.price_usd,
+          }] : []}
+          userCustomCoins={campaign.diamonds_amount + (campaign.bonus_diamonds || 0)}
+          userCustomPriceUsd={campaign.offer_price_usd || campaign.original_price_usd}
+          userCustomLabel={campaign.campaign_name}
+          onCredited={() => {
+            localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+            sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
+            setPurchased(true);
+            setCampaign(null);
+            setRemainingSeconds(0);
+            setShowSwiftPayModal(false);
+          }}
+        />
+      )}
     </>
   );
 }
