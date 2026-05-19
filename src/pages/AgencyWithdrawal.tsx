@@ -2039,17 +2039,49 @@ const AgencyWithdrawal = () => {
   useEffect(() => {
     const fetchHelperCountries = async () => {
       const { data, error } = await supabase
+  // Fetch countries that have active payroll helpers + their admin-configured payment methods
+  useEffect(() => {
+    const fetchHelperCountries = async () => {
+      // 1) Countries that have an active verified Level-5 payroll helper
+      const { data: helpers, error: hErr } = await supabase
         .from('topup_helpers')
-        .select('country_code')
+        .select('id, country_code')
         .eq('is_verified', true)
         .eq('payroll_enabled', true)
         .eq('is_active', true);
-      
-      if (!error && data) {
-        const countries = [...new Set(data.map(h => h.country_code).filter(Boolean))] as string[];
-        setCountriesWithHelpers(countries);
-        console.log('[Withdrawal] Countries with payroll helpers:', countries);
+
+      if (hErr || !helpers) return;
+
+      const countries = [...new Set(helpers.map(h => h.country_code).filter(Boolean))] as string[];
+      setCountriesWithHelpers(countries);
+
+      const helperIds = helpers.map(h => h.id);
+      if (helperIds.length === 0) {
+        setHelperConfiguredMethods({});
+        return;
       }
+
+      // 2) Admin-configured local methods these helpers actually offer
+      const { data: methods, error: mErr } = await supabase
+        .from('helper_country_payment_methods')
+        .select('country_code, payment_method_name, method_name, is_active, helper_id')
+        .eq('is_active', true)
+        .in('helper_id', helperIds);
+
+      if (mErr || !methods) return;
+
+      const map: Record<string, Set<string>> = {};
+      for (const row of methods) {
+        const cc = (row as any).country_code as string | null;
+        const name = ((row as any).payment_method_name || (row as any).method_name || '')
+          .toString().trim().toLowerCase();
+        if (!cc || !name) continue;
+        if (!map[cc]) map[cc] = new Set<string>();
+        map[cc].add(name);
+      }
+      setHelperConfiguredMethods(map);
+      console.log('[Withdrawal] Helper-configured local methods per country:', 
+        Object.fromEntries(Object.entries(map).map(([k, v]) => [k, [...v]])));
     };
     fetchHelperCountries();
   }, []);
