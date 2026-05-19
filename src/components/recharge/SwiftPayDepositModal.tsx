@@ -20,6 +20,7 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   packages: PkgLite[];
+  initialPackageId?: string | null;
 }
 
 const CRYPTO_OPTIONS = [
