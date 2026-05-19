@@ -874,11 +874,11 @@ const AdminShop = () => {
                           showMuteButton={true}
                         />
                       ) : formData.file_type === 'lottie' ? (
-                        <UniversalAnimationPlayer 
-                          src={previewFile} 
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
+                        <FixedAnimationFrame
+                          src={previewFile}
+                          size="fill"
+                          center={false}
+                          loop
                         />
                       ) : formData.file_type === 'video' ? (
                         <video src={previewFile} className="w-full h-full object-contain" controls autoPlay muted loop />
