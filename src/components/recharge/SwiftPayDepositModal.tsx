@@ -68,10 +68,30 @@ export default function SwiftPayDepositModal({ open, onOpenChange, packages, ini
       const { data, error } = await supabase.functions.invoke("swift-pay-create-deposit", {
         body: { package_id: pkg.id, pay_currency: currency },
       });
-      if (error || data?.error) {
+
+      // supabase.functions.invoke puts the response body on error.context for non-2xx
+      let errMsg: string | null = null;
+      if (error) {
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx && typeof ctx.json === "function") {
+            const parsed = await ctx.json();
+            errMsg = parsed?.details?.error || parsed?.error || null;
+          }
+        } catch { /* ignore */ }
+        errMsg = errMsg || error.message || "Gateway error";
+      } else if (data?.error) {
+        errMsg = data?.details?.error || data.error;
+      }
+
+      if (errMsg) {
+        const lower = errMsg.toLowerCase();
+        const friendly = lower.includes("less than minimal") || lower.includes("minimum")
+          ? `This crypto requires a larger amount. Please pick a bigger diamond package, or choose a different currency (e.g. USDT TRC20).`
+          : errMsg;
         toast({
           title: "Could not start deposit",
-          description: data?.error || error?.message || "Gateway error",
+          description: friendly,
           variant: "destructive",
         });
         setCreating(false);
