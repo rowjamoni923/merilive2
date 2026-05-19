@@ -302,17 +302,30 @@ export default function SwiftPayDepositModal({
           <div className="space-y-3">
             <p className="text-sm text-amber-100/90">Choose a diamond package:</p>
             <div className="grid grid-cols-2 gap-2 max-h-[50vh] overflow-y-auto">
-              {packages.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => { setPkg(p); setStep("pick_currency"); }}
-                  className="rounded-lg border border-amber-500/30 bg-slate-800/60 hover:border-amber-400 hover:bg-slate-800 p-3 text-left transition"
-                >
-                  <p className="text-lg font-black text-amber-200">{fmt(p.coins)}</p>
-                  <p className="text-[10px] text-amber-100/60 uppercase">diamonds</p>
-                  <p className="text-sm font-bold text-amber-100 mt-1">${p.price_usd.toFixed(2)}</p>
-                </button>
-              ))}
+              {packages.map((p) => {
+                const { total, bonus, bonusPct } = getBonusInclusiveCoins(p);
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => { setPkg(p); setStep("pick_currency"); }}
+                    className="relative rounded-lg border border-amber-500/30 bg-slate-800/60 hover:border-amber-400 hover:bg-slate-800 p-3 text-left transition"
+                  >
+                    {bonus > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 px-1.5 py-0.5 text-[9px] font-black text-slate-950 shadow">
+                        +{bonusPct}%
+                      </span>
+                    )}
+                    <p className="text-lg font-black text-amber-200">{fmt(total)}</p>
+                    <p className="text-[10px] text-amber-100/60 uppercase">diamonds</p>
+                    {bonus > 0 && (
+                      <p className="text-[10px] font-semibold text-emerald-300 mt-0.5">
+                        {fmt(p.coins)} + {fmt(bonus)} bonus
+                      </p>
+                    )}
+                    <p className="text-sm font-bold text-amber-100 mt-1">${p.price_usd.toFixed(2)}</p>
+                  </button>
+                );
+              })
             </div>
           </div>
         )}
