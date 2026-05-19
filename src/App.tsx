@@ -1,9 +1,7 @@
 import { useEffect, useState, lazy, Suspense, memo } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -19,6 +17,7 @@ import { getAdaptiveNetworkProfile } from '@/utils/connectionProfile';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
 import { clearBalanceCache } from '@/hooks/useUserBalance';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
+import { queryClient, queryPersister } from '@/lib/queryClient';
 
 
 // =============================================
