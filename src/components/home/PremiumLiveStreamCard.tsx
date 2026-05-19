@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+
+const DEFAULT_THUMB = "/placeholder.svg";
 
 interface PremiumLiveStreamCardProps {
   id: string;
