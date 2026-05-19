@@ -104,7 +104,6 @@ export const useSingleDeviceSession = (userId: string | null) => {
   const lastCheckAtRef = useRef(0);
   const errorStreakRef = useRef(0);
   const backoffUntilRef = useRef(0);
-  const lastHiddenAtRef = useRef<number | null>(null);
   
   // ✅ LOGIN GRACE PERIOD: Prevent ANY logout for 30 seconds after fresh login
   const loginGraceUntil = useRef<number>(0);
@@ -392,43 +391,9 @@ export const useSingleDeviceSession = (userId: string | null) => {
     };
   }, [userId, forceLogout, isInGracePeriod]);
 
-  // Foreground/visibility detection - check session when app resumes
+  // Network awareness only — no foreground/visibility/app-resume refresh checks.
   useEffect(() => {
     if (!userId) return;
-
-    const immediateCheck = async () => {
-      if (isLoggingOut.current || !isRegistered.current) return;
-      
-      // ✅ Skip check during grace period (login OR reconnect)
-      if (isInGracePeriod()) return;
-
-      // ✅ Don't run a session check while offline — a failed RPC just adds
-      // backoff, but a stale-cached "false" response could cause a wrong logout.
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        console.log('[SingleDevice] 📴 Offline — skipping immediate check');
-        return;
-      }
-      
-      const isValid = await checkSessionValid();
-      if (!isValid) {
-        forceLogout();
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        lastHiddenAtRef.current = Date.now();
-        return;
-      }
-
-      if (document.visibilityState === 'visible') {
-        const hiddenForMs = lastHiddenAtRef.current ? Date.now() - lastHiddenAtRef.current : 0;
-        // Avoid noisy checks unless app was truly backgrounded
-        if (hiddenForMs >= 8000) {
-          immediateCheck();
-        }
-      }
-    };
 
     // ✅ Network drop / airplane-mode handling
     const handleOffline = () => {
@@ -438,42 +403,16 @@ export const useSingleDeviceSession = (userId: string | null) => {
     const handleOnline = () => {
       console.log('[SingleDevice] 📶 Network back online — arming reconnect grace');
       armReconnectGrace('online');
-      // Defer the post-reconnect verification until grace expires + small buffer.
-      setTimeout(() => {
-        if (!isLoggingOut.current) immediateCheck();
-      }, RECONNECT_GRACE_MS + 1_000);
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    let removeNativeListener: (() => void) | null = null;
-
-    if (IS_NATIVE) {
-      import('@capacitor/app').then(({ App: CapApp }) => {
-        CapApp.addListener('appStateChange', ({ isActive }) => {
-          if (isActive) {
-            // Coming back to foreground — also treat as a soft reconnect so
-            // any websocket replay during the wake-up gets ignored.
-            armReconnectGrace('app_resume');
-            setTimeout(() => {
-              if (!isLoggingOut.current) immediateCheck();
-            }, RECONNECT_GRACE_MS + 1_000);
-          }
-        }).then(listener => {
-          removeNativeListener = () => listener.remove();
-        });
-      }).catch(() => {});
-    }
-
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      if (removeNativeListener) removeNativeListener();
     };
-  }, [userId, checkSessionValid, forceLogout, isInGracePeriod, armReconnectGrace]);
+  }, [userId, armReconnectGrace]);
 
   return {
     sessionId: sessionId.current,
