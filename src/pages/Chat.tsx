@@ -142,6 +142,14 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
   };
 };
 
+const getGiftAnimationSignature = (content: string, senderId?: string | null): string => {
+  const { mediaUrl, emoji } = parseGiftContent(content || '');
+  const detailMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?[^\s\]]+\s+(.+?)\s+x(\d+)/i);
+  const name = detailMatch?.[1]?.trim().toLowerCase() || 'gift';
+  const count = detailMatch?.[2] || '1';
+  return `${senderId || 'unknown'}:${mediaUrl || emoji}:${name}:x${count}`;
+};
+
 // Helper function to clean gift message for preview (removes URLs, shows only emoji + name + beans)
 const cleanGiftMessageForPreview = (content: string): string => {
   if (!/^\[Gift:/i.test(content)) return content;
