@@ -31,7 +31,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   const playerRef = useRef<any>(null);
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
-  const animationStartedRef = useRef(false);
+  const loadRunRef = useRef(0);
   
   const [ready, setReady] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -52,19 +52,21 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   }, [src, onComplete]);
 
   useEffect(() => {
-    if (animationStartedRef.current) return;
-    animationStartedRef.current = true;
+    const runId = ++loadRunRef.current;
     mountedRef.current = true;
     completedRef.current = false;
+    setReady(false);
+    setHasError(false);
     
     if (!src || !containerRef.current) return;
 
     let player: any = null;
+    const isCurrentRun = () => mountedRef.current && loadRunRef.current === runId;
 
     const loadAndPlay = async () => {
       try {
         const SVGA = await getSVGAModule();
-        if (!mountedRef.current || !containerRef.current) return;
+        if (!isCurrentRun() || !containerRef.current) return;
 
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
@@ -80,7 +82,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
 
         // Use shared robust loader (3 retries + cache + dedup)
         const videoItem = await loadSVGA(src);
-        if (!mountedRef.current) return;
+        if (!isCurrentRun()) return;
 
         const frames = videoItem?.frames || 0;
         const fps = videoItem?.FPS || 24;
@@ -108,7 +110,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
           if (exactDuration > 0) {
             const safetyBuffer = Math.min(2000, exactDuration * 0.2);
             setTimeout(() => {
-              if (mountedRef.current && !completedRef.current) {
+              if (isCurrentRun() && !completedRef.current) {
                 handleComplete();
               }
             }, exactDuration + safetyBuffer);
@@ -117,7 +119,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         
       } catch (err) {
         console.error('[SVGAPlayer] ❌ Error:', src.split('/').pop(), err);
-        if (mountedRef.current) {
+        if (isCurrentRun()) {
           setHasError(true);
           onError?.(err instanceof Error ? err : new Error('SVGA load failed'));
         }
@@ -127,6 +129,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
     loadAndPlay();
 
     return () => {
+      loadRunRef.current++;
       mountedRef.current = false;
       if (playerRef.current) {
         try {
