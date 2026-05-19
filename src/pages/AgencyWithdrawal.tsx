@@ -221,7 +221,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     paymentMethods: [
       { value: "bkash", label: "bKash" },
       { value: "nagad", label: "Nagad" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   IN: {
@@ -231,7 +232,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₹",
     paymentMethods: [
       { value: "upi", label: "UPI" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   PK: {
@@ -241,7 +243,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "easypaisa", label: "Easypaisa" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   NP: {
@@ -251,7 +254,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "esewa", label: "eSewa" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   LK: {
@@ -261,7 +265,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rs",
     paymentMethods: [
       { value: "frimi", label: "FriMi" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   PH: {
@@ -271,7 +276,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₱",
     paymentMethods: [
       { value: "gcash", label: "GCash" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   ID: {
@@ -281,7 +287,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "Rp",
     paymentMethods: [
       { value: "gopay", label: "GoPay" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   VN: {
@@ -291,7 +298,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "₫",
     paymentMethods: [
       { value: "momo", label: "MoMo" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   TH: {
@@ -301,7 +309,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "฿",
     paymentMethods: [
       { value: "promptpay", label: "PromptPay" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   MY: {
@@ -311,7 +320,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "RM",
     paymentMethods: [
       { value: "grabpay", label: "GrabPay" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   SG: {
@@ -321,7 +331,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "S$",
     paymentMethods: [
       { value: "paynow", label: "PayNow" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   JP: {
@@ -331,7 +342,8 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     currencySymbol: "¥",
     paymentMethods: [
       { value: "paypay", label: "PayPay" },
-      { value: "epay", label: "ePay (Global)" },
+      { value: "crypto_auto", label: "🌐 Swift Pay (Crypto Auto-Credit)" },
+      { value: "binance", label: "🪙 Binance Pay (Auto)" },
     ]
   },
   KR: {
