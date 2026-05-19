@@ -1341,6 +1341,7 @@ const App = () => {
                   <Route path="support-tickets" element={<AdminRouteGuard routeSegment="support-tickets"><AdminSupportTickets /></AdminRouteGuard>} />
                   <Route path="support-reports" element={<AdminRouteGuard routeSegment="support-reports"><AdminSupportReports /></AdminRouteGuard>} />
                   <Route path="pending-approvals" element={<AdminRouteGuard routeSegment="pending-approvals"><AdminPendingApprovals /></AdminRouteGuard>} />
+                  <Route path="auto-actions" element={<AdminRouteGuard routeSegment="auto-actions"><AdminAutoActions /></AdminRouteGuard>} />
                   <Route path="gmail-support" element={<AdminRouteGuard routeSegment="gmail-support"><AdminGmailSupport /></AdminRouteGuard>} />
                   <Route path="user-reports" element={<AdminRouteGuard routeSegment="user-reports"><AdminUserReports /></AdminRouteGuard>} />
                   <Route path="chat-inspector" element={<AdminRouteGuard routeSegment="chat-inspector"><AdminChatInspector /></AdminRouteGuard>} />
