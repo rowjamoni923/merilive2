@@ -199,29 +199,21 @@ const VehicleEntranceOverlay: React.FC<VehicleEntranceOverlayProps> = ({
     setTimeout(() => onComplete(), 200); // Small delay for exit animation
   }, [onComplete]);
 
-  // Safety timeout - CRITICAL: Empty deps - run ONLY ONCE on mount
+  // CRITICAL: NO fixed timer — SVGA plays for its NATIVE duration only.
+  // SVGAPlayerWithAudio's onComplete fires when the SVGA itself finishes.
   React.useEffect(() => {
     mountedRef.current = true;
-    
-    // CRITICAL: Prevent re-initialization on re-renders
+
     if (animationStartedRef.current) {
       console.log('[VehicleEntrance] ⚠️ Already started, skipping re-init');
       return;
     }
     animationStartedRef.current = true;
-    
-    const safetyTimer = setTimeout(() => {
-      if (mountedRef.current && !completedRef.current) {
-        console.log('[VehicleEntrance] ⚠️ Safety timeout (SVGA may be very large)');
-        handleAnimationComplete();
-      }
-    }, 60000); // 60 second safety for very large SVGA files (50MB+)
-    
+
     return () => {
       mountedRef.current = false;
-      clearTimeout(safetyTimer);
     };
-  }, []); // CRITICAL: Empty deps - run only ONCE on mount
+  }, []);
 
   if (animationComplete) return null;
 
