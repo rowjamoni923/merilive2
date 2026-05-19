@@ -10,15 +10,11 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { getConnectionStatus } from '@/hooks/useUniversalRealtime';
-import { QueryClient } from '@tanstack/react-query';
 
 type ResumeCallback = () => void;
 
 // Global event bus for app resume
 const resumeCallbacks = new Set<ResumeCallback>();
-
-// Reference to the app's QueryClient - set during hook initialization
-let appQueryClient: QueryClient | null = null;
 
 /**
  * Register a callback that fires when app resumes from background
@@ -46,34 +42,10 @@ const triggerResumeCallbacks = () => {
 };
 
 /**
- * Critical queries to refresh immediately on resume.
- * Everything else only refreshes if cache is old, preventing refetch storms.
- */
-const CRITICAL_QUERY_KEYS = new Set([
-  'index-hosts-v4',
-  'live-stream',
-  'active-streams',
-  'party-rooms',
-  'conversations',
-  'messages',
-  'notifications',
-  'user-profile',
-  'host-profile',
-  'agency-details',
-]);
-
-/**
  * Main hook - place in App.tsx to handle app resume globally
  */
-export const useAppResumeHandler = (userId: string | null, queryClient?: QueryClient) => {
+export const useAppResumeHandler = (userId: string | null, _queryClient?: unknown) => {
   const lastResumeTime = useRef(0);
-
-  // Store queryClient reference for global access
-  useEffect(() => {
-    if (queryClient) {
-      appQueryClient = queryClient;
-    }
-  }, [queryClient]);
 
   const handleResume = useCallback(async () => {
     if (!userId || window.location.pathname.startsWith('/admin')) return;
