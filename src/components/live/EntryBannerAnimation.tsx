@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback, Suspense, lazy, useRef, memo } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-// Lazy load SVGA player with audio for entry animations
-const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 interface EntryBannerAnimationProps {
   userName: string;
