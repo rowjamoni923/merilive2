@@ -7,7 +7,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
 import { isNativeApp } from '@/utils/nativeUtils';
-import { navigateInAppPath } from '@/utils/inAppNavigation';
+import { navigateInAppPath, openInApp } from '@/utils/inAppNavigation';
 import type { FirebaseApp } from 'firebase/app';
 import type { Messaging } from 'firebase/messaging';
 
@@ -379,8 +379,8 @@ function handleNotificationTap(data?: NotificationData) {
   }
 
   // Fallback
-  if (data.link_url) { go(data.link_url); return; }
-  if (data.action_url) { go(data.action_url); return; }
+  if (data.link_url) { void openInApp(data.link_url); return; }
+  if (data.action_url) { void openInApp(data.action_url); return; }
   go('/');
 }
 
