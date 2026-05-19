@@ -175,28 +175,31 @@ describe("Teen Patti — clicking a hand places a bet", () => {
 // ===========================================================================
 describe("Ferris Wheel — selecting a food triggers a bet on spin", () => {
   it("places bet via place_game_bet RPC when round timer expires", async () => {
-    vi.useFakeTimers();
     const { FerrisWheelGame } = await import("../ferris-wheel/FerrisWheelGame");
     render(<FerrisWheelGame />);
 
-    // Let mount async work resolve, then click a food slot.
-    await vi.runOnlyPendingTimersAsync();
+    // Wait for the wheel items to render (real timers — async findBy needs them)
     const pizza = await screen.findByText("🍕");
     fireEvent.click(pizza);
 
-    // Advance the 20s betting timer; spinWheel fires placeBet RPC.
-    await vi.advanceTimersByTimeAsync(21_000);
+    // Now fake-advance the 20s betting countdown so spinWheel() fires the RPC.
+    vi.useFakeTimers();
+    await vi.advanceTimersByTimeAsync(22_000);
+    // Flush any pending microtasks for the awaited placeBetService call.
+    await vi.runOnlyPendingTimersAsync();
+    vi.useRealTimers();
 
-    const betCall = rpcMock.mock.calls.find((c) => c[0] === "place_game_bet");
-    expect(betCall).toBeTruthy();
-    expect(betCall![1]).toMatchObject({
-      p_user_id: USER_ID,
-      p_game_id: "ferris-wheel",
-      p_game_name: "Ferris Wheel",
+    await waitFor(() => {
+      const betCall = rpcMock.mock.calls.find((c) => c[0] === "place_game_bet");
+      expect(betCall).toBeTruthy();
+      expect(betCall![1]).toMatchObject({
+        p_user_id: USER_ID,
+        p_game_id: "ferris-wheel",
+        p_game_name: "Ferris Wheel",
+      });
+      expect(betCall![1].p_amount).toBeGreaterThan(0);
     });
-    expect(betCall![1].p_amount).toBeGreaterThan(0);
 
-    // Balance decreased by the bet amount.
     expect(mockBalance).toBeLessThan(50_000);
   });
 });
