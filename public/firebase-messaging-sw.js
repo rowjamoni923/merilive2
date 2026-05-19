@@ -225,3 +225,16 @@ self.addEventListener('fetch', function(event) {
   );
 });
 
+self.addEventListener('message', function(event) {
+  var data = event.data || {};
+  if (data.type !== 'MERI_CLEAR_APP_ASSET_CACHE') return;
+
+  event.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(keys.filter(function(k) {
+        return k.indexOf('meri-assets-') === 0;
+      }).map(function(k) { return caches.delete(k); }));
+    }).catch(function() {})
+  );
+});
+

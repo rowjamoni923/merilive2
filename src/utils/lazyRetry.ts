@@ -6,20 +6,80 @@
  * chunk hashes will return 404 ("Failed to fetch dynamically imported module").
  * 
  * Strategy:
- *  1. Retry the same lazy import inline with short backoff for transient
- *     network / dev-server hiccups.
- *  2. If it still fails, throw the error to the route ErrorBoundary.
- *
- * IMPORTANT: no hard page refresh here. The native app keeps data fresh through
- * realtime/query invalidation during normal use.
+ *  1. Retry the same lazy import inline with short backoff for transient hiccups.
+ *  2. Clear stale runtime asset caches and reload ONCE per module per session.
+ *  3. If the same module still fails after that reload, throw to ErrorBoundary.
  */
-const isChunkLoadError = (error: any) =>
+export const isChunkLoadError = (error: any) =>
   error?.message?.includes('Failed to fetch dynamically imported module') ||
   error?.message?.includes('Loading chunk') ||
   error?.message?.includes('Importing a module script failed') ||
+  error?.message?.includes('dynamically imported module') ||
   error?.name === 'ChunkLoadError';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+declare global {
+  interface Window {
+    __meriChunkRecoveryScheduled?: boolean;
+  }
+}
+
+const RELOAD_KEY_PREFIX = 'meri_lazy_chunk_reload_v2:';
+
+const getModuleKey = (source: string) => {
+  const match = source.match(/import\(["'`](.*?)["'`]\)/);
+  const raw = match?.[1] || source || 'unknown-module';
+  return raw.replace(/[^a-z0-9._/-]+/gi, '_').slice(0, 120);
+};
+
+async function clearStaleRuntimeCaches() {
+  try {
+    if (typeof caches !== 'undefined') {
+      const keys = await caches.keys();
+      await Promise.all(keys
+        .filter((key) => /^(meri-assets-|workbox-|vite-|precache-|runtime-)/i.test(key))
+        .map((key) => caches.delete(key)));
+    }
+  } catch {
+    // best-effort only
+  }
+
+  try {
+    navigator.serviceWorker?.controller?.postMessage({ type: 'MERI_CLEAR_APP_ASSET_CACHE' });
+  } catch {
+    // best-effort only
+  }
+}
+
+export async function scheduleChunkLoadRecovery(error: any, source = ''): Promise<boolean> {
+  if (!isChunkLoadError(error) || typeof window === 'undefined') return false;
+  if (window.__meriChunkRecoveryScheduled) return true;
+
+  const moduleKey = getModuleKey(source || error?.message || String(error));
+  const reloadKey = `${RELOAD_KEY_PREFIX}${moduleKey}`;
+
+  try {
+    if (sessionStorage.getItem(reloadKey) === '1') return false;
+    sessionStorage.setItem(reloadKey, '1');
+  } catch {
+    // If storage is blocked, still try one in-memory recovery.
+  }
+
+  window.__meriChunkRecoveryScheduled = true;
+  console.warn('[LazyRetry] Recovering from stale/missing route chunk:', moduleKey);
+  await clearStaleRuntimeCaches();
+
+  setTimeout(() => {
+    try {
+      window.location.reload();
+    } catch {
+      window.location.href = window.location.href;
+    }
+  }, 80);
+
+  return true;
+}
 
 export function lazyRetry<T extends React.ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
@@ -43,6 +103,10 @@ export function lazyRetry<T extends React.ComponentType<any>>(
         lastError = e;
         if (!isChunkLoadError(e)) throw e;
       }
+    }
+
+    if (await scheduleChunkLoadRecovery(lastError, String(importFn))) {
+      return new Promise(() => {}) as Promise<{ default: T }>;
     }
 
     console.error('[LazyRetry] Chunk failed after inline retries:', lastError);

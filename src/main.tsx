@@ -4,6 +4,7 @@ import { installRealtimeGuard } from "./utils/realtimeGuard";
 import { installAuthRequestGuard } from "./utils/authRequestGuard";
 import { startNetworkResilienceEngine } from "./utils/networkResilienceEngine";
 import { installAudioUnlock } from "./utils/audioUnlock";
+import { scheduleChunkLoadRecovery } from "./utils/lazyRetry";
 import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
@@ -25,11 +26,13 @@ installAudioUnlock();
 // React render errors are still caught by the in-tree <ErrorBoundary>.
 window.addEventListener('error', (e) => {
   try { console.error('[global error]', e.error || e.message); } catch { /* noop */ }
+  void scheduleChunkLoadRecovery(e.error || e, String(e.message || ''));
   // Prevent default browser "Uncaught" overlay that can stall WebViews
   e.preventDefault?.();
 });
 window.addEventListener('unhandledrejection', (e) => {
   try { console.error('[unhandled promise]', e.reason); } catch { /* noop */ }
+  void scheduleChunkLoadRecovery(e.reason, String(e.reason?.message || e.reason || ''));
   e.preventDefault?.();
 });
 

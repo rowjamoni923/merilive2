@@ -37,7 +37,7 @@ import { RealtimeProvider } from "./components/common/RealtimeProvider";
 import DeferredAppHooks from "./components/common/DeferredAppHooks";
 import AppUpdateChecker from "@/components/common/AppUpdateChecker";
 import PushNotificationInitializer from "@/components/common/PushNotificationInitializer";
-const Level5HelperDashboard = lazy(() => import("./pages/Level5HelperDashboard"));
+const Level5HelperDashboard = lazy(lazyRetry(() => import("./pages/Level5HelperDashboard")));
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
 // =============================================
@@ -120,79 +120,79 @@ if (typeof window !== 'undefined') {
   Promise.resolve().then(preloadCoreRoutes);
 }
 
-const EditProfile = lazy(() => import("./pages/EditProfile"));
-const Level = lazy(() => import("./pages/Level"));
-const Invitation = lazy(() => import("./pages/Invitation"));
-const Tasks = lazy(() => import("./pages/Tasks"));
-const HostBonusLedger = lazy(() => import("./pages/HostBonusLedger"));
-const Settings = lazy(() => import("./pages/Settings"));
-const Rewards = lazy(() => import("./pages/Rewards"));
-const Agency = lazy(() => import("./pages/Agency"));
-const AgentRank = lazy(() => import("./pages/AgentRank"));
-const Leaderboard = lazy(() => import("./pages/Leaderboard"));
-const PKLeaderboard = lazy(() => import("./pages/PKLeaderboard"));
-const HostApplication = lazy(() => import("./pages/HostApplication"));
-const AgentWallet = lazy(() => import("./pages/AgentWallet"));
-const TransferHistory = lazy(() => import("./pages/TransferHistory"));
-const CreateAgency = lazy(() => import("./pages/CreateAgency"));
-const SmartLink = lazy(() => import("./pages/SmartLink"));
-const AgencySignup = lazy(() => import("./pages/AgencySignup"));
-const AgencyDashboard = lazy(() => import("./pages/AgencyDashboard"));
-const AgencyCoinExchange = lazy(() => import("./pages/AgencyCoinExchange"));
-const AgencyCoinTrader = lazy(() => import("./pages/AgencyCoinTrader"));
-const CallHistory = lazy(() => import("./pages/CallHistory"));
-const FollowingList = lazy(() => import("./pages/FollowingList"));
-const SearchUsers = lazy(() => import("./pages/SearchUsers"));
-const RechargeHistory = lazy(() => import("./pages/RechargeHistory"));
-const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const EditProfile = lazy(lazyRetry(() => import("./pages/EditProfile")));
+const Level = lazy(lazyRetry(() => import("./pages/Level")));
+const Invitation = lazy(lazyRetry(() => import("./pages/Invitation")));
+const Tasks = lazy(lazyRetry(() => import("./pages/Tasks")));
+const HostBonusLedger = lazy(lazyRetry(() => import("./pages/HostBonusLedger")));
+const Settings = lazy(lazyRetry(() => import("./pages/Settings")));
+const Rewards = lazy(lazyRetry(() => import("./pages/Rewards")));
+const Agency = lazy(lazyRetry(() => import("./pages/Agency")));
+const AgentRank = lazy(lazyRetry(() => import("./pages/AgentRank")));
+const Leaderboard = lazy(lazyRetry(() => import("./pages/Leaderboard")));
+const PKLeaderboard = lazy(lazyRetry(() => import("./pages/PKLeaderboard")));
+const HostApplication = lazy(lazyRetry(() => import("./pages/HostApplication")));
+const AgentWallet = lazy(lazyRetry(() => import("./pages/AgentWallet")));
+const TransferHistory = lazy(lazyRetry(() => import("./pages/TransferHistory")));
+const CreateAgency = lazy(lazyRetry(() => import("./pages/CreateAgency")));
+const SmartLink = lazy(lazyRetry(() => import("./pages/SmartLink")));
+const AgencySignup = lazy(lazyRetry(() => import("./pages/AgencySignup")));
+const AgencyDashboard = lazy(lazyRetry(() => import("./pages/AgencyDashboard")));
+const AgencyCoinExchange = lazy(lazyRetry(() => import("./pages/AgencyCoinExchange")));
+const AgencyCoinTrader = lazy(lazyRetry(() => import("./pages/AgencyCoinTrader")));
+const CallHistory = lazy(lazyRetry(() => import("./pages/CallHistory")));
+const FollowingList = lazy(lazyRetry(() => import("./pages/FollowingList")));
+const SearchUsers = lazy(lazyRetry(() => import("./pages/SearchUsers")));
+const RechargeHistory = lazy(lazyRetry(() => import("./pages/RechargeHistory")));
+const PaymentSuccess = lazy(lazyRetry(() => import("./pages/PaymentSuccess")));
 const PartyRooms = lazy(lazyRetry(() => import("./pages/PartyRooms")));
 const PartyRoom = lazy(lazyRetry(() => import("./pages/PartyRoom")));
-const GoLive = lazy(() => import("./pages/GoLive"));
-const CreateParty = lazy(() => import("./pages/CreateParty"));
-const ProfileDetail = lazy(() => import("./pages/ProfileDetail"));
+const GoLive = lazy(lazyRetry(() => import("./pages/GoLive")));
+const CreateParty = lazy(lazyRetry(() => import("./pages/CreateParty")));
+const ProfileDetail = lazy(lazyRetry(() => import("./pages/ProfileDetail")));
 
-const Tags = lazy(() => import("./pages/Tags"));
-const MyPoster = lazy(() => import("./pages/MyPoster"));
-const HostDashboard = lazy(() => import("./pages/HostDashboard"));
-const HostVerification = lazy(() => import("./pages/HostVerification"));
-const FaceVerification = lazy(() => import("./pages/FaceVerification"));
-const FacePoseRegression = lazy(() => import("./pages/FacePoseRegression"));
-const AvatarFrameRingCheck = lazy(() => import("./pages/AvatarFrameRingCheck"));
-const AgencyWithdrawal = lazy(() => import("./pages/AgencyWithdrawal"));
-const AgencyTransferHistory = lazy(() => import("./pages/AgencyTransferHistory"));
-const AgencyCommissionHistory = lazy(() => import("./pages/AgencyCommissionHistory"));
-const AgencyHostManagement = lazy(() => import("./pages/AgencyHostManagement"));
-const JoinAgency = lazy(() => import("./pages/JoinAgency"));
-const BecomeSubAgent = lazy(() => import("./pages/BecomeSubAgent"));
-const HelperDashboard = lazy(() => import("./pages/HelperDashboard"));
+const Tags = lazy(lazyRetry(() => import("./pages/Tags")));
+const MyPoster = lazy(lazyRetry(() => import("./pages/MyPoster")));
+const HostDashboard = lazy(lazyRetry(() => import("./pages/HostDashboard")));
+const HostVerification = lazy(lazyRetry(() => import("./pages/HostVerification")));
+const FaceVerification = lazy(lazyRetry(() => import("./pages/FaceVerification")));
+const FacePoseRegression = lazy(lazyRetry(() => import("./pages/FacePoseRegression")));
+const AvatarFrameRingCheck = lazy(lazyRetry(() => import("./pages/AvatarFrameRingCheck")));
+const AgencyWithdrawal = lazy(lazyRetry(() => import("./pages/AgencyWithdrawal")));
+const AgencyTransferHistory = lazy(lazyRetry(() => import("./pages/AgencyTransferHistory")));
+const AgencyCommissionHistory = lazy(lazyRetry(() => import("./pages/AgencyCommissionHistory")));
+const AgencyHostManagement = lazy(lazyRetry(() => import("./pages/AgencyHostManagement")));
+const JoinAgency = lazy(lazyRetry(() => import("./pages/JoinAgency")));
+const BecomeSubAgent = lazy(lazyRetry(() => import("./pages/BecomeSubAgent")));
+const HelperDashboard = lazy(lazyRetry(() => import("./pages/HelperDashboard")));
 
-const PayrollHelperGuide = lazy(() => import("./pages/PayrollHelperGuide"));
-const AgencyDetails = lazy(() => import("./pages/AgencyDetails"));
-const AgencyPolicy = lazy(() => import("./pages/AgencyPolicy"));
-const PoliciesAndBenefits = lazy(() => import("./pages/PoliciesAndBenefits"));
-const PublicPolicies = lazy(() => import("./pages/PublicPolicies"));
-const PublicPrivacyPolicy = lazy(() => import("./pages/PublicPrivacyPolicy"));
-const PublicAccountDeletion = lazy(() => import("./pages/PublicAccountDeletion"));
-const PolicyDetail = lazy(() => import("./pages/PolicyDetail"));
-const GoogleLibraryOrderRules = lazy(() => import("./pages/GoogleLibraryOrderRules"));
-const About = lazy(() => import("./pages/About"));
-const PublicContact = lazy(() => import("./pages/PublicContact"));
-const SyncTest = lazy(() => import("./pages/SyncTest"));
-const HostTransferHistory = lazy(() => import("./pages/HostTransferHistory"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const AuthCallback = lazy(() => import("./pages/AuthCallback"));
-const Shop = lazy(() => import("./pages/Shop"));
-const Reels = lazy(() => import("./pages/Reels"));
-const VIP = lazy(() => import("./pages/VIP"));
-const Parcels = lazy(() => import("./pages/Parcels"));
-const PlaceholderPage = lazy(() => import("./components/common/PlaceholderPage"));
+const PayrollHelperGuide = lazy(lazyRetry(() => import("./pages/PayrollHelperGuide")));
+const AgencyDetails = lazy(lazyRetry(() => import("./pages/AgencyDetails")));
+const AgencyPolicy = lazy(lazyRetry(() => import("./pages/AgencyPolicy")));
+const PoliciesAndBenefits = lazy(lazyRetry(() => import("./pages/PoliciesAndBenefits")));
+const PublicPolicies = lazy(lazyRetry(() => import("./pages/PublicPolicies")));
+const PublicPrivacyPolicy = lazy(lazyRetry(() => import("./pages/PublicPrivacyPolicy")));
+const PublicAccountDeletion = lazy(lazyRetry(() => import("./pages/PublicAccountDeletion")));
+const PolicyDetail = lazy(lazyRetry(() => import("./pages/PolicyDetail")));
+const GoogleLibraryOrderRules = lazy(lazyRetry(() => import("./pages/GoogleLibraryOrderRules")));
+const About = lazy(lazyRetry(() => import("./pages/About")));
+const PublicContact = lazy(lazyRetry(() => import("./pages/PublicContact")));
+const SyncTest = lazy(lazyRetry(() => import("./pages/SyncTest")));
+const HostTransferHistory = lazy(lazyRetry(() => import("./pages/HostTransferHistory")));
+const NotFound = lazy(lazyRetry(() => import("./pages/NotFound")));
+const ResetPassword = lazy(lazyRetry(() => import("./pages/ResetPassword")));
+const AuthCallback = lazy(lazyRetry(() => import("./pages/AuthCallback")));
+const Shop = lazy(lazyRetry(() => import("./pages/Shop")));
+const Reels = lazy(lazyRetry(() => import("./pages/Reels")));
+const VIP = lazy(lazyRetry(() => import("./pages/VIP")));
+const Parcels = lazy(lazyRetry(() => import("./pages/Parcels")));
+const PlaceholderPage = lazy(lazyRetry(() => import("./components/common/PlaceholderPage")));
 
 // Games
-const GamesHub = lazy(() => import("./pages/games/GamesHub"));
-const RoulettePage = lazy(() => import("./pages/games/RoulettePage"));
-const FerrisWheelPage = lazy(() => import("./pages/games/FerrisWheelPage"));
-const TeenPattiPage = lazy(() => import("./pages/games/TeenPattiPage"));
+const GamesHub = lazy(lazyRetry(() => import("./pages/games/GamesHub")));
+const RoulettePage = lazy(lazyRetry(() => import("./pages/games/RoulettePage")));
+const FerrisWheelPage = lazy(lazyRetry(() => import("./pages/games/FerrisWheelPage")));
+const TeenPattiPage = lazy(lazyRetry(() => import("./pages/games/TeenPattiPage")));
 
 // Admin Pages - All lazy loaded (with chunk-failure retry)
 const AdminBlueprint = lazy(lazyRetry(() => import("./pages/admin/AdminBlueprint")));
@@ -364,13 +364,13 @@ if (typeof window !== 'undefined') {
 }
 
 // Settings Sub-pages
-const Blacklist = lazy(() => import("./pages/settings/Blacklist"));
-const ContentPageView = lazy(() => import("./pages/settings/ContentPage"));
-const CustomerService = lazy(() => import("./pages/settings/CustomerService"));
-const UserManagement = lazy(() => import("./pages/settings/UserManagement"));
+const Blacklist = lazy(lazyRetry(() => import("./pages/settings/Blacklist")));
+const ContentPageView = lazy(lazyRetry(() => import("./pages/settings/ContentPage")));
+const CustomerService = lazy(lazyRetry(() => import("./pages/settings/CustomerService")));
+const UserManagement = lazy(lazyRetry(() => import("./pages/settings/UserManagement")));
 
 // Lazy loaded components - defer non-critical
-const GenderSelectionModal = lazy(() => import("@/components/auth/GenderSelectionModal").then(m => ({ default: m.GenderSelectionModal })));
+const GenderSelectionModal = lazy(lazyRetry(() => import("@/components/auth/GenderSelectionModal").then(m => ({ default: m.GenderSelectionModal }))));
 
 // DEFERRED IMPORTS - Non-critical UI components (use lazyRetry for chunk resilience)
 const NetworkStatusBar = lazy(lazyRetry(() => import("@/components/common/NetworkStatusBar")));
