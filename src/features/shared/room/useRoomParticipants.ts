@@ -38,6 +38,7 @@ interface UseRoomParticipantsOptions {
     entranceUrl?: string;
     entryNameBarUrl?: string;
     vehicleAnimationUrl?: string;
+    soundUrl?: string;
   }) => void;
   /** Whether hook is active */
   enabled?: boolean;
@@ -110,7 +111,7 @@ export function useRoomParticipants({
           if (triggerCallback) {
             // Fetch entrance animation URL - uses centralized function that checks ALL tables
             // Now also includes vehicle animation and level-based auto-assign!
-            const { entranceAnimationUrl: entranceUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+            const { entranceAnimationUrl: entranceUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
               profile.equipped_entrance_id,
               profile.equipped_entry_name_bar_id,
               profile.equipped_vehicle_id,
@@ -134,6 +135,7 @@ export function useRoomParticipants({
                 entranceUrl,
                 entryNameBarUrl,
                 vehicleAnimationUrl,
+                soundUrl: entranceSoundUrl || undefined,
               });
             }
           }

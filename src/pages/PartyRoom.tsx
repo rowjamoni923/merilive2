@@ -1290,6 +1290,7 @@ const PartyRoom = () => {
             entranceUrl: data.entranceAnimationUrl || undefined,
             entryNameBarUrl: data.entryNameBarUrl || undefined,
             vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
+            soundUrl: data.entranceSoundUrl || undefined,
           });
         }
       })
@@ -1518,7 +1519,15 @@ const PartyRoom = () => {
           left_at: null // Reset left_at in case rejoining
         }, { onConflict: 'room_id,user_id' });
       
-      // Show self-join flying banner
+      // 🎯 HOST RULE: Host opening their OWN room should NOT see/trigger an entry effect.
+      // Only viewers (and other participants) see entry banners + animations.
+      if (isHostUser) {
+        console.log('[PartyRoom] 🏠 Host opened own room — skipping self-entry notification/animation/broadcast');
+        await fetchParticipants();
+        return;
+      }
+
+      // Show self-join flying banner (viewers only)
       addBigoJoinNotification({
         userId: currentUser.id,
         userName,
@@ -1546,7 +1555,7 @@ const PartyRoom = () => {
       console.log('[PartyRoom] 🔍 FRESH Profile equipped IDs:', { entranceId, nameBarId, vehicleId });
       
       // Fetch user's equipped entrance animation - uses centralized function that checks ALL tables
-      const { entranceAnimationUrl: selfEntranceUrl, entryNameBarUrl: selfNameBarUrl, vehicleAnimationUrl: selfVehicleUrl } = await fetchUserEntryAnimations(
+      const { entranceAnimationUrl: selfEntranceUrl, entranceSoundUrl: selfEntranceSound, entryNameBarUrl: selfNameBarUrl, vehicleAnimationUrl: selfVehicleUrl } = await fetchUserEntryAnimations(
         entranceId,
         nameBarId,
         vehicleId,
@@ -1566,6 +1575,7 @@ const PartyRoom = () => {
           entranceUrl: selfEntranceUrl || undefined,
           entryNameBarUrl: selfNameBarUrl || undefined,
           vehicleAnimationUrl: selfVehicleUrl || undefined,
+          soundUrl: selfEntranceSound || undefined,
         });
       } else {
         console.log('[PartyRoom] ⚠️ Self has NO equipped entry animation');
@@ -1584,6 +1594,7 @@ const PartyRoom = () => {
               userAvatar: avatarUrl,
               userLevel,
               entranceAnimationUrl: selfEntranceUrl || null,
+              entranceSoundUrl: selfEntranceSound || null,
               entryNameBarUrl: selfNameBarUrl || null,
               vehicleAnimationUrl: selfVehicleUrl || null,
               timestamp: Date.now(),
@@ -2371,6 +2382,7 @@ const PartyRoom = () => {
             entranceUrl: params.entranceUrl,
             entryNameBarUrl: params.entryNameBarUrl,
             vehicleAnimationUrl: (params as any).vehicleAnimationUrl,
+            soundUrl: (params as any).soundUrl,
           });
         }}
       />
