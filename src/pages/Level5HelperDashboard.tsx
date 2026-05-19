@@ -1293,72 +1293,79 @@ const Level5HelperDashboard = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-[#F7F8FA] flex flex-col overflow-hidden">
-      <div 
-        className="flex-1 overflow-y-auto overscroll-contain"
-        style={{ 
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'var(--content-bottom-padding)'
+    <div
+      className="fixed inset-0 overflow-y-auto overscroll-contain"
+      style={{
+        background:
+          "radial-gradient(120% 80% at 50% 0%, #FFFBF2 0%, #FAF5EA 45%, #F5EFDF 100%)",
+        WebkitOverflowScrolling: 'touch',
+        paddingBottom: 'var(--content-bottom-padding)',
+      }}
+    >
+      {/* ============ LUXURIOUS HEADER ============ */}
+      <div
+        className="relative px-4 pt-4 pb-5 safe-area-top overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(180deg, #FFFEF8 0%, #FFFBEC 60%, #FFF5D6 100%)",
+          borderBottom: "1px solid rgba(251,191,36,0.45)",
+          boxShadow: "0 12px 28px -18px rgba(146,64,14,0.25), inset 0 1px 0 rgba(255,255,255,0.6)",
         }}
       >
-      {/* Header */}
-      <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 p-4 rounded-b-3xl">
-        <div className="flex items-center gap-3 mb-3">
- <Button variant="ghost" size="icon" className="text-white hover:bg-amber-50/80" onClick={() => navigate(-1)}>
+        <div className="pointer-events-none absolute -top-24 -left-12 w-64 h-64 bg-amber-500/15 rounded-full blur-[70px]" />
+        <div className="pointer-events-none absolute -top-24 -right-12 w-64 h-64 bg-violet-500/10 rounded-full blur-[70px]" />
+
+        <div className="relative flex items-center gap-3 mb-4">
+          <Button variant="ghost" size="icon" className="text-slate-900 hover:bg-amber-100/60 rounded-full" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
- <h1 className="font-bold text-lg text-slate-900">Diamond Helper</h1>
- <p className="text-slate-700/75 text-xs">Level 5 • Payroll System</p>
+            <h1 className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-yellow-600 to-amber-700">Diamond Helper</h1>
+            <p className="text-slate-500 text-xs">Level 5 • Payroll System</p>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
- className="text-white hover:bg-amber-50/80 relative"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-slate-700 hover:bg-amber-100/60 rounded-full relative"
             onClick={() => { setActiveTab("notifications"); markNotificationsRead(); }}
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center shadow-md shadow-rose-500/40">
                 {unreadCount}
               </span>
             )}
           </Button>
         </div>
 
-        {/* Stats - Mobile Optimized */}
-        <div className="grid grid-cols-4 gap-1.5">
-          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl p-2 text-center">
- <p className="text-base font-bold text-slate-900">{agencyWithdrawals.length}</p>
- <p className="text-[9px] text-slate-700/60">Agency</p>
-          </div>
-          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl p-2 text-center">
- <p className="text-base font-bold text-slate-900">{withdrawalRequests.filter(w => w.status ==='pending').length}</p>
- <p className="text-[9px] text-slate-700/60">Pending</p>
-          </div>
-          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl p-2 text-center">
- <p className="text-base font-bold text-slate-900">{countryPaymentMethods.length}</p>
- <p className="text-[9px] text-slate-700/60">Methods</p>
-          </div>
-          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl p-2 text-center overflow-hidden">
- <p className="text-xs font-bold text-slate-900 truncate">
-              {(() => {
-                const totalWallet = (helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0);
-                return totalWallet >= 1000000
-                  ? `${(totalWallet / 1000000).toFixed(1)}M`
-                  : totalWallet >= 1000
-                    ? `${(totalWallet / 1000).toFixed(0)}K`
-                    : totalWallet.toLocaleString();
-              })()}
-            </p>
- <p className="text-[9px] text-slate-700/60">💎 Trader Wallet</p>
-          </div>
+        {/* Premium Stat Cards */}
+        <div className="relative grid grid-cols-4 gap-2">
+          {[
+            { val: agencyWithdrawals.length, label: 'Agency' },
+            { val: withdrawalRequests.filter(w => w.status === 'pending').length, label: 'Pending' },
+            { val: countryPaymentMethods.length, label: 'Methods' },
+            {
+              val: (() => {
+                const t = (helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0);
+                return t >= 1_000_000 ? `${(t / 1_000_000).toFixed(1)}M` : t >= 1000 ? `${(t / 1000).toFixed(0)}K` : t.toLocaleString();
+              })(),
+              label: '💎 Wallet',
+            },
+          ].map((s, i) => (
+            <div
+              key={i}
+              className="bg-white/80 backdrop-blur-md rounded-2xl px-2 py-2.5 text-center border border-amber-200/60 shadow-[0_2px_10px_rgba(146,64,14,0.06)]"
+            >
+              <p className="text-sm font-extrabold text-slate-900 truncate">{s.val}</p>
+              <p className="text-[9px] font-medium text-slate-500 mt-0.5">{s.label}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-3">
+        <div className="relative mt-4">
           <Button
             onClick={() => navigate('/helper-dashboard')}
- className="w-full bg-amber-50/70 hover:bg-amber-50/90 text-slate-900 border border-slate-200/20"
+            className="w-full h-10 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-semibold shadow-lg shadow-amber-500/30 border-0"
           >
             <DollarSign className="w-4 h-4 mr-2" />
             Open Manual Top-up
