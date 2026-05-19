@@ -103,11 +103,23 @@ let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
-  // Stagger imports to avoid blocking network
+  // Pkg51: kick off chunk downloads in parallel batches of 4 so the network
+  // stays saturated but doesn't stall main-thread parse. With HTTP/2
+  // multiplexing this completes in ~one round-trip on broadband.
+  const batchSize = 4;
   CORE_PAGE_IMPORTERS.forEach((fn, i) => {
-    setTimeout(() => fn().catch(() => {}), i * 50);
+    setTimeout(() => fn().catch(() => {}), Math.floor(i / batchSize) * 30);
   });
 }
+
+// Pkg51: Fire preload at module-evaluation time too (before <App /> mounts).
+// The useEffect inside App still calls it as a safety net — preloadCoreRoutes
+// is idempotent. Guarded by `window` so SSR/test environments stay safe.
+if (typeof window !== 'undefined') {
+  // Defer one microtask so we don't block the initial paint of <App />.
+  Promise.resolve().then(preloadCoreRoutes);
+}
+
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const Level = lazy(() => import("./pages/Level"));
 const Invitation = lazy(() => import("./pages/Invitation"));
