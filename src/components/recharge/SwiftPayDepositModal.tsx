@@ -103,15 +103,8 @@ export default function SwiftPayDepositModal({
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
 
-  // Helper mode synthesises a "package" from custom amounts
-  const helperPkg: PkgLite | null = mode === "helper" && helperCustomCoins && helperCustomPriceUsd
-    ? { id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" }
-    : null;
 
-  // User custom mode (e.g. helper application fee)
-  const userCustomPkg: PkgLite | null = mode === "user" && userCustomCoins && userCustomPriceUsd
-    ? { id: `custom_${userCustomPriceUsd}`, coins: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" }
-    : null;
+
 
   useEffect(() => {
     if (!open) {
@@ -122,24 +115,24 @@ export default function SwiftPayDepositModal({
       setCreating(false);
       return;
     }
-    if (mode === "helper" && helperPkg) {
-      setPkg(helperPkg);
-      setStep("pick_currency");
+    if (mode === "helper" && helperCustomCoins && helperCustomPriceUsd) {
+      setPkg({ id: `helper_${helperId}`, coins: helperCustomCoins, price_usd: helperCustomPriceUsd, name: "Trader Wallet Top-Up" });
+      setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       return;
     }
-    if (mode === "user" && userCustomPkg) {
-      setPkg(userCustomPkg);
-      setStep("pick_currency");
+    if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
+      setPkg({ id: `custom_${userCustomPriceUsd}`, coins: userCustomCoins, price_usd: userCustomPriceUsd, name: userCustomLabel || "Custom" });
+      setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       return;
     }
     if (initialPackageId) {
       const pre = packages.find((p) => p.id === initialPackageId);
       if (pre) {
         setPkg(pre);
-        setStep("pick_currency");
+        setStep((prev) => (prev === "pick_pkg" ? "pick_currency" : prev));
       }
     }
-  }, [open, initialPackageId, packages, mode, helperPkg, userCustomPkg]);
+  }, [open, initialPackageId, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomLabel]);
 
   // Auto-select recommended crypto whenever the selected package changes
   useEffect(() => {
@@ -273,7 +266,7 @@ export default function SwiftPayDepositModal({
 
         {step === "pick_currency" && pkg && (
           <div className="space-y-4">
-            {mode !== "helper" && !userCustomPkg && (
+            {mode !== "helper" && !(mode === "user" && userCustomCoins && userCustomPriceUsd) && (
               <button onClick={() => setStep("pick_pkg")} className="flex items-center gap-1 text-xs text-amber-200/80 hover:text-amber-200">
                 <ChevronLeft className="w-3 h-3" /> Back
               </button>
