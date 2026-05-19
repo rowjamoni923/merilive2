@@ -31,7 +31,7 @@ interface Props {
   userCustomPriceUsd?: number | null;
   userCustomLabel?: string | null;
   /** Called after successful credit so parent can refresh or proceed. */
-  onCredited?: (coins: number) => void;
+  onCredited?: (coins: number, topupId?: string) => void;
 }
 
 // Recommendation logic:
@@ -218,7 +218,7 @@ export default function SwiftPayDepositModal({
             ? `${fmt(deposit.coins_amount)} diamonds added to your Trader Wallet.`
             : `${fmt(deposit.coins_amount)} diamonds added to your balance.`,
         });
-        onCredited?.(deposit.coins_amount);
+        onCredited?.(deposit.coins_amount, deposit.topup_id);
       } else {
         supabase.functions.invoke("swift-pay-poll-deposits", {
           body: { topup_id: deposit.topup_id },
