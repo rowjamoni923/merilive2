@@ -1052,6 +1052,9 @@ export type Database = {
           notes: string | null
           original_amount: number
           period_start: string | null
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           source_transaction_id: string | null
           transaction_type: string
         }
@@ -1066,6 +1069,9 @@ export type Database = {
           notes?: string | null
           original_amount?: number
           period_start?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           source_transaction_id?: string | null
           transaction_type?: string
         }
@@ -1080,6 +1086,9 @@ export type Database = {
           notes?: string | null
           original_amount?: number
           period_start?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           source_transaction_id?: string | null
           transaction_type?: string
         }
@@ -1638,6 +1647,9 @@ export type Database = {
           processed_at: string | null
           processed_by: string | null
           requested_at: string
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           status: string
           updated_at: string
           usd_amount: number | null
@@ -1665,6 +1677,9 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           requested_at?: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           status?: string
           updated_at?: string
           usd_amount?: number | null
@@ -1692,6 +1707,9 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           requested_at?: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           status?: string
           updated_at?: string
           usd_amount?: number | null
@@ -5795,6 +5813,9 @@ export type Database = {
           platform_fee_amount: number
           processed_at: string | null
           processed_by: string | null
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           status: string | null
           updated_at: string | null
           usd_amount: number
@@ -5819,6 +5840,9 @@ export type Database = {
           platform_fee_amount?: number
           processed_at?: string | null
           processed_by?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           status?: string | null
           updated_at?: string | null
           usd_amount?: number
@@ -5843,6 +5867,9 @@ export type Database = {
           platform_fee_amount?: number
           processed_at?: string | null
           processed_by?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           status?: string | null
           updated_at?: string | null
           usd_amount?: number
@@ -8463,6 +8490,9 @@ export type Database = {
           notes: string | null
           payment_details: Json | null
           payment_method: string
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
@@ -8477,6 +8507,9 @@ export type Database = {
           notes?: string | null
           payment_details?: Json | null
           payment_method: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
@@ -8491,6 +8524,9 @@ export type Database = {
           notes?: string | null
           payment_details?: Json | null
           payment_method?: string
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
@@ -9736,6 +9772,9 @@ export type Database = {
           processed_at: string | null
           processed_by: string | null
           purchase_source: string | null
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           status: string
           transaction_id: string | null
           updated_at: string
@@ -9774,6 +9813,9 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           purchase_source?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           status?: string
           transaction_id?: string | null
           updated_at?: string
@@ -9812,6 +9854,9 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           purchase_source?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           status?: string
           transaction_id?: string | null
           updated_at?: string
@@ -13592,6 +13637,24 @@ export type Database = {
           },
         ]
       }
+      auto_action_log: {
+        Row: {
+          action_id: string | null
+          action_type: string | null
+          agency_id: string | null
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          method: string | null
+          money_amount: number | null
+          processed_at: string | null
+          reversal_reason: string | null
+          reversed_at: string | null
+          status: string | null
+          subject_id: string | null
+        }
+        Relationships: []
+      }
       coin_traders: {
         Row: {
           created_at: string | null
@@ -14192,6 +14255,15 @@ export type Database = {
     Functions: {
       _current_admin_display: { Args: never; Returns: string }
       _current_admin_role: { Args: never; Returns: string }
+      _do_reverse_auto_action: {
+        Args: {
+          _action_id: string
+          _action_type: string
+          _admin_id: string
+          _reason: string
+        }
+        Returns: Json
+      }
       _enqueue_admin_pending_action: {
         Args: {
           _action_type: string
@@ -14474,6 +14546,33 @@ export type Database = {
           normalized_display_name: string
           role: string
           user_id: string
+        }[]
+      }
+      admin_list_auto_actions: {
+        Args: {
+          _from?: string
+          _limit?: number
+          _offset?: number
+          _only_reversed?: boolean
+          _status?: string
+          _to?: string
+          _types?: string[]
+        }
+        Returns: {
+          action_id: string
+          action_type: string
+          agency_id: string
+          amount: number
+          created_at: string
+          currency: string
+          method: string
+          money_amount: number
+          processed_at: string
+          reversal_reason: string
+          reversed_at: string
+          status: string
+          subject_id: string
+          total_count: number
         }[]
       }
       admin_list_avatar_frames_all: {
@@ -15339,6 +15438,10 @@ export type Database = {
           source: string
           user_id: string
         }[]
+      }
+      admin_reverse_auto_action: {
+        Args: { _action_id: string; _action_type: string; _reason: string }
+        Returns: Json
       }
       admin_revoke_device: {
         Args: { _device_id: string; _owner_admin_id: string; _reason?: string }
