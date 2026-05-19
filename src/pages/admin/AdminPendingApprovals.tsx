@@ -33,6 +33,7 @@ const ACTION_LABELS: Record<string, string> = {
   update_gender: "Gender Change",
   process_face_verification: "Face Verification Decision",
   remove_face_verification: "Face Verification Revoke",
+  reverse_auto_action: "Auto-Action Reversal",
 };
 
 function summarizePayload(action: string, payload: any): string {
