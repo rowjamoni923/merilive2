@@ -132,19 +132,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     toast({ title: "Copied! ✅", description: `${label} copied` });
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Max 5MB", variant: "destructive" });
-        return;
-      }
-      setScreenshot(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setScreenshotPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
+  // (file-screenshot upload removed; payment goes through MeriCash auto crypto gateway)
 
   const handleIdCardSelect = (e: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back') => {
     const file = e.target.files?.[0];
