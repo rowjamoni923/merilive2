@@ -1370,38 +1370,38 @@ const Level5HelperDashboard = () => {
       {/* Main Tabs */}
       <div className="px-4 mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-slate-50 rounded-xl p-1 grid grid-cols-5">
- <TabsTrigger value="agency-withdrawals" className="data-[state=active]:bg-gradient-to-r from-orange-400 to-orange-500 text-white data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
+          <TabsList className="w-full bg-slate-100 rounded-xl p-1 grid grid-cols-5">
+ <TabsTrigger value="agency-withdrawals" className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold">
               <Building2 className="w-3 h-3 mr-0.5" />
               Agency
               {agencyWithdrawals.length > 0 && (
- <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-slate-900 text-[8px] h-4 px-1">{agencyWithdrawals.length}</Badge>
+ <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[8px] h-4 px-1">{agencyWithdrawals.length}</Badge>
               )}
             </TabsTrigger>
- <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-to-r from-sky-500 to-sky-600 text-white data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
+ <TabsTrigger value="orders" className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-500 data-[state=active]:to-sky-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold">
               <Package className="w-3 h-3 mr-0.5" />
               Orders
               {pendingOrdersCount > 0 && (
- <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-slate-900 text-[8px] h-4 px-1">{pendingOrdersCount}</Badge>
+ <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[8px] h-4 px-1">{pendingOrdersCount}</Badge>
               )}
             </TabsTrigger>
- <TabsTrigger value="country-methods" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
+ <TabsTrigger value="country-methods" className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold">
               <CreditCard className="w-3 h-3 mr-0.5" />
               Methods
             </TabsTrigger>
- <TabsTrigger value="history" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-500 data-[state=active]:to-sky-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1">
+ <TabsTrigger value="history" className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-500 data-[state=active]:to-sky-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold">
               <Clock className="w-3 h-3 mr-0.5" />
               History
             </TabsTrigger>
             <TabsTrigger 
               value="inbox" 
- className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 rounded-lg text-[10px] px-1 relative"
+ className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold relative"
               onClick={() => markAdminMessagesRead()}
             >
               <Bell className="w-3 h-3 mr-0.5" />
               Inbox
               {unreadAdminMessages > 0 && (
- <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-slate-900 text-[8px] h-4 px-1">{unreadAdminMessages}</Badge>
+ <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[8px] h-4 px-1">{unreadAdminMessages}</Badge>
               )}
             </TabsTrigger>
           </TabsList>
