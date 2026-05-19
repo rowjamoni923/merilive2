@@ -51,6 +51,8 @@ function summarizePayload(action: string, payload: any): string {
       return `${payload.action} (submission ${payload.submission_id?.slice(0, 8)}…)${payload.set_gender ? ` as ${payload.set_gender}` : ""}`;
     case "remove_face_verification":
       return `revoke verification (user ${payload.user_id?.slice(0, 8)}…)`;
+    case "reverse_auto_action":
+      return `Reverse ${payload.action_type} (${payload.action_id?.slice(0, 8)}…)`;
     default:
       return JSON.stringify(payload);
   }
