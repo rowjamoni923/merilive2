@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { X, CreditCard, Wallet, Globe, Copy, Check, Upload } from 'lucide-react';
+import { X, CreditCard, Copy, Check, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/CampaignTemplates';
 import { useToast } from '@/hooks/use-toast';
