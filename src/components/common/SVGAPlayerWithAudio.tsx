@@ -5,6 +5,12 @@ import { getSVGAModule } from '@/utils/svgaPrewarm';
 import { extractAudioFromSVGA } from '@/utils/svgaAudioExtractor';
 import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { Howl } from 'howler';
+import {
+  isAnimationDebugEnabled,
+  logAnimationCompletion,
+  type AnimationCompletionSource,
+} from '@/utils/animationDebug';
+
 
 interface SVGAPlayerWithAudioProps {
   src: string;
