@@ -10,10 +10,6 @@ import { navigateInAppPath } from '@/utils/inAppNavigation';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
 const SESSION_CHECK_MIN_INTERVAL_MS = IS_NATIVE ? 20_000 : 60_000;
-// On native we run a faster safety-net check (30s) — realtime is still primary,
-// but if the websocket drops the user must not be able to keep using a
-// revoked session for 3 minutes.
-const PERIODIC_CHECK_INTERVAL_MS = IS_NATIVE ? 30_000 : 3 * 60_000;
 const SESSION_ERROR_BACKOFF_BASE_MS = 60_000;
 const SESSION_ERROR_BACKOFF_MAX_MS = 10 * 60_000;
 const SESSION_CHECK_JITTER_MS = 7_000;
