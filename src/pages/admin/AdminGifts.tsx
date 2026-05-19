@@ -62,7 +62,7 @@ import { toast } from "sonner";
 import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { LazyImage } from "@/components/LazyImage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
