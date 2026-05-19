@@ -39,10 +39,13 @@ export const placeBet = async (
       return { success: false, error: "Transaction failed" };
     }
 
-    const result = data as { success: boolean; new_balance?: number; error?: string };
+    const result = data as { success: boolean; new_balance?: number; balance?: number; error?: string };
 
     if (!result.success) {
-      return { success: false, error: result.error || "Bet failed" };
+      // Surface server's actual balance even on failure so UI can update cache and show real numbers
+      const serverBal = result.new_balance ?? result.balance;
+      if (typeof serverBal === 'number') updateCachedBalance(serverBal);
+      return { success: false, error: result.error || "Bet failed", newBalance: serverBal };
     }
 
     // Update cached balance for instant UI reflection
