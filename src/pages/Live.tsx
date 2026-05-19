@@ -224,6 +224,7 @@ const Live = () => {
                   hostId={stream.host?.id}
                   hostName={stream.host?.display_name || 'Unknown Host'}
                   hostAvatar={stream.host?.avatar_url || ''}
+                  hostGender={(stream.host?.is_host || stream.host?.gender === 'female' || stream.host?.gender === 'Female') ? 'female' : (stream.host?.gender === 'male' || stream.host?.gender === 'Male' ? 'male' : 'female')}
                   thumbnailUrl={stream.thumbnail_url || stream.host?.avatar_url || ''}
                   viewerCount={stream.viewer_count || 0}
                   country=""
@@ -233,6 +234,7 @@ const Live = () => {
                   isVIP={stream.host?.is_verified || false}
                   giftCount={0}
                 />
+
               </div>
             ))}
           </div>
