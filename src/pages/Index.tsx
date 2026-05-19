@@ -505,7 +505,7 @@ const Index = () => {
                 <div className="ring-1 ring-white/30 rounded-full">
                   <AvatarWithFrame
                     userId={user.id}
-                    src={resolveFeedAvatar(user.id, user.avatar_url, currentUserId, !!(user.is_host || user.gender === 'female'))}
+                    src={resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'))}
                     name={user.display_name || "U"}
                     level={displayLevel}
                     isHost={user.gender === 'female' || user.is_host || false}
