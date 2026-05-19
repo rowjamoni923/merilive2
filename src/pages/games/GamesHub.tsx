@@ -109,7 +109,14 @@ export default function GamesHub() {
             {/* Game header */}
             <div className="flex items-center justify-between px-4 py-3 bg-black/80 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <span className="text-xl">{activeGame.game_emoji}</span>
+                {(() => {
+                  const logo = resolveGameLogo(activeGame);
+                  return logo ? (
+                    <img src={logo} alt={activeGame.game_name} width={24} height={24} className="w-6 h-6 rounded object-contain" />
+                  ) : (
+                    <span className="text-xl">{activeGame.game_emoji}</span>
+                  );
+                })()}
                 <span className="text-white font-semibold">{activeGame.game_name}</span>
               </div>
               <div className="flex items-center gap-3">
