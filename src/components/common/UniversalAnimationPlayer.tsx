@@ -20,6 +20,8 @@ interface UniversalAnimationPlayerProps {
   onLoad?: () => void;
   onError?: (error: Error) => void;
   onComplete?: () => void;
+  /** Provenance-aware onComplete callback ('native' for true end-of-animation, 'safety-timer' for SVGA fallback). */
+  onCompleteDebug?: (source: AnimationCompletionSource) => void;
   showControls?: boolean;
   fallbackEmoji?: string;
 }
