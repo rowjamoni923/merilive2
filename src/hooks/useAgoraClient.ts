@@ -783,6 +783,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     setIsReconnecting(false);
 
     try {
+      clearViewerHardReconnectTimer();
       clearHostVideoRecoveryTimer();
       destroyBeautyProcessor();
       remoteAudioElementsRef.current.forEach(els => {
@@ -817,7 +818,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     } finally {
       isLeavingRef.current = false;
     }
-  }, [clearHostVideoRecoveryTimer]);
+  }, [clearHostVideoRecoveryTimer, clearViewerHardReconnectTimer]);
 
   // Toggle audio
   const toggleAudio = useCallback(async (enabled: boolean) => {
