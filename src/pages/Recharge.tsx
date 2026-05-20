@@ -1066,14 +1066,38 @@ const Recharge = () => {
         // STRICT country match using PROFILE's country_code + tier-based min balance.
         // Track diagnostics so empty-state can explain WHY nothing shows.
         let byCountry = 0, byTierMin = 0, byInactive = 0, byLowBalance = 0;
+        const sampleCountry: DiagSample[] = [];
+        const sampleInactive: DiagSample[] = [];
+        const sampleLowBalance: DiagSample[] = [];
+        const sampleTierMin: DiagSample[] = [];
+        const MAX_SAMPLES = 3;
         const filtered = helpers.filter(h => {
           const user = h.user as any;
           const profileCountry = user?.country_code || h.country_code;
-          if (profileCountry !== userCountryCode) { byCountry++; return false; }
-          if (!h.is_active || !h.is_verified) { byInactive++; return false; }
-          if ((h.wallet_balance ?? 1) < 50000) { byLowBalance++; return false; }
-          const min = getTierMinWallet(h.trader_level);
-          if ((h.wallet_balance ?? 1) < min) { byTierMin++; return false; }
+          const wallet = Number(h.wallet_balance ?? 0);
+          const level = Number(h.trader_level ?? 1);
+          const tierMin = getTierMinWallet(level);
+          const sample: DiagSample = { country: profileCountry, wallet, tierMin, level, isActive: !!h.is_active, isVerified: !!h.is_verified };
+          if (profileCountry !== userCountryCode) {
+            byCountry++;
+            if (sampleCountry.length < MAX_SAMPLES) sampleCountry.push(sample);
+            return false;
+          }
+          if (!h.is_active || !h.is_verified) {
+            byInactive++;
+            if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
+            return false;
+          }
+          if (wallet < 50000) {
+            byLowBalance++;
+            if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
+            return false;
+          }
+          if (wallet < tierMin) {
+            byTierMin++;
+            if (sampleTierMin.length < MAX_SAMPLES) sampleTierMin.push(sample);
+            return false;
+          }
           return true;
         });
         setHelperDiag({
@@ -1085,6 +1109,12 @@ const Recharge = () => {
           finalCount: filtered.length,
           userCountry: userCountryCode,
           isLoading: false,
+          samples: {
+            country: sampleCountry,
+            inactive: sampleInactive,
+            lowBalance: sampleLowBalance,
+            tierMin: sampleTierMin,
+          },
         });
 
         
