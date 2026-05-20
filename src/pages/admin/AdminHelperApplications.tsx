@@ -400,6 +400,36 @@ const AdminHelperApplications = () => {
                   <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                type="button"
+                variant={cryptoOnly ? "default" : "outline"}
+                onClick={() => setCryptoOnly(v => !v)}
+                className="gap-2 whitespace-nowrap"
+                title="Show only applications with on-chain auto-verified crypto deposits"
+              >
+                <span className={cryptoOnly ? "text-emerald-100" : "text-emerald-600"}>✓</span>
+                Auto-Verified Crypto
+                <Badge variant="secondary" className="ml-1">{autoVerifiedApps.length}</Badge>
+              </Button>
+            </div>
+
+            {/* Auto-verified crypto by level */}
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-950/20 px-3 py-2">
+              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                ✓ On-chain auto-verified by level:
+              </span>
+              {[1, 2, 3, 4, 5].map((lvl) => (
+                <Badge
+                  key={lvl}
+                  variant="outline"
+                  className="bg-white/70 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200"
+                >
+                  L{lvl}: {autoVerifiedLevelCounts[lvl]}
+                </Badge>
+              ))}
+              <span className="ml-auto text-xs text-muted-foreground">
+                Total {autoVerifiedApps.length}
+              </span>
             </div>
 
             {/* Applications List */}
