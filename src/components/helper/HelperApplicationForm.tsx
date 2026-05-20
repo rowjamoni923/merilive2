@@ -647,7 +647,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           ) : (
             <ArrowRight className="w-4 h-4 mr-2" />
           )}
-          {isPaidLevel ? `Pay $${upgradeCost} with Crypto` : "Submit Application"}
+          {isPaidLevel ? `Pay $${effectiveCost} with Crypto` : "Submit Application"}
         </Button>
 
         {onClose && (
