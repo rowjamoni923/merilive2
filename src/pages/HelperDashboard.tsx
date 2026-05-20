@@ -1144,6 +1144,15 @@ const HelperDashboard = () => {
           </div>
         )}
 
+        {/* ============ ACCEPTED PAYMENT METHODS CARD ============ */}
+        {helperData?.id && (
+          <div className="relative mb-3">
+            <HelperPaymentMethodsCard helperId={helperData.id} />
+          </div>
+        )}
+
+
+
 
         {/* ============ PREMIUM WALLET CARD ============ */}
         <div
