@@ -22,9 +22,11 @@ type HelperRow = {
 
 /** Strict mirror of Recharge.tsx visibility — but with the safe-by-default rule. */
 const visibleStrict = (h: HelperRow, userCountryCode: string): boolean => {
-  const raw = h.user?.country_code ?? h.country_code ?? '';
-  const profileCountry = String(raw).trim().toUpperCase();
-  const wanted = String(userCountryCode ?? '').trim().toUpperCase();
+  const norm = (v: unknown) => String(v ?? '').trim().toUpperCase();
+  const userCc = norm(h.user?.country_code);
+  const rowCc  = norm(h.country_code);
+  const profileCountry = userCc || rowCc;   // blank user → fall back to row
+  const wanted = norm(userCountryCode);
   if (!profileCountry || !wanted) return false;        // missing → hide
   if (profileCountry !== wanted) return false;          // different → hide
   const lvl = Math.max(1, Math.min(5, h.trader_level || 1));
