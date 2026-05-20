@@ -192,6 +192,7 @@ export default function AdminBanners() {
         is_active: formData.is_active,
         start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
         end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+        location: formData.location || "home",
       };
 
       if (editingBanner) {
