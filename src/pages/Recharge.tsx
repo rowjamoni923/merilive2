@@ -1101,6 +1101,25 @@ const Recharge = () => {
           });
         }
 
+        // Fetch today's manual top-up counts per helper (Asia/Dhaka day)
+        if (helperIds.length > 0) {
+          try {
+            const { data: statsRows, error: statsErr } = await supabase
+              .rpc('get_helper_daily_topup_stats' as any, { _helper_ids: helperIds });
+            if (!statsErr && Array.isArray(statsRows)) {
+              const countMap = new Map<string, number>();
+              (statsRows as any[]).forEach((r: any) => {
+                countMap.set(r.helper_id, Number(r.daily_count) || 0);
+              });
+              mapped.forEach(m => {
+                m.dailyTopUps = countMap.get(m.helperId) || 0;
+              });
+            }
+          } catch (e) {
+            console.warn('[Recharge] daily topup stats fetch failed', e);
+          }
+        }
+
         setTopUpHelpers(mapped);
       }
     } catch (error) {
