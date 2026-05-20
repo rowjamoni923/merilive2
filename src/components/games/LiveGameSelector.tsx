@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Gamepad2, Coins, Sparkles, Users, Loader2 } from "lucide-react";
+import { X, Gamepad2, Coins, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,8 +36,6 @@ const Game3DCard = ({
   onClick: () => void;
   index: number;
 }) => {
-  const [randomPlayers] = useState(() => Math.floor(Math.random() * 5000) + 200);
-
   return (
     <motion.button
       initial={{ opacity: 0, y: 20 }}
@@ -47,57 +45,42 @@ const Game3DCard = ({
       onClick={onClick}
       className="relative group"
     >
-      {/* Game Card */}
+      {/* Game Card — LOGO ONLY (no name, no badges, no overlays) */}
       <div
         className={cn(
-          "relative w-full aspect-square rounded-2xl overflow-hidden",
+          "relative w-full aspect-square rounded-2xl overflow-hidden bg-white/5",
           "transition-transform duration-200 active:scale-95"
         )}
-        style={{ 
+        style={{
           boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.5)'
         }}
       >
-        {/* Logo/Emoji - fills the card */}
-        <div className="absolute inset-0 flex items-center justify-center rounded-2xl overflow-hidden">
+        {/* Logo fills the card. object-contain so the whole logo is visible
+            (no cropping). Padding keeps the artwork off the rounded edge. */}
+        <div className="absolute inset-0 flex items-center justify-center p-2">
           {game.logo_url ? (
-            <img src={getProxiedUrl(game.logo_url)} alt={game.game_name} className="w-full h-full object-cover rounded-2xl" />
+            <img
+              src={getProxiedUrl(game.logo_url)}
+              alt={game.game_name}
+              className="w-full h-full object-contain"
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
           ) : (
             <>
-              <div className={cn("absolute inset-0 bg-gradient-to-br", game.game_color)} />
+              <div className={cn("absolute inset-0 bg-gradient-to-br rounded-2xl", game.game_color)} />
               <span className="relative text-5xl drop-shadow-2xl">
                 {game.game_emoji}
               </span>
             </>
           )}
         </div>
-        
-        {/* Live Badge */}
-        <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-500/90 backdrop-blur-sm px-2 py-0.5 rounded-full z-10">
-          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-          <span className="text-[9px] text-white font-bold uppercase">Live</span>
-        </div>
-        
-        {/* Player Count */}
-        <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full z-10">
-          <Users className="w-2.5 h-2.5 text-white/80" />
-          <span className="text-[8px] text-white/80 font-medium">
-            {randomPlayers > 1000 ? `${(randomPlayers/1000).toFixed(1)}k` : randomPlayers}
-          </span>
-        </div>
-        
-        {/* Bottom Depth for text readability */}
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent z-10" />
-        
-        {/* Hover Glow */}
       </div>
-      
-      {/* Game Name */}
-      <p className="text-white/90 text-xs font-semibold mt-2 text-center truncate">
-        {game.game_name}
-      </p>
     </motion.button>
   );
 };
+
 
 export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts }: LiveGameSelectorProps) {
   const [games, setGames] = useState<GameItem[]>([]);
