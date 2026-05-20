@@ -749,16 +749,6 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       setLoading(false);
     }
   };
-      const { data } = await supabase
-        .from('game_settings')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
-      setGames(data || []);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchUserCoins = async () => {
     const { data: { user } } = await supabase.auth.getUser();
