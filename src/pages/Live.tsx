@@ -19,6 +19,7 @@ interface LiveStream {
     id: string;
     display_name: string | null;
     avatar_url: string | null;
+    country_code: string | null;
     country_flag: string | null;
     host_level: number | null;
     user_level: number | null;
