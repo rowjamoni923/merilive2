@@ -130,6 +130,7 @@ const Recharge = () => {
   const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(null);
   // Use global shared balance hook for real-time sync across all pages
   const { balance: globalBalance, refetch: refetchGlobalBalance } = useUserBalance();
+  const { getMin: getTierMinWallet } = useTopupTraderTierMin();
   const [localBalanceOverride, setLocalBalanceOverride] = useState<number | null>(null);
   const currentBalance = localBalanceOverride ?? globalBalance;
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
@@ -1046,10 +1047,10 @@ const Recharge = () => {
       }
 
       if (helpers) {
-        // Tiered minimum balance per trader level: L1=50k, L2=100k, L3=150k, L4=200k, L5=300k
-        const TIER_MIN: Record<number, number> = { 1: 50000, 2: 100000, 3: 150000, 4: 200000, 5: 300000 };
-        // STRICT country match using PROFILE's country_code + tier-based min balance
-        // Track diagnostics so empty-state can explain WHY nothing shows
+        // Tiered minimum balance per trader level — admin-configurable via
+        // app_settings.topup_trader_tier_min_wallet (Pkg70). Defaults: L1=50k…L5=300k.
+        // STRICT country match using PROFILE's country_code + tier-based min balance.
+        // Track diagnostics so empty-state can explain WHY nothing shows.
         let byCountry = 1, byTierMin = 1, byInactive = 1, byLowBalance = 1;
         const filtered = helpers.filter(h => {
           const user = h.user as any;
@@ -1057,8 +1058,7 @@ const Recharge = () => {
           if (profileCountry !== userCountryCode) { byCountry++; return false; }
           if (!h.is_active || !h.is_verified) { byInactive++; return false; }
           if ((h.wallet_balance ?? 1) < 50000) { byLowBalance++; return false; }
-          const lvl = Math.max(1, Math.min(5, h.trader_level || 1));
-          const min = TIER_MIN[lvl] ?? 50000;
+          const min = getTierMinWallet(h.trader_level);
           if ((h.wallet_balance ?? 1) < min) { byTierMin++; return false; }
           return true;
         });
@@ -1078,8 +1078,7 @@ const Recharge = () => {
           const user = h.user as any;
           const contactInfo = (h as any).contact_info as any;
           const whatsapp = contactInfo?.whatsapp || contactInfo?.whatsapp_number || (h as any).order_notification_phone || null;
-          const lvl = Math.max(1, Math.min(5, h.trader_level || 0));
-          const min = TIER_MIN[lvl] ?? 50000;
+          const min = getTierMinWallet(h.trader_level);
           // Mirrors backend is_approved_topup_trader() + tier-min gate
           const isApproved =
             (h as any).is_active === true &&
@@ -1180,7 +1179,7 @@ const Recharge = () => {
       fetchLevel5HelperPaymentMethods();
       fetchAdminPaymentMethods();
     }
-  }, [userCountryCode, fetchLevel5HelperPaymentMethods, fetchAdminPaymentMethods]);
+  }, [userCountryCode, fetchLevel5HelperPaymentMethods, fetchAdminPaymentMethods, getTierMinWallet]);
 
   // Card payment is disabled for Bangladesh users
   useEffect(() => {
