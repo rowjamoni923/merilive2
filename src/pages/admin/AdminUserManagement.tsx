@@ -1455,23 +1455,23 @@ export default function AdminUserManagement() {
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
       {/* Header */}
-      <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-white via-purple-50/50 to-blue-50/50 rounded-xl md:rounded-2xl shadow-lg border border-slate-200/50">
+      <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-slate-900/80 via-purple-900/40 to-slate-900/80 rounded-xl md:rounded-2xl shadow-lg border border-purple-500/20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <Users className="w-6 h-6 text-purple-600" />
+            <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+              <Users className="w-6 h-6 text-purple-400" />
               User Management
             </h1>
-            <p className="text-sm text-slate-600">Manage all users, hosts, applications, and moderation</p>
+            <p className="text-sm text-slate-300">Manage all users, hosts, applications, and moderation</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+            <Badge className="bg-blue-500/20 text-blue-100 border-blue-400/40">
               {totalUsers} Users
             </Badge>
-            <Badge className="bg-pink-100 text-pink-700 border-pink-200">
+            <Badge className="bg-pink-500/20 text-pink-100 border-pink-400/40">
               {hostStats.totalHosts} Hosts
             </Badge>
-            <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+            <Badge className="bg-amber-500/20 text-amber-100 border-amber-400/40">
               {applications.filter(a => a.status === 'pending').length} Pending Apps
             </Badge>
           </div>
