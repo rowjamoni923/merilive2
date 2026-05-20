@@ -16622,6 +16622,14 @@ export type Database = {
         Args: { _product_id: string }
         Returns: Json
       }
+      get_helper_daily_topup_stats: {
+        Args: { _helper_ids: string[] }
+        Returns: {
+          daily_count: number
+          daily_diamonds: number
+          helper_id: string
+        }[]
+      }
       get_host_agency_request: {
         Args: { _host_id: string }
         Returns: {
