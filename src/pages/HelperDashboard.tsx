@@ -1152,16 +1152,8 @@ const HelperDashboard = () => {
           </div>
         )}
 
-        {/* ============ ACCEPTED PAYMENT METHODS CARD ============ */}
-        {helperData?.id && (
-          <div className="relative mb-3">
-            <HelperPaymentMethodsCard
-              helperId={helperData.id}
-              refreshKey={paymentMethodsRefreshKey}
-              onManage={() => setShowAddPaymentMethodDialog(true)}
-            />
-          </div>
-        )}
+
+
 
 
 
