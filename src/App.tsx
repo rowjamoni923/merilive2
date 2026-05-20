@@ -213,6 +213,7 @@ const AdminAgencies = lazy(lazyRetry(() => import("./pages/admin/AdminAgencies")
 const AdminAgencyDetail = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyDetail")));
 const AdminUserManagement = lazy(lazyRetry(() => import("./pages/admin/AdminUserManagement")));
 const AdminCoinTraders = lazy(lazyRetry(() => import("./pages/admin/AdminCoinTraders")));
+const AdminTopupTraderApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminTopupTraderApprovals")));
 const AdminTraderOrders = lazy(lazyRetry(() => import("./pages/admin/AdminTraderOrders")));
 const AdminTraderTransactions = lazy(lazyRetry(() => import("./pages/admin/AdminTraderTransactions")));
 const AdminManualTopup = lazy(lazyRetry(() => import("./pages/admin/AdminManualTopup")));
@@ -1180,6 +1181,7 @@ const App = () => {
                   <Route path="agencies/:agencyId" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencyDetail /></AdminRouteGuard>} />
                   <Route path="user-management" element={<AdminRouteGuard routeSegment="user-management"><AdminUserManagement /></AdminRouteGuard>} />
                   <Route path="coin-traders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminCoinTraders /></AdminRouteGuard>} />
+                  <Route path="coin-traders/approvals" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTopupTraderApprovals /></AdminRouteGuard>} />
                   <Route path="coin-traders/orders" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderOrders /></AdminRouteGuard>} />
                   <Route path="coin-traders/transactions" element={<AdminRouteGuard routeSegment="coin-traders"><AdminTraderTransactions /></AdminRouteGuard>} />
                   <Route path="animation-store" element={<AdminRouteGuard routeSegment="animation-store"><AdminAnimationStore /></AdminRouteGuard>} />

@@ -623,6 +623,13 @@ const navGroups: NavGroup[] = [
         description: "List of approved Diamond Traders (helpers who sell diamonds) with their balances and stats.",
       },
       {
+        label: "Trader Approvals",
+        icon: Coins,
+        path: "/admin/coin-traders/approvals",
+        hubKey: "trader-hub",
+        description: "Approve or revoke Level 1–5 helper-traders for UID top-up permission; review recent approval changes.",
+      },
+      {
         label: "Trader Orders",
         icon: ShoppingBag,
         path: "/admin/coin-traders/orders",
