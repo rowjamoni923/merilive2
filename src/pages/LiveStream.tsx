@@ -2866,7 +2866,7 @@ const LiveStream = () => {
       <motion.div 
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? -60 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="relative z-20 px-3 pt-4 pb-1 safe-area-top mt-1"
+        className="relative z-20 px-3 pt-2 pb-1"
         style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}
       >
         <div className="flex items-center justify-between">
