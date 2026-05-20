@@ -281,6 +281,7 @@ const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) 
     setWinAmount(win);
     setCashedOut(true);
     toast.success(`🎉 +${win.toLocaleString()} at ${multiplier.toFixed(2)}x!`);
+    onWin?.(win);
   };
 
   return (
