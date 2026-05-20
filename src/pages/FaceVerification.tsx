@@ -1558,7 +1558,7 @@ const FaceVerification = () => {
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
-        description: faceManualReviewRequired ? "Your verification is in admin manual review." : autoMessage,
+        description: autoApproved ? autoMessage : faceManualReviewRequired ? "Your verification is in admin manual review." : autoMessage,
       });
       navigate('/profile');
       return;
@@ -1802,7 +1802,7 @@ const FaceVerification = () => {
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
-        description: faceManualReviewRequired ? "Your host verification is in admin manual review." : autoMessage,
+        description: autoApproved ? autoMessage : faceManualReviewRequired ? "Your host verification is in admin manual review." : autoMessage,
       });
       navigate('/profile');
       return;
