@@ -764,14 +764,14 @@ const Recharge = () => {
         return;
       }
 
-      // Get profile data for online status
+      // Get public profile data for display/online status
       const userIds = (helpersData || []).map(h => h.user_id).filter(Boolean);
       
       // Fetch profiles AND agency diamond balances in parallel
       // Use security definer function for agency balance (avoids RLS restriction)
       const [profilesResult, ...agencyBalanceResults] = await Promise.all([
         supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('id, display_name, avatar_url, app_uid, is_online')
           .in('id', userIds),
         ...userIds.map(uid => 
@@ -1044,7 +1044,7 @@ const Recharge = () => {
       console.log('[Recharge] Fetching helpers for country:', userCountryCode);
       
       // Fetch helper rows first, then read public profile + agency balances separately.
-      // IMPORTANT: never join cross-user `profiles`; use `profiles_public` + `agencies_public`.
+      // IMPORTANT: never join cross-user `profiles`; use `profiles_public` + the Trader Wallet balance RPC.
       const { data: helpers, error } = await supabase
         .from('topup_helpers')
         .select(`
@@ -1073,7 +1073,7 @@ const Recharge = () => {
 
       if (helpers) {
         const helperUserIds = [...new Set(helpers.map((h: any) => h.user_id).filter(Boolean))];
-        const [profilesResult, agenciesResult] = await Promise.all([
+        const [profilesResult, agencyBalanceResults] = await Promise.all([
           helperUserIds.length > 0
             ? supabase
                 .from('profiles_public')
@@ -1081,29 +1081,28 @@ const Recharge = () => {
                 .in('id', helperUserIds)
             : Promise.resolve({ data: [], error: null } as any),
           helperUserIds.length > 0
-            ? supabase
-                .from('agencies_public' as any)
-                .select('owner_id, diamond_balance, is_active')
-                .in('owner_id', helperUserIds)
-                .eq('is_active', true)
-            : Promise.resolve({ data: [], error: null } as any),
+            ? Promise.all(
+                helperUserIds.map((ownerUserId) =>
+                  supabase.rpc('get_agency_diamond_balance' as any, { owner_user_id: ownerUserId })
+                )
+              )
+            : Promise.resolve([] as any[]),
         ]);
 
         if (profilesResult.error) {
           console.error('Error fetching helper public profiles:', profilesResult.error);
           recordClientError({ label: "Recharge.fetchHelperProfilesPublic", message: profilesResult.error.message });
         }
-        if (agenciesResult.error) {
-          console.error('Error fetching agency public balances:', agenciesResult.error);
-          recordClientError({ label: "Recharge.fetchAgencyPublicBalances", message: agenciesResult.error.message });
-        }
-
         const profilesMap = new Map(((profilesResult.data as any[]) || []).map((p: any) => [p.id, p]));
         const agencyDiamondMap = new Map<string, number>();
-        ((agenciesResult.data as any[]) || []).forEach((agency: any) => {
-          const ownerId = agency.owner_id;
+        (agencyBalanceResults as any[]).forEach((result: any, index: number) => {
+          const ownerId = helperUserIds[index];
           if (!ownerId) return;
-          agencyDiamondMap.set(ownerId, (agencyDiamondMap.get(ownerId) || 0) + Number(agency.diamond_balance || 0));
+          if (result?.error) {
+            console.error('Error fetching profile Trader Wallet agency balance:', result.error);
+            recordClientError({ label: "Recharge.fetchTraderWalletAgencyBalance", message: result.error.message });
+          }
+          agencyDiamondMap.set(ownerId, Number(result?.data || 0));
         });
 
         // Tiered minimum balance per trader level — admin-configurable via
@@ -1135,8 +1134,8 @@ const Recharge = () => {
             if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
             return false;
           }
-          // Automatic visibility: helper switch ON + active + verified + same country
-          // + unified Trader Wallet must meet the exact level minimum.
+          // Automatic visibility uses the SAME balance shown on Profile:
+          // Trader Wallet = topup_helpers.wallet_balance + get_agency_diamond_balance(user_id).
           if (traderWallet < 50000) {
             byLowBalance++;
             if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
