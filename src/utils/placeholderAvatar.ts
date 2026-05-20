@@ -1,17 +1,29 @@
 // Unlimited unique placeholder avatars for profiles without an uploaded photo.
-// - Deterministically generated per profile UUID via DiceBear (runs 100% in-app, no network).
-// - Female pool → `lorelei` style (illustrated female portraits) for hosts / unspecified gender.
-// - Male pool → `notionists` style (illustrated male portraits) for male users.
-// - Output is a data: URI SVG, so every profile gets a truly unique avatar that
-//   never collides with another — no fixed 6/12 photo pool.
+// - 100% REAL professional photos (NO cartoons, NO illustrations).
+// - Female pool → real women portraits.
+// - Male pool   → real men portraits.
+// - Source: randomuser.me CDN (free, unlimited, royalty-free portrait set
+//   of 100 women + 100 men). Deterministic per profile id via a stable hash,
+//   so each profile always gets the same photo and different profiles get
+//   different photos.
 // Owner-side surfaces (own profile/edit, admin moderation) MUST pass isOwner=true
 // so the real (empty) state shows — owner should never see a generated placeholder of themselves.
-import { createAvatar } from "@dicebear/core";
-import { lorelei, notionists } from "@dicebear/collection";
 
 export type PlaceholderGender = "female" | "male" | null | undefined;
 
-// In-memory cache so we don't re-generate the same SVG on every render.
+const FEMALE_POOL_SIZE = 100;
+const MALE_POOL_SIZE = 100;
+
+// Stable, fast string hash (FNV-1a 32-bit). Deterministic across runs.
+function hashToIndex(seed: string, mod: number): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h % mod;
+}
+
 const cache = new Map<string, string>();
 
 export function getPlaceholderAvatar(profileId: string, gender?: PlaceholderGender): string {
@@ -21,22 +33,12 @@ export function getPlaceholderAvatar(profileId: string, gender?: PlaceholderGend
   const cached = cache.get(key);
   if (cached) return cached;
 
-  const common = {
-    seed,
-    size: 256,
-    radius: 50,
-    backgroundType: ["gradientLinear", "solid"] as ("gradientLinear" | "solid")[],
-    backgroundColor: isMale
-      ? ["1e3a8a", "0f172a", "374151", "065f46", "3730a3", "7c2d12"]
-      : ["fce7f3", "fbcfe8", "fed7aa", "fef3c7", "ddd6fe", "e0e7ff"],
-  };
-  const svg = (isMale
-    ? createAvatar(notionists, common)
-    : createAvatar(lorelei, common)
-  ).toDataUri();
+  const idx = hashToIndex(seed, isMale ? MALE_POOL_SIZE : FEMALE_POOL_SIZE);
+  const bucket = isMale ? "men" : "women";
+  const url = `https://randomuser.me/api/portraits/${bucket}/${idx}.jpg`;
 
-  cache.set(key, svg);
-  return svg;
+  cache.set(key, url);
+  return url;
 }
 
 export interface DisplayAvatarOpts {
@@ -51,17 +53,10 @@ export interface DisplayAvatarOpts {
 }
 
 /**
- * Resolve the avatar to display on viewer-facing surfaces (homepage feed,
- * discover, leaderboard, profile-detail viewed by someone else, premium live card).
- *
- * - If the profile has an avatar → return it as-is.
- * - Else if isOwner → return empty string (owner sees their real blank state).
- * - Else → return a deterministic, unique generated portrait
- *   (female style for hosts/default, male style when gender='male').
- *
- * NEVER use on the owner's own edit/settings screen or admin moderation
- * panels without passing isOwner=true (admin should also pass isOwner=true
- * — they need to see truth, not the placeholder).
+ * Resolve the avatar to display on viewer-facing surfaces.
+ * - Real avatar URL → returned as-is.
+ * - Owner with no avatar → empty string (real blank state).
+ * - Otherwise → deterministic real-photo placeholder (gender-matched).
  */
 export function getDisplayAvatar(
   profileId: string,

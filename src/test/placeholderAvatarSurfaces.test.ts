@@ -27,36 +27,43 @@ const MALE_ID = "00000000-0000-0000-0000-0000000000a1";
 const OTHER_ID = "00000000-0000-0000-0000-0000000000b2";
 
 describe("placeholderAvatar — contract", () => {
-  it("returns a data: SVG URI for both genders", () => {
+  it("returns a real-photo CDN URL for both genders (NO cartoon/SVG)", () => {
     const f = getPlaceholderAvatar(FEMALE_ID, "female");
     const m = getPlaceholderAvatar(MALE_ID, "male");
-    expect(f.startsWith("data:image/svg+xml")).toBe(true);
-    expect(m.startsWith("data:image/svg+xml")).toBe(true);
+    expect(f).toMatch(/^https:\/\/randomuser\.me\/api\/portraits\/women\/\d+\.jpg$/);
+    expect(m).toMatch(/^https:\/\/randomuser\.me\/api\/portraits\/men\/\d+\.jpg$/);
+    // Hard guard: never a data: URI / SVG / dicebear cartoon.
+    expect(f.startsWith("data:")).toBe(false);
+    expect(m.startsWith("data:")).toBe(false);
+    expect(f).not.toMatch(/dicebear/i);
+    expect(m).not.toMatch(/dicebear/i);
   });
 
-  it("uses different visual styles for female vs male (lorelei vs notionists)", () => {
-    // Same seed, different gender → different SVG (different style entirely)
+  it("uses gendered pools — female → women, male → men", () => {
     const f = getPlaceholderAvatar(FEMALE_ID, "female");
     const m = getPlaceholderAvatar(FEMALE_ID, "male");
-    expect(f).not.toEqual(m);
+    expect(f).toContain("/women/");
+    expect(m).toContain("/men/");
   });
 
-  it("is deterministic — same id+gender always yields the same SVG", () => {
+  it("is deterministic — same id+gender always yields the same URL", () => {
     const a = getPlaceholderAvatar(FEMALE_ID, "female");
     const b = getPlaceholderAvatar(FEMALE_ID, "female");
     expect(a).toEqual(b);
   });
 
-  it("is unique — different profile ids yield different SVGs", () => {
-    const a = getPlaceholderAvatar(FEMALE_ID, "female");
-    const b = getPlaceholderAvatar(OTHER_ID, "female");
-    expect(a).not.toEqual(b);
+  it("is well-distributed — different ids generally yield different photos", () => {
+    const ids = Array.from({ length: 30 }, (_, i) => `seed-${i}`);
+    const set = new Set(ids.map((id) => getPlaceholderAvatar(id, "female")));
+    // Allow a couple collisions in a pool of 100; demand strong spread.
+    expect(set.size).toBeGreaterThanOrEqual(25);
   });
 
-  it("defaults to female style when gender is null/undefined (host default)", () => {
+  it("defaults to female pool when gender is null/undefined (host default)", () => {
     const def = getPlaceholderAvatar(FEMALE_ID, undefined);
     const female = getPlaceholderAvatar(FEMALE_ID, "female");
     expect(def).toEqual(female);
+    expect(def).toContain("/women/");
   });
 
   it("getDisplayAvatar passes a real avatar URL straight through", () => {
@@ -70,14 +77,14 @@ describe("placeholderAvatar — contract", () => {
     expect(getDisplayAvatar(MALE_ID, "", { isOwner: true, gender: "male" })).toBe("");
   });
 
-  it("non-owner with no avatar sees a gender-matched placeholder", () => {
+  it("non-owner with no avatar sees a gender-matched real-photo placeholder", () => {
     const female = getDisplayAvatar(FEMALE_ID, null, { gender: "female" });
     const male = getDisplayAvatar(MALE_ID, null, { gender: "male" });
-    expect(female).toEqual(getPlaceholderAvatar(FEMALE_ID, "female"));
-    expect(male).toEqual(getPlaceholderAvatar(MALE_ID, "male"));
-    expect(female).not.toEqual(male);
+    expect(female).toContain("/women/");
+    expect(male).toContain("/men/");
   });
 });
+
 
 describe("placeholderAvatar — surface audit", () => {
   // Every surface listed by the user must render avatars through one of the
