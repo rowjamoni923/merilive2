@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, Wallet, Star, Crown, TrendingUp, Shield, Gem, Banknote, CheckCircle,
-  Upload, DollarSign, Clock, Send, FileText, Search, User, Building2, ArrowRight, History, Copy
+  Upload, DollarSign, Clock, Send, FileText, Search, User, Building2, ArrowRight, History, Copy, CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
