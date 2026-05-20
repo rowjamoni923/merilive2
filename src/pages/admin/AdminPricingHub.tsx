@@ -181,6 +181,18 @@ export default function AdminPricingHub() {
         enabled: awf?.enabled !== false,
       });
 
+      // Pkg70 — Trader tier-min wallet thresholds
+      const ttm = map.topup_trader_tier_min_wallet ?? {};
+      setTraderTierMin({
+        1: typeof ttm?.["1"] === "number" ? ttm["1"] : Number(ttm?.["1"] ?? 50000),
+        2: typeof ttm?.["2"] === "number" ? ttm["2"] : Number(ttm?.["2"] ?? 100000),
+        3: typeof ttm?.["3"] === "number" ? ttm["3"] : Number(ttm?.["3"] ?? 150000),
+        4: typeof ttm?.["4"] === "number" ? ttm["4"] : Number(ttm?.["4"] ?? 200000),
+        5: typeof ttm?.["5"] === "number" ? ttm["5"] : Number(ttm?.["5"] ?? 300000),
+      });
+
+
+
 
 
       // Load agency_level_tiers
