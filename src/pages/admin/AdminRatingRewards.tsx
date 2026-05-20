@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { adminSendNotification } from "@/utils/adminNotification";
+// adminSendNotification removed — alerts now fired server-side by tg_rating_reward_alert.
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
@@ -271,7 +271,8 @@ export default function AdminRatingRewards() {
 
       const amt = Number(result?.reward_amount ?? 0).toLocaleString();
       const rewardLabel = result.reward_type === 'beans' ? `🫘 ${amt} Beans` : `💎 ${amt} Diamonds`;
-      await adminSendNotification(claim.user_id, '🎉 Rating Reward Approved!', `Congratulations! Your Play Store rating has been verified. ${rewardLabel} have been credited to your account. Thank you for your support!`, 'system')
+      // In-app notification, push (FCM) and decision email are dispatched server-side
+      // by tg_rating_reward_alert on rating_reward_claims status change.
 
       toast.success(`Approved! ${rewardLabel} sent to user`);
     } catch (err: any) {
@@ -303,10 +304,8 @@ export default function AdminRatingRewards() {
 
       if (error) throw error;
 
-      const rejectedClaim = claims.find(c => c.id === claimId);
-      if (rejectedClaim) {
-        await adminSendNotification(rejectedClaim.user_id, '❌ Rating Reward Rejected', 'Your Play Store rating screenshot was not approved. Please make sure to submit a clear screenshot showing your 5-star rating. You can only submit once.', 'system');
-      }
+      // In-app notification, push (FCM) and decision email are dispatched server-side
+      // by tg_rating_reward_alert on rating_reward_claims status change.
 
       toast.success('Claim rejected');
     } catch (err: any) {
