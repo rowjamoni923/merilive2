@@ -1846,7 +1846,7 @@ const HelperDashboard = () => {
                         <CheckCircle className="w-4 h-4 text-emerald-600" />
                         <span className="text-emerald-600 text-xs">Upgrade approved! Level updated.</span>
                       </div>
-                      <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/30 text-emerald-600 text-[10px]">Approved</Badge>
+                      <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] border-0">Approved</Badge>
                     </div>
                   )}
                   
