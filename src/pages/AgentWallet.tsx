@@ -380,14 +380,16 @@ const AgentWallet = () => {
           <div className="grid grid-cols-2 gap-3 mt-5">
             <Button 
               onClick={() => setShowTransfer(true)}
-              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+              aria-label="Send coins"
+              className="h-11 bg-white/20 hover:bg-white/30 active:bg-white/25 backdrop-blur-sm"
             >
               <Send className="w-4 h-4 mr-2" />
               Send Coins
             </Button>
             <Button 
               variant="outline"
-              className="border-warning-200/60 text-heading bg-transparent hover:bg-white/10"
+              aria-label="Transfer history"
+              className="h-11 border-warning-200/60 text-heading bg-transparent hover:bg-white/10 active:bg-white/20"
               onClick={() => navigate("/transfer-history")}
             >
               <History className="w-4 h-4 mr-2" />
