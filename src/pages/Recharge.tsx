@@ -68,6 +68,7 @@ interface TopUpHelper {
   totalSold: number;
   whatsappNumber: string | null;
   acceptedMethods: AcceptedMethodLogo[];
+  dailyTopUps: number;
 }
 
 interface Level5HelperPaymentMethod {
