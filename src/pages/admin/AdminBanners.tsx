@@ -527,6 +527,24 @@ export default function AdminBanners() {
               </div>
             </div>
 
+            {/* Banner Placement / Location */}
+            <div className="space-y-2">
+              <Label>Banner Location</Label>
+              <Select
+                value={formData.location}
+                onValueChange={(v) => setFormData({ ...formData, location: v })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="home">🏠 Home Page</SelectItem>
+                  <SelectItem value="recharge">💎 Recharge Page (3D Carousel — 5s auto-rotate)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500">
+                Choose where this banner appears. Recharge page shows 6 rotating banners; up to 12 supported.
+              </p>
+            </div>
+
             {/* Colors */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
