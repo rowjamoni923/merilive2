@@ -46,6 +46,23 @@ export function usePartyRoomWebRTC(
 
   const roomRef = useRef<Room | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
+  const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
+
+  const detachAudioForIdentity = (identity: string) => {
+    const els = audioElementsRef.current.get(identity);
+    if (els) {
+      els.forEach((el) => {
+        try { el.pause(); } catch { /* ignore */ }
+        try { (el as any).srcObject = null; } catch { /* ignore */ }
+        try { el.remove(); } catch { /* ignore */ }
+      });
+      audioElementsRef.current.delete(identity);
+    }
+  };
+
+  const detachAllAudio = () => {
+    Array.from(audioElementsRef.current.keys()).forEach(detachAudioForIdentity);
+  };
 
   const cleanup = useCallback(() => {
     console.log('[PartyLiveKit] Cleaning up...');
