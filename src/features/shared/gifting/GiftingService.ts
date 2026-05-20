@@ -9,6 +9,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { callGiftService } from '@/utils/giftServiceClient';
+import { broadcastGiftSent } from '@/features/shared/room/roomBroadcast';
 
 export interface GiftItem {
   id: string;
@@ -133,6 +134,40 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       beans_earned: result.hostReceived,
       host_percent: result.hostPercent
     });
+
+    // ⚡ INSTANT BROADCAST: fire-and-forget so every viewer sees the animation
+    // in <100ms (vs 1-3s postgres_changes latency).
+    const broadcastRoomId = streamId || roomId;
+    if (broadcastRoomId) {
+      (async () => {
+        try {
+          const [gift, senderRes] = await Promise.all([
+            getGiftById(giftId),
+            supabase
+              .from('profiles')
+              .select('display_name, avatar_url')
+              .eq('id', senderId)
+              .maybeSingle(),
+          ]);
+          broadcastGiftSent(broadcastRoomId, {
+            senderId,
+            senderName: senderRes.data?.display_name || 'Someone',
+            senderAvatar: senderRes.data?.avatar_url || undefined,
+            giftId,
+            giftName: gift?.name || 'Gift',
+            giftIconUrl: gift?.icon_url,
+            giftAnimationUrl: gift?.animation_url,
+            giftSoundUrl: gift?.sound_url,
+            quantity,
+            coinAmount: result.coinsSpent || 0,
+            beansEarned: result.hostReceived || 0,
+            timestamp: Date.now(),
+          });
+        } catch (err) {
+          console.warn('[GiftingService] Broadcast failed (non-fatal):', err);
+        }
+      })();
+    }
 
     return {
       success: true,
