@@ -55,6 +55,7 @@ const fmtNum = (n: number) => (n ?? 0).toLocaleString();
 const fmtDate = (iso: string) => new Date(iso).toLocaleString();
 
 export default function AdminTopupTraderApprovals() {
+  const { tierMin: TIER_MIN } = useTopupTraderTierMin();
   const [traders, setTraders] = useState<TraderRow[]>([]);
   const [log, setLog] = useState<LogRow[]>([]);
   const [loading, setLoading] = useState(false);
