@@ -13,6 +13,7 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { ShieldCheck, ShieldX, RefreshCw, Search, History, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
+import { useTopupTraderTierMin } from "@/hooks/useTopupTraderTierMin";
 
 interface TraderRow {
   helper_id: string;
@@ -47,7 +48,8 @@ interface LogRow {
   created_at: string;
 }
 
-const TIER_MIN: Record<number, number> = { 1: 50000, 2: 100000, 3: 150000, 4: 200000, 5: 300000 };
+// TIER_MIN moved to admin-configurable app_settings.topup_trader_tier_min_wallet (Pkg70).
+// Use the useTopupTraderTierMin() hook below — never hardcode here.
 
 const fmtNum = (n: number) => (n ?? 0).toLocaleString();
 const fmtDate = (iso: string) => new Date(iso).toLocaleString();
