@@ -18,6 +18,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { processInstallReferrer } from "@/utils/installReferrer";
 
+import { processInstallReferrer } from "@/utils/installReferrer";
+import { parseReferralPayload } from "@/utils/referralParsing";
+
 interface InstallReferrerPlugin {
   getReferrer(): Promise<{ referrer: string; cached: boolean; responseCode?: number }>;
 }
@@ -44,13 +47,13 @@ interface Parsed {
 }
 
 function parse(raw: string): Parsed {
+  const result = parseReferralPayload(raw);
   let decoded = raw;
   try { decoded = decodeURIComponent(raw); } catch { /* keep raw */ }
-  const params = new URLSearchParams(decoded.includes("=") ? decoded : "");
   return {
-    ref: params.get("ref") || params.get("invitation"),
-    agencyCode: params.get("agency") || params.get("code"),
-    allParams: Array.from(params.entries()),
+    ref: result.ref,
+    agencyCode: result.agencyCode,
+    allParams: Object.entries(result.all),
     decoded,
   };
 }
