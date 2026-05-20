@@ -141,14 +141,14 @@ export function AdvancedPartyBottomBar({
       try {
         const { data, error } = await supabase
           .from('game_settings')
-          .select('game_id, game_name, game_emoji, game_color, is_featured')
+          .select('game_id, game_name, game_emoji, game_color, is_featured, logo_url')
           .eq('is_active', true)
           .order('display_order', { ascending: true });
 
         if (!error && data) {
           setAvailableGames(data.map((game, index) => ({
             id: game.game_id, name: game.game_name, emoji: game.game_emoji,
-            color: game.game_color, isLive: game.is_featured || index < 3,
+            color: game.game_color, isLive: game.is_featured || index < 3, logo_url: game.logo_url,
             players: Math.floor(Math.random() * 3000) + 500
           })));
         }
