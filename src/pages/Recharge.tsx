@@ -162,6 +162,8 @@ const Recharge = () => {
     };
   }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true, samples: { country: [], inactive: [], lowBalance: [], tierMin: [] } });
   const helperRotationPage = 0;
+  // Pkg79 — show Admin deep-links inside empty-state diagnostic cards only when an admin session is present
+  const isAdminViewer = useMemo(() => !!getAdminSession(), []);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [userAppUid, setUserAppUid] = useState<string | null>(null);
