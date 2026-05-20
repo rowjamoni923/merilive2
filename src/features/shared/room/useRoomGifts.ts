@@ -56,67 +56,90 @@ export function useRoomGifts({
   enabled = true,
 }: UseRoomGiftsOptions) {
   const isMountedRef = useRef(true);
+  // De-dup keys shared by both broadcast + postgres_changes paths
+  const seenKeysRef = useRef<Map<string, number>>(new Map());
+
+  const markSeen = useCallback((key: string): boolean => {
+    const now = Date.now();
+    // GC entries older than 15s
+    for (const [k, t] of seenKeysRef.current) {
+      if (now - t > 15000) seenKeysRef.current.delete(k);
+    }
+    if (seenKeysRef.current.has(key)) return false;
+    seenKeysRef.current.set(key, now);
+    return true;
+  }, []);
 
   useEffect(() => {
     isMountedRef.current = true;
-    
+
     if (!enabled || !roomId) return;
 
     console.log('[useRoomGifts] Setting up gift subscription for room:', roomId);
 
-    // CRITICAL FIX: Subscribe WITHOUT filter because Supabase Realtime filters on UUID columns 
-    // can fail silently. Instead, filter client-side for reliability.
+    // ⚡ INSTANT path: broadcast channel (sub-100ms)
+    const unsubBroadcast = subscribeToRoomBroadcasts(roomId, {
+      onGiftSent: (payload) => {
+        if (!isMountedRef.current) return;
+        // Skip own gift (sender already triggered locally)
+        if (payload.senderId === currentUserId) return;
+
+        const key = `bcast:${payload.senderId}:${payload.giftId}:${payload.timestamp}`;
+        if (!markSeen(key)) return;
+        // Also mark a coarse dedup so the slower postgres_changes path is suppressed
+        markSeen(`gift:${payload.senderId}:${payload.giftId}:${Math.floor(payload.timestamp / 2000)}`);
+
+        console.log('[useRoomGifts] ⚡ Instant gift via broadcast:', payload.giftName);
+        onGiftReceived({
+          id: `gift_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          senderName: payload.senderName,
+          giftName: payload.giftName,
+          giftIcon: '🎁',
+          giftImageUrl: payload.giftIconUrl,
+          animationUrl: payload.giftAnimationUrl || payload.giftIconUrl,
+          soundUrl: payload.giftSoundUrl,
+          giftColor: 'from-pink-500 to-purple-500',
+          count: payload.quantity,
+          coins: payload.coinAmount,
+        });
+        onPlaySound?.();
+      },
+    });
+
+    // 🛟 Fallback path: postgres_changes (1-3s) — handles missed broadcasts
     const channel = supabase
       .channel(`room-gifts-${roomId}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'gift_transactions' },
         async (payload: any) => {
-          console.log('[useRoomGifts] 🎁 Gift transaction detected:', payload.new);
-          
           if (!isMountedRef.current) return;
-          
-          // CLIENT-SIDE FILTER: Check if gift belongs to this room (stream_id OR party_room_id)
+
           const transactionStreamId = payload.new?.stream_id;
           const transactionPartyRoomId = payload.new?.party_room_id;
           const matchesRoom = transactionStreamId === roomId || transactionPartyRoomId === roomId;
-          
-          if (!matchesRoom) {
-            console.log('[useRoomGifts] Skipping - different room:', { transactionStreamId, transactionPartyRoomId, roomId });
-            return;
-          }
-          
-          console.log('[useRoomGifts] 🎁 Gift is for THIS room, processing...');
-          
-          // Skip if this is our own gift (sender already triggered animation locally)
+          if (!matchesRoom) return;
+
           const isOwnGift = payload.new?.sender_id === currentUserId;
-          if (isOwnGift) {
-            console.log('[useRoomGifts] Skipping own gift (already triggered locally)');
+          if (isOwnGift) return;
+
+          // De-dup with broadcast path: if broadcast already fired within ~2s, skip
+          const createdMs = payload.new?.created_at ? new Date(payload.new.created_at).getTime() : Date.now();
+          const coarseKey = `gift:${payload.new.sender_id}:${payload.new.gift_id}:${Math.floor(createdMs / 2000)}`;
+          if (!markSeen(coarseKey)) {
+            console.log('[useRoomGifts] Skipping pg gift — already shown via broadcast');
             return;
           }
-          
-          // Fetch gift and sender details
+
           const [giftResponse, senderResponse] = await Promise.all([
-            supabase
-              .from('gifts')
-              .select('name, icon_url, animation_url, sound_url')
-              .eq('id', payload.new.gift_id)
-              .single(),
-            supabase
-              .from('profiles')
-              .select('display_name, avatar_url, user_level')
-              .eq('id', payload.new.sender_id)
-              .single()
+            supabase.from('gifts').select('name, icon_url, animation_url, sound_url').eq('id', payload.new.gift_id).single(),
+            supabase.from('profiles').select('display_name, avatar_url, user_level').eq('id', payload.new.sender_id).single(),
           ]);
-          
+
           const gift = giftResponse.data;
           const sender = senderResponse.data;
-          
+
           if (gift && isMountedRef.current) {
-            console.log('[useRoomGifts] 🎁 PUBLIC ANIMATION - Showing to all:', gift.name, 'from', sender?.display_name);
-            
             const giftCount = payload.new.quantity || 1;
-            
-            // Trigger gift animation for ALL other participants
             onGiftReceived({
               id: `gift_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
               senderName: sender?.display_name || 'Someone',
@@ -129,8 +152,6 @@ export function useRoomGifts({
               count: giftCount,
               coins: payload.new.coin_amount || 0,
             });
-            
-            // Play gift sound
             onPlaySound?.();
           }
         }
@@ -141,9 +162,10 @@ export function useRoomGifts({
 
     return () => {
       isMountedRef.current = false;
+      unsubBroadcast();
       supabase.removeChannel(channel);
     };
-  }, [roomId, currentUserId, onGiftReceived, onGiftChatMessage, onPlaySound, enabled]);
+  }, [roomId, currentUserId, onGiftReceived, onGiftChatMessage, onPlaySound, enabled, markSeen]);
 
   return null;
 }
