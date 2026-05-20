@@ -10,8 +10,7 @@
  * + age. Listens to the `admin-table-update` window event dispatched by
  * `useAdminBroadcastSync` (Pkg37) — zero extra subscriptions.
  */
-import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Activity, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,7 +37,7 @@ export function AdminRealtimeSyncIndicator() {
   const [status, setStatus] = useState<Status>("connecting");
   const [last, setLast] = useState<LastEvent | null>(null);
   const [, force] = useState(0);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  
 
   // 1. Listen to admin-table-update — every successful broadcast fires this.
   useEffect(() => {
@@ -56,24 +55,20 @@ export function AdminRealtimeSyncIndicator() {
     return () => window.removeEventListener("admin-table-update", onEvent);
   }, []);
 
-  // 2. Independent presence channel — proves the realtime websocket itself is
-  //    actually connected (not just that the broadcast hook mounted).
+  // 2. Listen to admin-broadcast-status from the singleton hook.
+  //    NO extra realtime channel — Pkg53 cost guard. (Extra per-tab channels
+  //    are what ran up the historical $1400 realtime bill.)
   useEffect(() => {
-    const ch = supabase
-      .channel("admin-sync-indicator-presence")
-      .subscribe((s) => {
-        if (s === "SUBSCRIBED") {
-          setStatus((prev) => (prev === "error" ? "live" : prev === "connecting" ? "live" : prev));
-        } else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") {
-          setStatus("error");
-        }
-      });
-    channelRef.current = ch;
-    return () => {
-      try {
-        supabase.removeChannel(ch);
-      } catch {}
+    const onStatus = (e: Event) => {
+      const s = (e as CustomEvent).detail?.status as string | undefined;
+      if (s === "SUBSCRIBED") {
+        setStatus((prev) => (prev === "error" || prev === "connecting" ? "live" : prev));
+      } else if (s === "CHANNEL_ERROR" || s === "TIMED_OUT" || s === "CLOSED") {
+        setStatus("error");
+      }
     };
+    window.addEventListener("admin-broadcast-status", onStatus);
+    return () => window.removeEventListener("admin-broadcast-status", onStatus);
   }, []);
 
   // 3. Tick every 10s to recompute idle state + re-render "age" label.

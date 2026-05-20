@@ -305,7 +305,16 @@ export function useAdminBroadcastSync() {
             }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          // Pkg53: emit channel status so AdminRealtimeSyncIndicator can
+          // observe websocket health WITHOUT opening its own channel.
+          // (Extra channels = extra realtime cost — caused $1400 bill before.)
+          try {
+            window.dispatchEvent(
+              new CustomEvent('admin-broadcast-status', { detail: { status } })
+            );
+          } catch {}
+        });
     })();
 
     return () => {
