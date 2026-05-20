@@ -126,9 +126,13 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                       <img
                         src={sticker.preview}
                         alt={sticker.name}
-                        loading="lazy"
+                        loading="eager"
+                        decoding="sync"
+                        fetchPriority="high"
+                        draggable={false}
                         className={cn('h-full w-full object-contain drop-shadow-md', getStickerAnimationClass(sticker.name))}
                       />
+
                       {isActive && (
                         <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 shadow">
                           <span className="text-[10px] text-white">✓</span>
