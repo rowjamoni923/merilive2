@@ -136,6 +136,7 @@ export default function AdminBanners() {
         is_active: true,
         start_date: "",
         end_date: "",
+        location: "home",
       });
     }
     setShowEditor(true);
