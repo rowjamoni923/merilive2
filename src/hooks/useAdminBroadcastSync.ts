@@ -198,6 +198,16 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   recharge_transactions: [['admin-recharge-history'], ['recharge-transactions']],
   agency_commission_history: [['admin-agency-commission-log'], ['agency-commission-history']],
   agency_earnings_transfers: [['admin-agency-earnings'], ['agency-earnings-transfers']],
+
+  // Pkg61 — Admin system/security cross-session sync
+  admin_notifications: [['admin-notifications']],
+  banned_devices: [['admin-banned-devices'], ['banned-devices']],
+  admin_section_permissions: [['admin-section-permissions'], ['admin-sub-admins']],
+  admin_sections: [['admin-sections']],
+  admin_users: [['admin-users'], ['admin-sub-admins']],
+  admin_allowed_devices: [['admin-allowed-devices'], ['admin-device-approvals']],
+  host_contact_violations: [['admin-contact-violations'], ['host-contact-violations']],
+  rating_reward_claims: [['admin-rating-rewards'], ['rating-reward-claims']],
 };
 
 let globalChannel: ReturnType<typeof supabase.channel> | null = null;
