@@ -168,6 +168,7 @@ const Level5HelperDashboard = () => {
   // Read tab from URL params for notification deep linking
   const urlParams = new URLSearchParams(window.location.search);
   const initialTab = urlParams.get('tab') || "agency-withdrawals";
+  const initialAction = urlParams.get('action');
   const [activeTab, setActiveTab] = useState(initialTab);
   
   // Data states
