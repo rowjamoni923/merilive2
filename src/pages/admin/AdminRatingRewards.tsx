@@ -304,10 +304,8 @@ export default function AdminRatingRewards() {
 
       if (error) throw error;
 
-      const rejectedClaim = claims.find(c => c.id === claimId);
-      if (rejectedClaim) {
-        await adminSendNotification(rejectedClaim.user_id, '❌ Rating Reward Rejected', 'Your Play Store rating screenshot was not approved. Please make sure to submit a clear screenshot showing your 5-star rating. You can only submit once.', 'system');
-      }
+      // In-app notification, push (FCM) and decision email are dispatched server-side
+      // by tg_rating_reward_alert on rating_reward_claims status change.
 
       toast.success('Claim rejected');
     } catch (err: any) {
