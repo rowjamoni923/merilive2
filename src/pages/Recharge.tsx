@@ -2763,6 +2763,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-rose-600/80 leading-snug">
                             No helper-trader profiles exist in the system yet. This section will populate once traders register and are approved.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-rose-700 bg-rose-50/80 rounded px-1.5 py-0.5 inline-block">
+                            Filter: country === "{helperDiag.userCountry || '?'}" | is_active=true | is_verified=true
+                          </div>
                           {isAdminViewer && (
                             <a
                               href="/admin/helper-applications"
