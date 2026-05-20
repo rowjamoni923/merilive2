@@ -300,9 +300,12 @@ const AdminSupportTickets = () => {
 
         const validTicketIds = new Set(
           (ticketMessages || [])
-            .filter((m: any) => !isAiSummarySupportMessage(m.content) && !/^\[Category:\s*.+\].*AI/is.test(m.content || ''))
+            // ✅ Only hide truly AI-generated messages. The old `/.*AI/is`
+            // sub-regex matched any English word containing "ai" and hid real tickets.
+            .filter((m: any) => !isAiSummarySupportMessage(m.content))
             .map((m: any) => m.ticket_id)
         );
+
 
         visibleTickets = allTickets.filter((t) => validTicketIds.has(t.id));
       }
