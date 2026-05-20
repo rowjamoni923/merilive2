@@ -62,7 +62,7 @@ export function RatingProofStatusRow() {
   const refresh = useCallback(async (uid: string) => {
     const { data } = await supabase
       .from("rating_reward_claims")
-      .select("status, rejection_reason, created_at")
+      .select("status, rejection_reason, created_at, reviewed_at")
       .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(1)
