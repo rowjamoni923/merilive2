@@ -2693,7 +2693,15 @@ export default function AdminLayout() {
               )}
             </motion.div>
           )}
+
+          {/* Pkg82 — Audit ID search (jump to diagnostic section) */}
+          {isSidebarOpen && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-2">
+              <AuditIdSearch compact />
+            </motion.div>
+          )}
         </div>
+
 
         {/* Navigation Groups */}
         <ScrollArea className="flex-1 min-h-0 [&>div>div]:!block">
