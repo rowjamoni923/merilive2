@@ -866,6 +866,16 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
 
   const currentGame = games.find(g => g.game_id === activeGame);
 
+  useEffect(() => {
+    const presets = (currentGame?.preset_bets && Array.isArray(currentGame.preset_bets) && currentGame.preset_bets.length > 0)
+      ? currentGame.preset_bets as number[]
+      : DEFAULT_PRESET_BETS;
+    if (!presets.includes(betAmount)) {
+      setBetAmount(presets[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGame, currentGame?.preset_bets]);
+
   const renderGame = () => {
     const props = {
       betAmount,
