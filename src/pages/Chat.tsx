@@ -2471,7 +2471,7 @@ const Chat = () => {
                     <button
                       key={lang.code}
                       onClick={() => handleInlineLangChange(lang.code)}
-                      className={`shrink-0 inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all duration-200 border ${
+                      className={`shrink-0 inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all duration-200 border ${ // dark-ok
                         active
                           ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-fuchsia-600 text-white border-white shadow-[0_4px_14px_rgba(244,114,182,0.45)] ring-2 ring-amber-300/70 scale-[1.04]'
                           : 'bg-white text-slate-700 border-slate-200 shadow-sm hover:border-amber-300 hover:shadow-md hover:-translate-y-px'
