@@ -69,6 +69,7 @@ interface TopUpHelper {
   whatsappNumber: string | null;
   acceptedMethods: AcceptedMethodLogo[];
   dailyTopUps: number;
+  isApproved: boolean;
 }
 
 interface Level5HelperPaymentMethod {
