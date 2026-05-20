@@ -140,7 +140,7 @@ export default function AdminTopupTraderApprovals() {
       <AdminPageHeader
         icon={ShieldCheck}
         title="Top-up Trader Approvals"
-        description="Approve or revoke Level 1–5 helper-traders for UID top-up permission. Changes apply instantly to the Diamond Store."
+        subtitle="Approve or revoke Level 1–5 helper-traders for UID top-up permission. Changes apply instantly to the Diamond Store."
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
