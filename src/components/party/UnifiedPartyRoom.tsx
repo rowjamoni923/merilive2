@@ -1316,7 +1316,7 @@ export function UnifiedPartyRoom({
           <div className="flex flex-col">
             <span className="text-white font-semibold text-sm truncate max-w-[120px]">{roomName}</span>
             <div className="flex items-center gap-1.5 text-[10px]">
-              <span className="text-white/60">{hostCountryFlag || '🌍'}</span>
+              <CountryFlag code={hostCountryCode} emoji={hostCountryFlag || '🌍'} className="w-[16px] h-[11px]" />
               <button
                 onClick={onOpenGiftContributors}
                 className="inline-flex items-center"
@@ -1514,6 +1514,7 @@ export function UnifiedPartyRoom({
                 localStream={localStream}
                 peerStream={seat && getPeerStream ? getPeerStream(seat.id) : null}
                 hostCountryFlag={hostCountryFlag}
+                hostCountryCode={hostCountryCode}
                 totalRoomBeans={totalBeans}
                 onBeansClick={onOpenGiftContributors}
               />
