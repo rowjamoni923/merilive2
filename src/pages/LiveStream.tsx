@@ -3633,11 +3633,12 @@ const LiveStream = () => {
         ))}
       </AnimatePresence>
 
-      {/* Global Live Game Selector - All games available */}
+      {/* Global Live Game Selector — context="live" routes win bubbles to stream_chat */}
       <LiveGameSelector
         isOpen={showGamePanel}
         onClose={() => setShowGamePanel(false)}
         roomId={id}
+        context="live"
         onOpenGifts={() => setShowGiftPanel(true)}
       />
 

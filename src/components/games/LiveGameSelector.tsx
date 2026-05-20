@@ -23,6 +23,8 @@ interface LiveGameSelectorProps {
   onClose: () => void;
   roomId?: string;
   onOpenGifts?: () => void;
+  /** Where win bubbles should post (live stream chat vs party room chat). */
+  context?: 'live' | 'party' | 'none';
 }
 
 // 3D Game Card Component
@@ -81,7 +83,7 @@ const Game3DCard = ({
 };
 
 
-export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts }: LiveGameSelectorProps) {
+export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts, context = 'party' }: LiveGameSelectorProps) {
   const [games, setGames] = useState<GameItem[]>([]);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -147,6 +149,7 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts }: LiveG
               <LiveGameBoard
                 selectedGame={selectedGame}
                 roomId={roomId}
+                context={context}
                 onClose={() => {
                   setSelectedGame(null);
                   onClose();
