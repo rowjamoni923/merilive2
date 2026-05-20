@@ -55,6 +55,24 @@ export default function AdminRatingRewards() {
   const [historyData, setHistoryData] = useState<RatingClaim[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // Audit log state
+  interface AuditEntry {
+    id: string;
+    claim_id: string;
+    user_id: string;
+    action: string;
+    admin_id: string | null;
+    reward_type: string | null;
+    reward_amount: number | null;
+    rejection_reason: string | null;
+    created_at: string;
+    admin?: { display_name: string | null; email: string | null } | null;
+  }
+  const [auditClaim, setAuditClaim] = useState<RatingClaim | null>(null);
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+
+
   // Fetch rating popup toggle state
   useEffect(() => {
     const fetchToggle = async () => {
