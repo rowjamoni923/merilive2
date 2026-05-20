@@ -425,40 +425,74 @@ const VideoGridSeat = ({
     >
       {/* Video or Avatar */}
       {hasRenderableVideoTrack && !participant.isVideoOff ? (
-        <video
-          ref={(el) => {
-            if (el && streamToUse && hasRenderableVideoTrack && el.srcObject !== streamToUse) {
-              hardenVideoElementForNative(el, { muted: true });
-              el.srcObject = streamToUse;
-              el.muted = true;
-              el.playsInline = true;
-              const tryPlay = () => {
-                el.play().catch(() => {
-                  setTimeout(tryPlay, 300);
-                });
-              };
-              tryPlay();
-            }
-          }}
-          autoPlay
-          playsInline
-          muted
-          controls={false}
-          disablePictureInPicture
-          disableRemotePlayback
-          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-          poster=""
-          // @ts-ignore
-          x5-video-player-type="h5"
-          x5-video-player-fullscreen="false"
-          x5-playsinline="true"
-          webkit-playsinline="true"
-          className={cn(
-            "absolute inset-0 w-full h-full object-cover pointer-events-none",
-            isMyself && "transform scale-x-[-1]"
-          )}
-          style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
-        />
+        <>
+          <video
+            ref={(el) => {
+              if (el && streamToUse && hasRenderableVideoTrack && el.srcObject !== streamToUse) {
+                hardenVideoElementForNative(el, { muted: true });
+                el.srcObject = streamToUse;
+                el.muted = true;
+                el.playsInline = true;
+                const tryPlay = () => {
+                  el.play().catch(() => {
+                    setTimeout(tryPlay, 300);
+                  });
+                };
+                tryPlay();
+
+                // Shield removal: wait for actual frames before removing cover
+                const shield = el.parentElement?.querySelector('[data-video-shield]') as HTMLElement | null;
+                if (shield) {
+                  const removeShield = () => {
+                    shield.style.opacity = '0';
+                    setTimeout(() => { shield.style.display = 'none'; }, 300);
+                  };
+                  if ('requestVideoFrameCallback' in el) {
+                    (el as any).requestVideoFrameCallback(removeShield);
+                  } else {
+                    setTimeout(removeShield, 600);
+                  }
+                  setTimeout(removeShield, 1500);
+                }
+              }
+            }}
+            autoPlay
+            playsInline
+            muted
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+            poster=""
+            // @ts-ignore
+            x5-video-player-type="h5"
+            x5-video-player-fullscreen="false"
+            x5-playsinline="true"
+            webkit-playsinline="true"
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover pointer-events-none",
+              isMyself && "transform scale-x-[-1]"
+            )}
+            style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+          />
+          {/* Shield: hides native HTML5 play overlay icon until real frames arrive */}
+          <div
+            data-video-shield
+            className="absolute inset-0 z-10 bg-gradient-to-br from-purple-700/80 to-indigo-800/80 flex items-center justify-center pointer-events-none transition-opacity duration-300"
+          >
+            <AvatarWithFrame
+              userId={participant.id}
+              src={participant.avatarUrl}
+              name={participant.displayName}
+              level={participant.level}
+              isHost={participant.isHost}
+              size="lg"
+              showAnimation={true}
+              showGlow={true}
+              showFrame={true}
+            />
+          </div>
+        </>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80">
           <AvatarWithFrame
