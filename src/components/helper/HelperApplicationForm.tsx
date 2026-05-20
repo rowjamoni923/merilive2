@@ -182,6 +182,12 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     if (isPaidLevel && effectiveCost <= 0) {
       return `Level ${selectedLevel} upgrade cost is not configured by admin yet`;
     }
+    // Crypto gateway minimum: on-chain auto-verification requires ≥ $100.
+    // Admin can set lower tier prices, but crypto payment is blocked below
+    // this floor — user must pick a tier ≥ $100 or contact support.
+    if (isPaidLevel && effectiveCost < CRYPTO_PAYMENT_MIN_USD) {
+      return `Minimum crypto payment is $${CRYPTO_PAYMENT_MIN_USD}. Selected level costs only $${effectiveCost} — please choose a higher tier.`;
+    }
     return null;
   };
 
