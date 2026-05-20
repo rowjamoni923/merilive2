@@ -681,8 +681,25 @@ const AdminHelperApplications = () => {
                         )}
                         {(selectedApp.payment_details as any)?.amount_usd != null && (
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Amount Paid:</span>
+                            <span className="text-muted-foreground">Amount Paid (on-chain):</span>
                             <span className="font-bold text-emerald-600">${(selectedApp.payment_details as any).amount_usd}</span>
+                          </div>
+                        )}
+                        {(selectedApp.payment_details as any)?.detected_level != null && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Auto-detected Level:</span>
+                            <span className="flex items-center gap-1.5">
+                              <span className="font-bold text-purple-600">L{(selectedApp.payment_details as any).detected_level}</span>
+                              {(selectedApp.payment_details as any).auto_level_adjusted ? (
+                                <span className="text-[9px] font-semibold text-amber-700 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                                  AUTO-UPGRADED from L{(selectedApp.payment_details as any).selected_level}
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                                  MATCHED L{(selectedApp.payment_details as any).selected_level}
+                                </span>
+                              )}
+                            </span>
                           </div>
                         )}
                         {(selectedApp.payment_details as any)?.diamonds_credited != null && (
