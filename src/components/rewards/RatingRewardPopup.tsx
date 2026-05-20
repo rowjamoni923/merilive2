@@ -187,18 +187,29 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
         .from('rating-screenshots')
         .getPublicUrl(path);
 
+      // Detect platform (Capacitor native → android/ios, otherwise web)
+      let platform = 'web';
+      try {
+        const { Capacitor } = await import('@capacitor/core');
+        if (Capacitor?.isNativePlatform?.()) {
+          platform = Capacitor.getPlatform() || 'android';
+        }
+      } catch { /* web fallback */ }
+
       const { error: claimError } = await supabase
         .from('rating_reward_claims')
         .insert({
           user_id: userId,
           screenshot_url: urlData.publicUrl,
+          platform,
         });
 
       if (claimError) {
         if (claimError.code === '23505') {
           toast.error('You have already submitted a rating claim');
         } else {
-          throw claimError;
+          console.error('Rating claim insert error:', claimError);
+          toast.error(claimError.message || 'Failed to submit claim');
         }
         return;
       }
