@@ -78,6 +78,13 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     enforceInlineSurface();
     hardenVideoElementForNative(el, { muted: true });
 
+    // Re-show shield on new track (covers native play icon until first frame)
+    if (shieldRef.current) {
+      shieldRef.current.style.display = 'block';
+      shieldRef.current.style.opacity = '1';
+    }
+
+
     const mediaTrack = videoTrack.mediaStreamTrack;
 
     // === ATTACH TRACK ===
