@@ -1882,12 +1882,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
         {/* Action Buttons for other profiles - Premium Style */}
         {!isOwnProfile && currentUser && (
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-4 w-full px-2 justify-center">
             <Button
               size="sm"
               variant={isFollowing ? "outline" : "default"}
+              aria-label={isFollowing ? "Unfollow" : "Follow"}
               className={cn(
-                "h-9 text-xs px-4 rounded-full font-semibold transition-all shadow-lg",
+                "h-11 min-w-[88px] text-xs px-4 rounded-full font-semibold transition-all shadow-lg active:scale-95",
                 isFollowing 
                   ? "border-purple-500/50 text-purple-600 hover:bg-purple-500/10" 
                   : "bg-gradient-to-r from-purple-500 to-pink-500 shadow-purple-500/30 hover:shadow-purple-500/50"
@@ -1895,26 +1896,28 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={handleFollow}
               disabled={followLoading}
             >
-              {isFollowing ? <UserCheck className="w-3.5 h-3.5 mr-1" /> : <UserPlus className="w-3.5 h-3.5 mr-1" />}
+              {isFollowing ? <UserCheck className="w-4 h-4 mr-1" /> : <UserPlus className="w-4 h-4 mr-1" />}
               {isFollowing ? "Following" : "Follow"}
             </Button>
             {profile?.is_host && profile?.gender === 'female' && (
               <Button 
                 size="sm" 
-                className="h-9 text-xs px-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 font-semibold shadow-lg shadow-green-500/30" 
+                aria-label="Call"
+                className="h-11 min-w-[88px] text-xs px-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 font-semibold shadow-lg shadow-green-500/30 active:scale-95" 
                 onClick={handleCall}
               >
-                <Phone className="w-3.5 h-3.5 mr-1" />
+                <Phone className="w-4 h-4 mr-1" />
                 Call
               </Button>
             )}
             <Button 
               size="sm" 
               variant="outline" 
-              className="h-9 text-xs px-4 rounded-full border-pink-500/50 text-pink-600 hover:bg-pink-500/10 font-semibold" 
+              aria-label="Message"
+              className="h-11 min-w-[88px] text-xs px-4 rounded-full border-pink-500/50 text-pink-600 hover:bg-pink-500/10 font-semibold active:scale-95" 
               onClick={() => navigate(`/chat?user=${profileId}`)}
             >
-              <MessageCircle className="w-3.5 h-3.5 mr-1" />
+              <MessageCircle className="w-4 h-4 mr-1" />
               Message
             </Button>
           </div>
