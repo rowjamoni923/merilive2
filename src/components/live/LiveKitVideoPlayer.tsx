@@ -131,6 +131,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     mediaTrack?.addEventListener('ended', onTrackEnded);
 
     const markReady = () => {
+      revealVideo();
       if (!muted) {
         // Optional unmute after successful playback start
         try {
@@ -142,6 +143,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         }
       }
     };
+
 
 
     const playNow = () => {
