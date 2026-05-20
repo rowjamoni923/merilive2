@@ -2344,20 +2344,20 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 })();
               }
             }}>
-              <TabsList className="w-full bg-white p-1 rounded-2xl grid grid-cols-4">
- <TabsTrigger value="user" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-slate-900">
+              <TabsList className="w-full bg-white p-1 rounded-2xl grid grid-cols-4 sticky top-0 z-10">
+                <TabsTrigger value="user" aria-label="Transfer to user" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-slate-900">
                   <User className="w-3.5 h-3.5" />
                   User
                 </TabsTrigger>
- <TabsTrigger value="agency" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-slate-900">
+                <TabsTrigger value="agency" aria-label="Transfer to agency" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-slate-900">
                   <Building2 className="w-3.5 h-3.5" />
                   Agency
                 </TabsTrigger>
- <TabsTrigger value="self" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-slate-900">
+                <TabsTrigger value="self" aria-label="Self recharge" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-slate-900">
                   <Gem className="w-3.5 h-3.5" />
                   Self
                 </TabsTrigger>
- <TabsTrigger value="history" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-slate-900">
+                <TabsTrigger value="history" aria-label="Transfer history" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-slate-900">
                   <History className="w-3.5 h-3.5" />
                   History
                 </TabsTrigger>
