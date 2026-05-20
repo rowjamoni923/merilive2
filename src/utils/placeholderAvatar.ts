@@ -21,16 +21,19 @@ export function getPlaceholderAvatar(profileId: string, gender?: PlaceholderGend
   const cached = cache.get(key);
   if (cached) return cached;
 
-  const style = isMale ? notionists : lorelei;
-  const svg = createAvatar(style, {
+  const common = {
     seed,
     size: 256,
     radius: 50,
-    backgroundType: ["gradientLinear", "solid"],
+    backgroundType: ["gradientLinear", "solid"] as ("gradientLinear" | "solid")[],
     backgroundColor: isMale
       ? ["1e3a8a", "0f172a", "374151", "065f46", "3730a3", "7c2d12"]
       : ["fce7f3", "fbcfe8", "fed7aa", "fef3c7", "ddd6fe", "e0e7ff"],
-  }).toDataUri();
+  };
+  const svg = (isMale
+    ? createAvatar(notionists, common)
+    : createAvatar(lorelei, common)
+  ).toDataUri();
 
   cache.set(key, svg);
   return svg;
