@@ -1381,13 +1381,43 @@ const Level5HelperDashboard = () => {
 
         <div className="relative mt-4">
           <Button
-            onClick={() => navigate('/helper-dashboard')}
+            onClick={() => setShowManualTopupDialog(true)}
             className="w-full h-10 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-semibold shadow-lg shadow-amber-500/30 border-0"
           >
             <DollarSign className="w-4 h-4 mr-2" />
             Open Manual Top-up
           </Button>
         </div>
+
+        {/* Manual Top-up Dialog (inline — no navigation to L1-4 dashboard) */}
+        <Dialog open={showManualTopupDialog} onOpenChange={setShowManualTopupDialog}>
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 bg-white">
+            <DialogHeader className="px-4 pt-4 pb-2">
+              <DialogTitle className="flex items-center gap-2 text-slate-900">
+                <DollarSign className="w-5 h-5 text-emerald-600" />
+                Manual Top-up
+              </DialogTitle>
+            </DialogHeader>
+            <div className="px-4 pb-4">
+              {helperData?.id && (
+                <ManualTopupCard
+                  helperId={helperData.id}
+                  traderLevel={helperData?.trader_level || 5}
+                  defaultOpen={true}
+                  onCredited={(coins) => {
+                    setHelperData((prev: any) =>
+                      prev
+                        ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins }
+                        : prev
+                    );
+                    setShowManualTopupDialog(false);
+                  }}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
 
       </div>
 
