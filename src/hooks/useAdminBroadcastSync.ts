@@ -208,6 +208,7 @@ export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   admin_allowed_devices: [['admin-allowed-devices'], ['admin-device-approvals']],
   host_contact_violations: [['admin-contact-violations'], ['host-contact-violations']],
   rating_reward_claims: [['admin-rating-rewards'], ['rating-reward-claims']],
+  rating_reward_audit_log: [['admin-rating-rewards-audit'], ['rating-reward-audit-log']],
 
   // Pkg62 — Moderation/Reports re-verify (live face violations)
   live_face_violations: [['admin-face-violations'], ['live-face-violations']],

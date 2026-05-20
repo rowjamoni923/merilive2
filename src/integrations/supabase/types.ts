@@ -9706,6 +9706,42 @@ export type Database = {
         }
         Relationships: []
       }
+      rating_reward_audit_log: {
+        Row: {
+          action: string
+          admin_id: string | null
+          claim_id: string
+          created_at: string
+          id: string
+          rejection_reason: string | null
+          reward_amount: number | null
+          reward_type: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          claim_id: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          reward_amount?: number | null
+          reward_type?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          claim_id?: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          reward_amount?: number | null
+          reward_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       rating_reward_claims: {
         Row: {
           claimed_at: string

@@ -1,0 +1,1 @@
+INSERT INTO public.admin_broadcast (topic) VALUES ('rating_reward_audit_log') ON CONFLICT (topic) DO NOTHING;

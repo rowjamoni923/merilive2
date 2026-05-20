@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Star, CheckCircle, XCircle, Clock, User, Image, Search, RefreshCw, Eye, History, ArrowRight, Diamond, Bean, Power } from 'lucide-react';
+import { Star, CheckCircle, XCircle, Clock, User, Image, Search, RefreshCw, Eye, History, ArrowRight, Diamond, Bean, Power, ScrollText, Shield } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +54,24 @@ export default function AdminRatingRewards() {
   // Transaction history state (separate from claims)
   const [historyData, setHistoryData] = useState<RatingClaim[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+
+  // Audit log state
+  interface AuditEntry {
+    id: string;
+    claim_id: string;
+    user_id: string;
+    action: string;
+    admin_id: string | null;
+    reward_type: string | null;
+    reward_amount: number | null;
+    rejection_reason: string | null;
+    created_at: string;
+    admin?: { display_name: string | null; email: string | null } | null;
+  }
+  const [auditClaim, setAuditClaim] = useState<RatingClaim | null>(null);
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+
 
   // Fetch rating popup toggle state
   useEffect(() => {
@@ -193,6 +211,42 @@ export default function AdminRatingRewards() {
     if (filter === 'history') fetchTransactionHistory();
     else fetchClaims();
   }, 'admin-rating-rewards');
+
+  const openAuditLog = useCallback(async (claim: RatingClaim) => {
+    setAuditClaim(claim);
+    setAuditEntries([]);
+    setAuditLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('rating_reward_audit_log')
+        .select('*')
+        .eq('claim_id', claim.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const rows = (data || []) as AuditEntry[];
+      const adminIds = [...new Set(rows.map(r => r.admin_id).filter(Boolean) as string[])];
+      let adminMap: Record<string, any> = {};
+      if (adminIds.length) {
+        const { data: admins } = await supabase
+          .from('admin_users')
+          .select('user_id, display_name, email')
+          .in('user_id', adminIds);
+        (admins || []).forEach((a: any) => { adminMap[a.user_id] = a; });
+      }
+      setAuditEntries(rows.map(r => ({ ...r, admin: r.admin_id ? adminMap[r.admin_id] || null : null })));
+    } catch (err) {
+      console.error('Fetch audit log error:', err);
+      recordAdminError({ kind: 'rpc', label: 'AdminRatingRewards.audit', message: formatAdminError(err) });
+      toast.error('Failed to load audit log');
+    } finally {
+      setAuditLoading(false);
+    }
+  }, []);
+
+  useAdminRealtime(['rating_reward_audit_log'], () => {
+    if (auditClaim) openAuditLog(auditClaim);
+  }, 'admin-rating-rewards-audit');
+
 
   const handleApprove = async (claim: RatingClaim) => {
     setProcessingId(claim.id);
@@ -407,21 +461,23 @@ export default function AdminRatingRewards() {
           ) : (
             <div className="rounded-xl border border-slate-800 overflow-hidden">
               {/* Table Header */}
-              <div className="grid grid-cols-[40px_1fr_120px_140px_140px_100px] gap-3 px-4 py-3 bg-slate-900/80 text-[11px] text-slate-500 font-medium uppercase tracking-wider border-b border-slate-800">
+              <div className="grid grid-cols-[40px_1fr_120px_140px_140px_100px_70px] gap-3 px-4 py-3 bg-slate-900/80 text-[11px] text-slate-500 font-medium uppercase tracking-wider border-b border-slate-800">
                 <div>#</div>
                 <div>Recipient</div>
                 <div>Reward</div>
                 <div>Approved By</div>
                 <div>Date</div>
                 <div>Status</div>
+                <div>Log</div>
               </div>
+
 
               {/* Table Body */}
               <div className="divide-y divide-slate-800/50">
                 {filteredHistory.map((item, idx) => (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[40px_1fr_120px_140px_140px_100px] gap-3 px-4 py-3 items-center hover:bg-slate-800/30 transition-colors"
+                    className="grid grid-cols-[40px_1fr_120px_140px_140px_100px_70px] gap-3 px-4 py-3 items-center hover:bg-slate-800/30 transition-colors"
                   >
                     {/* Index */}
                     <div className="text-xs text-slate-600 font-mono">{idx + 1}</div>
@@ -481,7 +537,21 @@ export default function AdminRatingRewards() {
                         {item.status === 'approved' ? '✅ Sent' : '❌ Rejected'}
                       </Badge>
                     </div>
+
+                    {/* Log */}
+                    <div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openAuditLog(item)}
+                        className="h-7 px-2 gap-1 border-slate-700 text-slate-300 hover:bg-slate-800 text-[10px]"
+                      >
+                        <ScrollText className="w-3 h-3" />
+                        View
+                      </Button>
+                    </div>
                   </div>
+
                 ))}
               </div>
             </div>
@@ -583,30 +653,44 @@ export default function AdminRatingRewards() {
                     </div>
                   </button>
 
-                  {claim.status === 'pending' && (
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button
-                        size="sm"
-                        onClick={() => handleApprove(claim)}
-                        disabled={processingId === claim.id}
-                        className="h-9 px-3 gap-1 bg-emerald-600 hover:bg-emerald-500 text-white"
-                      >
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        Approve
-                      </Button>
+                  <div className="flex gap-2 flex-shrink-0">
+                    {claim.status === 'pending' && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => handleApprove(claim)}
+                          disabled={processingId === claim.id}
+                          className="h-9 px-3 gap-1 bg-emerald-600 hover:bg-emerald-500 text-white"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleReject(claim.id)}
+                          disabled={processingId === claim.id}
+                          className="h-9 px-3 gap-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                    {(claim.status === 'approved' || claim.status === 'rejected') && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleReject(claim.id)}
-                        disabled={processingId === claim.id}
-                        className="h-9 px-3 gap-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        onClick={() => openAuditLog(claim)}
+                        className="h-9 px-3 gap-1 border-slate-700 text-slate-300 hover:bg-slate-800"
                       >
-                        <XCircle className="w-3.5 h-3.5" />
-                        Reject
+                        <ScrollText className="w-3.5 h-3.5" />
+                        Log
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
+
               ))}
             </div>
           )}
@@ -624,6 +708,87 @@ export default function AdminRatingRewards() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Audit Log Dialog */}
+      <Dialog open={!!auditClaim} onOpenChange={(o) => { if (!o) { setAuditClaim(null); setAuditEntries([]); } }}>
+        <DialogContent className="max-w-2xl bg-slate-900 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              Decision Audit Log
+              {auditClaim?.profile?.display_name && (
+                <span className="text-xs text-slate-400 font-normal">
+                  · {auditClaim.profile.display_name}
+                  {auditClaim.profile.app_uid && <span className="text-slate-600"> #{auditClaim.profile.app_uid}</span>}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {auditLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="w-6 h-6 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+              </div>
+            ) : auditEntries.length === 0 ? (
+              <div className="text-center py-10 text-slate-500 text-sm">
+                <ScrollText className="w-8 h-8 mx-auto mb-2 text-slate-700" />
+                No audit entries recorded for this claim yet.
+              </div>
+            ) : (
+              <ol className="relative border-l border-slate-700/60 ml-3 space-y-4 py-2">
+                {auditEntries.map((e) => {
+                  const isApproved = e.action === 'approved';
+                  const Icon = isApproved ? CheckCircle : XCircle;
+                  const color = isApproved ? 'text-emerald-300' : 'text-red-300';
+                  const ring = isApproved ? 'bg-emerald-500/20 border-emerald-500/40' : 'bg-red-500/20 border-red-500/40';
+                  return (
+                    <li key={e.id} className="ml-4">
+                      <span className={`absolute -left-[9px] flex items-center justify-center w-4 h-4 rounded-full border ${ring}`}>
+                        <Icon className={`w-2.5 h-2.5 ${color}`} />
+                      </span>
+                      <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className={`text-xs font-semibold uppercase tracking-wider ${color}`}>
+                            {e.action}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            {formatFullDate(e.created_at)}
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-slate-300">
+                          <span className="text-slate-500">By: </span>
+                          <span className="font-medium">
+                            {e.admin?.display_name || e.admin?.email || (e.admin_id ? `Admin ${e.admin_id.slice(0, 8)}` : 'System')}
+                          </span>
+                          {e.admin_id && (
+                            <span className="text-[10px] text-slate-600 font-mono ml-2">({e.admin_id.slice(0, 8)}…)</span>
+                          )}
+                        </div>
+                        {isApproved && e.reward_amount != null && (
+                          <div className="mt-1 text-xs">
+                            <span className="text-slate-500">Reward: </span>
+                            <span className={e.reward_type === 'beans' ? 'text-amber-300 font-medium' : 'text-cyan-300 font-medium'}>
+                              {e.reward_type === 'beans' ? '🫘' : '💎'} {Number(e.reward_amount).toLocaleString()}{' '}
+                              {e.reward_type === 'beans' ? 'Beans' : 'Diamonds'}
+                            </span>
+                          </div>
+                        )}
+                        {e.rejection_reason && (
+                          <div className="mt-1 text-xs">
+                            <span className="text-slate-500">Reason: </span>
+                            <span className="text-slate-300">{e.rejection_reason}</span>
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
