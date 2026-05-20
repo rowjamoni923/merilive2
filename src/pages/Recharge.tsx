@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles, Gem, Crown, Star, Wallet, Copy, Upload, X, Clock, Heart, RefreshCw, ShoppingCart, MessageCircle, AlertTriangle, Info, MapPin, ShieldCheck, Globe } from "lucide-react";
+import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles, Gem, Crown, Star, Wallet, Copy, Upload, X, Clock, Heart, RefreshCw, ShoppingCart, MessageCircle, AlertTriangle, Info, MapPin, ShieldCheck, Globe, ExternalLink } from "lucide-react";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import firstRechargeBanner from "@/assets/first-recharge-banner.jpg";
 import treasureChest3D from "@/assets/treasure-chest-3d.png";
@@ -22,6 +22,7 @@ import playStoreBilling, { PLAY_STORE_PRODUCTS, loadPlayStoreProducts } from "@/
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
 import { useTopupTraderTierMin } from "@/hooks/useTopupTraderTierMin";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { getAdminSession } from "@/utils/adminSession";
 import {
   Dialog,
   DialogContent,
@@ -161,6 +162,8 @@ const Recharge = () => {
     };
   }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true, samples: { country: [], inactive: [], lowBalance: [], tierMin: [] } });
   const helperRotationPage = 0;
+  // Pkg79 — show Admin deep-links inside empty-state diagnostic cards only when an admin session is present
+  const isAdminViewer = useMemo(() => !!getAdminSession(), []);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [userAppUid, setUserAppUid] = useState<string | null>(null);
@@ -2745,11 +2748,21 @@ const Recharge = () => {
                     {helperDiag.rawTotal === 0 && !helperDiag.isLoading && (
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-rose-100 p-2.5">
                         <span className="mt-0.5 text-base">📭</span>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-semibold text-rose-700">No trader data found</p>
                           <p className="text-[10px] text-rose-600/80 leading-snug">
                             No helper-trader profiles exist in the system yet. This section will populate once traders register and are approved.
                           </p>
+                          {isAdminViewer && (
+                            <a
+                              href="/admin/helper-applications"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 hover:text-rose-900 underline-offset-2 hover:underline"
+                            >
+                              Open Admin → Helper Applications <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}
@@ -2775,6 +2788,16 @@ const Recharge = () => {
                                 </div>
                               ))}
                             </div>
+                          )}
+                          {isAdminViewer && (
+                            <a
+                              href="/admin/topup-payment-methods"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-blue-700 hover:text-blue-900 underline-offset-2 hover:underline"
+                            >
+                              Open Admin → Country Payment Methods <ExternalLink className="w-3 h-3" />
+                            </a>
                           )}
                         </div>
                       </div>
@@ -2802,6 +2825,16 @@ const Recharge = () => {
                                 </div>
                               ))}
                             </div>
+                          )}
+                          {isAdminViewer && (
+                            <a
+                              href="/admin/topup-system"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-orange-700 hover:text-orange-900 underline-offset-2 hover:underline"
+                            >
+                              Open Admin → Top-up Traders <ExternalLink className="w-3 h-3" />
+                            </a>
                           )}
                         </div>
                       </div>
@@ -2843,6 +2876,26 @@ const Recharge = () => {
                               })}
                             </div>
                           )}
+                          {isAdminViewer && (
+                            <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+                              <a
+                                href="/admin/topup-system"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline"
+                              >
+                                Open Admin → Top-up Traders <ExternalLink className="w-3 h-3" />
+                              </a>
+                              <a
+                                href="/admin/pricing-hub"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline"
+                              >
+                                Edit Tier-Min Wallets (Pricing Hub → Helper) <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -2851,11 +2904,21 @@ const Recharge = () => {
                     {helperDiag.rawTotal > 0 && helperDiag.finalCount === 0 && !helperDiag.isLoading && (
                       <div className="flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-100 p-2.5">
                         <Info className="w-4 h-4 text-slate-500 mt-0.5 shrink-1" />
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-semibold text-slate-700">System filter summary</p>
                           <p className="text-[10px] text-slate-600/80 leading-snug">
                             {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 50k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
                           </p>
+                          {isAdminViewer && (
+                            <a
+                              href="/admin/helper-management"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-slate-700 hover:text-slate-900 underline-offset-2 hover:underline"
+                            >
+                              Open Admin → Helper Management <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}
