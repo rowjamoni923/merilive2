@@ -96,7 +96,7 @@ describe("Pkg75 — Helper application auto-level detection on deposit confirm",
   it("treats invalid/negative/NaN amounts as L1 (no silent upgrade)", () => {
     expect(deriveDetectedLevel(-1)).toBe(1);
     expect(deriveDetectedLevel(NaN as unknown as number)).toBe(1);
-    expect(deriveDetectedLevel(Infinity)).toBe(5); // ≥ every tier
+    expect(deriveDetectedLevel(Infinity)).toBe(1); // non-finite → safe L1
   });
 
   it("requested_level is auto-set to detected_level (ignores client selection)", () => {
