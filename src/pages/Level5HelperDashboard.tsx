@@ -2935,101 +2935,16 @@ const Level5HelperDashboard = () => {
           
           <div className="space-y-4">
             <div>
-              <Label className="text-slate-500">Select Country *</Label>
-              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
- <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
-                  <SelectValue placeholder="Choose a country..." />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-50 border-slate-200 max-h-60">
-                  {[
-                    { code: 'BD', name: '🇧🇩 Bangladesh', currency: 'BDT' },
-                    { code: 'IN', name: '🇮🇳 India', currency: 'INR' },
-                    { code: 'PK', name: '🇵🇰 Pakistan', currency: 'PKR' },
-                    { code: 'NP', name: '🇳🇵 Nepal', currency: 'NPR' },
-                    { code: 'LK', name: '🇱🇰 Sri Lanka', currency: 'LKR' },
-                    { code: 'MM', name: '🇲🇲 Myanmar', currency: 'MMK' },
-                    { code: 'TH', name: '🇹🇭 Thailand', currency: 'THB' },
-                    { code: 'VN', name: '🇻🇳 Vietnam', currency: 'VND' },
-                    { code: 'ID', name: '🇮🇩 Indonesia', currency: 'IDR' },
-                    { code: 'MY', name: '🇲🇾 Malaysia', currency: 'MYR' },
-                    { code: 'PH', name: '🇵🇭 Philippines', currency: 'PHP' },
-                    { code: 'SG', name: '🇸🇬 Singapore', currency: 'SGD' },
-                    { code: 'KH', name: '🇰🇭 Cambodia', currency: 'KHR' },
-                    { code: 'LA', name: '🇱🇦 Laos', currency: 'LAK' },
-                    { code: 'AE', name: '🇦🇪 UAE', currency: 'AED' },
-                    { code: 'SA', name: '🇸🇦 Saudi Arabia', currency: 'SAR' },
-                    { code: 'KW', name: '🇰🇼 Kuwait', currency: 'KWD' },
-                    { code: 'QA', name: '🇶🇦 Qatar', currency: 'QAR' },
-                    { code: 'BH', name: '🇧🇭 Bahrain', currency: 'BHD' },
-                    { code: 'OM', name: '🇴🇲 Oman', currency: 'OMR' },
-                    { code: 'JO', name: '🇯🇴 Jordan', currency: 'JOD' },
-                    { code: 'IQ', name: '🇮🇶 Iraq', currency: 'IQD' },
-                    { code: 'LB', name: '🇱🇧 Lebanon', currency: 'LBP' },
-                    { code: 'EG', name: '🇪🇬 Egypt', currency: 'EGP' },
-                    { code: 'NG', name: '🇳🇬 Nigeria', currency: 'NGN' },
-                    { code: 'KE', name: '🇰🇪 Kenya', currency: 'KES' },
-                    { code: 'GH', name: '🇬🇭 Ghana', currency: 'GHS' },
-                    { code: 'ZA', name: '🇿🇦 South Africa', currency: 'ZAR' },
-                    { code: 'TZ', name: '🇹🇿 Tanzania', currency: 'TZS' },
-                    { code: 'UG', name: '🇺🇬 Uganda', currency: 'UGX' },
-                    { code: 'ET', name: '🇪🇹 Ethiopia', currency: 'ETB' },
-                    { code: 'CM', name: '🇨🇲 Cameroon', currency: 'XAF' },
-                    { code: 'SN', name: '🇸🇳 Senegal', currency: 'XOF' },
-                    { code: 'CI', name: '🇨🇮 Ivory Coast', currency: 'XOF' },
-                    { code: 'MA', name: '🇲🇦 Morocco', currency: 'MAD' },
-                    { code: 'TN', name: '🇹🇳 Tunisia', currency: 'TND' },
-                    { code: 'DZ', name: '🇩🇿 Algeria', currency: 'DZD' },
-                    { code: 'TR', name: '🇹🇷 Turkey', currency: 'TRY' },
-                    { code: 'RU', name: '🇷🇺 Russia', currency: 'RUB' },
-                    { code: 'UA', name: '🇺🇦 Ukraine', currency: 'UAH' },
-                    { code: 'GE', name: '🇬🇪 Georgia', currency: 'GEL' },
-                    { code: 'AZ', name: '🇦🇿 Azerbaijan', currency: 'AZN' },
-                    { code: 'UZ', name: '🇺🇿 Uzbekistan', currency: 'UZS' },
-                    { code: 'KZ', name: '🇰🇿 Kazakhstan', currency: 'KZT' },
-                    { code: 'BR', name: '🇧🇷 Brazil', currency: 'BRL' },
-                    { code: 'MX', name: '🇲🇽 Mexico', currency: 'MXN' },
-                    { code: 'AR', name: '🇦🇷 Argentina', currency: 'ARS' },
-                    { code: 'CO', name: '🇨🇴 Colombia', currency: 'COP' },
-                    { code: 'PE', name: '🇵🇪 Peru', currency: 'PEN' },
-                    { code: 'CL', name: '🇨🇱 Chile', currency: 'CLP' },
-                    { code: 'EC', name: '🇪🇨 Ecuador', currency: 'USD' },
-                    { code: 'VE', name: '🇻🇪 Venezuela', currency: 'VES' },
-                    { code: 'DO', name: '🇩🇴 Dominican Republic', currency: 'DOP' },
-                    { code: 'US', name: '🇺🇸 United States', currency: 'USD' },
-                    { code: 'CA', name: '🇨🇦 Canada', currency: 'CAD' },
-                    { code: 'GB', name: '🇬🇧 United Kingdom', currency: 'GBP' },
-                    { code: 'DE', name: '🇩🇪 Germany', currency: 'EUR' },
-                    { code: 'FR', name: '🇫🇷 France', currency: 'EUR' },
-                    { code: 'IT', name: '🇮🇹 Italy', currency: 'EUR' },
-                    { code: 'ES', name: '🇪🇸 Spain', currency: 'EUR' },
-                    { code: 'NL', name: '🇳🇱 Netherlands', currency: 'EUR' },
-                    { code: 'PT', name: '🇵🇹 Portugal', currency: 'EUR' },
-                    { code: 'BE', name: '🇧🇪 Belgium', currency: 'EUR' },
-                    { code: 'AT', name: '🇦🇹 Austria', currency: 'EUR' },
-                    { code: 'SE', name: '🇸🇪 Sweden', currency: 'SEK' },
-                    { code: 'NO', name: '🇳🇴 Norway', currency: 'NOK' },
-                    { code: 'DK', name: '🇩🇰 Denmark', currency: 'DKK' },
-                    { code: 'FI', name: '🇫🇮 Finland', currency: 'EUR' },
-                    { code: 'PL', name: '🇵🇱 Poland', currency: 'PLN' },
-                    { code: 'CZ', name: '🇨🇿 Czech Republic', currency: 'CZK' },
-                    { code: 'RO', name: '🇷🇴 Romania', currency: 'RON' },
-                    { code: 'HU', name: '🇭🇺 Hungary', currency: 'HUF' },
-                    { code: 'AU', name: '🇦🇺 Australia', currency: 'AUD' },
-                    { code: 'NZ', name: '🇳🇿 New Zealand', currency: 'NZD' },
-                    { code: 'JP', name: '🇯🇵 Japan', currency: 'JPY' },
-                    { code: 'KR', name: '🇰🇷 South Korea', currency: 'KRW' },
-                    { code: 'CN', name: '🇨🇳 China', currency: 'CNY' },
-                    { code: 'HK', name: '🇭🇰 Hong Kong', currency: 'HKD' },
-                    { code: 'TW', name: '🇹🇼 Taiwan', currency: 'TWD' },
-                    { code: 'GLOBAL', name: '🌍 Global (ePay/Crypto)', currency: 'USD' },
-                  ].map((country) => (
- <SelectItem key={country.code} value={country.code} className="text-slate-900">
-                      {country.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="text-slate-500">Country</Label>
+              <div className="mt-1 flex items-center justify-between bg-slate-50 border border-slate-200 rounded-md px-3 py-2">
+                <span className="text-slate-900 text-sm font-medium">{helperCountryName}</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider">Locked</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1">
+                You can only add methods for your assigned country.
+              </p>
             </div>
+
 
             <div>
               <Label className="text-slate-500">Payment Method Type *</Label>
