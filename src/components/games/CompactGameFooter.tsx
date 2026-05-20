@@ -110,7 +110,12 @@ const MiniDragonTiger = ({
     else if (tigerValue > dragonValue) result = 'tiger';
     else result = 'tie';
     setWinner(result);
-    if (result === selectedBet) toast.success(`🎉 You won!`);
+    if (result === selectedBet) {
+      const multiplier = selectedBet === 'tie' ? 8 : 2;
+      const winAmount = Math.floor(betAmount * multiplier);
+      toast.success(`🎉 You won ${winAmount.toLocaleString()}!`);
+      onWin?.(winAmount);
+    }
   };
 
   const handlePlaceBet = async (type: 'dragon' | 'tiger' | 'tie') => {
