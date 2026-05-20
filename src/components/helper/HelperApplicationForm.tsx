@@ -573,7 +573,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
             <div className="bg-white/70 rounded-lg p-3 space-y-1.5">
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-slate-600">Level cost</span>
-                <span className="font-bold text-emerald-600">${upgradeCost}</span>
+                <span className="font-bold text-emerald-600">${effectiveCost}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-slate-600">Diamonds you receive</span>
