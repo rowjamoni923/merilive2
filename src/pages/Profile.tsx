@@ -1755,11 +1755,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     <div className="fixed inset-0 flex flex-col profile-home-shell overflow-hidden">
 
       {/* Back Button - Fixed at top, never scrolls away */}
-      <div className="fixed top-3 left-3 z-10 safe-area-top">
+      <div className="fixed top-2 left-3 z-10 safe-area-top">
         <Button
           size="icon"
           variant="ghost"
-          className="w-10 h-10 rounded-full profile-home-icon-button hover:bg-slate-50"
+          aria-label="Back"
+          className="w-11 h-11 rounded-full profile-home-icon-button hover:bg-slate-50 active:scale-95 transition-transform"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="w-5 h-5 text-body" />
