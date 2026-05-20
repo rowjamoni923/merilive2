@@ -189,7 +189,7 @@ export const ViewerListPanel = ({
                   <div className="w-6 h-6 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
                 </div>
               ) : viewers.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 text-white/50">
+                <div className="flex flex-col items-center justify-center h-32 text-white/70">
                   <Users className="w-10 h-10 mb-2 opacity-40" />
                   <p className="text-xs">No viewers yet</p>
                 </div>
@@ -210,7 +210,7 @@ export const ViewerListPanel = ({
                             {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-white/40">
+                          <span className="text-[10px] text-white/65">
                             {index + 1}
                           </span>
                         )}
@@ -241,7 +241,7 @@ export const ViewerListPanel = ({
                             Lv{viewer.user_level}
                           </Badge>
                         </div>
-                        <p className="text-[10px] text-white/40">
+                        <p className="text-[10px] text-white/65">
                           {formatJoinTime(viewer.joined_at)}
                         </p>
                       </div>

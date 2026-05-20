@@ -275,12 +275,12 @@ export const PKBattlePanel = ({
             </Button>
 
             <div className="mt-4 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search hosts..."
-                className="w-full bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/50 pl-10"
+                className="w-full bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/70 pl-10"
               />
             </div>
           </div>

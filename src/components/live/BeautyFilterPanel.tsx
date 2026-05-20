@@ -101,7 +101,7 @@ function SliderControl({ label, value, onChange, icon, color = 'from-pink-500 to
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-white/60">{label}</span>
-          <span className="text-xs text-white/40 tabular-nums">{value}%</span>
+          <span className="text-xs text-white/65 tabular-nums">{value}%</span>
         </div>
         <div className="relative w-full h-2 bg-white/10 rounded-full">
           <div
@@ -213,7 +213,7 @@ export function BeautyFilterPanel({
               <div className="flex items-center gap-3">
                 <button
                   onClick={resetAll}
-                  className="text-xs text-white/50 hover:text-white/80 transition-colors px-2 py-1"
+                  className="text-xs text-white/70 hover:text-white/80 transition-colors px-2 py-1"
                 >
                   Reset
                 </button>
@@ -233,7 +233,7 @@ export function BeautyFilterPanel({
                   onClick={resetAll}
                   className={cn(
                     'shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                    !enabled ? 'bg-white/20 text-white' : 'bg-white/5 text-white/50'
+                    !enabled ? 'bg-white/20 text-white' : 'bg-white/5 text-white/70'
                   )}
                 >
                   Off
@@ -246,7 +246,7 @@ export function BeautyFilterPanel({
                       'shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all',
                       activePreset === preset.id && enabled
                         ? 'bg-gradient-to-r from-pink-500/80 to-purple-500/80 text-white shadow-lg shadow-pink-500/20'
-                        : 'bg-white/5 text-white/50 hover:bg-white/10'
+                        : 'bg-white/5 text-white/70 hover:bg-white/10'
                     )}
                   >
                     {preset.icon}
@@ -266,7 +266,7 @@ export function BeautyFilterPanel({
                     'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all',
                     activeTab === tab.key
                       ? 'bg-gradient-to-r from-pink-500/70 to-purple-500/70 text-white shadow-sm'
-                      : 'text-white/40 hover:text-white/60'
+                      : 'text-white/65 hover:text-white/60'
                   )}
                 >
                   {tab.icon}

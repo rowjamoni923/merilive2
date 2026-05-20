@@ -148,7 +148,7 @@ export const PKBattleResult = ({
                 </div>
               </motion.div>
 
-              <div className="text-white/40 font-bold">VS</div>
+              <div className="text-white/65 font-bold">VS</div>
 
               <motion.div
                 className="flex-1 text-center opacity-60"
@@ -168,7 +168,7 @@ export const PKBattleResult = ({
                 <p className="text-white/60 font-medium">{loserName}</p>
                 <div className="flex items-center justify-center gap-1 mt-1">
                   <span className="text-lg">🪙</span>
-                  <span className="text-lg font-bold text-white/50">{loserScore}</span>
+                  <span className="text-lg font-bold text-white/70">{loserScore}</span>
                 </div>
               </motion.div>
             </div>

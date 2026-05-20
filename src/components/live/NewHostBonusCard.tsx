@@ -233,7 +233,7 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
               </p>
             </div>
           </div>
-          <button onClick={() => setCollapsed(true)} className="text-white/40 hover:text-white/70 p-1">
+          <button onClick={() => setCollapsed(true)} className="text-white/65 hover:text-white/70 p-1">
             <span className="text-[10px]">✕</span>
           </button>
         </div>

@@ -92,7 +92,7 @@ export const ProfessionalChatMessage = ({
   if (type === 'system') {
     return (
       <div className="text-center py-1">
-        <span className="text-white/50 text-xs bg-white/5 px-3 py-1 rounded-full">
+        <span className="text-white/70 text-xs bg-white/5 px-3 py-1 rounded-full">
           {message}
         </span>
       </div>

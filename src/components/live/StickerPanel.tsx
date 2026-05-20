@@ -88,7 +88,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                     'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all capitalize',
                     category === cat.id
                       ? 'bg-gradient-to-r from-orange-500/80 to-pink-500/80 text-white'
-                      : 'bg-white/5 text-white/50 hover:bg-white/10'
+                      : 'bg-white/5 text-white/70 hover:bg-white/10'
                   )}
                 >
                   {cat.label}

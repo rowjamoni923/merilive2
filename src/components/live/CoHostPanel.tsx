@@ -132,7 +132,7 @@ export function CoHostPanel({
             {isHost && activeTab === 'requests' && (
               <ScrollArea className="h-64">
                 {coHostRequests.length === 0 ? (
-                  <div className="text-center py-8 text-white/50">
+                  <div className="text-center py-8 text-white/70">
                     No requests yet
                   </div>
                 ) : (
@@ -152,7 +152,7 @@ export function CoHostPanel({
                           </Avatar>
                           <div>
                             <p className="text-white font-medium">{request.userName}</p>
-                            <p className="text-white/50 text-xs">
+                            <p className="text-white/70 text-xs">
                               {new Date(request.timestamp).toLocaleTimeString('bn-BD')}
                             </p>
                           </div>
@@ -185,7 +185,7 @@ export function CoHostPanel({
             {isHost && activeTab === 'cohosts' && (
               <ScrollArea className="h-64">
                 {coHosts.size === 0 ? (
-                  <div className="text-center py-8 text-white/50">
+                  <div className="text-center py-8 text-white/70">
                     No Co-Hosts
                   </div>
                 ) : (

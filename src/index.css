@@ -87,13 +87,13 @@ video::-ms-media-controls {
   :root {
     /* Pearl-cream luxurious LIGHT theme — App default */
     --background: 42 100% 98%;
-    --foreground: 222 35% 18%;
+    --foreground: 222 42% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 35% 18%;
+    --card-foreground: 222 42% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 35% 18%;
+    --popover-foreground: 222 42% 12%;
 
     /* Vibrant Pink Primary */
     --primary: 330 85% 55%;
@@ -104,7 +104,7 @@ video::-ms-media-controls {
     --secondary-foreground: 0 0% 100%;
 
     --muted: 42 60% 95%;
-    --muted-foreground: 215 16% 42%;
+    --muted-foreground: 222 22% 32%;
 
     /* Gold Accent */
     --accent: 45 93% 58%;
@@ -1788,7 +1788,7 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   --secondary: 230 12% 14%;
   --secondary-foreground: 210 40% 96%;
   --muted: 230 12% 12%;
-  --muted-foreground: 215 20% 55%;
+  --muted-foreground: 220 18% 72%;
   --accent: 262 80% 60%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 51%;
