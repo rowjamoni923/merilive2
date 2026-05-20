@@ -446,15 +446,12 @@ export function LiveRocketRaceGame({
               </div>
 
               {/* Premium 3D Rocket - positioned right above launch pad */}
-              <div className="absolute z-20 bottom-[22px]">
+              <div className="absolute z-20 bottom-[22px] pointer-events-none">
                 <PremiumRocket3D
                   color={rocket.colorKey}
                   position={rocketPositions[i]}
                   isLaunching={isLaunching}
                   isWinner={winningRocket === i}
-                  hasBet={betOnRocket[i] > 0}
-                  betAmount={betOnRocket[i]}
-                  onClick={() => handleSelectRocket(i)}
                 />
               </div>
 
@@ -516,6 +513,17 @@ export function LiveRocketRaceGame({
               (betAmount > userCoins || autoPlayPhase !== 'betting') && "opacity-50 cursor-not-allowed"
             )}
           >
+            {/* Active Bet Badge — shows bet placed on this rocket */}
+            {betOnRocket[i] > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-amber-400 to-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg border border-white/40"
+              >
+                {betOnRocket[i] >= 1000 ? `${(betOnRocket[i]/1000).toFixed(betOnRocket[i] >= 10000 ? 0 : 1)}K` : betOnRocket[i]}
+              </motion.div>
+            )}
+
             {/* Background Glow */}
             <div className={cn(
               "absolute inset-0 opacity-30",

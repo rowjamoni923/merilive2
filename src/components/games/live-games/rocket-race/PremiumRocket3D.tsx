@@ -11,7 +11,7 @@ interface PremiumRocket3DProps {
   position: number; // 0-100 percentage
   isLaunching: boolean;
   isWinner: boolean;
-  hasBet: boolean;
+  hasBet?: boolean;
   betAmount?: number;
   onClick?: () => void;
 }
@@ -44,17 +44,13 @@ export function PremiumRocket3D({
   position,
   isLaunching,
   isWinner,
-  hasBet,
-  betAmount,
-  onClick
 }: PremiumRocket3DProps) {
   const cfg = colorConfig[color];
 
   return (
-    <div 
-      className="relative flex flex-col items-center cursor-pointer"
-      onClick={onClick}
-      style={{ 
+    <div
+      className="relative flex flex-col items-center pointer-events-none select-none"
+      style={{
         transform: `translateY(${-position * 2}px)`,
         transition: isLaunching ? 'transform 0.1s linear' : 'transform 0.3s ease-out'
       }}
@@ -67,17 +63,6 @@ export function PremiumRocket3D({
           className="absolute -top-8 text-2xl z-10"
         >
           👑
-        </motion.div>
-      )}
-
-      {/* Bet Badge */}
-      {hasBet && betAmount && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-amber-400 to-yellow-500 text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-lg border border-white/30"
-        >
-          {betAmount >= 1000 ? `${(betAmount/1000).toFixed(0)}K` : betAmount}
         </motion.div>
       )}
 
@@ -97,7 +82,7 @@ export function PremiumRocket3D({
         }}
       >
         {/* Glow Effect */}
-        <div 
+        <div
           className={cn(
             "absolute -inset-4 rounded-full blur-xl opacity-50",
             isWinner && "opacity-80 animate-pulse"
@@ -106,7 +91,7 @@ export function PremiumRocket3D({
         />
 
         {/* Rocket Image */}
-        <img 
+        <img
           src={ROCKET_IMAGES[color]}
           alt={`${color} rocket`}
           className="relative z-10 w-10 h-auto drop-shadow-2xl"
@@ -115,22 +100,6 @@ export function PremiumRocket3D({
           }}
         />
       </motion.div>
-
-      {/* Selection Ring */}
-      {hasBet && (
-        <motion.div
-          className="absolute inset-0 rounded-full border-2 border-amber-400"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.8, 0.3, 0.8] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          style={{ 
-            width: 70, 
-            height: 70, 
-            top: '50%', 
-            left: '50%',
-            transform: 'translate(-50%, -50%)'
-          }}
-        />
-      )}
     </div>
   );
 }
