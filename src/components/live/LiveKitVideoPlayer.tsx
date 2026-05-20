@@ -85,6 +85,9 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !videoTrack) return;
+    // Hide until first real frame so native play-icon never gets a chance to flash
+    el.style.opacity = '0';
+
 
     // Android WebView autoplay compatibility: force-muted at bootstrap,
     // then optionally unmute only after real playback starts.
