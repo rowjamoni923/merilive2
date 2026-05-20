@@ -4,6 +4,7 @@ import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import firstRechargeBanner from "@/assets/first-recharge-banner.jpg";
 import treasureChest3D from "@/assets/treasure-chest-3d.png";
+import RechargeBannerCarousel from "@/components/recharge/RechargeBannerCarousel";
 
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/button";
