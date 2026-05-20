@@ -3299,6 +3299,96 @@ export type Database = {
         }
         Relationships: []
       }
+      cost_monitor_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          id: number
+          message: string
+          metric: string
+          severity: string
+          source: string
+          threshold: number
+          triggered_at: string
+          value: number
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          id?: number
+          message: string
+          metric: string
+          severity?: string
+          source: string
+          threshold: number
+          triggered_at?: string
+          value: number
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          id?: number
+          message?: string
+          metric?: string
+          severity?: string
+          source?: string
+          threshold?: number
+          triggered_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      cost_monitor_samples: {
+        Row: {
+          id: number
+          metadata: Json
+          metric: string
+          sampled_at: string
+          source: string
+          value: number
+        }
+        Insert: {
+          id?: number
+          metadata?: Json
+          metric: string
+          sampled_at?: string
+          source: string
+          value?: number
+        }
+        Update: {
+          id?: number
+          metadata?: Json
+          metric?: string
+          sampled_at?: string
+          source?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      cost_monitor_snapshots: {
+        Row: {
+          idx_scan: number
+          seq_scan: number
+          snapshot_at: string
+          table_name: string
+          tup_returned: number
+        }
+        Insert: {
+          idx_scan?: number
+          seq_scan?: number
+          snapshot_at?: string
+          table_name: string
+          tup_returned?: number
+        }
+        Update: {
+          idx_scan?: number
+          seq_scan?: number
+          snapshot_at?: string
+          table_name?: string
+          tup_returned?: number
+        }
+        Relationships: []
+      }
       currency_rates: {
         Row: {
           country_code: string | null
@@ -14603,6 +14693,11 @@ export type Database = {
         Args: { _to_host: boolean; _user_id: string }
         Returns: boolean
       }
+      admin_cost_monitor_ack_alert: {
+        Args: { _id: number }
+        Returns: undefined
+      }
+      admin_cost_monitor_stats: { Args: { _hours?: number }; Returns: Json }
       admin_country_distribution: {
         Args: { _admin_id: string }
         Returns: {
@@ -17269,6 +17364,7 @@ export type Database = {
         }
         Returns: Json
       }
+      sample_cost_monitor: { Args: never; Returns: undefined }
       search_group_by_code: {
         Args: { _code: string }
         Returns: {
