@@ -384,8 +384,22 @@ const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) =>
         const d2 = Math.ceil(Math.random() * 6);
         const d3 = Math.ceil(Math.random() * 6);
         setDice1(d1); setDice2(d2); setDice3(d3);
-        setResult(d1 + d2 + d3);
+        const total = d1 + d2 + d3;
+        setResult(total);
         setRolling(false);
+        // Determine win
+        const isBigR = total >= 14;
+        const isOddR = total % 2 === 1;
+        const won =
+          (selectedBet === 'big' && isBigR) ||
+          (selectedBet === 'small' && !isBigR) ||
+          (selectedBet === 'odd' && isOddR) ||
+          (selectedBet === 'even' && !isOddR);
+        if (won) {
+          const winAmount = Math.floor(betAmount * 2);
+          toast.success(`🎉 You won ${winAmount.toLocaleString()}!`);
+          onWin?.(winAmount);
+        }
       }, 1200);
     }
   }, [phase, selectedBet]);
