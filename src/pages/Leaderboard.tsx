@@ -819,15 +819,15 @@ const Leaderboard = () => {
                 />
                 <div className="p-4 flex-1">
                   <h3 className="font-bold mb-1.5 flex items-center gap-2 text-[15px]" style={{ color: '#0f172a' }}>
-                    {activeCategory === "host_earning" ? <><Sparkles className="w-4 h-4" style={{ color: '#ec4899' }} /> Host Earning</>
-                      : activeCategory === "game_ranking" ? <><Gamepad2 className="w-4 h-4" style={{ color: '#a855f7' }} /> Game Ranking</>
-                      : activeCategory === "top_gifter" ? <><Gift className="w-4 h-4" style={{ color: '#10b981' }} /> Top Gifter</>
+                    {activeCategory === "host_earning" ? <><Gift className="w-4 h-4" style={{ color: '#ec4899' }} /> Charm — Host Earnings</>
+                      : activeCategory === "game_ranking" ? <><Gamepad2 className="w-4 h-4" style={{ color: '#a855f7' }} /> Game Winners</>
+                      : activeCategory === "top_gifter" ? <><Sparkles className="w-4 h-4" style={{ color: '#d97706' }} /> Wealth — Top Spenders</>
                       : <><Swords className="w-4 h-4" style={{ color: '#ef4444' }} /> PK Competition</>}
                   </h3>
                   <p className="text-[12.5px] leading-relaxed" style={{ color: '#334155' }}>
-                    {activeCategory === "host_earning" ? "Rankings based on Gift + Call earnings. Top 50 receive rewards."
-                      : activeCategory === "game_ranking" ? "Rankings based on game wins & earnings. Top 50 receive rewards."
-                      : activeCategory === "top_gifter" ? "Rankings based on total gifts sent (diamonds spent). Top 50 receive bonus rewards!"
+                    {activeCategory === "host_earning" ? "Hosts ranked by total Beans earned from Gifts + Private Calls in this period. Top 50 receive rewards."
+                      : activeCategory === "game_ranking" ? "Players ranked by total game winnings (payout). Top 50 receive rewards."
+                      : activeCategory === "top_gifter" ? "Users ranked by total Diamonds spent on Gifts + Private Calls + Games. Top 50 receive rewards."
                       : "Special PK competition rankings. Compete for exclusive rewards!"}
                   </p>
                 </div>
