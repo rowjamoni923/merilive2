@@ -133,6 +133,17 @@ const Recharge = () => {
   const currentBalance = localBalanceOverride ?? globalBalance;
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [topUpHelpers, setTopUpHelpers] = useState<TopUpHelper[]>([]);
+  // Diagnostic state: why are no traders showing?
+  const [helperDiag, setHelperDiag] = useState<{
+    rawTotal: number;
+    byCountry: number;
+    byTierMin: number;
+    byInactive: number;
+    byLowBalance: number;
+    finalCount: number;
+    userCountry: string | null;
+    isLoading: boolean;
+  }>({ rawTotal: 0, byCountry: 0, byTierMin: 1, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true });
   const helperRotationPage = 0;
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
