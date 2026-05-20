@@ -1058,10 +1058,11 @@ const Recharge = () => {
             totalSold: h.total_sold || 0,
             whatsappNumber: whatsapp,
             acceptedMethods: [] as AcceptedMethodLogo[],
+            dailyTopUps: 0,
           };
         });
-        // Sort by total_sold desc (highest sellers first)
-        mapped.sort((a, b) => b.totalSold - a.totalSold);
+        // Sort: L5 first, then by total_sold desc
+        mapped.sort((a, b) => (b.traderLevel - a.traderLevel) || (b.totalSold - a.totalSold));
 
         // Fetch accepted payment methods for all helpers in one query
         const helperIds = mapped.map(m => m.helperId);
