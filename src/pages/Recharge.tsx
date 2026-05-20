@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles, Gem, Crown, Star, Wallet, Copy, Upload, X, Clock, Heart, RefreshCw, ShoppingCart, MessageCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles, Gem, Crown, Star, Wallet, Copy, Upload, X, Clock, Heart, RefreshCw, ShoppingCart, MessageCircle, AlertTriangle, Info, MapPin, ShieldCheck, Globe } from "lucide-react";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import firstRechargeBanner from "@/assets/first-recharge-banner.jpg";
 import treasureChest3D from "@/assets/treasure-chest-3d.png";
