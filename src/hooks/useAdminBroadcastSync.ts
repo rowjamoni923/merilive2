@@ -97,6 +97,10 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   user_role_frames: [['user-role-frames'], ['my-role-frames'], ['vip-privileges']],
   // Pkg57 additions — Content/Assets re-audit
   helper_notifications: [['helper-notifications'], ['admin-helper-notifications']],
+  // Pkg58 additions — Moderation/Reports re-audit
+  admin_permanent_ban_cases: [['admin-permanent-ban-cases'], ['admin-severity-bans']],
+  admin_permanent_ban_case_targets: [['admin-permanent-ban-case-targets'], ['admin-severity-bans']],
+  blocked_ips: [['blocked-ips'], ['admin-blocked-ips']],
   // Pkg56 additions — Moderation/Reports
   chat_moderation_logs: [['chat-moderation-logs'], ['admin-moderation']],
   support_tickets: [['support-tickets'], ['admin-support-tickets']],
