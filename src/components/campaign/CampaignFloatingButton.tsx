@@ -427,7 +427,7 @@ function CampaignFloatingButton() {
 
   useEffect(() => {
     if (selectedPaymentTab === 'local' && !loadingMethods && helperMethods.length === 0) {
-      setSelectedPaymentTab(gateways[0]?.id || (isPlayStoreNative ? 'google' : 'mericash'));
+      setSelectedPaymentTab(isPlayStoreNative ? 'google' : 'mericash');
       setSelectedLocalMethodName(null);
     }
   }, [gateways, helperMethods.length, isPlayStoreNative, loadingMethods, selectedPaymentTab]);
@@ -468,7 +468,7 @@ function CampaignFloatingButton() {
       fetchHelperPaymentMethods(),
       fetchGateways(),
     ]);
-    setSelectedPaymentTab(isPlayStoreNative ? 'google' : (gatewayList?.[0]?.id || (helperList?.length ? 'local' : 'mericash')));
+    setSelectedPaymentTab(isPlayStoreNative ? 'google' : (helperList?.length ? 'local' : 'mericash'));
   };
 
   const resetHelperForm = () => {
@@ -997,9 +997,13 @@ function CampaignFloatingButton() {
                         </div>
                       </button>
 
-                      {/* Auto payment gateways — pulled live from payment_gateways
-                          (same source as the topup page). */}
-                      {gateways.map((gw) => {
+                      {/* Auto payment gateways — Recharge Campaign intentionally
+                          shows ONLY MeriCash (Diamond auto-credit) alongside
+                          Google Play. All other auto gateways (Wise, ZiniPay,
+                          bKash, Nagad, SSLCommerz, Rocket, AamarPay, Stripe…)
+                          are hidden here even though they exist in the topup
+                          page. Do NOT widen this filter without product sign-off. */}
+                      {gateways.filter((gw) => gw.id === 'mericash').map((gw) => {
                         const isSelected = selectedPaymentTab === gw.id;
                         return (
                           <button
