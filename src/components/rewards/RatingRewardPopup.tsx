@@ -319,6 +319,21 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                 </DialogTitle>
               </DialogHeader>
               <div className="p-5 space-y-4">
+                {latestStatus === 'rejected' && (
+                  <div className="rounded-xl px-4 py-3 text-xs leading-relaxed"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(220,38,38,0.05))',
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      color: '#fca5a5',
+                    }}
+                  >
+                    <div className="font-bold text-red-300 mb-1">Previous submission rejected</div>
+                    <div className="text-red-200/80">
+                      {rejectionReason || 'Screenshot did not show a valid 5-star rating.'}
+                    </div>
+                    <div className="text-red-200/60 mt-1.5">Please upload a clearer screenshot to try again.</div>
+                  </div>
+                )}
                 <div className="rounded-2xl p-5 text-center relative overflow-hidden"
                   style={{
                     background: 'linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(124,58,237,0.06) 100%)',
