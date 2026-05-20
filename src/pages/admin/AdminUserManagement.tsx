@@ -1455,23 +1455,23 @@ export default function AdminUserManagement() {
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
       {/* Header */}
-      <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-white via-purple-50/50 to-blue-50/50 rounded-xl md:rounded-2xl shadow-lg border border-slate-200/50">
+      <div className="flex flex-col gap-3 p-4 md:p-6 bg-gradient-to-r from-slate-900/80 via-purple-900/40 to-slate-900/80 rounded-xl md:rounded-2xl shadow-lg border border-purple-500/20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <Users className="w-6 h-6 text-purple-600" />
+            <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
+              <Users className="w-6 h-6 text-purple-400" />
               User Management
             </h1>
-            <p className="text-sm text-slate-600">Manage all users, hosts, applications, and moderation</p>
+            <p className="text-sm text-slate-300">Manage all users, hosts, applications, and moderation</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+            <Badge className="bg-blue-500/20 text-blue-100 border-blue-400/40">
               {totalUsers} Users
             </Badge>
-            <Badge className="bg-pink-100 text-pink-700 border-pink-200">
+            <Badge className="bg-pink-500/20 text-pink-100 border-pink-400/40">
               {hostStats.totalHosts} Hosts
             </Badge>
-            <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+            <Badge className="bg-amber-500/20 text-amber-100 border-amber-400/40">
               {applications.filter(a => a.status === 'pending').length} Pending Apps
             </Badge>
           </div>
@@ -1480,16 +1480,16 @@ export default function AdminUserManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-white border border-slate-200 p-1 w-full grid grid-cols-3 md:grid-cols-7 gap-1">
-          <TabsTrigger value="users" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm">
+        <TabsList className="bg-slate-900/60 border border-slate-700/50 p-1 w-full grid grid-cols-3 md:grid-cols-7 gap-1">
+          <TabsTrigger value="users" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <Users className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             All Users
           </TabsTrigger>
-          <TabsTrigger value="hosts" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm">
+          <TabsTrigger value="hosts" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <UserCheck className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Hosts
           </TabsTrigger>
-          <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
+          <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
             <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Verified
             {autoApprovedFaceCount > 0 && (
@@ -1498,7 +1498,7 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
+          <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
             <XCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Reject
             {autoRejectedFaceCount > 0 && (
@@ -1507,7 +1507,7 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="face-verification" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
+          <TabsTrigger value="face-verification" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
             <ScanFace className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Face Verify
             {pendingFaceCount > 0 && (
@@ -1516,11 +1516,11 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="moderation" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm">
+          <TabsTrigger value="moderation" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <AlertTriangle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Moderation
           </TabsTrigger>
-          <TabsTrigger value="blocked" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm">
+          <TabsTrigger value="blocked" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <Ban className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Block List
           </TabsTrigger>
@@ -1951,35 +1951,35 @@ export default function AdminUserManagement() {
         {/* === AUTO VERIFIED TAB === */}
         <TabsContent value="auto-verified" className="mt-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-200">
+            <Card className="bg-gradient-to-br from-cyan-500/15 to-cyan-700/10 border-cyan-400/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <Shield className="w-6 h-6 text-cyan-500" />
+                  <Shield className="w-6 h-6 text-cyan-300" />
                   <div>
-                    <p className="text-lg font-bold text-cyan-600">{autoApprovedFaceCount}</p>
-                    <p className="text-xs text-cyan-600/80">Auto Verified</p>
+                    <p className="text-lg font-bold text-cyan-100">{autoApprovedFaceCount}</p>
+                    <p className="text-xs text-cyan-200/80">Auto Verified</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200">
+            <Card className="bg-gradient-to-br from-pink-500/15 to-pink-700/10 border-pink-400/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <Crown className="w-6 h-6 text-pink-500" />
+                  <Crown className="w-6 h-6 text-pink-300" />
                   <div>
-                    <p className="text-lg font-bold text-pink-600">{autoHostFaceCount}</p>
-                    <p className="text-xs text-pink-600/80">Auto Host</p>
+                    <p className="text-lg font-bold text-pink-100">{autoHostFaceCount}</p>
+                    <p className="text-xs text-pink-200/80">Auto Host</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <Card className="bg-gradient-to-br from-blue-500/15 to-blue-700/10 border-blue-400/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <User className="w-6 h-6 text-blue-500" />
+                  <User className="w-6 h-6 text-blue-300" />
                   <div>
-                    <p className="text-lg font-bold text-blue-600">{autoUserFaceCount}</p>
-                    <p className="text-xs text-blue-600/80">Auto User</p>
+                    <p className="text-lg font-bold text-blue-100">{autoUserFaceCount}</p>
+                    <p className="text-xs text-blue-200/80">Auto User</p>
                   </div>
                 </div>
               </CardContent>
@@ -1987,7 +1987,7 @@ export default function AdminUserManagement() {
           </div>
 
           {/* Search */}
-          <Card className="bg-white border-slate-200 shadow-md">
+          <Card className="bg-slate-900/40 border-slate-700/50 shadow-md">
             <CardContent className="p-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -1995,7 +1995,7 @@ export default function AdminUserManagement() {
                   placeholder="Search by name or UID..."
                   value={appSearchQuery}
                   onChange={(e) => setAppSearchQuery(e.target.value)}
-                  className="pl-10 bg-slate-50 border-slate-200 h-10 text-sm text-slate-900 placeholder:text-slate-400"
+                  className="pl-10 bg-slate-800/60 border-slate-700 h-10 text-sm text-slate-100 placeholder:text-slate-500"
                 />
               </div>
             </CardContent>
@@ -2013,7 +2013,7 @@ export default function AdminUserManagement() {
               return s.full_name?.toLowerCase().includes(q) || s.profile?.app_uid?.includes(q) || s.profile?.display_name?.toLowerCase().includes(q);
             });
             return autoApproved.length === 0 ? (
-              <Card className="bg-white border-slate-200">
+              <Card className="bg-slate-900/40 border-slate-700/50">
                 <CardContent className="flex flex-col items-center justify-center h-64 text-slate-400">
                   <Shield className="w-12 h-12 mb-4" />
                   <p>No auto-verified submissions found</p>
@@ -2172,7 +2172,7 @@ export default function AdminUserManagement() {
               return s.full_name?.toLowerCase().includes(q) || s.profile?.app_uid?.includes(q) || s.profile?.display_name?.toLowerCase().includes(q);
             });
             return autoRejected.length === 0 ? (
-              <Card className="bg-white border-slate-200">
+              <Card className="bg-slate-900/40 border-slate-700/50">
                 <CardContent className="flex flex-col items-center justify-center h-64 text-slate-400">
                   <XCircle className="w-12 h-12 mb-4" />
                   <p>No auto-rejected submissions found</p>
