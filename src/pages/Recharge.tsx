@@ -68,6 +68,9 @@ interface TopUpHelper {
   countryFlag: string;
   countryName: string;
   totalSold: number;
+  traderWalletBalance: number;
+  agencyDiamondBalance: number;
+  minRequiredBalance: number;
   whatsappNumber: string | null;
   acceptedMethods: AcceptedMethodLogo[];
   dailyTopUps: number;
@@ -140,6 +143,8 @@ const Recharge = () => {
   type DiagSample = {
     country?: string | null;
     wallet: number;
+    agencyWallet?: number;
+    traderWallet?: number;
     tierMin: number;
     level: number;
     isActive?: boolean;
