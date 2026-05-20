@@ -1822,9 +1822,9 @@ const HelperDashboard = () => {
                   
                   {/* For levels 2-4: Show info that they can upgrade via manual top-up */}
                   {canUpgrade && !hasPendingRequest && level.level_number >= 2 && level.level_number <= 4 && (
-                    <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10 border border-emerald-200/30">
-                      <p className="text-emerald-600 text-xs">
-                        💡 Use <strong>Manual Top-up</strong> above to add ${level.upgrade_cost_usd} to your wallet and upgrade to this level automatically.
+                    <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 border border-white/20 shadow-md">
+                      <p className="text-white text-xs leading-relaxed">
+                        💡 Use <strong className="text-amber-100">Manual Top-up</strong> above to add ${level.upgrade_cost_usd} to your wallet and upgrade to this level automatically.
                       </p>
                     </div>
                   )}
