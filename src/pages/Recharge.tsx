@@ -68,6 +68,9 @@ interface TopUpHelper {
   countryFlag: string;
   countryName: string;
   totalSold: number;
+  traderWalletBalance: number;
+  agencyDiamondBalance: number;
+  minRequiredBalance: number;
   whatsappNumber: string | null;
   acceptedMethods: AcceptedMethodLogo[];
   dailyTopUps: number;
@@ -140,6 +143,8 @@ const Recharge = () => {
   type DiagSample = {
     country?: string | null;
     wallet: number;
+    agencyWallet?: number;
+    traderWallet?: number;
     tierMin: number;
     level: number;
     isActive?: boolean;
@@ -1038,7 +1043,8 @@ const Recharge = () => {
     try {
       console.log('[Recharge] Fetching helpers for country:', userCountryCode);
       
-      // Fetch ALL helpers (unfiltered) so we can diagnose exactly why list is empty
+      // Fetch helper rows first, then read public profile + agency balances separately.
+      // IMPORTANT: never join cross-user `profiles`; use `profiles_public` + `agencies_public`.
       const { data: helpers, error } = await supabase
         .from('topup_helpers')
         .select(`
@@ -1052,8 +1058,7 @@ const Recharge = () => {
           order_notification_phone,
           is_active,
           is_verified,
-          is_listed,
-          user:profiles!topup_helpers_user_id_fkey(id, display_name, avatar_url, is_online, app_uid, country_code, country_flag, country_name)
+          is_listed
         `)
         .eq('is_listed', true)
         .order('trader_level', { ascending: false })
@@ -1067,9 +1072,43 @@ const Recharge = () => {
       }
 
       if (helpers) {
+        const helperUserIds = [...new Set(helpers.map((h: any) => h.user_id).filter(Boolean))];
+        const [profilesResult, agenciesResult] = await Promise.all([
+          helperUserIds.length > 0
+            ? supabase
+                .from('profiles_public')
+                .select('id, display_name, avatar_url, is_online, app_uid, country_code, country_flag, country_name')
+                .in('id', helperUserIds)
+            : Promise.resolve({ data: [], error: null } as any),
+          helperUserIds.length > 0
+            ? supabase
+                .from('agencies_public' as any)
+                .select('owner_id, diamond_balance, is_active')
+                .in('owner_id', helperUserIds)
+                .eq('is_active', true)
+            : Promise.resolve({ data: [], error: null } as any),
+        ]);
+
+        if (profilesResult.error) {
+          console.error('Error fetching helper public profiles:', profilesResult.error);
+          recordClientError({ label: "Recharge.fetchHelperProfilesPublic", message: profilesResult.error.message });
+        }
+        if (agenciesResult.error) {
+          console.error('Error fetching agency public balances:', agenciesResult.error);
+          recordClientError({ label: "Recharge.fetchAgencyPublicBalances", message: agenciesResult.error.message });
+        }
+
+        const profilesMap = new Map(((profilesResult.data as any[]) || []).map((p: any) => [p.id, p]));
+        const agencyDiamondMap = new Map<string, number>();
+        ((agenciesResult.data as any[]) || []).forEach((agency: any) => {
+          const ownerId = agency.owner_id;
+          if (!ownerId) return;
+          agencyDiamondMap.set(ownerId, (agencyDiamondMap.get(ownerId) || 0) + Number(agency.diamond_balance || 0));
+        });
+
         // Tiered minimum balance per trader level — admin-configurable via
         // app_settings.topup_trader_tier_min_wallet (Pkg70). Defaults: L1=50k…L5=300k.
-        // STRICT country match using PROFILE's country_code + tier-based min balance.
+        // STRICT country match using public profile country + tier-based unified wallet minimum.
         // Track diagnostics so empty-state can explain WHY nothing shows.
         let byCountry = 0, byTierMin = 0, byInactive = 0, byLowBalance = 0;
         const sampleCountry: DiagSample[] = [];
@@ -1078,12 +1117,14 @@ const Recharge = () => {
         const sampleTierMin: DiagSample[] = [];
         const MAX_SAMPLES = 3;
         const filtered = helpers.filter(h => {
-          const user = h.user as any;
+          const user = profilesMap.get((h as any).user_id) as any;
           const profileCountry = user?.country_code || h.country_code;
           const wallet = Number(h.wallet_balance ?? 0);
+          const agencyWallet = agencyDiamondMap.get((h as any).user_id) || 0;
+          const traderWallet = wallet + agencyWallet;
           const level = Number(h.trader_level ?? 1);
           const tierMin = getTierMinWallet(level);
-          const sample: DiagSample = { country: profileCountry, wallet, tierMin, level, isActive: !!h.is_active, isVerified: !!h.is_verified };
+          const sample: DiagSample = { country: profileCountry, wallet, agencyWallet, traderWallet, tierMin, level, isActive: !!h.is_active, isVerified: !!h.is_verified };
           if (profileCountry !== userCountryCode) {
             byCountry++;
             if (sampleCountry.length < MAX_SAMPLES) sampleCountry.push(sample);
@@ -1094,18 +1135,17 @@ const Recharge = () => {
             if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
             return false;
           }
-          // Wallet-threshold gates removed per owner request — show all
-          // active+verified L1-L5 traders in same country regardless of
-          // wallet balance. Backend `is_approved_topup_trader()` still
-          // governs whether the Chat CTA appears (vs "Top-up unavailable").
-          // Diagnostics still record below-threshold helpers so agency
-          // owners see them in the audit panel.
-          if (wallet < 50000) {
+          // Automatic visibility: helper switch ON + active + verified + same country
+          // + unified Trader Wallet must meet the exact level minimum.
+          if (traderWallet < 50000) {
             byLowBalance++;
             if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
-          } else if (wallet < tierMin) {
+            return false;
+          }
+          if (traderWallet < tierMin) {
             byTierMin++;
             if (sampleTierMin.length < MAX_SAMPLES) sampleTierMin.push(sample);
+            return false;
           }
           return true;
         });
@@ -1128,16 +1168,20 @@ const Recharge = () => {
 
         
         const mapped = filtered.map(h => {
-          const user = h.user as any;
+          const user = profilesMap.get((h as any).user_id) as any;
           const contactInfo = (h as any).contact_info as any;
           const whatsapp = contactInfo?.whatsapp || contactInfo?.whatsapp_number || (h as any).order_notification_phone || null;
-          const min = getTierMinWallet(h.trader_level);
-          // Mirrors backend is_approved_topup_trader() + tier-min gate
+          const level = Number(h.trader_level ?? 1);
+          const min = getTierMinWallet(level);
+          const wallet = Number(h.wallet_balance ?? 0);
+          const agencyDiamondBalance = agencyDiamondMap.get((h as any).user_id) || 0;
+          const traderWalletBalance = wallet + agencyDiamondBalance;
+          // Mirrors exact auto-visibility gate used above.
           const isApproved =
             (h as any).is_active === true &&
             (h as any).is_verified === true &&
-            (h.trader_level ?? 0) >= 1 && (h.trader_level ?? 0) <= 5 &&
-            (h.wallet_balance ?? 0) >= min;
+            level >= 1 && level <= 5 &&
+            traderWalletBalance >= min;
           return {
             id: user?.id || h.user_id,
             helperId: h.id,
@@ -1146,8 +1190,11 @@ const Recharge = () => {
             userId: h.user_id,
             appUid: user?.app_uid || '',
             isOnline: user?.is_online || false,
-            walletBalance: h.wallet_balance ?? 0,
-            traderLevel: h.trader_level || 1,
+            walletBalance: wallet,
+            traderWalletBalance,
+            agencyDiamondBalance,
+            minRequiredBalance: min,
+            traderLevel: level,
             countryCode: user?.country_code || h.country_code || '',
             countryFlag: user?.country_flag || '🌍',
             countryName: user?.country_name || h.country_code || 'Unknown',
@@ -1223,7 +1270,7 @@ const Recharge = () => {
       console.error('Error fetching helpers:', error);
       recordClientError({ label: "Recharge.arr", message: error instanceof Error ? error.message : String(error) });
     }
-  }, [userCountryCode]);
+  }, [userCountryCode, getTierMinWallet]);
 
 
   // Fetch helper payment methods AND admin payment methods when country code changes
