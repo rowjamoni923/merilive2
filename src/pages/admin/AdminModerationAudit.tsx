@@ -7,8 +7,8 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminPagination } from "@/components/admin/AdminPagination";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import AdminPagination from "@/components/admin/AdminPagination";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
