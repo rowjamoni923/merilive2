@@ -1056,7 +1056,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         {/* Bet Amount Selector */}
         {phase === 'betting' && (
           <div className="flex justify-center gap-1 px-2 py-1.5 bg-black/30 border-t border-white/5">
-            {DEFAULT_PRESET_BETS.map((amount) => (
+            {(currentGame?.preset_bets && Array.isArray(currentGame.preset_bets) && currentGame.preset_bets.length > 0 ? currentGame.preset_bets : DEFAULT_PRESET_BETS).map((amount: number) => (
               <motion.button
                 key={amount}
                 whileTap={{ scale: 0.95 }}
