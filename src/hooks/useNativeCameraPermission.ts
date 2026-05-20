@@ -13,12 +13,23 @@ interface CameraPermissionRequestOptions {
 }
 
 // ========== GLOBAL PERMISSION CACHE ==========
-let globalPermissionGranted: boolean | null = null;
-let globalMicrophoneGranted: boolean | null = null;
+const PERM_CACHE_KEY = 'merilive.av.perm.granted.v1';
+const readCachedPerm = (): boolean => {
+  try { return typeof localStorage !== 'undefined' && localStorage.getItem(PERM_CACHE_KEY) === '1'; } catch { return false; }
+};
+const writeCachedPerm = (granted: boolean) => {
+  try { if (typeof localStorage !== 'undefined') {
+    if (granted) localStorage.setItem(PERM_CACHE_KEY, '1');
+    else localStorage.removeItem(PERM_CACHE_KEY);
+  } } catch {}
+};
+let globalPermissionGranted: boolean | null = readCachedPerm() ? true : null;
+let globalMicrophoneGranted: boolean | null = readCachedPerm() ? true : null;
 let permissionRequestInFlight: Promise<CameraPermissionResult> | null = null;
 let streamRequestInFlight: Promise<MediaStream> | null = null;
 let permissionDeniedCount = 0;
 const MAX_DENIAL_RETRIES = 2;
+
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
