@@ -129,9 +129,75 @@ export function RatingProofStatusRow() {
   const meta = STATUS_META[claim.status];
   const isRejected = claim.status === "rejected";
 
+  const triggerFilePicker = useCallback(() => {
+    if (retrying) return;
+    fileRef.current?.click();
+  }, [retrying]);
+
+  const handleRetryFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // reset so selecting the same file twice still triggers onChange
+    if (e.target) e.target.value = "";
+    if (!file || !userId) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    setRetrying(true);
+    const tId = toast.loading("Uploading new screenshot…");
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${userId}/rating_${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("rating-screenshots")
+        .upload(path, file);
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("rating-screenshots")
+        .getPublicUrl(path);
+
+      let platform = "web";
+      try {
+        const { Capacitor } = await import("@capacitor/core");
+        if (Capacitor?.isNativePlatform?.()) {
+          platform = Capacitor.getPlatform() || "android";
+        }
+      } catch { /* web fallback */ }
+
+      const { error: claimError } = await supabase
+        .from("rating_reward_claims")
+        .insert({
+          user_id: userId,
+          screenshot_url: urlData.publicUrl,
+          platform,
+        });
+
+      if (claimError) {
+        if (claimError.code === "23505") {
+          toast.error("You already have an active rating claim", { id: tId });
+        } else {
+          console.error("Rating claim insert error:", claimError);
+          toast.error(claimError.message || "Failed to resubmit claim", { id: tId });
+        }
+        return;
+      }
+
+      toast.success("Screenshot resubmitted! Awaiting admin review.", { id: tId });
+      await refresh(userId);
+    } catch (err) {
+      console.error("Retry upload error:", err);
+      toast.error("Failed to upload screenshot", { id: tId });
+    } finally {
+      setRetrying(false);
+    }
+  }, [userId, refresh]);
+
   const handleTap = () => {
     if (isRejected) {
-      window.dispatchEvent(new CustomEvent("open-rating-proof-popup"));
+      triggerFilePicker();
       return;
     }
     if (claim.status === "approved") {
@@ -145,9 +211,17 @@ export function RatingProofStatusRow() {
 
   return (
     <div className="profile-home-section rounded-xl overflow-hidden mt-2">
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        onChange={handleRetryFileSelect}
+        className="hidden"
+      />
       <button
         onClick={handleTap}
-        className="w-full flex items-center justify-between p-2.5 hover:bg-slate-50 transition-colors"
+        disabled={retrying}
+        className="w-full flex items-center justify-between p-2.5 hover:bg-slate-50 transition-colors disabled:opacity-70"
         aria-label={`Rating proof: ${meta.label}`}
       >
         <div className="flex items-center gap-2">
@@ -158,8 +232,12 @@ export function RatingProofStatusRow() {
         </div>
         <div className="flex items-center gap-1.5">
           <span className={cn("flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold", meta.pillClass)}>
-            <meta.Icon className={cn("w-3 h-3", meta.iconClass)} />
-            {meta.label}
+            {retrying && isRejected ? (
+              <Loader2 className="w-3 h-3 animate-spin text-rose-600" />
+            ) : (
+              <meta.Icon className={cn("w-3 h-3", meta.iconClass)} />
+            )}
+            {retrying && isRejected ? "Uploading…" : meta.label}
           </span>
           <ChevronRight className="w-4 h-4 text-caption" />
         </div>
@@ -197,12 +275,22 @@ export function RatingProofStatusRow() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              window.dispatchEvent(new CustomEvent("open-rating-proof-popup"));
+              triggerFilePicker();
             }}
-            className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold text-white bg-rose-600 hover:bg-rose-500 active:bg-rose-700 transition-colors"
+            disabled={retrying}
+            className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold text-white bg-rose-600 hover:bg-rose-500 active:bg-rose-700 transition-colors disabled:opacity-70"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Submit New Screenshot
+            {retrying ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Uploading new screenshot…
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-3.5 h-3.5" />
+                Retry upload
+              </>
+            )}
           </button>
         </div>
       )}
