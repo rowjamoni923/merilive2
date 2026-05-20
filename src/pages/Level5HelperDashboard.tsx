@@ -32,7 +32,7 @@ import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
 import { recordClientError } from "@/utils/clientErrorLog";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
-import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
+
 import ManualTopupCard from "@/components/helper/ManualTopupCard";
 
 interface PaymentMethod {
