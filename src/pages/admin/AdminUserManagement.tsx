@@ -1481,15 +1481,15 @@ export default function AdminUserManagement() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-white border border-slate-200 p-1 w-full grid grid-cols-3 md:grid-cols-7 gap-1">
-          <TabsTrigger value="users" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm">
+          <TabsTrigger value="users" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <Users className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             All Users
           </TabsTrigger>
-          <TabsTrigger value="hosts" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm">
+          <TabsTrigger value="hosts" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <UserCheck className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Hosts
           </TabsTrigger>
-          <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
+          <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
             <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Verified
             {autoApprovedFaceCount > 0 && (
@@ -1498,7 +1498,7 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
+          <TabsTrigger value="auto-rejected" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
             <XCircle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Auto Reject
             {autoRejectedFaceCount > 0 && (
@@ -1507,7 +1507,7 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="face-verification" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm relative">
+          <TabsTrigger value="face-verification" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
             <ScanFace className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Face Verify
             {pendingFaceCount > 0 && (
@@ -1516,11 +1516,11 @@ export default function AdminUserManagement() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="moderation" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm">
+          <TabsTrigger value="moderation" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <AlertTriangle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Moderation
           </TabsTrigger>
-          <TabsTrigger value="blocked" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-700 text-xs md:text-sm">
+          <TabsTrigger value="blocked" className="data-[state=active]:bg-red-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <Ban className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             Block List
           </TabsTrigger>
