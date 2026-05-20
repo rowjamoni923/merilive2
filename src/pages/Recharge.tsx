@@ -2357,6 +2357,10 @@ const Recharge = () => {
             0%, 100% { background-position: -200% 0; }
             50% { background-position: 200% 0; }
           }
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
           @keyframes floatParticle {
             0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
             50% { transform: translateY(-12px) scale(1.3); opacity: 1; }
