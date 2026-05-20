@@ -185,7 +185,7 @@ export function useNativeCameraPermission() {
           if (result.granted) {
             // Stop the probe stream - actual stream will be requested later
             result.stream?.getTracks().forEach(t => t.stop());
-            globalPermissionGranted = true;
+            globalPermissionGranted = true; writeCachedPerm(true);
             if (includeMicrophone) globalMicrophoneGranted = true;
             permissionDeniedCount = 0;
             setPermissionGranted(true);
@@ -217,7 +217,7 @@ export function useNativeCameraPermission() {
           result.stream?.getTracks().forEach(t => t.stop());
         }
 
-        globalPermissionGranted = true;
+        globalPermissionGranted = true; writeCachedPerm(true);
         permissionDeniedCount = 0;
         setPermissionGranted(true);
 
@@ -327,7 +327,7 @@ export function useNativeCameraPermission() {
           const settings = videoTracks[0].getSettings();
           console.log('[Camera] Success:', JSON.stringify(settings));
 
-          globalPermissionGranted = true;
+          globalPermissionGranted = true; writeCachedPerm(true);
           if (includeAudio) globalMicrophoneGranted = true;
           permissionDeniedCount = 0;
           setPermissionGranted(true);
@@ -362,7 +362,7 @@ export function useNativeCameraPermission() {
     // Fast path: already granted in this session (in-memory or persisted)
     if (globalPermissionGranted === true) return 'granted';
     if (readCachedPerm()) {
-      globalPermissionGranted = true;
+      globalPermissionGranted = true; writeCachedPerm(true);
       globalMicrophoneGranted = true;
       setPermissionGranted(true);
       return 'granted';
@@ -375,7 +375,7 @@ export function useNativeCameraPermission() {
       const micState = await queryPermissionSafe('microphone' as PermissionName);
 
       if (camState === 'granted' && (micState === 'granted' || micState === null)) {
-        globalPermissionGranted = true;
+        globalPermissionGranted = true; writeCachedPerm(true);
         if (micState === 'granted') globalMicrophoneGranted = true;
         writeCachedPerm(true);
         setPermissionGranted(true);
