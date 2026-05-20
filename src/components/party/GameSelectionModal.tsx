@@ -314,7 +314,7 @@ export function GameSelectionModal({
             </div>
 
             {/* Games Grid with 3D Cards */}
-            <div className="px-4 pb-6 max-h-[60vh] overflow-y-auto overscroll-contain">
+            <div className="px-3 pb-6 max-h-[60vh] overflow-y-auto overscroll-contain">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <motion.div
@@ -334,7 +334,7 @@ export function GameSelectionModal({
                 </div>
               ) : (
                 <motion.div 
-                  className="grid grid-cols-4 gap-3"
+                  className="grid grid-cols-3 gap-3"
                   initial="hidden"
                   animate="visible"
                   variants={{
