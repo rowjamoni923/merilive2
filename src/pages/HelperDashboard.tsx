@@ -1627,8 +1627,8 @@ const HelperDashboard = () => {
                         className="bg-white border-purple-300 text-slate-900 text-center text-lg font-bold"
                       />
                       {parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000 && (
-                        <div className="p-2 bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 rounded-lg border border-violet-200/30">
-                          <p className="text-violet-600 text-sm text-center">
+                        <div className="p-2 bg-gradient-to-r from-violet-500 to-violet-600 rounded-lg border border-white/20 shadow-md">
+                          <p className="text-white text-sm text-center font-semibold">
                             💎 {formatDiamonds(parseInt(customDiamondAmount.replace(/,/g, '')))} = ${calculateUSD(parseInt(customDiamondAmount.replace(/,/g, ''))).toFixed(2)}
                           </p>
                         </div>
