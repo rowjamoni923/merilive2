@@ -59,6 +59,7 @@ import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 interface UserProfile {
   id: string;
   display_name: string | null;
