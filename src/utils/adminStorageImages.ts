@@ -17,13 +17,13 @@ export interface AdminStoragePath {
   path: string;
 }
 const PRIVATE_STORAGE_BUCKETS = new Set([
-  'face-verification', 'host-verification',
+  'host-verification',
   'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
 ]);
-// Pkg44: face-verification + host-verification are now PRIVATE (admin-only via signed URLs).
-// chat-media stays public — direct public URL is fine for in-chat media.
-const PUBLIC_VERIFICATION_BUCKETS = new Set(['chat-media']);
+// Pkg42/face-verification: face-verification + chat-media are PUBLIC buckets.
+// Use direct public URL — no HEAD probe, no signing, no blob download.
+const PUBLIC_VERIFICATION_BUCKETS = new Set(['chat-media', 'face-verification']);
 const KNOWN_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'avatars', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
