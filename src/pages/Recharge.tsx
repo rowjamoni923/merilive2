@@ -2673,12 +2673,159 @@ const Recharge = () => {
                 );
               })()
             ) : (
-              <div className="text-center py-12">
-                <Crown className="w-12 h-12 mx-auto mb-3 text-purple-700" />
-                <p className="font-semibold text-body">No traders available</p>
-                <p className="text-xs mt-1 text-heading">
-                  No verified traders found for {geoLocation.country || 'your country'}
-                </p>
+              <div className="space-y-3">
+                {/* Main empty-state card */}
+                <div className="rounded-2xl border border-purple-100 bg-gradient-to-b from-purple-50/70 to-white p-5 text-center shadow-sm">
+                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-purple-50 shadow-inner">
+                    <Crown className="h-7 w-7 text-purple-600" />
+                  </div>
+                  <h3 className="text-sm font-bold text-heading">
+                    No Verified Traders Available
+                  </h3>
+                  <p className="mt-1 text-[11px] text-heading leading-relaxed">
+                    There are no approved traders currently visible for{' '}
+                    <span className="font-semibold text-purple-700">
+                      {geoLocation.country || 'your country'} ({helperDiag.userCountry || '?'}{')'}
+                    </span>
+                  </p>
+                </div>
+
+                {/* Diagnostic panel — WHY is it empty? */}
+                <div className="rounded-2xl border border-amber-100 bg-gradient-to-b from-amber-50/60 to-white p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <h4 className="text-xs font-bold text-amber-800">Why is this empty?</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {/* Reason 1: No data at all */}
+                    {helperDiag.rawTotal === 0 && !helperDiag.isLoading && (
+                      <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-rose-100 p-2.5">
+                        <span className="mt-0.5 text-base">📭</span>
+                        <div>
+                          <p className="text-[11px] font-semibold text-rose-700">No trader data found</p>
+                          <p className="text-[10px] text-rose-600/80 leading-snug">
+                            No helper-trader profiles exist in the system yet. This section will populate once traders register and are approved.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Reason 2: Country mismatch */}
+                    {helperDiag.byCountry > 0 && (
+                      <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-blue-100 p-2.5">
+                        <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-1" />
+                        <div>
+                          <p className="text-[11px] font-semibold text-blue-700">
+                            Country mismatch — {helperDiag.byCountry} trader{helperDiag.byCountry !== 1 ? 's' : ''} hidden
+                          </p>
+                          <p className="text-[10px] text-blue-600/80 leading-snug">
+                            Traders exist but their registered country does not match yours. Only traders from the same country are shown for regulatory compliance.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Reason 3: Inactive / unverified */}
+                    {helperDiag.byInactive > 0 && (
+                      <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-orange-100 p-2.5">
+                        <ShieldCheck className="w-4 h-4 text-orange-500 mt-0.5 shrink-1" />
+                        <div>
+                          <p className="text-[11px] font-semibold text-orange-700">
+                            Not active / unverified — {helperDiag.byInactive} trader{helperDiag.byInactive !== 1 ? 's' : ''} hidden
+                          </p>
+                          <p className="text-[10px] text-orange-600/80 leading-snug">
+                            Some trader accounts are pending admin verification, suspended, or inactive. They will appear once admin approval is complete.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Reason 4: Low wallet balance */}
+                    {(helperDiag.byLowBalance > 0 || helperDiag.byTierMin > 0) && (
+                      <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-emerald-100 p-2.5">
+                        <Wallet className="w-4 h-4 text-emerald-500 mt-1 shrink-1" />
+                        <div>
+                          <p className="text-[11px] font-semibold text-emerald-700">
+                            Wallet below threshold — {(helperDiag.byLowBalance + helperDiag.byTierMin)} trader{(helperDiag.byLowBalance + helperDiag.byTierMin) !== 1 ? 's' : ''} hidden
+                          </p>
+                          <p className="text-[10px] text-emerald-600/80 leading-snug">
+                            Traders must maintain a minimum wallet balance to stay visible. Their balance may have dropped below the required level.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Show raw stats if there ARE raw helpers but all filtered */}
+                    {helperDiag.rawTotal > 0 && helperDiag.finalCount === 0 && !helperDiag.isLoading && (
+                      <div className="flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-100 p-2.5">
+                        <Info className="w-4 h-4 text-slate-500 mt-0.5 shrink-1" />
+                        <div>
+                          <p className="text-[11px] font-semibold text-slate-700">System filter summary</p>
+                          <p className="text-[10px] text-slate-600/80 leading-snug">
+                            {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 50k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tier requirements reference */}
+                <div className="rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <Globe className="w-4 h-4 text-purple-500" />
+                    <h4 className="text-xs font-bold text-purple-800">Trader Visibility Requirements</h4>
+                  </div>
+                  <p className="text-[10px] text-heading mb-2.5 leading-relaxed">
+                    To appear here, a trader must meet ALL of the following:
+                  </p>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {[
+                      { lvl: 1, min: '50K', color: 'from-blue-400 to-cyan-400' },
+                      { lvl: 2, min: '100K', color: 'from-blue-500 to-cyan-500' },
+                      { lvl: 3, min: '150K', color: 'from-purple-500 to-pink-500' },
+                      { lvl: 4, min: '200K', color: 'from-amber-500 to-yellow-500' },
+                      { lvl: 5, min: '300K', color: 'from-amber-400 via-yellow-400 to-amber-500' },
+                    ].map(t => (
+                      <div key={t.lvl} className="rounded-xl bg-gradient-to-b from-gray-50 to-white border border-gray-100 p-2 text-center">
+                        <div className={`mx-auto mb-1 w-6 h-6 rounded-full bg-gradient-to-r ${t.color} flex items-center justify-center text-[9px] font-extrabold text-heading shadow`}>
+                          L{t.lvl}
+                        </div>
+                        <p className="text-[9px] font-bold text-heading">{t.min}</p>
+                        <p className="text-[8px] text-heading">min wallet</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2.5 space-y-1">
+                    {[
+                      { icon: ShieldCheck, text: 'Admin-verified & active account' },
+                      { icon: MapPin, text: `Same country as you (${helperDiag.userCountry || '?'})` },
+                      { icon: Wallet, text: 'Wallet balance ≥ tier minimum' },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-1.5 text-[10px] text-heading">
+                        <item.icon className="w-3 h-3 text-purple-400 shrink-1" />
+                        <span>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Fallback action */}
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3.5 text-center">
+                  <p className="text-[11px] font-semibold text-emerald-800 mb-1">
+                    Want to recharge now?
+                  </p>
+                  <p className="text-[10px] text-emerald-700/80 mb-2.5 leading-relaxed">
+                    You can still recharge instantly using Google Play, Card, or SwiftPay (crypto) in the <strong>Diamond Store</strong> tab.
+                  </p>
+                  <button
+                    onClick={() => setSelectedTab('store')}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-display text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
+                  >
+                    <Diamond className="w-3.5 h-3.5" />
+                    Go to Diamond Store
+                  </button>
+                </div>
               </div>
             )}
           </div>
