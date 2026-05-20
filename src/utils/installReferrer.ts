@@ -13,6 +13,7 @@
  * launches early-exit on a localStorage marker.
  */
 import { registerPlugin, Capacitor } from "@capacitor/core";
+import { parseReferralPayload } from "./referralParsing";
 
 interface InstallReferrerPlugin {
   getReferrer(): Promise<{ referrer: string; cached: boolean; responseCode?: number }>;
@@ -26,22 +27,19 @@ const PROCESSED_KEY = "meri_install_referrer_processed";
 function applyReferrer(raw: string): void {
   if (!raw) return;
 
-  // Play sends a URL-encoded query string, e.g.
-  //   "utm_source=app&ref=ABC123" or "ref%3DABC123%26agency%3DAG42"
-  let decoded = raw;
-  try { decoded = decodeURIComponent(raw); } catch { /* keep raw */ }
-
-  const params = new URLSearchParams(decoded.includes("=") ? decoded : "");
-
-  const ref = params.get("ref") || params.get("invitation");
-  const agency = params.get("agency") || params.get("code");
+  // Pkg67: shared parser handles every alias we accept
+  // (ref/r/uid/invite/invitation/inviter[_uid|_id], and
+  //  agency/agencyCode/agency_code/code/agent/agent_code/...).
+  const { ref, agencyCode } = parseReferralPayload(raw);
 
   if (ref) {
     localStorage.setItem("meri_pending_invitation_ref", ref);
     localStorage.setItem("meri_pending_referral", ref);
   }
-  if (agency) {
-    localStorage.setItem("meri_pending_referral", agency);
+  if (agencyCode) {
+    // Agency code overrides ref for the agency-pending slot — JoinAgency
+    // reads this exact key. Invitation tracking still uses the ref key.
+    localStorage.setItem("meri_pending_referral", agencyCode);
   }
 }
 
