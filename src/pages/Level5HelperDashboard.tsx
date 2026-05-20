@@ -217,6 +217,92 @@ const Level5HelperDashboard = () => {
   const [helperNotes, setHelperNotes] = useState("");
   const [helperTransactionId, setHelperTransactionId] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
+
+  // Per-country manual payment methods. Helper sees ONLY their own country's methods + global rails.
+  const COUNTRY_MANUAL_METHODS: Record<string, Array<{ value: string; label: string }>> = {
+    BD: [
+      { value: "bkash", label: "📱 bKash" },
+      { value: "nagad", label: "💳 Nagad" },
+      { value: "rocket", label: "🚀 Rocket" },
+      { value: "upay", label: "📲 Upay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    IN: [
+      { value: "upi", label: "📱 UPI" },
+      { value: "paytm", label: "💰 Paytm" },
+      { value: "phonepe", label: "📱 PhonePe" },
+      { value: "gpay", label: "💳 Google Pay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    PK: [
+      { value: "jazzcash", label: "🎵 JazzCash" },
+      { value: "easypaisa", label: "💚 EasyPaisa" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    NP: [
+      { value: "esewa", label: "💚 eSewa" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    LK: [{ value: "frimi", label: "💚 FriMi" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    PH: [
+      { value: "gcash", label: "💙 GCash" },
+      { value: "maya", label: "💜 Maya" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    ID: [
+      { value: "gopay", label: "🟢 GoPay" },
+      { value: "ovo", label: "💜 OVO" },
+      { value: "dana", label: "🔵 DANA" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    VN: [{ value: "momo", label: "💗 MoMo" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    TH: [
+      { value: "truemoney", label: "🟠 TrueMoney" },
+      { value: "promptpay", label: "💙 PromptPay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    MY: [
+      { value: "touch_n_go", label: "🔵 Touch'n Go" },
+      { value: "duitnow", label: "💜 DuitNow" },
+      { value: "grab", label: "🟢 GrabPay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    SG: [{ value: "grab", label: "🟢 GrabPay" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    KE: [{ value: "mpesa", label: "🟢 M-Pesa" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    CN: [
+      { value: "alipay", label: "🔵 Alipay" },
+      { value: "wechat", label: "🟢 WeChat Pay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    HK: [{ value: "alipay", label: "🔵 Alipay" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    TW: [{ value: "line_pay", label: "🟢 LINE Pay" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    BR: [{ value: "pix", label: "💚 PIX" }, { value: "bank", label: "🏦 Bank Transfer" }],
+  };
+  const GLOBAL_MANUAL_METHODS: Array<{ value: string; label: string }> = [
+    { value: "crypto", label: "₿ Crypto (USDT)" },
+    { value: "paypal", label: "💙 PayPal" },
+    { value: "wise", label: "💚 Wise" },
+    { value: "skrill", label: "💜 Skrill" },
+    { value: "payoneer", label: "🟠 Payoneer" },
+    { value: "bank", label: "🏦 Bank Transfer" },
+  ];
+  const helperCountryCode = (helperData?.country_code || "").toUpperCase();
+  const helperCountryName = (() => {
+    const names: Record<string, string> = {
+      BD: "🇧🇩 Bangladesh", IN: "🇮🇳 India", PK: "🇵🇰 Pakistan", NP: "🇳🇵 Nepal", LK: "🇱🇰 Sri Lanka",
+      PH: "🇵🇭 Philippines", ID: "🇮🇩 Indonesia", VN: "🇻🇳 Vietnam", TH: "🇹🇭 Thailand", MY: "🇲🇾 Malaysia",
+      SG: "🇸🇬 Singapore", KE: "🇰🇪 Kenya", CN: "🇨🇳 China", HK: "🇭🇰 Hong Kong", TW: "🇹🇼 Taiwan", BR: "🇧🇷 Brazil",
+    };
+    return names[helperCountryCode] || helperCountryCode || "Your Country";
+  })();
+  const helperManualMethods = COUNTRY_MANUAL_METHODS[helperCountryCode] || [];
+
+  // Lock dialog country to helper's own country whenever opened.
+  useEffect(() => {
+    if (showCountryPaymentDialog && helperCountryCode && selectedCountry !== helperCountryCode) {
+      setSelectedCountry(helperCountryCode);
+    }
+  }, [showCountryPaymentDialog, helperCountryCode]);
   const [selectedPaymentCountry, setSelectedPaymentCountry] = useState(""); // Country for legacy payment method
   const [paymentLogoFile, setPaymentLogoFile] = useState<File | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
