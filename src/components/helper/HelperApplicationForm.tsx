@@ -157,10 +157,12 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   const upgradeCost = Number(selectedLevelData?.upgrade_cost_usd || 0);
   const isPaidLevel = upgradeCost > 0;
   const isFreeLevel = !isPaidLevel;
-  // Pkg64: Trader-wallet apply MUST be ≥ $100 via crypto auto gateway.
-  const TRADER_MIN_USD = 100;
-  const effectiveCost = isPaidLevel ? Math.max(upgradeCost, TRADER_MIN_USD) : 0;
+  // Pkg66: Charge EXACTLY the admin-configured per-level upgrade_cost_usd.
+  // No hardcoded floor — 100% admin-driven so editing trader_level_tiers
+  // in /admin/pricing-hub instantly reflects in the form + crypto invoice.
+  const effectiveCost = isPaidLevel ? upgradeCost : 0;
   const diamondsForUpgrade = Math.floor(effectiveCost * diamondsPerUsd);
+
 
   /** Validate the form (everything except the actual payment). */
   const validateForm = (): string | null => {
