@@ -145,7 +145,7 @@ const Recharge = () => {
     finalCount: number;
     userCountry: string | null;
     isLoading: boolean;
-  }>({ rawTotal: 0, byCountry: 0, byTierMin: 1, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true });
+  }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true });
   const helperRotationPage = 0;
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -1051,7 +1051,7 @@ const Recharge = () => {
         // app_settings.topup_trader_tier_min_wallet (Pkg70). Defaults: L1=50k…L5=300k.
         // STRICT country match using PROFILE's country_code + tier-based min balance.
         // Track diagnostics so empty-state can explain WHY nothing shows.
-        let byCountry = 1, byTierMin = 1, byInactive = 1, byLowBalance = 1;
+        let byCountry = 0, byTierMin = 0, byInactive = 0, byLowBalance = 0;
         const filtered = helpers.filter(h => {
           const user = h.user as any;
           const profileCountry = user?.country_code || h.country_code;
