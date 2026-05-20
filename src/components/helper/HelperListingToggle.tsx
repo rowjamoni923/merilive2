@@ -29,16 +29,18 @@ export default function HelperListingToggle({
     const prev = listed;
     setListed(next);
     setSaving(true);
-    const { error } = await supabase
-      .from("topup_helpers")
-      .update({ is_listed: next })
-      .eq("id", helperId);
+    // SECURITY DEFINER RPC — helpers don't have direct UPDATE RLS on topup_helpers,
+    // so plain `.update()` silently affects 0 rows and the toggle snaps back on reload.
+    const { data, error } = await supabase.rpc("set_topup_helper_listing", {
+      _is_listed: next,
+    });
     setSaving(false);
-    if (error) {
+    const result = data as { success?: boolean; error?: string } | null;
+    if (error || !result?.success) {
       setListed(prev);
       toast({
         title: "Could not update",
-        description: error.message,
+        description: error?.message || result?.error || "Please try again",
         variant: "destructive",
       });
       return;
