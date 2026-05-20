@@ -446,15 +446,12 @@ export function LiveRocketRaceGame({
               </div>
 
               {/* Premium 3D Rocket - positioned right above launch pad */}
-              <div className="absolute z-20 bottom-[22px]">
+              <div className="absolute z-20 bottom-[22px] pointer-events-none">
                 <PremiumRocket3D
                   color={rocket.colorKey}
                   position={rocketPositions[i]}
                   isLaunching={isLaunching}
                   isWinner={winningRocket === i}
-                  hasBet={betOnRocket[i] > 0}
-                  betAmount={betOnRocket[i]}
-                  onClick={() => handleSelectRocket(i)}
                 />
               </div>
 
