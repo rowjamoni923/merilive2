@@ -2749,7 +2749,17 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-rose-100 p-2.5">
                         <span className="mt-0.5 text-base">📭</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-rose-700">No trader data found</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-[11px] font-semibold text-rose-700">No trader data found</p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-NO-DATA'); toast({ title: 'Copied audit ID', description: 'VT-NO-DATA' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-NO-DATA
+                            </button>
+                          </div>
                           <p className="text-[10px] text-rose-600/80 leading-snug">
                             No helper-trader profiles exist in the system yet. This section will populate once traders register and are approved.
                           </p>
@@ -2772,9 +2782,19 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-blue-100 p-2.5">
                         <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-1" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-blue-700">
-                            Country mismatch — {helperDiag.byCountry} trader{helperDiag.byCountry !== 1 ? 's' : ''} hidden
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-semibold text-blue-700">
+                              Country mismatch — {helperDiag.byCountry} trader{helperDiag.byCountry !== 1 ? 's' : ''} hidden
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-COUNTRY-MISMATCH'); toast({ title: 'Copied audit ID', description: 'VT-COUNTRY-MISMATCH' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-COUNTRY-MISMATCH
+                            </button>
+                          </div>
                           <p className="text-[10px] text-blue-600/80 leading-snug">
                             Traders exist but their registered country does not match yours. Only traders from the same country are shown for regulatory compliance.
                           </p>
@@ -2808,9 +2828,19 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-orange-100 p-2.5">
                         <ShieldCheck className="w-4 h-4 text-orange-500 mt-0.5 shrink-1" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-orange-700">
-                            Not active / unverified — {helperDiag.byInactive} trader{helperDiag.byInactive !== 1 ? 's' : ''} hidden
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-semibold text-orange-700">
+                              Not active / unverified — {helperDiag.byInactive} trader{helperDiag.byInactive !== 1 ? 's' : ''} hidden
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-INACTIVE-UNVERIFIED'); toast({ title: 'Copied audit ID', description: 'VT-INACTIVE-UNVERIFIED' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-orange-500 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-INACTIVE-UNVERIFIED
+                            </button>
+                          </div>
                           <p className="text-[10px] text-orange-600/80 leading-snug">
                             Some trader accounts are pending admin verification, suspended, or inactive. They will appear once admin approval is complete.
                           </p>
@@ -2845,9 +2875,19 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-emerald-100 p-2.5">
                         <Wallet className="w-4 h-4 text-emerald-500 mt-1 shrink-1" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-emerald-700">
-                            Wallet below threshold — {(helperDiag.byLowBalance + helperDiag.byTierMin)} trader{(helperDiag.byLowBalance + helperDiag.byTierMin) !== 1 ? 's' : ''} hidden
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-semibold text-emerald-700">
+                              Wallet below threshold — {(helperDiag.byLowBalance + helperDiag.byTierMin)} trader{(helperDiag.byLowBalance + helperDiag.byTierMin) !== 1 ? 's' : ''} hidden
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-WALLET-THRESHOLD'); toast({ title: 'Copied audit ID', description: 'VT-WALLET-THRESHOLD' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-emerald-500 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-WALLET-THRESHOLD
+                            </button>
+                          </div>
                           <p className="text-[10px] text-emerald-600/80 leading-snug">
                             Traders must hold ≥ 50,000 base AND ≥ their tier-min wallet to stay visible. Shortfall shown below.
                           </p>
@@ -2905,7 +2945,17 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-100 p-2.5">
                         <Info className="w-4 h-4 text-slate-500 mt-0.5 shrink-1" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-slate-700">System filter summary</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-semibold text-slate-700">System filter summary</p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-FILTER-SUMMARY'); toast({ title: 'Copied audit ID', description: 'VT-FILTER-SUMMARY' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-FILTER-SUMMARY
+                            </button>
+                          </div>
                           <p className="text-[10px] text-slate-600/80 leading-snug">
                             {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 50k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
                           </p>
