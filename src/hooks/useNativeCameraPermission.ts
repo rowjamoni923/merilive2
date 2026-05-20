@@ -13,12 +13,23 @@ interface CameraPermissionRequestOptions {
 }
 
 // ========== GLOBAL PERMISSION CACHE ==========
-let globalPermissionGranted: boolean | null = null;
-let globalMicrophoneGranted: boolean | null = null;
+const PERM_CACHE_KEY = 'merilive.av.perm.granted.v1';
+const readCachedPerm = (): boolean => {
+  try { return typeof localStorage !== 'undefined' && localStorage.getItem(PERM_CACHE_KEY) === '1'; } catch { return false; }
+};
+const writeCachedPerm = (granted: boolean) => {
+  try { if (typeof localStorage !== 'undefined') {
+    if (granted) localStorage.setItem(PERM_CACHE_KEY, '1');
+    else localStorage.removeItem(PERM_CACHE_KEY);
+  } } catch {}
+};
+let globalPermissionGranted: boolean | null = readCachedPerm() ? true : null;
+let globalMicrophoneGranted: boolean | null = readCachedPerm() ? true : null;
 let permissionRequestInFlight: Promise<CameraPermissionResult> | null = null;
 let streamRequestInFlight: Promise<MediaStream> | null = null;
 let permissionDeniedCount = 0;
 const MAX_DENIAL_RETRIES = 2;
+
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -35,6 +46,22 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, timeoutMes
     if (timeoutId) clearTimeout(timeoutId);
   }
 };
+
+/**
+ * Dialog-safe Permissions API query — works in modern Android WebView (Chromium 70+)
+ * and all desktop/mobile browsers. Returns null when the API or that specific
+ * permission name is not supported. NEVER triggers a permission dialog.
+ */
+const queryPermissionSafe = async (name: PermissionName): Promise<PermissionState | null> => {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) return null;
+  try {
+    const result = await navigator.permissions.query({ name });
+    return result.state;
+  } catch {
+    return null;
+  }
+};
+
 
 /**
  * On Android WebView, navigator.permissions.query may not work for camera/mic.
@@ -158,7 +185,7 @@ export function useNativeCameraPermission() {
           if (result.granted) {
             // Stop the probe stream - actual stream will be requested later
             result.stream?.getTracks().forEach(t => t.stop());
-            globalPermissionGranted = true;
+            globalPermissionGranted = true; writeCachedPerm(true);
             if (includeMicrophone) globalMicrophoneGranted = true;
             permissionDeniedCount = 0;
             setPermissionGranted(true);
@@ -190,7 +217,7 @@ export function useNativeCameraPermission() {
           result.stream?.getTracks().forEach(t => t.stop());
         }
 
-        globalPermissionGranted = true;
+        globalPermissionGranted = true; writeCachedPerm(true);
         permissionDeniedCount = 0;
         setPermissionGranted(true);
 
@@ -300,7 +327,7 @@ export function useNativeCameraPermission() {
           const settings = videoTracks[0].getSettings();
           console.log('[Camera] Success:', JSON.stringify(settings));
 
-          globalPermissionGranted = true;
+          globalPermissionGranted = true; writeCachedPerm(true);
           if (includeAudio) globalMicrophoneGranted = true;
           permissionDeniedCount = 0;
           setPermissionGranted(true);
@@ -332,25 +359,29 @@ export function useNativeCameraPermission() {
   }, [requestCameraPermission]);
 
   const checkPermissionStatus = useCallback(async (): Promise<'granted' | 'denied' | 'prompt'> => {
-    // Fast path: already granted in this session
+    // Fast path: already granted in this session (in-memory or persisted)
     if (globalPermissionGranted === true) return 'granted';
+    if (readCachedPerm()) {
+      globalPermissionGranted = true; writeCachedPerm(true);
+      globalMicrophoneGranted = true;
+      setPermissionGranted(true);
+      return 'granted';
+    }
 
+    // Permissions API works in modern Android WebView (Chromium 70+) and all browsers.
+    // It NEVER triggers a permission dialog — safe to call anywhere.
     try {
-      if (isNativeApp) {
-        // On native Android WebView, Permissions API is unreliable.
-        // Do NOT probe via getUserMedia here — that triggers a permission dialog.
-        // Return 'prompt' so the UI shows the Allow button instead.
-        return 'prompt';
-      }
+      const camState = await queryPermissionSafe('camera' as PermissionName);
+      const micState = await queryPermissionSafe('microphone' as PermissionName);
 
-      // Web: use Permissions API (does NOT trigger a dialog)
-      const state = await queryPermission('camera' as PermissionName, false);
-      if (state === 'granted') {
-        globalPermissionGranted = true;
+      if (camState === 'granted' && (micState === 'granted' || micState === null)) {
+        globalPermissionGranted = true; writeCachedPerm(true);
+        if (micState === 'granted') globalMicrophoneGranted = true;
+        writeCachedPerm(true);
         setPermissionGranted(true);
         return 'granted';
       }
-      if (state === 'denied') {
+      if (camState === 'denied' || micState === 'denied') {
         setPermissionGranted(false);
         return 'denied';
       }
@@ -359,6 +390,7 @@ export function useNativeCameraPermission() {
       return 'prompt';
     }
   }, [isNativeApp]);
+
 
   const openSettings = useCallback(async () => {
     if (isNativeApp) {
