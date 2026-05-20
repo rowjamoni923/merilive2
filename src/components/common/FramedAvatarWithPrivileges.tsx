@@ -287,12 +287,17 @@ const FramedAvatarWithPrivileges = ({
             </motion.div>
           )}
 
-          {/* The Animated Frame Image - wraps around avatar */}
+          {/* The Animated Frame Image - extends slightly past the avatar disc */}
           <motion.img
             src={frameUrl}
             alt="Frame"
-            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-            style={{ zIndex: 20 }}
+            className="absolute w-auto h-auto object-contain pointer-events-none"
+            style={{
+              inset: frameInsetPx[size],
+              width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+              height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+              zIndex: 20,
+            }}
             animate={showAnimation ? {
               scale: [1, 1.03, 1],
               filter: level >= 20 
@@ -306,16 +311,14 @@ const FramedAvatarWithPrivileges = ({
             }}
           />
           
-          {/* Avatar centered inside the frame */}
+          {/* Avatar fills the entire container — no inner padding gap */}
           <div 
             className="absolute inset-0 flex items-center justify-center"
-            style={{ 
-              padding: size === 'xs' ? '4px' : size === 'sm' ? '6px' : '8px',
-              zIndex: 10,
-            }}
+            style={{ zIndex: 10 }}
           >
             {avatarContent}
           </div>
+
 
           {/* Sparkle effects on frame edges for high levels */}
           {showAnimation && level >= 25 && (
