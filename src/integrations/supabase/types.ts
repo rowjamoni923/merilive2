@@ -217,6 +217,21 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_broadcast_rate_counter: {
+        Row: {
+          bucket_hour: string
+          event_count: number
+        }
+        Insert: {
+          bucket_hour: string
+          event_count?: number
+        }
+        Update: {
+          bucket_hour?: string
+          event_count?: number
+        }
+        Relationships: []
+      }
       admin_invitations: {
         Row: {
           accepted_at: string | null
@@ -16075,6 +16090,7 @@ export type Database = {
         Returns: Json
       }
       claim_vip_daily_reward: { Args: never; Returns: Json }
+      cleanup_admin_broadcast_rate_counter: { Args: never; Returns: undefined }
       cleanup_application_logs: {
         Args: never
         Returns: {
