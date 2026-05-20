@@ -167,6 +167,45 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   const effectiveCost = isPaidLevel ? upgradeCost : 0;
   const diamondsForUpgrade = Math.floor(effectiveCost * diamondsPerUsd);
 
+  // Pkg76: Admin-misconfiguration guard.
+  // Any PAID tier (level_number > 1) loaded from `trader_level_tiers` with
+  // upgrade_cost_usd null / 0 / negative is treated as MISCONFIGURED:
+  //   - chip is visually muted + non-selectable
+  //   - submit is blocked for that level (see validateForm)
+  //   - top-of-form red alert lists the affected levels so an admin who
+  //     opens the form immediately sees the warning and can fix it in
+  //     /admin/pricing-hub → Helper tab.
+  const misconfiguredLevels = levels.filter(
+    (l) =>
+      l.level_number > 1 &&
+      (l.upgrade_cost_usd === null ||
+        l.upgrade_cost_usd === undefined ||
+        Number(l.upgrade_cost_usd) <= 0),
+  );
+  const isLevelMisconfigured = (l: TraderLevel) =>
+    l.level_number > 1 &&
+    (l.upgrade_cost_usd === null ||
+      l.upgrade_cost_usd === undefined ||
+      Number(l.upgrade_cost_usd) <= 0);
+  const selectedLevelMisconfigured = !!selectedLevelData && isLevelMisconfigured(selectedLevelData);
+
+  // One-time console warning so admins / devs notice in browser logs.
+  const warnedRef = useRef<string>("");
+  useEffect(() => {
+    if (misconfiguredLevels.length === 0) return;
+    const key = misconfiguredLevels.map((l) => l.level_number).join(",");
+    if (warnedRef.current === key) return;
+    warnedRef.current = key;
+    console.warn(
+      "[HelperApplicationForm] trader_level_tiers misconfigured — paid tiers with 0/unset upgrade_cost_usd:",
+      misconfiguredLevels.map((l) => ({
+        level: l.level_number,
+        name: l.level_name,
+        upgrade_cost_usd: l.upgrade_cost_usd,
+      })),
+    );
+  }, [misconfiguredLevels]);
+
 
   /** Validate the form (everything except the actual payment). */
   const validateForm = (): string | null => {
@@ -179,6 +218,10 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
       if (!idCardNumber.trim()) return "Enter your ID card number";
       if (!fullAddress.trim()) return "Enter your full address";
       if (!country.trim()) return "Enter your country";
+    }
+    // Pkg76: hard-block selection of any misconfigured tier.
+    if (selectedLevelMisconfigured) {
+      return `Level ${selectedLevel} upgrade cost is not configured by admin. Please choose another level or contact admin.`;
     }
     if (isPaidLevel && diamondsPerUsd <= 0) {
       return "Diamond rate not loaded yet — try again in a moment";
