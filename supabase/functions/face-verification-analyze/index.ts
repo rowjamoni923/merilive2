@@ -323,10 +323,20 @@ serve(async (req) => {
       `Rekognition: faces=${details.length}${frontError ? ` (${frontError})` : ""}, gender=${rawG} (${genderConf.toFixed(1)}%), ` +
       `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%`;
 
+    // Re-read ai_analysis right before the merge so we never blow away client-set
+    // flags like { manual_review_required: true } that the insert wrote.
+    const { data: existingRow } = await supabaseAdmin
+      .from("face_verification_submissions")
+      .select("ai_analysis")
+      .eq("id", submissionId)
+      .maybeSingle();
+    const existingAnalysis = (existingRow?.ai_analysis ?? {}) as Record<string, unknown>;
+    const mergedAnalysis = { ...existingAnalysis, rekognition };
+
     await supabaseAdmin
       .from("face_verification_submissions")
       .update({
-        ai_analysis: { rekognition },
+        ai_analysis: mergedAnalysis,
         rekognition_confidence: faceConf,
         admin_notes: summary,
         updated_at: new Date().toISOString(),
