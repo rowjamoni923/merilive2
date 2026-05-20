@@ -18,6 +18,7 @@ import { NotificationList } from "@/components/notifications/NotificationList";
 import AvatarWithFrame, { preloadFrames } from "@/components/common/AvatarWithFrame";
 import { getCountryByCode } from "@/data/countryCodes";
 import { LevelBadge } from "@/components/common/LevelBadge";
+import { CountryFlag } from "@/components/common/CountryFlag";
 import { CallButton } from "@/features/call";
 import { toast } from "sonner";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
