@@ -17618,6 +17618,7 @@ export type Database = {
         }
         Returns: Json
       }
+      set_topup_helper_listing: { Args: { _is_listed: boolean }; Returns: Json }
       set_user_offline: { Args: { p_user_id: string }; Returns: undefined }
       settle_private_call: { Args: { p_call_id: string }; Returns: Json }
       start_live_stream: {
