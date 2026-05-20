@@ -20,6 +20,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FlyingGiftData } from './types';
+import { subscribeToRoomBroadcasts } from './roomBroadcast';
 
 interface UseRoomGiftsOptions {
   /** Room/Stream ID */
