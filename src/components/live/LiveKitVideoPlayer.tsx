@@ -269,9 +269,21 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           backfaceVisibility: 'hidden',
         } as React.CSSProperties}
       />
+      {/* Shield overlay: covers WebView's native play icon until first frame arrives */}
+      <div
+        ref={shieldRef}
+        data-video-shield="livekit"
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none bg-black"
+        style={{
+          transition: 'opacity 150ms ease',
+          opacity: 1,
+        }}
+      />
     </div>
   );
 });
+
 
 // Re-export as AgoraVideoPlayer for backward compatibility
 export { LiveKitVideoPlayer as AgoraVideoPlayer };
