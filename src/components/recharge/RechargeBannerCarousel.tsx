@@ -136,28 +136,6 @@ export default function RechargeBannerCarousel({
         }}
       />
 
-      {/* Indicator dots */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5">
-          {banners.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`Go to banner ${i + 1}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIndex(i);
-              }}
-              className={cn(
-                "h-1.5 rounded-full transition-all duration-300",
-                i === index
-                  ? "w-5 bg-amber-300 shadow-[0_0_6px_rgba(255,215,0,0.8)]"
-                  : "w-1.5 bg-white/50 hover:bg-white/80"
-              )}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
