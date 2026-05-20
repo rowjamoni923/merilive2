@@ -764,14 +764,14 @@ const Recharge = () => {
         return;
       }
 
-      // Get profile data for online status
+      // Get public profile data for display/online status
       const userIds = (helpersData || []).map(h => h.user_id).filter(Boolean);
       
       // Fetch profiles AND agency diamond balances in parallel
       // Use security definer function for agency balance (avoids RLS restriction)
       const [profilesResult, ...agencyBalanceResults] = await Promise.all([
         supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('id, display_name, avatar_url, app_uid, is_online')
           .in('id', userIds),
         ...userIds.map(uid => 
@@ -1044,7 +1044,7 @@ const Recharge = () => {
       console.log('[Recharge] Fetching helpers for country:', userCountryCode);
       
       // Fetch helper rows first, then read public profile + agency balances separately.
-      // IMPORTANT: never join cross-user `profiles`; use `profiles_public` + `agencies_public`.
+      // IMPORTANT: never join cross-user `profiles`; use `profiles_public` + the Trader Wallet balance RPC.
       const { data: helpers, error } = await supabase
         .from('topup_helpers')
         .select(`
