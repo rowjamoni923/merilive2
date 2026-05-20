@@ -326,6 +326,7 @@ const AdminSupportTickets = lazy(lazyRetry(() => import("./pages/admin/AdminSupp
 const AdminSupportReports = lazy(lazyRetry(() => import("./pages/admin/AdminSupportReports")));
 const AdminPendingApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminPendingApprovals")));
 const AdminAutoActions = lazy(lazyRetry(() => import("./pages/admin/AdminAutoActions")));
+const AdminCostMonitor = lazy(lazyRetry(() => import("./pages/admin/AdminCostMonitor")));
 const AdminModerationAudit = lazy(lazyRetry(() => import("./pages/admin/AdminModerationAudit")));
 const AdminGmailSupport = lazy(lazyRetry(() => import("./pages/admin/AdminGmailSupport")));
 const AdminUserReports = lazy(lazyRetry(() => import("./pages/admin/AdminUserReports")));
@@ -1290,6 +1291,7 @@ const App = () => {
                   <Route path="support-reports" element={<AdminRouteGuard routeSegment="support-reports"><AdminSupportReports /></AdminRouteGuard>} />
                   <Route path="pending-approvals" element={<AdminRouteGuard routeSegment="pending-approvals"><AdminPendingApprovals /></AdminRouteGuard>} />
                   <Route path="auto-actions" element={<AdminRouteGuard routeSegment="auto-actions"><AdminAutoActions /></AdminRouteGuard>} />
+                  <Route path="cost-monitor" element={<AdminRouteGuard routeSegment="cost-monitor"><AdminCostMonitor /></AdminRouteGuard>} />
                   <Route path="moderation-audit" element={<AdminRouteGuard routeSegment="moderation-audit"><AdminModerationAudit /></AdminRouteGuard>} />
                   <Route path="gmail-support" element={<AdminRouteGuard routeSegment="gmail-support"><AdminGmailSupport /></AdminRouteGuard>} />
                   <Route path="user-reports" element={<AdminRouteGuard routeSegment="user-reports"><AdminUserReports /></AdminRouteGuard>} />

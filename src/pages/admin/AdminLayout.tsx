@@ -1016,6 +1016,13 @@ const navGroups: NavGroup[] = [
         description: "Full history of every auto financial action (recharge / withdrawal / commission / payroll) with reverse + refund.",
       },
       {
+        label: "Cost Monitor",
+        icon: Activity,
+        path: "/admin/cost-monitor",
+        hubKey: "moderation-hub",
+        description: "Realtime DB-read load and billing throughput across Live, Call, Party + threshold alerts and Realtime kill switch.",
+      },
+      {
         label: "Moderation Audit",
         icon: ScrollText,
         path: "/admin/moderation-audit",

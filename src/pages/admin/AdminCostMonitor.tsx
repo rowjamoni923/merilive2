@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, AlertTriangle, ShieldOff, ShieldCheck, Activity, Database, Radio, CircleDollarSign, Check, Zap, Sparkles } from "lucide-react";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { Button } from "@/components/ui/button";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -194,7 +194,7 @@ export default function AdminCostMonitor() {
       <AdminPageHeader
         icon={Activity}
         title="Cost Monitor"
-        description="Live DB-read load + billing throughput across Live, Call, and Party. Sampled every minute."
+        subtitle="Live DB-read load + billing throughput across Live, Call, and Party. Sampled every minute."
         actions={
           <div className="flex items-center gap-2">
             <div className="flex rounded-md border border-slate-200 overflow-hidden">
