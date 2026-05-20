@@ -135,6 +135,7 @@ export default function AdminPricingHub() {
           "coin_exchange",
           "trader_wallet_topup_rate",
           "auto_withdrawal_fee",
+          "topup_trader_tier_min_wallet",
         ]);
       if (error) throw error;
 
