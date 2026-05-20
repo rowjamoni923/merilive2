@@ -753,11 +753,18 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
-      setGames(data || []);
+      const parsed = (data || []).map((g: any) => ({
+        ...g,
+        preset_bets: g.preset_bets
+          ? (typeof g.preset_bets === 'string' ? JSON.parse(g.preset_bets) : g.preset_bets)
+          : DEFAULT_PRESET_BETS
+      }));
+      setGames(parsed);
     } finally {
       setLoading(false);
     }
   };
+
 
   const fetchUserCoins = async () => {
     const { data: { user } } = await supabase.auth.getUser();
