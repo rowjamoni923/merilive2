@@ -2560,15 +2560,7 @@ const LiveStream = () => {
           className="absolute bottom-1/3 right-1/4 w-56 h-56 bg-pink-600/20 rounded-full"
         />
 
-        {/* Close Button */}
-        <Button
-          size="icon"
-          variant="ghost"
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 text-white hover:bg-black/60 z-10"
-          onClick={handleCloseSummary}
-        >
-          <X className="w-5 h-5" />
-        </Button>
+        {/* Single primary close action lives in the "Back to Home" button below — duplicate X removed */}
 
         {/* Host Avatar with Premium Ring */}
         <motion.div
