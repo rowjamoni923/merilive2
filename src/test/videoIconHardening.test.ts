@@ -64,8 +64,12 @@ describe('Realtime video surfaces — host + visitor must have ZERO native video
   it('every in-scope <video> goes through the hardener OR inlines all 4 guards', () => {
     const offenders: string[] = [];
     for (const f of collect()) {
-      const src = fs.readFileSync(f, 'utf8');
+      // Strip block + line comments so `<video>` mentioned in JSDoc isn't a false positive
+      const src = fs.readFileSync(f, 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
       const fileUsesHardener = /hardenVideoElementForNative/.test(src);
+
       const re = /<video\b([^>]*?)(?:\/>|>)/gms;
       let m: RegExpExecArray | null;
       while ((m = re.exec(src))) {
