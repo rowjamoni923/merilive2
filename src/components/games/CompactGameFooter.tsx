@@ -216,7 +216,7 @@ const MiniDragonTiger = ({
 };
 
 // Ultra Compact Crash/Aviator Game
-const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
+const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
   const [multiplier, setMultiplier] = useState(1.00);
   const [crashed, setCrashed] = useState(false);
   const [cashedOut, setCashedOut] = useState(false);
