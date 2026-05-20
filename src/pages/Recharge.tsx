@@ -136,6 +136,14 @@ const Recharge = () => {
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [topUpHelpers, setTopUpHelpers] = useState<TopUpHelper[]>([]);
   // Diagnostic state: why are no traders showing?
+  type DiagSample = {
+    country?: string | null;
+    wallet: number;
+    tierMin: number;
+    level: number;
+    isActive?: boolean;
+    isVerified?: boolean;
+  };
   const [helperDiag, setHelperDiag] = useState<{
     rawTotal: number;
     byCountry: number;
@@ -145,7 +153,13 @@ const Recharge = () => {
     finalCount: number;
     userCountry: string | null;
     isLoading: boolean;
-  }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true });
+    samples: {
+      country: DiagSample[];
+      inactive: DiagSample[];
+      lowBalance: DiagSample[];
+      tierMin: DiagSample[];
+    };
+  }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true, samples: { country: [], inactive: [], lowBalance: [], tierMin: [] } });
   const helperRotationPage = 0;
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
