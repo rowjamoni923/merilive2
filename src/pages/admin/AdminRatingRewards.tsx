@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Star, CheckCircle, XCircle, Clock, User, Image, Search, RefreshCw, Eye, History, ArrowRight, Diamond, Bean, Power } from 'lucide-react';
+import { Star, CheckCircle, XCircle, Clock, User, Image, Search, RefreshCw, Eye, History, ArrowRight, Diamond, Bean, Power, ScrollText, Shield } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
