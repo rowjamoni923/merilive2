@@ -179,8 +179,8 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     if (isPaidLevel && diamondsPerUsd <= 0) {
       return "Diamond rate not loaded yet — try again in a moment";
     }
-    if (isPaidLevel && effectiveCost < TRADER_MIN_USD) {
-      return `Trader wallet apply requires a minimum $${TRADER_MIN_USD} crypto deposit`;
+    if (isPaidLevel && effectiveCost <= 0) {
+      return `Level ${selectedLevel} upgrade cost is not configured by admin yet`;
     }
     return null;
   };
