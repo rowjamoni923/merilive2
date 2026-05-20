@@ -72,7 +72,7 @@ const Live = () => {
       if (hostIds.length > 0) {
         const { data: hostsData } = await supabase
           .from('profiles_public')
-          .select('id, display_name, avatar_url, country_flag, host_level, user_level, is_verified, is_host, gender, total_recharged, total_earnings, weekly_earnings, max_user_level')
+          .select('id, display_name, avatar_url, country_code, country_flag, host_level, user_level, is_verified, is_host, gender, total_recharged, total_earnings, weekly_earnings, max_user_level')
           .in('id', hostIds);
         hostMap = new Map(((hostsData || []) as any[]).map(h => [h.id, h]));
       }
@@ -361,6 +361,7 @@ const Live = () => {
                   viewerCount={stream.viewer_count || 0}
                   country=""
                   countryFlag={stream.host?.country_flag || '🌍'}
+                  countryCode={stream.host?.country_code || null}
                   tags={['Live']}
                   userLevel={stream.host?.host_level || stream.host?.user_level || 1}
                   isVIP={stream.host?.is_verified || false}
