@@ -157,7 +157,10 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   const upgradeCost = Number(selectedLevelData?.upgrade_cost_usd || 0);
   const isPaidLevel = upgradeCost > 0;
   const isFreeLevel = !isPaidLevel;
-  const diamondsForUpgrade = Math.floor(upgradeCost * diamondsPerUsd);
+  // Pkg64: Trader-wallet apply MUST be ≥ $100 via crypto auto gateway.
+  const TRADER_MIN_USD = 100;
+  const effectiveCost = isPaidLevel ? Math.max(upgradeCost, TRADER_MIN_USD) : 0;
+  const diamondsForUpgrade = Math.floor(effectiveCost * diamondsPerUsd);
 
   /** Validate the form (everything except the actual payment). */
   const validateForm = (): string | null => {
@@ -173,6 +176,9 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     }
     if (isPaidLevel && diamondsPerUsd <= 0) {
       return "Diamond rate not loaded yet — try again in a moment";
+    }
+    if (isPaidLevel && effectiveCost < TRADER_MIN_USD) {
+      return `Trader wallet apply requires a minimum $${TRADER_MIN_USD} crypto deposit`;
     }
     return null;
   };
