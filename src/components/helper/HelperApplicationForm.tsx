@@ -711,11 +711,13 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         userCustomCoins={diamondsForUpgrade}
         userCustomPriceUsd={effectiveCost}
         userCustomLabel={`Helper Level ${selectedLevel} Upgrade`}
-        onCredited={async (_coins) => {
+        onCredited={async (_coins, topupId) => {
           setPaidConfirmed(true);
-          // Close payment modal and submit application automatically
+          // Close payment modal and submit application automatically.
+          // Pass the real swift_pay_topups.id so Pkg65 auto-level-detection
+          // reads the on-chain verified deposit amount.
           setSwiftPayOpen(false);
-          await submitApplication("swift_pay_auto");
+          await submitApplication(topupId || "swift_pay_auto");
         }}
       />
     </div>
