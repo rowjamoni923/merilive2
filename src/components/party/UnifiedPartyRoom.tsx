@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { CountryFlag } from "@/components/common/CountryFlag";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { GameSelectionModal } from "./GameSelectionModal";
 // REMOVED: ChametStyleBottomBar - Using EXACT SAME inline buttons as Live Stream (ONE LINK)
@@ -126,6 +127,7 @@ interface UnifiedPartyRoomProps {
   // Host & Participants
   hostInfo: Participant | null;
   hostCountryFlag?: string;
+  hostCountryCode?: string | null;
   participants: Participant[];
   maxSeats: number;
   initialActiveSeats?: number; // ADDED: Current active seats from DB
@@ -358,6 +360,7 @@ const VideoGridSeat = ({
   localStream,
   peerStream,
   hostCountryFlag,
+  hostCountryCode,
   totalRoomBeans,
   onBeansClick
 }: {
@@ -369,6 +372,7 @@ const VideoGridSeat = ({
   localStream?: MediaStream | null;
   peerStream?: MediaStream | null;
   hostCountryFlag?: string;
+  hostCountryCode?: string | null;
   totalRoomBeans?: number;
   onBeansClick?: () => void;
 }) => {
@@ -504,9 +508,11 @@ const VideoGridSeat = ({
       {/* Bottom Info */}
       <div className="absolute bottom-0 left-0 right-0 p-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-base">
-            {participant.isHost && hostCountryFlag ? hostCountryFlag : (participant.countryFlag || '🌍')}
-          </span>
+          {participant.isHost ? (
+            <CountryFlag code={hostCountryCode} emoji={hostCountryFlag || participant.countryFlag || '🌍'} className="w-[18px] h-[12px]" />
+          ) : (
+            <CountryFlag emoji={participant.countryFlag || '🌍'} className="w-[18px] h-[12px]" />
+          )}
           <span className="text-yellow-300 text-[10px]">
             {'⭐'.repeat(Math.min(Math.floor(participant.level / 10) + 1, 7))}
           </span>
@@ -526,6 +532,7 @@ export function UnifiedPartyRoom({
   backgroundGradient, // ADDED
   hostInfo,
   hostCountryFlag,
+  hostCountryCode,
   participants,
   maxSeats,
   initialActiveSeats, // ADDED
@@ -1309,7 +1316,7 @@ export function UnifiedPartyRoom({
           <div className="flex flex-col">
             <span className="text-white font-semibold text-sm truncate max-w-[120px]">{roomName}</span>
             <div className="flex items-center gap-1.5 text-[10px]">
-              <span className="text-white/60">{hostCountryFlag || '🌍'}</span>
+              <CountryFlag code={hostCountryCode} emoji={hostCountryFlag || '🌍'} className="w-[16px] h-[11px]" />
               <button
                 onClick={onOpenGiftContributors}
                 className="inline-flex items-center"
@@ -1507,6 +1514,7 @@ export function UnifiedPartyRoom({
                 localStream={localStream}
                 peerStream={seat && getPeerStream ? getPeerStream(seat.id) : null}
                 hostCountryFlag={hostCountryFlag}
+                hostCountryCode={hostCountryCode}
                 totalRoomBeans={totalBeans}
                 onBeansClick={onOpenGiftContributors}
               />

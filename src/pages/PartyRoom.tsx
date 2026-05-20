@@ -111,6 +111,7 @@ interface PartyRoom {
     avatar_url: string | null;
     host_level: number | null;
     user_level: number | null;
+    country_code: string | null;
     country_flag: string | null;
     frame_id: string | null;
   } | null;
@@ -783,7 +784,7 @@ const PartyRoom = () => {
         const { data: hostProfile } = hostId
           ? await supabase
               .from('profiles_public')
-              .select('id, display_name, avatar_url, host_level, user_level, country_flag, frame_id')
+              .select('id, display_name, avatar_url, host_level, user_level, country_code, country_flag, frame_id')
               .eq('id', hostId)
               .maybeSingle()
           : { data: null };
@@ -2247,6 +2248,7 @@ const PartyRoom = () => {
           stream: isHost ? localStream : getPeerStream(room.host.id)
         } : null}
         hostCountryFlag={room.host?.country_flag || '🌍'}
+        hostCountryCode={room.host?.country_code || null}
         participants={participants
           // Exclude the host from participants since hostInfo handles them
           .filter(p => p.position !== null && p.user_id !== room.host?.id)

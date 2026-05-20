@@ -18,6 +18,7 @@ import { NotificationList } from "@/components/notifications/NotificationList";
 import AvatarWithFrame, { preloadFrames } from "@/components/common/AvatarWithFrame";
 import { getCountryByCode } from "@/data/countryCodes";
 import { LevelBadge } from "@/components/common/LevelBadge";
+import { CountryFlag } from "@/components/common/CountryFlag";
 import { CallButton } from "@/features/call";
 import { toast } from "sonner";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
@@ -526,11 +527,11 @@ const Index = () => {
                 
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <LevelBadge level={displayLevel} size="xs" />
-                  {user.country_flag && user.country_flag !== 'NONE' && (
-                    <span className="text-xs leading-none drop-shadow-md">
-                      {user.country_flag}
-                    </span>
-                  )}
+                  <CountryFlag
+                    code={user.country_code}
+                    emoji={user.country_flag}
+                    className="w-[16px] h-[11px] drop-shadow-md"
+                  />
                 </div>
               </div>
             </div>
