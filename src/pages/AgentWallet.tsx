@@ -348,15 +348,16 @@ const AgentWallet = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-success-500 to-success-600 text-on-dark safe-area-top">
-        <div className="flex items-center h-14 px-4">
+      <header className="flex-shrink-0 sticky top-0 z-20 bg-gradient-to-r from-success-500 to-success-600 text-on-dark safe-area-top shadow-md">
+        <div className="flex items-center h-14 px-2">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            aria-label="Back"
+            className="w-11 h-11 flex items-center justify-center hover:bg-white/10 active:bg-white/20 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold pr-7">Agent Wallet</h1>
+          <h1 className="flex-1 text-center text-lg font-semibold pr-11">Agent Wallet</h1>
         </div>
       </header>
 
