@@ -1350,18 +1350,8 @@ const Level5HelperDashboard = () => {
           </div>
         )}
 
-        {/* ============ ACCEPTED PAYMENT METHODS CARD ============ */}
-        {helperData?.id && (
-          <div className="relative mb-4">
-            <HelperPaymentMethodsCard
-              helperId={helperData.id}
-              onManage={() => {
-                setActiveTab('country-methods');
-                setShowCountryPaymentDialog(true);
-              }}
-            />
-          </div>
-        )}
+
+
 
         {/* Premium Stat Cards */}
         <div className="relative grid grid-cols-4 gap-2">
