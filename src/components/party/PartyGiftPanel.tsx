@@ -216,7 +216,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[55vh] rounded-t-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-t border-white/10 p-0 pb-safe">
+      <SheetContent side="bottom" className="h-[55vh] rounded-t-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-t border-white/10 p-0 pb-safe [&>button]:hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-2 border-b border-white/10">
           <div className="flex items-center gap-2">

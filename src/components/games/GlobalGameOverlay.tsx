@@ -52,7 +52,7 @@ export function GlobalGameOverlay({
     }}>
       <SheetContent 
         side="bottom" 
-        className="h-auto max-h-[85vh] rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden"
+        className="h-auto max-h-[85vh] rounded-t-3xl bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 border-0 p-0 overflow-hidden [&>button]:hidden"
       >
         {/* Close Button */}
         <div className="absolute top-2 right-2 z-50">
