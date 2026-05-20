@@ -98,7 +98,15 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const onTrackEnded = () => onVideoStalledRef.current?.();
     mediaTrack?.addEventListener('ended', onTrackEnded);
 
+    const hideShield = () => {
+      const s = shieldRef.current;
+      if (s && s.style.opacity !== '0') {
+        s.style.opacity = '0';
+        setTimeout(() => { if (s) s.style.display = 'none'; }, 150);
+      }
+    };
     const markReady = () => {
+      hideShield();
       if (!muted) {
         // Optional unmute after successful playback start
         try {
@@ -110,6 +118,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         }
       }
     };
+
 
     const playNow = () => {
       enforceInlineSurface();
