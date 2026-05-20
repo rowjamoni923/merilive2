@@ -235,7 +235,8 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
       }
 
       setStep('submitted');
-      setAlreadyClaimed(true);
+      setLatestStatus('pending');
+      setRejectionReason(null);
       toast.success('Screenshot submitted! Reward will be credited after admin approval.');
     } catch (err) {
       console.error('Upload error:', err);
