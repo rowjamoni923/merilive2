@@ -12003,6 +12003,79 @@ export type Database = {
         }
         Relationships: []
       }
+      topup_trader_approval_log: {
+        Row: {
+          action: string
+          created_at: string
+          helper_id: string
+          id: string
+          new_is_active: boolean | null
+          new_is_verified: boolean | null
+          new_trader_level: number | null
+          performed_by: string | null
+          performed_by_name: string | null
+          previous_is_active: boolean | null
+          previous_is_verified: boolean | null
+          previous_trader_level: number | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          helper_id: string
+          id?: string
+          new_is_active?: boolean | null
+          new_is_verified?: boolean | null
+          new_trader_level?: number | null
+          performed_by?: string | null
+          performed_by_name?: string | null
+          previous_is_active?: boolean | null
+          previous_is_verified?: boolean | null
+          previous_trader_level?: number | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          helper_id?: string
+          id?: string
+          new_is_active?: boolean | null
+          new_is_verified?: boolean | null
+          new_trader_level?: number | null
+          performed_by?: string | null
+          performed_by_name?: string | null
+          previous_is_active?: boolean | null
+          previous_is_verified?: boolean | null
+          previous_trader_level?: number | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topup_trader_approval_log_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topup_trader_approval_log_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topup_trader_approval_log_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trader_level_purchases: {
         Row: {
           admin_notes: string | null
@@ -15595,6 +15668,43 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_list_topup_trader_approval_log: {
+        Args: { _limit?: number }
+        Returns: {
+          action: string
+          app_uid: string
+          created_at: string
+          display_name: string
+          helper_id: string
+          id: string
+          new_is_verified: boolean
+          new_trader_level: number
+          performed_by_name: string
+          previous_is_verified: boolean
+          previous_trader_level: number
+          reason: string
+          user_id: string
+        }[]
+      }
+      admin_list_topup_traders_for_approval: {
+        Args: { _limit?: number }
+        Returns: {
+          app_uid: string
+          avatar_url: string
+          country_code: string
+          country_flag: string
+          display_name: string
+          helper_id: string
+          is_active: boolean
+          is_approved: boolean
+          is_verified: boolean
+          total_sold: number
+          trader_level: number
+          updated_at: string
+          user_id: string
+          wallet_balance: number
+        }[]
+      }
       admin_list_user_reports: {
         Args: { _admin_id: string; _limit?: number; _status?: string }
         Returns: {
@@ -15805,6 +15915,15 @@ export type Database = {
       admin_set_host_status: {
         Args: { _make_host: boolean; _user_id: string }
         Returns: undefined
+      }
+      admin_set_topup_trader_approval: {
+        Args: {
+          _approve: boolean
+          _helper_id: string
+          _reason?: string
+          _trader_level?: number
+        }
+        Returns: Json
       }
       admin_toggle_face_verification: {
         Args: { _user_id: string; _verified: boolean }
