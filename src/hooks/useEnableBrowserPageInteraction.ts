@@ -2,13 +2,19 @@ import { useEffect } from "react";
 
 const ZOOMABLE_VIEWPORT_CONTENT = "width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=10, user-scalable=yes";
 
+type BrowserPageInteractionOptions = {
+  mode?: "document" | "app-shell";
+};
+
 /**
  * Public browser pages like /link and admin must keep native browser scroll
  * and pinch-zoom enabled, even if app screens use stricter interaction rules.
  */
-export function useEnableBrowserPageInteraction() {
+export function useEnableBrowserPageInteraction(options: BrowserPageInteractionOptions = {}) {
   useEffect(() => {
     if (typeof document === "undefined") return;
+
+    const mode = options.mode ?? "document";
 
     const viewport = document.querySelector('meta[name="viewport"]');
     const root = document.getElementById("root");
@@ -28,15 +34,15 @@ export function useEnableBrowserPageInteraction() {
       viewport.setAttribute("content", ZOOMABLE_VIEWPORT_CONTENT);
     }
 
-    html.style.overflow = "auto";
-    body.style.overflow = "auto";
-    html.style.touchAction = "auto";
-    body.style.touchAction = "auto";
-    body.style.overscrollBehavior = "auto";
+    html.style.overflow = mode === "app-shell" ? "hidden" : "auto";
+    body.style.overflow = mode === "app-shell" ? "hidden" : "auto";
+    html.style.touchAction = mode === "app-shell" ? "pan-y" : "auto";
+    body.style.touchAction = mode === "app-shell" ? "pan-y" : "auto";
+    body.style.overscrollBehavior = mode === "app-shell" ? "contain" : "auto";
 
     if (root) {
-      root.style.overflow = "visible";
-      root.style.height = "auto";
+      root.style.overflow = mode === "app-shell" ? "hidden" : "visible";
+      root.style.height = mode === "app-shell" ? "100dvh" : "auto";
     }
 
     return () => {
@@ -59,7 +65,7 @@ export function useEnableBrowserPageInteraction() {
         root.style.height = previousRootHeight;
       }
     };
-  }, []);
+  }, [options.mode]);
 }
 
 export default useEnableBrowserPageInteraction;

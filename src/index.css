@@ -1864,6 +1864,61 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   min-height: 100%;
 }
 
+/* Admin shell owns scrolling. Keep body/root locked so mobile gestures do not
+   get stolen by the document after the first scroll. */
+body[data-admin-active="true"] {
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+  background: hsl(230 15% 6%);
+}
+
+body[data-admin-active="true"] #root {
+  height: 100vh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
+}
+
+.admin-shell {
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
+.admin-shell [data-admin-scroll-root="true"] {
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  touch-action: pan-y !important;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.admin-shell [data-radix-scroll-area-viewport],
+.admin-shell .overflow-y-auto,
+.admin-shell .overflow-y-scroll,
+.admin-shell .overflow-auto,
+.admin-shell .overflow-scroll {
+  touch-action: pan-y !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1023px) {
+  .admin-shell {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+  }
+}
+
 /* ============================================
    CARD & CONTAINER BACKGROUNDS
    ============================================ */
