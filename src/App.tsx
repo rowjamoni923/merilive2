@@ -126,6 +126,7 @@ const Invitation = lazy(lazyRetry(() => import("./pages/Invitation")));
 const Tasks = lazy(lazyRetry(() => import("./pages/Tasks")));
 const HostBonusLedger = lazy(lazyRetry(() => import("./pages/HostBonusLedger")));
 const Settings = lazy(lazyRetry(() => import("./pages/Settings")));
+const DebugReferrer = lazy(lazyRetry(() => import("./pages/DebugReferrer")));
 const Rewards = lazy(lazyRetry(() => import("./pages/Rewards")));
 const Agency = lazy(lazyRetry(() => import("./pages/Agency")));
 const AgentRank = lazy(lazyRetry(() => import("./pages/AgentRank")));
@@ -1103,6 +1104,7 @@ const App = () => {
                 <Route path="/tasks" element={<ProtectedRoute session={session}><Tasks /></ProtectedRoute>} />
                 <Route path="/host-bonus-ledger" element={<ProtectedRoute session={session}><HostBonusLedger /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
+                <Route path="/debug/referrer" element={<ProtectedRoute session={session}><DebugReferrer /></ProtectedRoute>} />
                 <Route path="/settings/blacklist" element={<ProtectedRoute session={session}><Blacklist /></ProtectedRoute>} />
                 <Route path="/settings/privacy-policy" element={<ProtectedRoute session={session}><ContentPageView /></ProtectedRoute>} />
                 <Route path="/settings/user-agreement" element={<ProtectedRoute session={session}><ContentPageView /></ProtectedRoute>} />
