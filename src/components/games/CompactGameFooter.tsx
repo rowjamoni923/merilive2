@@ -737,6 +737,23 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
+      // Parse preset_bets JSON so admin-configured chip values render
+      const parsed = (data || []).map((g: any) => ({
+        ...g,
+        preset_bets: g.preset_bets
+          ? (typeof g.preset_bets === 'string' ? JSON.parse(g.preset_bets) : g.preset_bets)
+          : DEFAULT_PRESET_BETS
+      }));
+      setGames(parsed);
+    } finally {
+      setLoading(false);
+    }
+  };
+      const { data } = await supabase
+        .from('game_settings')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
       setGames(data || []);
     } finally {
       setLoading(false);
