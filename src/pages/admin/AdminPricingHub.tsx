@@ -103,6 +103,10 @@ export default function AdminPricingHub() {
     helper_receives_percent: "",
   });
   const [traderWalletTopupRate, setTraderWalletTopupRate] = useState<number | "">("");
+  // Pkg70 — per-level minimum wallet balance to be visible as Verified Trader on /recharge
+  const [traderTierMin, setTraderTierMin] = useState<Record<1|2|3|4|5, number | "">>({
+    1: "", 2: "", 3: "", 4: "", 5: "",
+  });
 
   // Auto Withdrawal Fee (app_settings.auto_withdrawal_fee) — flat USD + percent for ePay/USDT/Binance/Crypto auto methods (foreign agencies)
   const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number | ""; percent: number | ""; enabled: boolean }>({
@@ -131,6 +135,7 @@ export default function AdminPricingHub() {
           "coin_exchange",
           "trader_wallet_topup_rate",
           "auto_withdrawal_fee",
+          "topup_trader_tier_min_wallet",
         ]);
       if (error) throw error;
 
@@ -175,6 +180,18 @@ export default function AdminPricingHub() {
         percent: typeof awf?.percent === "number" ? awf.percent : "",
         enabled: awf?.enabled !== false,
       });
+
+      // Pkg70 — Trader tier-min wallet thresholds
+      const ttm = map.topup_trader_tier_min_wallet ?? {};
+      setTraderTierMin({
+        1: typeof ttm?.["1"] === "number" ? ttm["1"] : Number(ttm?.["1"] ?? 50000),
+        2: typeof ttm?.["2"] === "number" ? ttm["2"] : Number(ttm?.["2"] ?? 100000),
+        3: typeof ttm?.["3"] === "number" ? ttm["3"] : Number(ttm?.["3"] ?? 150000),
+        4: typeof ttm?.["4"] === "number" ? ttm["4"] : Number(ttm?.["4"] ?? 200000),
+        5: typeof ttm?.["5"] === "number" ? ttm["5"] : Number(ttm?.["5"] ?? 300000),
+      });
+
+
 
 
 
@@ -1113,6 +1130,64 @@ export default function AdminPricingHub() {
               >
                 <Save className="h-4 w-4 mr-2" />
                 {saving === "trader_wallet_topup_rate" ? "Saving..." : "Save Top-up Rate"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Verified Trader Tier Minimum Wallet (Diamonds)</CardTitle>
+              <CardDescription>
+                Per-level minimum <strong>wallet_balance</strong> a helper must hold to be visible as a
+                Verified Trader on <code>/recharge</code>. Edit any value — it applies instantly across
+                web + native. Stored in <code>app_settings.topup_trader_tier_min_wallet</code>.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {([1,2,3,4,5] as const).map((lvl) => (
+                  <Field key={lvl} label={`Level ${lvl} min`} hint={`Hidden if wallet < this`}>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={NUM(traderTierMin[lvl])}
+                      onChange={(e) =>
+                        setTraderTierMin({
+                          ...traderTierMin,
+                          [lvl]: e.target.value === "" ? "" : Math.max(0, Math.floor(Number(e.target.value))),
+                        })
+                      }
+                    />
+                  </Field>
+                ))}
+              </div>
+              <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
+                Tip: Higher tiers should require larger reserves. Recommended progression keeps L1 lowest
+                and L5 highest (e.g. 50k → 100k → 150k → 200k → 300k).
+              </div>
+              <Button
+                onClick={() => {
+                  // Validate all 5 levels filled with non-negative numbers
+                  for (const lvl of [1,2,3,4,5] as const) {
+                    if (traderTierMin[lvl] === "" || Number(traderTierMin[lvl]) < 0) {
+                      toast.error(`Level ${lvl} minimum must be set (>= 0)`);
+                      return;
+                    }
+                  }
+                  const payload = {
+                    "1": Number(traderTierMin[1]),
+                    "2": Number(traderTierMin[2]),
+                    "3": Number(traderTierMin[3]),
+                    "4": Number(traderTierMin[4]),
+                    "5": Number(traderTierMin[5]),
+                  };
+                  saveSection("topup_trader_tier_min_wallet", payload, "Trader tier-min wallet thresholds");
+                }}
+                disabled={saving === "topup_trader_tier_min_wallet"}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saving === "topup_trader_tier_min_wallet" ? "Saving..." : "Save Tier Minimums"}
               </Button>
             </CardContent>
           </Card>
