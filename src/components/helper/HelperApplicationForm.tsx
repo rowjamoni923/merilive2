@@ -157,7 +157,10 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
   const upgradeCost = Number(selectedLevelData?.upgrade_cost_usd || 0);
   const isPaidLevel = upgradeCost > 0;
   const isFreeLevel = !isPaidLevel;
-  const diamondsForUpgrade = Math.floor(upgradeCost * diamondsPerUsd);
+  // Pkg64: Trader-wallet apply MUST be ≥ $100 via crypto auto gateway.
+  const TRADER_MIN_USD = 100;
+  const effectiveCost = isPaidLevel ? Math.max(upgradeCost, TRADER_MIN_USD) : 0;
+  const diamondsForUpgrade = Math.floor(effectiveCost * diamondsPerUsd);
 
   /** Validate the form (everything except the actual payment). */
   const validateForm = (): string | null => {
@@ -173,6 +176,9 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
     }
     if (isPaidLevel && diamondsPerUsd <= 0) {
       return "Diamond rate not loaded yet — try again in a moment";
+    }
+    if (isPaidLevel && effectiveCost < TRADER_MIN_USD) {
+      return `Trader wallet apply requires a minimum $${TRADER_MIN_USD} crypto deposit`;
     }
     return null;
   };
@@ -243,7 +249,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         method: 'swift_pay_crypto',
         method_name: 'MeriCash Crypto Gateway',
         topup_id: paymentTopupId || null,
-        amount_usd: upgradeCost,
+        amount_usd: effectiveCost,
         diamonds_credited: diamondsForUpgrade,
         auto_verified: true,
       } : null;
@@ -567,7 +573,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
             <div className="bg-white/70 rounded-lg p-3 space-y-1.5">
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-slate-600">Level cost</span>
-                <span className="font-bold text-emerald-600">${upgradeCost}</span>
+                <span className="font-bold text-emerald-600">${effectiveCost}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-slate-600">Diamonds you receive</span>
@@ -641,7 +647,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           ) : (
             <ArrowRight className="w-4 h-4 mr-2" />
           )}
-          {isPaidLevel ? `Pay $${upgradeCost} with Crypto` : "Submit Application"}
+          {isPaidLevel ? `Pay $${effectiveCost} with Crypto` : "Submit Application"}
         </Button>
 
         {onClose && (
@@ -658,7 +664,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         packages={[]}
         mode="user"
         userCustomCoins={diamondsForUpgrade}
-        userCustomPriceUsd={upgradeCost}
+        userCustomPriceUsd={effectiveCost}
         userCustomLabel={`Helper Level ${selectedLevel} Upgrade`}
         onCredited={async (_coins) => {
           setPaidConfirmed(true);
