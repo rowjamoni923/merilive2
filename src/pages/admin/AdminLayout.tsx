@@ -1015,6 +1015,13 @@ const navGroups: NavGroup[] = [
         description: "Full history of every auto financial action (recharge / withdrawal / commission / payroll) with reverse + refund.",
       },
       {
+        label: "Moderation Audit",
+        icon: ScrollText,
+        path: "/admin/moderation-audit",
+        hubKey: "moderation-hub",
+        description: "Searchable history of every ban, report, blocked IP, and case-target change with full before/after diff and actor.",
+      },
+      {
         label: "Gmail Support",
         icon: Mail,
         path: "/admin/gmail-support",
