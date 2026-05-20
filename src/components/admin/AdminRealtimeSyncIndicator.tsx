@@ -37,7 +37,7 @@ export function AdminRealtimeSyncIndicator() {
   const [status, setStatus] = useState<Status>("connecting");
   const [last, setLast] = useState<LastEvent | null>(null);
   const [, force] = useState(0);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  
 
   // 1. Listen to admin-table-update — every successful broadcast fires this.
   useEffect(() => {
