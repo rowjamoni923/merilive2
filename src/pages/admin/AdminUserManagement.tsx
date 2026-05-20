@@ -1480,7 +1480,7 @@ export default function AdminUserManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-white border border-slate-200 p-1 w-full grid grid-cols-3 md:grid-cols-7 gap-1">
+        <TabsList className="bg-slate-900/60 border border-slate-700/50 p-1 w-full grid grid-cols-3 md:grid-cols-7 gap-1">
           <TabsTrigger value="users" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <Users className="w-3 h-3 md:w-4 md:h-4 mr-1" />
             All Users
