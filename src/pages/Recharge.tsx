@@ -131,7 +131,7 @@ const Recharge = () => {
   const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(null);
   // Use global shared balance hook for real-time sync across all pages
   const { balance: globalBalance, refetch: refetchGlobalBalance } = useUserBalance();
-  const { getMin: getTierMinWallet } = useTopupTraderTierMin();
+  const { getMin: getTierMinWallet, tierMin: tierMinMap } = useTopupTraderTierMin();
   const [localBalanceOverride, setLocalBalanceOverride] = useState<number | null>(null);
   const currentBalance = localBalanceOverride ?? globalBalance;
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
@@ -2763,6 +2763,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-rose-600/80 leading-snug">
                             No helper-trader profiles exist in the system yet. This section will populate once traders register and are approved.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-rose-700 bg-rose-50/80 rounded px-1.5 py-0.5 inline-block">
+                            Filter: country === "{helperDiag.userCountry || '?'}" | is_active=true | is_verified=true
+                          </div>
                           {isAdminViewer && (
                             <a
                               href="/admin/helper-applications"
@@ -2798,6 +2801,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-blue-600/80 leading-snug">
                             Traders exist but their registered country does not match yours. Only traders from the same country are shown for regulatory compliance.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-blue-700 bg-blue-50/80 rounded px-1.5 py-0.5 inline-block">
+                            Filter: country === "{helperDiag.userCountry || '?' }"
+                          </div>
                           {helperDiag.samples.country.length > 0 && (
                             <div className="mt-1.5 space-y-0.5">
                               {helperDiag.samples.country.map((s, i) => (
@@ -2844,6 +2850,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-orange-600/80 leading-snug">
                             Some trader accounts are pending admin verification, suspended, or inactive. They will appear once admin approval is complete.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-orange-700 bg-orange-50/80 rounded px-1.5 py-0.5 inline-block">
+                            Filter: is_active === true && is_verified === true
+                          </div>
                           {helperDiag.samples.inactive.length > 0 && (
                             <div className="mt-1.5 space-y-0.5">
                               {helperDiag.samples.inactive.map((s, i) => (
@@ -2891,6 +2900,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-emerald-600/80 leading-snug">
                             Traders must hold ≥ 50,000 base AND ≥ their tier-min wallet to stay visible. Shortfall shown below.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-emerald-700 bg-emerald-50/80 rounded px-1.5 py-0.5 inline-block">
+                            Filter: wallet ≥ 50,000 && wallet ≥ tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
+                          </div>
                           {(helperDiag.samples.lowBalance.length > 0 || helperDiag.samples.tierMin.length > 0) && (
                             <div className="mt-1.5 space-y-0.5">
                               {helperDiag.samples.lowBalance.map((s, i) => {
@@ -2959,6 +2971,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-slate-600/80 leading-snug">
                             {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 50k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-slate-600 bg-slate-100 rounded px-1.5 py-0.5 inline-block">
+                            Filters: country="{helperDiag.userCountry || '?'}" | is_active=true | is_verified=true | base≥50,000 | tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
+                          </div>
                           {isAdminViewer && (
                             <a
                               href="/admin/helper-management"
