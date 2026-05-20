@@ -1973,6 +1973,14 @@ const Level5HelperDashboard = () => {
               />
             )}
 
+            {helperData?.id && (
+              <HelperAcceptedMethodsCard
+                helperId={helperData.id}
+                helperCountryCode={helperData?.country_code || null}
+              />
+            )}
+
+
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-slate-900 font-semibold text-sm flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-emerald-600" />
