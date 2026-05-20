@@ -2876,6 +2876,26 @@ const Recharge = () => {
                               })}
                             </div>
                           )}
+                          {isAdminViewer && (
+                            <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+                              <a
+                                href="/admin/topup-system"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline"
+                              >
+                                Open Admin → Top-up Traders <ExternalLink className="w-3 h-3" />
+                              </a>
+                              <a
+                                href="/admin/pricing-hub"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline"
+                              >
+                                Edit Tier-Min Wallets (Pricing Hub → Helper) <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
