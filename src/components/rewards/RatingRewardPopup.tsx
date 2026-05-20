@@ -112,15 +112,15 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
   }, [openProofDialog]);
 
   useEffect(() => {
-    if (!isEnabled || alreadyClaimed) return;
+    if (!isEnabled || isLocked) return;
 
     openPendingProofIfNeeded();
 
     return undefined;
-  }, [alreadyClaimed, isEnabled, openPendingProofIfNeeded]);
+  }, [isLocked, isEnabled, openPendingProofIfNeeded]);
 
   useEffect(() => {
-    if (!isEnabled || alreadyClaimed) return;
+    if (!isEnabled || isLocked) return;
 
     // The old in-component "rate us" banner is fully retired.
     // The ONLY rating banner shown to users now comes from the admin-managed
@@ -136,10 +136,10 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
     return () => {
       window.removeEventListener('open-rating-proof-popup', handleOpenProof);
     };
-  }, [alreadyClaimed, isEnabled, openProofDialog]);
+  }, [isLocked, isEnabled, openProofDialog]);
 
   useEffect(() => {
-    if (!isEnabled || alreadyClaimed) return;
+    if (!isEnabled || isLocked) return;
 
     const handleFocus = () => {
       openPendingProofIfNeeded();
@@ -163,7 +163,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [alreadyClaimed, isEnabled, openPendingProofIfNeeded]);
+  }, [isLocked, isEnabled, openPendingProofIfNeeded]);
 
   const handleOpenPlayStore = async () => {
     sessionStorage.setItem('rating_popup_dismissed', 'true');
@@ -245,7 +245,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
     }
   }, [userId]);
 
-  if (alreadyClaimed || !isEnabled || !rewardAmounts) return null;
+  if (isLocked || !isEnabled || !rewardAmounts) return null;
 
   return (
     <>
