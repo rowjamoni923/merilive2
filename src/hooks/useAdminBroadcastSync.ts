@@ -211,6 +211,12 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
 
   // Pkg62 — Moderation/Reports re-verify (live face violations)
   live_face_violations: [['admin-face-violations'], ['live-face-violations']],
+
+  // Pkg63 — Admin notification bell — bridge the last 4 alert tables
+  helper_message_replies: [['helper-message-replies'], ['admin-finance']],
+  payroll_requests: [['admin-payroll-requests'], ['payroll-requests']],
+  consumption_return_history: [['consumption-return-history']],
+  leaderboard_reward_history: [['leaderboard-reward-history']],
 };
 
 let globalChannel: ReturnType<typeof supabase.channel> | null = null;
