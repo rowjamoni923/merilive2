@@ -1020,7 +1020,7 @@ const Recharge = () => {
         `)
         .eq('is_active', true)
         .eq('is_verified', true)
-        .gte('wallet_balance', 100000)
+        .gte('wallet_balance', 50000)
         .order('trader_level', { ascending: false })
         .order('total_sold', { ascending: false });
 
@@ -1031,12 +1031,18 @@ const Recharge = () => {
       }
 
       if (helpers) {
-        // STRICT country match using PROFILE's country_code (actual user location)
+        // Tiered minimum balance per trader level: L1=50k, L2=100k, L3=150k, L4=200k, L5=300k
+        const TIER_MIN: Record<number, number> = { 1: 50000, 2: 100000, 3: 150000, 4: 200000, 5: 300000 };
+        // STRICT country match using PROFILE's country_code + tier-based min balance
         const filtered = helpers.filter(h => {
           const user = h.user as any;
           const profileCountry = user?.country_code || h.country_code;
-          return profileCountry === userCountryCode;
+          if (profileCountry !== userCountryCode) return false;
+          const lvl = Math.max(1, Math.min(5, h.trader_level || 1));
+          const min = TIER_MIN[lvl] ?? 50000;
+          return (h.wallet_balance ?? 0) >= min;
         });
+
         
         const mapped = filtered.map(h => {
           const user = h.user as any;
