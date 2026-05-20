@@ -50,7 +50,23 @@ async function clearStaleRuntimeCaches() {
   } catch {
     // best-effort only
   }
+
+  // Pkg54: aggressively unregister stale SWs that may still be serving old index.html.
+  // Without this, every reload re-fetches the same broken HTML from the SW cache and
+  // we get stuck in the "Updating MeriLive" loop forever.
+  try {
+    if (typeof navigator !== 'undefined' && navigator.serviceWorker?.getRegistrations) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister().catch(() => false)));
+    }
+  } catch {
+    // best-effort only
+  }
 }
+
+// Pkg54: allow up to 3 reload attempts per module per session.
+// 1st: simple reload. 2nd+: cache-bust query string so CDN/browser fetches fresh index.html.
+const MAX_RELOADS_PER_MODULE = 3;
 
 export async function scheduleChunkLoadRecovery(error: any, source = ''): Promise<boolean> {
   if (!isChunkLoadError(error) || typeof window === 'undefined') return false;
@@ -59,26 +75,54 @@ export async function scheduleChunkLoadRecovery(error: any, source = ''): Promis
   const moduleKey = getModuleKey(source || error?.message || String(error));
   const reloadKey = `${RELOAD_KEY_PREFIX}${moduleKey}`;
 
+  let attempts = 0;
   try {
-    if (sessionStorage.getItem(reloadKey) === '1') return false;
-    sessionStorage.setItem(reloadKey, '1');
+    attempts = parseInt(sessionStorage.getItem(reloadKey) || '0', 10) || 0;
+    if (attempts >= MAX_RELOADS_PER_MODULE) return false;
+    sessionStorage.setItem(reloadKey, String(attempts + 1));
   } catch {
     // If storage is blocked, still try one in-memory recovery.
   }
 
   window.__meriChunkRecoveryScheduled = true;
-  console.warn('[LazyRetry] Recovering from stale/missing route chunk:', moduleKey);
+  console.warn(`[LazyRetry] Recovering stale chunk (attempt ${attempts + 1}/${MAX_RELOADS_PER_MODULE}):`, moduleKey);
   await clearStaleRuntimeCaches();
 
   setTimeout(() => {
     try {
-      window.location.reload();
+      // From attempt #2 onward: append cache-bust query param so we force-fetch
+      // a fresh index.html (bypasses Cloudflare/browser HTML cache).
+      if (attempts >= 1) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('_cb', String(Date.now()));
+        window.location.replace(url.toString());
+      } else {
+        window.location.reload();
+      }
     } catch {
       window.location.href = window.location.href;
     }
   }, 80);
 
   return true;
+}
+
+/** Pkg54: called from ErrorBoundary "Try Again" — wipe per-module reload counters
+ *  so a fresh recovery cycle can run. */
+export function resetChunkRecoveryMarkers() {
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const k = sessionStorage.key(i);
+      if (k && k.startsWith(RELOAD_KEY_PREFIX)) keys.push(k);
+    }
+    keys.forEach((k) => sessionStorage.removeItem(k));
+  } catch {
+    // best-effort
+  }
+  try {
+    if (typeof window !== 'undefined') window.__meriChunkRecoveryScheduled = false;
+  } catch {}
 }
 
 export function lazyRetry<T extends React.ComponentType<any>>(

@@ -3,7 +3,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import errorLoggingService from '@/services/ErrorLoggingService';
-import { isChunkLoadError, scheduleChunkLoadRecovery } from '@/utils/lazyRetry';
+import { isChunkLoadError, scheduleChunkLoadRecovery, resetChunkRecoveryMarkers } from '@/utils/lazyRetry';
 
 interface Props {
   children: ReactNode;
@@ -52,6 +52,15 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = () => {
+    // Pkg54: if the failure was a stale chunk, clear per-module reload counters
+    // and trigger a full cache-busting reload so the user is never stuck on the
+    // "Updating MeriLive" card with a permanently missing chunk.
+    if (this.state.error && isChunkLoadError(this.state.error)) {
+      resetChunkRecoveryMarkers();
+      this.setState({ recovering: true });
+      void scheduleChunkLoadRecovery(this.state.error, this.state.error.message);
+      return;
+    }
     this.setState({ hasError: false, error: null, errorInfo: null, recovering: false });
   };
 
