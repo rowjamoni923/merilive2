@@ -2949,70 +2949,51 @@ const Level5HelperDashboard = () => {
             <div>
               <Label className="text-slate-500">Payment Method Type *</Label>
               <Select value={paymentType} onValueChange={setPaymentType}>
- <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
-                  <SelectValue placeholder={selectedCountry ? "Select payment method..." : "Select a country first"} />
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
+                  <SelectValue placeholder="Select payment method..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-50 border-slate-200 max-h-72">
-                  {/* ═══ AUTO PAYMENT GATEWAYS — country specific (from payment_gateways table) ═══ */}
+                  {/* ═══ AUTO PAYMENT GATEWAYS — country-specific (from payment_gateways table) ═══ */}
                   {countryGateways.filter(g => g.is_integrated).length > 0 && (
                     <div className="px-2 py-1 text-[10px] text-amber-700 font-bold uppercase tracking-wider">
-                      ⚡ Auto Gateways — {selectedCountry || 'Global'}
+                      ⚡ Auto Gateways — {helperCountryName}
                     </div>
                   )}
                   {countryGateways
                     .filter(g => g.is_integrated)
                     .map(g => (
- <SelectItem key={g.id} value={g.gateway_type} className="text-slate-900">
+                      <SelectItem key={g.id} value={g.gateway_type} className="text-slate-900">
                         ⚡ {g.name} <span className="text-[10px] text-amber-700/70 ml-1">(Auto Pay)</span>
                       </SelectItem>
                     ))}
 
-                  {/* ═══ MANUAL METHODS — universal fallbacks (always visible) ═══ */}
+                  {/* ═══ MANUAL METHODS — helper's country only ═══ */}
+                  {helperManualMethods.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-[10px] text-slate-700 font-bold uppercase tracking-wider mt-1">
+                        📝 Manual Methods — {helperCountryName}
+                      </div>
+                      {helperManualMethods.map(m => (
+                        <SelectItem key={m.value} value={m.value} className="text-slate-900">
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+
+                  {/* ═══ GLOBAL RAILS — available to every country ═══ */}
                   <div className="px-2 py-1 text-[10px] text-slate-700 font-bold uppercase tracking-wider mt-1">
-                    📝 Manual Methods
+                    🌍 Global Methods
                   </div>
- <SelectItem value="bkash" className="text-slate-900">📱 bKash</SelectItem>
- <SelectItem value="nagad" className="text-slate-900">💳 Nagad</SelectItem>
- <SelectItem value="rocket" className="text-slate-900">🚀 Rocket</SelectItem>
- <SelectItem value="upay" className="text-slate-900">📲 Upay</SelectItem>
- <SelectItem value="bank" className="text-slate-900">🏦 Bank Transfer</SelectItem>
- <SelectItem value="upi" className="text-slate-900">📱 UPI (India)</SelectItem>
- <SelectItem value="paytm" className="text-slate-900">💰 Paytm</SelectItem>
- <SelectItem value="phonepe" className="text-slate-900">📱 PhonePe</SelectItem>
- <SelectItem value="gpay" className="text-slate-900">💳 Google Pay</SelectItem>
- <SelectItem value="jazzcash" className="text-slate-900">🎵 JazzCash</SelectItem>
- <SelectItem value="easypaisa" className="text-slate-900">💚 EasyPaisa</SelectItem>
- <SelectItem value="gcash" className="text-slate-900">💙 GCash</SelectItem>
- <SelectItem value="maya" className="text-slate-900">💜 Maya</SelectItem>
- <SelectItem value="grab" className="text-slate-900">🟢 GrabPay</SelectItem>
- <SelectItem value="momo" className="text-slate-900">💗 MoMo</SelectItem>
- <SelectItem value="ovo" className="text-slate-900">💜 OVO</SelectItem>
- <SelectItem value="dana" className="text-slate-900">🔵 DANA</SelectItem>
- <SelectItem value="gopay" className="text-slate-900">🟢 GoPay</SelectItem>
- <SelectItem value="mpesa" className="text-slate-900">🟢 M-Pesa</SelectItem>
- 
- <SelectItem value="crypto" className="text-slate-900">₿ Crypto (USDT)</SelectItem>
- <SelectItem value="paypal" className="text-slate-900">💙 PayPal</SelectItem>
- <SelectItem value="wise" className="text-slate-900">💚 Wise</SelectItem>
- <SelectItem value="skrill" className="text-slate-900">💜 Skrill</SelectItem>
- <SelectItem value="payoneer" className="text-slate-900">🟠 Payoneer</SelectItem>
- 
- <SelectItem value="alipay" className="text-slate-900">🔵 Alipay</SelectItem>
- <SelectItem value="wechat" className="text-slate-900">🟢 WeChat Pay</SelectItem>
- <SelectItem value="line_pay" className="text-slate-900">🟢 LINE Pay</SelectItem>
- <SelectItem value="truemoney" className="text-slate-900">🟠 TrueMoney</SelectItem>
- <SelectItem value="promptpay" className="text-slate-900">💙 PromptPay</SelectItem>
- <SelectItem value="touch_n_go" className="text-slate-900">🔵 Touch'n Go</SelectItem>
- <SelectItem value="duitnow" className="text-slate-900">💜 DuitNow</SelectItem>
- <SelectItem value="pix" className="text-slate-900">💚 PIX (Brazil)</SelectItem>
+                  {GLOBAL_MANUAL_METHODS.map(m => (
+                    <SelectItem key={`g-${m.value}`} value={m.value} className="text-slate-900">
+                      {m.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              {!selectedCountry && (
-                <p className="text-[10px] text-amber-700/80 mt-1">
-                  💡 Select a country above to see available auto gateways for that region
-                </p>
-              )}
             </div>
+
 
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
               <div>
