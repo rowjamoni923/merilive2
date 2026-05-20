@@ -55,7 +55,8 @@ import {
   ShieldAlert,
   Mail,
   Map,
-  Package
+  Package,
+  ScrollText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1013,6 +1014,13 @@ const navGroups: NavGroup[] = [
         path: "/admin/auto-actions",
         hubKey: "moderation-hub",
         description: "Full history of every auto financial action (recharge / withdrawal / commission / payroll) with reverse + refund.",
+      },
+      {
+        label: "Moderation Audit",
+        icon: ScrollText,
+        path: "/admin/moderation-audit",
+        hubKey: "moderation-hub",
+        description: "Searchable history of every ban, report, blocked IP, and case-target change with full before/after diff and actor.",
       },
       {
         label: "Gmail Support",

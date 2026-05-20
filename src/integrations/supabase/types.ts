@@ -7383,6 +7383,54 @@ export type Database = {
         }
         Relationships: []
       }
+      moderation_audit_log: {
+        Row: {
+          action: string
+          admin_display: string | null
+          admin_id: string | null
+          after_data: Json | null
+          before_data: Json | null
+          changed_keys: string[] | null
+          id: string
+          ip_address: string | null
+          occurred_at: string
+          row_id: string | null
+          summary: string | null
+          table_name: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_display?: string | null
+          admin_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          changed_keys?: string[] | null
+          id?: string
+          ip_address?: string | null
+          occurred_at?: string
+          row_id?: string | null
+          summary?: string | null
+          table_name: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_display?: string | null
+          admin_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          changed_keys?: string[] | null
+          id?: string
+          ip_address?: string | null
+          occurred_at?: string
+          row_id?: string | null
+          summary?: string | null
+          table_name?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       movies: {
         Row: {
           created_at: string | null
@@ -14364,6 +14412,11 @@ export type Database = {
       _internal_add_diamonds:
         | { Args: { _amount: number; _user_id: string }; Returns: undefined }
         | { Args: { _amount: number; _user_id: string }; Returns: undefined }
+      _mod_audit_extract_target: { Args: { _row: Json }; Returns: string }
+      _mod_audit_summary: {
+        Args: { _action: string; _new: Json; _old: Json; _table: string }
+        Returns: string
+      }
       _resolve_private_call_coins_per_minute: {
         Args: { p_host_id: string }
         Returns: number
@@ -15027,6 +15080,35 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_list_moderation_audit: {
+        Args: {
+          _action?: string
+          _admin_id?: string
+          _from?: string
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _table?: string
+          _target_user_id?: string
+          _to?: string
+        }
+        Returns: {
+          action: string
+          admin_display: string
+          admin_id: string
+          after_data: Json
+          before_data: Json
+          changed_keys: string[]
+          id: string
+          ip_address: string
+          occurred_at: string
+          row_id: string
+          summary: string
+          table_name: string
+          target_user_id: string
+          total_count: number
+        }[]
+      }
       admin_list_online_users: {
         Args: { _limit?: number; _offset?: number; _search?: string }
         Returns: Json
@@ -15401,6 +15483,7 @@ export type Database = {
         Returns: Json
       }
       admin_logout: { Args: { _token: string }; Returns: undefined }
+      admin_moderation_audit_stats: { Args: never; Returns: Json }
       admin_moderation_overview_stats: { Args: never; Returns: Json }
       admin_party_management_stats: { Args: never; Returns: Json }
       admin_payment_gateway_stats: { Args: never; Returns: Json }
