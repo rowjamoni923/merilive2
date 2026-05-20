@@ -194,7 +194,7 @@ export default function AdminCostMonitor() {
       <AdminPageHeader
         icon={Activity}
         title="Cost Monitor"
-        description="Live DB-read load + billing throughput across Live, Call, and Party. Sampled every minute."
+        subtitle="Live DB-read load + billing throughput across Live, Call, and Party. Sampled every minute."
         actions={
           <div className="flex items-center gap-2">
             <div className="flex rounded-md border border-slate-200 overflow-hidden">
