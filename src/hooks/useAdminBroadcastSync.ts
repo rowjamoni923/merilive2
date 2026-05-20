@@ -95,6 +95,11 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   coin_transfers: [['coin-transfers']],
   // Pkg55 additions — Content/Assets
   user_role_frames: [['user-role-frames'], ['my-role-frames'], ['vip-privileges']],
+  // Pkg56 additions — Moderation/Reports
+  chat_moderation_logs: [['chat-moderation-logs'], ['admin-moderation']],
+  support_tickets: [['support-tickets'], ['admin-support-tickets']],
+  support_messages: [['support-messages'], ['admin-support-tickets']],
+  support_reports: [['support-reports'], ['admin-support-reports']],
   agency_level_tiers: [['agency-level-tiers']],
 
   invitation_settings: [['invitation-settings']],
