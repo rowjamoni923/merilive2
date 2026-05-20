@@ -17,8 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { processInstallReferrer } from "@/utils/installReferrer";
-
-import { processInstallReferrer } from "@/utils/installReferrer";
 import { parseReferralPayload } from "@/utils/referralParsing";
 
 interface InstallReferrerPlugin {
