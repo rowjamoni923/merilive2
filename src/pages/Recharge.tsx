@@ -2828,9 +2828,19 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-orange-100 p-2.5">
                         <ShieldCheck className="w-4 h-4 text-orange-500 mt-0.5 shrink-1" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-orange-700">
-                            Not active / unverified — {helperDiag.byInactive} trader{helperDiag.byInactive !== 1 ? 's' : ''} hidden
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-semibold text-orange-700">
+                              Not active / unverified — {helperDiag.byInactive} trader{helperDiag.byInactive !== 1 ? 's' : ''} hidden
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-INACTIVE-UNVERIFIED'); toast({ title: 'Copied audit ID', description: 'VT-INACTIVE-UNVERIFIED' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-orange-500 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-INACTIVE-UNVERIFIED
+                            </button>
+                          </div>
                           <p className="text-[10px] text-orange-600/80 leading-snug">
                             Some trader accounts are pending admin verification, suspended, or inactive. They will appear once admin approval is complete.
                           </p>
