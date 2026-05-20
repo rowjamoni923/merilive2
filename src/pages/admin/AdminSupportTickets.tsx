@@ -342,18 +342,10 @@ const AdminSupportTickets = () => {
   // Realtime push (Pkg37): instant invalidation, no polling
   useAdminRealtime(['support_tickets', 'support_messages'], () => loadTickets(), 'admin-support-tickets-rt');
 
-  const isLegacyAiSummaryMessage = (content?: string) =>
-    isAiSummarySupportMessage(content);
+  // Single source of truth: hide ONLY AI-bot messages (see AI_MESSAGE_PATTERNS).
+  // Do NOT add fuzzy `.*AI` matches here — they hide real user tickets.
+  const shouldHideMessage = (content?: string) => isAiSummarySupportMessage(content);
 
-  // ✅ Additional check: messages starting with "[Category:" that contain AI conversation history
-  const isAiCategoryHeaderMessage = (content?: string) => {
-    if (!content) return false;
-    // "[Category: X]\n\n📋 AI Conversation Summary:" or "[Category: X]\n\nAI: ..."
-    return /^\[Category:\s*.+\]/i.test(content) && (/AI\s*Conversation\s*Summary/i.test(content) || /\nAI:\s/m.test(content));
-  };
-
-  const shouldHideMessage = (content?: string) =>
-    isLegacyAiSummaryMessage(content) || isAiCategoryHeaderMessage(content);
 
   const loadMessages = async (ticketId: string) => {
     setLoadingMessages(true);
