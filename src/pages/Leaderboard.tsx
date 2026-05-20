@@ -879,6 +879,8 @@ const Leaderboard = () => {
                 <h3 className="font-bold text-slate-900 text-[13px]">Rules</h3>
               </div>
               <ul className="px-5 py-3.5 space-y-2 text-slate-800 text-[12.5px] list-disc list-outside ml-4 leading-relaxed">
+                <li>Top <strong>1–50</strong> ranks are tracked every period</li>
+                <li>Daily resets at 12:30 AM (BST); weekly resets every Monday 12:30 AM; monthly resets on the 1st 12:30 AM</li>
                 <li>Rewards auto-credit after the period ends</li>
                 <li>Rankings update in real-time</li>
                 <li>In case of a tie, the earlier achiever ranks higher</li>
