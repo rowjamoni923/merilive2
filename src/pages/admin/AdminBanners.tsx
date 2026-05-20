@@ -350,6 +350,9 @@ export default function AdminBanners() {
                     <Badge className={banner.is_active ? "bg-green-100 text-green-600 border-green-200" : "bg-slate-100 text-slate-600 border-slate-200"}>
                       {banner.is_active ? "Active" : "Inactive"}
                     </Badge>
+                    <Badge className={banner.location === 'recharge' ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-slate-100 text-slate-600 border-slate-200"}>
+                      {banner.location === 'recharge' ? '💎 Recharge' : '🏠 Home'}
+                    </Badge>
                     {banner.link_url && (
                       <Badge className="bg-blue-100 text-blue-600 border-blue-200">
                         <LinkIcon className="w-3 h-3 mr-1" />
