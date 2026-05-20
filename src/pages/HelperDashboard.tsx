@@ -103,6 +103,11 @@ const HelperDashboard = () => {
   const [showCryptoTopupModal, setShowCryptoTopupModal] = useState(false);
   const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] = useState(false);
   const [paymentMethodsRefreshKey, setPaymentMethodsRefreshKey] = useState(0);
+
+  // L5-parity tab strip
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const initialTab = urlParams?.get('tab') || 'levels';
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   
   // Real-time level progress hook
   const { 
