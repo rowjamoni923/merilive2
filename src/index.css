@@ -678,11 +678,8 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     touch-action: pan-x;
     -webkit-overflow-scrolling: touch;
   }
-  /* Fixed full-screen pages: prefer dvh so Android URL bar
-     never clips the scrollable inner area. */
-  .fixed.inset-0 {
-    height: 100dvh;
-  }
+
+
 
 
 
