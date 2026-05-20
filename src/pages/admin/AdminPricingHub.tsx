@@ -103,6 +103,10 @@ export default function AdminPricingHub() {
     helper_receives_percent: "",
   });
   const [traderWalletTopupRate, setTraderWalletTopupRate] = useState<number | "">("");
+  // Pkg70 — per-level minimum wallet balance to be visible as Verified Trader on /recharge
+  const [traderTierMin, setTraderTierMin] = useState<Record<1|2|3|4|5, number | "">>({
+    1: "", 2: "", 3: "", 4: "", 5: "",
+  });
 
   // Auto Withdrawal Fee (app_settings.auto_withdrawal_fee) — flat USD + percent for ePay/USDT/Binance/Crypto auto methods (foreign agencies)
   const [autoWithdrawalFee, setAutoWithdrawalFee] = useState<{ flat_usd: number | ""; percent: number | ""; enabled: boolean }>({
