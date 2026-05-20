@@ -1092,15 +1092,18 @@ const Recharge = () => {
             if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
             return false;
           }
+          // Wallet-threshold gates removed per owner request — show all
+          // active+verified L1-L5 traders in same country regardless of
+          // wallet balance. Backend `is_approved_topup_trader()` still
+          // governs whether the Chat CTA appears (vs "Top-up unavailable").
+          // Diagnostics still record below-threshold helpers so agency
+          // owners see them in the audit panel.
           if (wallet < 50000) {
             byLowBalance++;
             if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
-            return false;
-          }
-          if (wallet < tierMin) {
+          } else if (wallet < tierMin) {
             byTierMin++;
             if (sampleTierMin.length < MAX_SAMPLES) sampleTierMin.push(sample);
-            return false;
           }
           return true;
         });
