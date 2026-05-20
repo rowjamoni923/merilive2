@@ -1261,7 +1261,7 @@ const ProfileDetail = () => {
                   className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{friendsCount}</p>
-                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Friends</p>
+                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Friends</p>
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
@@ -1269,7 +1269,7 @@ const ProfileDetail = () => {
                   className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors border-x border-slate-100"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{followingCount}</p>
-                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Following</p>
+                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Following</p>
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
@@ -1277,7 +1277,7 @@ const ProfileDetail = () => {
                   className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{followersCount}</p>
-                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Followers</p>
+                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Followers</p>
                 </motion.button>
               </div>
             </>
@@ -1380,9 +1380,9 @@ const ProfileDetail = () => {
                 className="flex items-center gap-1 text-lg font-bold text-slate-950"
               >
                 🎁 Gifts Received
-                <ChevronRight className="w-5 h-5 text-slate-500" />
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
               </button>
-              <span className="text-sm text-slate-500 font-medium">
+              <span className="text-sm text-muted-foreground font-medium">
                 Total: {profile?.total_earnings?.toLocaleString() || 0} beans
               </span>
             </div>
@@ -1424,7 +1424,7 @@ const ProfileDetail = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-6 text-slate-500">
+                <div className="text-center py-6 text-muted-foreground">
                   <span className="text-3xl">💝</span>
                   <p className="text-sm mt-2">No gifts received yet</p>
                 </div>
@@ -1541,7 +1541,7 @@ const ProfileDetail = () => {
             className="flex items-center gap-1 text-lg font-bold mb-3 text-slate-950"
           >
             Groups
-            <ChevronRight className="w-5 h-5 text-slate-500" />
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
 
           {groups.length > 0 ? (
@@ -1578,8 +1578,8 @@ const ProfileDetail = () => {
             </ScrollArea>
           ) : (
             <div className="rounded-2xl p-6 text-center profile-home-section">
-              <Users className="w-10 h-10 text-slate-500 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No groups joined yet</p>
+              <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No groups joined yet</p>
             </div>
           )}
         </motion.div>
