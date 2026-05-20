@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { processInstallReferrer } from '@/utils/installReferrer';
 
 /**
  * Component to handle deep links when the app is opened via a URL
@@ -114,6 +115,12 @@ const DeepLinkHandler = () => {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
+
+    // Pkg62 — On Android, ask Play Store for the deferred deep-link referrer
+    // (utm/ref/agency) written when the user clicked the share link before
+    // installing. Stores it in the same localStorage keys explicit deep links
+    // use, so JoinAgency + Invitation tracking auto-fill on first signup.
+    void processInstallReferrer();
 
     const handleAppUrlOpen = (event: { url: string }) => {
       const parsed = parseIncomingUrl(event.url);

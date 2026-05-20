@@ -189,7 +189,7 @@ const Settings = () => {
   }, [updatePermissions]);
   
   // App version state
-  const [appVersion, setAppVersion] = useState<{ version: string; build: string }>({ version: "1.0.0", build: "1" });
+  const [appVersion, setAppVersion] = useState<{ version: string; build: string }>({ version: APP_VERSION, build: APP_BUILD });
 
   // Fetch user and deletion info
   useEffect(() => {
