@@ -41,14 +41,19 @@ const avatarSizeClasses = {
   "2xl": "w-36 h-36",
 };
 
-// Frame should be slightly larger than avatar to wrap around it
-const frameSizeClasses = {
-  xs: "w-9 h-9",
-  sm: "w-14 h-14",
-  md: "w-[72px] h-[72px]",
-  lg: "w-28 h-28",
-  xl: "w-36 h-36",
-  "2xl": "w-44 h-44",
+// Frame container matches avatar EXACTLY (parity with AvatarWithFrame used on
+// the gifting / home / chat surfaces). The frame artwork is rendered as an
+// absolute overlay that extends slightly past the avatar disc via a small
+// negative inset, so the ring sits flush around the avatar with no gap.
+const frameSizeClasses = avatarSizeClasses;
+
+const frameInsetPx: Record<keyof typeof avatarSizeClasses, number> = {
+  xs: -3,
+  sm: -4,
+  md: -6,
+  lg: -8,
+  xl: -10,
+  "2xl": -12,
 };
 
 const fallbackTextSizes = {
