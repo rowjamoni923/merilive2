@@ -572,7 +572,10 @@ export default function AdminHosts() {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20 border-4 border-pink-500/50">
-                  <AvatarImage src={selectedHost.avatar_url || ""} />
+                  <AvatarImage
+                    src={getDisplayAvatar(selectedHost.id, selectedHost.avatar_url, { gender: 'female' })}
+                    referrerPolicy="no-referrer"
+                  />
                   <AvatarFallback className="bg-pink-500/20 text-pink-400 text-2xl">
                     {selectedHost.display_name?.charAt(0)}
                   </AvatarFallback>
