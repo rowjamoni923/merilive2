@@ -336,7 +336,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                                   gift.icon_url.endsWith('.gif') ? (
                                     <img src={gift.icon_url} alt={gift.name} className="w-10 h-10 object-contain" />
                                   ) : (
-                                    <video src={gift.icon_url} className="w-10 h-10 object-cover" autoPlay loop muted playsInline />
+                                    <video src={gift.icon_url} className="w-10 h-10 object-cover pointer-events-none" autoPlay loop muted playsInline controls={false} disablePictureInPicture disableRemotePlayback controlsList="nodownload nofullscreen noremoteplayback noplaybackrate" />
                                   )
                                 ) : (
                                   <img

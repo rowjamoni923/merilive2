@@ -536,12 +536,17 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                     ) : (
                       <video 
                         src={selectedGift.animation_url} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover pointer-events-none"
                         autoPlay 
                         loop 
                         muted 
                         playsInline
+                        controls={false}
+                        disablePictureInPicture
+                        disableRemotePlayback
+                        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
                       />
+
                     )
                   ) : selectedGift.animation_url && HEAVY_ANIMATION_ASSET_PATTERN.test(selectedGift.animation_url) ? (
                     <Suspense fallback={<div className="w-6 h-6 rounded-full bg-white/10 animate-pulse" />}>
