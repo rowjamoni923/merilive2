@@ -1117,12 +1117,14 @@ const Recharge = () => {
         const sampleTierMin: DiagSample[] = [];
         const MAX_SAMPLES = 3;
         const filtered = helpers.filter(h => {
-          const user = h.user as any;
+          const user = profilesMap.get((h as any).user_id) as any;
           const profileCountry = user?.country_code || h.country_code;
           const wallet = Number(h.wallet_balance ?? 0);
+          const agencyWallet = agencyDiamondMap.get((h as any).user_id) || 0;
+          const traderWallet = wallet + agencyWallet;
           const level = Number(h.trader_level ?? 1);
           const tierMin = getTierMinWallet(level);
-          const sample: DiagSample = { country: profileCountry, wallet, tierMin, level, isActive: !!h.is_active, isVerified: !!h.is_verified };
+          const sample: DiagSample = { country: profileCountry, wallet, agencyWallet, traderWallet, tierMin, level, isActive: !!h.is_active, isVerified: !!h.is_verified };
           if (profileCountry !== userCountryCode) {
             byCountry++;
             if (sampleCountry.length < MAX_SAMPLES) sampleCountry.push(sample);
@@ -1133,18 +1135,17 @@ const Recharge = () => {
             if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
             return false;
           }
-          // Wallet-threshold gates removed per owner request — show all
-          // active+verified L1-L5 traders in same country regardless of
-          // wallet balance. Backend `is_approved_topup_trader()` still
-          // governs whether the Chat CTA appears (vs "Top-up unavailable").
-          // Diagnostics still record below-threshold helpers so agency
-          // owners see them in the audit panel.
-          if (wallet < 50000) {
+          // Automatic visibility: helper switch ON + active + verified + same country
+          // + unified Trader Wallet must meet the exact level minimum.
+          if (traderWallet < 50000) {
             byLowBalance++;
             if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
-          } else if (wallet < tierMin) {
+            return false;
+          }
+          if (traderWallet < tierMin) {
             byTierMin++;
             if (sampleTierMin.length < MAX_SAMPLES) sampleTierMin.push(sample);
+            return false;
           }
           return true;
         });
