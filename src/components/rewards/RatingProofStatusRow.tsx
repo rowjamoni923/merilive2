@@ -12,8 +12,8 @@
  *
  * Mounted on Profile.tsx (own profile only). Self-contained — no parent props.
  */
-import { useEffect, useState, useCallback } from "react";
-import { Star, ChevronRight, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Star, ChevronRight, Clock, CheckCircle2, XCircle, AlertTriangle, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -92,12 +92,43 @@ export function RatingProofStatusRow() {
     return () => { void supabase.removeChannel(ch); };
   }, [userId, refresh]);
 
+  // Map admin rejection reason → tailored suggested fixes
+  const suggestions = useMemo(() => {
+    if (claim?.status !== "rejected") return [] as string[];
+    const reason = (claim.rejection_reason || "").toLowerCase();
+    const tips: string[] = [];
+    if (!reason || reason.includes("5-star") || reason.includes("rating")) {
+      tips.push("Open the Play Store listing and tap all 5 stars before screenshotting.");
+    }
+    if (reason.includes("blur") || reason.includes("clear") || reason.includes("readable")) {
+      tips.push("Use a sharp, full-resolution screenshot — no cropping or zoom.");
+    }
+    if (reason.includes("crop") || reason.includes("partial") || reason.includes("cut")) {
+      tips.push("Include the full Play Store rating bar and your account name in the frame.");
+    }
+    if (reason.includes("edit") || reason.includes("photoshop") || reason.includes("fake")) {
+      tips.push("Submit the original screenshot only — edited images are auto-rejected.");
+    }
+    if (reason.includes("wrong app") || reason.includes("different app") || reason.includes("other app")) {
+      tips.push("Make sure the screenshot is from the Merilive Play Store page, not another app.");
+    }
+    if (reason.includes("duplicate") || reason.includes("already")) {
+      tips.push("This screenshot was already submitted. Post a fresh 5-star review and try again.");
+    }
+    if (tips.length === 0) {
+      tips.push("Take a fresh screenshot showing 5 stars selected on the Merilive Play Store page.");
+      tips.push("Keep the image full-size, unedited, and clearly readable.");
+    }
+    return tips;
+  }, [claim]);
+
   if (!claim) return null;
 
   const meta = STATUS_META[claim.status];
+  const isRejected = claim.status === "rejected";
 
   const handleTap = () => {
-    if (claim.status === "rejected") {
+    if (isRejected) {
       window.dispatchEvent(new CustomEvent("open-rating-proof-popup"));
       return;
     }
@@ -131,9 +162,46 @@ export function RatingProofStatusRow() {
           <ChevronRight className="w-4 h-4 text-caption" />
         </div>
       </button>
-      {claim.status === "rejected" && claim.rejection_reason && (
-        <div className="px-3 pb-2.5 -mt-1 text-[11px] leading-relaxed text-rose-600/90">
-          Reason: {claim.rejection_reason}
+
+      {isRejected && (
+        <div className="mx-2.5 mb-2.5 rounded-lg border border-rose-200 bg-rose-50/70 overflow-hidden">
+          <div className="flex items-start gap-2 px-3 pt-2.5">
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-600 mt-[2px] flex-shrink-0" />
+            <div className="min-w-0">
+              <div className="text-[11px] font-semibold text-rose-700 uppercase tracking-wide">
+                Reason for rejection
+              </div>
+              <div className="text-[12px] text-rose-700/90 leading-relaxed mt-0.5 break-words">
+                {claim.rejection_reason?.trim() ||
+                  "Screenshot did not pass review. Please follow the tips below and resubmit."}
+              </div>
+            </div>
+          </div>
+
+          <div className="px-3 pt-2 pb-1">
+            <div className="text-[11px] font-semibold text-rose-700/80 uppercase tracking-wide mb-1">
+              How to fix
+            </div>
+            <ul className="space-y-1">
+              {suggestions.map((tip, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-[12px] text-slate-700 leading-snug">
+                  <span className="text-rose-500 mt-[1px]">•</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              window.dispatchEvent(new CustomEvent("open-rating-proof-popup"));
+            }}
+            className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold text-white bg-rose-600 hover:bg-rose-500 active:bg-rose-700 transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Submit New Screenshot
+          </button>
         </div>
       )}
     </div>
