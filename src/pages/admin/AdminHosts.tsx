@@ -57,6 +57,7 @@ import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 interface Host {
   id: string;
   display_name: string;
