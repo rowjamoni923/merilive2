@@ -1294,7 +1294,7 @@ const resolveNotificationNavPath = (notification: AdminNotification): string => 
 };
 
 export default function AdminLayout() {
-  useEnableBrowserPageInteraction();
+  useEnableBrowserPageInteraction({ mode: "app-shell" });
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -2623,7 +2623,7 @@ export default function AdminLayout() {
   const getGroupAccent = (title: string) => groupAccents[title] || groupAccents["Overview"];
 
   return (
-    <div className="h-screen overflow-hidden bg-[#06060a] touch-manipulation" style={{ height: '100dvh' }}>
+    <div className="admin-shell h-screen overflow-hidden bg-[#06060a]" style={{ height: '100dvh' }}>
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence mode="wait">
         {isMobileSidebarOpen && (
@@ -3016,7 +3016,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 80px), 80px)' }}>
+        <main data-admin-scroll-root="true" className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 80px), 80px)' }}>
           <Suspense fallback={
             <div className="min-h-[40vh]" aria-hidden="true" />
           }>
