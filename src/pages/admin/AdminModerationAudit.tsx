@@ -153,7 +153,7 @@ export default function AdminModerationAudit() {
       <AdminPageHeader
         icon={ScrollText}
         title="Moderation Audit"
-        description="Every save, status change, and delete on bans, reports, and moderation tables — with full before/after diff and actor history."
+        subtitle="Every save, status change, and delete on bans, reports, and moderation tables — with full before/after diff and actor history."
       />
 
       {/* Stats strip */}
