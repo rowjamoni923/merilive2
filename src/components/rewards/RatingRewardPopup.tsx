@@ -25,11 +25,27 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
   const [step, setStep] = useState<Step>('banner');
   const [showDialog, setShowDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [alreadyClaimed, setAlreadyClaimed] = useState(false);
+  const [latestStatus, setLatestStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isEnabled, setIsEnabled] = useState(false);
   const [rewardAmounts, setRewardAmounts] = useState<{ host_beans: number; user_diamonds: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Pkg63 — pending/approved blocks new submissions; rejected → allow retry.
+  const isLocked = latestStatus === 'pending' || latestStatus === 'approved';
+
+  const refreshLatestClaim = useCallback(async (uid: string) => {
+    const { data } = await supabase
+      .from('rating_reward_claims')
+      .select('status, rejection_reason')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setLatestStatus((data?.status as 'pending' | 'approved' | 'rejected' | null) ?? null);
+    setRejectionReason(data?.rejection_reason ?? null);
+  }, []);
 
   useEffect(() => {
     const checkClaim = async () => {
@@ -49,7 +65,6 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
 
       if (!enabled) return;
 
-      // Parse admin-configured reward amounts; require both to be present
       try {
         const raw = amountData?.setting_value;
         const cfg = typeof raw === 'string' ? JSON.parse(raw) : raw;
@@ -60,23 +75,28 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
         }
       } catch { /* keep null → popup hidden */ }
 
-      const { data: existingClaims } = await supabase
-        .from('rating_reward_claims')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
-
-      if ((existingClaims?.length ?? 0) > 0) {
-        localStorage.removeItem(RATING_PENDING_KEY);
-        setAlreadyClaimed(true);
-        return;
-      }
-
+      await refreshLatestClaim(user.id);
       setIsEnabled(true);
     };
 
     void checkClaim();
-  }, []);
+  }, [refreshLatestClaim]);
+
+  // Pkg63 — realtime: admin approve/reject reflects in user UI within 1s.
+  useEffect(() => {
+    if (!userId) return;
+    const ch = supabase
+      .channel(`rating-claim-status-${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'rating_reward_claims',
+        filter: `user_id=eq.${userId}`,
+      }, () => { void refreshLatestClaim(userId); })
+      .subscribe();
+    return () => { void supabase.removeChannel(ch); };
+  }, [userId, refreshLatestClaim]);
+
 
   const openProofDialog = useCallback(() => {
     localStorage.removeItem(RATING_PENDING_KEY);
@@ -92,15 +112,15 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
   }, [openProofDialog]);
 
   useEffect(() => {
-    if (!isEnabled || alreadyClaimed) return;
+    if (!isEnabled || isLocked) return;
 
     openPendingProofIfNeeded();
 
     return undefined;
-  }, [alreadyClaimed, isEnabled, openPendingProofIfNeeded]);
+  }, [isLocked, isEnabled, openPendingProofIfNeeded]);
 
   useEffect(() => {
-    if (!isEnabled || alreadyClaimed) return;
+    if (!isEnabled || isLocked) return;
 
     // The old in-component "rate us" banner is fully retired.
     // The ONLY rating banner shown to users now comes from the admin-managed
@@ -116,10 +136,10 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
     return () => {
       window.removeEventListener('open-rating-proof-popup', handleOpenProof);
     };
-  }, [alreadyClaimed, isEnabled, openProofDialog]);
+  }, [isLocked, isEnabled, openProofDialog]);
 
   useEffect(() => {
-    if (!isEnabled || alreadyClaimed) return;
+    if (!isEnabled || isLocked) return;
 
     const handleFocus = () => {
       openPendingProofIfNeeded();
@@ -143,7 +163,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [alreadyClaimed, isEnabled, openPendingProofIfNeeded]);
+  }, [isLocked, isEnabled, openPendingProofIfNeeded]);
 
   const handleOpenPlayStore = async () => {
     sessionStorage.setItem('rating_popup_dismissed', 'true');
@@ -215,7 +235,8 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
       }
 
       setStep('submitted');
-      setAlreadyClaimed(true);
+      setLatestStatus('pending');
+      setRejectionReason(null);
       toast.success('Screenshot submitted! Reward will be credited after admin approval.');
     } catch (err) {
       console.error('Upload error:', err);
@@ -225,7 +246,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
     }
   }, [userId]);
 
-  if (alreadyClaimed || !isEnabled || !rewardAmounts) return null;
+  if (isLocked || !isEnabled || !rewardAmounts) return null;
 
   return (
     <>
@@ -298,6 +319,21 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                 </DialogTitle>
               </DialogHeader>
               <div className="p-5 space-y-4">
+                {latestStatus === 'rejected' && (
+                  <div className="rounded-xl px-4 py-3 text-xs leading-relaxed"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(220,38,38,0.05))',
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      color: '#fca5a5',
+                    }}
+                  >
+                    <div className="font-bold text-red-300 mb-1">Previous submission rejected</div>
+                    <div className="text-red-200/80">
+                      {rejectionReason || 'Screenshot did not show a valid 5-star rating.'}
+                    </div>
+                    <div className="text-red-200/60 mt-1.5">Please upload a clearer screenshot to try again.</div>
+                  </div>
+                )}
                 <div className="rounded-2xl p-5 text-center relative overflow-hidden"
                   style={{
                     background: 'linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(124,58,237,0.06) 100%)',
