@@ -1951,35 +1951,35 @@ export default function AdminUserManagement() {
         {/* === AUTO VERIFIED TAB === */}
         <TabsContent value="auto-verified" className="mt-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-200">
+            <Card className="bg-gradient-to-br from-cyan-500/15 to-cyan-700/10 border-cyan-400/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <Shield className="w-6 h-6 text-cyan-500" />
+                  <Shield className="w-6 h-6 text-cyan-300" />
                   <div>
-                    <p className="text-lg font-bold text-cyan-600">{autoApprovedFaceCount}</p>
-                    <p className="text-xs text-cyan-600/80">Auto Verified</p>
+                    <p className="text-lg font-bold text-cyan-100">{autoApprovedFaceCount}</p>
+                    <p className="text-xs text-cyan-200/80">Auto Verified</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200">
+            <Card className="bg-gradient-to-br from-pink-500/15 to-pink-700/10 border-pink-400/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <Crown className="w-6 h-6 text-pink-500" />
+                  <Crown className="w-6 h-6 text-pink-300" />
                   <div>
-                    <p className="text-lg font-bold text-pink-600">{autoHostFaceCount}</p>
-                    <p className="text-xs text-pink-600/80">Auto Host</p>
+                    <p className="text-lg font-bold text-pink-100">{autoHostFaceCount}</p>
+                    <p className="text-xs text-pink-200/80">Auto Host</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <Card className="bg-gradient-to-br from-blue-500/15 to-blue-700/10 border-blue-400/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <User className="w-6 h-6 text-blue-500" />
+                  <User className="w-6 h-6 text-blue-300" />
                   <div>
-                    <p className="text-lg font-bold text-blue-600">{autoUserFaceCount}</p>
-                    <p className="text-xs text-blue-600/80">Auto User</p>
+                    <p className="text-lg font-bold text-blue-100">{autoUserFaceCount}</p>
+                    <p className="text-xs text-blue-200/80">Auto User</p>
                   </div>
                 </div>
               </CardContent>
@@ -1987,7 +1987,7 @@ export default function AdminUserManagement() {
           </div>
 
           {/* Search */}
-          <Card className="bg-white border-slate-200 shadow-md">
+          <Card className="bg-slate-900/40 border-slate-700/50 shadow-md">
             <CardContent className="p-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -1995,7 +1995,7 @@ export default function AdminUserManagement() {
                   placeholder="Search by name or UID..."
                   value={appSearchQuery}
                   onChange={(e) => setAppSearchQuery(e.target.value)}
-                  className="pl-10 bg-slate-50 border-slate-200 h-10 text-sm text-slate-900 placeholder:text-slate-400"
+                  className="pl-10 bg-slate-800/60 border-slate-700 h-10 text-sm text-slate-100 placeholder:text-slate-500"
                 />
               </div>
             </CardContent>
