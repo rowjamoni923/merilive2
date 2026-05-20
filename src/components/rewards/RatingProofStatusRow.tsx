@@ -24,6 +24,7 @@ interface ClaimRow {
   status: ClaimStatus;
   rejection_reason: string | null;
   created_at: string;
+  reviewed_at: string | null;
 }
 
 const STATUS_META: Record<ClaimStatus, {
@@ -52,6 +53,14 @@ const STATUS_META: Record<ClaimStatus, {
   },
 };
 
+function formatTimestamp(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const date = d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `${date} · ${time}`;
+}
+
 export function RatingProofStatusRow() {
   const [userId, setUserId] = useState<string | null>(null);
   const [claim, setClaim] = useState<ClaimRow | null>(null);
@@ -61,7 +70,7 @@ export function RatingProofStatusRow() {
   const refresh = useCallback(async (uid: string) => {
     const { data } = await supabase
       .from("rating_reward_claims")
-      .select("status, rejection_reason, created_at")
+      .select("status, rejection_reason, created_at, reviewed_at")
       .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -242,6 +251,51 @@ export function RatingProofStatusRow() {
           <ChevronRight className="w-4 h-4 text-caption" />
         </div>
       </button>
+
+      {/* Review timeline — submitted + reviewed timestamps */}
+      <div className="mx-2.5 mb-2 rounded-lg border border-slate-200 bg-white/60 px-3 py-2">
+        <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+          Review timeline
+        </div>
+        <ol className="relative space-y-2">
+          <li className="flex items-start gap-2">
+            <span className="mt-[3px] w-2 h-2 rounded-full bg-amber-500 ring-2 ring-amber-100 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="text-[11.5px] font-semibold text-slate-700">Proof submitted</div>
+              <div className="text-[10.5px] text-slate-500">{formatTimestamp(claim.created_at)}</div>
+            </div>
+          </li>
+          {claim.status === "pending" ? (
+            <li className="flex items-start gap-2">
+              <span className="mt-[3px] w-2 h-2 rounded-full bg-slate-300 ring-2 ring-slate-100 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="text-[11.5px] font-semibold text-slate-500">Awaiting admin review</div>
+                <div className="text-[10.5px] text-slate-400">Usually within 24 hours</div>
+              </div>
+            </li>
+          ) : (
+            <li className="flex items-start gap-2">
+              <span className={cn(
+                "mt-[3px] w-2 h-2 rounded-full flex-shrink-0",
+                claim.status === "approved"
+                  ? "bg-emerald-500 ring-2 ring-emerald-100"
+                  : "bg-rose-500 ring-2 ring-rose-100",
+              )} />
+              <div className="min-w-0 flex-1">
+                <div className={cn(
+                  "text-[11.5px] font-semibold",
+                  claim.status === "approved" ? "text-emerald-700" : "text-rose-700",
+                )}>
+                  {claim.status === "approved" ? "Approved by admin" : "Rejected by admin"}
+                </div>
+                <div className="text-[10.5px] text-slate-500">
+                  {claim.reviewed_at ? formatTimestamp(claim.reviewed_at) : "Time not recorded"}
+                </div>
+              </div>
+            </li>
+          )}
+        </ol>
+      </div>
 
       {isRejected && (
         <div className="mx-2.5 mb-2.5 rounded-lg border border-rose-200 bg-rose-50/70 overflow-hidden">
