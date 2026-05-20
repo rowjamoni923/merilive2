@@ -3,7 +3,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import errorLoggingService from '@/services/ErrorLoggingService';
-import { isChunkLoadError, scheduleChunkLoadRecovery } from '@/utils/lazyRetry';
+import { isChunkLoadError, scheduleChunkLoadRecovery, resetChunkRecoveryMarkers } from '@/utils/lazyRetry';
 
 interface Props {
   children: ReactNode;
