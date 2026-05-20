@@ -2093,22 +2093,36 @@ export default function AdminLayout() {
       'agency_earnings_transfers', 'coin_transfers',
     ]);
 
+    // Synthetic broadcast events from useAdminBroadcastSync (Pkg37) carry only
+    // { version, row_id } in payload — no row columns. Detect them so filter
+    // checks that depend on row fields don't silently swallow the alert.
+    const isSyntheticBroadcastPayload = (p: any) =>
+      p && typeof p === 'object'
+        && Object.keys(p).length <= 3
+        && ('version' in p || 'row_id' in p)
+        && !('id' in p) && !('created_at' in p);
+
     const handleUnifiedEvent = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (!detail?.table) return;
       const { table, eventType, payload } = detail;
+      const synthetic = isSyntheticBroadcastPayload(payload);
 
-      // Pending count refresh for relevant tables
+      // Pending count refresh for relevant tables (fires for BOTH direct + broadcast paths)
       if (pendingTables.has(table)) {
         fetchPendingCounts();
         if (table === 'notifications') fetchNotifications();
       }
 
-      // Only show toasts for INSERT events
-      if (eventType !== 'INSERT') return;
+      // Only show toasts for INSERT events (direct path) OR any event from the
+      // broadcast bridge that maps to an alert table (we can't always distinguish
+      // INSERT vs UPDATE from broadcast, so we fire on the topic + last_event).
+      const isInsertish = eventType === 'INSERT';
+      if (!isInsertish && !synthetic) return;
 
-      // Notification INSERT — handle inline
-      if (table === 'notifications' && payload) {
+      // Notification INSERT — handle inline (direct path only; synthetic skipped
+      // because we already call fetchNotifications above to refresh the bell).
+      if (table === 'notifications' && payload && !synthetic) {
         const n = payload as AdminNotification;
         if (!currentUser?.id || n.user_id !== currentUser.id) return;
 
@@ -2130,10 +2144,13 @@ export default function AdminLayout() {
         return;
       }
 
-      // Support messages — special filter
+      // Support messages — payload-dependent filter, skip on synthetic (broadcast)
+      // but still refresh count + ping for parity.
       if (table === 'support_messages' && payload) {
-        if (payload.sender_type !== 'user') return;
-        if (typeof payload.content === 'string' && payload.content.includes('AI Conversation Summary')) return;
+        if (!synthetic) {
+          if (payload.sender_type !== 'user') return;
+          if (typeof payload.content === 'string' && payload.content.includes('AI Conversation Summary')) return;
+        }
         playSoundViaRef();
         showBrowserNotifViaRef('💬 New Support Message', 'User sent a new message');
         fetchPendingCounts();
@@ -2145,14 +2162,17 @@ export default function AdminLayout() {
         return;
       }
 
-      // Admin notices — show urgent ones (duplicate face, VPN, etc.) as instant alerts
-      if (table === 'admin_notices' && payload && eventType === 'INSERT') {
-        const isUrgent = payload.priority === 'urgent' || payload.priority === 'high';
+      // Admin notices — fire urgent alert on direct path; on synthetic broadcast
+      // we treat every notice as an alert (admin must see it instantly).
+      if (table === 'admin_notices' && payload) {
+        const isUrgent = synthetic
+          ? true
+          : (payload.priority === 'urgent' || payload.priority === 'high');
         if (isUrgent) {
           playSoundViaRef();
-          showBrowserNotifViaRef(payload.title || '🚨 Admin Alert', payload.message || 'New urgent admin notice');
+          showBrowserNotifViaRef(payload.title || '🚨 Admin Alert', payload.message || 'New admin notice');
           toast.error(payload.title || '🚨 Admin Alert', {
-            description: (payload.message || '').slice(0, 120),
+            description: (payload.message || '').slice(0, 120) || 'A new admin notice was posted',
             action: { label: '👉 View', onClick: () => navigate('/admin/notice-broadcast') },
             duration: 10000,
           });
@@ -2160,22 +2180,32 @@ export default function AdminLayout() {
         return;
       }
 
-      // Face verification — special toast
+      // Face verification — direct path has type; synthetic uses generic toast.
       if (table === 'face_verification_submissions' && payload) {
-        const isHost = payload.verification_type === 'host';
+        const isHost = !synthetic && payload.verification_type === 'host';
         playSoundViaRef(); fetchPendingCounts();
-        showBrowserNotifViaRef(isHost ? '👤 New Host Application' : '📸 New Face Verification', isHost ? 'New host application awaiting review' : 'Face verification submission received');
-        toast(isHost ? '👤 New Host Application' : '📸 New Face Verification', {
-          description: isHost ? 'New host application awaiting review' : 'Face verification submission received',
+        const title = isHost ? '👤 New Host Application' : '📸 New Face Verification';
+        const desc = isHost ? 'New host application awaiting review' : 'Face verification submission received';
+        showBrowserNotifViaRef(title, desc);
+        toast(title, {
+          description: desc,
           action: { label: '👉 View', onClick: () => navigate(isHost ? '/admin/host-applications' : '/admin/face-verification') },
           duration: 8000,
         });
         return;
       }
 
-      // Chat moderation — special toast
+      // Chat moderation — direct path has violation_type; synthetic fires generic.
       if (table === 'chat_moderation_logs' && payload) {
-        if (payload.violation_type && payload.violation_type !== 'user_report') {
+        if (synthetic) {
+          playSoundViaRef(); fetchPendingCounts();
+          showBrowserNotifViaRef('⚠️ Chat Violation Detected', 'A new chat moderation event was logged');
+          toast.error('⚠️ Chat Violation Detected', {
+            description: 'A new chat moderation event was logged',
+            action: { label: '👉 View', onClick: () => navigate('/admin/contact-violations') },
+            duration: 10000,
+          });
+        } else if (payload.violation_type && payload.violation_type !== 'user_report') {
           playSoundViaRef(); fetchPendingCounts();
           showBrowserNotifViaRef('⚠️ Chat Violation Detected', `Content: ${payload.detected_content || 'Unknown'}`);
           const typeLabels: Record<string, string> = {
@@ -2198,11 +2228,12 @@ export default function AdminLayout() {
       // Standard alert toasts
       const config = alertTableConfig[table];
       if (config) {
-        // Skip if filter defined and returns false
-        if (config.filter && !config.filter(payload)) return;
+        // Filter only runs on direct-path payload — synthetic broadcast always fires
+        // (we cannot inspect row fields, and the admin must not miss alerts).
+        if (!synthetic && config.filter && !config.filter(payload)) return;
         playSoundViaRef(); fetchPendingCounts();
         showBrowserNotifViaRef(config.toast, config.desc);
-        if (config.customToast) {
+        if (config.customToast && !synthetic) {
           config.customToast(payload);
         } else {
           toast(config.toast, {
