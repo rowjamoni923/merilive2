@@ -164,7 +164,7 @@ export function usePartyRoomWebRTC(
           if (track.kind === Track.Kind.Audio) {
             const audioEl = track.attach() as HTMLAudioElement;
             audioEl.autoplay = true;
-            audioEl.playsInline = true as any;
+            try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
             audioEl.play().catch(() => {});
             const existing = audioElementsRef.current.get(participant.identity) || [];
             existing.push(audioEl);
