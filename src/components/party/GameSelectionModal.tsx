@@ -390,7 +390,7 @@ export function GameSelectionModal({
                         className="flex items-center gap-2"
                       >
                         <Gamepad2 className="w-5 h-5" />
-                        Start {games.find(g => g.id === selectedGame)?.name}
+                        Start Game
                         <span className="text-xl">{games.find(g => g.id === selectedGame)?.emoji}</span>
                       </motion.span>
                     </Button>
