@@ -23,6 +23,7 @@ import {
   formatLevel 
 } from "@/features/shared/level";
 import { JoinNotification } from './types';
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
 // ============= LEVEL-BASED STYLING - Premium Bigo/Chamet =============
 const getLevelBannerBg = (level: number) => {
@@ -99,7 +100,7 @@ const FlyingBannerInner = memo(({ notification, onComplete }: FlyingBannerProps)
           )}
           <Avatar className={cn("w-9 h-9 relative border-2 border-white", getAvatarGlow(level))}>
             <AvatarImage 
-              src={notification.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.userName}`}
+              src={notification.userAvatar || getDisplayAvatar(notification.userName)}
               alt={notification.userName}
               className="object-cover"
             />

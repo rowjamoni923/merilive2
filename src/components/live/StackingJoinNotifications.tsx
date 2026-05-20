@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
 // Types for join notification - Bigo/Chamet/Popo style
 export interface JoinNotification {
@@ -56,7 +57,7 @@ const JoinNotificationItem = memo(({ notification, index }: JoinNotificationItem
       {/* Mini Avatar - Circular with border */}
       <div className="relative flex-shrink-0 w-5 h-5 rounded-full overflow-hidden border-[1.5px] border-white/50 shadow-sm">
         <img 
-          src={notification.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.userName}`}
+          src={notification.userAvatar || getDisplayAvatar(notification.userName)}
           alt=""
           className="w-full h-full object-cover"
         />
