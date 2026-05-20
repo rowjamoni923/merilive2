@@ -22,7 +22,6 @@ interface GameInfo {
   emoji: string;
   color: string;
   isLive?: boolean;
-  players?: number;
   logo_url?: string | null;
 }
 
@@ -192,8 +191,7 @@ export function ProfessionalBottomBar({
             emoji: game.game_emoji,
             color: game.game_color,
             logo_url: game.logo_url,
-            isLive: game.is_featured || index < 3,
-            players: Math.floor(Math.random() * 3000) + 500
+            isLive: game.is_featured || index < 3
           })));
         }
       } catch (err) {
