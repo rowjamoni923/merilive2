@@ -237,24 +237,24 @@ const AgentRank = () => {
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden"
       style={{ 
-        background: 'linear-gradient(180deg, #1a0a2e 0%, #16082b 30%, #0d0619 100%)',
+        background: 'linear-gradient(180deg, #f8f4ff 0%, #ffffff 40%, #fff5f7 100%)',
         paddingBottom: 'env(safe-area-inset-bottom)' 
       }}
     >
       {/* Premium Header */}
       <div className="flex-shrink-0 safe-area-top relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-500/10 via-purple-600/5 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-500/5 via-purple-600/[0.03] to-transparent" />
         <div className="relative z-10">
           <div className="flex items-center justify-between h-12 px-4">
             <button onClick={() => navigate(-1)} className="p-2 -ml-2 active:scale-95 transition-transform">
-              <ArrowLeft className="w-5 h-5 text-white/85" />
+              <ArrowLeft className="w-5 h-5 text-slate-700" />
             </button>
-            <h1 className="text-lg font-bold text-white flex items-center gap-2 drop-shadow-sm">
-              <Trophy className="w-5 h-5 text-yellow-400" />
+            <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500" />
               Agency Rankings
             </h1>
             <button onClick={() => setShowRules(true)} className="p-2 -mr-2 active:scale-95 transition-transform">
-              <HelpCircle className="w-5 h-5 text-white/65" />
+              <HelpCircle className="w-5 h-5 text-slate-500" />
             </button>
           </div>
 
@@ -267,7 +267,7 @@ const AgentRank = () => {
                 className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${
                   periodType === p
                     ? "bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-lg shadow-purple-500/30"
-                    : "bg-white/[0.06] text-white/70 border border-white/10"
+                    : "bg-white text-slate-700 border border-slate-200"
                 }`}
               >
                 {p === 'weekly' ? '📅 Weekly' : '📆 Monthly'}
@@ -276,26 +276,26 @@ const AgentRank = () => {
           </div>
 
           {/* Countdown & Live */}
-          <div className="flex justify-between items-center px-4 py-2 bg-white/[0.04] border-t border-b border-white/[0.06] backdrop-blur-sm">
+          <div className="flex justify-between items-center px-4 py-2 bg-white/70 border-t border-b border-slate-200 backdrop-blur-sm">
             <div className="flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-xs font-mono text-amber-300 font-bold tracking-wider">
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
+              <span className="text-xs font-mono text-amber-700 font-bold tracking-wider">
                 {countdown.days}D {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:{String(countdown.seconds).padStart(2, '0')}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              <div className="flex items-center gap-1 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
                 </span>
-                <span className="text-[10px] text-emerald-400 font-bold tracking-wide">LIVE</span>
+                <span className="text-[10px] text-emerald-600 font-bold tracking-wide">LIVE</span>
               </div>
               <button 
                 onClick={fetchRankings} disabled={isRefreshing}
-                className="p-1.5 bg-white/[0.06] rounded-full active:scale-90 transition-all border border-white/10"
+                className="p-1.5 bg-white rounded-full active:scale-90 transition-all border border-slate-200"
               >
-                <RefreshCw className={`w-3.5 h-3.5 text-white/75 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 text-slate-600 ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
