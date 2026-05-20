@@ -2826,6 +2826,16 @@ const Recharge = () => {
                               ))}
                             </div>
                           )}
+                          {isAdminViewer && (
+                            <a
+                              href="/admin/topup-system"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-orange-700 hover:text-orange-900 underline-offset-2 hover:underline"
+                            >
+                              Open Admin → Top-up Traders <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}
