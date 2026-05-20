@@ -217,6 +217,92 @@ const Level5HelperDashboard = () => {
   const [helperNotes, setHelperNotes] = useState("");
   const [helperTransactionId, setHelperTransactionId] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
+
+  // Per-country manual payment methods. Helper sees ONLY their own country's methods + global rails.
+  const COUNTRY_MANUAL_METHODS: Record<string, Array<{ value: string; label: string }>> = {
+    BD: [
+      { value: "bkash", label: "📱 bKash" },
+      { value: "nagad", label: "💳 Nagad" },
+      { value: "rocket", label: "🚀 Rocket" },
+      { value: "upay", label: "📲 Upay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    IN: [
+      { value: "upi", label: "📱 UPI" },
+      { value: "paytm", label: "💰 Paytm" },
+      { value: "phonepe", label: "📱 PhonePe" },
+      { value: "gpay", label: "💳 Google Pay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    PK: [
+      { value: "jazzcash", label: "🎵 JazzCash" },
+      { value: "easypaisa", label: "💚 EasyPaisa" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    NP: [
+      { value: "esewa", label: "💚 eSewa" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    LK: [{ value: "frimi", label: "💚 FriMi" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    PH: [
+      { value: "gcash", label: "💙 GCash" },
+      { value: "maya", label: "💜 Maya" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    ID: [
+      { value: "gopay", label: "🟢 GoPay" },
+      { value: "ovo", label: "💜 OVO" },
+      { value: "dana", label: "🔵 DANA" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    VN: [{ value: "momo", label: "💗 MoMo" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    TH: [
+      { value: "truemoney", label: "🟠 TrueMoney" },
+      { value: "promptpay", label: "💙 PromptPay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    MY: [
+      { value: "touch_n_go", label: "🔵 Touch'n Go" },
+      { value: "duitnow", label: "💜 DuitNow" },
+      { value: "grab", label: "🟢 GrabPay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    SG: [{ value: "grab", label: "🟢 GrabPay" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    KE: [{ value: "mpesa", label: "🟢 M-Pesa" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    CN: [
+      { value: "alipay", label: "🔵 Alipay" },
+      { value: "wechat", label: "🟢 WeChat Pay" },
+      { value: "bank", label: "🏦 Bank Transfer" },
+    ],
+    HK: [{ value: "alipay", label: "🔵 Alipay" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    TW: [{ value: "line_pay", label: "🟢 LINE Pay" }, { value: "bank", label: "🏦 Bank Transfer" }],
+    BR: [{ value: "pix", label: "💚 PIX" }, { value: "bank", label: "🏦 Bank Transfer" }],
+  };
+  const GLOBAL_MANUAL_METHODS: Array<{ value: string; label: string }> = [
+    { value: "crypto", label: "₿ Crypto (USDT)" },
+    { value: "paypal", label: "💙 PayPal" },
+    { value: "wise", label: "💚 Wise" },
+    { value: "skrill", label: "💜 Skrill" },
+    { value: "payoneer", label: "🟠 Payoneer" },
+    { value: "bank", label: "🏦 Bank Transfer" },
+  ];
+  const helperCountryCode = (helperData?.country_code || "").toUpperCase();
+  const helperCountryName = (() => {
+    const names: Record<string, string> = {
+      BD: "🇧🇩 Bangladesh", IN: "🇮🇳 India", PK: "🇵🇰 Pakistan", NP: "🇳🇵 Nepal", LK: "🇱🇰 Sri Lanka",
+      PH: "🇵🇭 Philippines", ID: "🇮🇩 Indonesia", VN: "🇻🇳 Vietnam", TH: "🇹🇭 Thailand", MY: "🇲🇾 Malaysia",
+      SG: "🇸🇬 Singapore", KE: "🇰🇪 Kenya", CN: "🇨🇳 China", HK: "🇭🇰 Hong Kong", TW: "🇹🇼 Taiwan", BR: "🇧🇷 Brazil",
+    };
+    return names[helperCountryCode] || helperCountryCode || "Your Country";
+  })();
+  const helperManualMethods = COUNTRY_MANUAL_METHODS[helperCountryCode] || [];
+
+  // Lock dialog country to helper's own country whenever opened.
+  useEffect(() => {
+    if (showCountryPaymentDialog && helperCountryCode && selectedCountry !== helperCountryCode) {
+      setSelectedCountry(helperCountryCode);
+    }
+  }, [showCountryPaymentDialog, helperCountryCode]);
   const [selectedPaymentCountry, setSelectedPaymentCountry] = useState(""); // Country for legacy payment method
   const [paymentLogoFile, setPaymentLogoFile] = useState<File | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -2393,7 +2479,7 @@ const Level5HelperDashboard = () => {
           {/* Scrollable Chat Area */}
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
             {/* Original Admin Message */}
-            <div className="bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border border-violet-200/20 rounded-xl p-3 mr-8">
+            <div className="bg-violet-50 text-slate-900 border border-violet-200/20 rounded-xl p-3 mr-8">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Crown className="w-3 h-3 text-violet-600" />
                 <span className="text-[10px] text-violet-600 font-medium">Admin</span>
@@ -2417,8 +2503,8 @@ const Level5HelperDashboard = () => {
                     className={cn(
                       "rounded-xl p-3",
                       reply.sender_type === 'helper' 
-                        ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white/10 border border-sky-200/20 ml-8" 
-                        : "bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border border-violet-200/20 mr-8"
+                        ? "bg-sky-50 text-slate-900 border border-sky-200/20 ml-8" 
+                        : "bg-violet-50 text-slate-900 border border-violet-200/20 mr-8"
                     )}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
@@ -2621,7 +2707,7 @@ const Level5HelperDashboard = () => {
 
             {/* Merchant Number Section - hide for auto gateways */}
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
-            <div className="border border-amber-500/30 rounded-xl p-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10">
+            <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-50 text-slate-900">
               <div className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
@@ -2849,169 +2935,65 @@ const Level5HelperDashboard = () => {
           
           <div className="space-y-4">
             <div>
-              <Label className="text-slate-500">Select Country *</Label>
-              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
- <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
-                  <SelectValue placeholder="Choose a country..." />
+              <Label className="text-slate-500">Country</Label>
+              <div className="mt-1 flex items-center justify-between bg-slate-50 border border-slate-200 rounded-md px-3 py-2">
+                <span className="text-slate-900 text-sm font-medium">{helperCountryName}</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider">Locked</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1">
+                You can only add methods for your assigned country.
+              </p>
+            </div>
+
+
+            <div>
+              <Label className="text-slate-500">Payment Method Type *</Label>
+              <Select value={paymentType} onValueChange={setPaymentType}>
+                <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
+                  <SelectValue placeholder="Select payment method..." />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-50 border-slate-200 max-h-60">
-                  {[
-                    { code: 'BD', name: '🇧🇩 Bangladesh', currency: 'BDT' },
-                    { code: 'IN', name: '🇮🇳 India', currency: 'INR' },
-                    { code: 'PK', name: '🇵🇰 Pakistan', currency: 'PKR' },
-                    { code: 'NP', name: '🇳🇵 Nepal', currency: 'NPR' },
-                    { code: 'LK', name: '🇱🇰 Sri Lanka', currency: 'LKR' },
-                    { code: 'MM', name: '🇲🇲 Myanmar', currency: 'MMK' },
-                    { code: 'TH', name: '🇹🇭 Thailand', currency: 'THB' },
-                    { code: 'VN', name: '🇻🇳 Vietnam', currency: 'VND' },
-                    { code: 'ID', name: '🇮🇩 Indonesia', currency: 'IDR' },
-                    { code: 'MY', name: '🇲🇾 Malaysia', currency: 'MYR' },
-                    { code: 'PH', name: '🇵🇭 Philippines', currency: 'PHP' },
-                    { code: 'SG', name: '🇸🇬 Singapore', currency: 'SGD' },
-                    { code: 'KH', name: '🇰🇭 Cambodia', currency: 'KHR' },
-                    { code: 'LA', name: '🇱🇦 Laos', currency: 'LAK' },
-                    { code: 'AE', name: '🇦🇪 UAE', currency: 'AED' },
-                    { code: 'SA', name: '🇸🇦 Saudi Arabia', currency: 'SAR' },
-                    { code: 'KW', name: '🇰🇼 Kuwait', currency: 'KWD' },
-                    { code: 'QA', name: '🇶🇦 Qatar', currency: 'QAR' },
-                    { code: 'BH', name: '🇧🇭 Bahrain', currency: 'BHD' },
-                    { code: 'OM', name: '🇴🇲 Oman', currency: 'OMR' },
-                    { code: 'JO', name: '🇯🇴 Jordan', currency: 'JOD' },
-                    { code: 'IQ', name: '🇮🇶 Iraq', currency: 'IQD' },
-                    { code: 'LB', name: '🇱🇧 Lebanon', currency: 'LBP' },
-                    { code: 'EG', name: '🇪🇬 Egypt', currency: 'EGP' },
-                    { code: 'NG', name: '🇳🇬 Nigeria', currency: 'NGN' },
-                    { code: 'KE', name: '🇰🇪 Kenya', currency: 'KES' },
-                    { code: 'GH', name: '🇬🇭 Ghana', currency: 'GHS' },
-                    { code: 'ZA', name: '🇿🇦 South Africa', currency: 'ZAR' },
-                    { code: 'TZ', name: '🇹🇿 Tanzania', currency: 'TZS' },
-                    { code: 'UG', name: '🇺🇬 Uganda', currency: 'UGX' },
-                    { code: 'ET', name: '🇪🇹 Ethiopia', currency: 'ETB' },
-                    { code: 'CM', name: '🇨🇲 Cameroon', currency: 'XAF' },
-                    { code: 'SN', name: '🇸🇳 Senegal', currency: 'XOF' },
-                    { code: 'CI', name: '🇨🇮 Ivory Coast', currency: 'XOF' },
-                    { code: 'MA', name: '🇲🇦 Morocco', currency: 'MAD' },
-                    { code: 'TN', name: '🇹🇳 Tunisia', currency: 'TND' },
-                    { code: 'DZ', name: '🇩🇿 Algeria', currency: 'DZD' },
-                    { code: 'TR', name: '🇹🇷 Turkey', currency: 'TRY' },
-                    { code: 'RU', name: '🇷🇺 Russia', currency: 'RUB' },
-                    { code: 'UA', name: '🇺🇦 Ukraine', currency: 'UAH' },
-                    { code: 'GE', name: '🇬🇪 Georgia', currency: 'GEL' },
-                    { code: 'AZ', name: '🇦🇿 Azerbaijan', currency: 'AZN' },
-                    { code: 'UZ', name: '🇺🇿 Uzbekistan', currency: 'UZS' },
-                    { code: 'KZ', name: '🇰🇿 Kazakhstan', currency: 'KZT' },
-                    { code: 'BR', name: '🇧🇷 Brazil', currency: 'BRL' },
-                    { code: 'MX', name: '🇲🇽 Mexico', currency: 'MXN' },
-                    { code: 'AR', name: '🇦🇷 Argentina', currency: 'ARS' },
-                    { code: 'CO', name: '🇨🇴 Colombia', currency: 'COP' },
-                    { code: 'PE', name: '🇵🇪 Peru', currency: 'PEN' },
-                    { code: 'CL', name: '🇨🇱 Chile', currency: 'CLP' },
-                    { code: 'EC', name: '🇪🇨 Ecuador', currency: 'USD' },
-                    { code: 'VE', name: '🇻🇪 Venezuela', currency: 'VES' },
-                    { code: 'DO', name: '🇩🇴 Dominican Republic', currency: 'DOP' },
-                    { code: 'US', name: '🇺🇸 United States', currency: 'USD' },
-                    { code: 'CA', name: '🇨🇦 Canada', currency: 'CAD' },
-                    { code: 'GB', name: '🇬🇧 United Kingdom', currency: 'GBP' },
-                    { code: 'DE', name: '🇩🇪 Germany', currency: 'EUR' },
-                    { code: 'FR', name: '🇫🇷 France', currency: 'EUR' },
-                    { code: 'IT', name: '🇮🇹 Italy', currency: 'EUR' },
-                    { code: 'ES', name: '🇪🇸 Spain', currency: 'EUR' },
-                    { code: 'NL', name: '🇳🇱 Netherlands', currency: 'EUR' },
-                    { code: 'PT', name: '🇵🇹 Portugal', currency: 'EUR' },
-                    { code: 'BE', name: '🇧🇪 Belgium', currency: 'EUR' },
-                    { code: 'AT', name: '🇦🇹 Austria', currency: 'EUR' },
-                    { code: 'SE', name: '🇸🇪 Sweden', currency: 'SEK' },
-                    { code: 'NO', name: '🇳🇴 Norway', currency: 'NOK' },
-                    { code: 'DK', name: '🇩🇰 Denmark', currency: 'DKK' },
-                    { code: 'FI', name: '🇫🇮 Finland', currency: 'EUR' },
-                    { code: 'PL', name: '🇵🇱 Poland', currency: 'PLN' },
-                    { code: 'CZ', name: '🇨🇿 Czech Republic', currency: 'CZK' },
-                    { code: 'RO', name: '🇷🇴 Romania', currency: 'RON' },
-                    { code: 'HU', name: '🇭🇺 Hungary', currency: 'HUF' },
-                    { code: 'AU', name: '🇦🇺 Australia', currency: 'AUD' },
-                    { code: 'NZ', name: '🇳🇿 New Zealand', currency: 'NZD' },
-                    { code: 'JP', name: '🇯🇵 Japan', currency: 'JPY' },
-                    { code: 'KR', name: '🇰🇷 South Korea', currency: 'KRW' },
-                    { code: 'CN', name: '🇨🇳 China', currency: 'CNY' },
-                    { code: 'HK', name: '🇭🇰 Hong Kong', currency: 'HKD' },
-                    { code: 'TW', name: '🇹🇼 Taiwan', currency: 'TWD' },
-                    { code: 'GLOBAL', name: '🌍 Global (ePay/Crypto)', currency: 'USD' },
-                  ].map((country) => (
- <SelectItem key={country.code} value={country.code} className="text-slate-900">
-                      {country.name}
+                <SelectContent className="bg-slate-50 border-slate-200 max-h-72">
+                  {/* ═══ AUTO PAYMENT GATEWAYS — country-specific (from payment_gateways table) ═══ */}
+                  {countryGateways.filter(g => g.is_integrated).length > 0 && (
+                    <div className="px-2 py-1 text-[10px] text-amber-700 font-bold uppercase tracking-wider">
+                      ⚡ Auto Gateways — {helperCountryName}
+                    </div>
+                  )}
+                  {countryGateways
+                    .filter(g => g.is_integrated)
+                    .map(g => (
+                      <SelectItem key={g.id} value={g.gateway_type} className="text-slate-900">
+                        ⚡ {g.name} <span className="text-[10px] text-amber-700/70 ml-1">(Auto Pay)</span>
+                      </SelectItem>
+                    ))}
+
+                  {/* ═══ MANUAL METHODS — helper's country only ═══ */}
+                  {helperManualMethods.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-[10px] text-slate-700 font-bold uppercase tracking-wider mt-1">
+                        📝 Manual Methods — {helperCountryName}
+                      </div>
+                      {helperManualMethods.map(m => (
+                        <SelectItem key={m.value} value={m.value} className="text-slate-900">
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+
+                  {/* ═══ GLOBAL RAILS — available to every country ═══ */}
+                  <div className="px-2 py-1 text-[10px] text-slate-700 font-bold uppercase tracking-wider mt-1">
+                    🌍 Global Methods
+                  </div>
+                  {GLOBAL_MANUAL_METHODS.map(m => (
+                    <SelectItem key={`g-${m.value}`} value={m.value} className="text-slate-900">
+                      {m.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <Label className="text-slate-500">Payment Method Type *</Label>
-              <Select value={paymentType} onValueChange={setPaymentType}>
- <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 mt-1">
-                  <SelectValue placeholder={selectedCountry ? "Select payment method..." : "Select a country first"} />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-50 border-slate-200 max-h-72">
-                  {/* ═══ AUTO PAYMENT GATEWAYS — country specific (from payment_gateways table) ═══ */}
-                  {countryGateways.filter(g => g.is_integrated).length > 0 && (
-                    <div className="px-2 py-1 text-[10px] text-amber-700 font-bold uppercase tracking-wider">
-                      ⚡ Auto Gateways — {selectedCountry || 'Global'}
-                    </div>
-                  )}
-                  {countryGateways
-                    .filter(g => g.is_integrated)
-                    .map(g => (
- <SelectItem key={g.id} value={g.gateway_type} className="text-slate-900">
-                        ⚡ {g.name} <span className="text-[10px] text-amber-700/70 ml-1">(Auto Pay)</span>
-                      </SelectItem>
-                    ))}
-
-                  {/* ═══ MANUAL METHODS — universal fallbacks (always visible) ═══ */}
-                  <div className="px-2 py-1 text-[10px] text-slate-700 font-bold uppercase tracking-wider mt-1">
-                    📝 Manual Methods
-                  </div>
- <SelectItem value="bkash" className="text-slate-900">📱 bKash</SelectItem>
- <SelectItem value="nagad" className="text-slate-900">💳 Nagad</SelectItem>
- <SelectItem value="rocket" className="text-slate-900">🚀 Rocket</SelectItem>
- <SelectItem value="upay" className="text-slate-900">📲 Upay</SelectItem>
- <SelectItem value="bank" className="text-slate-900">🏦 Bank Transfer</SelectItem>
- <SelectItem value="upi" className="text-slate-900">📱 UPI (India)</SelectItem>
- <SelectItem value="paytm" className="text-slate-900">💰 Paytm</SelectItem>
- <SelectItem value="phonepe" className="text-slate-900">📱 PhonePe</SelectItem>
- <SelectItem value="gpay" className="text-slate-900">💳 Google Pay</SelectItem>
- <SelectItem value="jazzcash" className="text-slate-900">🎵 JazzCash</SelectItem>
- <SelectItem value="easypaisa" className="text-slate-900">💚 EasyPaisa</SelectItem>
- <SelectItem value="gcash" className="text-slate-900">💙 GCash</SelectItem>
- <SelectItem value="maya" className="text-slate-900">💜 Maya</SelectItem>
- <SelectItem value="grab" className="text-slate-900">🟢 GrabPay</SelectItem>
- <SelectItem value="momo" className="text-slate-900">💗 MoMo</SelectItem>
- <SelectItem value="ovo" className="text-slate-900">💜 OVO</SelectItem>
- <SelectItem value="dana" className="text-slate-900">🔵 DANA</SelectItem>
- <SelectItem value="gopay" className="text-slate-900">🟢 GoPay</SelectItem>
- <SelectItem value="mpesa" className="text-slate-900">🟢 M-Pesa</SelectItem>
- 
- <SelectItem value="crypto" className="text-slate-900">₿ Crypto (USDT)</SelectItem>
- <SelectItem value="paypal" className="text-slate-900">💙 PayPal</SelectItem>
- <SelectItem value="wise" className="text-slate-900">💚 Wise</SelectItem>
- <SelectItem value="skrill" className="text-slate-900">💜 Skrill</SelectItem>
- <SelectItem value="payoneer" className="text-slate-900">🟠 Payoneer</SelectItem>
- 
- <SelectItem value="alipay" className="text-slate-900">🔵 Alipay</SelectItem>
- <SelectItem value="wechat" className="text-slate-900">🟢 WeChat Pay</SelectItem>
- <SelectItem value="line_pay" className="text-slate-900">🟢 LINE Pay</SelectItem>
- <SelectItem value="truemoney" className="text-slate-900">🟠 TrueMoney</SelectItem>
- <SelectItem value="promptpay" className="text-slate-900">💙 PromptPay</SelectItem>
- <SelectItem value="touch_n_go" className="text-slate-900">🔵 Touch'n Go</SelectItem>
- <SelectItem value="duitnow" className="text-slate-900">💜 DuitNow</SelectItem>
- <SelectItem value="pix" className="text-slate-900">💚 PIX (Brazil)</SelectItem>
-                </SelectContent>
-              </Select>
-              {!selectedCountry && (
-                <p className="text-[10px] text-amber-700/80 mt-1">
-                  💡 Select a country above to see available auto gateways for that region
-                </p>
-              )}
-            </div>
 
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
               <div>
@@ -3051,7 +3033,7 @@ const Level5HelperDashboard = () => {
 
             {/* ═══ ZiniPay Gateway (Personal Account Auto Pay) ═══ */}
             {paymentType === 'zinipay' && (
-              <div className="border border-emerald-200/30 rounded-xl p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10 space-y-3">
+              <div className="border border-emerald-200/30 rounded-xl p-3 bg-emerald-50 text-slate-900 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">⚡</span>
                   <p className="text-emerald-600 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
@@ -3101,7 +3083,7 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
-                <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10 border border-amber-200/30 rounded-lg p-2">
+                <div className="bg-amber-50 text-slate-900 border border-amber-200/30 rounded-lg p-2">
                   <p className="text-[10px] text-amber-600">
                     ⚠️ Create an account on zinipay.com, then go to Dashboard → Brands → copy the Brand Key/API Key. Add this number to your ZiniPay dashboard too!
                   </p>
@@ -3117,7 +3099,7 @@ const Level5HelperDashboard = () => {
               const isLegacy = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
               if (!matched || isLegacy) return null;
               return (
-                <div className="border border-violet-200/30 rounded-xl p-3 bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 space-y-3">
+                <div className="border border-violet-200/30 rounded-xl p-3 bg-violet-50 text-slate-900 space-y-3">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">⚡</span>
                     <p className="text-violet-600 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
@@ -3173,7 +3155,7 @@ const Level5HelperDashboard = () => {
 
             {/* SSLCommerz / AamarPay Gateway Credentials */}
             {(paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (
-              <div className="border border-sky-200/30 rounded-xl p-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white/10 space-y-3">
+              <div className="border border-sky-200/30 rounded-xl p-3 bg-sky-50 text-slate-900 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{paymentType === 'sslcommerz' ? '🔐' : '💰'}</span>
                   <p className="text-sky-600 font-semibold text-sm">
@@ -3235,7 +3217,7 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
-                <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10 border border-amber-200/30 rounded-lg p-2">
+                <div className="bg-amber-50 text-slate-900 border border-amber-200/30 rounded-lg p-2">
                   <p className="text-[10px] text-amber-600">
                     ⚠️ {paymentType === 'sslcommerz' 
                       ? 'Get credentials from sslcommerz.com → Merchant Panel → API/Integration' 
@@ -3298,7 +3280,7 @@ const Level5HelperDashboard = () => {
 
             {/* Merchant Number Section - hide for auto gateways */}
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
-            <div className="border border-amber-500/30 rounded-xl p-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10">
+            <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-50 text-slate-900">
               <div className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
@@ -3459,7 +3441,7 @@ const Level5HelperDashboard = () => {
                   <div className="space-y-2 text-sm">
                     {/* Local Amount - FIRST */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
-                      <div className="flex items-center justify-between bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10 rounded-lg p-2 border border-emerald-200/20">
+                      <div className="flex items-center justify-between bg-emerald-50 text-slate-900 rounded-lg p-2 border border-emerald-200/20">
                         <span className="text-slate-700">Payable Local Amount:</span>
                         <span className="text-emerald-600 font-bold text-lg">
                           {(() => {
@@ -3581,7 +3563,7 @@ const Level5HelperDashboard = () => {
                         className={cn(
                           "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all",
                           screenshotFile 
-                            ? "border-emerald-200 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10" 
+                            ? "border-emerald-200 bg-emerald-50 text-slate-900" 
                             : "border-slate-200 hover:border-sky-200 bg-slate-50"
                         )}
                       >
