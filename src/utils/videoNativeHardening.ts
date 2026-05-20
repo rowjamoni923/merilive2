@@ -62,6 +62,25 @@ export const hardenVideoElementForNative = (
   videoEl.style.webkitAppearance = 'none';
   videoEl.style.backgroundColor = 'transparent';
 
+  // === Hide-until-first-frame ===
+  // Keep the video element invisible (but laid out) until a real frame paints.
+  // This prevents Android WebView's native play-icon from flashing without
+  // painting any solid colour overlay (no black, no shield).
+  videoEl.style.transition = 'opacity 120ms linear';
+  videoEl.style.opacity = '0';
+  const revealOnFrame = () => { videoEl.style.opacity = '1'; };
+  const safe = videoEl as HTMLVideoElement & {
+    requestVideoFrameCallback?: (cb: () => void) => number;
+  };
+  if (typeof safe.requestVideoFrameCallback === 'function') {
+    try { safe.requestVideoFrameCallback(revealOnFrame); } catch { /* noop */ }
+  }
+  videoEl.addEventListener('playing', revealOnFrame, { once: true });
+  videoEl.addEventListener('loadeddata', () => {
+    if (videoEl.readyState >= 2) revealOnFrame();
+  }, { once: true });
+
+
   // === ShadowRoot piercing — kill controls inside shadow DOM ===
   killShadowControls(videoEl);
 

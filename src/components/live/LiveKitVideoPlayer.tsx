@@ -53,6 +53,14 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
 
+  // Hide video element until first real frame arrives — prevents native play-icon flash
+  // without painting any visible color (no black overlay, container stays transparent).
+  const revealVideo = () => {
+    const el = videoRef.current;
+    if (el && el.style.opacity !== '1') el.style.opacity = '1';
+  };
+
+
 
   // === NATIVE BRIDGE: only enable native surface for REMOTE playback ===
   // Host/local preview (mirror=true) must stay on web layer to avoid DeepAR surface conflicts.
@@ -77,6 +85,9 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   useEffect(() => {
     const el = videoRef.current;
     if (!el || !videoTrack) return;
+    // Hide until first real frame so native play-icon never gets a chance to flash
+    el.style.opacity = '0';
+
 
     // Android WebView autoplay compatibility: force-muted at bootstrap,
     // then optionally unmute only after real playback starts.
@@ -123,6 +134,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     mediaTrack?.addEventListener('ended', onTrackEnded);
 
     const markReady = () => {
+      revealVideo();
       if (!muted) {
         // Optional unmute after successful playback start
         try {
@@ -134,6 +146,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         }
       }
     };
+
 
 
     const playNow = () => {
@@ -275,7 +288,11 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           WebkitAppearance: 'none',
           willChange: 'transform',
           backfaceVisibility: 'hidden',
+          backgroundColor: 'transparent',
+          opacity: 0,
+          transition: 'opacity 120ms linear',
         } as CSSProperties}
+
       />
     </div>
   );
