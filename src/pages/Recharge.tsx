@@ -2847,6 +2847,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-orange-600/80 leading-snug">
                             Some trader accounts are pending admin verification, suspended, or inactive. They will appear once admin approval is complete.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-orange-700 bg-orange-50/80 rounded px-1.5 py-0.5 inline-block">
+                            Filter: is_active === true && is_verified === true
+                          </div>
                           {helperDiag.samples.inactive.length > 0 && (
                             <div className="mt-1.5 space-y-0.5">
                               {helperDiag.samples.inactive.map((s, i) => (
