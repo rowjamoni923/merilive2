@@ -2748,11 +2748,21 @@ const Recharge = () => {
                     {helperDiag.rawTotal === 0 && !helperDiag.isLoading && (
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-rose-100 p-2.5">
                         <span className="mt-0.5 text-base">📭</span>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-semibold text-rose-700">No trader data found</p>
                           <p className="text-[10px] text-rose-600/80 leading-snug">
                             No helper-trader profiles exist in the system yet. This section will populate once traders register and are approved.
                           </p>
+                          {isAdminViewer && (
+                            <a
+                              href="/admin/helper-applications"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 hover:text-rose-900 underline-offset-2 hover:underline"
+                            >
+                              Open Admin → Helper Applications <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}
