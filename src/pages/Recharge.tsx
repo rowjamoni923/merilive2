@@ -238,6 +238,7 @@ const Recharge = () => {
   const [paymentProof, setPaymentProof] = useState<string | null>(null);
   const [uploadingProof, setUploadingProof] = useState(false);
   const [userCountryCode, setUserCountryCode] = useState<string | null>(null); // Start with null, load from profile first
+  const [isAgencyOwner, setIsAgencyOwner] = useState(false);
 
   // Get user's geolocation
   const geoLocation = useGeolocation(userId, true);
@@ -1091,15 +1092,18 @@ const Recharge = () => {
             if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
             return false;
           }
+          // Wallet-threshold gates removed per owner request — show all
+          // active+verified L1-L5 traders in same country regardless of
+          // wallet balance. Backend `is_approved_topup_trader()` still
+          // governs whether the Chat CTA appears (vs "Top-up unavailable").
+          // Diagnostics still record below-threshold helpers so agency
+          // owners see them in the audit panel.
           if (wallet < 50000) {
             byLowBalance++;
             if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
-            return false;
-          }
-          if (wallet < tierMin) {
+          } else if (wallet < tierMin) {
             byTierMin++;
             if (sampleTierMin.length < MAX_SAMPLES) sampleTierMin.push(sample);
-            return false;
           }
           return true;
         });
@@ -1432,7 +1436,7 @@ const Recharge = () => {
       if (user) {
         setUserId(user.id);
         const [profileRes, firstRechargeRes, bonusConfigRes] = await Promise.all([
-          supabase.from('profiles').select('coins, country_code, app_uid').eq('id', user.id).single(),
+          supabase.from('profiles').select('coins, country_code, app_uid, is_agency_owner').eq('id', user.id).single(),
           supabase.from('first_recharge_claims').select('id').eq('user_id', user.id).maybeSingle(),
           supabase.from('first_recharge_bonus').select('bonus_multiplier, banner_image_url, banner_title, banner_subtitle, banner_type').eq('is_active', true).maybeSingle(),
         ]);
@@ -1446,6 +1450,7 @@ const Recharge = () => {
           if (profileRes.data.app_uid) {
             setUserAppUid(profileRes.data.app_uid);
           }
+          setIsAgencyOwner(!!(profileRes.data as any).is_agency_owner);
         }
         
         setIsFirstRecharge(!firstRechargeRes.data);
@@ -2737,7 +2742,8 @@ const Recharge = () => {
                   </p>
                 </div>
 
-                {/* Diagnostic panel — WHY is it empty? */}
+                {isAgencyOwner && (<>
+                {/* Diagnostic panel — WHY is it empty? (Agency owners only) */}
                 <div className="rounded-2xl border border-amber-100 bg-gradient-to-b from-amber-50/60 to-white p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2.5">
                     <div className="flex items-center gap-2">
@@ -3049,6 +3055,7 @@ const Recharge = () => {
                     ))}
                   </div>
                 </div>
+                </>)}
 
                 {/* Fallback action */}
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3.5 text-center">
