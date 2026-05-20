@@ -1043,7 +1043,8 @@ const Recharge = () => {
     try {
       console.log('[Recharge] Fetching helpers for country:', userCountryCode);
       
-      // Fetch ALL helpers (unfiltered) so we can diagnose exactly why list is empty
+      // Fetch helper rows first, then read public profile + agency balances separately.
+      // IMPORTANT: never join cross-user `profiles`; use `profiles_public` + `agencies_public`.
       const { data: helpers, error } = await supabase
         .from('topup_helpers')
         .select(`
@@ -1057,8 +1058,7 @@ const Recharge = () => {
           order_notification_phone,
           is_active,
           is_verified,
-          is_listed,
-          user:profiles!topup_helpers_user_id_fkey(id, display_name, avatar_url, is_online, app_uid, country_code, country_flag, country_name)
+          is_listed
         `)
         .eq('is_listed', true)
         .order('trader_level', { ascending: false })
