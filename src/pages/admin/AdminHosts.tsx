@@ -444,7 +444,11 @@ export default function AdminHosts() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10 border-2 border-pink-500/50">
-                          <AvatarImage src={host.avatar_url || ""} />
+                          <AvatarImage
+                            src={getDisplayAvatar(host.id, host.avatar_url, { gender: 'female' })}
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                          />
                           <AvatarFallback className="bg-pink-500/20 text-pink-400">
                             {host.display_name?.charAt(0) || "H"}
                           </AvatarFallback>
