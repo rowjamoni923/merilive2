@@ -1242,7 +1242,50 @@ const Recharge = () => {
           mapped.forEach(m => {
             m.acceptedMethods = byHelper.get(m.helperId) || [];
           });
+
+          // FALLBACK: For helpers (typically L5) with no `helper_accepted_payment_methods`
+          // rows, derive accepted-method badges from their own configured
+          // `helper_country_payment_methods` so the Helper tab always shows the right
+          // logos + method names — 100% accurate per helper.
+          const missingIds = mapped.filter(m => m.acceptedMethods.length === 0).map(m => m.helperId);
+          if (missingIds.length > 0) {
+            const { data: cpmRows } = await supabase
+              .from('helper_country_payment_methods')
+              .select('helper_id, payment_method_name, method_name, logo_url, method_type, additional_info')
+              .in('helper_id', missingIds)
+              .eq('is_active', true);
+            const byHelperCpm = new Map<string, AcceptedMethodLogo[]>();
+            ((cpmRows as any[]) || []).forEach((r: any) => {
+              const label = String(
+                (r.additional_info as any)?.display_method ||
+                (r.additional_info as any)?.gateway_name ||
+                r.payment_method_name ||
+                r.method_name ||
+                ''
+              ).trim();
+              if (!label) return;
+              const isAuto = r.method_type === 'auto_gateway';
+              const entry: AcceptedMethodLogo = {
+                gateway_id: `${r.helper_id}:${label.toLowerCase()}`,
+                name: label,
+                logo_url: r.logo_url || null,
+                is_integrated: isAuto,
+              };
+              const arr = byHelperCpm.get(r.helper_id) || [];
+              // Dedupe by name (case-insensitive)
+              if (!arr.some(a => a.name.toLowerCase() === entry.name.toLowerCase())) {
+                arr.push(entry);
+              }
+              byHelperCpm.set(r.helper_id, arr);
+            });
+            mapped.forEach(m => {
+              if (m.acceptedMethods.length === 0) {
+                m.acceptedMethods = byHelperCpm.get(m.helperId) || [];
+              }
+            });
+          }
         }
+
 
         // Fetch today's manual top-up counts per helper (Asia/Dhaka day)
         if (helperIds.length > 0) {
