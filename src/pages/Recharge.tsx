@@ -145,7 +145,7 @@ const Recharge = () => {
     finalCount: number;
     userCountry: string | null;
     isLoading: boolean;
-  }>({ rawTotal: 0, byCountry: 0, byTierMin: 1, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true });
+  }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true });
   const helperRotationPage = 0;
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
