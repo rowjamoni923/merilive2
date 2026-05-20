@@ -637,30 +637,44 @@ export default function AdminRatingRewards() {
                     </div>
                   </button>
 
-                  {claim.status === 'pending' && (
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button
-                        size="sm"
-                        onClick={() => handleApprove(claim)}
-                        disabled={processingId === claim.id}
-                        className="h-9 px-3 gap-1 bg-emerald-600 hover:bg-emerald-500 text-white"
-                      >
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        Approve
-                      </Button>
+                  <div className="flex gap-2 flex-shrink-0">
+                    {claim.status === 'pending' && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => handleApprove(claim)}
+                          disabled={processingId === claim.id}
+                          className="h-9 px-3 gap-1 bg-emerald-600 hover:bg-emerald-500 text-white"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleReject(claim.id)}
+                          disabled={processingId === claim.id}
+                          className="h-9 px-3 gap-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                    {(claim.status === 'approved' || claim.status === 'rejected') && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleReject(claim.id)}
-                        disabled={processingId === claim.id}
-                        className="h-9 px-3 gap-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
+                        onClick={() => openAuditLog(claim)}
+                        className="h-9 px-3 gap-1 border-slate-700 text-slate-300 hover:bg-slate-800"
                       >
-                        <XCircle className="w-3.5 h-3.5" />
-                        Reject
+                        <ScrollText className="w-3.5 h-3.5" />
+                        Log
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
+
               ))}
             </div>
           )}
