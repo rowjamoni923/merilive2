@@ -1576,12 +1576,21 @@ const HelperDashboard = () => {
 
           {/* ============ METHODS TAB ============ */}
           <TabsContent value="methods" className="mt-4 space-y-3">
+            {helperData?.id && (
+              <HelperPaymentMethodsCard
+                helperId={helperData.id}
+                refreshKey={paymentMethodsRefreshKey}
+                onManage={() => setShowAddPaymentMethodDialog(true)}
+              />
+            )}
+
             {helperId && (helperData?.trader_level || 1) < 5 && (
               <HelperAcceptedMethodsCard
                 helperId={helperId}
                 helperCountryCode={helperData?.country_code || null}
               />
             )}
+
 
             <div
               className="relative rounded-2xl p-3.5 overflow-hidden"
