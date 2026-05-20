@@ -2739,9 +2739,29 @@ const Recharge = () => {
 
                 {/* Diagnostic panel — WHY is it empty? */}
                 <div className="rounded-2xl border border-amber-100 bg-gradient-to-b from-amber-50/60 to-white p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <h4 className="text-xs font-bold text-amber-800">Why is this empty?</h4>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                      <h4 className="text-xs font-bold text-amber-800">Why is this empty?</h4>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allIds = [
+                          'AUDIT:VT-NO-DATA',
+                          'AUDIT:VT-COUNTRY-MISMATCH',
+                          'AUDIT:VT-INACTIVE-UNVERIFIED',
+                          'AUDIT:VT-WALLET-THRESHOLD',
+                          'AUDIT:VT-FILTER-SUMMARY',
+                        ].join('\n');
+                        navigator.clipboard.writeText(allIds);
+                        toast({ title: 'Copied all audit IDs', description: '5 audit codes copied to clipboard' });
+                      }}
+                      className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-lg px-2 py-1 transition-colors"
+                      title="Copy all audit IDs"
+                    >
+                      <Copy className="w-3 h-3" /> Copy All
+                    </button>
                   </div>
                   <div className="space-y-2">
                     {/* Reason 1: No data at all */}
