@@ -1753,7 +1753,7 @@ const LiveStream = () => {
           if (payload.new.status === "pending") {
             // Fetch challenger info
             const { data: challenger } = await supabase
-              .from("profiles")
+              .from("profiles_public")
               .select("display_name, avatar_url, user_level")
               .eq("id", payload.new.challenger_id)
               .single();
@@ -2139,8 +2139,8 @@ const LiveStream = () => {
   const handleProfileClick = async (userId: string) => {
     try {
       const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
+        .from("profiles_public")
+        .select("id, display_name, avatar_url, user_level, is_verified, country_name, country_flag, bio, app_uid")
         .eq("id", userId)
         .single();
       
@@ -2168,7 +2168,7 @@ const LiveStream = () => {
           name: profile.display_name || "User",
           avatar: profile.avatar_url || "",
           level: profile.user_level || 1,
-          coins: profile.coins || 0,
+          coins: 0,
           beans: 0,
           isFollowing,
           isVIP: (profile.user_level || 1) >= 30,
