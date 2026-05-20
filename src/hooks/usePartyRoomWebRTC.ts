@@ -376,8 +376,13 @@ export function usePartyRoomWebRTC(
           // Play audio for existing participants
           participant.trackPublications.forEach(pub => {
             if (pub.track?.kind === Track.Kind.Audio && pub.isSubscribed) {
-              const audioEl = pub.track.attach();
+              const audioEl = pub.track.attach() as HTMLAudioElement;
+              audioEl.autoplay = true;
+              try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
               audioEl.play().catch(() => {});
+              const existing = audioElementsRef.current.get(participant.identity) || [];
+              existing.push(audioEl);
+              audioElementsRef.current.set(participant.identity, existing);
             }
           });
         });
