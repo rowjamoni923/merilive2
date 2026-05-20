@@ -1168,16 +1168,20 @@ const Recharge = () => {
 
         
         const mapped = filtered.map(h => {
-          const user = h.user as any;
+          const user = profilesMap.get((h as any).user_id) as any;
           const contactInfo = (h as any).contact_info as any;
           const whatsapp = contactInfo?.whatsapp || contactInfo?.whatsapp_number || (h as any).order_notification_phone || null;
-          const min = getTierMinWallet(h.trader_level);
-          // Mirrors backend is_approved_topup_trader() + tier-min gate
+          const level = Number(h.trader_level ?? 1);
+          const min = getTierMinWallet(level);
+          const wallet = Number(h.wallet_balance ?? 0);
+          const agencyDiamondBalance = agencyDiamondMap.get((h as any).user_id) || 0;
+          const traderWalletBalance = wallet + agencyDiamondBalance;
+          // Mirrors exact auto-visibility gate used above.
           const isApproved =
             (h as any).is_active === true &&
             (h as any).is_verified === true &&
-            (h.trader_level ?? 0) >= 1 && (h.trader_level ?? 0) <= 5 &&
-            (h.wallet_balance ?? 0) >= min;
+            level >= 1 && level <= 5 &&
+            traderWalletBalance >= min;
           return {
             id: user?.id || h.user_id,
             helperId: h.id,
@@ -1186,8 +1190,11 @@ const Recharge = () => {
             userId: h.user_id,
             appUid: user?.app_uid || '',
             isOnline: user?.is_online || false,
-            walletBalance: h.wallet_balance ?? 0,
-            traderLevel: h.trader_level || 1,
+            walletBalance: wallet,
+            traderWalletBalance,
+            agencyDiamondBalance,
+            minRequiredBalance: min,
+            traderLevel: level,
             countryCode: user?.country_code || h.country_code || '',
             countryFlag: user?.country_flag || '🌍',
             countryName: user?.country_name || h.country_code || 'Unknown',
