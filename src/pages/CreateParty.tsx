@@ -645,14 +645,14 @@ const CreateParty = () => {
               ))}
             </motion.div>
             
-            {/* Game Selection - No background, bigger logos */}
+            {/* Game Selection - logo only */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex gap-3 overflow-x-auto pb-2 px-1"
+              className="grid grid-cols-3 gap-3 px-1"
             >
-              {games.slice(0, 4).map((game, i) => (
+              {games.slice(0, 6).map((game, i) => (
                 <motion.button
                   key={game.id}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -661,20 +661,19 @@ const CreateParty = () => {
                   whileTap={{ scale: 0.92 }}
                   onClick={() => setSelectedGame(game.id)}
                   className={cn(
-                    "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-2xl transition-all",
+                    "min-w-0 aspect-square flex items-center justify-center p-1.5 rounded-2xl transition-all",
                     selectedGame === game.id 
                       ? "bg-purple-500/30 ring-2 ring-purple-400 shadow-lg shadow-purple-500/20" 
                       : "bg-white/10 backdrop-blur-sm border border-amber-200/60"
                   )}
                 >
-                  <div className="w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden">
+                  <div className="w-full h-full rounded-xl flex items-center justify-center overflow-hidden">
                     {game.logoUrl ? (
-                      <img src={game.logoUrl} alt={game.name} className="w-full h-full rounded-xl object-cover" />
+                      <img src={game.logoUrl} alt={game.name} className="w-full h-full rounded-xl object-contain" />
                     ) : (
-                      <span className="text-5xl">{game.emoji}</span>
+                      <span className="text-6xl">{game.emoji}</span>
                     )}
                   </div>
-                  <span className="text-white text-xs font-semibold">{game.name}</span>
                 </motion.button>
               ))}
             </motion.div>
