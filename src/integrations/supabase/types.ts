@@ -9727,7 +9727,7 @@ export type Database = {
           claimed_at?: string
           created_at?: string
           id?: string
-          platform: string
+          platform?: string
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
