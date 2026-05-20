@@ -31,7 +31,7 @@ type BroadcastRow = {
 // Topic → React Query keys to invalidate when this topic changes.
 // Add more keys here as new screens get queries — the underlying
 // realtime push already arrives, this just wires it to the cache.
-const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
+export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   profiles: [['profile'], ['user-profile'], ['user-balance'], ['index-hosts-v4'], ['host-countries'], ['host-feed']],
   face_verification_submissions: [['face-verification'], ['host-applications'], ['profile'], ['user-profile'], ['index-hosts-v4'], ['host-countries']],
 
