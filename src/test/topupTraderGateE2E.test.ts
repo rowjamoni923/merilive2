@@ -37,10 +37,10 @@ class FakeDb {
   seedHelper(row: Partial<HelperRow> & { user_id: string }) {
     this.helpers.set(row.user_id, {
       user_id: row.user_id,
-      is_active: row.is_active ?? true,
-      is_verified: row.is_verified ?? true,
-      trader_level: row.trader_level ?? 3,
-      wallet_balance: row.wallet_balance ?? 1_000_000,
+      is_active:      'is_active'      in row ? row.is_active      ?? null : true,
+      is_verified:    'is_verified'    in row ? row.is_verified    ?? null : true,
+      trader_level:   'trader_level'   in row ? row.trader_level   ?? null : 3,
+      wallet_balance: 'wallet_balance' in row ? row.wallet_balance ?? 0    : 1_000_000,
     });
   }
 
