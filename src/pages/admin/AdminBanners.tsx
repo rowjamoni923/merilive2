@@ -119,6 +119,7 @@ export default function AdminBanners() {
         is_active: banner.is_active,
         start_date: banner.start_date?.split("T")[0] || "",
         end_date: banner.end_date?.split("T")[0] || "",
+        location: banner.location || "home",
       });
     } else {
       setEditingBanner(null);
