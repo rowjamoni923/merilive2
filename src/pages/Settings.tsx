@@ -40,6 +40,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { registerFCMToken } from "@/services/firebaseMessaging";
 import { getAppInfo } from "@/utils/nativeUtils";
+import { APP_VERSION, APP_BUILD } from "@/lib/version";
 import { recordClientError } from "@/utils/clientErrorLog";
 import {
   checkPermissionStatus,
