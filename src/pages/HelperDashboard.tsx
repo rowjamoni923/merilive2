@@ -1763,7 +1763,7 @@ const HelperDashboard = () => {
                         <div className="flex items-center gap-2">
                           <p className="text-slate-900 font-bold">{level.level_name}</p>
                           {isCurrent && (
- <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-slate-900 text-[10px]">Current</Badge>
+ <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] border-0 shadow-sm">Current</Badge>
                           )}
                         </div>
                         <p className="text-slate-700 text-xs">{level.description}</p>
