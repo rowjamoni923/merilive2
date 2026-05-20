@@ -1577,29 +1577,30 @@ const Chat = () => {
     
     // No local send sound here (avoid duplicate beeps on send + realtime events)
     
-    // 🔍 BLOCKING: Run contact detection BEFORE sending
-    const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
-    const detection = detectContactInfo(originalContent);
-    
-    // Determine what content to actually send
+    // 🔍 BLOCKING: Run contact detection BEFORE sending — HOSTS ONLY.
+    // Agencies, users, and L1–L5 helpers can share numbers freely (no mask, no beans, no warning).
     let contentToSend = originalContent;
-    if (detection.hasViolation) {
-      // Mask the content - recipient will see *** instead of contact info
-      contentToSend = maskContactContent(originalContent, detection);
-      console.log('[ContactDetection] BLOCKED content, masked:', contentToSend);
-      
-      // Process violation (warning + bean deduction) in background
-      const sourceId = selectedConversation?.id || selectedGroup?.id;
-      detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId)
-        .then(res => {
-          console.log('[ContactDetection] Chat result:', res);
-          if (res.detected && res.violationNumber) {
-            numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
-          } else if (res.detected) {
-            numberWarning.showGenericWarning();
-          }
-        })
-        .catch(err => console.error('[ContactDetection] Chat error:', err));
+    if (myProfile?.is_host === true) {
+      const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
+      const detection = detectContactInfo(originalContent);
+      if (detection.hasViolation) {
+        // Mask the content - recipient will see *** instead of contact info
+        contentToSend = maskContactContent(originalContent, detection);
+        console.log('[ContactDetection] BLOCKED content (host), masked:', contentToSend);
+        
+        // Process violation (warning + bean deduction) in background
+        const sourceId = selectedConversation?.id || selectedGroup?.id;
+        detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId)
+          .then(res => {
+            console.log('[ContactDetection] Chat result:', res);
+            if (res.detected && res.violationNumber) {
+              numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+            } else if (res.detected) {
+              numberWarning.showGenericWarning();
+            }
+          })
+          .catch(err => console.error('[ContactDetection] Chat error:', err));
+      }
     }
 
     try {
