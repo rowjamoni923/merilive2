@@ -212,6 +212,42 @@ export default function AdminRatingRewards() {
     else fetchClaims();
   }, 'admin-rating-rewards');
 
+  const openAuditLog = useCallback(async (claim: RatingClaim) => {
+    setAuditClaim(claim);
+    setAuditEntries([]);
+    setAuditLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('rating_reward_audit_log')
+        .select('*')
+        .eq('claim_id', claim.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const rows = (data || []) as AuditEntry[];
+      const adminIds = [...new Set(rows.map(r => r.admin_id).filter(Boolean) as string[])];
+      let adminMap: Record<string, any> = {};
+      if (adminIds.length) {
+        const { data: admins } = await supabase
+          .from('admin_users')
+          .select('user_id, display_name, email')
+          .in('user_id', adminIds);
+        (admins || []).forEach((a: any) => { adminMap[a.user_id] = a; });
+      }
+      setAuditEntries(rows.map(r => ({ ...r, admin: r.admin_id ? adminMap[r.admin_id] || null : null })));
+    } catch (err) {
+      console.error('Fetch audit log error:', err);
+      recordAdminError({ kind: 'rpc', label: 'AdminRatingRewards.audit', message: formatAdminError(err) });
+      toast.error('Failed to load audit log');
+    } finally {
+      setAuditLoading(false);
+    }
+  }, []);
+
+  useAdminRealtime(['rating_reward_audit_log'], () => {
+    if (auditClaim) openAuditLog(auditClaim);
+  }, 'admin-rating-rewards-audit');
+
+
   const handleApprove = async (claim: RatingClaim) => {
     setProcessingId(claim.id);
     try {
