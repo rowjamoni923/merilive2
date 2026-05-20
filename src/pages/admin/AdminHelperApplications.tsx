@@ -747,6 +747,95 @@ const AdminHelperApplications = () => {
                             </span>
                           </div>
                         )}
+
+                        {/* Pkg77 — Detailed Level Auto-Detection Audit.
+                            Shows selected_level vs detected_level vs auto_level_adjusted
+                            in a single explicit panel so admin can verify Pkg65 logic at a glance. */}
+                        {(() => {
+                          const pd = (selectedApp.payment_details as any) || {};
+                          const hasAudit =
+                            pd.selected_level != null ||
+                            pd.detected_level != null ||
+                            pd.auto_level_adjusted != null;
+                          if (!hasAudit) return null;
+                          const sel = pd.selected_level;
+                          const det = pd.detected_level;
+                          const adj = pd.auto_level_adjusted === true;
+                          const matched = sel != null && det != null && Number(sel) === Number(det);
+                          const upgraded = sel != null && det != null && Number(det) > Number(sel);
+                          const downgraded = sel != null && det != null && Number(det) < Number(sel);
+                          return (
+                            <div
+                              data-testid="level-audit-block"
+                              className="mt-2 rounded-lg border border-purple-500/30 bg-purple-500/5 p-2.5 space-y-1.5"
+                            >
+                              <div className="text-[11px] font-semibold uppercase tracking-wide text-purple-700 dark:text-purple-300">
+                                Level Auto-Detection Audit
+                              </div>
+                              <div className="grid grid-cols-3 gap-2 text-[11px]">
+                                <div className="space-y-0.5">
+                                  <div className="text-muted-foreground">User selected</div>
+                                  <div className="font-bold text-foreground">
+                                    {sel != null ? `L${sel}` : "—"}
+                                  </div>
+                                </div>
+                                <div className="space-y-0.5">
+                                  <div className="text-muted-foreground">On-chain detected</div>
+                                  <div className="font-bold text-purple-600">
+                                    {det != null ? `L${det}` : "—"}
+                                  </div>
+                                </div>
+                                <div className="space-y-0.5">
+                                  <div className="text-muted-foreground">Adjusted</div>
+                                  <div
+                                    className={
+                                      adj
+                                        ? "font-bold text-amber-600"
+                                        : "font-bold text-emerald-600"
+                                    }
+                                  >
+                                    {adj ? "YES" : "NO"}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap gap-1 pt-1">
+                                {matched && (
+                                  <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                                    ✓ MATCHED
+                                  </span>
+                                )}
+                                {upgraded && (
+                                  <span className="text-[9px] font-semibold text-amber-700 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                                    ▲ AUTO-UPGRADED L{sel} → L{det}
+                                  </span>
+                                )}
+                                {downgraded && (
+                                  <span className="text-[9px] font-semibold text-red-700 bg-red-500/15 border border-red-500/30 px-1.5 py-0.5 rounded">
+                                    ▼ DOWNGRADED L{sel} → L{det} (paid less than selected)
+                                  </span>
+                                )}
+                                {pd.auto_verified === true && (
+                                  <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                                    ✓ ON-CHAIN VERIFIED
+                                  </span>
+                                )}
+                                {pd.verified_at && (
+                                  <span className="text-[9px] text-muted-foreground">
+                                    @ {new Date(pd.verified_at).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                              <details className="pt-1">
+                                <summary className="cursor-pointer text-[10px] text-muted-foreground hover:text-foreground">
+                                  Show raw payment_details JSON
+                                </summary>
+                                <pre className="mt-1 max-h-48 overflow-auto rounded bg-background/60 p-2 text-[10px] leading-snug">
+                                  {JSON.stringify(pd, null, 2)}
+                                </pre>
+                              </details>
+                            </div>
+                          );
+                        })()}
                         {(selectedApp.payment_details as any)?.diamonds_credited != null && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Diamonds Credited:</span>
