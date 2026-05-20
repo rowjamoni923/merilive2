@@ -124,18 +124,13 @@ const isSlowNetwork = (): boolean => {
 };
 
 const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
-  // INSTANT BACKGROUND: branding is read from localStorage cache + preloaded
-  // via useBrandingRealtime on module load, so the asset is already in the
-  // browser cache. We render it immediately (no opacity gate, no fade-in).
-  // The gradient sits behind as a 0-cost fallback in case the asset is missing.
+  // INSTANT BACKGROUND: branding is read from localStorage cache + a
+  // <link rel="preload" fetchpriority="high"> is injected at module load by
+  // useBrandingRealtime, so the asset starts downloading before React even
+  // mounts. We render it immediately (no opacity gate, no fade-in, no
+  // slow-network skip — user mandate: ZERO delay, always show).
   const [mediaFailed, setMediaFailed] = useState(false);
-  const [slowNet] = useState(() => isSlowNetwork());
-  // GIFs are uncompressed-frame-by-frame heavy (current brand bg = 28 MB).
-  // On slow networks: drop GIF + video entirely. Static image still loads
-  // because Supabase render endpoint serves AVIF/WebP at ~50–150 KB.
-  const isHeavyType = branding.background_type === 'gif' || branding.background_type === 'video';
-  const skipMediaForNet = slowNet && isHeavyType;
-  const showMedia = Boolean(branding.background_url && !mediaFailed && !skipMediaForNet);
+  const showMedia = Boolean(branding.background_url && !mediaFailed);
 
   useEffect(() => {
     setMediaFailed(false);
@@ -150,14 +145,13 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
     willChange: 'transform',
   };
 
-  // Build HD URL via Supabase image transform CDN (auto-upscales delivery, sharper on high DPR screens).
-  // Falls back to original URL for non-Supabase hosts or GIFs (which the transform endpoint flattens).
+  // Build HD URL via Supabase image transform CDN.
+  // For GIFs we MUST keep the original URL (transform endpoint flattens animation).
+  const isGif = branding.background_type === 'gif' || /\.gif(\?|$)/i.test(branding.background_url || '');
   const buildHdUrl = (url: string, width: number, quality = 90): string => {
     if (!url) return url;
     try {
-      // Skip transforms for animated GIFs to preserve animation
-      if (branding.background_type === 'gif' || /\.gif(\?|$)/i.test(url)) return url;
-      // Supabase Storage public URL → render/image/public for on-the-fly resize + AVIF/WebP
+      if (isGif) return url; // never transform animated GIFs
       if (url.includes('/storage/v1/object/public/')) {
         const transformed = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
         const sep = transformed.includes('?') ? '&' : '?';
@@ -169,13 +163,14 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
     }
   };
 
-  // Device pixel ratio aware: phones at 3x DPR get true ~1080-1440 source for crisp rendering
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 3) : 2;
   const baseW = typeof window !== 'undefined' ? window.innerWidth : 480;
   const targetWidth = Math.min(2160, Math.ceil(baseW * dpr));
 
+  // For GIFs: single src only (multi-width srcSet of identical URLs is wasted bytes).
+  // For static images: real responsive srcSet across transform CDN widths.
   const hdSrc = showMedia ? buildHdUrl(branding.background_url, targetWidth, 92) : '';
-  const hdSrcSet = showMedia
+  const hdSrcSet = showMedia && !isGif
     ? [720, 1080, 1440, 1920, 2160]
         .map((w) => `${buildHdUrl(branding.background_url, w, 90)} ${w}w`)
         .join(', ')
@@ -207,12 +202,12 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
         <img
           src={hdSrc}
           srcSet={hdSrcSet}
-          sizes="100vw"
+          sizes={hdSrcSet ? '100vw' : undefined}
           alt="MeriLive background"
           className="absolute inset-0 w-full h-full object-cover"
           decoding="async"
           loading="eager"
-          fetchPriority={branding.background_type === 'gif' ? 'low' : 'high'}
+          fetchPriority="high"
           onError={() => setMediaFailed(true)}
           style={mediaStyle}
         />
