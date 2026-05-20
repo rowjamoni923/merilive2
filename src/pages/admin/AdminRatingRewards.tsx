@@ -271,7 +271,8 @@ export default function AdminRatingRewards() {
 
       const amt = Number(result?.reward_amount ?? 0).toLocaleString();
       const rewardLabel = result.reward_type === 'beans' ? `🫘 ${amt} Beans` : `💎 ${amt} Diamonds`;
-      await adminSendNotification(claim.user_id, '🎉 Rating Reward Approved!', `Congratulations! Your Play Store rating has been verified. ${rewardLabel} have been credited to your account. Thank you for your support!`, 'system')
+      // In-app notification, push (FCM) and decision email are dispatched server-side
+      // by tg_rating_reward_alert on rating_reward_claims status change.
 
       toast.success(`Approved! ${rewardLabel} sent to user`);
     } catch (err: any) {
