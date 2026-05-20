@@ -72,6 +72,7 @@ export function usePartyRoomWebRTC(
       roomRef.current = null;
     }
 
+    detachAllAudio();
     peerStreamsRef.current.clear();
 
     setState({
