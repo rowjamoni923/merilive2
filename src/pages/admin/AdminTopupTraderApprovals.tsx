@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { ShieldCheck, ShieldX, RefreshCw, Search, History, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
