@@ -549,7 +549,7 @@ export default function AdminEntryBanners() {
               <EntryBannerAnimation
                 userName="Demo User"
                 userLevel={selectedBanner.min_level || 10}
-                avatarUrl="https://api.dicebear.com/7.x/avataaars/svg?seed=demo"
+                avatarUrl="https://randomuser.me/api/portraits/women/44.jpg"
                 animationUrl={selectedBanner.animation_url}
                 onComplete={() => {}}
               />
