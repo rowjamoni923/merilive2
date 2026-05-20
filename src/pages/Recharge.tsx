@@ -136,6 +136,14 @@ const Recharge = () => {
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [topUpHelpers, setTopUpHelpers] = useState<TopUpHelper[]>([]);
   // Diagnostic state: why are no traders showing?
+  type DiagSample = {
+    country?: string | null;
+    wallet: number;
+    tierMin: number;
+    level: number;
+    isActive?: boolean;
+    isVerified?: boolean;
+  };
   const [helperDiag, setHelperDiag] = useState<{
     rawTotal: number;
     byCountry: number;
@@ -145,7 +153,13 @@ const Recharge = () => {
     finalCount: number;
     userCountry: string | null;
     isLoading: boolean;
-  }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true });
+    samples: {
+      country: DiagSample[];
+      inactive: DiagSample[];
+      lowBalance: DiagSample[];
+      tierMin: DiagSample[];
+    };
+  }>({ rawTotal: 0, byCountry: 0, byTierMin: 0, byInactive: 0, byLowBalance: 0, finalCount: 0, userCountry: null, isLoading: true, samples: { country: [], inactive: [], lowBalance: [], tierMin: [] } });
   const helperRotationPage = 0;
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -1052,14 +1066,38 @@ const Recharge = () => {
         // STRICT country match using PROFILE's country_code + tier-based min balance.
         // Track diagnostics so empty-state can explain WHY nothing shows.
         let byCountry = 0, byTierMin = 0, byInactive = 0, byLowBalance = 0;
+        const sampleCountry: DiagSample[] = [];
+        const sampleInactive: DiagSample[] = [];
+        const sampleLowBalance: DiagSample[] = [];
+        const sampleTierMin: DiagSample[] = [];
+        const MAX_SAMPLES = 3;
         const filtered = helpers.filter(h => {
           const user = h.user as any;
           const profileCountry = user?.country_code || h.country_code;
-          if (profileCountry !== userCountryCode) { byCountry++; return false; }
-          if (!h.is_active || !h.is_verified) { byInactive++; return false; }
-          if ((h.wallet_balance ?? 1) < 50000) { byLowBalance++; return false; }
-          const min = getTierMinWallet(h.trader_level);
-          if ((h.wallet_balance ?? 1) < min) { byTierMin++; return false; }
+          const wallet = Number(h.wallet_balance ?? 0);
+          const level = Number(h.trader_level ?? 1);
+          const tierMin = getTierMinWallet(level);
+          const sample: DiagSample = { country: profileCountry, wallet, tierMin, level, isActive: !!h.is_active, isVerified: !!h.is_verified };
+          if (profileCountry !== userCountryCode) {
+            byCountry++;
+            if (sampleCountry.length < MAX_SAMPLES) sampleCountry.push(sample);
+            return false;
+          }
+          if (!h.is_active || !h.is_verified) {
+            byInactive++;
+            if (sampleInactive.length < MAX_SAMPLES) sampleInactive.push(sample);
+            return false;
+          }
+          if (wallet < 50000) {
+            byLowBalance++;
+            if (sampleLowBalance.length < MAX_SAMPLES) sampleLowBalance.push(sample);
+            return false;
+          }
+          if (wallet < tierMin) {
+            byTierMin++;
+            if (sampleTierMin.length < MAX_SAMPLES) sampleTierMin.push(sample);
+            return false;
+          }
           return true;
         });
         setHelperDiag({
@@ -1071,6 +1109,12 @@ const Recharge = () => {
           finalCount: filtered.length,
           userCountry: userCountryCode,
           isLoading: false,
+          samples: {
+            country: sampleCountry,
+            inactive: sampleInactive,
+            lowBalance: sampleLowBalance,
+            tierMin: sampleTierMin,
+          },
         });
 
         
@@ -2714,13 +2758,24 @@ const Recharge = () => {
                     {helperDiag.byCountry > 0 && (
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-blue-100 p-2.5">
                         <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-1" />
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-semibold text-blue-700">
                             Country mismatch — {helperDiag.byCountry} trader{helperDiag.byCountry !== 1 ? 's' : ''} hidden
                           </p>
                           <p className="text-[10px] text-blue-600/80 leading-snug">
                             Traders exist but their registered country does not match yours. Only traders from the same country are shown for regulatory compliance.
                           </p>
+                          {helperDiag.samples.country.length > 0 && (
+                            <div className="mt-1.5 space-y-0.5">
+                              {helperDiag.samples.country.map((s, i) => (
+                                <div key={i} className="text-[10px] font-mono text-blue-800/90 bg-blue-50 rounded px-1.5 py-0.5 inline-flex flex-wrap gap-x-2 mr-1">
+                                  <span>L{s.level}</span>
+                                  <span className="text-rose-600">{s.country || '—'} ≠ {helperDiag.userCountry || '?'}</span>
+                                  <span className="text-slate-500">wallet {s.wallet.toLocaleString()}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -2729,13 +2784,25 @@ const Recharge = () => {
                     {helperDiag.byInactive > 0 && (
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-orange-100 p-2.5">
                         <ShieldCheck className="w-4 h-4 text-orange-500 mt-0.5 shrink-1" />
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-semibold text-orange-700">
                             Not active / unverified — {helperDiag.byInactive} trader{helperDiag.byInactive !== 1 ? 's' : ''} hidden
                           </p>
                           <p className="text-[10px] text-orange-600/80 leading-snug">
                             Some trader accounts are pending admin verification, suspended, or inactive. They will appear once admin approval is complete.
                           </p>
+                          {helperDiag.samples.inactive.length > 0 && (
+                            <div className="mt-1.5 space-y-0.5">
+                              {helperDiag.samples.inactive.map((s, i) => (
+                                <div key={i} className="text-[10px] font-mono text-orange-800/90 bg-orange-50 rounded px-1.5 py-0.5 inline-flex flex-wrap gap-x-2 mr-1">
+                                  <span>L{s.level}</span>
+                                  <span className={s.isActive ? 'text-emerald-600' : 'text-rose-600'}>active:{s.isActive ? '✓' : '✗'}</span>
+                                  <span className={s.isVerified ? 'text-emerald-600' : 'text-rose-600'}>verified:{s.isVerified ? '✓' : '✗'}</span>
+                                  <span className="text-slate-500">wallet {s.wallet.toLocaleString()}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -2744,13 +2811,38 @@ const Recharge = () => {
                     {(helperDiag.byLowBalance > 0 || helperDiag.byTierMin > 0) && (
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-emerald-100 p-2.5">
                         <Wallet className="w-4 h-4 text-emerald-500 mt-1 shrink-1" />
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-semibold text-emerald-700">
                             Wallet below threshold — {(helperDiag.byLowBalance + helperDiag.byTierMin)} trader{(helperDiag.byLowBalance + helperDiag.byTierMin) !== 1 ? 's' : ''} hidden
                           </p>
                           <p className="text-[10px] text-emerald-600/80 leading-snug">
-                            Traders must maintain a minimum wallet balance to stay visible. Their balance may have dropped below the required level.
+                            Traders must hold ≥ 50,000 base AND ≥ their tier-min wallet to stay visible. Shortfall shown below.
                           </p>
+                          {(helperDiag.samples.lowBalance.length > 0 || helperDiag.samples.tierMin.length > 0) && (
+                            <div className="mt-1.5 space-y-0.5">
+                              {helperDiag.samples.lowBalance.map((s, i) => {
+                                const need = 50000;
+                                const short = Math.max(0, need - s.wallet);
+                                return (
+                                  <div key={`lb-${i}`} className="text-[10px] font-mono text-emerald-800/90 bg-emerald-50 rounded px-1.5 py-0.5 inline-flex flex-wrap gap-x-2 mr-1">
+                                    <span>L{s.level}</span>
+                                    <span className="text-rose-600">wallet {s.wallet.toLocaleString()} &lt; base {need.toLocaleString()}</span>
+                                    <span className="text-amber-700">short {short.toLocaleString()}</span>
+                                  </div>
+                                );
+                              })}
+                              {helperDiag.samples.tierMin.map((s, i) => {
+                                const short = Math.max(0, s.tierMin - s.wallet);
+                                return (
+                                  <div key={`tm-${i}`} className="text-[10px] font-mono text-emerald-800/90 bg-emerald-50 rounded px-1.5 py-0.5 inline-flex flex-wrap gap-x-2 mr-1">
+                                    <span>L{s.level}</span>
+                                    <span className="text-rose-600">wallet {s.wallet.toLocaleString()} &lt; L{s.level}-min {s.tierMin.toLocaleString()}</span>
+                                    <span className="text-amber-700">short {short.toLocaleString()}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
