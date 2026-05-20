@@ -1333,6 +1333,21 @@ const Level5HelperDashboard = () => {
           </Button>
         </div>
 
+        {/* ============ SHOW/HIDE ON RECHARGE TOGGLE (always visible at top) ============ */}
+        {helperData?.id && (
+          <div className="relative mb-4">
+            <HelperListingToggle
+              helperId={helperData.id}
+              initialListed={helperData.is_listed ?? true}
+              onChange={(next) =>
+                setHelperData((prev: any) =>
+                  prev ? { ...prev, is_listed: next } : prev
+                )
+              }
+            />
+          </div>
+        )}
+
         {/* Premium Stat Cards */}
         <div className="relative grid grid-cols-4 gap-2">
           {[
@@ -1367,19 +1382,6 @@ const Level5HelperDashboard = () => {
           </Button>
         </div>
 
-        {helperData?.id && (
-          <div className="relative mt-3">
-            <HelperListingToggle
-              helperId={helperData.id}
-              initialListed={helperData.is_listed ?? true}
-              onChange={(next) =>
-                setHelperData((prev: any) =>
-                  prev ? { ...prev, is_listed: next } : prev
-                )
-              }
-            />
-          </div>
-        )}
       </div>
 
       {/* Main Tabs */}
