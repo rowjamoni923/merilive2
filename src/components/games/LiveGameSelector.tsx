@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Gamepad2, Coins, Sparkles, Users, Loader2 } from "lucide-react";
+import { X, Gamepad2, Coins, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,8 +36,6 @@ const Game3DCard = ({
   onClick: () => void;
   index: number;
 }) => {
-  const [randomPlayers] = useState(() => Math.floor(Math.random() * 5000) + 200);
-
   return (
     <motion.button
       initial={{ opacity: 0, y: 20 }}
