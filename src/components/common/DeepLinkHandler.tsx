@@ -14,17 +14,21 @@ const DeepLinkHandler = () => {
   const location = useLocation();
 
   const resolveSmartLink = (search: string) => {
-    const params = new URLSearchParams(search);
-    const ref = params.get('ref');
-    const agencyCode = params.get('agency');
-    const parent = params.get('parent');
-    const code = params.get('code');
-    const hostId = params.get('host');
-    const target = params.get('target');
+    // Pkg67: shared parser handles every alias variant
+    // (agencyCode/agency_code/agency/code/agent/..., ref/r/invite/inviter/...).
+    const parsed = parseReferralPayload(search);
+    const { ref, agencyCode, parent, host, target } = parsed;
 
-    // Explicit sub-agent agency link → go to become-sub-agent
+    // Explicit agency code → sub-agent / join flow.
     if (agencyCode) {
       localStorage.setItem('meri_pending_referral', agencyCode);
+      // `code` (legacy short alias) still routes to /join-agency; everything
+      // else (`agency`, `agencyCode`, `agency_code`, ...) routes to the
+      // sub-agent flow to match historical behaviour.
+      const isLegacyJoinAlias = !!parsed.all['code'] && !parsed.all['agency'] && !parsed.all['agencycode'] && !parsed.all['agency_code'];
+      if (isLegacyJoinAlias) {
+        return { pathname: '/join-agency', searchParams: `?code=${encodeURIComponent(agencyCode)}` };
+      }
       return { pathname: '/become-sub-agent', searchParams: `?agency=${encodeURIComponent(agencyCode)}` };
     }
 
@@ -36,12 +40,7 @@ const DeepLinkHandler = () => {
 
     if (parent) return { pathname: '/create-agency', searchParams: `?parent=${encodeURIComponent(parent)}` };
 
-    if (code) {
-      localStorage.setItem('meri_pending_referral', code);
-      return { pathname: '/join-agency', searchParams: `?code=${encodeURIComponent(code)}` };
-    }
-
-    if (hostId) return { pathname: `/profile/${hostId}`, searchParams: '' };
+    if (host) return { pathname: `/profile/${host}`, searchParams: '' };
 
     if (target) {
       const safeTarget = target.startsWith('/') ? target : `/${target}`;
