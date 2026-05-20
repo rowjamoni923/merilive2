@@ -660,22 +660,59 @@ const AdminHelperApplications = () => {
                     </div>
                   )}
 
-                  {/* Payment Details */}
-                  {selectedApp.payment_screenshot_url && (
+                  {/* Payment Details — covers BOTH legacy screenshot uploads AND new MeriCash crypto auto deposits */}
+                  {(selectedApp.payment_screenshot_url || selectedApp.payment_transaction_id || selectedApp.payment_details) && (
                     <div className="space-y-2">
-                      <p className="text-sm font-semibold">Payment Proof</p>
-                      <div className="p-3 bg-muted/50 rounded-xl space-y-2">
-                        {selectedApp.payment_transaction_id && (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Transaction ID:</span>
-                            <span className="font-mono">{selectedApp.payment_transaction_id}</span>
+                      <p className="text-sm font-semibold flex items-center gap-1.5">
+                        💎 Payment Verification
+                        {(selectedApp.payment_details as any)?.auto_verified && (
+                          <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                            ✓ AUTO-VERIFIED ON-CHAIN
+                          </span>
+                        )}
+                      </p>
+                      <div className="p-3 bg-muted/50 rounded-xl space-y-2 text-sm">
+                        {selectedApp.payment_method && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Method:</span>
+                            <span className="font-medium">{selectedApp.payment_method}</span>
                           </div>
                         )}
-                        <img 
-                          src={selectedApp.payment_screenshot_url} 
-                          alt="Payment Screenshot" 
-                          className="w-full h-auto max-h-48 object-contain rounded-lg border cursor-pointer"
-                          onClick={() => imageViewer.openImage(selectedApp.payment_screenshot_url!)} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        {(selectedApp.payment_details as any)?.amount_usd != null && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Amount Paid:</span>
+                            <span className="font-bold text-emerald-600">${(selectedApp.payment_details as any).amount_usd}</span>
+                          </div>
+                        )}
+                        {(selectedApp.payment_details as any)?.diamonds_credited != null && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Diamonds Credited:</span>
+                            <span className="font-bold text-amber-600">
+                              {Number((selectedApp.payment_details as any).diamonds_credited).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                        {selectedApp.payment_transaction_id && (
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">Transaction ID:</span>
+                            <span className="font-mono text-xs break-all text-right">{selectedApp.payment_transaction_id}</span>
+                          </div>
+                        )}
+                        {(selectedApp.payment_details as any)?.topup_id && (selectedApp.payment_details as any).topup_id !== selectedApp.payment_transaction_id && (
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground shrink-0">Top-up Ref:</span>
+                            <span className="font-mono text-xs break-all text-right">{(selectedApp.payment_details as any).topup_id}</span>
+                          </div>
+                        )}
+                        {selectedApp.payment_screenshot_url && (
+                          <img
+                            src={selectedApp.payment_screenshot_url}
+                            alt="Payment Screenshot"
+                            className="w-full h-auto max-h-48 object-contain rounded-lg border cursor-pointer mt-2"
+                            onClick={() => imageViewer.openImage(selectedApp.payment_screenshot_url!)}
+                            onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}
+                          />
+                        )}
                       </div>
                     </div>
                   )}
