@@ -5,9 +5,13 @@ import { useNavigate } from "react-router-dom";
 
 interface HelperPaymentMethodsCardProps {
   helperId: string;
-  /** Navigates here when user taps "Manage" or "Add". Defaults to the L5 dashboard
-   *  payment-methods tab; L1–L4 callers can override. */
+  /** Navigates here when user taps "Manage" or "Add" (used only if onManage is not provided). */
   manageHref?: string;
+  /** Preferred: fire a local handler (e.g. open an inline add/manage dialog).
+   *  When provided, navigation is skipped. */
+  onManage?: () => void;
+  /** Bump this number from the parent after add/delete to force the list to refresh. */
+  refreshKey?: number;
 }
 
 interface Row {
