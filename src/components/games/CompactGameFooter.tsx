@@ -793,8 +793,10 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       phase,
       timeLeft,
       onPlaceBet: handlePlaceBet,
+      onWin: handleWin,
       currentRound
     };
+
 
     // Check if current game is iframe or external type
     if (currentGame?.game_type === 'iframe' && currentGame?.game_url) {
