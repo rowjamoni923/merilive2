@@ -12076,6 +12076,42 @@ export type Database = {
           },
         ]
       }
+      topup_trader_gate_audit: {
+        Row: {
+          amount: number | null
+          created_at: string
+          decision: string
+          helper_state: Json
+          id: string
+          reason: string
+          rpc: string
+          target: Json
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          decision: string
+          helper_state?: Json
+          id?: string
+          reason: string
+          rpc: string
+          target?: Json
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          decision?: string
+          helper_state?: Json
+          id?: string
+          reason?: string
+          rpc?: string
+          target?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       trader_level_purchases: {
         Row: {
           admin_notes: string | null
@@ -15627,6 +15663,26 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_list_topup_gate_audit: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _reason?: string
+          _rpc?: string
+          _user_id?: string
+        }
+        Returns: {
+          amount: number
+          created_at: string
+          helper_state: Json
+          id: string
+          reason: string
+          rpc: string
+          target: Json
+          total_count: number
+          user_id: string
+        }[]
+      }
       admin_list_topup_helpers: {
         Args: { _admin_id: string }
         Returns: {
@@ -16300,6 +16356,15 @@ export type Database = {
       check_signup_eligibility: {
         Args: { _device_id?: string; _face_hash?: string; _ip_address?: string }
         Returns: Json
+      }
+      check_topup_trader_gate: {
+        Args: {
+          _amount?: number
+          _rpc: string
+          _target?: Json
+          _user_id: string
+        }
+        Returns: boolean
       }
       check_user_anti_kick: {
         Args: { _moderator_user_id: string; _target_user_id: string }
