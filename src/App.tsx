@@ -1117,6 +1117,7 @@ const App = () => {
                 <Route path="/settings/customer-service" element={<ProtectedRoute session={session}><CustomerService /></ProtectedRoute>} />
                 <Route path="/support" element={<Navigate to="/settings/customer-service" replace />} />
                 <Route path="/rewards" element={<ProtectedRoute session={session}><Rewards /></ProtectedRoute>} />
+                <Route path="/rewards/rating-history" element={<ProtectedRoute session={session}><RatingProofHistory /></ProtectedRoute>} />
                 <Route path="/parcels" element={<ProtectedRoute session={session}><Parcels /></ProtectedRoute>} />
                 <Route path="/agency" element={<ProtectedRoute session={session}><Agency /></ProtectedRoute>} />
                 <Route path="/agent-rank" element={<ProtectedRoute session={session}><AgentRank /></ProtectedRoute>} />
