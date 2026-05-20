@@ -1191,6 +1191,22 @@ const Recharge = () => {
       )
       .on(
         'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'helper_orders' },
+        () => {
+          console.log('[Recharge] New helper_order - refreshing daily top-up counts');
+          fetchTopUpHelpers();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'helper_orders' },
+        () => {
+          console.log('[Recharge] helper_order status changed - refreshing daily top-up counts');
+          fetchTopUpHelpers();
+        }
+      )
+      .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'coin_transfers' },
         () => {
           console.log('[Recharge] Coin transfer detected - rechecking helper eligibility');
