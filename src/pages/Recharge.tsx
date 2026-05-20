@@ -131,7 +131,7 @@ const Recharge = () => {
   const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(null);
   // Use global shared balance hook for real-time sync across all pages
   const { balance: globalBalance, refetch: refetchGlobalBalance } = useUserBalance();
-  const { getMin: getTierMinWallet } = useTopupTraderTierMin();
+  const { getMin: getTierMinWallet, tierMin: tierMinMap } = useTopupTraderTierMin();
   const [localBalanceOverride, setLocalBalanceOverride] = useState<number | null>(null);
   const currentBalance = localBalanceOverride ?? globalBalance;
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
