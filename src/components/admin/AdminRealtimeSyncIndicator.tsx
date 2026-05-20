@@ -10,8 +10,7 @@
  * + age. Listens to the `admin-table-update` window event dispatched by
  * `useAdminBroadcastSync` (Pkg37) — zero extra subscriptions.
  */
-import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Activity, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
