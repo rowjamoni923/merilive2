@@ -31,8 +31,10 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   onVideoStalled,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const shieldRef = useRef<HTMLDivElement>(null);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
+
 
   // === NATIVE BRIDGE: only enable native surface for REMOTE playback ===
   // Host/local preview (mirror=true) must stay on web layer to avoid DeepAR surface conflicts.
