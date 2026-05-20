@@ -1973,12 +1973,8 @@ const Level5HelperDashboard = () => {
               />
             )}
 
-            {helperData?.id && (
-              <HelperAcceptedMethodsCard
-                helperId={helperData.id}
-                helperCountryCode={helperData?.country_code || null}
-              />
-            )}
+
+
 
 
             <div className="flex items-center justify-between mb-2">
