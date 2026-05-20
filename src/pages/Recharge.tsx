@@ -1433,7 +1433,7 @@ const Recharge = () => {
       if (user) {
         setUserId(user.id);
         const [profileRes, firstRechargeRes, bonusConfigRes] = await Promise.all([
-          supabase.from('profiles').select('coins, country_code, app_uid').eq('id', user.id).single(),
+          supabase.from('profiles').select('coins, country_code, app_uid, is_agency_owner').eq('id', user.id).single(),
           supabase.from('first_recharge_claims').select('id').eq('user_id', user.id).maybeSingle(),
           supabase.from('first_recharge_bonus').select('bonus_multiplier, banner_image_url, banner_title, banner_subtitle, banner_type').eq('is_active', true).maybeSingle(),
         ]);
@@ -1447,6 +1447,7 @@ const Recharge = () => {
           if (profileRes.data.app_uid) {
             setUserAppUid(profileRes.data.app_uid);
           }
+          setIsAgencyOwner(!!(profileRes.data as any).is_agency_owner);
         }
         
         setIsFirstRecharge(!firstRechargeRes.data);
