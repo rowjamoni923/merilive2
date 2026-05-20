@@ -2875,9 +2875,19 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-emerald-100 p-2.5">
                         <Wallet className="w-4 h-4 text-emerald-500 mt-1 shrink-1" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-emerald-700">
-                            Wallet below threshold — {(helperDiag.byLowBalance + helperDiag.byTierMin)} trader{(helperDiag.byLowBalance + helperDiag.byTierMin) !== 1 ? 's' : ''} hidden
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-semibold text-emerald-700">
+                              Wallet below threshold — {(helperDiag.byLowBalance + helperDiag.byTierMin)} trader{(helperDiag.byLowBalance + helperDiag.byTierMin) !== 1 ? 's' : ''} hidden
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-WALLET-THRESHOLD'); toast({ title: 'Copied audit ID', description: 'VT-WALLET-THRESHOLD' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-emerald-500 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-WALLET-THRESHOLD
+                            </button>
+                          </div>
                           <p className="text-[10px] text-emerald-600/80 leading-snug">
                             Traders must hold ≥ 50,000 base AND ≥ their tier-min wallet to stay visible. Shortfall shown below.
                           </p>
