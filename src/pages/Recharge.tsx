@@ -2789,6 +2789,16 @@ const Recharge = () => {
                               ))}
                             </div>
                           )}
+                          {isAdminViewer && (
+                            <a
+                              href="/admin/topup-payment-methods"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-blue-700 hover:text-blue-900 underline-offset-2 hover:underline"
+                            >
+                              Open Admin → Country Payment Methods <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}
