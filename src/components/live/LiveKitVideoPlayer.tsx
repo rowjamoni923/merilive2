@@ -8,18 +8,28 @@
  * - Zero play icons via hardened video element
  */
 import { useEffect, useRef, memo } from 'react';
+import type { CSSProperties, VideoHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 import type { Track } from 'livekit-client';
 import { hardenVideoElementForNative, cleanupVideoHardening } from '@/utils/videoNativeHardening';
 import { isNativeLiveKitAvailable, setNativeVideoVisible } from '@/plugins/LiveKitNativeBridge';
 
-type VendorVideoProps = React.VideoHTMLAttributes<HTMLVideoElement> & {
+type VendorVideoProps = VideoHTMLAttributes<HTMLVideoElement> & {
   'x5-video-player-type'?: string;
   'x5-video-player-fullscreen'?: string;
   'x5-video-orientation'?: string;
   'x5-playsinline'?: string;
   'webkit-playsinline'?: string;
   'x-webkit-airplay'?: string;
+};
+
+const nativeInlineVideoProps: VendorVideoProps = {
+  'x5-video-player-type': 'h5',
+  'x5-video-player-fullscreen': 'false',
+  'x5-video-orientation': 'portrait',
+  'x5-playsinline': 'true',
+  'webkit-playsinline': 'true',
+  'x-webkit-airplay': 'deny',
 };
 
 interface LiveKitVideoPlayerProps {
@@ -229,10 +239,11 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
   // Cleanup on unmount
   useEffect(() => {
+    const currentVideo = videoRef.current;
     return () => {
-      if (videoRef.current) {
-        cleanupVideoHardening(videoRef.current);
-        videoRef.current.srcObject = null;
+      if (currentVideo) {
+        cleanupVideoHardening(currentVideo);
+        currentVideo.srcObject = null;
       }
     };
   }, []);
@@ -249,12 +260,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         disableRemotePlayback
         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
         poster=""
-        x5-video-player-type="h5"
-        x5-video-player-fullscreen="false"
-        x5-video-orientation="portrait"
-        x5-playsinline="true"
-        webkit-playsinline="true"
-        x-webkit-airplay="deny"
+        {...nativeInlineVideoProps}
         className="w-full h-full pointer-events-none select-none"
         style={{
           objectFit: fit,
@@ -269,8 +275,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           WebkitAppearance: 'none',
           willChange: 'transform',
           backfaceVisibility: 'hidden',
-        } as React.CSSProperties}
-        {...({} as VendorVideoProps)}
+        } as CSSProperties}
       />
     </div>
   );
