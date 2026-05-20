@@ -782,7 +782,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
       <div className="pt-3 flex-shrink-0 space-y-2 border-t">
         <Button
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || selectedLevelMisconfigured}
           className="w-full h-11 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold"
         >
           {submitting ? (
