@@ -1050,6 +1050,14 @@ const Recharge = () => {
           const user = h.user as any;
           const contactInfo = (h as any).contact_info as any;
           const whatsapp = contactInfo?.whatsapp || contactInfo?.whatsapp_number || (h as any).order_notification_phone || null;
+          const lvl = Math.max(1, Math.min(5, h.trader_level || 0));
+          const min = TIER_MIN[lvl] ?? 50000;
+          // Mirrors backend is_approved_topup_trader() + tier-min gate
+          const isApproved =
+            (h as any).is_active === true &&
+            (h as any).is_verified === true &&
+            (h.trader_level ?? 0) >= 1 && (h.trader_level ?? 0) <= 5 &&
+            (h.wallet_balance ?? 0) >= min;
           return {
             id: user?.id || h.user_id,
             helperId: h.id,
@@ -1067,6 +1075,7 @@ const Recharge = () => {
             whatsappNumber: whatsapp,
             acceptedMethods: [] as AcceptedMethodLogo[],
             dailyTopUps: 0,
+            isApproved,
           };
         });
         // Sort: L5 first, then by total_sold desc
