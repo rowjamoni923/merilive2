@@ -46,7 +46,9 @@ const INITIAL_CALL_STATE: CallState = {
 };
 
 // Fast fallback for instant ringing reliability (broadcast/realtime remains primary)
-const FALLBACK_PENDING_CALL_POLL_MS = 800;
+// COST-CRITICAL: Fallback poll for incoming calls. Realtime broadcast + postgres_changes are primary delivery.
+// Was 800ms (catastrophic: 10k users × 75 reads/min = $$$$). Now 30s safety net only. Visibility-change + native-resume listeners give instant catch-up on focus.
+const FALLBACK_PENDING_CALL_POLL_MS = 30000;
 
 export function usePrivateCall(userId: string | null) {
   const navigate = useNavigate();
@@ -217,7 +219,7 @@ export function usePrivateCall(userId: string | null) {
       hostEarned: 0,
     }));
 
-    // Caller billing display fetch every 5 seconds (real deductions still every 60s)
+    // Caller billing display fetch every 10s (real deductions still every 60s — display only)
     billingFetchIntervalRef.current = setInterval(async () => {
       if (callEndedRef.current || currentCallIdRef.current !== callId) {
         if (billingFetchIntervalRef.current) {
@@ -245,7 +247,7 @@ export function usePrivateCall(userId: string | null) {
       } catch (err) {
         console.error('[Caller] Error fetching billing info:', err);
       }
-    }, 5000);
+    }, 10000);
 
     toastRef.current({
       title: 'Call Connected',
@@ -839,7 +841,7 @@ export function usePrivateCall(userId: string | null) {
         });
       }
 
-      // Host billing display fetch every 5 seconds (billing changes every 60s)
+      // Host billing display fetch every 10s (billing changes every 60s — display only)
       billingFetchIntervalRef.current = setInterval(async () => {
         if (callEndedRef.current || currentCallIdRef.current !== callId) {
           if (billingFetchIntervalRef.current) {
@@ -867,7 +869,7 @@ export function usePrivateCall(userId: string | null) {
         } catch (err) {
           console.error('[Host] Error fetching billing info:', err);
         }
-      }, 5000);
+      }, 10000);
 
       toast({
         title: "Call Connected",
@@ -1103,7 +1105,7 @@ export function usePrivateCall(userId: string | null) {
 
         // ⚡ Fetch caller profile WITHOUT re-verifying call status (broadcast already validated)
         const { data: callerProfile } = await supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('display_name, avatar_url, user_level')
           .eq('id', call.caller_id)
           .single();
