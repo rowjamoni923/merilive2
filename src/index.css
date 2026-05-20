@@ -643,6 +643,48 @@ video::-webkit-media-controls-toggle-closed-captions-button {
 
 
   /* ============================================
+     ANDROID/CAPACITOR SCROLL SAFETY NET (Pkg72)
+     Fixes the #1 cause of "can't scroll" in WebView:
+     flex children need min-height:0 / min-width:0 to
+     allow overflow:auto/scroll to take effect.
+     Also forces touch-action: pan-y on every scrollable
+     container so the WebView lets gestures through.
+     ============================================ */
+  .flex.flex-col > .overflow-y-auto,
+  .flex.flex-col > .overflow-y-scroll,
+  .flex.flex-col > .overflow-auto,
+  .flex.flex-col > .flex-1 {
+    min-height: 0;
+  }
+  .flex.flex-row > .overflow-x-auto,
+  .flex.flex-row > .overflow-x-scroll,
+  .flex.flex-row > .flex-1 {
+    min-width: 0;
+  }
+  /* Any element that scrolls vertically must accept vertical pan */
+  .overflow-y-auto,
+  .overflow-y-scroll,
+  .overflow-auto,
+  .overflow-scroll,
+  [data-scroll="true"],
+  .mobile-scrollable,
+  .app-scroll {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Horizontal carousels keep horizontal pan */
+  .overflow-x-auto,
+  .overflow-x-scroll {
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+  }
+
+
+
+
+
+
+  /* ============================================
      UNIFIED TYPOGRAPHY BASELINE
      Standardised type scale (Apple HIG / Material 3 inspired)
      Applies as a low-specificity default — Tailwind text-* utilities
