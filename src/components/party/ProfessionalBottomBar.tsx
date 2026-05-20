@@ -180,7 +180,7 @@ export function ProfessionalBottomBar({
         // Fetch all active games - no restriction on game IDs
         const { data, error } = await supabase
           .from('game_settings')
-          .select('game_id, game_name, game_emoji, game_color, is_featured')
+          .select('game_id, game_name, game_emoji, game_color, is_featured, logo_url')
           .eq('is_active', true)
           .order('display_order', { ascending: true });
 
@@ -190,6 +190,7 @@ export function ProfessionalBottomBar({
             name: game.game_name,
             emoji: game.game_emoji,
             color: game.game_color,
+            logo_url: game.logo_url,
             isLive: game.is_featured || index < 3,
             players: Math.floor(Math.random() * 3000) + 500
           })));
