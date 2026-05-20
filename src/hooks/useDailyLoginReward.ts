@@ -32,6 +32,19 @@ export const useDailyLoginReward = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Daily login reward is for users only — hosts (female) are NOT eligible.
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_host')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profile?.is_host) {
+        setCanClaimToday(false);
+        setShowPopup(false);
+        setLoading(false);
+        return;
+      }
+
       const today = getTaskDate();
 
       // Fetch config, streak, and recent claims in parallel
@@ -43,6 +56,7 @@ export const useDailyLoginReward = () => {
           .order('created_at', { ascending: false })
           .limit(1),
       ]);
+
 
       const config = configRes.data || [];
       const userStreak = streakRes.data;
