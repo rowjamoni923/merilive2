@@ -1020,8 +1020,8 @@ const Recharge = () => {
         `)
         .eq('is_active', true)
         .eq('is_verified', true)
-        .neq('trader_level', 5)
         .gte('wallet_balance', 100000)
+        .order('trader_level', { ascending: false })
         .order('total_sold', { ascending: false });
 
       if (error) {
