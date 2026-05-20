@@ -289,9 +289,9 @@ export default function AdminLiveBans() {
       setNewBanUserId('');
       setNewBanReason('');
       fetchBans();
-    } catch (error) {
+    } catch (error: any) {
       recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorCreatingBan", message: formatAdminError(error)});
-      toast.error('Failed to create ban');
+      toast.error(`Failed to create ban: ${error?.message ?? formatAdminError(error)}`);
     }
   };
 

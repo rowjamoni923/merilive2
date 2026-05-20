@@ -160,6 +160,20 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   music: [['music']],
   poster_images: [['poster-images']],
   watchlist: [['watchlist']],
+
+  // Pkg52 — user-management + financial admin tables
+  live_bans: [['admin-live-bans'], ['live-bans']],
+  user_reports: [['admin-user-reports'], ['user-reports']],
+  blocked_users: [['admin-blocked-users'], ['blocked-users']],
+  host_applications: [['admin-host-applications'], ['host-applications']],
+  agencies: [['admin-agencies'], ['agencies'], ['agency-list']],
+  admin_pending_actions: [['admin-pending-actions'], ['pending-approvals']],
+  agency_withdrawals: [['admin-agency-withdrawals'], ['agency-withdrawals'], ['withdrawals']],
+  helper_withdrawal_requests: [['admin-helper-withdrawals'], ['helper-withdrawal-requests']],
+  payment_transactions: [['admin-payment-transactions'], ['payment-transactions']],
+  recharge_transactions: [['admin-recharge-history'], ['recharge-transactions']],
+  agency_commission_history: [['admin-agency-commission-log'], ['agency-commission-history']],
+  agency_earnings_transfers: [['admin-agency-earnings'], ['agency-earnings-transfers']],
 };
 
 let globalChannel: ReturnType<typeof supabase.channel> | null = null;
