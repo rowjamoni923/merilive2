@@ -3004,19 +3004,19 @@ const LiveStream = () => {
               </div>
             </button>
 
-            {/* Close Button */}
+            {/* Close Button — 36px tap target */}
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={isHost ? handleEndStream : handleLeaveStream}
-              className="w-[28px] h-[28px] rounded-full flex items-center justify-center"
+              aria-label={isHost ? 'End live stream' : 'Leave live stream'}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
               style={{
                 background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,15,35,0.7))',
-                
                 border: '1px solid rgba(255,255,255,0.1)',
                 boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
               }}
             >
-              <X className="w-3.5 h-3.5 text-white/80" />
+              <X className="w-4 h-4 text-white/85" />
             </motion.button>
           </div>
         </div>
