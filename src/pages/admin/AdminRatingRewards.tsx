@@ -477,7 +477,7 @@ export default function AdminRatingRewards() {
                 {filteredHistory.map((item, idx) => (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[40px_1fr_120px_140px_140px_100px] gap-3 px-4 py-3 items-center hover:bg-slate-800/30 transition-colors"
+                    className="grid grid-cols-[40px_1fr_120px_140px_140px_100px_70px] gap-3 px-4 py-3 items-center hover:bg-slate-800/30 transition-colors"
                   >
                     {/* Index */}
                     <div className="text-xs text-slate-600 font-mono">{idx + 1}</div>
