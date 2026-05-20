@@ -53,6 +53,14 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
 
+  // Hide video element until first real frame arrives — prevents native play-icon flash
+  // without painting any visible color (no black overlay, container stays transparent).
+  const revealVideo = () => {
+    const el = videoRef.current;
+    if (el && el.style.opacity !== '1') el.style.opacity = '1';
+  };
+
+
 
   // === NATIVE BRIDGE: only enable native surface for REMOTE playback ===
   // Host/local preview (mirror=true) must stay on web layer to avoid DeepAR surface conflicts.
