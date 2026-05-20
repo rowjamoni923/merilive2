@@ -2013,7 +2013,7 @@ export default function AdminUserManagement() {
               return s.full_name?.toLowerCase().includes(q) || s.profile?.app_uid?.includes(q) || s.profile?.display_name?.toLowerCase().includes(q);
             });
             return autoApproved.length === 0 ? (
-              <Card className="bg-white border-slate-200">
+              <Card className="bg-slate-900/40 border-slate-700/50">
                 <CardContent className="flex flex-col items-center justify-center h-64 text-slate-400">
                   <Shield className="w-12 h-12 mb-4" />
                   <p>No auto-verified submissions found</p>
@@ -2172,7 +2172,7 @@ export default function AdminUserManagement() {
               return s.full_name?.toLowerCase().includes(q) || s.profile?.app_uid?.includes(q) || s.profile?.display_name?.toLowerCase().includes(q);
             });
             return autoRejected.length === 0 ? (
-              <Card className="bg-white border-slate-200">
+              <Card className="bg-slate-900/40 border-slate-700/50">
                 <CardContent className="flex flex-col items-center justify-center h-64 text-slate-400">
                   <XCircle className="w-12 h-12 mb-4" />
                   <p>No auto-rejected submissions found</p>
