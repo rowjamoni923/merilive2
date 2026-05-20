@@ -98,6 +98,7 @@ const AdminHelperApplications = () => {
   const [payrollRequests, setPayrollRequests] = useState<PayrollRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("pending");
+  const [cryptoOnly, setCryptoOnly] = useState(false);
   
   // Dialog states
   const [selectedApp, setSelectedApp] = useState<HelperApplication | null>(null);
