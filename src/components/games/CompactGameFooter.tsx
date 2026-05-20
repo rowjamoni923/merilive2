@@ -552,7 +552,7 @@ const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => 
 };
 
 // Ultra Compact Andar Bahar Game
-const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
+const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
   const [selectedSide, setSelectedSide] = useState<'andar' | 'bahar' | null>(null);
   const [jokerCard, setJokerCard] = useState<string | null>(null);
   const [andarCards, setAndarCards] = useState<string[]>([]);
