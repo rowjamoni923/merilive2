@@ -93,6 +93,8 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   helper_transactions: [['helper-transactions'], ['trader-transactions']],
   agency_hosts: [['agency-hosts'], ['agency-detail']],
   coin_transfers: [['coin-transfers']],
+  // Pkg55 additions — Content/Assets
+  user_role_frames: [['user-role-frames'], ['my-role-frames'], ['vip-privileges']],
   agency_level_tiers: [['agency-level-tiers']],
 
   invitation_settings: [['invitation-settings']],
