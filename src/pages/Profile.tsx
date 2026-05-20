@@ -2189,6 +2189,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             </div>
           )}
 
+          {isOwnProfile && <RatingProofStatusRow />}
+
+
         </div>
       )}
       </main>
