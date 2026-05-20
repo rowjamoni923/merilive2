@@ -1014,9 +1014,11 @@ const Recharge = () => {
   // Fetch Level 1-4 diamond trader helpers (exclude Level 5 payroll helpers - they show in Local Pay)
   const fetchTopUpHelpers = useCallback(async () => {
     if (!userCountryCode) return;
+    setHelperDiag(d => ({ ...d, isLoading: true }));
     try {
       console.log('[Recharge] Fetching helpers for country:', userCountryCode);
       
+      // Fetch ALL helpers (unfiltered) so we can diagnose exactly why list is empty
       const { data: helpers, error } = await supabase
         .from('topup_helpers')
         .select(`
@@ -1032,15 +1034,13 @@ const Recharge = () => {
           is_verified,
           user:profiles!topup_helpers_user_id_fkey(id, display_name, avatar_url, is_online, app_uid, country_code, country_flag, country_name)
         `)
-        .eq('is_active', true)
-        .eq('is_verified', true)
-        .gte('wallet_balance', 50000)
         .order('trader_level', { ascending: false })
         .order('total_sold', { ascending: false });
 
       if (error) {
         console.error('Error fetching helpers:', error);
         recordClientError({ label: "Recharge.fetchTopUpHelpers", message: error instanceof Error ? error.message : String(error) });
+        setHelperDiag(d => ({ ...d, isLoading: false }));
         return;
       }
 
@@ -1048,13 +1048,28 @@ const Recharge = () => {
         // Tiered minimum balance per trader level: L1=50k, L2=100k, L3=150k, L4=200k, L5=300k
         const TIER_MIN: Record<number, number> = { 1: 50000, 2: 100000, 3: 150000, 4: 200000, 5: 300000 };
         // STRICT country match using PROFILE's country_code + tier-based min balance
+        // Track diagnostics so empty-state can explain WHY nothing shows
+        let byCountry = 1, byTierMin = 1, byInactive = 1, byLowBalance = 1;
         const filtered = helpers.filter(h => {
           const user = h.user as any;
           const profileCountry = user?.country_code || h.country_code;
-          if (profileCountry !== userCountryCode) return false;
+          if (profileCountry !== userCountryCode) { byCountry++; return false; }
+          if (!h.is_active || !h.is_verified) { byInactive++; return false; }
+          if ((h.wallet_balance ?? 1) < 50000) { byLowBalance++; return false; }
           const lvl = Math.max(1, Math.min(5, h.trader_level || 1));
           const min = TIER_MIN[lvl] ?? 50000;
-          return (h.wallet_balance ?? 0) >= min;
+          if ((h.wallet_balance ?? 1) < min) { byTierMin++; return false; }
+          return true;
+        });
+        setHelperDiag({
+          rawTotal: helpers.length,
+          byCountry,
+          byTierMin,
+          byInactive,
+          byLowBalance,
+          finalCount: filtered.length,
+          userCountry: userCountryCode,
+          isLoading: false,
         });
 
         
