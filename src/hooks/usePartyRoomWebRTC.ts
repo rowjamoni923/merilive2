@@ -46,6 +46,23 @@ export function usePartyRoomWebRTC(
 
   const roomRef = useRef<Room | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
+  const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
+
+  const detachAudioForIdentity = (identity: string) => {
+    const els = audioElementsRef.current.get(identity);
+    if (els) {
+      els.forEach((el) => {
+        try { el.pause(); } catch { /* ignore */ }
+        try { (el as any).srcObject = null; } catch { /* ignore */ }
+        try { el.remove(); } catch { /* ignore */ }
+      });
+      audioElementsRef.current.delete(identity);
+    }
+  };
+
+  const detachAllAudio = () => {
+    Array.from(audioElementsRef.current.keys()).forEach(detachAudioForIdentity);
+  };
 
   const cleanup = useCallback(() => {
     console.log('[PartyLiveKit] Cleaning up...');
@@ -55,6 +72,7 @@ export function usePartyRoomWebRTC(
       roomRef.current = null;
     }
 
+    detachAllAudio();
     peerStreamsRef.current.clear();
 
     setState({
@@ -144,8 +162,13 @@ export function usePartyRoomWebRTC(
           console.log(`[PartyLiveKit] Track subscribed: ${track.kind} from ${participant.identity}`);
 
           if (track.kind === Track.Kind.Audio) {
-            const audioEl = track.attach();
+            const audioEl = track.attach() as HTMLAudioElement;
+            audioEl.autoplay = true;
+            try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
             audioEl.play().catch(() => {});
+            const existing = audioElementsRef.current.get(participant.identity) || [];
+            existing.push(audioEl);
+            audioElementsRef.current.set(participant.identity, existing);
           }
 
           if (track.kind === Track.Kind.Video) {
@@ -189,8 +212,43 @@ export function usePartyRoomWebRTC(
           }
         });
 
+        // PARTICIPANT JOINED: defensively force-subscribe to any tracks they
+        // already published before we connected. Without this, a viewer who
+        // joins after the host published can miss the first publish event.
+        room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+          console.log('[PartyLiveKit] Participant connected:', participant.identity);
+          participant.trackPublications.forEach((pub) => {
+            if (!pub.isSubscribed) {
+              try { pub.setSubscribed(true); } catch { /* ignore */ }
+            }
+            if (pub.kind === Track.Kind.Video) {
+              try { pub.setVideoQuality?.(VideoQuality.HIGH); } catch { /* ignore */ }
+            }
+          });
+          const peerStream = buildPeerStream(participant);
+          if (peerStream.getTracks().length > 0) {
+            peerStreamsRef.current.set(participant.identity, peerStream);
+            setState(prev => ({
+              ...prev,
+              peerStreams: new Map(peerStreamsRef.current),
+            }));
+          }
+        });
+
         room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack, pub: RemoteTrackPublication, participant: RemoteParticipant) => {
           track.detach().forEach(el => el.remove());
+
+          if (track.kind === Track.Kind.Audio) {
+            // Audio element list rebuilds on next subscribe; nothing else to do.
+            const remaining = (audioElementsRef.current.get(participant.identity) || []).filter(
+              (el) => document.body.contains(el),
+            );
+            if (remaining.length > 0) {
+              audioElementsRef.current.set(participant.identity, remaining);
+            } else {
+              audioElementsRef.current.delete(participant.identity);
+            }
+          }
 
           const peerStream = buildPeerStream(participant);
           if (peerStream.getTracks().length > 0) {
@@ -206,6 +264,7 @@ export function usePartyRoomWebRTC(
 
         room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
           console.log('[PartyLiveKit] Participant left:', participant.identity);
+          detachAudioForIdentity(participant.identity);
           peerStreamsRef.current.delete(participant.identity);
           setState(prev => ({
             ...prev,
@@ -317,8 +376,13 @@ export function usePartyRoomWebRTC(
           // Play audio for existing participants
           participant.trackPublications.forEach(pub => {
             if (pub.track?.kind === Track.Kind.Audio && pub.isSubscribed) {
-              const audioEl = pub.track.attach();
+              const audioEl = pub.track.attach() as HTMLAudioElement;
+              audioEl.autoplay = true;
+              try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
               audioEl.play().catch(() => {});
+              const existing = audioElementsRef.current.get(participant.identity) || [];
+              existing.push(audioEl);
+              audioElementsRef.current.set(participant.identity, existing);
             }
           });
         });
