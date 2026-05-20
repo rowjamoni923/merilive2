@@ -31,6 +31,7 @@ import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
+import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -669,7 +670,7 @@ const CreateParty = () => {
                 >
                   <div className="w-full h-full rounded-xl flex items-center justify-center overflow-hidden">
                     {game.logoUrl ? (
-                      <img src={game.logoUrl} alt={game.name} className="w-full h-full rounded-xl object-contain" />
+                      <img src={getProxiedUrl(game.logoUrl)} alt={game.name} className="w-full h-full rounded-xl object-contain" loading="lazy" decoding="async" draggable={false} />
                     ) : (
                       <span className="text-6xl">{game.emoji}</span>
                     )}
