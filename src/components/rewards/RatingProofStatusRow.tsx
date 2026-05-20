@@ -345,7 +345,7 @@ export function RatingProofStatusRow() {
               triggerFilePicker();
             }}
             disabled={retrying}
-            className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold text-white bg-rose-600 hover:bg-rose-500 active:bg-rose-700 transition-colors disabled:opacity-70"
+            className="w-full mt-2 flex items-center justify-center gap-1.5 py-2 text-[12px] font-semibold text-white bg-rose-600 hover:bg-rose-500 active:bg-rose-700 transition-colors disabled:opacity-70" // dark-ok
           >
             {retrying ? (
               <>
