@@ -55,6 +55,8 @@ const STATUS_META: Record<ClaimStatus, {
 export function RatingProofStatusRow() {
   const [userId, setUserId] = useState<string | null>(null);
   const [claim, setClaim] = useState<ClaimRow | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async (uid: string) => {
     const { data } = await supabase
