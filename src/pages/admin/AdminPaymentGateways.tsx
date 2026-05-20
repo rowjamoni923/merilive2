@@ -464,15 +464,14 @@ const AdminPaymentGateways = () => {
           // Add coins to user
           const { error: coinError } = await supabase.rpc('admin_add_user_coins' as any, {
             _user_id: transaction.user_id,
-            _amount: transaction.coins_to_receive
+            _amount: transaction.coins_to_receive,
+            _note: `Direct recharge completion (txn ${transactionId})`,
           });
-          
+
           if (coinError) {
-            // Fallback: Atomic coin addition (race-condition safe)
-            await supabase.rpc('add_coins', {
-              p_user_id: transaction.user_id,
-              p_amount: transaction.coins_to_receive,
-            });
+            // Surface the real server error instead of silently masking with add_coins
+            // (add_coins bypasses x-admin-token and would fail silently anyway).
+            throw new Error(`Failed to credit diamonds: ${coinError.message ?? 'unknown error'}`);
           }
 
           // Send notification to user about direct recharge
