@@ -83,8 +83,16 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   helper_level_config: [['helper-level-config']],
   user_beans_exchange_tiers: [['user-beans-exchange-tiers']],
   // Pkg53 additions — User Management
-  topup_helpers: [['topup-helpers'], ['level5-helpers'], ['helpers']],
+  topup_helpers: [['topup-helpers'], ['level5-helpers'], ['helpers'], ['coin-traders']],
   host_conversion_requests: [['host-conversion-requests']],
+  // Pkg54 additions — Agency/Helper
+  helper_orders: [['helper-orders'], ['trader-orders']],
+  helper_upgrade_requests: [['helper-upgrade-requests'], ['helper-requests']],
+  helper_topup_requests: [['helper-topup-requests'], ['helper-requests']],
+  helper_applications: [['helper-applications']],
+  helper_transactions: [['helper-transactions'], ['trader-transactions']],
+  agency_hosts: [['agency-hosts'], ['agency-detail']],
+  coin_transfers: [['coin-transfers']],
   agency_level_tiers: [['agency-level-tiers']],
 
   invitation_settings: [['invitation-settings']],
