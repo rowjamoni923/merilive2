@@ -20,6 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Capacitor } from "@capacitor/core";
 import playStoreBilling, { PLAY_STORE_PRODUCTS, loadPlayStoreProducts } from "@/sdk/PlayStoreBillingSDK";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
+import { useTopupTraderTierMin } from "@/hooks/useTopupTraderTierMin";
 import { recordClientError } from "@/utils/clientErrorLog";
 import {
   Dialog,
