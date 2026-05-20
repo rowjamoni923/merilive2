@@ -2380,23 +2380,23 @@ const HelperDashboard = () => {
                 <div 
                   key={transfer.id}
                   className={cn(
-                    "p-3 rounded-xl border",
+                    "p-3 rounded-xl border shadow-sm",
                     transfer.sender_type === 'trader_to_user' 
-                      ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white/10 border-sky-200/30"
-                      : "bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border-violet-200/30"
+                      ? "bg-gradient-to-br from-sky-50 to-sky-100/50 border-sky-200"
+                      : "bg-gradient-to-br from-violet-50 to-purple-100/50 border-violet-200"
                   )}
                 >
                   <div className="flex items-center gap-3">
                     {transfer.sender_type === 'trader_to_user' ? (
-                      <Avatar className="w-10 h-10 border-2 border-sky-200">
+                      <Avatar className="w-10 h-10 border-2 border-sky-300">
                         <AvatarImage src={transfer.receiver?.avatar_url} />
                         <AvatarFallback className="bg-gradient-to-r from-sky-500 to-sky-600 text-white">
- <User className="w-4 h-4 text-white" />
+                          <User className="w-4 h-4 text-white" />
                         </AvatarFallback>
                       </Avatar>
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
- <Building2 className="w-5 h-5 text-slate-900" />
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow">
+                        <Building2 className="w-5 h-5 text-white" />
                       </div>
                     )}
                     
