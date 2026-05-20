@@ -376,9 +376,9 @@ const Leaderboard = () => {
         {/* Category Tabs - Golden Shield Style */}
         <div className="flex items-center gap-1.5 px-3 pb-2">
           {([
-            { id: "host_earning" as const, label: "Wealth", icon: Sparkles, activeGrad: "linear-gradient(135deg, #b8860b, #daa520, #b8860b)", shadow: "rgba(218,165,32,0.4)" },
+            { id: "host_earning" as const, label: "Charm", icon: Gift, activeGrad: "linear-gradient(135deg, #be185d, #ec4899, #be185d)", shadow: "rgba(236,72,153,0.4)" },
             { id: "game_ranking" as const, label: "Game", icon: Gamepad2, activeGrad: "linear-gradient(135deg, #8b0000, #cd5c5c, #8b0000)", shadow: "rgba(139,0,0,0.4)" },
-            { id: "top_gifter" as const, label: "Charm", icon: Gift, activeGrad: "linear-gradient(135deg, #006400, #228b22, #006400)", shadow: "rgba(34,139,34,0.4)" },
+            { id: "top_gifter" as const, label: "Wealth", icon: Sparkles, activeGrad: "linear-gradient(135deg, #b8860b, #daa520, #b8860b)", shadow: "rgba(218,165,32,0.4)" },
             { id: "pk_competition" as const, label: "PK", icon: Swords, activeGrad: "linear-gradient(135deg, #8b4513, #d2691e, #8b4513)", shadow: "rgba(210,105,30,0.4)" },
           ]).map(cat => {
             const isActive = activeCategory === cat.id;
@@ -819,15 +819,15 @@ const Leaderboard = () => {
                 />
                 <div className="p-4 flex-1">
                   <h3 className="font-bold mb-1.5 flex items-center gap-2 text-[15px]" style={{ color: '#0f172a' }}>
-                    {activeCategory === "host_earning" ? <><Sparkles className="w-4 h-4" style={{ color: '#ec4899' }} /> Host Earning</>
-                      : activeCategory === "game_ranking" ? <><Gamepad2 className="w-4 h-4" style={{ color: '#a855f7' }} /> Game Ranking</>
-                      : activeCategory === "top_gifter" ? <><Gift className="w-4 h-4" style={{ color: '#10b981' }} /> Top Gifter</>
+                    {activeCategory === "host_earning" ? <><Gift className="w-4 h-4" style={{ color: '#ec4899' }} /> Charm — Host Earnings</>
+                      : activeCategory === "game_ranking" ? <><Gamepad2 className="w-4 h-4" style={{ color: '#a855f7' }} /> Game Winners</>
+                      : activeCategory === "top_gifter" ? <><Sparkles className="w-4 h-4" style={{ color: '#d97706' }} /> Wealth — Top Spenders</>
                       : <><Swords className="w-4 h-4" style={{ color: '#ef4444' }} /> PK Competition</>}
                   </h3>
                   <p className="text-[12.5px] leading-relaxed" style={{ color: '#334155' }}>
-                    {activeCategory === "host_earning" ? "Rankings based on Gift + Call earnings. Top 50 receive rewards."
-                      : activeCategory === "game_ranking" ? "Rankings based on game wins & earnings. Top 50 receive rewards."
-                      : activeCategory === "top_gifter" ? "Rankings based on total gifts sent (diamonds spent). Top 50 receive bonus rewards!"
+                    {activeCategory === "host_earning" ? "Hosts ranked by total Beans earned from Gifts + Private Calls in this period. Top 50 receive rewards."
+                      : activeCategory === "game_ranking" ? "Players ranked by total game winnings (payout). Top 50 receive rewards."
+                      : activeCategory === "top_gifter" ? "Users ranked by total Diamonds spent on Gifts + Private Calls + Games. Top 50 receive rewards."
                       : "Special PK competition rankings. Compete for exclusive rewards!"}
                   </p>
                 </div>
@@ -879,6 +879,8 @@ const Leaderboard = () => {
                 <h3 className="font-bold text-slate-900 text-[13px]">Rules</h3>
               </div>
               <ul className="px-5 py-3.5 space-y-2 text-slate-800 text-[12.5px] list-disc list-outside ml-4 leading-relaxed">
+                <li>Top <strong>1–50</strong> ranks are tracked every period</li>
+                <li>Daily resets at 12:30 AM (BST); weekly resets every Monday 12:30 AM; monthly resets on the 1st 12:30 AM</li>
                 <li>Rewards auto-credit after the period ends</li>
                 <li>Rankings update in real-time</li>
                 <li>In case of a tie, the earlier achiever ranks higher</li>
