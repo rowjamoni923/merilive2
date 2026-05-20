@@ -753,11 +753,18 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
-      setGames(data || []);
+      const parsed = (data || []).map((g: any) => ({
+        ...g,
+        preset_bets: g.preset_bets
+          ? (typeof g.preset_bets === 'string' ? JSON.parse(g.preset_bets) : g.preset_bets)
+          : DEFAULT_PRESET_BETS
+      }));
+      setGames(parsed);
     } finally {
       setLoading(false);
     }
   };
+
 
   const fetchUserCoins = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -858,6 +865,16 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   };
 
   const currentGame = games.find(g => g.game_id === activeGame);
+
+  useEffect(() => {
+    const presets = (currentGame?.preset_bets && Array.isArray(currentGame.preset_bets) && currentGame.preset_bets.length > 0)
+      ? currentGame.preset_bets as number[]
+      : DEFAULT_PRESET_BETS;
+    if (!presets.includes(betAmount)) {
+      setBetAmount(presets[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGame, currentGame?.preset_bets]);
 
   const renderGame = () => {
     const props = {
@@ -1157,7 +1174,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
                 </div>
               </div>
               <div className="flex gap-2">
-                {DEFAULT_PRESET_BETS.map((amount) => (
+                {(currentGame?.preset_bets && Array.isArray(currentGame.preset_bets) && currentGame.preset_bets.length > 0 ? currentGame.preset_bets : DEFAULT_PRESET_BETS).map((amount: number) => (
                   <motion.button
                     key={amount}
                     whileTap={{ scale: 0.95 }}

@@ -65,7 +65,8 @@ const MiniDragonTiger = ({
   userCoins,
   phase,
   timeLeft,
-  onPlaceBet
+  onPlaceBet,
+  onWin
 }: any) => {
   const [selectedBet, setSelectedBet] = useState<'dragon' | 'tiger' | 'tie' | null>(null);
   const [dragonCard, setDragonCard] = useState<string | null>(null);
@@ -109,7 +110,12 @@ const MiniDragonTiger = ({
     else if (tigerValue > dragonValue) result = 'tiger';
     else result = 'tie';
     setWinner(result);
-    if (result === selectedBet) toast.success(`🎉 You won!`);
+    if (result === selectedBet) {
+      const multiplier = selectedBet === 'tie' ? 8 : 2;
+      const winAmount = Math.floor(betAmount * multiplier);
+      toast.success(`🎉 You won ${winAmount.toLocaleString()}!`);
+      onWin?.(winAmount);
+    }
   };
 
   const handlePlaceBet = async (type: 'dragon' | 'tiger' | 'tie') => {
@@ -210,7 +216,7 @@ const MiniDragonTiger = ({
 };
 
 // Ultra Compact Crash/Aviator Game
-const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
+const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
   const [multiplier, setMultiplier] = useState(1.00);
   const [crashed, setCrashed] = useState(false);
   const [cashedOut, setCashedOut] = useState(false);
@@ -275,6 +281,7 @@ const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
     setWinAmount(win);
     setCashedOut(true);
     toast.success(`🎉 +${win.toLocaleString()} at ${multiplier.toFixed(2)}x!`);
+    onWin?.(win);
   };
 
   return (
@@ -345,7 +352,7 @@ const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
 };
 
 // Ultra Compact Lucky 28 Game
-const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
+const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
   const [selectedBet, setSelectedBet] = useState<'big' | 'small' | 'odd' | 'even' | null>(null);
   const [dice1, setDice1] = useState(1);
   const [dice2, setDice2] = useState(1);
@@ -377,8 +384,22 @@ const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
         const d2 = Math.ceil(Math.random() * 6);
         const d3 = Math.ceil(Math.random() * 6);
         setDice1(d1); setDice2(d2); setDice3(d3);
-        setResult(d1 + d2 + d3);
+        const total = d1 + d2 + d3;
+        setResult(total);
         setRolling(false);
+        // Determine win
+        const isBigR = total >= 14;
+        const isOddR = total % 2 === 1;
+        const won =
+          (selectedBet === 'big' && isBigR) ||
+          (selectedBet === 'small' && !isBigR) ||
+          (selectedBet === 'odd' && isOddR) ||
+          (selectedBet === 'even' && !isOddR);
+        if (won) {
+          const winAmount = Math.floor(betAmount * 2);
+          toast.success(`🎉 You won ${winAmount.toLocaleString()}!`);
+          onWin?.(winAmount);
+        }
       }, 1200);
     }
   }, [phase, selectedBet]);
@@ -441,7 +462,7 @@ const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
 };
 
 // Ultra Compact Plinko Game
-const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
+const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
   const [hasBet, setHasBet] = useState(false);
   const [ballPosition, setBallPosition] = useState({ x: 50, y: 0 });
   const [isDropping, setIsDropping] = useState(false);
@@ -474,8 +495,12 @@ const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
     const finalMultiplier = MULTIPLIERS[Math.max(0, Math.min(slot, MULTIPLIERS.length - 1))];
     setMultiplier(finalMultiplier);
     setIsDropping(false);
-    if (finalMultiplier >= 2) {
-      toast.success(`🎉 +${(betAmount * finalMultiplier).toLocaleString()}!`);
+    if (finalMultiplier >= 1) {
+      const winAmount = Math.floor(betAmount * finalMultiplier);
+      if (finalMultiplier >= 2) {
+        toast.success(`🎉 +${winAmount.toLocaleString()}!`);
+      }
+      onWin?.(winAmount);
     }
   };
 
@@ -527,7 +552,7 @@ const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
 };
 
 // Ultra Compact Andar Bahar Game
-const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
+const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
   const [selectedSide, setSelectedSide] = useState<'andar' | 'bahar' | null>(null);
   const [jokerCard, setJokerCard] = useState<string | null>(null);
   const [andarCards, setAndarCards] = useState<string[]>([]);
@@ -563,7 +588,11 @@ const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
       if (card === joker) {
         found = true;
         setWinner(turn);
-        if (turn === selectedSide) toast.success(`🎉 ${turn.toUpperCase()} wins!`);
+        if (turn === selectedSide) {
+          const winAmount = Math.floor(betAmount * 2);
+          toast.success(`🎉 ${turn.toUpperCase()} wins +${winAmount.toLocaleString()}!`);
+          onWin?.(winAmount);
+        }
       }
       turn = turn === 'andar' ? 'bahar' : 'andar';
     }
@@ -643,11 +672,34 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   const { coins: flyingCoins, addCoin } = useFlyingCoins();
   const coinDisplayRef = useRef<HTMLDivElement>(null);
 
-  const handleWin = (amount: number) => {
+  const handleWin = async (amount: number) => {
+    if (!amount || amount <= 0) return;
+    // Instant UI credit
+    setUserCoins(prev => prev + amount);
     setWinAmount(amount);
     setShowWin(true);
-    // Refresh coins after win
-    setTimeout(fetchUserCoins, 500);
+    // Server-side atomic credit + cached balance sync
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { processWin } = await import('@/services/gameBalanceService');
+      const result = await processWin(
+        user.id,
+        activeGame || 'game',
+        currentGame?.game_name || 'Game',
+        Math.floor(amount)
+      );
+      if (result.success && result.newBalance !== undefined) {
+        setUserCoins(result.newBalance);
+      } else {
+        // Rollback optimistic credit on failure
+        setUserCoins(prev => prev - amount);
+        fetchUserCoins();
+      }
+    } catch (err) {
+      console.error('handleWin processWin error:', err);
+      fetchUserCoins();
+    }
   };
 
   const handleLoss = (amount: number) => {
@@ -685,7 +737,14 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
-      setGames(data || []);
+      // Parse preset_bets JSON so admin-configured chip values render
+      const parsed = (data || []).map((g: any) => ({
+        ...g,
+        preset_bets: g.preset_bets
+          ? (typeof g.preset_bets === 'string' ? JSON.parse(g.preset_bets) : g.preset_bets)
+          : DEFAULT_PRESET_BETS
+      }));
+      setGames(parsed);
     } finally {
       setLoading(false);
     }
@@ -733,6 +792,18 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
 
   const currentGame = games.find(g => g.game_id === activeGame);
 
+  // Snap bet amount to the first admin-configured chip whenever the active game changes
+  useEffect(() => {
+    const presets = (currentGame?.preset_bets && Array.isArray(currentGame.preset_bets) && currentGame.preset_bets.length > 0)
+      ? currentGame.preset_bets as number[]
+      : DEFAULT_PRESET_BETS;
+    if (!presets.includes(betAmount)) {
+      setBetAmount(presets[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGame, currentGame?.preset_bets]);
+
+
   const renderMiniGame = () => {
     const props = {
       betAmount,
@@ -741,8 +812,10 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
       phase,
       timeLeft,
       onPlaceBet: handlePlaceBet,
+      onWin: handleWin,
       currentRound
     };
+
 
     // Check if current game is iframe or external type
     if (currentGame?.game_type === 'iframe' && currentGame?.game_url) {
@@ -995,7 +1068,7 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
         {/* Bet Amount Selector */}
         {phase === 'betting' && (
           <div className="flex justify-center gap-1 px-2 py-1.5 bg-black/30 border-t border-white/5">
-            {DEFAULT_PRESET_BETS.map((amount) => (
+            {(currentGame?.preset_bets && Array.isArray(currentGame.preset_bets) && currentGame.preset_bets.length > 0 ? currentGame.preset_bets : DEFAULT_PRESET_BETS).map((amount: number) => (
               <motion.button
                 key={amount}
                 whileTap={{ scale: 0.95 }}
