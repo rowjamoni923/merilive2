@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { processInstallReferrer } from '@/utils/installReferrer';
+import { parseReferralPayload } from '@/utils/referralParsing';
 
 /**
  * Component to handle deep links when the app is opened via a URL
