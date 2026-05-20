@@ -285,7 +285,11 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           WebkitAppearance: 'none',
           willChange: 'transform',
           backfaceVisibility: 'hidden',
+          backgroundColor: 'transparent',
+          opacity: 0,
+          transition: 'opacity 120ms linear',
         } as CSSProperties}
+
       />
     </div>
   );
