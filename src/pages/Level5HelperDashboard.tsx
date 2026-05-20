@@ -32,7 +32,7 @@ import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
 import { recordClientError } from "@/utils/clientErrorLog";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
-import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
+
 import ManualTopupCard from "@/components/helper/ManualTopupCard";
 
 interface PaymentMethod {
@@ -1973,12 +1973,8 @@ const Level5HelperDashboard = () => {
               />
             )}
 
-            {helperData?.id && (
-              <HelperAcceptedMethodsCard
-                helperId={helperData.id}
-                helperCountryCode={helperData?.country_code || null}
-              />
-            )}
+
+
 
 
             <div className="flex items-center justify-between mb-2">
