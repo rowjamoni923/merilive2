@@ -343,25 +343,29 @@ export function useNativeCameraPermission() {
   }, [requestCameraPermission]);
 
   const checkPermissionStatus = useCallback(async (): Promise<'granted' | 'denied' | 'prompt'> => {
-    // Fast path: already granted in this session
+    // Fast path: already granted in this session (in-memory or persisted)
     if (globalPermissionGranted === true) return 'granted';
+    if (readCachedPerm()) {
+      globalPermissionGranted = true;
+      globalMicrophoneGranted = true;
+      setPermissionGranted(true);
+      return 'granted';
+    }
 
+    // Permissions API works in modern Android WebView (Chromium 70+) and all browsers.
+    // It NEVER triggers a permission dialog — safe to call anywhere.
     try {
-      if (isNativeApp) {
-        // On native Android WebView, Permissions API is unreliable.
-        // Do NOT probe via getUserMedia here — that triggers a permission dialog.
-        // Return 'prompt' so the UI shows the Allow button instead.
-        return 'prompt';
-      }
+      const camState = await queryPermissionSafe('camera' as PermissionName);
+      const micState = await queryPermissionSafe('microphone' as PermissionName);
 
-      // Web: use Permissions API (does NOT trigger a dialog)
-      const state = await queryPermission('camera' as PermissionName, false);
-      if (state === 'granted') {
+      if (camState === 'granted' && (micState === 'granted' || micState === null)) {
         globalPermissionGranted = true;
+        if (micState === 'granted') globalMicrophoneGranted = true;
+        writeCachedPerm(true);
         setPermissionGranted(true);
         return 'granted';
       }
-      if (state === 'denied') {
+      if (camState === 'denied' || micState === 'denied') {
         setPermissionGranted(false);
         return 'denied';
       }
@@ -370,6 +374,7 @@ export function useNativeCameraPermission() {
       return 'prompt';
     }
   }, [isNativeApp]);
+
 
   const openSettings = useCallback(async () => {
     if (isNativeApp) {
