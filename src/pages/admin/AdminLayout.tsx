@@ -69,6 +69,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import { AdminAlertBell } from "@/components/admin/AdminPhoneAlertsPanel";
+import { AdminRealtimeSyncIndicator } from "@/components/admin/AdminRealtimeSyncIndicator";
 import { AdminProfileMenu } from "@/components/admin/AdminProfileMenu";
 import useAdminAccess from "@/hooks/useAdminAccess";
 import { revokeAdminAccess, hasAdminAccessFlag, hasOwnerAccessFlag } from "@/utils/adminAccessStorage";
@@ -2835,6 +2836,9 @@ export default function AdminLayout() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                 <Input placeholder="Global search..." className="w-56 pl-10 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-slate-700 focus:bg-white/[0.05] focus:border-violet-500/25 focus:ring-1 focus:ring-violet-500/15 rounded-xl h-9 text-sm" />
               </div>
+
+              {/* Realtime sync status pill */}
+              <AdminRealtimeSyncIndicator />
 
               {/* Phone Alert Bell */}
               <AdminAlertBell />
