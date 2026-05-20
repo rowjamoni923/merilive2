@@ -376,9 +376,9 @@ const Leaderboard = () => {
         {/* Category Tabs - Golden Shield Style */}
         <div className="flex items-center gap-1.5 px-3 pb-2">
           {([
-            { id: "host_earning" as const, label: "Wealth", icon: Sparkles, activeGrad: "linear-gradient(135deg, #b8860b, #daa520, #b8860b)", shadow: "rgba(218,165,32,0.4)" },
+            { id: "host_earning" as const, label: "Charm", icon: Gift, activeGrad: "linear-gradient(135deg, #be185d, #ec4899, #be185d)", shadow: "rgba(236,72,153,0.4)" },
             { id: "game_ranking" as const, label: "Game", icon: Gamepad2, activeGrad: "linear-gradient(135deg, #8b0000, #cd5c5c, #8b0000)", shadow: "rgba(139,0,0,0.4)" },
-            { id: "top_gifter" as const, label: "Charm", icon: Gift, activeGrad: "linear-gradient(135deg, #006400, #228b22, #006400)", shadow: "rgba(34,139,34,0.4)" },
+            { id: "top_gifter" as const, label: "Wealth", icon: Sparkles, activeGrad: "linear-gradient(135deg, #b8860b, #daa520, #b8860b)", shadow: "rgba(218,165,32,0.4)" },
             { id: "pk_competition" as const, label: "PK", icon: Swords, activeGrad: "linear-gradient(135deg, #8b4513, #d2691e, #8b4513)", shadow: "rgba(210,105,30,0.4)" },
           ]).map(cat => {
             const isActive = activeCategory === cat.id;
