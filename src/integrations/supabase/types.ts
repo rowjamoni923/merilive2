@@ -16883,6 +16883,10 @@ export type Database = {
         Args: { p_stream_id: string }
         Returns: number
       }
+      leaderboard_period_start: {
+        Args: { p_period_type: string }
+        Returns: string
+      }
       leave_agency: { Args: never; Returns: Json }
       leave_live_stream_viewer: {
         Args: { p_stream_id: string }
