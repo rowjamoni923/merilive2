@@ -324,8 +324,11 @@ export default function AdminModerationAudit() {
         </div>
 
         <AdminPagination
-          currentPage={page + 1}
+          page={page + 1}
           totalPages={totalPages}
+          totalCount={Number(total)}
+          pageSize={PAGE_SIZE}
+          refreshing={isFetching}
           onPageChange={(p) => setPage(p - 1)}
         />
       </div>
