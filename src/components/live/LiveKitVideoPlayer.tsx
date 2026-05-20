@@ -13,6 +13,15 @@ import type { Track } from 'livekit-client';
 import { hardenVideoElementForNative, cleanupVideoHardening } from '@/utils/videoNativeHardening';
 import { isNativeLiveKitAvailable, setNativeVideoVisible } from '@/plugins/LiveKitNativeBridge';
 
+type VendorVideoProps = React.VideoHTMLAttributes<HTMLVideoElement> & {
+  'x5-video-player-type'?: string;
+  'x5-video-player-fullscreen'?: string;
+  'x5-video-orientation'?: string;
+  'x5-playsinline'?: string;
+  'webkit-playsinline'?: string;
+  'x-webkit-airplay'?: string;
+};
+
 interface LiveKitVideoPlayerProps {
   videoTrack: Track | null;
   className?: string;
@@ -83,11 +92,17 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     if (mediaTrack && mediaTrack.readyState !== 'ended') {
       try {
         el.srcObject = new MediaStream([mediaTrack]);
-      } catch {}
+      } catch {
+        // ignore unsupported MediaStream assignment
+      }
     }
 
-    if (typeof (videoTrack as any).attach === 'function') {
-      try { (videoTrack as any).attach(el); } catch {}
+    if (typeof videoTrack.attach === 'function') {
+      try {
+        videoTrack.attach(el);
+      } catch {
+        // ignore attach race during track replacement
+      }
       // LiveKit attach can re-introduce default attributes on some WebViews
       enforceInlineSurface();
       hardenVideoElementForNative(el, { muted: true });
@@ -183,8 +198,12 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       if (frameHandle !== null && typeof safeVideo.cancelVideoFrameCallback === 'function') {
         safeVideo.cancelVideoFrameCallback(frameHandle);
       }
-      if (typeof (videoTrack as any).detach === 'function') {
-        try { (videoTrack as any).detach(el); } catch {}
+      if (typeof videoTrack.detach === 'function') {
+        try {
+          videoTrack.detach(el);
+        } catch {
+          // ignore detach race during unmount
+        }
       }
       el.onloadedmetadata = null;
       el.onloadeddata = null;
@@ -230,7 +249,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         disableRemotePlayback
         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
         poster=""
-        // @ts-ignore — vendor attributes
         x5-video-player-type="h5"
         x5-video-player-fullscreen="false"
         x5-video-orientation="portrait"
@@ -252,6 +270,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           willChange: 'transform',
           backfaceVisibility: 'hidden',
         } as React.CSSProperties}
+        {...({} as VendorVideoProps)}
       />
     </div>
   );
