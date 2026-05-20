@@ -25,7 +25,8 @@
     "check:guards:baseline": "node scripts/check-runtime-guards.mjs --update-baseline",
     "loadtest:poll": "node scripts/load-test-live-call-audit.mjs",
     "test:e2e": "playwright test --config=playwright.e2e.config.ts",
-    "test:e2e:admin": "playwright test --config=playwright.e2e-admin.config.ts"
+    "test:e2e:admin": "playwright test --config=playwright.e2e-admin.config.ts",
+    "test:trader-e2e": "node scripts/run-trader-topup-e2e.mjs"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.0.1",
