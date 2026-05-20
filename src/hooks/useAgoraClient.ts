@@ -386,13 +386,25 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
         const pUid = getUidForParticipant(participant.identity);
         console.log(`[LiveKitClient] Track unsubscribed: ${track.kind} from uid ${pUid}`);
-        
+
         if (track.kind === Track.Kind.Video) {
+          // Keep the entry alive if audio is still flowing — only blank the video slot.
+          // This prevents the host card from disappearing during a transient video
+          // republish (camera switch, ICE restart, quality renegotiation).
           setRemoteUsers(prev => {
+            const existing = prev.get(pUid);
+            const hasAudioStill = Array.from(participant.trackPublications.values())
+              .some(pub => pub.kind === Track.Kind.Audio && pub.isSubscribed && pub.track);
             const newMap = new Map(prev);
-            newMap.delete(pUid);
+            if (hasAudioStill && existing) {
+              newMap.set(pUid, { ...existing, videoTrack: null, hasVideo: false });
+            } else {
+              newMap.delete(pUid);
+            }
             return newMap;
           });
+          // Defensive: try to re-subscribe in case the unsubscribe was transient.
+          try { publication.setSubscribed(true); } catch { /* ignore */ }
         }
 
         if (track.kind === Track.Kind.Audio) {
@@ -404,6 +416,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
           }
         }
       });
+
 
       room.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
         const pUid = getUidForParticipant(participant.identity);
