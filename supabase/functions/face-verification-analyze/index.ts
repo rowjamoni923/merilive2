@@ -230,8 +230,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const st = String(row.status || "").toLowerCase();
-    if (st !== "submitted") {
+    const st = String(row.status || "").trim().toLowerCase();
+    // DB normalizes newly inserted "submitted" rows to "pending" before the
+    // edge function can read them. Both mean "ready for AI analysis" here.
+    if (st !== "submitted" && st !== "pending") {
       return new Response(JSON.stringify({ error: "Submission not analyzable", status: row.status }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -361,12 +363,12 @@ serve(async (req) => {
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          // status stays "submitted" — admin Pending tab will show it.
+          // status stays pending/submitted — admin Pending tab will show it.
           admin_notes: `${summary}\n[manual-review] ${reviewReason}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
-        .eq("status", "submitted");
+        .in("status", ["submitted", "pending"]);
     }
 
     return new Response(
