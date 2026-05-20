@@ -16995,6 +16995,7 @@ export type Database = {
         Args: { _agency_id: string; _user_id: string }
         Returns: boolean
       }
+      is_approved_topup_trader: { Args: { _user_id: string }; Returns: boolean }
       is_caller_admin: { Args: never; Returns: boolean }
       is_caller_owner: { Args: never; Returns: boolean }
       is_conversation_participant: {
