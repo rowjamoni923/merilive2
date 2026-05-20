@@ -664,7 +664,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         packages={[]}
         mode="user"
         userCustomCoins={diamondsForUpgrade}
-        userCustomPriceUsd={upgradeCost}
+        userCustomPriceUsd={effectiveCost}
         userCustomLabel={`Helper Level ${selectedLevel} Upgrade`}
         onCredited={async (_coins) => {
           setPaidConfirmed(true);
