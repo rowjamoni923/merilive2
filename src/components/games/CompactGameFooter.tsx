@@ -588,7 +588,11 @@ const MiniAndarBahar = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any)
       if (card === joker) {
         found = true;
         setWinner(turn);
-        if (turn === selectedSide) toast.success(`🎉 ${turn.toUpperCase()} wins!`);
+        if (turn === selectedSide) {
+          const winAmount = Math.floor(betAmount * 2);
+          toast.success(`🎉 ${turn.toUpperCase()} wins +${winAmount.toLocaleString()}!`);
+          onWin?.(winAmount);
+        }
       }
       turn = turn === 'andar' ? 'bahar' : 'andar';
     }
