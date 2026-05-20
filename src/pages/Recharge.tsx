@@ -2532,6 +2532,16 @@ const Recharge = () => {
                                 )}>
                                   {isLv5 ? 'Verified Trader' : 'Trader'}
                                 </Badge>
+                                {/* Pkg63 approval status badge */}
+                                {helper.isApproved ? (
+                                  <Badge className="text-[8px] font-bold border-0 px-1.5 py-0 bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-sm">
+                                    ✓ Approved
+                                  </Badge>
+                                ) : (
+                                  <Badge className="text-[8px] font-bold border-0 px-1.5 py-0 bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-sm">
+                                    ✕ Not Approved
+                                  </Badge>
+                                )}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                 <span className={`text-[10px] font-medium ${helper.isOnline ? 'text-green-500' : 'text-heading'}`}>
