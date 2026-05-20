@@ -190,7 +190,7 @@ export const PKBattleActive = ({
                 <p className="text-white text-xs font-medium truncate">{challengerName}</p>
                 <div className="flex items-center gap-1 mt-0.5">
                   <span className="text-amber-400 text-lg font-bold">{challengerScore}</span>
-                  <span className="text-white/50 text-[10px]">diamonds</span>
+                  <span className="text-white/70 text-[10px]">diamonds</span>
                 </div>
               </div>
             </div>
@@ -230,7 +230,7 @@ export const PKBattleActive = ({
               <div className="flex-1 min-w-0 text-right">
                 <p className="text-white text-xs font-medium truncate">{opponentName}</p>
                 <div className="flex items-center gap-1 mt-0.5 justify-end">
-                  <span className="text-white/50 text-[10px]">diamonds</span>
+                  <span className="text-white/70 text-[10px]">diamonds</span>
                   <span className="text-purple-400 text-lg font-bold">{opponentScore}</span>
                 </div>
               </div>

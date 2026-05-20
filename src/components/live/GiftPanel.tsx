@@ -406,7 +406,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
               </div>
               <div>
                 <span className="text-white font-bold text-sm tracking-wide">Send Gift</span>
-                <p className="text-[9px] text-white/40 font-medium">Choose a premium gift</p>
+                <p className="text-[9px] text-white/65 font-medium">Choose a premium gift</p>
               </div>
             </div>
             
@@ -472,7 +472,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   <span>{cat.name}</span>
                   <span className={cn(
                     "text-[9px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold",
-                    isActive ? "bg-white/30 text-white" : "bg-white/10 text-white/50"
+                    isActive ? "bg-white/30 text-white" : "bg-white/10 text-white/70"
                   )}>
                     {giftsInCategory}
                   </span>
@@ -498,7 +498,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
               <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : activeCategoryGifts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-28 text-white/40">
+            <div className="flex flex-col items-center justify-center h-28 text-white/65">
               <Gift className="w-8 h-8 mb-1.5" />
               <p className="text-xs">No gifts in this category</p>
             </div>
@@ -567,7 +567,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   ) : selectedGift.icon_url ? (
                     <img src={selectedGift.icon_url} alt={selectedGift.name} className="w-6 h-6 object-contain" />
                   ) : (
-                    <Gift className="w-6 h-6 text-white/50" />
+                    <Gift className="w-6 h-6 text-white/70" />
                   )}
                 </div>
                 <div>
@@ -581,7 +581,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
               
               {/* Total Cost */}
               <div className="text-right bg-gradient-to-r from-cyan-500/15 to-purple-500/15 px-3 py-2 rounded-xl border border-cyan-400/20">
-                <p className="text-white/50 text-[9px] font-medium">Total Cost</p>
+                <p className="text-white/70 text-[9px] font-medium">Total Cost</p>
                 <p className="font-bold text-sm flex items-center gap-1 justify-end bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
                   <Diamond3DIcon size={16} />
                   {formatCoinValue(selectedGift.coins * count)}
@@ -677,7 +677,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
             ) : (
               <div className="flex items-center justify-end gap-3">
                 <div className="flex flex-col items-end leading-tight mr-1">
-                  <span className="text-[10px] text-white/50 font-medium">Combo</span>
+                  <span className="text-[10px] text-white/70 font-medium">Combo</span>
                   <span className="font-black text-lg bg-gradient-to-r from-amber-300 via-yellow-300 to-orange-400 bg-clip-text text-transparent tabular-nums">
                     x{comboCount}
                   </span>
