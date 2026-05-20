@@ -708,6 +708,87 @@ export default function AdminRatingRewards() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Audit Log Dialog */}
+      <Dialog open={!!auditClaim} onOpenChange={(o) => { if (!o) { setAuditClaim(null); setAuditEntries([]); } }}>
+        <DialogContent className="max-w-2xl bg-slate-900 border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              Decision Audit Log
+              {auditClaim?.profile?.display_name && (
+                <span className="text-xs text-slate-400 font-normal">
+                  · {auditClaim.profile.display_name}
+                  {auditClaim.profile.app_uid && <span className="text-slate-600"> #{auditClaim.profile.app_uid}</span>}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {auditLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="w-6 h-6 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+              </div>
+            ) : auditEntries.length === 0 ? (
+              <div className="text-center py-10 text-slate-500 text-sm">
+                <ScrollText className="w-8 h-8 mx-auto mb-2 text-slate-700" />
+                No audit entries recorded for this claim yet.
+              </div>
+            ) : (
+              <ol className="relative border-l border-slate-700/60 ml-3 space-y-4 py-2">
+                {auditEntries.map((e) => {
+                  const isApproved = e.action === 'approved';
+                  const Icon = isApproved ? CheckCircle : XCircle;
+                  const color = isApproved ? 'text-emerald-300' : 'text-red-300';
+                  const ring = isApproved ? 'bg-emerald-500/20 border-emerald-500/40' : 'bg-red-500/20 border-red-500/40';
+                  return (
+                    <li key={e.id} className="ml-4">
+                      <span className={`absolute -left-[9px] flex items-center justify-center w-4 h-4 rounded-full border ${ring}`}>
+                        <Icon className={`w-2.5 h-2.5 ${color}`} />
+                      </span>
+                      <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className={`text-xs font-semibold uppercase tracking-wider ${color}`}>
+                            {e.action}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            {formatFullDate(e.created_at)}
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-slate-300">
+                          <span className="text-slate-500">By: </span>
+                          <span className="font-medium">
+                            {e.admin?.display_name || e.admin?.email || (e.admin_id ? `Admin ${e.admin_id.slice(0, 8)}` : 'System')}
+                          </span>
+                          {e.admin_id && (
+                            <span className="text-[10px] text-slate-600 font-mono ml-2">({e.admin_id.slice(0, 8)}…)</span>
+                          )}
+                        </div>
+                        {isApproved && e.reward_amount != null && (
+                          <div className="mt-1 text-xs">
+                            <span className="text-slate-500">Reward: </span>
+                            <span className={e.reward_type === 'beans' ? 'text-amber-300 font-medium' : 'text-cyan-300 font-medium'}>
+                              {e.reward_type === 'beans' ? '🫘' : '💎'} {Number(e.reward_amount).toLocaleString()}{' '}
+                              {e.reward_type === 'beans' ? 'Beans' : 'Diamonds'}
+                            </span>
+                          </div>
+                        )}
+                        {e.rejection_reason && (
+                          <div className="mt-1 text-xs">
+                            <span className="text-slate-500">Reason: </span>
+                            <span className="text-slate-300">{e.rejection_reason}</span>
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
