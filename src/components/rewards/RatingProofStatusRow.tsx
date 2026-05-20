@@ -254,8 +254,21 @@ export function RatingProofStatusRow() {
 
       {/* Review timeline — submitted + reviewed timestamps */}
       <div className="mx-2.5 mb-2 rounded-lg border border-slate-200 bg-white/60 px-3 py-2">
-        <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-          Review timeline
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">
+            Review timeline
+          </div>
+          <a
+            href="/rewards/rating-history"
+            onClick={(e) => {
+              e.preventDefault();
+              window.history.pushState({}, "", "/rewards/rating-history");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+            className="text-[10.5px] font-semibold text-amber-700 hover:text-amber-800 hover:underline"
+          >
+            View all history →
+          </a>
         </div>
         <ol className="relative space-y-2">
           <li className="flex items-start gap-2">
