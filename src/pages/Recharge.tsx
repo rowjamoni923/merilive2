@@ -2945,7 +2945,17 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-100 p-2.5">
                         <Info className="w-4 h-4 text-slate-500 mt-0.5 shrink-1" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-slate-700">System filter summary</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-semibold text-slate-700">System filter summary</p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-FILTER-SUMMARY'); toast({ title: 'Copied audit ID', description: 'VT-FILTER-SUMMARY' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-FILTER-SUMMARY
+                            </button>
+                          </div>
                           <p className="text-[10px] text-slate-600/80 leading-snug">
                             {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 50k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
                           </p>
