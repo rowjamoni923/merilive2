@@ -495,8 +495,12 @@ const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => 
     const finalMultiplier = MULTIPLIERS[Math.max(0, Math.min(slot, MULTIPLIERS.length - 1))];
     setMultiplier(finalMultiplier);
     setIsDropping(false);
-    if (finalMultiplier >= 2) {
-      toast.success(`🎉 +${(betAmount * finalMultiplier).toLocaleString()}!`);
+    if (finalMultiplier >= 1) {
+      const winAmount = Math.floor(betAmount * finalMultiplier);
+      if (finalMultiplier >= 2) {
+        toast.success(`🎉 +${winAmount.toLocaleString()}!`);
+      }
+      onWin?.(winAmount);
     }
   };
 
