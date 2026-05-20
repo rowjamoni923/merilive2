@@ -352,7 +352,7 @@ const MiniCrashGame = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) 
 };
 
 // Ultra Compact Lucky 28 Game
-const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
+const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
   const [selectedBet, setSelectedBet] = useState<'big' | 'small' | 'odd' | 'even' | null>(null);
   const [dice1, setDice1] = useState(1);
   const [dice2, setDice2] = useState(1);
