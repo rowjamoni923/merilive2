@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { 
   getLevelGradient, 
   getLevelBadgeBg, 
@@ -121,7 +122,7 @@ const BigoStyleBannerInner = memo(({ notification, onComplete }: BigoStyleBanner
             getAvatarGlow(level)
           )}>
             <AvatarImage 
-              src={notification.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.userName}`}
+              src={notification.userAvatar || getDisplayAvatar(notification.userName)}
               alt={notification.userName}
               className="object-cover"
             />

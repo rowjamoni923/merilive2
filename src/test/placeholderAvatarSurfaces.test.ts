@@ -129,3 +129,18 @@ describe("placeholderAvatar — surface audit", () => {
     }
   });
 });
+
+describe("placeholderAvatar — global cartoon ban", () => {
+  it("NO source file may hardcode a cartoon avatar CDN (dicebear/avataaars/robohash/ui-avatars)", () => {
+    const { execSync } = require("node:child_process");
+    const root = resolve(__dirname, "../..");
+    const out = execSync(
+      `rg -n "dicebear\\.com|avataaars|robohash|ui-avatars\\.com" src -g '!**/test/**' -g '!**/SmartAvatarImage.tsx' -g '!**/placeholderAvatar.ts' || true`,
+      { cwd: root, encoding: "utf8" },
+    ).trim();
+    expect(
+      out,
+      `Hardcoded cartoon avatar URLs detected — these must use getDisplayAvatar / SmartAvatarImage (real photos only):\n${out}`,
+    ).toBe("");
+  });
+});

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import TraderBadge from "@/components/common/TraderBadge";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { 
   getLevelGradient, 
   getLevelBadgeBg, 
@@ -69,7 +70,7 @@ const PremiumJoinNotification = memo(({ notification }: PremiumJoinNotificationP
       <div className="relative">
         <AvatarWithFrame
           userId={notification.userId}
-          src={notification.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.userName}`}
+          src={notification.userAvatar || getDisplayAvatar(notification.userName)}
           name={notification.userName}
           level={ensureValidLevel(notification.userLevel)}
           size="xs"

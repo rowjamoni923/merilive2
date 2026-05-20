@@ -34,6 +34,7 @@ import {
 } from "@/features/shared/level";
 import { JoinNotification, RoomChatMessage } from './types';
 import { getGameLogoUrl, getGameEmoji } from '@/hooks/useGameLogos';
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
 // ============= WELCOME MESSAGE COMPONENT (Ultra Premium Luxury Style) =============
 interface WelcomeMessageProps {
@@ -116,7 +117,7 @@ const JoinNotificationItem = memo(({ notification }: JoinNotificationItemProps) 
         )} />
         <Avatar className="w-7 h-7 relative border-2 border-white/80">
           <AvatarImage 
-            src={notification.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.userName}`}
+            src={notification.userAvatar || getDisplayAvatar(notification.userName)}
             alt={notification.userName}
           />
           <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs font-bold">

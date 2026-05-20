@@ -9,6 +9,7 @@ import {
   formatLevel 
 } from "@/features/shared/level";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
 const getNameBarAnimationType = (url?: string): 'svga' | 'gif' | 'image' | null => {
   if (!url) return null;
@@ -191,7 +192,7 @@ const EntryNameBarAnimationInner = memo(({
                   hasAnimation ? "w-11 h-11" : "w-8 h-8"
                 )}>
                   <AvatarImage 
-                    src={avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`}
+                    src={avatarUrl || getDisplayAvatar(userName)}
                     alt={userName}
                     className="object-cover"
                   />

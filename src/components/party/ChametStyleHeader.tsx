@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import BeansIcon from "@/components/common/BeansIcon";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { useNavigate } from "react-router-dom";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import {
   getLevelBadgeBg,
   getLevelTextColor,
@@ -236,7 +237,7 @@ export const ChametStyleHeader = ({
                   )}
                 >
                   <AvatarImage
-                    src={viewer.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${viewer.displayName}`}
+                    src={viewer.avatarUrl || getDisplayAvatar(viewer.displayName)}
                     className="object-cover"
                   />
                   <AvatarFallback className="text-[8px] bg-purple-700 text-white font-bold">
