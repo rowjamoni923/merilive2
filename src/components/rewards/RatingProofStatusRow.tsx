@@ -244,6 +244,51 @@ export function RatingProofStatusRow() {
         </div>
       </button>
 
+      {/* Review timeline — submitted + reviewed timestamps */}
+      <div className="mx-2.5 mb-2 rounded-lg border border-slate-200 bg-white/60 px-3 py-2">
+        <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+          Review timeline
+        </div>
+        <ol className="relative space-y-2">
+          <li className="flex items-start gap-2">
+            <span className="mt-[3px] w-2 h-2 rounded-full bg-amber-500 ring-2 ring-amber-100 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="text-[11.5px] font-semibold text-slate-700">Proof submitted</div>
+              <div className="text-[10.5px] text-slate-500">{formatTimestamp(claim.created_at)}</div>
+            </div>
+          </li>
+          {claim.status === "pending" ? (
+            <li className="flex items-start gap-2">
+              <span className="mt-[3px] w-2 h-2 rounded-full bg-slate-300 ring-2 ring-slate-100 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="text-[11.5px] font-semibold text-slate-500">Awaiting admin review</div>
+                <div className="text-[10.5px] text-slate-400">Usually within 24 hours</div>
+              </div>
+            </li>
+          ) : (
+            <li className="flex items-start gap-2">
+              <span className={cn(
+                "mt-[3px] w-2 h-2 rounded-full flex-shrink-0",
+                claim.status === "approved"
+                  ? "bg-emerald-500 ring-2 ring-emerald-100"
+                  : "bg-rose-500 ring-2 ring-rose-100",
+              )} />
+              <div className="min-w-0 flex-1">
+                <div className={cn(
+                  "text-[11.5px] font-semibold",
+                  claim.status === "approved" ? "text-emerald-700" : "text-rose-700",
+                )}>
+                  {claim.status === "approved" ? "Approved by admin" : "Rejected by admin"}
+                </div>
+                <div className="text-[10.5px] text-slate-500">
+                  {claim.reviewed_at ? formatTimestamp(claim.reviewed_at) : "Time not recorded"}
+                </div>
+              </div>
+            </li>
+          )}
+        </ol>
+      </div>
+
       {isRejected && (
         <div className="mx-2.5 mb-2.5 rounded-lg border border-rose-200 bg-rose-50/70 overflow-hidden">
           <div className="flex items-start gap-2 px-3 pt-2.5">
