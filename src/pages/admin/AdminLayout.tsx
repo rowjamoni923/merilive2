@@ -83,6 +83,8 @@ import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRout
 
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { AuditIdSearch } from "@/components/admin/AuditIdSearch";
+
 
 interface AdminNotification {
   id: string;
