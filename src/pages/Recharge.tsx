@@ -1072,6 +1072,40 @@ const Recharge = () => {
       }
 
       if (helpers) {
+        const helperUserIds = [...new Set(helpers.map((h: any) => h.user_id).filter(Boolean))];
+        const [profilesResult, agenciesResult] = await Promise.all([
+          helperUserIds.length > 0
+            ? supabase
+                .from('profiles_public')
+                .select('id, display_name, avatar_url, is_online, app_uid, country_code, country_flag, country_name')
+                .in('id', helperUserIds)
+            : Promise.resolve({ data: [], error: null } as any),
+          helperUserIds.length > 0
+            ? supabase
+                .from('agencies_public' as any)
+                .select('owner_id, diamond_balance, is_active')
+                .in('owner_id', helperUserIds)
+                .eq('is_active', true)
+            : Promise.resolve({ data: [], error: null } as any),
+        ]);
+
+        if (profilesResult.error) {
+          console.error('Error fetching helper public profiles:', profilesResult.error);
+          recordClientError({ label: "Recharge.fetchHelperProfilesPublic", message: profilesResult.error.message });
+        }
+        if (agenciesResult.error) {
+          console.error('Error fetching agency public balances:', agenciesResult.error);
+          recordClientError({ label: "Recharge.fetchAgencyPublicBalances", message: agenciesResult.error.message });
+        }
+
+        const profilesMap = new Map(((profilesResult.data as any[]) || []).map((p: any) => [p.id, p]));
+        const agencyDiamondMap = new Map<string, number>();
+        ((agenciesResult.data as any[]) || []).forEach((agency: any) => {
+          const ownerId = agency.owner_id;
+          if (!ownerId) return;
+          agencyDiamondMap.set(ownerId, (agencyDiamondMap.get(ownerId) || 0) + Number(agency.diamond_balance || 0));
+        });
+
         // Tiered minimum balance per trader level — admin-configurable via
         // app_settings.topup_trader_tier_min_wallet (Pkg70). Defaults: L1=50k…L5=300k.
         // STRICT country match using PROFILE's country_code + tier-based min balance.
