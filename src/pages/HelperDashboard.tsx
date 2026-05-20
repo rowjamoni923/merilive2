@@ -1757,7 +1757,7 @@ const HelperDashboard = () => {
                         "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r",
                         badge.color
                       )}>
- <Icon className="w-6 h-6 text-slate-900" />
+ <Icon className="w-6 h-6 text-white drop-shadow" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
