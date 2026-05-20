@@ -1382,19 +1382,6 @@ const Level5HelperDashboard = () => {
           </Button>
         </div>
 
-        {helperData?.id && (
-          <div className="relative mt-3">
-            <HelperListingToggle
-              helperId={helperData.id}
-              initialListed={helperData.is_listed ?? true}
-              onChange={(next) =>
-                setHelperData((prev: any) =>
-                  prev ? { ...prev, is_listed: next } : prev
-                )
-              }
-            />
-          </div>
-        )}
       </div>
 
       {/* Main Tabs */}
