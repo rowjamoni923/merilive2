@@ -2798,6 +2798,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-blue-600/80 leading-snug">
                             Traders exist but their registered country does not match yours. Only traders from the same country are shown for regulatory compliance.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-blue-700 bg-blue-50/80 rounded px-1.5 py-0.5 inline-block">
+                            Filter: country === "{helperDiag.userCountry || '?' }"
+                          </div>
                           {helperDiag.samples.country.length > 0 && (
                             <div className="mt-1.5 space-y-0.5">
                               {helperDiag.samples.country.map((s, i) => (
