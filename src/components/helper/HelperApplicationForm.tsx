@@ -249,7 +249,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         method: 'swift_pay_crypto',
         method_name: 'MeriCash Crypto Gateway',
         topup_id: paymentTopupId || null,
-        amount_usd: upgradeCost,
+        amount_usd: effectiveCost,
         diamonds_credited: diamondsForUpgrade,
         auto_verified: true,
       } : null;
