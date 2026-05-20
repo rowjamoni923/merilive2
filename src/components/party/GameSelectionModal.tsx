@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gamepad2, Check, X, Loader2, Users, Sparkles } from "lucide-react";
+import { Gamepad2, Check, X, Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,6 @@ interface Game {
   emoji: string;
   color: string;
   description: string;
-  players: string;
   logo_url?: string | null;
 }
 
@@ -36,7 +35,6 @@ const Game3DCard = ({
   index: number;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [randomPlayers] = useState(() => Math.floor(Math.random() * 5000) + 100);
 
   return (
     <motion.button
@@ -59,7 +57,7 @@ const Game3DCard = ({
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={onClick}
-      className="relative group perspective-1000"
+      className="relative group min-w-0 perspective-1000"
       style={{ 
         transformStyle: 'preserve-3d',
         perspective: '1000px'
@@ -122,14 +120,14 @@ const Game3DCard = ({
             rotateY: isHovered ? 10 : 0
           }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center p-1.5"
           style={{ transform: 'translateZ(30px)' }}
         >
           {game.logo_url ? (
             <img 
               src={getProxiedUrl(game.logo_url)} 
               alt={game.name}
-              className="w-16 h-16 object-contain drop-shadow-2xl rounded-xl"
+              className="w-full h-full object-contain drop-shadow-2xl rounded-xl"
               loading="lazy"
               onError={(e) => {
                 // Hide image and show emoji fallback
@@ -142,33 +140,10 @@ const Game3DCard = ({
               }}
             />
           ) : (
-            <span className="text-4xl drop-shadow-2xl filter emoji-fallback">
+            <span className="text-6xl drop-shadow-2xl filter emoji-fallback">
               {game.emoji}
             </span>
           )}
-        </motion.div>
-        
-        {/* Game Name */}
-        <motion.div 
-          className="absolute bottom-2 inset-x-0 text-center"
-          style={{ transform: 'translateZ(20px)' }}
-          animate={{ y: isHovered ? -2 : 0 }}
-        >
-          <span className="text-white font-bold text-xs drop-shadow-lg">
-            {game.name}
-          </span>
-        </motion.div>
-        
-        {/* Player Count Badge */}
-        <motion.div 
-          className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/30 backdrop-blur-sm px-1.5 py-0.5 rounded-full"
-          style={{ transform: 'translateZ(25px)' }}
-          animate={{ opacity: isHovered ? 1 : 0.7 }}
-        >
-          <Users className="w-2.5 h-2.5 text-white/80" />
-          <span className="text-[8px] text-white/80 font-medium">
-            {randomPlayers > 1000 ? `${(randomPlayers/1000).toFixed(1)}k` : randomPlayers}
-          </span>
         </motion.div>
         
         {/* Selected Checkmark */}
@@ -243,7 +218,6 @@ export function GameSelectionModal({
           emoji: game.game_emoji,
           color: game.game_color,
           description: game.description || 'Play & win!',
-          players: '∞',
           logo_url: game.logo_url
         })));
       }
@@ -338,7 +312,7 @@ export function GameSelectionModal({
             </div>
 
             {/* Games Grid with 3D Cards */}
-            <div className="px-4 pb-6 max-h-[60vh] overflow-y-auto overscroll-contain">
+            <div className="px-3 pb-6 max-h-[60vh] overflow-y-auto overscroll-contain">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <motion.div
@@ -358,7 +332,7 @@ export function GameSelectionModal({
                 </div>
               ) : (
                 <motion.div 
-                  className="grid grid-cols-4 gap-3"
+                  className="grid grid-cols-3 gap-3"
                   initial="hidden"
                   animate="visible"
                   variants={{
@@ -414,7 +388,7 @@ export function GameSelectionModal({
                         className="flex items-center gap-2"
                       >
                         <Gamepad2 className="w-5 h-5" />
-                        Start {games.find(g => g.id === selectedGame)?.name}
+                        Start Game
                         <span className="text-xl">{games.find(g => g.id === selectedGame)?.emoji}</span>
                       </motion.span>
                     </Button>

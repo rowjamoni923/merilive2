@@ -6,7 +6,6 @@ import {
   Gift, 
   MessageSquare, 
   Settings,
-  Users,
   Sparkles,
   X,
   Loader2,
@@ -25,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { GameFooterNew } from "@/components/games/GameFooterNew";
 import { supabase } from "@/integrations/supabase/client";
+import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 
 interface GameInfo {
   id: string;
@@ -32,7 +32,7 @@ interface GameInfo {
   emoji: string;
   color: string;
   isLive?: boolean;
-  players?: number;
+  logo_url?: string | null;
 }
 
 interface AdvancedPartyBottomBarProps {
@@ -69,7 +69,7 @@ const Game3DCard = ({
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={onClick}
-      className={cn("relative group", size === 'small' ? "flex-shrink-0 w-28" : "w-full")}
+      className={cn("relative group min-w-0", size === 'small' ? "flex-shrink-0 w-28" : "w-full")}
       style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
     >
       <motion.div
@@ -77,7 +77,7 @@ const Game3DCard = ({
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
         className={cn(
           "relative overflow-hidden rounded-2xl transform-gpu transition-all duration-300",
-          size === 'small' ? "p-3" : "p-4 aspect-square",
+          size === 'small' ? "aspect-square p-1.5" : "p-1.5 aspect-square",
           isSelected && "ring-2 ring-white/70"
         )}
         style={{ 
@@ -98,33 +98,19 @@ const Game3DCard = ({
         />
         <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent" style={{ transform: 'translateZ(5px)' }} />
         
-        <div className="relative z-10" style={{ transform: 'translateZ(25px)' }}>
+        <div className="absolute inset-0 z-10 flex items-center justify-center p-1.5" style={{ transform: 'translateZ(25px)' }}>
           <motion.div
             animate={{ y: isHovered ? -5 : 0, scale: isHovered ? 1.15 : 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 18 }}
-            className={cn("drop-shadow-2xl", size === 'small' ? "text-3xl mb-1" : "text-4xl mb-2")}
+            className="w-full h-full flex items-center justify-center drop-shadow-2xl"
           >
-            {game.emoji}
+            {game.logo_url ? (
+              <img src={getProxiedUrl(game.logo_url)} alt={game.name} className="w-full h-full rounded-xl object-contain" loading="lazy" decoding="async" draggable={false} />
+            ) : (
+              <span className={cn(size === 'small' ? "text-5xl" : "text-6xl")}>{game.emoji}</span>
+            )}
           </motion.div>
-          <div className={cn("text-white font-bold", size === 'small' ? "text-sm" : "text-xs")}>{game.name}</div>
-          {game.players && size === 'small' && (
-            <div className="flex items-center gap-1 mt-1 text-white/80 text-[10px]">
-              <Users className="w-3 h-3" /><span>{game.players.toLocaleString()}</span>
-            </div>
-          )}
         </div>
-        
-        {game.isLive && (
-          <motion.div 
-            className="absolute top-2 right-2 flex items-center gap-1 bg-green-500/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full"
-            style={{ transform: 'translateZ(30px)' }}
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-            <span className="text-[8px] text-white font-bold uppercase">Live</span>
-          </motion.div>
-        )}
       </motion.div>
       
       <motion.div
@@ -155,15 +141,14 @@ export function AdvancedPartyBottomBar({
       try {
         const { data, error } = await supabase
           .from('game_settings')
-          .select('game_id, game_name, game_emoji, game_color, is_featured')
+          .select('game_id, game_name, game_emoji, game_color, is_featured, logo_url')
           .eq('is_active', true)
           .order('display_order', { ascending: true });
 
         if (!error && data) {
           setAvailableGames(data.map((game, index) => ({
             id: game.game_id, name: game.game_name, emoji: game.game_emoji,
-            color: game.game_color, isLive: game.is_featured || index < 3,
-            players: Math.floor(Math.random() * 3000) + 500
+            color: game.game_color, isLive: game.is_featured || index < 3, logo_url: game.logo_url
           })));
         }
       } catch (err) {

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { X, Gamepad2, Coins, Sparkles, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -43,7 +42,7 @@ const Game3DCard = ({
       transition={{ delay: index * 0.04, duration: 0.3 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className="relative group"
+      className="relative group min-w-0"
     >
       {/* Game Card — LOGO ONLY (no name, no badges, no overlays) */}
       <div
@@ -57,7 +56,7 @@ const Game3DCard = ({
       >
         {/* Logo fills the card. object-contain so the whole logo is visible
             (no cropping). Padding keeps the artwork off the rounded edge. */}
-        <div className="absolute inset-0 flex items-center justify-center p-2">
+        <div className="absolute inset-0 flex items-center justify-center p-1.5">
           {game.logo_url ? (
             <img
               src={getProxiedUrl(game.logo_url)}
@@ -70,7 +69,7 @@ const Game3DCard = ({
           ) : (
             <>
               <div className={cn("absolute inset-0 bg-gradient-to-br rounded-2xl", game.game_color)} />
-              <span className="relative text-5xl drop-shadow-2xl">
+              <span className="relative text-6xl drop-shadow-2xl">
                 {game.game_emoji}
               </span>
             </>
@@ -227,7 +226,7 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts }: LiveG
           </div>
 
           {/* Games Grid */}
-          <div className="flex-1 overflow-y-auto px-4 pb-8">
+          <div className="flex-1 overflow-y-auto px-3 pb-8">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <motion.div
@@ -240,7 +239,7 @@ export function LiveGameSelector({ isOpen, onClose, roomId, onOpenGifts }: LiveG
               </div>
             ) : (
               <motion.div 
-                className="grid grid-cols-3 gap-4"
+                className="grid grid-cols-3 gap-3"
                 initial="hidden"
                 animate="visible"
                 variants={{
