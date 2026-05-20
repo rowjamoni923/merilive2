@@ -2710,8 +2710,8 @@ const Chat = () => {
                   onClick={async () => {
                     if (!pendingMedia) return;
                     try {
-                      // 🔍 For images: check filename for contact info FIRST (blocking)
-                      if (pendingMedia.type === 'image' && currentUserId) {
+                      // 🔍 For images: HOSTS ONLY — non-hosts (agency/user/helper) share images freely
+                      if (pendingMedia.type === 'image' && currentUserId && myProfile?.is_host === true) {
                         const { checkImageFilename } = await import('@/utils/imageContactDetection');
                         const filename = pendingMedia.url.split('/').pop() || '';
                         if (checkImageFilename(filename)) {
