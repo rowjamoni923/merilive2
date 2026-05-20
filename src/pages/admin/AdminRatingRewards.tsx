@@ -461,14 +461,16 @@ export default function AdminRatingRewards() {
           ) : (
             <div className="rounded-xl border border-slate-800 overflow-hidden">
               {/* Table Header */}
-              <div className="grid grid-cols-[40px_1fr_120px_140px_140px_100px] gap-3 px-4 py-3 bg-slate-900/80 text-[11px] text-slate-500 font-medium uppercase tracking-wider border-b border-slate-800">
+              <div className="grid grid-cols-[40px_1fr_120px_140px_140px_100px_70px] gap-3 px-4 py-3 bg-slate-900/80 text-[11px] text-slate-500 font-medium uppercase tracking-wider border-b border-slate-800">
                 <div>#</div>
                 <div>Recipient</div>
                 <div>Reward</div>
                 <div>Approved By</div>
                 <div>Date</div>
                 <div>Status</div>
+                <div>Log</div>
               </div>
+
 
               {/* Table Body */}
               <div className="divide-y divide-slate-800/50">
