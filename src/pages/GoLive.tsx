@@ -40,11 +40,17 @@ const isApprovedLiveHost = (profile?: {
   gender?: string | null;
   is_face_verified?: boolean | null;
 }) => {
-  // STRICT: Only admin-approved hosts can go live
-  return Boolean(profile?.is_host) 
-    && String(profile?.host_status ?? '').toLowerCase() === 'approved'
-    && Boolean(profile?.is_face_verified);
+  // POLICY: Both male and female can go live. Face verification is MANDATORY for everyone.
+  // Approved female hosts retain their host_status flow; other face-verified users can also stream.
+  if (!profile?.is_face_verified) return false;
+  // Approved female host path (host_status='approved')
+  if (Boolean(profile?.is_host) && String(profile?.host_status ?? '').toLowerCase() === 'approved') {
+    return true;
+  }
+  // Any other face-verified user (male or female) can also go live
+  return true;
 };
+
 
 
 const GoLive = () => {
