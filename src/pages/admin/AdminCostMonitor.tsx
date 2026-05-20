@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, AlertTriangle, ShieldOff, ShieldCheck, Activity, Database, Radio, CircleDollarSign, Check, Zap, Sparkles } from "lucide-react";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { Button } from "@/components/ui/button";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
