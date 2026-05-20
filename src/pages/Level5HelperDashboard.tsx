@@ -30,6 +30,7 @@ import Beans3DIcon from "@/components/common/Beans3DIcon";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
 import { recordClientError } from "@/utils/clientErrorLog";
+import HelperListingToggle from "@/components/helper/HelperListingToggle";
 
 interface PaymentMethod {
   id: string;
@@ -1365,6 +1366,20 @@ const Level5HelperDashboard = () => {
             Open Manual Top-up
           </Button>
         </div>
+
+        {helperData?.id && (
+          <div className="relative mt-3">
+            <HelperListingToggle
+              helperId={helperData.id}
+              initialListed={helperData.is_listed ?? true}
+              onChange={(next) =>
+                setHelperData((prev: any) =>
+                  prev ? { ...prev, is_listed: next } : prev
+                )
+              }
+            />
+          </div>
+        )}
       </div>
 
       {/* Main Tabs */}

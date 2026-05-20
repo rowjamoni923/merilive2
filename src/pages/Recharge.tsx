@@ -1052,8 +1052,10 @@ const Recharge = () => {
           order_notification_phone,
           is_active,
           is_verified,
+          is_listed,
           user:profiles!topup_helpers_user_id_fkey(id, display_name, avatar_url, is_online, app_uid, country_code, country_flag, country_name)
         `)
+        .eq('is_listed', true)
         .order('trader_level', { ascending: false })
         .order('total_sold', { ascending: false });
 

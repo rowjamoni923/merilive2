@@ -11848,6 +11848,7 @@ export type Database = {
           display_order: number | null
           id: string
           is_active: boolean | null
+          is_listed: boolean
           is_verified: boolean | null
           order_notification_email: string | null
           order_notification_phone: string | null
@@ -11880,6 +11881,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          is_listed?: boolean
           is_verified?: boolean | null
           order_notification_email?: string | null
           order_notification_phone?: string | null
@@ -11912,6 +11914,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_active?: boolean | null
+          is_listed?: boolean
           is_verified?: boolean | null
           order_notification_email?: string | null
           order_notification_phone?: string | null
@@ -15697,6 +15700,7 @@ export type Database = {
           display_order: number | null
           id: string
           is_active: boolean | null
+          is_listed: boolean
           is_verified: boolean | null
           order_notification_email: string | null
           order_notification_phone: string | null

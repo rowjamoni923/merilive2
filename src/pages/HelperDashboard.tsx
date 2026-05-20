@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1286,6 +1287,21 @@ const HelperDashboard = () => {
             View Transfer History ({transferHistory.length})
           </button>
         )}
+
+        {helperData?.id && (
+          <div className="mt-3">
+            <HelperListingToggle
+              helperId={helperData.id}
+              initialListed={helperData.is_listed ?? true}
+              onChange={(next) =>
+                setHelperData((prev: any) =>
+                  prev ? { ...prev, is_listed: next } : prev
+                )
+              }
+            />
+          </div>
+        )}
+
 
         <div
           className="relative mt-3 rounded-2xl p-3.5 overflow-hidden"
