@@ -5,7 +5,7 @@
  * global-settings cache (real-time synced, no extra network calls).
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useGlobalSettings } from '@/hooks/useGlobalSettings';
 import {
   DEFAULT_TIER_MIN,
@@ -33,9 +33,11 @@ export function useTopupTraderTierMin(): {
     [tierMin],
   );
 
+  const getMin = useCallback((lvl: number | null | undefined) => getTierMin(tierMin, lvl), [tierMin]);
+
   return {
     tierMin,
-    getMin: (lvl) => getTierMin(tierMin, lvl),
+    getMin,
     isDefault,
     loading: settings.isLoading,
   };
