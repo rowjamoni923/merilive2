@@ -3054,7 +3054,7 @@ const LiveStream = () => {
       <motion.div 
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 100 : 0 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="absolute bottom-0 left-0 right-0 z-20 pb-2 safe-area-bottom"
+        className="absolute bottom-0 left-0 right-0 z-20"
         style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}
       >
 
