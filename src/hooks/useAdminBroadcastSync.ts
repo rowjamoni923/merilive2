@@ -211,6 +211,7 @@ export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
 
   // Pkg62 — Moderation/Reports re-verify (live face violations)
   live_face_violations: [['admin-face-violations'], ['live-face-violations']],
+  moderation_audit_log: [['admin-moderation-audit'], ['admin-moderation-audit-stats']],
 
   // Pkg63 — Admin notification bell — bridge the last 4 alert tables
   helper_message_replies: [['helper-message-replies'], ['admin-finance']],
