@@ -57,6 +57,7 @@ import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 interface Host {
   id: string;
   display_name: string;
@@ -443,7 +444,11 @@ export default function AdminHosts() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10 border-2 border-pink-500/50">
-                          <AvatarImage src={host.avatar_url || ""} />
+                          <AvatarImage
+                            src={getDisplayAvatar(host.id, host.avatar_url, { gender: 'female' })}
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                          />
                           <AvatarFallback className="bg-pink-500/20 text-pink-400">
                             {host.display_name?.charAt(0) || "H"}
                           </AvatarFallback>
@@ -567,7 +572,10 @@ export default function AdminHosts() {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20 border-4 border-pink-500/50">
-                  <AvatarImage src={selectedHost.avatar_url || ""} />
+                  <AvatarImage
+                    src={getDisplayAvatar(selectedHost.id, selectedHost.avatar_url, { gender: 'female' })}
+                    referrerPolicy="no-referrer"
+                  />
                   <AvatarFallback className="bg-pink-500/20 text-pink-400 text-2xl">
                     {selectedHost.display_name?.charAt(0)}
                   </AvatarFallback>
