@@ -54,7 +54,10 @@ function confirmApplication(
   if (topup.status !== "completed") {
     return { applied: false, reason: "not_verified" as const };
   }
-  const verified = Number(topup.price_usd ?? 0);
+  if (topup.price_usd === null || topup.price_usd === undefined || topup.price_usd === "") {
+    return { applied: false, reason: "bad_amount" as const };
+  }
+  const verified = Number(topup.price_usd);
   if (!Number.isFinite(verified) || verified < 0) {
     return { applied: false, reason: "bad_amount" as const };
   }
