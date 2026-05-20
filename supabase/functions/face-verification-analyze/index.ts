@@ -260,10 +260,16 @@ serve(async (req) => {
     } catch (fetchErr) {
       const msg = fetchErr instanceof Error ? fetchErr.message : "image_fetch_failed";
       const rekognition = { version: 1, edge_fetch_error: msg };
+      const { data: existingRow } = await supabaseAdmin
+        .from("face_verification_submissions")
+        .select("ai_analysis")
+        .eq("id", submissionId)
+        .maybeSingle();
+      const existingAnalysis = (existingRow?.ai_analysis ?? {}) as Record<string, unknown>;
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
-          ai_analysis: { rekognition },
+          ai_analysis: { ...existingAnalysis, rekognition },
           admin_notes: `Rekognition: image fetch failed — ${msg}`,
           updated_at: new Date().toISOString(),
         })
@@ -274,12 +280,18 @@ serve(async (req) => {
       });
     }
 
-    const det = await detectFaces(frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+    const [det, leftDet, rightDet] = await Promise.all([
+      detectFaces(frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
+      detectFaces(leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
+      detectFaces(rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
+    ]);
     const details = (det.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
+    const leftDetails = (leftDet.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
+    const rightDetails = (rightDet.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
 
     let compareFL = 0;
     let compareFR = 0;
-    if (details.length === 1) {
+    if (details.length === 1 && leftDetails.length === 1 && rightDetails.length === 1) {
       try {
         compareFL = await compareFaces(frontBytes, leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
         compareFR = await compareFaces(frontBytes, rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
@@ -289,38 +301,71 @@ serve(async (req) => {
     }
 
     const face0 = details[0] as Record<string, unknown> | undefined;
+    const left0 = leftDetails[0] as Record<string, unknown> | undefined;
+    const right0 = rightDetails[0] as Record<string, unknown> | undefined;
     const gender = face0?.Gender as { Value?: string; Confidence?: number } | undefined;
+    const leftGender = left0?.Gender as { Value?: string; Confidence?: number } | undefined;
+    const rightGender = right0?.Gender as { Value?: string; Confidence?: number } | undefined;
     const ageRange = face0?.AgeRange as { Low?: number; High?: number } | undefined;
     const faceOccluded = face0?.FaceOccluded as { Value?: boolean; Confidence?: number } | undefined;
+    const frontPose = face0?.Pose as { Yaw?: number; Pitch?: number; Roll?: number } | undefined;
+    const leftPose = left0?.Pose as { Yaw?: number; Pitch?: number; Roll?: number } | undefined;
+    const rightPose = right0?.Pose as { Yaw?: number; Pitch?: number; Roll?: number } | undefined;
     const faceConf = Number(face0?.Confidence ?? 0);
     const genderConf = Number(gender?.Confidence ?? 0);
-    const rawG = gender?.Value === "Female" ? "female" : "male";
-    let finalGender: string = genderConf >= 86 ? rawG : "unknown";
+    const rawG = gender?.Value === "Female" ? "female" : gender?.Value === "Male" ? "male" : "unknown";
+    const leftRawG = leftGender?.Value === "Female" ? "female" : leftGender?.Value === "Male" ? "male" : "unknown";
+    const rightRawG = rightGender?.Value === "Female" ? "female" : rightGender?.Value === "Male" ? "male" : "unknown";
+    const genderConflict = rawG !== "unknown" && (
+      (leftRawG !== "unknown" && leftRawG !== rawG && Number(leftGender?.Confidence ?? 0) >= 90) ||
+      (rightRawG !== "unknown" && rightRawG !== rawG && Number(rightGender?.Confidence ?? 0) >= 90)
+    );
+    let finalGender: string = genderConf >= 86 && rawG !== "unknown" && !genderConflict ? rawG : "unknown";
     const occConf = faceOccluded?.Value === true ? Number(faceOccluded?.Confidence ?? 0) : 0;
 
     let frontError: string | null = null;
     if (details.length === 0) frontError = "no_face_front";
     else if (details.length > 1) frontError = "multiple_faces_front";
+    let leftError: string | null = null;
+    if (leftDetails.length === 0) leftError = "no_face_left";
+    else if (leftDetails.length > 1) leftError = "multiple_faces_left";
+    let rightError: string | null = null;
+    if (rightDetails.length === 0) rightError = "no_face_right";
+    else if (rightDetails.length > 1) rightError = "multiple_faces_right";
 
-    if (frontError) finalGender = "unknown";
+    if (frontError || leftError || rightError) finalGender = "unknown";
 
     const rekognition: Record<string, unknown> = {
       version: 1,
       face_count: details.length,
+      left_face_count: leftDetails.length,
+      right_face_count: rightDetails.length,
       face_confidence: faceConf,
       gender_value: rawG,
       gender_confidence: genderConf,
+      left_gender_value: leftRawG,
+      left_gender_confidence: Number(leftGender?.Confidence ?? 0),
+      right_gender_value: rightRawG,
+      right_gender_confidence: Number(rightGender?.Confidence ?? 0),
+      gender_conflict: genderConflict,
       final_gender: finalGender,
       compare_front_left: compareFL,
       compare_front_right: compareFR,
+      front_pose_yaw: frontPose?.Yaw ?? null,
+      left_pose_yaw: leftPose?.Yaw ?? null,
+      right_pose_yaw: rightPose?.Yaw ?? null,
       age_range_low: ageRange?.Low ?? null,
       age_range_high: ageRange?.High ?? null,
       face_occluded_confidence: occConf,
     };
     if (frontError) rekognition.front_error = frontError;
+    if (leftError) rekognition.left_error = leftError;
+    if (rightError) rekognition.right_error = rightError;
 
     const summary =
-      `Rekognition: faces=${details.length}${frontError ? ` (${frontError})` : ""}, gender=${rawG} (${genderConf.toFixed(1)}%), ` +
+      `Rekognition: faces F/L/R=${details.length}/${leftDetails.length}/${rightDetails.length}` +
+      `${frontError || leftError || rightError ? ` (${[frontError, leftError, rightError].filter(Boolean).join(", ")})` : ""}, ` +
+      `gender=${rawG} (${genderConf.toFixed(1)}%)${genderConflict ? " conflict" : ""}, ` +
       `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%`;
 
     // Re-read ai_analysis right before the merge so we never blow away client-set
