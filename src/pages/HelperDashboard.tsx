@@ -1288,6 +1288,21 @@ const HelperDashboard = () => {
           </button>
         )}
 
+        {helperData?.id && (
+          <div className="mt-3">
+            <HelperListingToggle
+              helperId={helperData.id}
+              initialListed={helperData.is_listed ?? true}
+              onChange={(next) =>
+                setHelperData((prev: any) =>
+                  prev ? { ...prev, is_listed: next } : prev
+                )
+              }
+            />
+          </div>
+        )}
+
+
         <div
           className="relative mt-3 rounded-2xl p-3.5 overflow-hidden"
           style={{
