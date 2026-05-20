@@ -2460,6 +2460,17 @@ const HelperDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Manage local payment methods (name + logo + account#) */}
+      {helperData?.id && (
+        <AddLocalPaymentMethodDialog
+          open={showAddPaymentMethodDialog}
+          onOpenChange={setShowAddPaymentMethodDialog}
+          helperId={helperData.id}
+          helperCountryCode={helperData?.country_code || null}
+          onSaved={() => setPaymentMethodsRefreshKey((k) => k + 1)}
+        />
+      )}
     </div>
   );
 };
