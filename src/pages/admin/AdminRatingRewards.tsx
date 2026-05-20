@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { adminSendNotification } from "@/utils/adminNotification";
+// adminSendNotification removed — alerts now fired server-side by tg_rating_reward_alert.
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
