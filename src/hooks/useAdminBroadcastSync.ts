@@ -82,6 +82,9 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   parcel_templates: [['parcel-templates'], ['user-parcels']],
   helper_level_config: [['helper-level-config']],
   user_beans_exchange_tiers: [['user-beans-exchange-tiers']],
+  // Pkg53 additions — User Management
+  topup_helpers: [['topup-helpers'], ['level5-helpers'], ['helpers']],
+  host_conversion_requests: [['host-conversion-requests']],
   agency_level_tiers: [['agency-level-tiers']],
 
   invitation_settings: [['invitation-settings']],
