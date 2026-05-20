@@ -421,9 +421,9 @@ const AgentWallet = () => {
       {/* Quick Actions */}
       <div className="mx-4 mt-4">
         <Tabs defaultValue="transfer" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="transfer">Quick Transfer</TabsTrigger>
-            <TabsTrigger value="exchange">Quick Exchange</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-2 h-12 p-1">
+            <TabsTrigger value="transfer" aria-label="Quick transfer" className="h-10 text-sm">Quick Transfer</TabsTrigger>
+            <TabsTrigger value="exchange" aria-label="Quick exchange" className="h-10 text-sm">Quick Exchange</TabsTrigger>
           </TabsList>
 
           <TabsContent value="transfer" className="mt-3">
