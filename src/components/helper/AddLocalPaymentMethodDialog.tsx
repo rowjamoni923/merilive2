@@ -247,7 +247,7 @@ export default function AddLocalPaymentMethodDialog({
               <Input
                 value={methodName}
                 onChange={(e) => setMethodName(e.target.value)}
-                placeholder="bKash / UPI / GCash"
+                placeholder="Method name"
                 className="h-9 text-xs"
               />
             </div>
