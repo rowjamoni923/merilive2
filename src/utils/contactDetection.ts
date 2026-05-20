@@ -678,9 +678,9 @@ export async function detectAndProcessViolation(
   // Check if sender is a host for penalty processing
   const isHost = userProfile?.is_host === true;
   if (!isHost) {
-    // USER (non-host): No penalty, just return detected=true so popup shows
-    console.log('[ContactDetection] User is NOT a host, no penalty, alert only');
-    return { detected: true, violationNumber: currentCount, beansDeducted: 0, isBanned: false };
+    // Non-host (user / agency / L1–L5 helper): No penalty, no warning, freely allowed.
+    console.log('[ContactDetection] User is NOT a host — bypass entirely');
+    return { detected: false, violationNumber: 0, beansDeducted: 0, isBanned: false };
   }
 
   // HOST: Always deduct 2000 beans per violation (allow negative balance)

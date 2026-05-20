@@ -234,7 +234,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number } | null>(null);
+  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number; is_host: boolean } | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOtherTyping, setIsOtherTyping] = useState(false);
@@ -1099,7 +1099,7 @@ const Chat = () => {
       
       // Parallel fetch - coins + conversations + groups at once
       const [profileResult] = await Promise.all([
-        supabase.from('profiles').select('coins, display_name, avatar_url, user_level').eq('id', user.id).single(),
+        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, is_host').eq('id', user.id).single(),
         fetchConversations(user.id),
         fetchGroups()
       ]);
@@ -1110,6 +1110,7 @@ const Chat = () => {
           display_name: profileResult.data.display_name,
           avatar_url: profileResult.data.avatar_url,
           user_level: profileResult.data.user_level || 1,
+          is_host: profileResult.data.is_host === true,
         });
       }
     } catch (error) {
@@ -1576,29 +1577,30 @@ const Chat = () => {
     
     // No local send sound here (avoid duplicate beeps on send + realtime events)
     
-    // 🔍 BLOCKING: Run contact detection BEFORE sending
-    const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
-    const detection = detectContactInfo(originalContent);
-    
-    // Determine what content to actually send
+    // 🔍 BLOCKING: Run contact detection BEFORE sending — HOSTS ONLY.
+    // Agencies, users, and L1–L5 helpers can share numbers freely (no mask, no beans, no warning).
     let contentToSend = originalContent;
-    if (detection.hasViolation) {
-      // Mask the content - recipient will see *** instead of contact info
-      contentToSend = maskContactContent(originalContent, detection);
-      console.log('[ContactDetection] BLOCKED content, masked:', contentToSend);
-      
-      // Process violation (warning + bean deduction) in background
-      const sourceId = selectedConversation?.id || selectedGroup?.id;
-      detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId)
-        .then(res => {
-          console.log('[ContactDetection] Chat result:', res);
-          if (res.detected && res.violationNumber) {
-            numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
-          } else if (res.detected) {
-            numberWarning.showGenericWarning();
-          }
-        })
-        .catch(err => console.error('[ContactDetection] Chat error:', err));
+    if (myProfile?.is_host === true) {
+      const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
+      const detection = detectContactInfo(originalContent);
+      if (detection.hasViolation) {
+        // Mask the content - recipient will see *** instead of contact info
+        contentToSend = maskContactContent(originalContent, detection);
+        console.log('[ContactDetection] BLOCKED content (host), masked:', contentToSend);
+        
+        // Process violation (warning + bean deduction) in background
+        const sourceId = selectedConversation?.id || selectedGroup?.id;
+        detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId)
+          .then(res => {
+            console.log('[ContactDetection] Chat result:', res);
+            if (res.detected && res.violationNumber) {
+              numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+            } else if (res.detected) {
+              numberWarning.showGenericWarning();
+            }
+          })
+          .catch(err => console.error('[ContactDetection] Chat error:', err));
+      }
     }
 
     try {
@@ -2708,8 +2710,8 @@ const Chat = () => {
                   onClick={async () => {
                     if (!pendingMedia) return;
                     try {
-                      // 🔍 For images: check filename for contact info FIRST (blocking)
-                      if (pendingMedia.type === 'image' && currentUserId) {
+                      // 🔍 For images: HOSTS ONLY — non-hosts (agency/user/helper) share images freely
+                      if (pendingMedia.type === 'image' && currentUserId && myProfile?.is_host === true) {
                         const { checkImageFilename } = await import('@/utils/imageContactDetection');
                         const filename = pendingMedia.url.split('/').pop() || '';
                         if (checkImageFilename(filename)) {

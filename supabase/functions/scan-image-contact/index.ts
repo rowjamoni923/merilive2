@@ -243,6 +243,16 @@ Deno.serve(async (req) => {
 
     const isHost = profile?.is_host === true;
 
+    // Non-hosts (user / agency / L1–L5 helper) can share images freely — no scan, no penalty.
+    if (!isHost) {
+      console.log(`[scan-image-contact] Sender ${senderId} is not a host — skipping scan entirely`);
+      return new Response(
+        JSON.stringify({ detected: false, skipped: 'non_host' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+
     // Check image filename for suspicious patterns
     const urlLower = imageUrl.toLowerCase();
     const filenameSuspicious = [
