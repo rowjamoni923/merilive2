@@ -2897,6 +2897,9 @@ const Recharge = () => {
                           <p className="text-[10px] text-emerald-600/80 leading-snug">
                             Traders must hold ≥ 50,000 base AND ≥ their tier-min wallet to stay visible. Shortfall shown below.
                           </p>
+                          <div className="mt-1 text-[9px] font-mono text-emerald-700 bg-emerald-50/80 rounded px-1.5 py-0.5 inline-block">
+                            Filter: wallet ≥ 50,000 && wallet ≥ tierMin(L1:{(tierMinMap?.[1] ?? 50000).toLocaleString()}, L2:{(tierMinMap?.[2] ?? 100000).toLocaleString()}, L3:{(tierMinMap?.[3] ?? 150000).toLocaleString()}, L4:{(tierMinMap?.[4] ?? 200000).toLocaleString()}, L5:{(tierMinMap?.[5] ?? 300000).toLocaleString()})
+                          </div>
                           {(helperDiag.samples.lowBalance.length > 0 || helperDiag.samples.tierMin.length > 0) && (
                             <div className="mt-1.5 space-y-0.5">
                               {helperDiag.samples.lowBalance.map((s, i) => {
