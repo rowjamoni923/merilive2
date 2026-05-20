@@ -1352,7 +1352,13 @@ const Level5HelperDashboard = () => {
         {/* ============ ACCEPTED PAYMENT METHODS CARD ============ */}
         {helperData?.id && (
           <div className="relative mb-4">
-            <HelperPaymentMethodsCard helperId={helperData.id} />
+            <HelperPaymentMethodsCard
+              helperId={helperData.id}
+              onManage={() => {
+                setActiveTab('country-methods');
+                setShowCountryPaymentDialog(true);
+              }}
+            />
           </div>
         )}
 
