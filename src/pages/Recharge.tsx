@@ -2420,6 +2420,22 @@ const Recharge = () => {
               </div>
             </div>
 
+            {/* Pkg63 gate notice — clarifies why UID top-ups can only come from approved L1–L5 traders */}
+            <div
+              role="status"
+              className="flex items-start gap-2 px-3 py-2 rounded-xl mb-3 bg-amber-50/80 border border-amber-200 text-amber-800"
+              onClick={() => toast({
+                title: "UID top-up restricted",
+                description: "Only approved Level 1–5 helper-traders can process UID top-ups. Message a verified trader above to recharge safely.",
+              })}
+            >
+              <span className="text-base leading-none mt-0.5">🔒</span>
+              <p className="text-[11px] leading-snug">
+                <span className="font-semibold">UID top-ups are restricted.</span>{' '}
+                Only approved <span className="font-semibold">Level 1–5 helper-traders</span> can process diamond top-ups by UID. Always recharge through a verified trader listed above.
+              </p>
+            </div>
+
             {topUpHelpers.length > 0 ? (
               (() => {
                 const pageSize = 5;
