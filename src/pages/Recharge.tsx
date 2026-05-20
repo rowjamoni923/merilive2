@@ -2904,11 +2904,21 @@ const Recharge = () => {
                     {helperDiag.rawTotal > 0 && helperDiag.finalCount === 0 && !helperDiag.isLoading && (
                       <div className="flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-100 p-2.5">
                         <Info className="w-4 h-4 text-slate-500 mt-0.5 shrink-1" />
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-semibold text-slate-700">System filter summary</p>
                           <p className="text-[10px] text-slate-600/80 leading-snug">
                             {helperDiag.rawTotal} total trader{helperDiag.rawTotal !== 1 ? 's' : ''} in database → {helperDiag.byCountry} wrong country, {helperDiag.byInactive} inactive/unverified, {helperDiag.byLowBalance} below 50k base, {helperDiag.byTierMin} below tier minimum = <span className="font-bold text-slate-800">1 showing</span>.
                           </p>
+                          {isAdminViewer && (
+                            <a
+                              href="/admin/helper-management"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-slate-700 hover:text-slate-900 underline-offset-2 hover:underline"
+                            >
+                              Open Admin → Helper Management <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}
