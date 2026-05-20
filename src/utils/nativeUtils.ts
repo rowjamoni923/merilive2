@@ -245,22 +245,26 @@ export const exitApp = async (): Promise<void> => {
 };
 
 // Get app info
+// Never returns the legacy 1.0.0/1 fallback — always falls back to APP_VERSION/APP_BUILD
+// (the build-time constants kept in sync with android/app/build.gradle).
 export const getAppInfo = async (): Promise<{ version: string; build: string; name: string }> => {
+  const { APP_VERSION, APP_BUILD } = await import('@/lib/version');
   if (isNativeApp()) {
     try {
       const { App } = await import('@capacitor/app');
       const info = await App.getInfo();
+      // Guard against empty strings the plugin can return on some OEM ROMs
       return {
-        version: info.version,
-        build: info.build,
-        name: info.name,
+        version: info.version && info.version.trim() ? info.version : APP_VERSION,
+        build: info.build && String(info.build).trim() ? String(info.build) : APP_BUILD,
+        name: info.name || 'MeriLive',
       };
     } catch (error) {
       console.error('Error getting app info:', error);
     }
   }
-  
-  return { version: '1.0.0', build: '1', name: 'MeriLive' };
+
+  return { version: APP_VERSION, build: APP_BUILD, name: 'MeriLive' };
 };
 
 // Network status
