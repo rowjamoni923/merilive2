@@ -31,6 +31,7 @@ import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdra
 import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
 import { recordClientError } from "@/utils/clientErrorLog";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
+import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
 
 interface PaymentMethod {
   id: string;
@@ -1345,6 +1346,13 @@ const Level5HelperDashboard = () => {
                 )
               }
             />
+          </div>
+        )}
+
+        {/* ============ ACCEPTED PAYMENT METHODS CARD ============ */}
+        {helperData?.id && (
+          <div className="relative mb-4">
+            <HelperPaymentMethodsCard helperId={helperData.id} />
           </div>
         )}
 
