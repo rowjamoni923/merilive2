@@ -33,11 +33,18 @@ interface Row {
  */
 export default function HelperPaymentMethodsCard({
   helperId,
-  manageHref = "/level5-helper-dashboard?tab=payment-methods",
+  manageHref = "/level5-helper-dashboard?tab=country-methods&action=add",
+  onManage,
+  refreshKey = 0,
 }: HelperPaymentMethodsCardProps) {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleManage = () => {
+    if (onManage) onManage();
+    else navigate(manageHref);
+  };
 
   useEffect(() => {
     let alive = true;
@@ -56,7 +63,7 @@ export default function HelperPaymentMethodsCard({
     return () => {
       alive = false;
     };
-  }, [helperId]);
+  }, [helperId, refreshKey]);
 
   // Group by country
   const byCountry = rows.reduce<Record<string, Row[]>>((acc, r) => {
