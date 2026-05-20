@@ -65,7 +65,8 @@ const MiniDragonTiger = ({
   userCoins,
   phase,
   timeLeft,
-  onPlaceBet
+  onPlaceBet,
+  onWin
 }: any) => {
   const [selectedBet, setSelectedBet] = useState<'dragon' | 'tiger' | 'tie' | null>(null);
   const [dragonCard, setDragonCard] = useState<string | null>(null);
