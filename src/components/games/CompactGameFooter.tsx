@@ -462,7 +462,7 @@ const MiniLucky28 = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) =>
 };
 
 // Ultra Compact Plinko Game
-const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins }: any) => {
+const MiniPlinko = ({ phase, onPlaceBet, betAmount, userCoins, onWin }: any) => {
   const [hasBet, setHasBet] = useState(false);
   const [ballPosition, setBallPosition] = useState({ x: 50, y: 0 });
   const [isDropping, setIsDropping] = useState(false);
