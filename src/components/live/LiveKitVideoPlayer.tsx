@@ -8,10 +8,29 @@
  * - Zero play icons via hardened video element
  */
 import { useEffect, useRef, memo } from 'react';
+import type { CSSProperties, VideoHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 import type { Track } from 'livekit-client';
 import { hardenVideoElementForNative, cleanupVideoHardening } from '@/utils/videoNativeHardening';
 import { isNativeLiveKitAvailable, setNativeVideoVisible } from '@/plugins/LiveKitNativeBridge';
+
+type VendorVideoProps = VideoHTMLAttributes<HTMLVideoElement> & {
+  'x5-video-player-type'?: string;
+  'x5-video-player-fullscreen'?: string;
+  'x5-video-orientation'?: string;
+  'x5-playsinline'?: string;
+  'webkit-playsinline'?: string;
+  'x-webkit-airplay'?: string;
+};
+
+const nativeInlineVideoProps: VendorVideoProps = {
+  'x5-video-player-type': 'h5',
+  'x5-video-player-fullscreen': 'false',
+  'x5-video-orientation': 'portrait',
+  'x5-playsinline': 'true',
+  'webkit-playsinline': 'true',
+  'x-webkit-airplay': 'deny',
+};
 
 interface LiveKitVideoPlayerProps {
   videoTrack: Track | null;
@@ -31,7 +50,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   onVideoStalled,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const shieldRef = useRef<HTMLDivElement>(null);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
 
@@ -78,24 +96,23 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     enforceInlineSurface();
     hardenVideoElementForNative(el, { muted: true });
 
-    // Re-show shield on new track (covers native play icon until first frame)
-    if (shieldRef.current) {
-      shieldRef.current.style.display = 'block';
-      shieldRef.current.style.opacity = '1';
-    }
-
-
     const mediaTrack = videoTrack.mediaStreamTrack;
 
     // === ATTACH TRACK ===
     if (mediaTrack && mediaTrack.readyState !== 'ended') {
       try {
         el.srcObject = new MediaStream([mediaTrack]);
-      } catch {}
+      } catch {
+        // ignore unsupported MediaStream assignment
+      }
     }
 
-    if (typeof (videoTrack as any).attach === 'function') {
-      try { (videoTrack as any).attach(el); } catch {}
+    if (typeof videoTrack.attach === 'function') {
+      try {
+        videoTrack.attach(el);
+      } catch {
+        // ignore attach race during track replacement
+      }
       // LiveKit attach can re-introduce default attributes on some WebViews
       enforceInlineSurface();
       hardenVideoElementForNative(el, { muted: true });
@@ -105,15 +122,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const onTrackEnded = () => onVideoStalledRef.current?.();
     mediaTrack?.addEventListener('ended', onTrackEnded);
 
-    const hideShield = () => {
-      const s = shieldRef.current;
-      if (s && s.style.opacity !== '0') {
-        s.style.opacity = '0';
-        setTimeout(() => { if (s) s.style.display = 'none'; }, 150);
-      }
-    };
     const markReady = () => {
-      hideShield();
       if (!muted) {
         // Optional unmute after successful playback start
         try {
@@ -199,8 +208,12 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       if (frameHandle !== null && typeof safeVideo.cancelVideoFrameCallback === 'function') {
         safeVideo.cancelVideoFrameCallback(frameHandle);
       }
-      if (typeof (videoTrack as any).detach === 'function') {
-        try { (videoTrack as any).detach(el); } catch {}
+      if (typeof videoTrack.detach === 'function') {
+        try {
+          videoTrack.detach(el);
+        } catch {
+          // ignore detach race during unmount
+        }
       }
       el.onloadedmetadata = null;
       el.onloadeddata = null;
@@ -226,10 +239,11 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
   // Cleanup on unmount
   useEffect(() => {
+    const currentVideo = videoRef.current;
     return () => {
-      if (videoRef.current) {
-        cleanupVideoHardening(videoRef.current);
-        videoRef.current.srcObject = null;
+      if (currentVideo) {
+        cleanupVideoHardening(currentVideo);
+        currentVideo.srcObject = null;
       }
     };
   }, []);
@@ -246,13 +260,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         disableRemotePlayback
         controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
         poster=""
-        // @ts-ignore — vendor attributes
-        x5-video-player-type="h5"
-        x5-video-player-fullscreen="false"
-        x5-video-orientation="portrait"
-        x5-playsinline="true"
-        webkit-playsinline="true"
-        x-webkit-airplay="deny"
+        {...nativeInlineVideoProps}
         className="w-full h-full pointer-events-none select-none"
         style={{
           objectFit: fit,
@@ -267,18 +275,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           WebkitAppearance: 'none',
           willChange: 'transform',
           backfaceVisibility: 'hidden',
-        } as React.CSSProperties}
-      />
-      {/* Shield overlay: covers WebView's native play icon until first frame arrives */}
-      <div
-        ref={shieldRef}
-        data-video-shield="livekit"
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none bg-black"
-        style={{
-          transition: 'opacity 150ms ease',
-          opacity: 1,
-        }}
+        } as CSSProperties}
       />
     </div>
   );
