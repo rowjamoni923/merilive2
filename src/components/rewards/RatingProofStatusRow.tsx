@@ -24,6 +24,7 @@ interface ClaimRow {
   status: ClaimStatus;
   rejection_reason: string | null;
   created_at: string;
+  reviewed_at: string | null;
 }
 
 const STATUS_META: Record<ClaimStatus, {
