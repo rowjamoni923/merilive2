@@ -260,7 +260,21 @@ const AdminHelperApplications = () => {
     return badges[level] || badges[1];
   };
 
+  const isAutoVerifiedCrypto = (app: HelperApplication) =>
+    (app.payment_details as any)?.auto_verified === true;
+
+  const autoVerifiedApps = applications.filter(isAutoVerifiedCrypto);
+
+  const autoVerifiedLevelCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  for (const a of autoVerifiedApps) {
+    const lvl = Number(
+      (a.payment_details as any)?.detected_level ?? a.requested_level
+    );
+    if (lvl >= 1 && lvl <= 5) autoVerifiedLevelCounts[lvl]++;
+  }
+
   const filteredApps = applications.filter(app => {
+    if (cryptoOnly && !isAutoVerifiedCrypto(app)) return false;
     if (!searchQuery) return true;
     const search = searchQuery.toLowerCase();
     return (
