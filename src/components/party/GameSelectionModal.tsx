@@ -12,7 +12,6 @@ interface Game {
   emoji: string;
   color: string;
   description: string;
-  players: string;
   logo_url?: string | null;
 }
 
@@ -219,7 +218,6 @@ export function GameSelectionModal({
           emoji: game.game_emoji,
           color: game.game_color,
           description: game.description || 'Play & win!',
-          players: '∞',
           logo_url: game.logo_url
         })));
       }
