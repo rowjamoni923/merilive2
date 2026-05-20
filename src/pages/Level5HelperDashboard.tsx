@@ -202,6 +202,7 @@ const Level5HelperDashboard = () => {
   const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
   const [showAgencyWithdrawalDialog, setShowAgencyWithdrawalDialog] = useState(false);
   const [showCountryPaymentDialog, setShowCountryPaymentDialog] = useState(initialAction === 'add');
+  const [showManualTopupDialog, setShowManualTopupDialog] = useState(false);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
   const [selectedAgencyWithdrawal, setSelectedAgencyWithdrawal] = useState<AgencyWithdrawal | null>(null);
   const [claimingWithdrawalId, setClaimingWithdrawalId] = useState<string | null>(null); // Track which withdrawal is being claimed
