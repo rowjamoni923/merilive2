@@ -168,6 +168,7 @@ const Level5HelperDashboard = () => {
   // Read tab from URL params for notification deep linking
   const urlParams = new URLSearchParams(window.location.search);
   const initialTab = urlParams.get('tab') || "agency-withdrawals";
+  const initialAction = urlParams.get('action');
   const [activeTab, setActiveTab] = useState(initialTab);
   
   // Data states
@@ -199,7 +200,7 @@ const Level5HelperDashboard = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
   const [showAgencyWithdrawalDialog, setShowAgencyWithdrawalDialog] = useState(false);
-  const [showCountryPaymentDialog, setShowCountryPaymentDialog] = useState(false);
+  const [showCountryPaymentDialog, setShowCountryPaymentDialog] = useState(initialAction === 'add');
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
   const [selectedAgencyWithdrawal, setSelectedAgencyWithdrawal] = useState<AgencyWithdrawal | null>(null);
   const [claimingWithdrawalId, setClaimingWithdrawalId] = useState<string | null>(null); // Track which withdrawal is being claimed
@@ -1352,7 +1353,13 @@ const Level5HelperDashboard = () => {
         {/* ============ ACCEPTED PAYMENT METHODS CARD ============ */}
         {helperData?.id && (
           <div className="relative mb-4">
-            <HelperPaymentMethodsCard helperId={helperData.id} />
+            <HelperPaymentMethodsCard
+              helperId={helperData.id}
+              onManage={() => {
+                setActiveTab('country-methods');
+                setShowCountryPaymentDialog(true);
+              }}
+            />
           </div>
         )}
 

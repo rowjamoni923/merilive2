@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
+import AddLocalPaymentMethodDialog from "@/components/helper/AddLocalPaymentMethodDialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -100,6 +101,8 @@ const HelperDashboard = () => {
   const [userFaceVerified, setUserFaceVerified] = useState(false);
   const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
   const [showCryptoTopupModal, setShowCryptoTopupModal] = useState(false);
+  const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] = useState(false);
+  const [paymentMethodsRefreshKey, setPaymentMethodsRefreshKey] = useState(0);
   
   // Real-time level progress hook
   const { 
@@ -1147,7 +1150,11 @@ const HelperDashboard = () => {
         {/* ============ ACCEPTED PAYMENT METHODS CARD ============ */}
         {helperData?.id && (
           <div className="relative mb-3">
-            <HelperPaymentMethodsCard helperId={helperData.id} />
+            <HelperPaymentMethodsCard
+              helperId={helperData.id}
+              refreshKey={paymentMethodsRefreshKey}
+              onManage={() => setShowAddPaymentMethodDialog(true)}
+            />
           </div>
         )}
 
@@ -2453,6 +2460,17 @@ const HelperDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Manage local payment methods (name + logo + account#) */}
+      {helperData?.id && (
+        <AddLocalPaymentMethodDialog
+          open={showAddPaymentMethodDialog}
+          onOpenChange={setShowAddPaymentMethodDialog}
+          helperId={helperData.id}
+          helperCountryCode={helperData?.country_code || null}
+          onSaved={() => setPaymentMethodsRefreshKey((k) => k + 1)}
+        />
+      )}
     </div>
   );
 };

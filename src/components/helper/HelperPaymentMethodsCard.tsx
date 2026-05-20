@@ -5,9 +5,13 @@ import { useNavigate } from "react-router-dom";
 
 interface HelperPaymentMethodsCardProps {
   helperId: string;
-  /** Navigates here when user taps "Manage" or "Add". Defaults to the L5 dashboard
-   *  payment-methods tab; L1–L4 callers can override. */
+  /** Navigates here when user taps "Manage" or "Add" (used only if onManage is not provided). */
   manageHref?: string;
+  /** Preferred: fire a local handler (e.g. open an inline add/manage dialog).
+   *  When provided, navigation is skipped. */
+  onManage?: () => void;
+  /** Bump this number from the parent after add/delete to force the list to refresh. */
+  refreshKey?: number;
 }
 
 interface Row {
@@ -29,11 +33,18 @@ interface Row {
  */
 export default function HelperPaymentMethodsCard({
   helperId,
-  manageHref = "/level5-helper-dashboard?tab=payment-methods",
+  manageHref = "/level5-helper-dashboard?tab=country-methods&action=add",
+  onManage,
+  refreshKey = 0,
 }: HelperPaymentMethodsCardProps) {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleManage = () => {
+    if (onManage) onManage();
+    else navigate(manageHref);
+  };
 
   useEffect(() => {
     let alive = true;
@@ -52,7 +63,7 @@ export default function HelperPaymentMethodsCard({
     return () => {
       alive = false;
     };
-  }, [helperId]);
+  }, [helperId, refreshKey]);
 
   // Group by country
   const byCountry = rows.reduce<Record<string, Row[]>>((acc, r) => {
@@ -94,7 +105,7 @@ export default function HelperPaymentMethodsCard({
           </div>
           <button
             type="button"
-            onClick={() => navigate(manageHref)}
+            onClick={handleManage}
             className="text-[11px] font-bold text-amber-700 hover:text-amber-900 px-2 py-1 rounded-lg hover:bg-amber-100/60 transition-colors"
           >
             Manage
@@ -107,7 +118,7 @@ export default function HelperPaymentMethodsCard({
         ) : countries.length === 0 ? (
           <button
             type="button"
-            onClick={() => navigate(manageHref)}
+            onClick={handleManage}
             className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-amber-300 text-amber-700 text-xs font-semibold hover:bg-amber-50 transition-colors"
           >
             <Plus className="w-4 h-4" />
