@@ -2819,7 +2819,7 @@ const Recharge = () => {
                     You can still recharge instantly using Google Play, Card, or SwiftPay (crypto) in the <strong>Diamond Store</strong> tab.
                   </p>
                   <button
-                    onClick={() => setSelectedTab('store')}
+                    onClick={() => setSelectedTab('google')}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-display text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
                   >
                     <Diamond className="w-3.5 h-3.5" />
