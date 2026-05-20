@@ -332,9 +332,10 @@ export default function AdminWithdrawals() {
 
       fetchWithdrawals();
       fetchGlobalCounts();
-    } catch (error) {
+    } catch (error: any) {
       recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorProcessingWithdrawal", message: formatAdminError(error)});
-      toast.error("Failed to process withdrawal");
+      const serverMsg = error?.message || error?.error || formatAdminError(error);
+      toast.error(`Failed to process withdrawal: ${serverMsg}`);
       // Rollback optimistic update
       fetchWithdrawals();
     } finally {
