@@ -126,6 +126,7 @@ const Invitation = lazy(lazyRetry(() => import("./pages/Invitation")));
 const Tasks = lazy(lazyRetry(() => import("./pages/Tasks")));
 const HostBonusLedger = lazy(lazyRetry(() => import("./pages/HostBonusLedger")));
 const Settings = lazy(lazyRetry(() => import("./pages/Settings")));
+const DebugReferrer = lazy(lazyRetry(() => import("./pages/DebugReferrer")));
 const Rewards = lazy(lazyRetry(() => import("./pages/Rewards")));
 const Agency = lazy(lazyRetry(() => import("./pages/Agency")));
 const AgentRank = lazy(lazyRetry(() => import("./pages/AgentRank")));
