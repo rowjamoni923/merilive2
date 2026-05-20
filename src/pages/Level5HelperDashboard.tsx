@@ -1350,18 +1350,8 @@ const Level5HelperDashboard = () => {
           </div>
         )}
 
-        {/* ============ ACCEPTED PAYMENT METHODS CARD ============ */}
-        {helperData?.id && (
-          <div className="relative mb-4">
-            <HelperPaymentMethodsCard
-              helperId={helperData.id}
-              onManage={() => {
-                setActiveTab('country-methods');
-                setShowCountryPaymentDialog(true);
-              }}
-            />
-          </div>
-        )}
+
+
 
         {/* Premium Stat Cards */}
         <div className="relative grid grid-cols-4 gap-2">
@@ -1857,6 +1847,13 @@ const Level5HelperDashboard = () => {
 
           {/* Country Payment Methods Tab */}
           <TabsContent value="country-methods" className="mt-4 space-y-3">
+            {helperData?.id && (
+              <HelperPaymentMethodsCard
+                helperId={helperData.id}
+                onManage={() => setShowCountryPaymentDialog(true)}
+              />
+            )}
+
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-slate-900 font-semibold text-sm flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-emerald-600" />
