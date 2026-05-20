@@ -55,7 +55,7 @@ import {
   ShieldAlert,
   Mail,
   Map,
-  Package
+  Package,
   ScrollText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
