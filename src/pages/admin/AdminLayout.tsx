@@ -2836,6 +2836,9 @@ export default function AdminLayout() {
                 <Input placeholder="Global search..." className="w-56 pl-10 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-slate-700 focus:bg-white/[0.05] focus:border-violet-500/25 focus:ring-1 focus:ring-violet-500/15 rounded-xl h-9 text-sm" />
               </div>
 
+              {/* Realtime sync status pill */}
+              <AdminRealtimeSyncIndicator />
+
               {/* Phone Alert Bell */}
               <AdminAlertBell />
 
