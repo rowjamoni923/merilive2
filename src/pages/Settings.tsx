@@ -40,6 +40,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { registerFCMToken } from "@/services/firebaseMessaging";
 import { getAppInfo } from "@/utils/nativeUtils";
+import { APP_VERSION, APP_BUILD } from "@/lib/version";
 import { recordClientError } from "@/utils/clientErrorLog";
 import {
   checkPermissionStatus,
@@ -189,7 +190,7 @@ const Settings = () => {
   }, [updatePermissions]);
   
   // App version state
-  const [appVersion, setAppVersion] = useState<{ version: string; build: string }>({ version: "1.0.0", build: "1" });
+  const [appVersion, setAppVersion] = useState<{ version: string; build: string }>({ version: APP_VERSION, build: APP_BUILD });
 
   // Fetch user and deletion info
   useEffect(() => {

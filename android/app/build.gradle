@@ -77,6 +77,9 @@ dependencies {
     // Google Play Billing
     implementation 'com.android.billingclient:billing:6.2.0'
 
+    // Google Play Install Referrer (Pkg62 — deferred deep links from Play Store)
+    implementation 'com.android.installreferrer:installreferrer:2.2'
+
     // Google Play Services
     implementation 'com.google.android.gms:play-services-auth:21.0.0'
     implementation 'com.google.android.gms:play-services-location:21.1.0'
