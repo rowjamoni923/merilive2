@@ -49,21 +49,27 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
       {faceMedia && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🔍 Face Verification</p>
-          <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-64" />
+          <div className="max-w-xs mx-auto">
+            <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+          </div>
         </div>
       )}
 
       {livenessClip && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎬 Face Liveness Recording</p>
-          <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-64" />
+          <div className="max-w-xs mx-auto">
+            <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+          </div>
         </div>
       )}
 
       {introVideo && introVideo !== faceMedia && introVideo !== livenessClip && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
-          <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-64" />
+          <div className="max-w-xs mx-auto">
+            <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+          </div>
         </div>
       )}
 
