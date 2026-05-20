@@ -1851,16 +1851,16 @@ const HelperDashboard = () => {
                   )}
                   
                   {level.level_number === 5 && isCurrent && (
-                    <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border border-violet-200/30">
-                      <p className="text-violet-600 text-xs">
-                        <strong>Payroll Benefits:</strong> Receive agency withdrawal requests (5,000 - 100,000 beans) and earn commission on every transaction.
+                    <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 border border-white/20 shadow-lg shadow-purple-500/30">
+                      <p className="text-white text-xs leading-relaxed">
+                        <strong className="text-amber-200">Payroll Benefits:</strong> Receive agency withdrawal requests (5,000 – 100,000 beans) and earn commission on every transaction.
                       </p>
                       
                       {/* Not applied yet */}
                       {!helperData?.payroll_status && !helperData?.payroll_enabled && (
                         <Button 
                           onClick={() => setShowPayrollModal(true)}
- className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white h-9 text-xs"
+                          className="w-full mt-3 bg-white text-purple-700 hover:bg-white/90 font-bold h-9 text-xs shadow-md"
                         >
                           <Crown className="w-3 h-3 mr-1" />
                           Apply for Payroll Access
@@ -1869,24 +1869,24 @@ const HelperDashboard = () => {
                       
                       {/* Pending approval */}
                       {helperData?.payroll_status === 'pending' && !helperData?.payroll_enabled && (
-                        <div className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-500/30 flex items-center justify-between">
+                        <div className="mt-3 p-2 rounded-lg bg-white/15 border border-white/30 flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-amber-700" />
-                            <span className="text-amber-700 text-xs">Payroll application pending...</span>
+                            <Clock className="w-4 h-4 text-amber-200" />
+                            <span className="text-white text-xs font-medium">Payroll application pending…</span>
                           </div>
-                          <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/30 text-amber-700 text-[10px]">Pending</Badge>
+                          <Badge className="bg-amber-400 text-amber-950 text-[10px] border-0">Pending</Badge>
                         </div>
                       )}
                       
                       {/* Rejected */}
                       {helperData?.payroll_status === 'rejected' && !helperData?.payroll_enabled && (
                         <div className="mt-3 space-y-2">
-                          <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 flex items-center gap-2">
-                            <span className="text-rose-600 text-xs">❌ Application rejected. You can apply again.</span>
+                          <div className="p-2 rounded-lg bg-white/15 border border-white/30 flex items-center gap-2">
+                            <span className="text-white text-xs font-medium">❌ Application rejected. You can apply again.</span>
                           </div>
                           <Button 
                             onClick={() => setShowPayrollModal(true)}
- className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white h-9 text-xs"
+                            className="w-full bg-white text-purple-700 hover:bg-white/90 font-bold h-9 text-xs shadow-md"
                           >
                             <Crown className="w-3 h-3 mr-1" />
                             Re-apply for Payroll Access
@@ -1898,7 +1898,7 @@ const HelperDashboard = () => {
                       {helperData?.payroll_enabled && (
                         <Button 
                           onClick={() => navigate('/level5-helper-dashboard')}
- className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white h-9 text-xs"
+                          className="w-full mt-3 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold h-9 text-xs shadow-md"
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Open Level 5 Dashboard
