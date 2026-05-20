@@ -2782,9 +2782,19 @@ const Recharge = () => {
                       <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-blue-100 p-2.5">
                         <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-1" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-blue-700">
-                            Country mismatch — {helperDiag.byCountry} trader{helperDiag.byCountry !== 1 ? 's' : ''} hidden
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-[11px] font-semibold text-blue-700">
+                              Country mismatch — {helperDiag.byCountry} trader{helperDiag.byCountry !== 1 ? 's' : ''} hidden
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-COUNTRY-MISMATCH'); toast({ title: 'Copied audit ID', description: 'VT-COUNTRY-MISMATCH' }); }}
+                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded px-1 py-0.5 transition-colors"
+                              title="Copy audit ID"
+                            >
+                              <Copy className="w-2.5 h-2.5" /> VT-COUNTRY-MISMATCH
+                            </button>
+                          </div>
                           <p className="text-[10px] text-blue-600/80 leading-snug">
                             Traders exist but their registered country does not match yours. Only traders from the same country are shown for regulatory compliance.
                           </p>
