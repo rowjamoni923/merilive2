@@ -63,23 +63,22 @@ class FakeDb {
   }
 
   // RPC: coin_trader_transfer_to_user
-  rpcUidTopup(_recipient: string, _amount: number) {
-    const blocked = this.gate(); if (blocked) return blocked;
-    return { success: true };
+  rpcUidTopup(_recipient: string, _amount: number): RpcResult {
+    return this.gate() ?? { success: true };
   }
 
   // RPC: coin_trader_transfer_to_agency
-  rpcAgencyDeposit(_agency: string, _amount: number) {
-    const blocked = this.gate(); if (blocked) return blocked;
-    return { success: true };
+  rpcAgencyDeposit(_agency: string, _amount: number): RpcResult {
+    return this.gate() ?? { success: true };
   }
 
   // RPC: coin_trader_self_recharge
-  rpcSelfDeposit(_amount: number) {
-    const blocked = this.gate(); if (blocked) return blocked;
-    return { success: true };
+  rpcSelfDeposit(_amount: number): RpcResult {
+    return this.gate() ?? { success: true };
   }
 }
+
+type RpcResult = { success: boolean; error?: string };
 
 const db = new FakeDb();
 
