@@ -14,6 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 
+/** Minimum USD required for crypto auto-payment + on-chain verification. */
+export const CRYPTO_PAYMENT_MIN_USD = 100;
+
+
 interface TraderLevel {
   level_number: number;
   level_name: string;
