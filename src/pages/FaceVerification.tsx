@@ -1545,7 +1545,7 @@ const FaceVerification = () => {
       // → service_auto_finalize_face_verification handles gender swap + is_host + status='approved'.
       let autoApproved = false;
       let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
-      if (!faceManualReviewRequired && submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
         if (result?.autoFinalize?.success) {
           autoApproved = true;
@@ -1789,7 +1789,7 @@ const FaceVerification = () => {
       // → service_auto_finalize_face_verification handles gender swap + is_host=true + status='approved'.
       let autoApproved = false;
       let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
-      if (!faceManualReviewRequired && submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
         if (result?.autoFinalize?.success) {
           autoApproved = true;
