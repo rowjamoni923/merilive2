@@ -4,6 +4,7 @@ import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import firstRechargeBanner from "@/assets/first-recharge-banner.jpg";
 import treasureChest3D from "@/assets/treasure-chest-3d.png";
+import RechargeBannerCarousel from "@/components/recharge/RechargeBannerCarousel";
 
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/button";
@@ -2434,110 +2435,9 @@ const Recharge = () => {
       </div>
 
       {/* Scrollable Content - Mobile Optimized with Bottom Nav Safe Area */}
-        {/* First Recharge Bonus Banner - Animated */}
-        {isFirstRecharge && (
-          <div className="mx-0 mb-3 relative overflow-hidden rounded-xl shadow-lg shadow-amber-500/20" style={{ height: '80px' }}>
-            {rechargeBannerConfig.banner_image_url && rechargeBannerConfig.banner_type === 'image' ? (
-              <img 
-                src={rechargeBannerConfig.banner_image_url} 
-                alt="First Recharge Bonus" 
-                className="w-full h-full rounded-xl object-cover"
-              />
-            ) : (
-              <>
-                {/* Animated gradient background */}
-                <div 
-                  className="absolute inset-0 rounded-xl"
-                  style={{
-                    background: 'linear-gradient(135deg, #1a0a2e 0%, #16082b 20%, #2d1045 40%, #1a0a2e 60%, #0d0618 100%)',
-                  }}
-                />
-                
-                {/* Moving shimmer effect */}
-                <div 
-                  className="absolute inset-0 rounded-xl opacity-30"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,215,0,0.15) 25%, rgba(255,165,0,0.2) 50%, rgba(255,215,0,0.15) 75%, transparent 100%)',
-                    backgroundSize: '200% 100%',
-                    animation: 'shimmerBanner 3s ease-in-out infinite',
-                  }}
-                />
+        {/* Promotional Banner Carousel — 6 rotating 3D banners (5s each, admin-managed via /admin/banners with location='recharge') */}
+        <RechargeBannerCarousel />
 
-                {/* Floating particles */}
-                {bonusParticles.map((particle, i) => (
-                  <div
-                    key={i}
-                    className="absolute rounded-full"
-                    style={{
-                      width: `${particle.size}px`,
-                      height: `${particle.size}px`,
-                      background: particle.color,
-                      left: particle.left,
-                      top: particle.top,
-                      animationName: 'floatParticle',
-                      animationDuration: particle.duration,
-                      animationTimingFunction: 'ease-in-out',
-                      animationIterationCount: 'infinite',
-                      animationDelay: particle.delay,
-                      opacity: particle.opacity,
-                      filter: 'blur(0.5px)',
-                      boxShadow: '0 0 4px rgba(255,215,0,0.6)',
-                    }}
-                  />
-                ))}
-
-                {/* Left: 3D Treasure Chest */}
-                <div className="absolute left-1 top-1/2 -translate-y-1/2">
-                  <div className="relative" style={{ animation: 'bounceChest 2.5s ease-in-out infinite' }}>
-                    <img src={treasureChest3D} alt="Gift Box" style={{ width: '72px', height: '72px', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(139,92,246,0.5))' }} />
-                  </div>
-                </div>
-
-                {/* Center text */}
-                <div className="absolute inset-0 flex items-center justify-center flex-col" style={{ paddingLeft: '70px' }}>
-                  <p 
-                    className="text-lg font-black tracking-widest uppercase"
-                    style={{
-                      background: 'linear-gradient(135deg, #FFF8DC 0%, #FFD700 25%, #FFFFFF 50%, #FFD700 75%, #FFA500 100%)',
-                      backgroundSize: '200% 100%',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.8)) drop-shadow(0 2px 4px rgba(255,165,0,0.6))',
-                      animation: 'shimmerBanner 3s linear infinite',
-                      letterSpacing: '0.12em',
-                    }}
-                  >
-                    {rechargeBannerConfig.banner_title || 'FIRST RECHARGE BONUS'}
-                  </p>
-                  <p 
-                    className="text-[10px] mt-0.5 tracking-wider font-semibold"
-                    style={{
-                      background: 'linear-gradient(90deg, #e8d5b0 0%, #fff 50%, #e8d5b0 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      opacity: 0.85,
-                    }}
-                  >
-                    {rechargeBannerConfig.banner_subtitle || 'Get extra bonus diamonds on your first purchase'}
-                  </p>
-                </div>
-              </>
-            )}
-            {/* Glow border with animation */}
-            <div 
-              className="absolute inset-0 rounded-xl"
-              style={{
-                border: '1px solid transparent',
-                background: 'linear-gradient(var(--angle, 0deg), rgba(255,215,0,0.4), rgba(255,165,0,0.1), rgba(255,215,0,0.4)) border-box',
-                mask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
-                WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude',
-                animation: 'rotateBorder 4s linear infinite',
-              }}
-            />
-          </div>
-        )}
 
         <style>{`
           @keyframes shimmerBanner {

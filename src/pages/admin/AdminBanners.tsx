@@ -45,6 +45,7 @@ interface Banner {
   end_date: string | null;
   created_at: string;
   updated_at: string;
+  location?: string | null;
 }
 
 export default function AdminBanners() {
@@ -73,6 +74,7 @@ export default function AdminBanners() {
     is_active: true,
     start_date: "",
     end_date: "",
+    location: "home",
   });
 
   const fetchBanners = async () => {
@@ -117,6 +119,7 @@ export default function AdminBanners() {
         is_active: banner.is_active,
         start_date: banner.start_date?.split("T")[0] || "",
         end_date: banner.end_date?.split("T")[0] || "",
+        location: banner.location || "home",
       });
     } else {
       setEditingBanner(null);
@@ -133,6 +136,7 @@ export default function AdminBanners() {
         is_active: true,
         start_date: "",
         end_date: "",
+        location: "home",
       });
     }
     setShowEditor(true);
@@ -188,6 +192,7 @@ export default function AdminBanners() {
         is_active: formData.is_active,
         start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
         end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+        location: formData.location || "home",
       };
 
       if (editingBanner) {
@@ -344,6 +349,9 @@ export default function AdminBanners() {
                     <h3 className="text-slate-800 font-semibold">{banner.title}</h3>
                     <Badge className={banner.is_active ? "bg-green-100 text-green-600 border-green-200" : "bg-slate-100 text-slate-600 border-slate-200"}>
                       {banner.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                    <Badge className={banner.location === 'recharge' ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-slate-100 text-slate-600 border-slate-200"}>
+                      {banner.location === 'recharge' ? '💎 Recharge' : '🏠 Home'}
                     </Badge>
                     {banner.link_url && (
                       <Badge className="bg-blue-100 text-blue-600 border-blue-200">
@@ -520,6 +528,24 @@ export default function AdminBanners() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Banner Placement / Location */}
+            <div className="space-y-2">
+              <Label>Banner Location</Label>
+              <Select
+                value={formData.location}
+                onValueChange={(v) => setFormData({ ...formData, location: v })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="home">🏠 Home Page</SelectItem>
+                  <SelectItem value="recharge">💎 Recharge Page (3D Carousel — 5s auto-rotate)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500">
+                Choose where this banner appears. Recharge page shows 6 rotating banners; up to 12 supported.
+              </p>
             </div>
 
             {/* Colors */}
