@@ -1755,11 +1755,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     <div className="fixed inset-0 flex flex-col profile-home-shell overflow-hidden">
 
       {/* Back Button - Fixed at top, never scrolls away */}
-      <div className="fixed top-3 left-3 z-10 safe-area-top">
+      <div className="fixed top-2 left-3 z-10 safe-area-top">
         <Button
           size="icon"
           variant="ghost"
-          className="w-10 h-10 rounded-full profile-home-icon-button hover:bg-slate-50"
+          aria-label="Back"
+          className="w-11 h-11 rounded-full profile-home-icon-button hover:bg-slate-50 active:scale-95 transition-transform"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="w-5 h-5 text-body" />
@@ -1881,12 +1882,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
         {/* Action Buttons for other profiles - Premium Style */}
         {!isOwnProfile && currentUser && (
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-4 w-full px-2 justify-center">
             <Button
               size="sm"
               variant={isFollowing ? "outline" : "default"}
+              aria-label={isFollowing ? "Unfollow" : "Follow"}
               className={cn(
-                "h-9 text-xs px-4 rounded-full font-semibold transition-all shadow-lg",
+                "h-11 min-w-[88px] text-xs px-4 rounded-full font-semibold transition-all shadow-lg active:scale-95",
                 isFollowing 
                   ? "border-purple-500/50 text-purple-600 hover:bg-purple-500/10" 
                   : "bg-gradient-to-r from-purple-500 to-pink-500 shadow-purple-500/30 hover:shadow-purple-500/50"
@@ -1894,26 +1896,28 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={handleFollow}
               disabled={followLoading}
             >
-              {isFollowing ? <UserCheck className="w-3.5 h-3.5 mr-1" /> : <UserPlus className="w-3.5 h-3.5 mr-1" />}
+              {isFollowing ? <UserCheck className="w-4 h-4 mr-1" /> : <UserPlus className="w-4 h-4 mr-1" />}
               {isFollowing ? "Following" : "Follow"}
             </Button>
             {profile?.is_host && profile?.gender === 'female' && (
               <Button 
                 size="sm" 
-                className="h-9 text-xs px-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 font-semibold shadow-lg shadow-green-500/30" 
+                aria-label="Call"
+                className="h-11 min-w-[88px] text-xs px-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 font-semibold shadow-lg shadow-green-500/30 active:scale-95" 
                 onClick={handleCall}
               >
-                <Phone className="w-3.5 h-3.5 mr-1" />
+                <Phone className="w-4 h-4 mr-1" />
                 Call
               </Button>
             )}
             <Button 
               size="sm" 
               variant="outline" 
-              className="h-9 text-xs px-4 rounded-full border-pink-500/50 text-pink-600 hover:bg-pink-500/10 font-semibold" 
+              aria-label="Message"
+              className="h-11 min-w-[88px] text-xs px-4 rounded-full border-pink-500/50 text-pink-600 hover:bg-pink-500/10 font-semibold active:scale-95" 
               onClick={() => navigate(`/chat?user=${profileId}`)}
             >
-              <MessageCircle className="w-3.5 h-3.5 mr-1" />
+              <MessageCircle className="w-4 h-4 mr-1" />
               Message
             </Button>
           </div>
@@ -2340,20 +2344,20 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 })();
               }
             }}>
-              <TabsList className="w-full bg-white p-1 rounded-2xl grid grid-cols-4">
- <TabsTrigger value="user" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-slate-900">
+              <TabsList className="w-full bg-white p-1 rounded-2xl grid grid-cols-4 sticky top-0 z-10">
+                <TabsTrigger value="user" aria-label="Transfer to user" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-slate-900">
                   <User className="w-3.5 h-3.5" />
                   User
                 </TabsTrigger>
- <TabsTrigger value="agency" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-slate-900">
+                <TabsTrigger value="agency" aria-label="Transfer to agency" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-slate-900">
                   <Building2 className="w-3.5 h-3.5" />
                   Agency
                 </TabsTrigger>
- <TabsTrigger value="self" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-slate-900">
+                <TabsTrigger value="self" aria-label="Self recharge" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-slate-900">
                   <Gem className="w-3.5 h-3.5" />
                   Self
                 </TabsTrigger>
- <TabsTrigger value="history" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-slate-900">
+                <TabsTrigger value="history" aria-label="Transfer history" className="h-11 gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-slate-900">
                   <History className="w-3.5 h-3.5" />
                   History
                 </TabsTrigger>

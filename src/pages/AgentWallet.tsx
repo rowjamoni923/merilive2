@@ -348,15 +348,16 @@ const AgentWallet = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-success-500 to-success-600 text-on-dark safe-area-top">
-        <div className="flex items-center h-14 px-4">
+      <header className="flex-shrink-0 sticky top-0 z-20 bg-gradient-to-r from-success-500 to-success-600 text-on-dark safe-area-top shadow-md">
+        <div className="flex items-center h-14 px-2">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            aria-label="Back"
+            className="w-11 h-11 flex items-center justify-center hover:bg-white/10 active:bg-white/20 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold pr-7">Agent Wallet</h1>
+          <h1 className="flex-1 text-center text-lg font-semibold pr-11">Agent Wallet</h1>
         </div>
       </header>
 
@@ -379,14 +380,16 @@ const AgentWallet = () => {
           <div className="grid grid-cols-2 gap-3 mt-5">
             <Button 
               onClick={() => setShowTransfer(true)}
-              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+              aria-label="Send coins"
+              className="h-11 bg-white/20 hover:bg-white/30 active:bg-white/25 backdrop-blur-sm"
             >
               <Send className="w-4 h-4 mr-2" />
               Send Coins
             </Button>
             <Button 
               variant="outline"
-              className="border-warning-200/60 text-heading bg-transparent hover:bg-white/10"
+              aria-label="Transfer history"
+              className="h-11 border-warning-200/60 text-heading bg-transparent hover:bg-white/10 active:bg-white/20"
               onClick={() => navigate("/transfer-history")}
             >
               <History className="w-4 h-4 mr-2" />
@@ -409,7 +412,8 @@ const AgentWallet = () => {
 
           <Button 
             onClick={() => setShowExchange(true)}
-            className="w-full mt-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+            aria-label="Exchange beans to coins"
+            className="w-full h-11 mt-4 bg-white/20 hover:bg-white/30 active:bg-white/25 backdrop-blur-sm"
           >
             <ArrowRightLeft className="w-4 h-4 mr-2" />
             Exchange to Coins
@@ -420,9 +424,9 @@ const AgentWallet = () => {
       {/* Quick Actions */}
       <div className="mx-4 mt-4">
         <Tabs defaultValue="transfer" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="transfer">Quick Transfer</TabsTrigger>
-            <TabsTrigger value="exchange">Quick Exchange</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-2 h-12 p-1">
+            <TabsTrigger value="transfer" aria-label="Quick transfer" className="h-10 text-sm">Quick Transfer</TabsTrigger>
+            <TabsTrigger value="exchange" aria-label="Quick exchange" className="h-10 text-sm">Quick Exchange</TabsTrigger>
           </TabsList>
 
           <TabsContent value="transfer" className="mt-3">
