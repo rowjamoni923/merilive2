@@ -56,6 +56,7 @@ interface HelperApplication {
   // Payment fields
   payment_screenshot_url: string | null;
   payment_transaction_id: string | null;
+  payment_method: string | null;
   payment_details: any;
   user?: {
     display_name: string;
