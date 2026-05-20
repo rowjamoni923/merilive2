@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LevelBadge } from "@/components/common/LevelBadge";
+import { CountryFlag } from "@/components/common/CountryFlag";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
@@ -23,6 +24,8 @@ interface PremiumLiveStreamCardProps {
   viewerCount: number;
   country: string;
   countryFlag: string;
+  /** ISO-3166-1 alpha-2 country code, e.g. "BD". Renders as a real flag image when present. */
+  countryCode?: string | null;
   isOnline?: boolean;
   tags?: string[];
   userLevel?: number;
@@ -45,6 +48,7 @@ export const PremiumLiveStreamCard = ({
   viewerCount,
   country,
   countryFlag,
+  countryCode,
   isOnline = true,
   tags = [],
   userLevel = 1,
@@ -285,9 +289,9 @@ export const PremiumLiveStreamCard = ({
             {/* Level Badge and Location */}
             <div className="flex items-center gap-1.5 mt-0.5">
               <LevelBadge level={userLevel} size="xs" animated />
-              <div className="flex items-center gap-0.5 text-white/80 text-[10px]">
-                <span>{countryFlag}</span>
-                <span className="truncate max-w-[60px]">{country}</span>
+              <div className="flex items-center gap-1 text-white/85 text-[10px]">
+                <CountryFlag code={countryCode} emoji={countryFlag} className="w-[16px] h-[11px]" />
+                {country && <span className="truncate max-w-[60px]">{country}</span>}
               </div>
             </div>
           </div>
