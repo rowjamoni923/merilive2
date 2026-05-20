@@ -9,6 +9,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { callGiftService } from '@/utils/giftServiceClient';
+import { broadcastGiftSent } from '@/features/shared/room/roomBroadcast';
 
 export interface GiftItem {
   id: string;
