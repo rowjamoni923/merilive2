@@ -77,7 +77,7 @@ export function broadcastGiftSent(roomId: string, payload: BroadcastGiftPayload)
     if (status === 'SUBSCRIBED') {
       channel.send({
         type: 'broadcast',
-        event: 'gift-sent',
+        event: 'gift_sent',
         payload,
       });
       console.log('[RoomBroadcast] ⚡ Instant gift broadcast sent:', payload.giftName, 'from', payload.senderName);
@@ -104,7 +104,7 @@ export function subscribeToRoomBroadcasts(
       console.log('[RoomBroadcast] ⚡ Instant join received:', msg.payload?.userName);
       callbacks.onViewerJoin?.(msg.payload as BroadcastJoinPayload);
     })
-    .on('broadcast', { event: 'gift-sent' }, (msg) => {
+    .on('broadcast', { event: 'gift_sent' }, (msg) => {
       console.log('[RoomBroadcast] ⚡ Instant gift received:', msg.payload?.giftName);
       callbacks.onGiftSent?.(msg.payload as BroadcastGiftPayload);
     })

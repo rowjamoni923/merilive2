@@ -130,9 +130,10 @@ export function useRoomGifts({
             return;
           }
 
+          // RLS-safe: profiles_public for cross-user reads (Core $1400 rule)
           const [giftResponse, senderResponse] = await Promise.all([
             supabase.from('gifts').select('name, icon_url, animation_url, sound_url').eq('id', payload.new.gift_id).single(),
-            supabase.from('profiles').select('display_name, avatar_url, user_level').eq('id', payload.new.sender_id).single(),
+            supabase.from('profiles_public').select('display_name, avatar_url, user_level').eq('id', payload.new.sender_id).maybeSingle(),
           ]);
 
           const gift = giftResponse.data;
