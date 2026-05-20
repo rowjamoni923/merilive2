@@ -69,6 +69,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import { AdminAlertBell } from "@/components/admin/AdminPhoneAlertsPanel";
+import { AdminRealtimeSyncIndicator } from "@/components/admin/AdminRealtimeSyncIndicator";
 import { AdminProfileMenu } from "@/components/admin/AdminProfileMenu";
 import useAdminAccess from "@/hooks/useAdminAccess";
 import { revokeAdminAccess, hasAdminAccessFlag, hasOwnerAccessFlag } from "@/utils/adminAccessStorage";
