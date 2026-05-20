@@ -48,6 +48,22 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, timeoutMes
 };
 
 /**
+ * Dialog-safe Permissions API query — works in modern Android WebView (Chromium 70+)
+ * and all desktop/mobile browsers. Returns null when the API or that specific
+ * permission name is not supported. NEVER triggers a permission dialog.
+ */
+const queryPermissionSafe = async (name: PermissionName): Promise<PermissionState | null> => {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) return null;
+  try {
+    const result = await navigator.permissions.query({ name });
+    return result.state;
+  } catch {
+    return null;
+  }
+};
+
+
+/**
  * On Android WebView, navigator.permissions.query may not work for camera/mic.
  * We skip it on native and go straight to getUserMedia probe.
  */
