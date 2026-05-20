@@ -21,6 +21,9 @@
     "test:visual:update": "playwright test --update-snapshots",
     "test:visual:report": "playwright show-report",
     "report:contrast": "node scripts/contrast-report.mjs",
+    "check:guards": "node scripts/check-runtime-guards.mjs",
+    "check:guards:baseline": "node scripts/check-runtime-guards.mjs --update-baseline",
+    "loadtest:poll": "node scripts/load-test-live-call-audit.mjs",
     "test:e2e": "playwright test --config=playwright.e2e.config.ts",
     "test:e2e:admin": "playwright test --config=playwright.e2e-admin.config.ts"
   },
