@@ -2417,15 +2417,45 @@ const Recharge = () => {
                 return (
                   <div className="space-y-2.5">
                     {visibleHelpers.map((helper, idx) => {
-                      const levelColors = helper.traderLevel >= 4
-                        ? "from-amber-500 to-yellow-500" 
-                        : helper.traderLevel >= 3 
-                          ? "from-purple-500 to-pink-500" 
-                          : "from-blue-500 to-cyan-500";
+                      const isLv5 = helper.traderLevel >= 5;
+                      const levelColors = isLv5
+                        ? "from-amber-400 via-yellow-400 to-amber-500"
+                        : helper.traderLevel >= 4
+                          ? "from-amber-500 to-yellow-500"
+                          : helper.traderLevel >= 3
+                            ? "from-purple-500 to-pink-500"
+                            : "from-blue-500 to-cyan-500";
                       const globalRank = helperRotationPage * pageSize + idx + 1;
                       return (
-                         <div key={helper.id} className="relative bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-all overflow-hidden">
-                          <div className={cn("h-1 bg-gradient-to-r", levelColors)} />
+                         <div
+                           key={helper.id}
+                           className={cn(
+                             "relative rounded-2xl transition-all overflow-hidden",
+                             isLv5
+                               ? "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 shadow-[0_8px_30px_-8px_rgba(245,158,11,0.6)] ring-2 ring-amber-300/70 hover:shadow-[0_12px_40px_-8px_rgba(245,158,11,0.75)]"
+                               : "bg-white shadow-md border border-gray-100 hover:shadow-lg"
+                           )}
+                         >
+                          {/* Premium animated top stripe for L5, plain for others */}
+                          {isLv5 ? (
+                            <div className="relative h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 overflow-hidden">
+                              <div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent"
+                                style={{ animation: 'shimmer 2.5s linear infinite' }}
+                              />
+                            </div>
+                          ) : (
+                            <div className={cn("h-1 bg-gradient-to-r", levelColors)} />
+                          )}
+
+                          {/* Premium banner for L5 */}
+                          {isLv5 && (
+                            <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 shadow-md">
+                              <Crown className="w-3 h-3 text-white" />
+                              <span className="text-[9px] font-extrabold text-white tracking-wide uppercase">Premium</span>
+                            </div>
+                          )}
+
                           <div className="flex items-center gap-3 p-3">
                             <div className={cn(
                               "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
@@ -2434,25 +2464,54 @@ const Recharge = () => {
                               {globalRank <= 3 ? ['🥇','🥈','🥉'][globalRank-1] : `#${globalRank}`}
                             </div>
                             <div className="relative shrink-0">
-                              <img src={helper.avatar || '/placeholder.svg'} alt={helper.name} loading="eager" decoding="async" className="w-11 h-11 rounded-xl object-cover ring-2 ring-amber-200" />
-                              <div className={cn("absolute -top-1 -left-1 px-1 py-0.5 rounded text-[8px] font-bold text-heading shadow bg-gradient-to-r", levelColors)}>
+                              <img
+                                src={helper.avatar || '/placeholder.svg'}
+                                alt={helper.name}
+                                loading="eager"
+                                decoding="async"
+                                className={cn(
+                                  "object-cover rounded-xl",
+                                  isLv5
+                                    ? "w-14 h-14 ring-[3px] ring-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)]"
+                                    : "w-11 h-11 ring-2 ring-amber-200"
+                                )}
+                              />
+                              <div className={cn(
+                                "absolute -top-1 -left-1 px-1 py-0.5 rounded text-[8px] font-bold text-heading shadow bg-gradient-to-r",
+                                levelColors
+                              )}>
                                 Lv.{helper.traderLevel}
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <h3 className="font-bold text-heading text-sm truncate">{helper.name}</h3>
-                                <Badge className={cn("text-[8px] font-bold border-0 text-heading bg-gradient-to-r px-1.5 py-0", levelColors)}>Trader</Badge>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <h3 className={cn("font-bold truncate", isLv5 ? "text-[15px] text-amber-900" : "text-sm text-heading")}>
+                                  {helper.name}
+                                </h3>
+                                <Badge className={cn(
+                                  "text-[8px] font-bold border-0 text-heading bg-gradient-to-r px-1.5 py-0",
+                                  levelColors
+                                )}>
+                                  {isLv5 ? 'Verified Trader' : 'Trader'}
+                                </Badge>
                               </div>
-                              <div className="flex items-center gap-1.5 mt-0.5">
+                              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                 <span className={`text-[10px] font-medium ${helper.isOnline ? 'text-green-500' : 'text-heading'}`}>
                                   {helper.isOnline ? '● Online' : '○ Offline'}
                                 </span>
                                 {helper.appUid && <span className="text-[10px] text-heading">ID: {helper.appUid}</span>}
                               </div>
-                              <div className="flex items-center gap-2 mt-0.5">
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 <span className="text-[9px] text-orange-600 font-semibold">
                                   🛒 {helper.totalSold > 0 ? `${(helper.totalSold / 1000).toFixed(0)}K sold` : 'New trader'}
+                                </span>
+                                <span className={cn(
+                                  "inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full",
+                                  helper.dailyTopUps > 0
+                                    ? "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-sm"
+                                    : "bg-gray-100 text-gray-500"
+                                )}>
+                                  📊 {helper.dailyTopUps} top-up{helper.dailyTopUps === 1 ? '' : 's'} today
                                 </span>
                               </div>
                               {/* WhatsApp Number Display */}
@@ -2464,34 +2523,37 @@ const Recharge = () => {
                                   <span className="text-[10px] text-green-600 font-medium">{helper.whatsappNumber}</span>
                                 </div>
                               )}
-                              {/* Accepted payment method logos (tick-marked by helper) */}
+                              {/* Accepted wallets with name + logo */}
                               {helper.acceptedMethods && helper.acceptedMethods.length > 0 && (
                                 <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                                   <span className="text-[9px] text-heading font-medium">Accepts:</span>
-                                  {helper.acceptedMethods.slice(0, 6).map((m) => {
+                                  {helper.acceptedMethods.slice(0, 4).map((m) => {
                                     const resolved = resolveMethodLogo(m.logo_url, m.name);
                                     return (
                                       <div
                                         key={m.gateway_id}
                                         title={`${m.name}${m.is_integrated ? ' (Auto)' : ' (Manual)'}`}
-                                        className="w-5 h-5 rounded bg-white border border-gray-200 flex items-center justify-center overflow-hidden"
+                                        className="inline-flex items-center gap-1 pl-0.5 pr-1.5 py-0.5 rounded-full bg-white border border-gray-200 shadow-sm"
                                       >
-                                        {resolved ? (
-                                          <img
-                                            src={resolved}
-                                            alt={m.name}
-                                            className="w-full h-full object-contain"
-                                            loading="lazy"
-                                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                                          />
-                                        ) : (
-                                          <span className="text-[8px] font-bold text-body">{m.name.charAt(0)}</span>
-                                        )}
+                                        <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-100">
+                                          {resolved ? (
+                                            <img
+                                              src={resolved}
+                                              alt={m.name}
+                                              className="w-full h-full object-contain"
+                                              loading="lazy"
+                                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                                            />
+                                          ) : (
+                                            <span className="text-[7px] font-bold text-body">{m.name.charAt(0)}</span>
+                                          )}
+                                        </div>
+                                        <span className="text-[9px] font-semibold text-heading whitespace-nowrap">{m.name}</span>
                                       </div>
                                     );
                                   })}
-                                  {helper.acceptedMethods.length > 6 && (
-                                    <span className="text-[9px] text-heading font-bold">+{helper.acceptedMethods.length - 6}</span>
+                                  {helper.acceptedMethods.length > 4 && (
+                                    <span className="text-[9px] text-heading font-bold">+{helper.acceptedMethods.length - 4}</span>
                                   )}
                                 </div>
                               )}
