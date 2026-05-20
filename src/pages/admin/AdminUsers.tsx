@@ -362,7 +362,11 @@ export default function AdminUsers() {
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <Avatar className="w-10 h-10 border-2 border-slate-200 shadow-sm">
-                              <AvatarImage src={user.avatar_url || undefined} />
+                              <AvatarImage
+                                src={getDisplayAvatar(user.id, user.avatar_url, { gender: (user.gender as any) || 'female' })}
+                                loading="lazy"
+                                referrerPolicy="no-referrer"
+                              />
                               <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white">
                                 {user.display_name?.charAt(0) || "U"}
                               </AvatarFallback>
