@@ -407,7 +407,7 @@ const AgentRank = () => {
                   </div>
 
                   {/* Name */}
-                  <p className={`text-white font-bold text-center truncate w-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${isChamp ? 'text-sm' : 'text-xs'}`}>
+                  <p className={`text-slate-900 font-bold text-center truncate w-full ${isChamp ? 'text-sm' : 'text-xs'}`}>
                     {entry.agency_name?.slice(0, isChamp ? 14 : 10)}
                   </p>
 
@@ -417,11 +417,11 @@ const AgentRank = () => {
                   {/* Metric Value - Shield Style */}
                   <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full border ${
                     isChamp 
-                      ? 'bg-gradient-to-r from-yellow-500/25 to-amber-500/25 border-yellow-400/50' 
-                      : 'bg-white/10 border-white/25'
+                      ? 'bg-gradient-to-r from-yellow-100 to-amber-100 border-yellow-400' 
+                      : 'bg-white border-slate-200'
                   }`}>
-                    <Gem className={`${isChamp ? 'w-4 h-4' : 'w-3.5 h-3.5'} text-cyan-300`} />
-                    <span className={`font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] ${isChamp ? 'text-sm' : 'text-xs'}`}>
+                    <Gem className={`${isChamp ? 'w-4 h-4' : 'w-3.5 h-3.5'} text-cyan-600`} />
+                    <span className={`font-black text-slate-900 ${isChamp ? 'text-sm' : 'text-xs'}`}>
                       {formatNumber(entry.metric_value)}
                     </span>
                   </div>
@@ -429,8 +429,8 @@ const AgentRank = () => {
                   {/* Reward badge */}
                   {reward && (
                     <div className="flex items-center gap-0.5 mt-1">
-                      <Gift className="w-3 h-3 text-yellow-300" />
-                      <span className="text-[9px] text-yellow-200 font-bold">+{formatNumber(reward.reward_coins)}</span>
+                      <Gift className="w-3 h-3 text-amber-600" />
+                      <span className="text-[9px] text-amber-700 font-bold">+{formatNumber(reward.reward_coins)}</span>
                     </div>
                   )}
                 </motion.div>
@@ -440,9 +440,9 @@ const AgentRank = () => {
 
           {/* Podium Base */}
           <div className="flex justify-center items-end gap-3 mt-3">
-            <div className="w-28 h-10 bg-gradient-to-t from-slate-400/10 to-slate-400/5 rounded-t-xl border-t border-x border-white/[0.06]" />
-            <div className="w-32 h-14 bg-gradient-to-t from-yellow-500/10 to-yellow-500/5 rounded-t-xl border-t border-x border-yellow-500/10 -mt-1" />
-            <div className="w-28 h-8 bg-gradient-to-t from-amber-600/10 to-amber-600/5 rounded-t-xl border-t border-x border-white/[0.06]" />
+            <div className="w-28 h-10 bg-gradient-to-t from-slate-300/40 to-slate-200/30 rounded-t-xl border-t border-x border-slate-200" />
+            <div className="w-32 h-14 bg-gradient-to-t from-yellow-300/50 to-yellow-200/30 rounded-t-xl border-t border-x border-yellow-300 -mt-1" />
+            <div className="w-28 h-8 bg-gradient-to-t from-amber-300/40 to-amber-200/30 rounded-t-xl border-t border-x border-amber-300" />
           </div>
         </div>
 
