@@ -31,7 +31,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   onVideoStalled,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const shieldRef = useRef<HTMLDivElement>(null);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
 
@@ -78,13 +77,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     enforceInlineSurface();
     hardenVideoElementForNative(el, { muted: true });
 
-    // Re-show shield on new track (covers native play icon until first frame)
-    if (shieldRef.current) {
-      shieldRef.current.style.display = 'block';
-      shieldRef.current.style.opacity = '1';
-    }
-
-
     const mediaTrack = videoTrack.mediaStreamTrack;
 
     // === ATTACH TRACK ===
@@ -105,15 +97,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const onTrackEnded = () => onVideoStalledRef.current?.();
     mediaTrack?.addEventListener('ended', onTrackEnded);
 
-    const hideShield = () => {
-      const s = shieldRef.current;
-      if (s && s.style.opacity !== '0') {
-        s.style.opacity = '0';
-        setTimeout(() => { if (s) s.style.display = 'none'; }, 150);
-      }
-    };
     const markReady = () => {
-      hideShield();
       if (!muted) {
         // Optional unmute after successful playback start
         try {
@@ -268,17 +252,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           willChange: 'transform',
           backfaceVisibility: 'hidden',
         } as React.CSSProperties}
-      />
-      {/* Shield overlay: covers WebView's native play icon until first frame arrives */}
-      <div
-        ref={shieldRef}
-        data-video-shield="livekit"
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none bg-black"
-        style={{
-          transition: 'opacity 150ms ease',
-          opacity: 1,
-        }}
       />
     </div>
   );
