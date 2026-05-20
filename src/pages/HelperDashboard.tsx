@@ -103,6 +103,11 @@ const HelperDashboard = () => {
   const [showCryptoTopupModal, setShowCryptoTopupModal] = useState(false);
   const [showAddPaymentMethodDialog, setShowAddPaymentMethodDialog] = useState(false);
   const [paymentMethodsRefreshKey, setPaymentMethodsRefreshKey] = useState(0);
+
+  // L5-parity tab strip
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const initialTab = urlParams?.get('tab') || 'levels';
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   
   // Real-time level progress hook
   const { 
@@ -1161,773 +1166,785 @@ const HelperDashboard = () => {
 
 
 
-        {/* ============ PREMIUM WALLET CARD ============ */}
-        <div
-          className="relative cursor-pointer rounded-[22px] p-[1.5px] transition-transform active:scale-[0.99]"
-          style={{
-            background:
-              "conic-gradient(from 140deg at 50% 50%, #fde68a 0deg, #b45309 70deg, #fbbf24 130deg, #92400e 200deg, #fde68a 260deg, #d97706 320deg, #fde68a 360deg)",
-            boxShadow:
-              "0 22px 48px -18px rgba(0,0,0,0.75), 0 0 60px rgba(245,158,11,0.18)",
-          }}
-          onClick={() => setShowTransferModal(true)}
-        >
-          <div
-            className="relative rounded-[20px] p-4 overflow-hidden"
-            style={{
-              background:
-                "radial-gradient(140% 100% at 0% 0%, #FFFEF8 0%, #FFFBEC 55%, #FFF5D6 100%)",
-            }}
-          >
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-white/[0.10] to-transparent" />
-            <div className="pointer-events-none absolute -bottom-12 -right-12 w-44 h-44 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-white/15 blur-3xl" />
-
-            <div className="relative flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-amber-700/85 text-[10px] font-bold uppercase tracking-[0.22em]">
-                  Trader Wallet
-                </p>
-                <p
-                  className="mt-1 text-[28px] font-black leading-none tabular-nums bg-clip-text text-transparent"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(180deg, #b45309 0%, #d97706 50%, #92400e 100%)",
-                    filter: "drop-shadow(0 2px 6px rgba(245,158,11,0.35))",
-                  }}
-                >
-                  {(
-                    (helperData?.wallet_balance || 0) +
-                    (agencyDiamondBalance || 0)
-                  ).toLocaleString()}{" "}
-                  <span className="text-[20px]">💎</span>
-                </p>
-                {agencyDiamondBalance > 0 && (
-                  <p className="text-slate-700 text-[10px] mt-1.5 leading-tight">
-                    Helper{" "}
-                    <span className="text-amber-700/80 font-semibold tabular-nums">
-                      {(helperData?.wallet_balance || 0).toLocaleString()}
-                    </span>{" "}
-                    + Agency{" "}
-                    <span className="text-amber-700/80 font-semibold tabular-nums">
-                      {agencyDiamondBalance.toLocaleString()}
-                    </span>
-                  </p>
-                )}
-                <p className="text-emerald-600 text-[11px] mt-2 flex items-center gap-1.5 font-medium">
-                  <Send className="w-3 h-3" />
-                  Tap to transfer to User or Agency
-                </p>
-              </div>
-              <div
-                className="shrink-0 grid place-items-center w-14 h-14 rounded-2xl"
-                style={{
-                  background:
-                    "linear-gradient(180deg, #fde68a 0%, #f59e0b 50%, #92400e 100%)",
-                  boxShadow:
-                    "0 10px 22px -8px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(120,53,15,0.55)",
-                }}
-              >
-                <Wallet className="w-7 h-7 text-amber-700" />
-              </div>
-            </div>
-
-            {nextLevel && (
-              <div className="relative mt-4">
-                <div className="flex justify-between text-[10px] mb-1.5 font-bold tracking-wider uppercase">
-                  <span className="text-amber-700/85">
-                    Lv.{helperData?.trader_level || 1}
-                  </span>
-                  <span className="text-amber-700/80">
-                    Lv.{nextLevel.level_number}
-                  </span>
-                </div>
-                <div
-                  className="relative h-2.5 rounded-full overflow-hidden"
-                  style={{
-                    background: "rgba(146,64,14,0.10)",
-                    boxShadow:
-                      "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(251,191,36,0.12)",
-                  }}
-                >
-                  <div
-                    className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-1000 ease-out"
-                    style={{
-                      width: `${levelProgress}%`,
-                      background:
-                        "linear-gradient(90deg, #fde68a 0%, #f59e0b 50%, #b45309 100%)",
-                      boxShadow:
-                        "0 0 14px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.45)",
-                    }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
-                  </div>
-                </div>
-                <div className="flex justify-between items-center mt-1.5">
-                  <p className="text-[10px] text-slate-500 tabular-nums font-medium">
-                    ${currentCost.toFixed(0)} / ${nextLevelCost.toFixed(0)}
-                  </p>
-                  <Badge
-                    className="text-[9px] border-0 font-black tabular-nums px-2 py-0.5"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, rgba(251,191,36,0.25), rgba(180,83,9,0.10))",
-                      border: "1px solid rgba(251,191,36,0.35)",
-                      color: "#92400e",
-                    }}
-                  >
-                    {levelProgress.toFixed(0)}%
-                  </Badge>
-                </div>
-              </div>
-            )}
-
-            {!nextLevel && helperData?.trader_level === 5 && (
-              <div className="relative mt-4">
-                <div
-                  className="flex items-center justify-center gap-2 py-2 rounded-xl"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, rgba(251,191,36,0.18), rgba(180,83,9,0.08))",
-                    border: "1px solid rgba(251,191,36,0.35)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
-                  }}
-                >
-                  <Gem className="w-4 h-4 text-amber-700" />
-                  <span className="text-amber-700 text-xs font-bold tracking-wide uppercase">
-                    Maximum Level Achieved
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {transferHistory.length > 0 && (
+        {/* ============ PREMIUM STAT CARDS (L5 parity) ============ */}
+        <div className="relative grid grid-cols-4 gap-2">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowTransferHistory(true);
-            }}
-            className="w-full mt-2.5 py-2 rounded-xl text-amber-700/80 text-[11px] font-semibold tracking-wide flex items-center justify-center gap-2 transition-all hover:text-amber-700"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(251,191,36,0.18), rgba(251,191,36,0.06))",
-              border: "1px solid rgba(251,191,36,0.18)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
-            }}
+            type="button"
+            onClick={() => setActiveTab('orders')}
+            className="bg-white/80 backdrop-blur-md rounded-2xl px-2 py-2.5 text-center border border-amber-200/60 shadow-[0_2px_10px_rgba(146,64,14,0.06)] active:scale-95 transition-transform"
           >
-            <History className="w-3.5 h-3.5" />
-            View Transfer History ({transferHistory.length})
+            <p className="text-sm font-extrabold text-slate-900 truncate">
+              {pendingRequests.length}
+            </p>
+            <p className="text-[9px] font-semibold text-slate-700 mt-0.5">Pending</p>
           </button>
-        )}
 
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('methods');
+              setShowAddPaymentMethodDialog(true);
+            }}
+            className="bg-white/80 backdrop-blur-md rounded-2xl px-2 py-2.5 text-center border border-amber-200/60 shadow-[0_2px_10px_rgba(146,64,14,0.06)] active:scale-95 transition-transform"
+          >
+            <p className="text-sm font-extrabold text-slate-900 truncate">
+              <CreditCard className="w-4 h-4 inline text-emerald-600" />
+            </p>
+            <p className="text-[9px] font-semibold text-slate-700 mt-0.5">Methods</p>
+          </button>
 
+          <button
+            type="button"
+            onClick={() => setActiveTab('levels')}
+            className="bg-white/80 backdrop-blur-md rounded-2xl px-2 py-2.5 text-center border border-amber-200/60 shadow-[0_2px_10px_rgba(146,64,14,0.06)] active:scale-95 transition-transform"
+          >
+            <p className="text-sm font-extrabold text-slate-900 truncate">
+              Lv.{helperData?.trader_level || 1}
+            </p>
+            <p className="text-[9px] font-semibold text-slate-700 mt-0.5">Level</p>
+          </button>
 
-
-
-        <div
-          className="relative mt-3 rounded-2xl p-3.5 overflow-hidden"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(16,185,129,0.10), rgba(6,78,59,0.04))",
-            border: "1px solid rgba(16,185,129,0.28)",
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 22px -16px rgba(16,185,129,0.4)",
-          }}
-        >
-          <div className="flex items-center gap-2.5 mb-2.5">
-            <div
-              className="grid place-items-center w-8 h-8 rounded-xl"
-              style={{
-                background:
-                  "linear-gradient(180deg, #34d399 0%, #059669 100%)",
-                boxShadow:
-                  "0 6px 14px -6px rgba(16,185,129,0.6), inset 0 1px 0 rgba(255,255,255,0.4)",
-              }}
-            >
-              <svg
-                viewBox="0 0 24 24"
- className="w-4 h-4 text-slate-900"
-                fill="currentColor"
-              >
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-              </svg>
-            </div>
-            <div className="min-w-0">
-              <p className="text-emerald-600 font-bold text-[13px] leading-none">
-                WhatsApp Number
-              </p>
-              <p className="text-emerald-600 text-[10px] mt-1 tracking-wide">
-                Visible to users in Recharge section
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <input
-              type="tel"
-              placeholder="+880XXXXXXXXXX"
-              value={whatsappNumber}
-              onChange={(e) => setWhatsappNumber(e.target.value)}
-              className="flex-1 rounded-xl px-3 py-2 text-amber-50 text-sm placeholder:text-slate-700 focus:outline-none transition-colors"
-              style={{
-                background: "rgba(0,0,0,0.35)",
-                border: "1px solid rgba(16,185,129,0.30)",
-                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.4)",
-              }}
-            />
-            <button
-              onClick={saveWhatsappNumber}
-              disabled={savingWhatsapp || !whatsappNumber.trim()}
-              className="px-4 py-2 rounded-xl text-emerald-600 text-xs font-black tracking-wider uppercase disabled:opacity-50 active:scale-95 transition-transform"
-              style={{
-                background:
-                  "linear-gradient(180deg, #6ee7b7 0%, #10b981 50%, #047857 100%)",
-                boxShadow:
-                  "0 8px 18px -8px rgba(16,185,129,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(6,78,59,0.55)",
-              }}
-            >
-              {savingWhatsapp ? "..." : "Save"}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowTransferModal(true)}
+            className="bg-white/80 backdrop-blur-md rounded-2xl px-2 py-2.5 text-center border border-amber-200/60 shadow-[0_2px_10px_rgba(146,64,14,0.06)] active:scale-95 transition-transform"
+          >
+            <p className="text-sm font-extrabold text-slate-900 truncate">
+              {(() => {
+                const t = (helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0);
+                return t >= 1_000_000
+                  ? `${(t / 1_000_000).toFixed(1)}M`
+                  : t >= 1000
+                  ? `${(t / 1000).toFixed(0)}K`
+                  : t.toLocaleString();
+              })()}
+            </p>
+            <p className="text-[9px] font-semibold text-slate-700 mt-0.5">💎 Wallet</p>
+          </button>
         </div>
 
-        {helperData?.trader_level === 5 && helperData?.payroll_enabled && (
-          <div
-            onClick={() => navigate("/level5-helper-dashboard")}
-            className="relative mt-3 rounded-2xl p-3.5 cursor-pointer overflow-hidden active:scale-[0.99] transition-transform"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(168,85,247,0.22), rgba(236,72,153,0.16))",
-              border: "1px solid rgba(168,85,247,0.40)",
-              boxShadow:
-                "0 14px 30px -16px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.10)",
+        {/* Open Manual Top-up CTA (L5 parity) */}
+        <div className="relative mt-4">
+          <Button
+            onClick={() => {
+              setActiveTab('topup');
+              setShowTopupForm(true);
             }}
+            className="w-full h-10 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-semibold shadow-lg shadow-amber-500/30 border-0"
           >
-            <div className="flex items-center gap-3">
+            <DollarSign className="w-4 h-4 mr-2" />
+            Open Manual Top-up
+          </Button>
+        </div>
+
+        {/* Level progress mini-bar */}
+        {nextLevel && (
+          <div className="relative mt-3">
+            <div className="flex justify-between text-[10px] mb-1.5 font-bold tracking-wider uppercase">
+              <span className="text-amber-700/85">Lv.{helperData?.trader_level || 1}</span>
+              <span className="text-amber-700/80">Lv.{nextLevel.level_number}</span>
+            </div>
+            <div
+              className="relative h-2 rounded-full overflow-hidden"
+              style={{
+                background: "rgba(146,64,14,0.10)",
+                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(251,191,36,0.12)",
+              }}
+            >
               <div
-                className="grid place-items-center w-10 h-10 rounded-xl shrink-0"
+                className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-1000 ease-out"
                 style={{
-                  background:
-                    "linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 50%, #6d28d9 100%)",
-                  boxShadow:
-                    "0 6px 14px -6px rgba(139,92,246,0.7), inset 0 1px 0 rgba(255,255,255,0.45)",
+                  width: `${levelProgress}%`,
+                  background: "linear-gradient(90deg, #fde68a 0%, #f59e0b 50%, #b45309 100%)",
+                  boxShadow: "0 0 14px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.45)",
                 }}
-              >
-                <Banknote className="w-5 h-5 text-white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-violet-900 font-bold text-sm leading-none">
-                  💎 Level 5 Dashboard
-                </p>
-                <p className="text-violet-700 text-[11px] mt-1 font-medium">
-                  Access payroll & withdrawal processing
-                </p>
-              </div>
-              <ArrowLeft className="w-4 h-4 text-violet-700 rotate-180 shrink-0" />
+              />
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-[10px] text-slate-600 tabular-nums font-medium">
+                ${currentCost.toFixed(0)} / ${nextLevelCost.toFixed(0)}
+              </p>
+              <span className="text-[10px] text-amber-700 font-black tabular-nums">
+                {levelProgress.toFixed(0)}%
+              </span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="px-4 mt-4 space-y-4">
-      {/* Payroll Helper Guide Card */}
-        <div 
-          onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl p-3 cursor-pointer hover:from-indigo-500/30 hover:to-purple-500/30 transition-all active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-indigo-900 font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-indigo-700/80 text-[11px] font-medium">Learn roles, benefits & diamond trading</p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-indigo-700" />
-          </div>
-        </div>
+      {/* ============ MAIN TABS (L5 parity) ============ */}
+      <div className="px-4 mt-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full bg-slate-100 rounded-xl p-1 grid grid-cols-5">
+            <TabsTrigger
+              value="levels"
+              className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold"
+            >
+              <TrendingUp className="w-3 h-3 mr-0.5" />
+              Levels
+            </TabsTrigger>
+            <TabsTrigger
+              value="orders"
+              className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold"
+            >
+              <Clock className="w-3 h-3 mr-0.5" />
+              Orders
+              {pendingRequests.length > 0 && (
+                <Badge className="ml-0.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white text-[8px] h-4 px-1">
+                  {pendingRequests.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              value="methods"
+              className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold"
+            >
+              <CreditCard className="w-3 h-3 mr-0.5" />
+              Methods
+            </TabsTrigger>
+            <TabsTrigger
+              value="topup"
+              className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold"
+            >
+              <DollarSign className="w-3 h-3 mr-0.5" />
+              Top-up
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="text-slate-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-500 data-[state=active]:to-sky-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-[10px] px-1 font-semibold"
+            >
+              <History className="w-3 h-3 mr-0.5" />
+              History
+            </TabsTrigger>
+          </TabsList>
 
-
-        
-        {/* Pending Upgrade Requests */}
-        {pendingRequests.length > 0 && (
-          <Card className="bg-gradient-to-r from-orange-500/20 to-orange-500/20 border-amber-500/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-slate-900 text-sm flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-700" />
-                Pending Upgrade Requests
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 max-h-48 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-              {pendingRequests.map((req) => (
-                <div key={req.id} className="bg-slate-50 rounded-lg p-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-slate-900 text-sm font-medium">Level {req.requested_level} Upgrade</p>
-                    <p className="text-slate-700 text-xs">${req.amount_usd} • {req.payment_method}</p>
-                  </div>
-                  <Badge className="bg-amber-50 text-amber-700">{req.status}</Badge>
+          {/* ============ LEVELS TAB ============ */}
+          <TabsContent value="levels" className="mt-4 space-y-3">
+            <div
+              onClick={() => navigate('/payroll-helper-guide')}
+              className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl p-3 cursor-pointer hover:from-indigo-500/30 hover:to-purple-500/30 transition-all active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <FileText className="w-5 h-5 text-white" />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-indigo-900 font-semibold text-sm">📖 Payroll Helper Guide</p>
+                  <p className="text-indigo-700/80 text-[11px] font-medium">Learn roles, benefits & diamond trading</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-indigo-700" />
+              </div>
+            </div>
 
-        {/* Accepted Payment Methods (tick-mark for users to see logos in Recharge) */}
-        {helperId && (helperData?.trader_level || 1) < 5 && (
-          <HelperAcceptedMethodsCard
-            helperId={helperId}
-            helperCountryCode={helperData?.country_code || null}
-          />
-        )}
-
-        {/* Manual Top-up Section */}
-        <Card className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-emerald-200/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-slate-900 text-base flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-emerald-600" />
-              Manual Top-up
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-slate-700 text-sm">
-              Add diamonds to your wallet by sending payment
-            </p>
-            
-            {/* Level-based pricing info */}
-            {levelPricing && (
-              <div className="p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl border border-violet-200/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Gem className="w-4 h-4 text-violet-600" />
-                    <span className="text-slate-900 text-sm font-medium">Your Level {helperData?.trader_level || 1} Rate</span>
+            {helperData?.trader_level === 5 && helperData?.payroll_enabled && (
+              <div
+                onClick={() => navigate('/level5-helper-dashboard')}
+                className="rounded-2xl p-3.5 cursor-pointer overflow-hidden active:scale-[0.99] transition-transform"
+                style={{
+                  background: "linear-gradient(135deg, rgba(168,85,247,0.22), rgba(236,72,153,0.16))",
+                  border: "1px solid rgba(168,85,247,0.40)",
+                  boxShadow: "0 14px 30px -16px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.10)",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="grid place-items-center w-10 h-10 rounded-xl shrink-0"
+                    style={{
+                      background: "linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 50%, #6d28d9 100%)",
+                      boxShadow: "0 6px 14px -6px rgba(139,92,246,0.7), inset 0 1px 0 rgba(255,255,255,0.45)",
+                    }}
+                  >
+                    <Banknote className="w-5 h-5 text-white" />
                   </div>
-                  <Badge className="bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-sm border-0">
-                    {levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}
-                  </Badge>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-violet-900 font-bold text-sm leading-none">💎 Level 5 Dashboard</p>
+                    <p className="text-violet-700 text-[11px] mt-1 font-medium">Access payroll & withdrawal processing</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-violet-700" />
                 </div>
               </div>
             )}
-            
-            {!showTopupForm ? (
-              <Button 
-                onClick={() => setShowTopupForm(true)}
- className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white h-11"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Request Manual Top-up
-              </Button>
-            ) : (
-              <div className="space-y-4 bg-slate-50 rounded-xl p-4">
-                {/* Level pricing reminder */}
-                {levelPricing && (
-                  <div className="text-center p-2 bg-slate-50 rounded-lg">
-                    <p className="text-xs text-slate-700">
-                      Level {helperData?.trader_level || 1} Rate: <span className="text-emerald-600 font-semibold">{levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}</span>
-                    </p>
-                  </div>
-                )}
-                
-                {/* Diamond Packages Dropdown - Country Selector Style */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowDiamondPackages(!showDiamondPackages)}
-                    className={cn(
-                      "w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between",
-                      showDiamondPackages
-                        ? "bg-slate-100 border-sky-200 ring-2 ring-cyan-500/20"
-                        : selectedDiamondPackage
-                        ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-sky-200/50"
-                        : "bg-slate-50 border-slate-200 hover:border-sky-200/50"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
- <Gem className="w-5 h-5 text-white" />
-                      </div>
-                      {selectedDiamondPackage ? (
-                        <div className="text-left">
-                          <span className="text-slate-900 font-bold text-base">
-                            {formatDiamonds(selectedDiamondPackage)} 💎
-                          </span>
-                          <p className="text-emerald-600 text-sm font-medium">
-                            ${calculateUSD(selectedDiamondPackage).toFixed(2)} USD
-                          </p>
-                        </div>
-                      ) : (
-                        <span className="text-slate-500 font-medium">Select Diamond Package 💎</span>
+
+            <Card className="bg-white border-amber-200/60 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-slate-900 text-base flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-violet-600" />
+                  Trader Levels
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {traderLevels.map((level) => {
+                  const badge = getLevelBadge(level.level_number);
+                  const Icon = badge.icon;
+                  const isCurrent = level.level_number === (helperData?.trader_level || 1);
+                  const isUnlocked = level.level_number <= (helperData?.trader_level || 1);
+                  const canUpgrade = level.level_number === (helperData?.trader_level || 1) + 1;
+
+                  const levelRequest = pendingRequests.find(r => r.requested_level === level.level_number);
+                  const hasPendingRequest = levelRequest && (levelRequest.status === 'pending' || levelRequest.status === 'processing');
+                  const hasApprovedRequest = levelRequest && levelRequest.status === 'approved';
+
+                  return (
+                    <div
+                      key={level.level_number}
+                      className={cn(
+                        "p-4 rounded-xl border transition-all",
+                        isCurrent
+                          ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-violet-200/50"
+                          : isUnlocked
+                            ? "bg-slate-50 border-slate-200"
+                            : "bg-white border-amber-200/60 shadow-sm opacity-60"
                       )}
-                    </div>
-                    <div className={cn(
-                      "w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-transform duration-200",
-                      showDiamondPackages && "rotate-180"
-                    )}>
- <ArrowLeft className="w-4 h-4 text-slate-700 -rotate-90" />
-                    </div>
-                  </button>
-                  
-                  {/* Dropdown List */}
-                  {showDiamondPackages && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-slate-50 border-2 border-sky-200/50 rounded-xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-200">
-                      <div className="max-h-80 overflow-y-auto">
-                        {diamondPackages.map((pkg, index) => (
-                          <button
-                            key={pkg.diamonds}
-                            onClick={() => {
-                              handleSelectPackage(pkg.diamonds);
-                              setShowDiamondPackages(false);
-                            }}
-                            className={cn(
-                              "w-full p-3 flex items-center gap-3 transition-all border-b border-slate-200 last:border-b-0",
-                              selectedDiamondPackage === pkg.diamonds
-                                ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30"
-                                : "hover:bg-slate-50"
-                            )}
-                          >
-                            <div className={cn(
-                              "w-10 h-10 rounded-lg flex items-center justify-center text-xl",
-                              `bg-gradient-to-r ${pkg.color}`
-                            )}>
-                              💎
-                            </div>
-                            <div className="flex-1 text-left">
-                              <span className="text-slate-900 font-bold text-sm">{pkg.label}</span>
-                              <p className="text-slate-700 text-xs">
-                                {pkg.diamonds.toLocaleString()} diamonds
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-emerald-600 font-bold text-sm">
-                                ${calculateUSD(pkg.diamonds).toFixed(2)}
-                              </span>
-                              {selectedDiamondPackage === pkg.diamonds && (
-                                <div className="mt-1 flex justify-end">
-                                  <CheckCircle className="w-4 h-4 text-sky-600" />
-                                </div>
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r",
+                            badge.color
+                          )}>
+                            <Icon className="w-6 h-6 text-white drop-shadow" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="text-slate-900 font-bold">{level.level_name}</p>
+                              {isCurrent && (
+                                <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] border-0 shadow-sm">Current</Badge>
                               )}
                             </div>
-                          </button>
-                        ))}
+                            <p className="text-slate-700 text-xs">{level.description}</p>
+                            {level.level_number === 5 && (
+                              <p className="text-violet-600 text-xs mt-1 flex items-center gap-1">
+                                <Banknote className="w-3 h-3" />
+                                Payroll System Access
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {level.upgrade_cost_usd > 0 ? (
+                            <>
+                              <p className="text-slate-900 font-bold">${level.upgrade_cost_usd}</p>
+                              <p className="text-slate-700 text-xs">Upgrade Cost</p>
+                            </>
+                          ) : (
+                            <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200/50">Free</Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
 
-                {/* Custom Amount Option */}
-                <div className="border-t border-slate-200 pt-4">
-                  <button
-                    onClick={() => {
-                      setShowCustomAmount(!showCustomAmount);
-                      setSelectedDiamondPackage(null);
-                    }}
-                    className={cn(
-                      "w-full p-3 rounded-xl border-2 border-dashed transition-all",
-                      showCustomAmount
-                        ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-violet-200"
-                        : "bg-slate-50 border-slate-200 hover:border-violet-200/50"
-                    )}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <Crown className="w-5 h-5 text-violet-600" />
-                      <span className="text-slate-900 font-semibold">Custom Amount</span>
-                      <span className="text-slate-700 text-xs">(50 Lakh+)</span>
-                    </div>
-                  </button>
-                  
-                  {showCustomAmount && (
-                    <div className="mt-3 space-y-2">
-                      <Input
-                        type="text"
-                        placeholder="Enter diamonds (min: 5,00,000)"
-                        value={customDiamondAmount}
-                        onChange={(e) => handleCustomAmountChange(e.target.value)}
-                        className="bg-white border-purple-300 text-slate-900 text-center text-lg font-bold"
-                      />
-                      {parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000 && (
-                        <div className="p-2 bg-gradient-to-r from-violet-500 to-violet-600 rounded-lg border border-white/20 shadow-md">
-                          <p className="text-white text-sm text-center font-semibold">
-                            💎 {formatDiamonds(parseInt(customDiamondAmount.replace(/,/g, '')))} = ${calculateUSD(parseInt(customDiamondAmount.replace(/,/g, ''))).toFixed(2)}
+                      <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-200">
+                        <div>
+                          <p className="text-slate-500 text-xs">Commission</p>
+                          <p className="text-sky-600 font-bold">{level.commission_rate || 0}%</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500 text-xs">Withdrawal Limits</p>
+                          {level.min_withdrawal_amount > 0 || level.max_withdrawal_amount > 0 ? (
+                            <p className="text-emerald-600 font-medium text-xs">
+                              ${level.min_withdrawal_amount?.toLocaleString() || 0} - ${level.max_withdrawal_amount?.toLocaleString() || 0}
+                            </p>
+                          ) : (
+                            <p className="text-slate-700 text-xs">Not Available</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {canUpgrade && !hasPendingRequest && level.level_number === 5 && (
+                        <Button
+                          onClick={() => {
+                            setSelectedUpgradeLevel(level);
+                            setShowUpgradeModal(true);
+                          }}
+                          className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white h-10"
+                        >
+                          <Crown className="w-4 h-4 mr-2" />
+                          Apply for Level 5 - ${level.upgrade_cost_usd}
+                        </Button>
+                      )}
+
+                      {canUpgrade && !hasPendingRequest && level.level_number >= 2 && level.level_number <= 4 && (
+                        <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 border border-white/20 shadow-md">
+                          <p className="text-white text-xs leading-relaxed">
+                            💡 Use <strong className="text-amber-100">Manual Top-up</strong> tab to add ${level.upgrade_cost_usd} to your wallet and upgrade to this level automatically.
                           </p>
                         </div>
                       )}
-                      {customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) < 500000 && (
-                        <p className="text-rose-600 text-xs text-center">
-                          ⚠️ Minimum 5 Lakh (500,000) diamonds required
-                        </p>
+
+                      {hasPendingRequest && (
+                        <div className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-500/30 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-amber-700" />
+                            <span className="text-amber-700 text-xs">Upgrade request pending...</span>
+                          </div>
+                          <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 text-[10px] border-0">Pending</Badge>
+                        </div>
+                      )}
+
+                      {hasApprovedRequest && !isCurrent && (
+                        <div className="mt-3 p-2 rounded-lg bg-emerald-50 border border-emerald-200/30 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                            <span className="text-emerald-600 text-xs">Upgrade approved! Level updated.</span>
+                          </div>
+                          <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] border-0">Approved</Badge>
+                        </div>
+                      )}
+
+                      {level.level_number === 5 && isCurrent && (
+                        <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 border border-white/20 shadow-lg shadow-purple-500/30">
+                          <p className="text-white text-xs leading-relaxed">
+                            <strong className="text-amber-200">Payroll Benefits:</strong> Receive agency withdrawal requests (5,000 – 100,000 beans) and earn commission on every transaction.
+                          </p>
+
+                          {!helperData?.payroll_status && !helperData?.payroll_enabled && (
+                            <Button
+                              onClick={() => setShowPayrollModal(true)}
+                              className="w-full mt-3 bg-white text-purple-700 hover:bg-white/90 font-bold h-9 text-xs shadow-md"
+                            >
+                              <Crown className="w-3 h-3 mr-1" />
+                              Apply for Payroll Access
+                            </Button>
+                          )}
+
+                          {helperData?.payroll_status === 'pending' && !helperData?.payroll_enabled && (
+                            <div className="mt-3 p-2 rounded-lg bg-white/15 border border-white/30 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-amber-200" />
+                                <span className="text-white text-xs font-medium">Payroll application pending…</span>
+                              </div>
+                              <Badge className="bg-amber-400 text-amber-950 text-[10px] border-0">Pending</Badge>
+                            </div>
+                          )}
+
+                          {helperData?.payroll_status === 'rejected' && !helperData?.payroll_enabled && (
+                            <div className="mt-3 space-y-2">
+                              <div className="p-2 rounded-lg bg-white/15 border border-white/30 flex items-center gap-2">
+                                <span className="text-white text-xs font-medium">❌ Application rejected. You can apply again.</span>
+                              </div>
+                              <Button
+                                onClick={() => setShowPayrollModal(true)}
+                                className="w-full bg-white text-purple-700 hover:bg-white/90 font-bold h-9 text-xs shadow-md"
+                              >
+                                <Crown className="w-3 h-3 mr-1" />
+                                Re-apply for Payroll Access
+                              </Button>
+                            </div>
+                          )}
+
+                          {helperData?.payroll_enabled && (
+                            <Button
+                              onClick={() => navigate('/level5-helper-dashboard')}
+                              className="w-full mt-3 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold h-9 text-xs shadow-md"
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Open Level 5 Dashboard
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                {/* Selected Amount Summary */}
-                {(selectedDiamondPackage || (customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000)) && (
-                  <div className="p-3 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-xl border border-emerald-200/30">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-700 text-sm">You will receive:</span>
-                      <div className="text-right">
-                        <p className="text-slate-900 font-bold text-lg">
-                          {formatDiamonds(selectedDiamondPackage || parseInt(customDiamondAmount.replace(/,/g, '')))} 💎
-                        </p>
-                        <p className="text-emerald-600 text-xs">
-                          ${calculateUSD(selectedDiamondPackage || parseInt(customDiamondAmount.replace(/,/g, ''))).toFixed(2)} USD
-                        </p>
+          {/* ============ ORDERS TAB ============ */}
+          <TabsContent value="orders" className="mt-4 space-y-3">
+            {pendingRequests.length === 0 ? (
+              <Card className="bg-white border-amber-200/60 shadow-sm">
+                <CardContent className="p-8 text-center">
+                  <Clock className="w-12 h-12 mx-auto text-slate-400 mb-3" />
+                  <p className="text-slate-800 font-medium">No pending upgrade requests</p>
+                  <p className="text-xs text-slate-600 mt-1">All your applications are processed 🎉</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-gradient-to-r from-orange-500/20 to-orange-500/20 border-amber-500/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-slate-900 text-sm flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-700" />
+                    Pending Upgrade Requests
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 max-h-96 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+                  {pendingRequests.map((req) => (
+                    <div key={req.id} className="bg-slate-50 rounded-lg p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-slate-900 text-sm font-medium">Level {req.requested_level} Upgrade</p>
+                        <p className="text-slate-700 text-xs">${req.amount_usd} • {req.payment_method}</p>
                       </div>
+                      <Badge className="bg-amber-50 text-amber-700">{req.status}</Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* ============ METHODS TAB ============ */}
+          <TabsContent value="methods" className="mt-4 space-y-3">
+            {helperId && (helperData?.trader_level || 1) < 5 && (
+              <HelperAcceptedMethodsCard
+                helperId={helperId}
+                helperCountryCode={helperData?.country_code || null}
+              />
+            )}
+
+            <div
+              className="relative rounded-2xl p-3.5 overflow-hidden"
+              style={{
+                background: "linear-gradient(180deg, rgba(16,185,129,0.10), rgba(6,78,59,0.04))",
+                border: "1px solid rgba(16,185,129,0.28)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 22px -16px rgba(16,185,129,0.4)",
+              }}
+            >
+              <div className="flex items-center gap-2.5 mb-2.5">
+                <div
+                  className="grid place-items-center w-8 h-8 rounded-xl"
+                  style={{
+                    background: "linear-gradient(180deg, #34d399 0%, #059669 100%)",
+                    boxShadow: "0 6px 14px -6px rgba(16,185,129,0.6), inset 0 1px 0 rgba(255,255,255,0.4)",
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-emerald-700 font-bold text-[13px] leading-none">WhatsApp Number</p>
+                  <p className="text-emerald-700/80 text-[10px] mt-1 tracking-wide">Visible to users in Recharge section</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="tel"
+                  placeholder="+880XXXXXXXXXX"
+                  value={whatsappNumber}
+                  onChange={(e) => setWhatsappNumber(e.target.value)}
+                  className="flex-1 rounded-xl px-3 py-2 text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none transition-colors bg-white"
+                  style={{
+                    border: "1px solid rgba(16,185,129,0.30)",
+                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.05)",
+                  }}
+                />
+                <button
+                  onClick={saveWhatsappNumber}
+                  disabled={savingWhatsapp || !whatsappNumber.trim()}
+                  className="px-4 py-2 rounded-xl text-white text-xs font-black tracking-wider uppercase disabled:opacity-50 active:scale-95 transition-transform"
+                  style={{
+                    background: "linear-gradient(180deg, #6ee7b7 0%, #10b981 50%, #047857 100%)",
+                    boxShadow: "0 8px 18px -8px rgba(16,185,129,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(6,78,59,0.55)",
+                  }}
+                >
+                  {savingWhatsapp ? "..." : "Save"}
+                </button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ============ TOP-UP TAB ============ */}
+          <TabsContent value="topup" className="mt-4 space-y-3">
+            <Card className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-emerald-200/50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-slate-900 text-base flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                  Manual Top-up
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-slate-700 text-sm">
+                  Add diamonds to your wallet by sending payment
+                </p>
+
+                {levelPricing && (
+                  <div className="p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl border border-violet-200/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Gem className="w-4 h-4 text-violet-600" />
+                        <span className="text-slate-900 text-sm font-medium">Your Level {helperData?.trader_level || 1} Rate</span>
+                      </div>
+                      <Badge className="bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-sm border-0">
+                        {levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}
+                      </Badge>
                     </div>
                   </div>
                 )}
 
-                {/* Auto Crypto Gateway (replaces Binance/ePay manual flow) */}
-                <div className="rounded-xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-yellow-50 p-3">
-                  <p className="text-amber-700 text-xs font-semibold mb-1">⚡ Instant Auto Top-Up</p>
-                  <p className="text-slate-700 text-[11px] mb-2">
-                    Pay with USDT / BTC / BNB / ETH — diamonds credit to your Trader Wallet automatically on blockchain confirmation. No proof upload, no admin wait.
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
+                {!showTopupForm ? (
                   <Button
-                    variant="outline"
-                    onClick={() => setShowTopupForm(false)}
-                    className="flex-1 border-slate-200 text-slate-500"
+                    onClick={() => setShowTopupForm(true)}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white h-11"
                   >
-                    Cancel
+                    <Send className="w-4 h-4 mr-2" />
+                    Request Manual Top-up
                   </Button>
-                  <Button
-                    onClick={() => {
-                      const coins = selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0;
-                      if (!coins || coins < 500000) {
-                        toast({ title: "Select amount", description: "Choose a package or enter a custom amount (min 5,00,000)", variant: "destructive" });
-                        return;
-                      }
-                      if (!helperId) {
-                        toast({ title: "Helper not loaded", description: "Please refresh the page", variant: "destructive" });
-                        return;
-                      }
-                      setShowCryptoTopupModal(true);
-                    }}
-                    disabled={!(selectedDiamondPackage || (customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000))}
-                    className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 font-bold"
-                  >
-                    ⚡ Pay with Crypto
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Crypto Auto Top-Up Modal (helper trader wallet mode) */}
-        {helperId && (
-          <SwiftPayDepositModal
-            open={showCryptoTopupModal}
-            onOpenChange={setShowCryptoTopupModal}
-            packages={[]}
-            mode="helper"
-            helperId={helperId}
-            helperCustomCoins={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
-            helperCustomPriceUsd={Number(calculateUSD(selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0).toFixed(2))}
-            onCredited={(coins) => {
-              setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins } : prev);
-              setShowTopupForm(false);
-              setSelectedDiamondPackage(null);
-              setCustomDiamondAmount('');
-            }}
-          />
-        )}
-
-        {/* Trader Levels */}
-        <Card className="bg-white border-amber-200/60 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-slate-900 text-base flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-violet-600" />
-              Trader Levels
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {traderLevels.map((level) => {
-              const badge = getLevelBadge(level.level_number);
-              const Icon = badge.icon;
-              const isCurrent = level.level_number === (helperData?.trader_level || 1);
-              const isUnlocked = level.level_number <= (helperData?.trader_level || 1);
-              const canUpgrade = level.level_number === (helperData?.trader_level || 1) + 1;
-              
-              // Get the request for this specific level
-              const levelRequest = pendingRequests.find(r => r.requested_level === level.level_number);
-              const hasPendingRequest = levelRequest && (levelRequest.status === 'pending' || levelRequest.status === 'processing');
-              const hasApprovedRequest = levelRequest && levelRequest.status === 'approved';
-              
-              return (
-                <div
-                  key={level.level_number}
-                  className={cn(
-                    "p-4 rounded-xl border transition-all",
-                    isCurrent 
-                      ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-violet-200/50" 
-                      : isUnlocked
-                        ? "bg-slate-50 border-slate-200"
-                        : "bg-white border-amber-200/60 shadow-sm opacity-60"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r",
-                        badge.color
-                      )}>
- <Icon className="w-6 h-6 text-white drop-shadow" />
+                ) : (
+                  <div className="space-y-4 bg-slate-50 rounded-xl p-4">
+                    {levelPricing && (
+                      <div className="text-center p-2 bg-slate-50 rounded-lg">
+                        <p className="text-xs text-slate-700">
+                          Level {helperData?.trader_level || 1} Rate: <span className="text-emerald-600 font-semibold">{levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}</span>
+                        </p>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-slate-900 font-bold">{level.level_name}</p>
-                          {isCurrent && (
- <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] border-0 shadow-sm">Current</Badge>
+                    )}
+
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowDiamondPackages(!showDiamondPackages)}
+                        className={cn(
+                          "w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between",
+                          showDiamondPackages
+                            ? "bg-slate-100 border-sky-200 ring-2 ring-cyan-500/20"
+                            : selectedDiamondPackage
+                            ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-sky-200/50"
+                            : "bg-slate-50 border-slate-200 hover:border-sky-200/50"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                            <Gem className="w-5 h-5 text-white" />
+                          </div>
+                          {selectedDiamondPackage ? (
+                            <div className="text-left">
+                              <span className="text-slate-900 font-bold text-base">
+                                {formatDiamonds(selectedDiamondPackage)} 💎
+                              </span>
+                              <p className="text-emerald-600 text-sm font-medium">
+                                ${calculateUSD(selectedDiamondPackage).toFixed(2)} USD
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-slate-500 font-medium">Select Diamond Package 💎</span>
                           )}
                         </div>
-                        <p className="text-slate-700 text-xs">{level.description}</p>
-                        {level.level_number === 5 && (
-                          <p className="text-violet-600 text-xs mt-1 flex items-center gap-1">
-                            <Banknote className="w-3 h-3" />
-                            Payroll System Access
-                          </p>
+                        <div className={cn(
+                          "w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-transform duration-200",
+                          showDiamondPackages && "rotate-180"
+                        )}>
+                          <ArrowLeft className="w-4 h-4 text-slate-700 -rotate-90" />
+                        </div>
+                      </button>
+
+                      {showDiamondPackages && (
+                        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-slate-50 border-2 border-sky-200/50 rounded-xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                          <div className="max-h-80 overflow-y-auto">
+                            {diamondPackages.map((pkg) => (
+                              <button
+                                key={pkg.diamonds}
+                                onClick={() => {
+                                  handleSelectPackage(pkg.diamonds);
+                                  setShowDiamondPackages(false);
+                                }}
+                                className={cn(
+                                  "w-full p-3 flex items-center gap-3 transition-all border-b border-slate-200 last:border-b-0",
+                                  selectedDiamondPackage === pkg.diamonds
+                                    ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30"
+                                    : "hover:bg-slate-50"
+                                )}
+                              >
+                                <div className={cn(
+                                  "w-10 h-10 rounded-lg flex items-center justify-center text-xl",
+                                  `bg-gradient-to-r ${pkg.color}`
+                                )}>
+                                  💎
+                                </div>
+                                <div className="flex-1 text-left">
+                                  <span className="text-slate-900 font-bold text-sm">{pkg.label}</span>
+                                  <p className="text-slate-700 text-xs">
+                                    {pkg.diamonds.toLocaleString()} diamonds
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-emerald-600 font-bold text-sm">
+                                    ${calculateUSD(pkg.diamonds).toFixed(2)}
+                                  </span>
+                                  {selectedDiamondPackage === pkg.diamonds && (
+                                    <div className="mt-1 flex justify-end">
+                                      <CheckCircle className="w-4 h-4 text-sky-600" />
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-slate-200 pt-4">
+                      <button
+                        onClick={() => {
+                          setShowCustomAmount(!showCustomAmount);
+                          setSelectedDiamondPackage(null);
+                        }}
+                        className={cn(
+                          "w-full p-3 rounded-xl border-2 border-dashed transition-all",
+                          showCustomAmount
+                            ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-violet-200"
+                            : "bg-slate-50 border-slate-200 hover:border-violet-200/50"
                         )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {level.upgrade_cost_usd > 0 ? (
-                        <>
-                          <p className="text-slate-900 font-bold">${level.upgrade_cost_usd}</p>
-                          <p className="text-slate-700 text-xs">Upgrade Cost</p>
-                        </>
-                      ) : (
-                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200/50">Free</Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Level Details - Commission & Withdrawal Limits */}
-                  <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-200">
-                    <div>
-                      <p className="text-slate-500 text-xs">Commission</p>
-                      <p className="text-sky-600 font-bold">{level.commission_rate || 0}%</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 text-xs">Withdrawal Limits</p>
-                      {level.min_withdrawal_amount > 0 || level.max_withdrawal_amount > 0 ? (
-                        <p className="text-emerald-600 font-medium text-xs">
-                          ${level.min_withdrawal_amount?.toLocaleString() || 0} - ${level.max_withdrawal_amount?.toLocaleString() || 0}
-                        </p>
-                      ) : (
-                        <p className="text-slate-700 text-xs">Not Available</p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Upgrade Button - Show for next level only */}
-                  {/* Level 1-4: Direct upgrade via Manual Top-up, Level 5: Requires Application */}
-                  {canUpgrade && !hasPendingRequest && level.level_number === 5 && (
-                    <Button 
-                      onClick={() => {
-                        setSelectedUpgradeLevel(level);
-                        setShowUpgradeModal(true);
-                      }}
- className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white h-10"
-                    >
-                      <Crown className="w-4 h-4 mr-2" />
-                      Apply for Level 5 - ${level.upgrade_cost_usd}
-                    </Button>
-                  )}
-                  
-                  {/* For levels 2-4: Show info that they can upgrade via manual top-up */}
-                  {canUpgrade && !hasPendingRequest && level.level_number >= 2 && level.level_number <= 4 && (
-                    <div className="mt-3 p-3 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 border border-white/20 shadow-md">
-                      <p className="text-white text-xs leading-relaxed">
-                        💡 Use <strong className="text-amber-100">Manual Top-up</strong> above to add ${level.upgrade_cost_usd} to your wallet and upgrade to this level automatically.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* Status Indicators */}
-                  {hasPendingRequest && (
-                    <div className="mt-3 p-2 rounded-lg bg-amber-50 border border-amber-500/30 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-amber-700" />
-                        <span className="text-amber-700 text-xs">Upgrade request pending...</span>
-                      </div>
-                      <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 text-[10px] border-0">Pending</Badge>
-                    </div>
-                  )}
-                  
-                  {hasApprovedRequest && !isCurrent && (
-                    <div className="mt-3 p-2 rounded-lg bg-emerald-50 border border-emerald-200/30 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-600" />
-                        <span className="text-emerald-600 text-xs">Upgrade approved! Level updated.</span>
-                      </div>
-                      <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] border-0">Approved</Badge>
-                    </div>
-                  )}
-                  
-                  {level.level_number === 5 && isCurrent && (
-                    <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 border border-white/20 shadow-lg shadow-purple-500/30">
-                      <p className="text-white text-xs leading-relaxed">
-                        <strong className="text-amber-200">Payroll Benefits:</strong> Receive agency withdrawal requests (5,000 – 100,000 beans) and earn commission on every transaction.
-                      </p>
-                      
-                      {/* Not applied yet */}
-                      {!helperData?.payroll_status && !helperData?.payroll_enabled && (
-                        <Button 
-                          onClick={() => setShowPayrollModal(true)}
-                          className="w-full mt-3 bg-white text-purple-700 hover:bg-white/90 font-bold h-9 text-xs shadow-md"
-                        >
-                          <Crown className="w-3 h-3 mr-1" />
-                          Apply for Payroll Access
-                        </Button>
-                      )}
-                      
-                      {/* Pending approval */}
-                      {helperData?.payroll_status === 'pending' && !helperData?.payroll_enabled && (
-                        <div className="mt-3 p-2 rounded-lg bg-white/15 border border-white/30 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-amber-200" />
-                            <span className="text-white text-xs font-medium">Payroll application pending…</span>
-                          </div>
-                          <Badge className="bg-amber-400 text-amber-950 text-[10px] border-0">Pending</Badge>
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <Crown className="w-5 h-5 text-violet-600" />
+                          <span className="text-slate-900 font-semibold">Custom Amount</span>
+                          <span className="text-slate-700 text-xs">(50 Lakh+)</span>
                         </div>
-                      )}
-                      
-                      {/* Rejected */}
-                      {helperData?.payroll_status === 'rejected' && !helperData?.payroll_enabled && (
+                      </button>
+
+                      {showCustomAmount && (
                         <div className="mt-3 space-y-2">
-                          <div className="p-2 rounded-lg bg-white/15 border border-white/30 flex items-center gap-2">
-                            <span className="text-white text-xs font-medium">❌ Application rejected. You can apply again.</span>
-                          </div>
-                          <Button 
-                            onClick={() => setShowPayrollModal(true)}
-                            className="w-full bg-white text-purple-700 hover:bg-white/90 font-bold h-9 text-xs shadow-md"
-                          >
-                            <Crown className="w-3 h-3 mr-1" />
-                            Re-apply for Payroll Access
-                          </Button>
+                          <Input
+                            type="text"
+                            placeholder="Enter diamonds (min: 5,00,000)"
+                            value={customDiamondAmount}
+                            onChange={(e) => handleCustomAmountChange(e.target.value)}
+                            className="bg-white border-purple-300 text-slate-900 text-center text-lg font-bold"
+                          />
+                          {parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000 && (
+                            <div className="p-2 bg-gradient-to-r from-violet-500 to-violet-600 rounded-lg border border-white/20 shadow-md">
+                              <p className="text-white text-sm text-center font-semibold">
+                                💎 {formatDiamonds(parseInt(customDiamondAmount.replace(/,/g, '')))} = ${calculateUSD(parseInt(customDiamondAmount.replace(/,/g, ''))).toFixed(2)}
+                              </p>
+                            </div>
+                          )}
+                          {customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) < 500000 && (
+                            <p className="text-rose-600 text-xs text-center">
+                              ⚠️ Minimum 5 Lakh (500,000) diamonds required
+                            </p>
+                          )}
                         </div>
                       )}
-                      
-                      {/* Approved - Show dashboard access */}
-                      {helperData?.payroll_enabled && (
-                        <Button 
-                          onClick={() => navigate('/level5-helper-dashboard')}
-                          className="w-full mt-3 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold h-9 text-xs shadow-md"
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Open Level 5 Dashboard
-                        </Button>
-                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
+
+                    {(selectedDiamondPackage || (customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000)) && (
+                      <div className="p-3 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-xl border border-emerald-200/30">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-700 text-sm">You will receive:</span>
+                          <div className="text-right">
+                            <p className="text-slate-900 font-bold text-lg">
+                              {formatDiamonds(selectedDiamondPackage || parseInt(customDiamondAmount.replace(/,/g, '')))} 💎
+                            </p>
+                            <p className="text-emerald-600 text-xs">
+                              ${calculateUSD(selectedDiamondPackage || parseInt(customDiamondAmount.replace(/,/g, ''))).toFixed(2)} USD
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="rounded-xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-yellow-50 p-3">
+                      <p className="text-amber-700 text-xs font-semibold mb-1">⚡ Instant Auto Top-Up</p>
+                      <p className="text-slate-700 text-[11px] mb-2">
+                        Pay with USDT / BTC / BNB / ETH — diamonds credit to your Trader Wallet automatically on blockchain confirmation. No proof upload, no admin wait.
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowTopupForm(false)}
+                        className="flex-1 border-slate-200 text-slate-500"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          const coins = selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0;
+                          if (!coins || coins < 500000) {
+                            toast({ title: "Select amount", description: "Choose a package or enter a custom amount (min 5,00,000)", variant: "destructive" });
+                            return;
+                          }
+                          if (!helperId) {
+                            toast({ title: "Helper not loaded", description: "Please refresh the page", variant: "destructive" });
+                            return;
+                          }
+                          setShowCryptoTopupModal(true);
+                        }}
+                        disabled={!(selectedDiamondPackage || (customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000))}
+                        className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 font-bold"
+                      >
+                        ⚡ Pay with Crypto
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {helperId && (
+              <SwiftPayDepositModal
+                open={showCryptoTopupModal}
+                onOpenChange={setShowCryptoTopupModal}
+                packages={[]}
+                mode="helper"
+                helperId={helperId}
+                helperCustomCoins={selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0}
+                helperCustomPriceUsd={Number(calculateUSD(selectedDiamondPackage || parseInt((customDiamondAmount || '').replace(/,/g, '')) || 0).toFixed(2))}
+                onCredited={(coins) => {
+                  setHelperData((prev: any) => prev ? { ...prev, wallet_balance: (Number(prev.wallet_balance) || 0) + coins } : prev);
+                  setShowTopupForm(false);
+                  setSelectedDiamondPackage(null);
+                  setCustomDiamondAmount('');
+                }}
+              />
+            )}
+          </TabsContent>
+
+          {/* ============ HISTORY TAB ============ */}
+          <TabsContent value="history" className="mt-4 space-y-3">
+            <Card className="bg-white border-amber-200/60 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-slate-900 text-base flex items-center gap-2">
+                  <History className="w-5 h-5 text-sky-600" />
+                  Transfer History
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 max-h-[60vh] overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+                {transferHistory.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <History className="w-12 h-12 mx-auto text-slate-400 mb-3" />
+                    <p className="text-slate-800 font-medium">No transfers yet</p>
+                    <p className="text-xs text-slate-600 mt-1">Use the 💎 Wallet card to start a transfer</p>
+                  </div>
+                ) : (
+                  transferHistory.map((transfer) => (
+                    <div key={transfer.id} className="bg-slate-50 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Badge className={cn(
+                              "text-[10px] border-0",
+                              transfer.sender_type === 'trader_to_user'
+                                ? "bg-sky-100 text-sky-700"
+                                : "bg-violet-100 text-violet-700"
+                            )}>
+                              {transfer.sender_type === 'trader_to_user' ? 'To User' : 'To Agency'}
+                            </Badge>
+                          </div>
+                          <p className="text-slate-700 text-xs mt-1">
+                            {transfer.sender_type === 'trader_to_user'
+                              ? `ID: ${transfer.receiver?.app_uid || 'N/A'}`
+                              : `Code: ${transfer.agency?.agency_code || 'N/A'}`}
+                          </p>
+                          <p className="text-slate-500 text-[10px]">
+                            {new Date(transfer.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-emerald-600 font-bold">
+                            -{transfer.amount.toLocaleString()}
+                          </p>
+                          <p className="text-slate-500 text-xs">💎</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Upgrade Application Modal — Premium Light */}
