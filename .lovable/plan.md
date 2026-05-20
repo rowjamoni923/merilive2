@@ -1,59 +1,94 @@
-## Single-Device Login (✅ DONE this turn)
+# Premium L1–L4 Helper Dashboard (mirror Level 5)
 
-Root cause: `profiles` table was not in the `supabase_realtime` publication, so the realtime `UPDATE` listener in `useSingleDeviceSession` never fired on the old device. Combined with the recently-removed polling, the old device was effectively never kicked.
+## Goal
+Reshape `/helper-dashboard` so it looks and feels identical to `/level5-helper-dashboard` — luxurious gold theme, card-based, tabbed bottom strip. **Zero changes to business logic, RPCs, financial flows, or data sources.** Only the JSX render tree is rewritten.
 
-Fix shipped:
+## What the page will look like
 
-1. New table `public.user_active_sessions(user_id PK, session_id, device_info, updated_at)` — added to the `supabase_realtime` publication with `REPLICA IDENTITY FULL`. Backfilled from current profiles.
-2. `update_active_session` RPC now upserts into the mirror table on every register.
-3. `useSingleDeviceSession` realtime channel listens to `user_active_sessions` (both UPDATE + INSERT) instead of `profiles`. Old device receives the new session_id within ~1 second → triggers `forceLogout` instantly. Grace period (30s new-device + 15s reconnect) preserved.
-4. Fresh-login detection hardened: now also listens directly to Supabase `onAuthStateChange('SIGNED_IN')` event + a 30-second `meri_fresh_signin_uid` localStorage marker, so even after a fast reload the new device wins.
+```text
+┌──────────────────────────────────────────────┐
+│  LUXURIOUS GOLD HEADER                        │
+│  ← Diamond Helper           🔔                │
+│     Level 1–4 · Trader System                 │
+├──────────────────────────────────────────────┤
+│  [ Show me on Recharge page          ◯ ]     │   ← HelperListingToggle
+├──────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────┐  │
+│  │ 🪙 Accepted Payment Methods   Manage   │  │   ← HelperPaymentMethodsCard
+│  │ [bKash] [Nagad] [Rocket] ...           │  │     (clickable → add dialog)
+│  └────────────────────────────────────────┘  │
+│                                              │
+│  ┌────┬────┬────┬────┐                       │
+│  │ 0  │ 0  │ 0  │299M│                       │   ← 4 mini stat cards
+│  │Req │Pend│Mthd│💎Wlt│                       │
+│  └────┴────┴────┴────┘                       │
+│                                              │
+│  [💲 Open Manual Top-up]                      │   ← gold CTA button
+├──────────────────────────────────────────────┤
+│  [Orders][Methods][Top-up][History][Inbox]   │   ← 5-tab strip (same style as L5)
+├──────────────────────────────────────────────┤
+│  Tab content...                              │
+└──────────────────────────────────────────────┘
+```
 
-Expected behaviour now: phone A logs in → phone B logs in with same account → phone B writes a new session_id → realtime row arrives on phone A → phone A shows toast "Signed out — your account is now active on another device" and routes to /auth. No polling, no reload, no freeze.
+Background, gradients, radii, typography, shadows: copied **verbatim** from `Level5HelperDashboard.tsx` so the two pages feel identical.
 
----
+## Tab strip mapping
 
-## Games — Professional Pass (proposed, needs your OK)
+L1–L4 helpers don't do agency-withdrawal claims (that's L5 only), so the leftmost tab swaps:
 
-Scope you described: all 5 live games (Lucky Number, Ferris Wheel, Rocket Race, Roulette, Teen Patti) — broken open/blank, bet button doesn't work, result/animation off, balance not updating reliably, text colour collides with background. Keep the existing game system, just bring it to a professional level.
+| Tab | What it shows (existing L1–L4 content, just moved into the tab) |
+|-----|---------|
+| **Orders** | Pending withdrawal/top-up requests assigned to this helper |
+| **Methods** | `HelperAcceptedMethodsCard` (tick-marks) + list of own custom local methods + Add button |
+| **Top-up** | The full existing Manual Top-up form (level pricing, payment selection, screenshot upload) |
+| **History** | Transfer history (already exists at bottom of page today) |
+| **Inbox** | Notifications + admin messages |
 
-This is large. Suggested work split into 5 packages so we can ship + verify each one, instead of one mega-edit that breaks more than it fixes.
+Every existing dialog (`SwiftPayDepositModal`, `AddLocalPaymentMethodDialog`, transfer modal, screenshot upload modal, trader-level upgrade modal, etc.) stays mounted exactly as it is today — only the trigger buttons/cards move into the new layout.
 
-### Pkg A — Game shell & open/blank fix (foundation, do first)
-- Audit `LiveGameBoard`, `LiveGame3DStage`, `Game3DContainer`, `GlobalGameOverlay`, `ProfessionalGameOverlay` for missing explicit dimensions on Canvas parents, missing `<Html>` wrappers, lazy-load failures.
-- Add a single `GameErrorBoundary` so a crash inside one game never shows a blank screen — fallback to a "Retry" card.
-- Ensure each game mounts behind a `Suspense` with the same skeleton, not a blank div.
+## Cards on the header (clickable feature cards)
 
-### Pkg B — Bet flow correctness
-- Standardise on one `useGameBet` hook calling the existing `processGameBet` / `processGameWin` RPCs (per `mem://technical/secure-game-transaction-standard`).
-- Disable bet button while a bet is in-flight; show toast on RPC error instead of silent failure.
-- Use `CompactBetControls` everywhere; remove the older `BetControls` duplication.
+Each stat card is clickable and jumps to the corresponding tab, matching what the user asked for ("ওই card গুলোর উপরে click করলে যাতে এই function গুলোর ভিতরে চলে যায়"):
 
-### Pkg C — Result reveal + animation polish
-- One shared `useGameRound` hook that drives countdown → reveal → settle for all 5 games using server-emitted round events (no client-side timers diverging).
-- Fix animation finish handlers (Ferris wheel stops on winning slot, Rocket lands at result row, Lucky Number flips at the right card, Roulette ball locks on the correct pocket, Teen Patti reveals real cards).
-- Win popup uses a single `WinPopup` component with confetti only on wins ≥ threshold.
+- **Orders** card → opens Orders tab
+- **Methods** card → opens Methods tab + auto-opens Add dialog
+- **Wallet** card → opens existing Trader Wallet transfer modal
+- **Open Manual Top-up** button → opens Top-up tab
 
-### Pkg D — Balance integrity
-- Remove any client-side optimistic balance math. Read live balance only from the singleton balance cache (per `mem://ui/balance-display-integrity-v2`).
-- After every `processGameWin` RPC, invalidate the balance query key — no polling.
+A second row below the stat cards keeps the **Trader Level** card (current/next level + upgrade CTA) — clickable to open the existing trader-level upgrade dialog.
 
-### Pkg E — Professional visual pass (uses our design tokens)
-- Replace any literal `text-white` / `text-slate-*` / hard-coded hex inside game files with semantic tokens (`text-foreground`, `bg-card`, `border-border`, etc.) so contrast works on both light and dark.
-- Apply the existing `luxury` + `glass` Button variants for primary actions.
-- Use one shared gold/purple gradient header per game (matches the rest of the app's Ultra-Premium Luxury aesthetic).
-- Run the contrast guard (`npm run check:contrast:baseline`) at the end so we never regress again.
+## What stays exactly the same
 
-### Suggested order & size
-- Pkg A → 1 turn
-- Pkg B → 1 turn
-- Pkg C → 2 turns (animations are per-game)
-- Pkg D → 1 turn
-- Pkg E → 1 turn
+- All Supabase queries, RPCs, realtime subscriptions
+- All financial logic, tier minimums, wallet aggregation
+- All existing dialogs (just re-mounted in the new tree)
+- `HelperListingToggle`, `HelperPaymentMethodsCard`, `HelperAcceptedMethodsCard`, `AddLocalPaymentMethodDialog`, `SwiftPayDepositModal`
+- Existing routing / URL params
+- `is_listed` toggle, level-progress hook, trader-tier wallet floor
 
-### Open questions before I start Pkg A
-1. Do you want me to keep all 5 live games visible, or temporarily hide the ones we haven't polished yet so users don't see broken ones?
-2. Any specific game I should fix **first** (the one most users complain about)?
-3. For the "professional" look, do you want me to use the existing Luxury/Gold theme (matches VIP/Noble) or pick a new visual direction via design previews?
+## Technical approach
 
-Once you answer those 3, I'll start with Pkg A in the next turn.
+1. Extract current L1–L4 render tree into clearly-named sections (`<OrdersTabContent />`, `<MethodsTabContent />`, `<TopupTabContent />`, `<HistoryTabContent />`, `<InboxTabContent />`) as **inline JSX consts inside the same file** — no logic split, no new files, just regrouping.
+2. Replace the outer render with the L5-shaped wrapper (gold gradient background, fixed-inset scroll container, luxurious header, toggle + payment-methods card + stat cards + CTA + `<Tabs>`).
+3. Copy the L5 `<Tabs>` / `<TabsList>` / `<TabsTrigger>` styling block verbatim (same gradient active states, same emerald/sky/violet color coding).
+4. Read `?tab=…` from URL for deep links (parity with L5).
+5. Keep every dialog mounted at the end of the component tree exactly as today.
+
+## Out of scope (will NOT touch)
+
+- Any DB migrations, RPCs, edge functions
+- Realtime subscriptions / polling intervals (Pkg53/57/62 cost guards untouched)
+- L5 dashboard (already done)
+- Recharge page layout
+- Chat / moderation / call code
+- Any financial percentage / formula
+
+## Risks
+
+- The file is 2,460 lines and uses lots of inline state. The refactor will touch ~1,500 of those lines but only restructure them — no state, hooks, or queries change.
+- After the rewrite the user should re-test: toggle on/off, add payment method, open manual top-up, view history, view notifications. I'll verify each tab opens without console errors in the preview before declaring done.
+
+## Estimated single-pass delivery
+
+One large edit to `src/pages/HelperDashboard.tsx`. No other files change.
