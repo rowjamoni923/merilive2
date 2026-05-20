@@ -448,19 +448,19 @@ const AgentRank = () => {
 
         {/* Divider */}
         <div className="mx-4 mb-3">
-          <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
         </div>
 
         {/* Rest Rankings - Premium List */}
         <div className="px-4 pb-32 space-y-1.5">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-400 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
             </div>
           ) : restRankings.length === 0 && top3.length === 0 ? (
             <div className="text-center py-16">
-              <Trophy className="w-14 h-14 mx-auto text-white/15 mb-3" />
-              <p className="text-white/65 text-sm font-medium">No rankings available yet</p>
+              <Trophy className="w-14 h-14 mx-auto text-slate-300 mb-3" />
+              <p className="text-slate-500 text-sm font-medium">No rankings available yet</p>
             </div>
           ) : (
             restRankings.map((agency, i) => {
@@ -471,16 +471,16 @@ const AgentRank = () => {
                   initial={{ opacity: 0, x: -15 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.06] transition-colors"
+                  className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm"
                 >
                   {/* Rank Number */}
-                  <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.06]">
-                    <span className="text-sm font-black text-white/85">{agency.rank_position}</span>
+                  <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100">
+                    <span className="text-sm font-black text-slate-800">{agency.rank_position}</span>
                   </div>
                   
                   {/* Avatar */}
                   <div className="relative">
-                    <Avatar className="w-11 h-11 border border-amber-200/60">
+                    <Avatar className="w-11 h-11 border border-amber-300">
                       <AvatarImage src={agency.owner_avatar || agency.logo_url || undefined} className="object-cover" />
                       <AvatarFallback className="bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white font-bold text-sm">
                         {agency.agency_name?.slice(0, 2)}
@@ -491,23 +491,23 @@ const AgentRank = () => {
                   
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold text-[13px] truncate">{agency.agency_name}</p>
+                    <p className="text-slate-900 font-semibold text-[13px] truncate">{agency.agency_name}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <Users className="w-3 h-3 text-white/75" />
-                      <span className="text-[11px] text-white/75 font-medium">{agency.total_hosts} hosts</span>
+                      <Users className="w-3 h-3 text-slate-500" />
+                      <span className="text-[11px] text-slate-600 font-medium">{agency.total_hosts} hosts</span>
                     </div>
                   </div>
                   
                   {/* Value */}
                   <div className="text-right flex flex-col items-end gap-0.5">
                     <div className="flex items-center gap-1">
-                      <Gem className="w-3.5 h-3.5 text-cyan-300" />
-                      <span className="text-white font-black text-sm">{formatNumber(agency.metric_value)}</span>
+                      <Gem className="w-3.5 h-3.5 text-cyan-600" />
+                      <span className="text-slate-900 font-black text-sm">{formatNumber(agency.metric_value)}</span>
                     </div>
                     {reward && (
                       <div className="flex items-center gap-0.5">
-                        <Gift className="w-2.5 h-2.5 text-yellow-300" />
-                        <span className="text-[9px] text-yellow-200 font-bold">+{formatNumber(reward.reward_coins)}</span>
+                        <Gift className="w-2.5 h-2.5 text-amber-600" />
+                        <span className="text-[9px] text-amber-700 font-bold">+{formatNumber(reward.reward_coins)}</span>
                       </div>
                     )}
                   </div>
