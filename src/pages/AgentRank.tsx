@@ -308,8 +308,8 @@ const AgentRank = () => {
         {rewards.length > 0 && (
           <div className="px-4 pt-4 pb-2">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-yellow-400" />
-              <h2 className="text-xs font-bold text-white/80 uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                 {periodType === 'weekly' ? 'Weekly' : 'Monthly'} Rewards
               </h2>
             </div>
@@ -321,25 +321,25 @@ const AgentRank = () => {
                   <div key={reward.id}
                     className={`relative p-3 rounded-2xl text-center overflow-hidden border ${
                       isFirst 
-                        ? 'bg-gradient-to-b from-yellow-500/20 to-amber-900/20 border-yellow-500/30' 
+                        ? 'bg-gradient-to-b from-yellow-100 to-amber-50 border-yellow-300' 
                         : isSecond
-                          ? 'bg-gradient-to-b from-slate-400/15 to-slate-600/10 border-slate-400/25'
-                          : 'bg-gradient-to-b from-amber-600/15 to-amber-800/10 border-amber-600/25'
+                          ? 'bg-gradient-to-b from-slate-100 to-slate-50 border-slate-300'
+                          : 'bg-gradient-to-b from-amber-100 to-orange-50 border-amber-300'
                     }`}
                   >
-                    {isFirst && <div className="absolute inset-0 bg-gradient-to-t from-transparent to-yellow-400/5" />}
+                    {isFirst && <div className="absolute inset-0 bg-gradient-to-t from-transparent to-yellow-300/20" />}
                     <div className="relative z-10">
                       <div className="text-2xl mb-1">
                         {isFirst ? '🥇' : isSecond ? '🥈' : '🥉'}
                       </div>
                       <div className="flex items-center justify-center gap-1">
-                        <Gem className="w-3.5 h-3.5 text-cyan-300" />
-                        <span className="text-sm font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+                        <Gem className="w-3.5 h-3.5 text-cyan-600" />
+                        <span className="text-sm font-black text-slate-900">
                           {formatNumber(reward.reward_coins)}
                         </span>
                       </div>
                       {reward.reward_badge && (
-                        <p className="text-[9px] text-white/80 mt-1 truncate font-medium">{reward.reward_badge}</p>
+                        <p className="text-[9px] text-slate-600 mt-1 truncate font-medium">{reward.reward_badge}</p>
                       )}
                     </div>
                   </div>
