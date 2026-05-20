@@ -30,6 +30,7 @@ import Beans3DIcon from "@/components/common/Beans3DIcon";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
 import { recordClientError } from "@/utils/clientErrorLog";
+import HelperListingToggle from "@/components/helper/HelperListingToggle";
 
 interface PaymentMethod {
   id: string;
