@@ -42,6 +42,9 @@ export const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   app_content: [['app-content']],
   landing_page_sections: [['landing-page-sections']],
 
+  cost_monitor_samples: [['admin-cost-monitor']],
+  cost_monitor_alerts:  [['admin-cost-monitor']],
+
   gifts: [['gifts'], ['active-gifts']],
   avatar_frames: [['avatar-frames'], ['user-frames']],
   role_frames: [['role-frames'], ['user-role-frames']],
