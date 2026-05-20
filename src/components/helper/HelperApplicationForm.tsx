@@ -245,13 +245,54 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         }
       }
 
+      // Pkg65: Auto-detect granted level from on-chain verified deposit amount.
+      // Source of truth = swift_pay_topups.price_usd of the credited topup row.
+      // granted_level = highest active tier where upgrade_cost_usd <= verified amount.
+      let verifiedAmountUsd: number = effectiveCost;
+      let detectedLevel: number = selectedLevel;
+      let autoLevelAdjusted = false;
+      if (isPaidLevel && paymentTopupId && paymentTopupId !== 'swift_pay_auto') {
+        try {
+          const { data: topupRow } = await supabase
+            .from('swift_pay_topups')
+            .select('price_usd')
+            .eq('id', paymentTopupId)
+            .maybeSingle();
+          if (topupRow?.price_usd != null) verifiedAmountUsd = Number(topupRow.price_usd);
+        } catch { /* fall back to effectiveCost */ }
+      }
+      if (isPaidLevel) {
+        // Re-read tiers fresh so admin cost edits are honoured at credit time.
+        const { data: freshTiers } = await supabase
+          .from('trader_level_tiers')
+          .select('level_number, upgrade_cost_usd')
+          .eq('is_active', true)
+          .order('level_number', { ascending: true });
+        const tiersList = (freshTiers && freshTiers.length ? freshTiers : levels.map(l => ({
+          level_number: l.level_number, upgrade_cost_usd: l.upgrade_cost_usd
+        })));
+        const qualifying = tiersList
+          .filter(t =>
+            Number(t.upgrade_cost_usd) > 0 &&
+            Number(t.upgrade_cost_usd) <= verifiedAmountUsd + 0.001 &&
+            t.level_number >= 1 && t.level_number <= 5,
+          )
+          .sort((a, b) => b.level_number - a.level_number);
+        if (qualifying.length > 0) detectedLevel = qualifying[0].level_number;
+        autoLevelAdjusted = detectedLevel !== selectedLevel;
+      }
+
+      const grantedLevel = isPaidLevel ? detectedLevel : selectedLevel;
       const paymentDetails = isPaidLevel ? {
         method: 'swift_pay_crypto',
         method_name: 'MeriCash Crypto Gateway',
         topup_id: paymentTopupId || null,
-        amount_usd: effectiveCost,
+        amount_usd: verifiedAmountUsd,
         diamonds_credited: diamondsForUpgrade,
         auto_verified: true,
+        selected_level: selectedLevel,
+        detected_level: detectedLevel,
+        auto_level_adjusted: autoLevelAdjusted,
       } : null;
 
       const { error } = await supabase
@@ -259,8 +300,8 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         .insert({
           user_id: user.id,
           agency_id: agencyId || null,
-          requested_level: selectedLevel,
-          payroll_requested: selectedLevel === 5 ? payrollRequested : false,
+          requested_level: grantedLevel,
+          payroll_requested: grantedLevel === 5 ? payrollRequested : false,
           contact_phone: null,
           contact_whatsapp: contactWhatsapp || null,
           contact_telegram: contactTelegram || null,
@@ -271,10 +312,10 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
           payment_transaction_id: paymentTopupId || null,
           id_card_front_url: idCardFrontUrl,
           id_card_back_url: idCardBackUrl,
-          id_card_name: selectedLevel === 5 ? idCardName || null : null,
-          id_card_number: selectedLevel === 5 ? idCardNumber || null : null,
-          full_address: selectedLevel === 5 ? fullAddress || null : null,
-          country: selectedLevel === 5 ? country || null : null,
+          id_card_name: grantedLevel === 5 ? idCardName || null : null,
+          id_card_number: grantedLevel === 5 ? idCardNumber || null : null,
+          full_address: grantedLevel === 5 ? fullAddress || null : null,
+          country: grantedLevel === 5 ? country || null : null,
           status: 'pending'
         });
 
@@ -282,7 +323,11 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
 
       toast({
         title: "Application Submitted! 🎉",
-        description: isPaidLevel ? `${diamondsForUpgrade.toLocaleString()} diamonds credited to your balance.` : undefined,
+        description: isPaidLevel
+          ? (autoLevelAdjusted
+              ? `Deposit $${verifiedAmountUsd} auto-detected → Level ${grantedLevel}. ${diamondsForUpgrade.toLocaleString()} diamonds credited.`
+              : `${diamondsForUpgrade.toLocaleString()} diamonds credited to your balance.`)
+          : undefined,
       });
       onSuccess?.();
     } catch (error: any) {
