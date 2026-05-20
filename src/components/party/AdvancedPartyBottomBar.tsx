@@ -32,7 +32,6 @@ interface GameInfo {
   emoji: string;
   color: string;
   isLive?: boolean;
-  players?: number;
   logo_url?: string | null;
 }
 
@@ -149,8 +148,7 @@ export function AdvancedPartyBottomBar({
         if (!error && data) {
           setAvailableGames(data.map((game, index) => ({
             id: game.game_id, name: game.game_name, emoji: game.game_emoji,
-            color: game.game_color, isLive: game.is_featured || index < 3, logo_url: game.logo_url,
-            players: Math.floor(Math.random() * 3000) + 500
+            color: game.game_color, isLive: game.is_featured || index < 3, logo_url: game.logo_url
           })));
         }
       } catch (err) {
