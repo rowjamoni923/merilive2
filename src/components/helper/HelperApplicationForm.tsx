@@ -433,23 +433,59 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
         className="flex-1 overflow-y-auto overscroll-contain space-y-4 px-1 pb-4"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
+        {/* Pkg76: Admin misconfiguration banner — visible to anyone (incl. admin)
+            opening the form whenever a paid tier has 0/unset upgrade_cost_usd. */}
+        {misconfiguredLevels.length > 0 && (
+          <div
+            role="alert"
+            className="flex gap-2 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-red-700 dark:text-red-300"
+          >
+            <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1 text-[12px] leading-snug">
+              <div className="font-semibold">Admin: upgrade cost not configured</div>
+              <div>
+                Level{misconfiguredLevels.length > 1 ? "s" : ""}{" "}
+                <span className="font-bold">
+                  {misconfiguredLevels.map((l) => l.level_number).join(", ")}
+                </span>{" "}
+                {misconfiguredLevels.length > 1 ? "have" : "has"} <code>upgrade_cost_usd</code> set
+                to 0 or empty. Submit is blocked for {misconfiguredLevels.length > 1 ? "these levels" : "this level"}.
+                Fix in <span className="font-semibold">/admin/pricing-hub → Helper tab</span>.
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Level Selection */}
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Your Level</Label>
           <div className="space-y-1.5">
-            {levels.map((level) => (
+            {levels.map((level) => {
+              const misconfigured = isLevelMisconfigured(level);
+              return (
               <div 
                 key={level.level_number}
                 onClick={() => {
+                  if (misconfigured) {
+                    toast({
+                      title: "Level not configured",
+                      description: `Admin has not set an upgrade cost for Level ${level.level_number} yet.`,
+                      variant: "destructive",
+                    });
+                    return;
+                  }
                   setSelectedLevel(level.level_number);
                   if (level.level_number !== 5) setPayrollRequested(false);
                   setPaidConfirmed(false);
                 }}
+                aria-disabled={misconfigured}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98]",
-                  selectedLevel === level.level_number 
-                    ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-pink-500" 
-                    : "bg-card/50 border border-border/50 hover:border-muted-foreground/30"
+                  "flex items-center gap-3 p-3 rounded-xl transition-all",
+                  misconfigured
+                    ? "opacity-50 cursor-not-allowed bg-muted/30 border border-red-500/30"
+                    : "cursor-pointer active:scale-[0.98] " + (selectedLevel === level.level_number 
+                        ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-pink-500" 
+                        : "bg-card/50 border border-border/50 hover:border-muted-foreground/30")
                 )}
               >
                 <div 
@@ -466,20 +502,29 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                         Payroll
                       </Badge>
                     )}
+                    {misconfigured && (
+                      <Badge variant="destructive" className="text-[9px] px-1.5 py-0">
+                        Not configured
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-[11px] text-muted-foreground truncate">{level.description}</p>
                 </div>
                 <div className="flex-shrink-0">
-                  {level.upgrade_cost_usd > 0 ? (
+                  {misconfigured ? (
+                    <span className="text-[10px] font-semibold text-red-500">—</span>
+                  ) : level.upgrade_cost_usd > 0 ? (
                     <span className="font-bold text-sm text-green-500">${level.upgrade_cost_usd}</span>
                   ) : (
                     <Badge variant="secondary" className="text-[10px] px-2">Free</Badge>
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
+
 
         {/* Commission Rate - Show when paid level selected */}
         {selectedLevelData && selectedLevelData.commission_rate > 0 && (
