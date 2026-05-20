@@ -2756,6 +2756,17 @@ const Recharge = () => {
                         </div>
                       );
                     })}
+                    {/* Pkg63 gate notice — pinned at the very bottom of the trader list */}
+                    <div
+                      role="status"
+                      className="flex items-start gap-2 px-3 py-2 rounded-xl mt-1 bg-amber-50/80 border border-amber-200 text-amber-800"
+                    >
+                      <span className="text-base leading-none mt-0.5">🔒</span>
+                      <p className="text-[11px] leading-snug">
+                        <span className="font-semibold">UID top-ups are restricted.</span>{' '}
+                        Only approved <span className="font-semibold">Level 1–5 helper-traders</span> can process diamond top-ups by UID. Always recharge through a verified trader listed above.
+                      </p>
+                    </div>
                   </div>
                 );
               })()
