@@ -537,7 +537,21 @@ export default function AdminRatingRewards() {
                         {item.status === 'approved' ? '✅ Sent' : '❌ Rejected'}
                       </Badge>
                     </div>
+
+                    {/* Log */}
+                    <div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openAuditLog(item)}
+                        className="h-7 px-2 gap-1 border-slate-700 text-slate-300 hover:bg-slate-800 text-[10px]"
+                      >
+                        <ScrollText className="w-3 h-3" />
+                        View
+                      </Button>
+                    </div>
                   </div>
+
                 ))}
               </div>
             </div>
