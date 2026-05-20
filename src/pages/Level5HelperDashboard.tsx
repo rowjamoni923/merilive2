@@ -2479,7 +2479,7 @@ const Level5HelperDashboard = () => {
           {/* Scrollable Chat Area */}
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
             {/* Original Admin Message */}
-            <div className="bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border border-violet-200/20 rounded-xl p-3 mr-8">
+            <div className="bg-violet-50 text-slate-900 border border-violet-200/20 rounded-xl p-3 mr-8">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Crown className="w-3 h-3 text-violet-600" />
                 <span className="text-[10px] text-violet-600 font-medium">Admin</span>
@@ -2503,8 +2503,8 @@ const Level5HelperDashboard = () => {
                     className={cn(
                       "rounded-xl p-3",
                       reply.sender_type === 'helper' 
-                        ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white/10 border border-sky-200/20 ml-8" 
-                        : "bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 border border-violet-200/20 mr-8"
+                        ? "bg-sky-50 text-slate-900 border border-sky-200/20 ml-8" 
+                        : "bg-violet-50 text-slate-900 border border-violet-200/20 mr-8"
                     )}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
@@ -2707,7 +2707,7 @@ const Level5HelperDashboard = () => {
 
             {/* Merchant Number Section - hide for auto gateways */}
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
-            <div className="border border-amber-500/30 rounded-xl p-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10">
+            <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-50 text-slate-900">
               <div className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
@@ -3033,7 +3033,7 @@ const Level5HelperDashboard = () => {
 
             {/* ═══ ZiniPay Gateway (Personal Account Auto Pay) ═══ */}
             {paymentType === 'zinipay' && (
-              <div className="border border-emerald-200/30 rounded-xl p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10 space-y-3">
+              <div className="border border-emerald-200/30 rounded-xl p-3 bg-emerald-50 text-slate-900 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">⚡</span>
                   <p className="text-emerald-600 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
@@ -3083,7 +3083,7 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
-                <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10 border border-amber-200/30 rounded-lg p-2">
+                <div className="bg-amber-50 text-slate-900 border border-amber-200/30 rounded-lg p-2">
                   <p className="text-[10px] text-amber-600">
                     ⚠️ Create an account on zinipay.com, then go to Dashboard → Brands → copy the Brand Key/API Key. Add this number to your ZiniPay dashboard too!
                   </p>
@@ -3099,7 +3099,7 @@ const Level5HelperDashboard = () => {
               const isLegacy = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
               if (!matched || isLegacy) return null;
               return (
-                <div className="border border-violet-200/30 rounded-xl p-3 bg-gradient-to-r from-violet-500 to-violet-600 text-white/10 space-y-3">
+                <div className="border border-violet-200/30 rounded-xl p-3 bg-violet-50 text-slate-900 space-y-3">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">⚡</span>
                     <p className="text-violet-600 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
@@ -3155,7 +3155,7 @@ const Level5HelperDashboard = () => {
 
             {/* SSLCommerz / AamarPay Gateway Credentials */}
             {(paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (
-              <div className="border border-sky-200/30 rounded-xl p-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white/10 space-y-3">
+              <div className="border border-sky-200/30 rounded-xl p-3 bg-sky-50 text-slate-900 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">{paymentType === 'sslcommerz' ? '🔐' : '💰'}</span>
                   <p className="text-sky-600 font-semibold text-sm">
@@ -3217,7 +3217,7 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
-                <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10 border border-amber-200/30 rounded-lg p-2">
+                <div className="bg-amber-50 text-slate-900 border border-amber-200/30 rounded-lg p-2">
                   <p className="text-[10px] text-amber-600">
                     ⚠️ {paymentType === 'sslcommerz' 
                       ? 'Get credentials from sslcommerz.com → Merchant Panel → API/Integration' 
@@ -3280,7 +3280,7 @@ const Level5HelperDashboard = () => {
 
             {/* Merchant Number Section - hide for auto gateways */}
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
-            <div className="border border-amber-500/30 rounded-xl p-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-white/10">
+            <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-50 text-slate-900">
               <div className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
@@ -3441,7 +3441,7 @@ const Level5HelperDashboard = () => {
                   <div className="space-y-2 text-sm">
                     {/* Local Amount - FIRST */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
-                      <div className="flex items-center justify-between bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10 rounded-lg p-2 border border-emerald-200/20">
+                      <div className="flex items-center justify-between bg-emerald-50 text-slate-900 rounded-lg p-2 border border-emerald-200/20">
                         <span className="text-slate-700">Payable Local Amount:</span>
                         <span className="text-emerald-600 font-bold text-lg">
                           {(() => {
@@ -3563,7 +3563,7 @@ const Level5HelperDashboard = () => {
                         className={cn(
                           "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all",
                           screenshotFile 
-                            ? "border-emerald-200 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white/10" 
+                            ? "border-emerald-200 bg-emerald-50 text-slate-900" 
                             : "border-slate-200 hover:border-sky-200 bg-slate-50"
                         )}
                       >
