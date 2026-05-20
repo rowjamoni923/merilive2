@@ -1108,7 +1108,7 @@ const Recharge = () => {
 
         // Tiered minimum balance per trader level — admin-configurable via
         // app_settings.topup_trader_tier_min_wallet (Pkg70). Defaults: L1=50k…L5=300k.
-        // STRICT country match using PROFILE's country_code + tier-based min balance.
+        // STRICT country match using public profile country + tier-based unified wallet minimum.
         // Track diagnostics so empty-state can explain WHY nothing shows.
         let byCountry = 0, byTierMin = 0, byInactive = 0, byLowBalance = 0;
         const sampleCountry: DiagSample[] = [];
@@ -1270,7 +1270,7 @@ const Recharge = () => {
       console.error('Error fetching helpers:', error);
       recordClientError({ label: "Recharge.arr", message: error instanceof Error ? error.message : String(error) });
     }
-  }, [userCountryCode]);
+  }, [userCountryCode, getTierMinWallet]);
 
 
   // Fetch helper payment methods AND admin payment methods when country code changes
