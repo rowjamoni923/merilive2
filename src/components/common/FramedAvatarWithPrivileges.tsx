@@ -41,14 +41,19 @@ const avatarSizeClasses = {
   "2xl": "w-36 h-36",
 };
 
-// Frame should be slightly larger than avatar to wrap around it
-const frameSizeClasses = {
-  xs: "w-9 h-9",
-  sm: "w-14 h-14",
-  md: "w-[72px] h-[72px]",
-  lg: "w-28 h-28",
-  xl: "w-36 h-36",
-  "2xl": "w-44 h-44",
+// Frame container matches avatar EXACTLY (parity with AvatarWithFrame used on
+// the gifting / home / chat surfaces). The frame artwork is rendered as an
+// absolute overlay that extends slightly past the avatar disc via a small
+// negative inset, so the ring sits flush around the avatar with no gap.
+const frameSizeClasses = avatarSizeClasses;
+
+const frameInsetPx: Record<keyof typeof avatarSizeClasses, number> = {
+  xs: -3,
+  sm: -4,
+  md: -6,
+  lg: -8,
+  xl: -10,
+  "2xl": -12,
 };
 
 const fallbackTextSizes = {
@@ -282,12 +287,17 @@ const FramedAvatarWithPrivileges = ({
             </motion.div>
           )}
 
-          {/* The Animated Frame Image - wraps around avatar */}
+          {/* The Animated Frame Image - extends slightly past the avatar disc */}
           <motion.img
             src={frameUrl}
             alt="Frame"
-            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-            style={{ zIndex: 20 }}
+            className="absolute w-auto h-auto object-contain pointer-events-none"
+            style={{
+              inset: frameInsetPx[size],
+              width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+              height: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
+              zIndex: 20,
+            }}
             animate={showAnimation ? {
               scale: [1, 1.03, 1],
               filter: level >= 20 
@@ -301,16 +311,14 @@ const FramedAvatarWithPrivileges = ({
             }}
           />
           
-          {/* Avatar centered inside the frame */}
+          {/* Avatar fills the entire container — no inner padding gap */}
           <div 
             className="absolute inset-0 flex items-center justify-center"
-            style={{ 
-              padding: size === 'xs' ? '4px' : size === 'sm' ? '6px' : '8px',
-              zIndex: 10,
-            }}
+            style={{ zIndex: 10 }}
           >
             {avatarContent}
           </div>
+
 
           {/* Sparkle effects on frame edges for high levels */}
           {showAnimation && level >= 25 && (
