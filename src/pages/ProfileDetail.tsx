@@ -371,16 +371,16 @@ const ProfileDetail = () => {
     let profileData = profileDataResult?.data as ProfileData | null;
 
     if (!profileData && targetId) {
-      // Fallback: fetch from profiles table for ANY user (own or other)
+      // Fallback: use profiles_public view (RLS-safe for both own & other users). Owner reads of full profiles table are handled by the primary path.
       const { data: fallbackProfile } = await supabase
-        .from('profiles')
+        .from('profiles_public')
         .select('*')
         .eq('id', targetId)
         .maybeSingle();
       
       if (fallbackProfile) {
         // Check if banned
-        if (fallbackProfile.is_blocked) {
+        if ((fallbackProfile as any).is_blocked) {
           setIsBannedProfile(true);
           setLoading(false);
           return;

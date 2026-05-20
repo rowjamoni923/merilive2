@@ -1374,8 +1374,8 @@ const PartyRoom = () => {
       }
     };
     
-    // PERFORMANCE: Faster fallback poll (3s) while realtime handles primary instant updates
-    const pollInterval = setInterval(pollRoomStatus, 3000);
+    // COST-OPTIMISED: 20s fallback poll (was 3s → ~85% fewer DB reads). Realtime handles primary instant updates; this is purely a safety net.
+    const pollInterval = setInterval(pollRoomStatus, 20000);
     
     return () => {
       clearInterval(pollInterval);
@@ -1493,17 +1493,15 @@ const PartyRoom = () => {
     }
   }, []);
 
-  // NATIVE APP FALLBACK: Polling for participants & seat requests every 3 seconds
-  // This ensures data stays fresh even when Supabase realtime fails on native platforms
+  // NATIVE APP FALLBACK: Polling for participants & seat requests
+  // COST-OPTIMISED: 20s interval (was 3s → ~85% fewer DB reads). Realtime is primary; this is a safety net for native packet loss.
   useEffect(() => {
     if (!roomId || !currentUser) return;
     
-    // Polling every 3 seconds as fallback for native apps
     const pollInterval = setInterval(() => {
-      console.log('[PartyRoom] 🔄 Native fallback: Polling participants & seat requests');
       fetchParticipants();
       fetchSeatRequests();
-    }, 3000);
+    }, 20000);
     
     return () => {
       clearInterval(pollInterval);
