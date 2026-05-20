@@ -12,7 +12,8 @@ export const sendGameWinNotification = async ({
   winAmount,
   gameEmoji = "🎰",
   userName,
-  userLevel
+  userLevel,
+  context = 'party',
 }: {
   roomId: string;
   userId: string;
@@ -21,11 +22,17 @@ export const sendGameWinNotification = async ({
   gameEmoji?: string;
   userName?: string;
   userLevel?: number;
+  /**
+   * 'party' → inserts into party_room_messages (roomId = party_rooms.id)
+   * 'live'  → inserts into stream_chat (roomId = live_streams.id)
+   * 'none'  → no broadcast (e.g. private 1:1 chat, GoLive preview)
+   */
+  context?: 'party' | 'live' | 'none';
 }) => {
   if (!roomId || !userId || winAmount <= 0) return;
+  if (context === 'none') return;
 
   try {
-    // Format win amount for display (K = thousand, M = million)
     const formatAmount = (amount: number): string => {
       if (amount >= 1000000) {
         const m = amount / 1000000;
@@ -39,36 +46,44 @@ export const sendGameWinNotification = async ({
     };
 
     const formattedAmount = formatAmount(winAmount);
-    
-    // Get user info if not provided
+
+    // Resolve display name + level via public view (no cross-user profiles read)
     let displayName = userName || 'Player';
     let level = userLevel || 1;
-    
+
     if (!userName || !userLevel) {
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('username, user_level')
+        .from('profiles_public')
+        .select('display_name, user_level')
         .eq('id', userId)
-        .single();
-      
+        .maybeSingle();
+
       if (profile) {
-        displayName = profile.username || 'Player';
-        level = profile.user_level || 1;
+        displayName = (profile as any).display_name || 'Player';
+        level = (profile as any).user_level || 1;
       }
     }
-    
-    // Create win notification message
-    // Format: [GAME_WIN:emoji:gameName:amount:userName:level]
-    const winMessage = `[GAME_WIN:${gameEmoji}:${gameName}:${formattedAmount}:${displayName}:${level}]`;
-    
-    await supabase.from('party_room_messages').insert({
-      room_id: roomId,
-      sender_id: userId,
-      content: winMessage,
-      message_type: 'game_win'
-    });
 
-    console.log(`[GameWin] Sent notification: ${displayName} (Lv${level}) won ${formattedAmount} in ${gameName}`);
+    // Encoded win bubble — RoomChatOverlay parses and renders as gold message
+    const winMessage = `[GAME_WIN:${gameEmoji}:${gameName}:${formattedAmount}:${displayName}:${level}]`;
+
+    if (context === 'live') {
+      await supabase.from('stream_chat').insert({
+        stream_id: roomId,
+        user_id: userId,
+        message: winMessage,
+        message_type: 'game_win',
+      });
+    } else {
+      await supabase.from('party_room_messages').insert({
+        room_id: roomId,
+        sender_id: userId,
+        content: winMessage,
+        message_type: 'game_win',
+      });
+    }
+
+    console.log(`[GameWin] (${context}) ${displayName} (Lv${level}) won ${formattedAmount} in ${gameName}`);
   } catch (error) {
     console.error('[GameWin] Failed to send win notification:', error);
   }

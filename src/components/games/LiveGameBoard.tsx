@@ -76,6 +76,8 @@ interface LiveGameBoardProps {
   roomId?: string;
   onClose?: () => void;
   onOpenGifts?: () => void;
+  /** Where the win bubble should appear: live stream chat, party room chat, or nowhere */
+  context?: 'live' | 'party' | 'none';
 }
 
 // Default preset bets - Updated as per user request
@@ -92,7 +94,7 @@ const formatBetAmount = (amount: number): string => {
   return amount.toString();
 };
 
-export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: LiveGameBoardProps) {
+export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, context = 'party' }: LiveGameBoardProps) {
   const [games, setGames] = useState<GameSetting[]>([]);
   const [activeGame, setActiveGame] = useState<string | null>(selectedGame || 'crash');
   const [loading, setLoading] = useState(true);
@@ -282,7 +284,8 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
         winAmount,
         gameEmoji,
         userName: currentUserProfile?.username,
-        userLevel: currentUserProfile?.level
+        userLevel: currentUserProfile?.level,
+        context,
       });
     }
   };

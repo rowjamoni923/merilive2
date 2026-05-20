@@ -14,6 +14,7 @@ interface GlobalGameOverlayProps {
   onMaximize?: () => void;
   onClose?: () => void;
   onOpenGifts?: () => void;
+  context?: 'live' | 'party' | 'none';
 }
 
 export function GlobalGameOverlay({ 
@@ -23,7 +24,8 @@ export function GlobalGameOverlay({
   onMinimize,
   onMaximize,
   onClose,
-  onOpenGifts
+  onOpenGifts,
+  context = 'party',
 }: GlobalGameOverlayProps) {
   const [showGame, setShowGame] = useState(true);
 
@@ -77,6 +79,7 @@ export function GlobalGameOverlay({
             <LiveGameBoard
               selectedGame={gameId}
               roomId={roomId}
+              context={context}
               onClose={() => {
                 setShowGame(false);
                 if (onClose) onClose();
