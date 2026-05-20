@@ -412,7 +412,8 @@ const AgentWallet = () => {
 
           <Button 
             onClick={() => setShowExchange(true)}
-            className="w-full mt-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+            aria-label="Exchange beans to coins"
+            className="w-full h-11 mt-4 bg-white/20 hover:bg-white/30 active:bg-white/25 backdrop-blur-sm"
           >
             <ArrowRightLeft className="w-4 h-4 mr-2" />
             Exchange to Coins
