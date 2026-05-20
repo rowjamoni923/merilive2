@@ -672,11 +672,34 @@ export function CompactGameFooter({ selectedGame, roomId, onClose, onOpenGifts, 
   const { coins: flyingCoins, addCoin } = useFlyingCoins();
   const coinDisplayRef = useRef<HTMLDivElement>(null);
 
-  const handleWin = (amount: number) => {
+  const handleWin = async (amount: number) => {
+    if (!amount || amount <= 0) return;
+    // Instant UI credit
+    setUserCoins(prev => prev + amount);
     setWinAmount(amount);
     setShowWin(true);
-    // Refresh coins after win
-    setTimeout(fetchUserCoins, 500);
+    // Server-side atomic credit + cached balance sync
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { processWin } = await import('@/services/gameBalanceService');
+      const result = await processWin(
+        user.id,
+        activeGame || 'game',
+        currentGame?.game_name || 'Game',
+        Math.floor(amount)
+      );
+      if (result.success && result.newBalance !== undefined) {
+        setUserCoins(result.newBalance);
+      } else {
+        // Rollback optimistic credit on failure
+        setUserCoins(prev => prev - amount);
+        fetchUserCoins();
+      }
+    } catch (err) {
+      console.error('handleWin processWin error:', err);
+      fetchUserCoins();
+    }
   };
 
   const handleLoss = (amount: number) => {
