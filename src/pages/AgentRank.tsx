@@ -353,7 +353,7 @@ const AgentRank = () => {
         <div className="relative py-8 px-4">
           {/* Background glow */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-64 h-64 bg-purple-600/10 rounded-full blur-3xl" />
+            <div className="w-64 h-64 bg-purple-300/20 rounded-full blur-3xl" />
           </div>
 
           <div className="relative flex justify-center items-end gap-3">
