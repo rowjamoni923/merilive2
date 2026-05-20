@@ -195,3 +195,30 @@ export function getStickerShimmer(name: string): boolean {
   const sticker = PROMO_STICKERS.find((s) => s.name === name);
   return sticker?.category === 'premium' || sticker?.category === 'hot';
 }
+
+/**
+ * Warm browser cache + decoder for every sticker PNG so the panel
+ * opens with instantly-painted thumbnails (no progressive load).
+ * Runs once on idle after first import — zero render cost.
+ */
+let _warmed = false;
+export function warmStickerCache() {
+  if (_warmed || typeof window === 'undefined') return;
+  _warmed = true;
+  const run = () => {
+    for (const s of PROMO_STICKERS) {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = s.preview;
+      // Force decode into GPU so first paint is instant
+      if (typeof img.decode === 'function') img.decode().catch(() => {});
+    }
+  };
+  const ric = (window as unknown as { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
+  if (typeof ric === 'function') ric(run);
+  else setTimeout(run, 200);
+}
+
+// Auto-warm on module evaluation (module is imported lazily with StickerPanel chunk)
+warmStickerCache();
+
