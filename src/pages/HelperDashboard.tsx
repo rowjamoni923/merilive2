@@ -1836,7 +1836,7 @@ const HelperDashboard = () => {
                         <Clock className="w-4 h-4 text-amber-700" />
                         <span className="text-amber-700 text-xs">Upgrade request pending...</span>
                       </div>
-                      <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-white/30 text-amber-700 text-[10px]">Pending</Badge>
+                      <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 text-[10px] border-0">Pending</Badge>
                     </div>
                   )}
                   
