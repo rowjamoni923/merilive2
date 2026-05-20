@@ -1104,6 +1104,7 @@ const App = () => {
                 <Route path="/tasks" element={<ProtectedRoute session={session}><Tasks /></ProtectedRoute>} />
                 <Route path="/host-bonus-ledger" element={<ProtectedRoute session={session}><HostBonusLedger /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute session={session}><Settings /></ProtectedRoute>} />
+                <Route path="/debug/referrer" element={<ProtectedRoute session={session}><DebugReferrer /></ProtectedRoute>} />
                 <Route path="/settings/blacklist" element={<ProtectedRoute session={session}><Blacklist /></ProtectedRoute>} />
                 <Route path="/settings/privacy-policy" element={<ProtectedRoute session={session}><ContentPageView /></ProtectedRoute>} />
                 <Route path="/settings/user-agreement" element={<ProtectedRoute session={session}><ContentPageView /></ProtectedRoute>} />
