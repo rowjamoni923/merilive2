@@ -552,41 +552,41 @@ const AgentRank = () => {
 
       {/* Rules Drawer */}
       <Drawer open={showRules} onOpenChange={setShowRules}>
-        <DrawerContent className="border-white/[0.08]" style={{ background: 'linear-gradient(180deg, #1a0a2e, #0d0619)' }}>
+        <DrawerContent className="border-slate-200" style={{ background: 'linear-gradient(180deg, #ffffff, #f8f4ff)' }}>
           <DrawerHeader>
-            <DrawerTitle className="text-white text-center flex items-center justify-center gap-2">
-              <Shield className="w-5 h-5 text-purple-400" />
+            <DrawerTitle className="text-slate-900 text-center flex items-center justify-center gap-2">
+              <Shield className="w-5 h-5 text-purple-600" />
               Ranking Rules
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-6 pb-8 space-y-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-4">
-              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-                <h3 className="text-white font-bold text-sm flex items-center gap-2 mb-2">
-                  <Trophy className="w-4 h-4 text-yellow-400" /> How Rankings Work
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm">
+                <h3 className="text-slate-900 font-bold text-sm flex items-center gap-2 mb-2">
+                  <Trophy className="w-4 h-4 text-amber-500" /> How Rankings Work
                 </h3>
-                <ul className="space-y-1.5 text-xs text-white/70">
+                <ul className="space-y-1.5 text-xs text-slate-600">
                   <li>• Rankings based on total agency income</li>
                   <li>• Weekly resets every Sunday at 23:59 UTC</li>
                   <li>• Monthly resets on the last day of each month</li>
                   <li>• Top performers receive rewards automatically</li>
                 </ul>
               </div>
-              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-                <h3 className="text-white font-bold text-sm flex items-center gap-2 mb-2">
-                  <Gift className="w-4 h-4 text-cyan-400" /> Rewards
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm">
+                <h3 className="text-slate-900 font-bold text-sm flex items-center gap-2 mb-2">
+                  <Gift className="w-4 h-4 text-cyan-600" /> Rewards
                 </h3>
-                <ul className="space-y-1.5 text-xs text-white/70">
+                <ul className="space-y-1.5 text-xs text-slate-600">
                   <li>• Distributed automatically at period end</li>
                   <li>• Credited to agency owner's diamond balance</li>
                   <li>• Minimum income requirements may apply</li>
                 </ul>
               </div>
-              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-                <h3 className="text-white font-bold text-sm flex items-center gap-2 mb-2">
-                  <Wifi className="w-4 h-4 text-emerald-400" /> Real-time Updates
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm">
+                <h3 className="text-slate-900 font-bold text-sm flex items-center gap-2 mb-2">
+                  <Wifi className="w-4 h-4 text-emerald-600" /> Real-time Updates
                 </h3>
-                <p className="text-xs text-white/70">Rankings update in real-time as transactions occur.</p>
+                <p className="text-xs text-slate-600">Rankings update in real-time as transactions occur.</p>
               </div>
             </div>
           </div>
