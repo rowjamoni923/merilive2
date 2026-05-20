@@ -62,7 +62,7 @@ import { useEntryAnimations } from "@/hooks/useEntryAnimations";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
 import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom";
-import { AdvancedPartyBottomBar } from "@/components/party/AdvancedPartyBottomBar";
+
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
 import { GameFooterNew } from "@/components/games/GameFooterNew";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
