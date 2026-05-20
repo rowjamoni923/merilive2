@@ -1,50 +1,39 @@
-// Stable AI placeholder avatars for profiles without an uploaded photo.
-// - Female pool → hosts (and any female user with no avatar)
-// - Male pool → male users with no avatar
-// Mapping is deterministic per UUID so the same profile always shows the same image.
-// Owner-side surfaces (own profile/edit screen, admin moderation) MUST pass isOwner=true
-// so the real (empty) state shows — owner should never see the placeholder of themselves.
-import f01 from "@/assets/placeholder-avatars/avatar_01.jpg";
-import f02 from "@/assets/placeholder-avatars/avatar_02.jpg";
-import f03 from "@/assets/placeholder-avatars/avatar_03.jpg";
-import f04 from "@/assets/placeholder-avatars/avatar_04.jpg";
-import f05 from "@/assets/placeholder-avatars/avatar_05.jpg";
-import f06 from "@/assets/placeholder-avatars/avatar_06.jpg";
-import f07 from "@/assets/placeholder-avatars/avatar_07.jpg";
-import f08 from "@/assets/placeholder-avatars/avatar_08.jpg";
-import f09 from "@/assets/placeholder-avatars/avatar_09.jpg";
-import f10 from "@/assets/placeholder-avatars/avatar_10.jpg";
-import f11 from "@/assets/placeholder-avatars/avatar_11.jpg";
-import f12 from "@/assets/placeholder-avatars/avatar_12.jpg";
-import m01 from "@/assets/placeholder-avatars/male_01.jpg";
-import m02 from "@/assets/placeholder-avatars/male_02.jpg";
-import m03 from "@/assets/placeholder-avatars/male_03.jpg";
-import m04 from "@/assets/placeholder-avatars/male_04.jpg";
-import m05 from "@/assets/placeholder-avatars/male_05.jpg";
-import m06 from "@/assets/placeholder-avatars/male_06.jpg";
-
-const FEMALE_POOL = [f01, f02, f03, f04, f05, f06, f07, f08, f09, f10, f11, f12];
-const MALE_POOL = [m01, m02, m03, m04, m05, m06];
+// Unlimited unique placeholder avatars for profiles without an uploaded photo.
+// - Deterministically generated per profile UUID via DiceBear (runs 100% in-app, no network).
+// - Female pool → `lorelei` style (illustrated female portraits) for hosts / unspecified gender.
+// - Male pool → `notionists` style (illustrated male portraits) for male users.
+// - Output is a data: URI SVG, so every profile gets a truly unique avatar that
+//   never collides with another — no fixed 6/12 photo pool.
+// Owner-side surfaces (own profile/edit, admin moderation) MUST pass isOwner=true
+// so the real (empty) state shows — owner should never see a generated placeholder of themselves.
+import { createAvatar } from "@dicebear/core";
+import { lorelei, notionists } from "@dicebear/collection";
 
 export type PlaceholderGender = "female" | "male" | null | undefined;
 
-function hashStr(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (h * 31 + s.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
-}
-
-function pickPool(gender: PlaceholderGender): string[] {
-  // Female = default (hosts / unspecified). Male only when explicitly male.
-  return gender === "male" ? MALE_POOL : FEMALE_POOL;
-}
+// In-memory cache so we don't re-generate the same SVG on every render.
+const cache = new Map<string, string>();
 
 export function getPlaceholderAvatar(profileId: string, gender?: PlaceholderGender): string {
-  const pool = pickPool(gender);
-  if (!profileId) return pool[0];
-  return pool[hashStr(profileId) % pool.length];
+  const seed = profileId || "anonymous";
+  const isMale = gender === "male";
+  const key = `${isMale ? "m" : "f"}:${seed}`;
+  const cached = cache.get(key);
+  if (cached) return cached;
+
+  const style = isMale ? notionists : lorelei;
+  const svg = createAvatar(style, {
+    seed,
+    size: 256,
+    radius: 50,
+    backgroundType: ["gradientLinear", "solid"],
+    backgroundColor: isMale
+      ? ["1e3a8a", "0f172a", "374151", "065f46", "3730a3", "7c2d12"]
+      : ["fce7f3", "fbcfe8", "fed7aa", "fef3c7", "ddd6fe", "e0e7ff"],
+  }).toDataUri();
+
+  cache.set(key, svg);
+  return svg;
 }
 
 export interface DisplayAvatarOpts {
@@ -53,7 +42,7 @@ export interface DisplayAvatarOpts {
   /**
    * True when the currently-signed-in viewer IS the profile owner.
    * Owners always see the real (possibly empty) avatar so they're nudged
-   * to upload — never the AI placeholder of themselves.
+   * to upload — never the generated placeholder of themselves.
    */
   isOwner?: boolean;
 }
@@ -64,8 +53,8 @@ export interface DisplayAvatarOpts {
  *
  * - If the profile has an avatar → return it as-is.
  * - Else if isOwner → return empty string (owner sees their real blank state).
- * - Else → return a stable AI placeholder (female pool for hosts/default,
- *   male pool when gender='male').
+ * - Else → return a deterministic, unique generated portrait
+ *   (female style for hosts/default, male style when gender='male').
  *
  * NEVER use on the owner's own edit/settings screen or admin moderation
  * panels without passing isOwner=true (admin should also pass isOwner=true
