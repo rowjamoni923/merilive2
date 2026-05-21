@@ -106,7 +106,7 @@ export function ActiveCallScreen({
     
     // Real-time subscription
     const channel = supabase
-      .channel('activecall-gift-commission-realtime')
+      .channel(`activecall-gift-commission-realtime-${callId || userId || 'pending'}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -124,7 +124,7 @@ export function ActiveCallScreen({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [callId, userId]);
   
   // BILLING DISPLAY LOGIC:
   // The actual deduction happens on the backend every 60 seconds
