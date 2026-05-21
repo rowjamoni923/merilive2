@@ -748,9 +748,10 @@ export function usePrivateCall(userId: string | null) {
       }
 
       // Fetch caller profile in background - non-blocking
+      // 🔒 Pkg86 audit fix: cross-user read → profiles_public (RLS-safe, no coins leak)
       const callerProfilePromise = callData?.caller_id
         ? supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('display_name, avatar_url, user_level')
             .eq('id', callData.caller_id)
             .single()
@@ -767,8 +768,15 @@ export function usePrivateCall(userId: string | null) {
         }
       }).catch(() => {});
 
-      // ⚡ Notify caller instantly so they switch to connected UI without waiting for DB propagation
+      // ⚡ Notify caller instantly so they switch to connected UI without waiting for DB propagation.
+      // Pkg86 audit: dual-path (LiveKit primary + Supabase fallback) — caller may not yet have
+      // joined the LiveKit Room when host accepts, so Supabase broadcast remains as safety net
+      // until LiveKit Room is established. publishCallAccepted retries up to 5s waiting for Room.
       if (callData?.caller_id) {
+        // Primary: LiveKit DataPacket (sub-50ms once Room is up, retries 20×250ms)
+        void publishCallAccepted(callId, { acceptedBy: userId });
+
+        // Fallback: Supabase broadcast (works pre-Room)
         const callerChannel = supabase.channel(`call-end-listener-${callData.caller_id}`);
         Promise.resolve(new Promise<void>((resolve) => {
           const timeout = setTimeout(() => resolve(), 1500);
@@ -793,6 +801,7 @@ export function usePrivateCall(userId: string | null) {
           Promise.resolve(supabase.removeChannel(callerChannel)).catch(() => {});
         });
       }
+
 
       // Host billing display fetch every 10s (billing changes every 60s — display only)
       billingFetchIntervalRef.current = setInterval(async () => {
