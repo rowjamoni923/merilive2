@@ -1333,85 +1333,50 @@ const LiveStream = () => {
 
 
 
-  // Listen for incoming PK requests (if this user is a host)
+  // Pkg82d (FCM-only): listen for incoming PK signals via `pk-notification`
+  // window event (dispatched by useNotifications when a `pk_*` notification
+  // row arrives over the whitelisted notifications realtime subscription).
+  // Replaces TWO deleted Supabase channels:
+  //   • `pk_incoming_${currentUserId}` (postgres_changes pk_battles INSERT)
+  //   • `pk_random_match` (broadcast bus)
   useEffect(() => {
     if (!currentUserId || !isHost) return;
 
-    const channel = supabase
-      .channel(`pk_incoming_${currentUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "pk_battles",
-          filter: `opponent_id=eq.${currentUserId}`,
-        },
-        async (payload: any) => {
-          if (payload.new.status === "pending") {
-            // Fetch challenger info
-            const { data: challenger } = await supabase
-              .from("profiles_public")
-              .select("display_name, avatar_url, user_level")
-              .eq("id", payload.new.challenger_id)
-              .single();
+    const handler = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail as any;
+      if (!detail || typeof detail.type !== "string") return;
+      const data = detail.data ?? {};
 
-            if (challenger) {
-              setIncomingPKRequest({
-                battleId: payload.new.id,
-                challengerName: challenger.display_name || "Host",
-                challengerAvatar: challenger.avatar_url || "",
-                challengerLevel: challenger.user_level || 1,
-              });
-              setShowPKRequest(true);
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentUserId, isHost]);
-
-  // Listen for RANDOM PK match requests from other hosts via Broadcast
-  useEffect(() => {
-    if (!currentUserId || !isHost || !id) return;
-
-    const channel = supabase.channel("pk_random_match", { // channel-singleton-ok: global random PK matchmaking bus
-      config: { broadcast: { self: false } },
-    });
-
-    channel
-      .on("broadcast", { event: "random_pk_request" }, (msg) => {
-        const payload = msg.payload as any;
-        if (payload.challengerId === currentUserId) return;
+      if (detail.type === "pk_invite") {
+        if (!data.battleId) return;
+        setIncomingPKRequest({
+          battleId: data.battleId,
+          challengerName: data.fromName || "Host",
+          challengerAvatar: data.fromAvatar || "",
+          challengerLevel: data.fromLevel || 1,
+        });
+        setShowPKRequest(true);
+      } else if (detail.type === "pk_random_invite") {
         if (pkBattleState.isActive || showPKRequest) return;
-
-        console.log("[LiveStream] ⚔️ Random PK request from:", payload.challengerName);
+        if (data.fromUserId === currentUserId) return;
         setRandomPKRequest({
-          challengerId: payload.challengerId,
-          challengerName: payload.challengerName,
-          challengerAvatar: payload.challengerAvatar,
-          challengerLevel: payload.challengerLevel,
-          challengerStreamId: payload.challengerStreamId,
+          challengerId: data.fromUserId,
+          challengerName: data.fromName || "Host",
+          challengerAvatar: data.fromAvatar || "",
+          challengerLevel: data.fromLevel || 1,
+          challengerStreamId: data.fromStreamId || "",
         });
         setShowRandomPKNotification(true);
-      })
-      .on("broadcast", { event: "random_pk_matched" }, (msg) => {
-        const payload = msg.payload as any;
-        if (randomPKRequest?.challengerId === payload.challengerId) {
-          setShowRandomPKNotification(false);
-          setRandomPKRequest(null);
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+      } else if (detail.type === "pk_invite_accepted" || detail.type === "pk_invite_declined") {
+        // Reply to direct-invite sent FROM this host — handled in PKBattlePanel
+        // via the same window event (no Supabase channel needed).
+      }
     };
-  }, [currentUserId, isHost, id, pkBattleState.isActive, showPKRequest]);
+
+    window.addEventListener("pk-notification", handler);
+    return () => window.removeEventListener("pk-notification", handler);
+  }, [currentUserId, isHost, pkBattleState.isActive, showPKRequest]);
+
 
   // Keep host preview visible while publishing starts (no second play flash)
   useEffect(() => {
