@@ -98,7 +98,7 @@ export function usePartyRoomWebRTC(
       isAudioEnabled: true,
       isVideoEnabled: true,
     });
-  }, []);
+  }, [roomId]);
 
   const toggleAudio = useCallback(() => {
     if (!partyCanPublishRef.current) return;
