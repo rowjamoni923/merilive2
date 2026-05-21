@@ -437,69 +437,24 @@ export function usePrivateCall(userId: string | null) {
       }));
 
       // ⚡ CRITICAL FIX: Send broadcast to host BEFORE the RPC call
-      // This ensures the host sees the incoming call instantly (<1s)
-      // The RPC can take 2-10s on slow networks - don't make host wait for it
-      const broadcastPayload = {
-        callerId: userId,
-        callerName: userProfile?.display_name || 'User',
-        callerAvatar: userProfile?.avatar_url || '',
-        callerLevel: userProfile?.user_level || 1,
-        // callId will be added after RPC returns
-        callId: '', // placeholder - updated below
-      };
+      // Pkg84: FCM-only incoming-call delivery (Chamet/WhatsApp/Imo standard).
+      // No more client-side Supabase broadcast on `incoming-call-${hostId}` —
+      // `call-deliver` edge function (invoked below after RPC success) is the
+      // SOLE delivery path: high-priority data FCM (foreground + background +
+      // killed app wake) + `notifications` row insert (foreground in-app
+      // bridge via useNotifications → window 'incoming-call-notification').
 
       // ⚡ Pre-warm LiveKit token for caller while RPC is in flight
       import('@/services/livekitService').then(({ warmLiveKitToken }) => {
         warmLiveKitToken(`call_placeholder_${hostId}`, 'call').catch(() => {});
       });
 
-      // ⚡ RPC + early broadcast in parallel
-      const rpcPromise = supabase.rpc('start_private_call', {
+      const { data, error } = await supabase.rpc('start_private_call', {
         p_caller_id: userId,
         p_receiver_id: hostId,
         p_call_type: 'video',
       });
 
-      // ✅ FIXED: Send broadcast on the EXACT same channel name the host listens on
-      // Host subscribes to `incoming-call-${hostId}` — sender MUST use the same topic
-      const sendBroadcast = (payload: typeof broadcastPayload, attempt: number = 1) => {
-        // ✅ CRITICAL: Channel name must EXACTLY match host's listener channel
-        const channelName = `incoming-call-${hostId}`;
-        const sendChannel = supabase.channel(channelName);
-        const timeout = setTimeout(() => {
-          try { supabase.removeChannel(sendChannel); } catch (_) {}
-          if (attempt < 5) {
-            console.log(`[Call] Broadcast attempt ${attempt} timed out, retrying...`);
-            sendBroadcast(payload, attempt + 1);
-          }
-        }, 2000);
-
-        sendChannel.subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            sendChannel
-              .send({ type: 'broadcast', event: 'incoming_call', payload })
-              .then(() => {
-                clearTimeout(timeout);
-                console.log(`[Call] ⚡ Broadcast DELIVERED (attempt ${attempt})`);
-                // Keep channel alive briefly to ensure delivery, then cleanup
-                setTimeout(() => {
-                  try { supabase.removeChannel(sendChannel); } catch (_) {}
-                }, 500);
-              })
-              .catch(() => {
-                clearTimeout(timeout);
-                try { supabase.removeChannel(sendChannel); } catch (_) {}
-                if (attempt < 5) sendBroadcast(payload, attempt + 1);
-              });
-          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            clearTimeout(timeout);
-            try { supabase.removeChannel(sendChannel); } catch (_) {}
-            if (attempt < 5) sendBroadcast(payload, attempt + 1);
-          }
-        });
-      };
-
-      const { data, error } = await rpcPromise;
 
       if (error) {
         throw error;
@@ -544,14 +499,11 @@ export function usePrivateCall(userId: string | null) {
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
       const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
 
-      // ✅ Send broadcast WITH real callId — staggered retries for guaranteed delivery
-      broadcastPayload.callId = resolvedCallId;
-      sendBroadcast(broadcastPayload);
-      setTimeout(() => sendBroadcast(broadcastPayload), 800);
-      setTimeout(() => sendBroadcast(broadcastPayload), 2000);
-      setTimeout(() => sendBroadcast(broadcastPayload), 4000);
-      
+      // Pkg84: client Supabase broadcast removed. `call-deliver` edge function
+      // (invoked just below) is sole delivery path → FCM high-priority data
+      // push + `notifications` row insert.
       currentCallIdRef.current = resolvedCallId;
+
 
       // ⚡ Pre-warm LiveKit token for caller side - room will connect instantly when host accepts
       import('@/services/livekitService').then(({ warmLiveKitToken }) => {
@@ -1153,41 +1105,42 @@ export function usePrivateCall(userId: string | null) {
     };
   }, [userId]);
 
-  // 🔴 METHOD 1: BROADCAST listener for INSTANT incoming calls (sub-100ms)
-  // This is the PRIMARY method - fires before postgres_changes
+  // 🔴 Pkg84: INCOMING CALL LISTENER — FCM-only (Chamet/WhatsApp/Imo standard)
+  // The `incoming-call-${userId}` Supabase Realtime channel + 15s heartbeat
+  // are DELETED. `call-deliver` edge function (caller-side) inserts a
+  // `notifications` row + sends FCM high-priority data push. `useNotifications`
+  // listens on its already-active `notifications` subscription and bridges
+  // type='incoming_call' rows to `window 'incoming-call-notification'`.
+  // This removes one realtime channel + 15s polling tick per logged-in user
+  // ($1400-bill rule win) while gaining background/killed-app delivery.
   useEffect(() => {
     if (!userId) return;
 
-    console.log('[Broadcast] Setting up INSTANT incoming call listener for:', userId);
+    console.log('[Pkg84] Setting up FCM-bridge incoming call listener for:', userId);
     let isCleanedUp = false;
-    // ✅ Mutable ref so heartbeat can swap channels without leaking
-    let activeChannel: ReturnType<typeof supabase.channel> | null = null;
 
-    const handleIncomingBroadcast = (payload: any) => {
+    const handleIncomingNotification = (evt: Event) => {
       if (isCleanedUp) return;
-      
-      const data = payload.payload;
+      const detail = (evt as CustomEvent).detail;
+      const data = detail?.data || detail;
       const callId = typeof data?.callId === 'string' ? data.callId.trim() : '';
       if (!callId) return;
-      console.log('[Broadcast] ⚡ INSTANT incoming call received!', callId);
-      
-      // Guards: never show ended calls
+      console.log('[Pkg84] ⚡ Incoming call via FCM-bridge:', callId);
+
       if (endedCallIdsRef.current.has(callId)) {
-        console.log('[Broadcast] Skipping - already ended call');
+        console.log('[Pkg84] Skipping - already ended call');
         return;
       }
-      
-      // ✅ Only block if ACTIVELY connected to another call
+
       const currentStatus = callStateRef.current.status;
       const activeCallId = currentCallIdRef.current;
       if (activeCallId && activeCallId !== callId && (currentStatus === 'connected' || currentStatus === 'calling' || currentStatus === 'ringing')) {
-        console.log('[Broadcast] Skipping - actively in another call:', activeCallId);
+        console.log('[Pkg84] Skipping - actively in another call:', activeCallId);
         return;
       }
-      
-      // ✅ CRITICAL: Force-reset ALL blocking refs for new incoming call
+
       callEndedRef.current = false;
-      
+
       setIncomingCall({
         callId,
         callerId: data.callerId,
@@ -1197,11 +1150,9 @@ export function usePrivateCall(userId: string | null) {
       });
 
       // ⚡ Pre-warm LiveKit token
-      if (data.callId) {
-        import('@/services/livekitService').then(({ warmLiveKitToken }) => {
-          warmLiveKitToken(`call_${data.callId}`, 'call').catch(() => {});
-        });
-      }
+      import('@/services/livekitService').then(({ warmLiveKitToken }) => {
+        warmLiveKitToken(`call_${callId}`, 'call').catch(() => {});
+      });
 
       // 📳 NATIVE: Vibrate phone for incoming call
       if (typeof (window as any).Capacitor !== 'undefined') {
@@ -1211,64 +1162,21 @@ export function usePrivateCall(userId: string | null) {
           setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 600);
         }).catch(() => {});
       }
-      
+
       toastRef.current({
         title: "Incoming Call",
         description: `${data.callerName || 'User'} is calling you`,
       });
     };
 
-    // ✅ Create & subscribe a fresh channel, store in activeChannel
-    const createAndSubscribe = () => {
-      // Clean up previous channel if any
-      if (activeChannel) {
-        try { supabase.removeChannel(activeChannel); } catch (_) {}
-        activeChannel = null;
-      }
-
-      const channelName = `incoming-call-${userId}`;
-      const channel = supabase
-        .channel(channelName)
-        .on('broadcast', { event: 'incoming_call' }, handleIncomingBroadcast)
-        .subscribe((status) => {
-          console.log('[Broadcast] Incoming call channel:', status);
-          if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && !isCleanedUp) {
-            console.warn('[Broadcast] ⚠️ Channel error/timeout, scheduling reconnect...');
-            setTimeout(() => {
-              if (!isCleanedUp) createAndSubscribe();
-            }, 2000);
-          }
-        });
-      
-      activeChannel = channel;
-    };
-
-    createAndSubscribe();
-
-    // 🔄 HEARTBEAT: Every 15s verify the channel is alive
-    // If dead (e.g. network dropped during live stream), reconnect immediately
-    const heartbeatInterval = setInterval(() => {
-      if (isCleanedUp) return;
-      
-      const channels = supabase.getChannels();
-      const isAlive = channels.some(
-        ch => ch.topic === `realtime:incoming-call-${userId}` && ch.state === 'joined'
-      );
-      
-      if (!isAlive) {
-        console.warn('[Broadcast] 💀 Incoming call channel DEAD - reconnecting NOW');
-        createAndSubscribe();
-      }
-    }, 15_000);
+    window.addEventListener('incoming-call-notification', handleIncomingNotification);
 
     return () => {
       isCleanedUp = true;
-      clearInterval(heartbeatInterval);
-      if (activeChannel) {
-        try { supabase.removeChannel(activeChannel); } catch (_) {}
-      }
+      window.removeEventListener('incoming-call-notification', handleIncomingNotification);
     };
   }, [userId]);
+
 
   // 🔴 CALL-END BROADCAST LISTENER: Instant call termination for BOTH parties
   // When either side ends the call, the other side gets notified in <100ms via broadcast
