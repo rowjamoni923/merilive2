@@ -1020,94 +1020,102 @@ const LiveStream = () => {
     };
   }, [id, currentUserId, addFlyingGift, playSound, isHost, markOptimisticGiftCount]);
 
-  // ========== INSTANT JOIN BROADCAST RECEIVER ==========
-  // Uses Supabase broadcast for sub-100ms delivery of viewer join events
-  // This fires BEFORE postgres_changes (1-3s) reaches this client
+  // ========== Pkg82a: LIVE EVENT RECEIVER (viewer_joined / viewer_left) ==========
+  // Replaces 3 Supabase Realtime channels:
+  //   - `join_broadcast_${id}` (broadcast viewer_joined)
+  //   - `stream_viewers_entrance_${id}` (postgres_changes entrance trigger)
+  //   - `stream_viewers_realtime_${id}` (postgres_changes viewer list patch)
+  // Sender packs ALL needed metadata + entry animation URLs into the envelope,
+  // so receivers render with ZERO extra `profiles_public` / asset fetches.
   useEffect(() => {
     if (!id || !currentUserId) return;
-    
-    // Track which joins we've already processed via broadcast to deduplicate with postgres_changes
-    const processedBroadcastJoins = new Set<string>();
-    
-    const joinBroadcastChannel = supabase
-      .channel(`join_broadcast_${id}`)
-      .on('broadcast', { event: 'viewer_joined' }, async (payload: any) => {
-        const data = payload.payload;
-        if (!data || !mountedRef.current) return;
-        
-        // Skip own join (already shown via optimistic UI)
-        if (data.userId === currentUserId) return;
-        
-        // Deduplicate
-        const joinKey = `${data.userId}_${Math.floor(data.timestamp / 5000)}`;
-        if (processedBroadcastJoins.has(joinKey)) return;
-        processedBroadcastJoins.add(joinKey);
-        
-        console.log('[LiveStream] ⚡ INSTANT join broadcast received:', data.userName);
-        
-        // 1. INSTANT viewer count + avatar update (host sees visitor without refresh)
-        activeViewerIdsRef.current.add(data.userId);
+
+    const handleLiveEvent = (evt: Event) => {
+      const detail = (evt as CustomEvent<import('@/lib/livekitLiveEventsSignaling').LiveEventDetail>).detail;
+      if (!detail || !mountedRef.current) return;
+      const p = detail.payload;
+      if (p.streamId !== id) return;
+
+      if (p.type === 'viewer_left') {
+        // LiveKit ParticipantDisconnected — translated locally on every client.
+        activeViewerIdsRef.current.delete(p.userId);
         setViewerCount(activeViewerIdsRef.current.size);
-        setRecentViewerAvatars(prev => [
+        setRecentViewerAvatars((prev) => prev.filter((v: any) => v.id !== p.userId));
+        return;
+      }
+
+      if (p.type !== 'viewer_joined') return;
+      // Skip own join (already shown via optimistic UI)
+      if (p.userId === currentUserId) return;
+
+      // 1. INSTANT viewer count + avatar list patch
+      activeViewerIdsRef.current.add(p.userId);
+      setViewerCount(activeViewerIdsRef.current.size);
+      setRecentViewerAvatars((prev) => [
+        {
+          id: p.userId,
+          app_uid: p.appUid || null,
+          avatar_url: p.userAvatar || null,
+          name: p.userName || 'User',
+          user_level: p.userLevel || 1,
+        },
+        ...prev.filter((v: any) => v.id !== p.userId),
+      ].slice(0, 5));
+
+      // 2. INSTANT flying join banner
+      addBigoJoinNotification({
+        userId: p.userId,
+        userName: p.userName,
+        userAvatar: p.userAvatar || undefined,
+        userLevel: p.userLevel,
+      });
+
+      // 3. INSTANT chat message (dedup within 5s window)
+      setMessages((prev) => {
+        const hasJoinMessage = prev.some(
+          (m) =>
+            m.id.includes(`join_${p.userId}`) &&
+            Date.now() - parseInt(m.id.split('_')[1] || '0') < 5000,
+        );
+        if (hasJoinMessage) return prev;
+        return [
+          ...prev,
           {
-            id: data.userId,
-            app_uid: data.appUid || null,
-            avatar_url: data.userAvatar || null,
-            name: data.userName || "User",
-            user_level: data.userLevel || 1,
+            id: `join_${p.userId}_${Date.now()}`,
+            user: p.userName,
+            initial: p.userName.charAt(0),
+            message: 'entered the live room 🎉',
+            color: 'text-green-400',
+            userLevel: p.userLevel,
           },
-          ...prev.filter(v => v.id !== data.userId),
-        ].slice(0, 5));
-        
-        // 2. INSTANT flying join banner
-        addBigoJoinNotification({
-          userId: data.userId,
-          userName: data.userName,
-          userAvatar: data.userAvatar,
-          userLevel: data.userLevel,
+        ];
+      });
+
+      // 4. INSTANT entry animation — URLs are pre-resolved in the envelope,
+      // ZERO extra fetch round-trips needed.
+      if (
+        (p.entranceAnimationUrl || p.entryNameBarUrl || p.vehicleAnimationUrl) &&
+        mountedRef.current
+      ) {
+        addEntryAnimation({
+          userId: p.userId,
+          displayName: p.userName,
+          avatarUrl: p.userAvatar || undefined,
+          level: p.userLevel,
+          entranceUrl: p.entranceAnimationUrl || undefined,
+          entryNameBarUrl: p.entryNameBarUrl || undefined,
+          vehicleAnimationUrl: p.vehicleAnimationUrl || undefined,
+          soundUrl: p.entranceSoundUrl || undefined,
         });
-        
-        // 3. INSTANT chat message
-        setMessages(prev => {
-          const hasJoinMessage = prev.some(m => m.id.includes(`join_${data.userId}`) && Date.now() - parseInt(m.id.split('_')[1] || '0') < 5000);
-          if (hasJoinMessage) return prev;
-          
-          return [...prev, {
-            id: `join_${data.userId}_${Date.now()}`,
-            user: data.userName,
-            initial: data.userName.charAt(0),
-            message: "entered the live room 🎉",
-            color: "text-green-400",
-            userLevel: data.userLevel,
-          }];
-        });
-        
-        // 4. INSTANT entry animation (data already fetched by sender)
-        if ((data.entranceAnimationUrl || data.entryNameBarUrl || data.vehicleAnimationUrl) && mountedRef.current) {
-          addEntryAnimation({
-            userId: data.userId,
-            displayName: data.userName,
-            avatarUrl: data.userAvatar,
-            level: data.userLevel,
-            entranceUrl: data.entranceAnimationUrl || undefined,
-            entryNameBarUrl: data.entryNameBarUrl || undefined,
-            vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
-            soundUrl: data.entranceSoundUrl || undefined,
-          });
-        }
-        
-        // 5. Refresh viewer avatars in background (inline fetch)
-      })
-      .subscribe();
-    
-    // Store the processed set on window for the postgres_changes handler to check
-    (window as any).__broadcastJoins = processedBroadcastJoins;
-    
+      }
+    };
+
+    window.addEventListener('livekit-live-event', handleLiveEvent);
     return () => {
-      supabase.removeChannel(joinBroadcastChannel);
-      delete (window as any).__broadcastJoins;
+      window.removeEventListener('livekit-live-event', handleLiveEvent);
     };
   }, [id, currentUserId, addBigoJoinNotification, addEntryAnimation]);
+
 
   // This ensures no gifts are missed if broadcast fails
   useEffect(() => {
