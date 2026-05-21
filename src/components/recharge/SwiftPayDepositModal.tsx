@@ -192,6 +192,8 @@ export default function SwiftPayDepositModal({
         } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
           requestBody.custom_coins = userCustomCoins;
           requestBody.custom_price_usd = userCustomPriceUsd;
+          requestBody.purpose = userCustomPurpose;
+
         } else {
           requestBody.package_id = pkg.id;
         }
