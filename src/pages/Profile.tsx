@@ -380,6 +380,21 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     } catch {}
   }, [profile, userId]);
 
+  // Pkg85: Instant My Beans update from useUserBalance own-row push.
+  // Only applies when viewing own profile (currentUser.id matches event userId).
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { beans?: number; userId?: string } | undefined;
+      if (!detail || detail.userId !== currentUser?.id) return;
+      const next = Number(detail.beans || 0);
+      setBeans((prev) => (prev === next ? prev : next));
+    };
+    window.addEventListener('own-beans-updated', handler);
+    return () => window.removeEventListener('own-beans-updated', handler);
+  }, [currentUser?.id]);
+
+
+
 
 
   useEffect(() => {
