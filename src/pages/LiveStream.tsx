@@ -1213,22 +1213,17 @@ const LiveStream = () => {
     fetchHostPhotos();
     refreshHostBusyStatus();
 
-    const hostCallChannel = supabase
-      .channel(`host-call-status-${hostInfo.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'private_calls',
-        filter: `host_id=eq.${hostInfo.id}`,
-      }, () => {
-        refreshHostBusyStatus();
-      })
-      .subscribe();
+    // Pkg82c: Supabase `host-call-status-${hostId}` postgres_changes channel DELETED.
+    // Per LiveKit-Purist policy + Pkg35 (live auto-ends on host accept-call),
+    // viewer's "Host Busy" overlay only matters during the brief ringing window.
+    // 30s safety-net REST poll (≥30s Pkg57 floor, $1400-rule safe) replaces realtime.
+    const busyPollTimer = setInterval(refreshHostBusyStatus, 30000);
 
     return () => {
-      supabase.removeChannel(hostCallChannel);
+      clearInterval(busyPollTimer);
     };
   }, [id, isHost, hostInfo?.id]);
+
 
   // Pkg82a: REMOVED Supabase `stream_viewers_entrance_${id}` postgres_changes
   // subscription. Entry animations are now triggered by the unified
