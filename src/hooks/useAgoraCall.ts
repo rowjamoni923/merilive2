@@ -63,6 +63,10 @@ export function useAgoraCall(
   const roomRef = useRef<Room | null>(null);
   const isInitRef = useRef(false);
   const deadRef = useRef(false);
+  // Pkg73: keep latest callId visible inside the stable `cleanup` callback
+  // (which has `[]` deps to avoid disconnect storms on every render).
+  const callIdRef = useRef<string | null>(null);
+  callIdRef.current = callId;
   // True when this private call session is published via the native
   // Android LiveKit plugin (Capacitor) instead of the browser
   // livekit-client. Drives the native branch in cleanup/toggleAudio/toggleVideo.
