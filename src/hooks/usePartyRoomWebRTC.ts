@@ -20,6 +20,7 @@ import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tence
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
 import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
+import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
