@@ -917,73 +917,22 @@ const PartyRoom = () => {
       // sole instant seat-action notifier. postgres_changes on seat_requests
       // (above) remains as the durable fallback path. Saves cross-room
       // realtime broadcast traffic on every approve/reject/new_request.
-    // ============= SEPARATE ROOM STATUS CHANNEL =============
-    // CRITICAL: Use a DEDICATED channel for room status to ensure visitors see room close
-    // This avoids filter issues with the combined channel
-    console.log('[PartyRoom] 🔌 Setting up DEDICATED room status channel for room:', roomId);
-    
-    const roomStatusChannel = supabase
-      .channel(`party-room-status-${roomId}`)
-      .on('postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'party_rooms', filter: `id=eq.${roomId}` },
-        async (payload: any) => {
-          console.log('[PartyRoom] 📡 Room update received:', {
-            is_active: payload.new?.is_active,
-            background_id: payload.new?.background_id,
-            background_url: payload.new?.background_url,
-            active_seats: payload.new?.active_seats
-          });
-          
-          // Handle active_seats updates - sync to ALL participants in real-time
-          if (payload.new?.active_seats !== undefined && isMountedRef.current) {
-            console.log('[PartyRoom] 🪑 Active seats changed:', payload.new.active_seats);
-            setRoom(prev => prev ? {
-              ...prev,
-              active_seats: payload.new.active_seats
-            } : null);
-          }
-          
-          // Handle background updates - REMOVED (handled by dedicated bgChannel listener above)
-          // This prevents conflict between two listeners updating different state
-          // Background sync is now only handled by the `party-room-bg-${roomId}` channel
-          
-          // Handle room close
-          if (payload.new?.is_active === false && isMountedRef.current) {
-            console.log('[PartyRoom] 🔴 Room closed by host - showing modal to visitors');
-            
-            // Use ref to check host status (avoid stale closure)
-            const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
-            
-            console.log('[PartyRoom] isHostNow:', isHostNow, 'hostId:', roomRef.current?.host_id, 'currentUserId:', currentUserRef.current?.id);
-            
-            // Only show modal to non-hosts (visitors)
-            if (!isHostNow) {
-              console.log('[PartyRoom] 🎬 Showing RoomEndedModal to visitor');
-              setShowRoomClosedModal(true);
-              cleanupWebRTC();
-              
-              // Auto-redirect after 3 seconds
-              setTimeout(() => {
-                if (isMountedRef.current) {
-                  console.log('[PartyRoom] 🏠 Auto-redirecting visitor to home');
-                  navigate('/');
-                }
-              }, 3000);
-            } else {
-              // Host just navigates away
-              console.log('[PartyRoom] 👋 Host closing room - redirecting');
-              cleanupWebRTC();
-              navigate('/');
-            }
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('[PartyRoom] 📡 Room status subscription:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('[PartyRoom] ✅ Room status listener ACTIVE - will detect room close & background changes');
-        }
-      });
+    // ============= Pkg81: ROOM STATUS CHANNEL DELETED =============
+    // `party-room-status-${roomId}` Supabase Realtime channel REMOVED.
+    // Room state changes (active_seats / background / is_active) now arrive
+    // purely via LiveKit:
+    //   - active_seats + background → `room_state_changed` DataPacket
+    //     (host publishes from SeatSelectorPanel / BackgroundPickerPanel
+    //      AFTER the party_rooms UPDATE). Handler is wired in the unified
+    //      `livekit-party-event` listener further below.
+    //   - is_active=false → Pkg75 `livekit-party-closed` event already
+    //     handles host-initiated close; auto-silence close path publishes
+    //     the same event from `handleSilenceTimeout`.
+    //   - 20s polling useEffect at the bottom of this file remains as the
+    //     LAST-resort safety net (network blip / LiveKit disconnect).
+    // Late-join state = the initial party_rooms SELECT on mount. NO
+    // postgres_changes subscription to party_rooms from the client anymore.
+    const roomStatusChannel: any = null;
     
     // Pkg78: Supabase `party-room-close-${roomId}` broadcast listener REMOVED.
     // LiveKit DataPacket (Pkg75 `livekit-party-closed` window event handler
