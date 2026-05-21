@@ -359,9 +359,9 @@ const AdminRechargeHistory = () => {
 
         if (helpers && helpers.length > 0) {
           const { data: helperProfiles } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('id, display_name')
-            .in('id', helpers.map(h => h.user_id));
+            .in('id', helpers.map(h => h.user_id).filter(Boolean));
 
           const helperProfileMap = new Map(helperProfiles?.map(p => [p.id, p.display_name]) || []);
           helpers.forEach(h => {
