@@ -14918,6 +14918,7 @@ export type Database = {
         Returns: Json
       }
       admin_host_stats: { Args: never; Returns: Json }
+      admin_layout_counts: { Args: never; Returns: Json }
       admin_list_admin_users: {
         Args: { _include_inactive?: boolean }
         Returns: {
