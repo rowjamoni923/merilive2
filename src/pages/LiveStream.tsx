@@ -531,6 +531,7 @@ const LiveStream = () => {
     toggleAudio,
     retrySubscription,
   } = useLiveKitClient({
+    liveSignalingStreamId: id,
     onUserJoined: (uid) => {
       console.log('👤 Viewer joined (LiveKit):', uid);
     },
