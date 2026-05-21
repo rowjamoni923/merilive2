@@ -715,7 +715,7 @@ export default function AdminUserManagement() {
         .select(`
           id, display_name, avatar_url, gender, user_level,
           is_verified, is_face_verified, is_blocked, is_host,
-          face_verified_at, app_uid, created_at, total_recharge_amount
+          face_verified_at, app_uid, created_at, total_recharged
         `)
         .eq("is_face_verified", true)
         .eq("is_host", false)
@@ -2007,35 +2007,35 @@ export default function AdminUserManagement() {
         {/* === VERIFIED USERS TAB (face-verified non-hosts) === */}
         <TabsContent value="verified-users" className="mt-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+            <Card className="bg-gradient-to-br from-emerald-900/40 to-emerald-800/20 border-emerald-500/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <ScanFace className="w-8 h-8 text-emerald-500" />
+                  <ScanFace className="w-8 h-8 text-emerald-300" />
                   <div>
-                    <p className="text-emerald-600 text-xs font-medium">Total Verified Users</p>
-                    <p className="text-emerald-900 font-bold text-xl">{verifiedUserStats.total}</p>
+                    <p className="text-emerald-200/90 text-xs font-medium">Total Verified Users</p>
+                    <p className="text-white font-bold text-xl">{verifiedUserStats.total}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <Card className="bg-gradient-to-br from-green-900/40 to-green-800/20 border-green-500/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-8 h-8 text-green-500" />
+                  <CheckCircle className="w-8 h-8 text-green-300" />
                   <div>
-                    <p className="text-green-600 text-xs font-medium">Active</p>
-                    <p className="text-green-900 font-bold text-xl">{verifiedUserStats.active}</p>
+                    <p className="text-green-200/90 text-xs font-medium">Active</p>
+                    <p className="text-white font-bold text-xl">{verifiedUserStats.active}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+            <Card className="bg-gradient-to-br from-red-900/40 to-red-800/20 border-red-500/30">
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <Ban className="w-8 h-8 text-red-500" />
+                  <Ban className="w-8 h-8 text-red-300" />
                   <div>
-                    <p className="text-red-600 text-xs font-medium">Blocked</p>
-                    <p className="text-red-900 font-bold text-xl">{verifiedUserStats.blocked}</p>
+                    <p className="text-red-200/90 text-xs font-medium">Blocked</p>
+                    <p className="text-white font-bold text-xl">{verifiedUserStats.blocked}</p>
                   </div>
                 </div>
               </CardContent>
