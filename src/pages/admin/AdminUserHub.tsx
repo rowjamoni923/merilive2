@@ -23,8 +23,6 @@ const AdminUserHub = () => {
     hosts: 0,
     faceVerified: 0,
   });
-  const [countryStats, setCountryStats] = useState<CountryData[]>([]);
-  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -47,43 +45,14 @@ const AdminUserHub = () => {
     }
   }, []);
 
-  const fetchCountryStats = useCallback(async () => {
-    try {
-      setIsLoadingCountries(true);
-      // Pkg36: server-side aggregation via admin_country_distribution RPC
-      // (replaces direct profiles SELECT that hit the 500-row admin cap on 3,656 profiles)
-      const adminId = getCurrentAdminId();
-      if (!adminId) {
-        setCountryStats([]);
-        return;
-      }
-      const { data, error } = await supabase.rpc("admin_country_distribution", { _admin_id: adminId });
-      if (error) throw error;
-      const rows = (data || []).map((r: any) => ({
-        country_name: r.country_name,
-        country_code: r.country_code,
-        country_flag: r.country_flag,
-        count: Number(r.total ?? 0),
-      })) as CountryData[];
-      setCountryStats(rows);
-    } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchCountryStats", message: formatAdminError(error) });
-    } finally {
-      setIsLoadingCountries(false);
-    }
-  }, []);
-
   useEffect(() => {
     fetchStats();
-    fetchCountryStats();
-  }, [fetchStats, fetchCountryStats]);
+  }, [fetchStats]);
 
   useAdminRealtime(['profiles'], () => {
     fetchStats();
-    fetchCountryStats();
   });
 
-  const totalCountryUsers = countryStats.reduce((s, c) => s + c.count, 0);
 
   return (
     <div className="space-y-6">
