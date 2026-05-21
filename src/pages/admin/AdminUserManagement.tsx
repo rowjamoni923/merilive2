@@ -352,6 +352,17 @@ export default function AdminUserManagement() {
     blockedHosts: 0,
     totalEarnings: 0
   });
+
+  // Verified Users state (face-verified non-hosts)
+  const [verifiedUsers, setVerifiedUsers] = useState<any[]>([]);
+  const [verifiedUserSearch, setVerifiedUserSearch] = useState("");
+  const [verifiedUserStats, setVerifiedUserStats] = useState({
+    total: 0,
+    active: 0,
+    blocked: 0,
+  });
+
+  
   
   // Host Applications state
   const [applications, setApplications] = useState<HostApplication[]>([]);
