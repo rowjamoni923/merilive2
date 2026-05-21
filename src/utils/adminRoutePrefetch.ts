@@ -9,6 +9,9 @@
  */
 
 type Importer = () => Promise<unknown>;
+type IdleCapableWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+};
 
 // Lazy registration so we don't pull every page on app start —
 // imports are only executed when prefetchAdminRoute() is called.
@@ -174,9 +177,10 @@ export function prefetchAdminRoute(path: string): void {
  *  Runs in idle slices to avoid blocking the main thread / network. */
 export function prefetchCommonAdminRoutes(): void {
   const all = Object.keys(ROUTE_IMPORTERS);
+  const idleWindow: IdleCapableWindow | undefined = typeof window !== 'undefined' ? window : undefined;
   const ric: (cb: () => void) => void =
-    (typeof window !== 'undefined' && (window as any).requestIdleCallback)
-      ? (cb) => (window as any).requestIdleCallback(cb, { timeout: 2000 })
+    idleWindow?.requestIdleCallback
+      ? (cb) => { idleWindow.requestIdleCallback?.(cb, { timeout: 2000 }); }
       : (cb) => setTimeout(cb, 50);
 
   let i = 0;
