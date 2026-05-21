@@ -86,6 +86,46 @@ const AdminNotificationTemplates = () => {
     { title: 'New Year Event', url: '/images/premium-events/new-year-event.png' },
   ];
 
+  // AI Banner Generator presets - click to auto-generate a premium 3D banner
+  const eventPresets: string[] = [
+    'Recharge Mega Offer', 'VIP Launch', 'Weekly Tournament', 'Eid Special', 'New Year Event',
+    'Diamond Rush', 'Lucky Draw', 'Top Spender Reward', 'Host Of The Week', 'Agency Champions',
+    'Double Beans Weekend', 'Golden Hour 3x', 'Referral Mania', 'Live Battle Royale', 'Gift Storm',
+    'Christmas Gala', 'Ramadan Kareem', 'Diwali Lights', 'PK Championship', 'Noble Coronation',
+    'Summer Carnival', 'Valentine Special', 'Birthday Bash', 'Anniversary Celebration', 'Welcome Bonus',
+  ];
+
+  const [aiCustomEvent, setAiCustomEvent] = useState('');
+  const [aiGenerating, setAiGenerating] = useState<string | null>(null);
+  const [aiBanners, setAiBanners] = useState<{ eventName: string; url: string }[]>([]);
+
+  const generateAiBanner = async (eventName: string) => {
+    if (!eventName.trim()) return;
+    setAiGenerating(eventName);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-event-banner', {
+        body: { eventName }
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error('No URL returned');
+      setAiBanners(prev => [{ eventName, url: data.url }, ...prev].slice(0, 30));
+      toast({ title: 'Banner generated', description: `Premium 3D banner ready for "${eventName}"` });
+    } catch (e: any) {
+      toast({ title: 'Generation failed', description: e?.message || 'AI generation error', variant: 'destructive' });
+    } finally {
+      setAiGenerating(null);
+    }
+  };
+
+  const copyBannerUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: 'Copied', description: 'Banner URL copied to clipboard' });
+    } catch {
+      toast({ title: 'Copy failed', variant: 'destructive' });
+    }
+  };
+
   useAdminRealtime(['notification_templates'], () => fetchTemplates());
 
   const fetchTemplates = async () => {
