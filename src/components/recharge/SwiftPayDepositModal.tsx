@@ -121,7 +121,9 @@ export default function SwiftPayDepositModal({
   userCustomCoins = null,
   userCustomPriceUsd = null,
   userCustomLabel = null,
+  userCustomPurpose = "helper_application",
   onCredited,
+
 }: Props) {
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
