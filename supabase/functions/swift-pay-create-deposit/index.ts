@@ -63,8 +63,11 @@ Deno.serve(async (req) => {
           helper_id?: string;
           custom_coins?: number;
           custom_price_usd?: number;
+          /** "helper_application" (default, $100 floor) | "campaign" (no floor — campaign recharge mirrors My Diamond package flow) */
+          purpose?: "helper_application" | "campaign";
         }
       | null;
+
     if (!body?.pay_currency) {
       return json({ error: "pay_currency is required" }, 400);
     }
