@@ -334,7 +334,7 @@ const AdminUserBeansExchange = lazy(lazyRetry(() => import("./pages/admin/AdminU
 if (typeof window !== 'undefined') {
   try {
     const hasFlag = localStorage.getItem('meri_admin_access') === 'true' || localStorage.getItem('meri_owner_access') === 'true';
-    if (hasFlag) {
+    if (hasFlag && window.location.pathname.startsWith('/admin')) {
       // Prefetch core admin modules after a short idle delay
       const prefetchAdmin = () => {
         import("./components/admin/AdminAccessGuard");
