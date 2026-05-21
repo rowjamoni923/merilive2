@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, ExternalLink, Image as ImageIcon, Loader2, RefreshCw, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
+import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl, tryResolvePublicAdminStorageUrlSync } from "@/utils/adminStorageImages";
 import { AdminLuxuryVideoPlayer } from "./AdminLuxuryVideoPlayer";
 
 export type AdminMediaKind = "auto" | "image" | "video";
