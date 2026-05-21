@@ -70,8 +70,8 @@ const Discover = lazy(lazyRetry(() => import("./pages/Discover")));
 const Live = lazy(lazyRetry(() => import("./pages/Live")));
 
 // =============================================
-// ROUTE PRELOADING — Download core page chunks in background after first paint
-// so navigation feels instant.  Each import() resolves to a cached module.
+// ROUTE PRELOADING — Download only next-likely page chunks after first paint.
+// The previous all-at-once prefetch caused a script storm on cold start.
 // =============================================
 const CORE_PAGE_IMPORTERS = [
   () => import("./pages/Index"),
@@ -80,36 +80,17 @@ const CORE_PAGE_IMPORTERS = [
   () => import("./pages/Chat"),
   () => import("./pages/Live"),
   () => import("./pages/Reels"),
-  () => import("./pages/ProfileDetail"),
-  () => import("./pages/GoLive"),
-  () => import("./pages/SearchUsers"),
-  () => import("./pages/Settings"),
-  () => import("./pages/Level"),
-  () => import("./pages/Tasks"),
-  () => import("./pages/Shop"),
-  () => import("./pages/VIP"),
-  () => import("./pages/Agency"),
-  () => import("./pages/AgencyDashboard"),
-  () => import("./pages/PartyRooms"),
-  () => import("./pages/CreateParty"),
-  () => import("./pages/FollowingList"),
-  () => import("./pages/CallHistory"),
-  () => import("./pages/EditProfile"),
-  () => import("./pages/Invitation"),
   () => import("./pages/Recharge"),
-  () => import("./pages/LiveStream"),
+  () => import("./pages/PartyRooms"),
 ];
 
 let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
-  // Pkg51: kick off chunk downloads in parallel batches of 4 so the network
-  // stays saturated but doesn't stall main-thread parse. With HTTP/2
-  // multiplexing this completes in ~one round-trip on broadband.
-  const batchSize = 4;
+  const batchSize = 2;
   CORE_PAGE_IMPORTERS.forEach((fn, i) => {
-    setTimeout(() => fn().catch(() => {}), Math.floor(i / batchSize) * 30);
+    setTimeout(() => fn().catch(() => {}), 700 + Math.floor(i / batchSize) * 180);
   });
 }
 
@@ -117,8 +98,12 @@ function preloadCoreRoutes() {
 // The useEffect inside App still calls it as a safety net — preloadCoreRoutes
 // is idempotent. Guarded by `window` so SSR/test environments stay safe.
 if (typeof window !== 'undefined') {
-  // Defer one microtask so we don't block the initial paint of <App />.
-  Promise.resolve().then(preloadCoreRoutes);
+  const schedule = (cb: () => void) => {
+    const w = window as any;
+    if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(cb, { timeout: 1800 });
+    else setTimeout(cb, 900);
+  };
+  schedule(preloadCoreRoutes);
 }
 
 const EditProfile = lazy(lazyRetry(() => import("./pages/EditProfile")));
@@ -349,7 +334,7 @@ const AdminUserBeansExchange = lazy(lazyRetry(() => import("./pages/admin/AdminU
 if (typeof window !== 'undefined') {
   try {
     const hasFlag = localStorage.getItem('meri_admin_access') === 'true' || localStorage.getItem('meri_owner_access') === 'true';
-    if (hasFlag) {
+    if (hasFlag && window.location.pathname.startsWith('/admin')) {
       // Prefetch core admin modules after a short idle delay
       const prefetchAdmin = () => {
         import("./components/admin/AdminAccessGuard");
@@ -504,6 +489,18 @@ const App = () => {
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
   // app_settings realtime is already handled by useGlobalSettings
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('meri_maintenance_mode_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && Date.now() - Number(parsed.at || 0) < 5 * 60_000) {
+            setMaintenanceMode(parsed.value ?? null);
+          }
+        }
+      } catch {}
+    }
+
     const checkMaintenance = async () => {
       try {
         const { data, error } = await supabase
@@ -515,6 +512,9 @@ const App = () => {
         if (error) throw error;
         if (data?.setting_value) {
           setMaintenanceMode(data.setting_value as any);
+          try {
+            localStorage.setItem('meri_maintenance_mode_cache', JSON.stringify({ at: Date.now(), value: data.setting_value }));
+          } catch {}
         }
       } catch (e) {
         console.error('[App] Maintenance check failed:', e);
@@ -542,33 +542,20 @@ const App = () => {
     }
   };
 
-  // 🚀 INSTANT PREFETCH — Load gifts, balance, and profile data immediately on auth
+  // 🚀 INSTANT PREFETCH — warm only tiny user-specific caches on auth.
+  // Heavy gifts/assets/routes are deferred to idle so first screen data can win.
   const isAuthenticated = !!session?.user;
   useEffect(() => {
     if (!isAuthenticated || !session?.user?.id) return;
-    
-    // Prefetch gifts immediately (no delay)
-    import('@/hooks/useGiftPrefetch').then(m => m.prefetchGifts()).catch(() => {});
-    
-    void runLegacyProfileSync(session.user.id);
-    
-    // Prefetch user profile & balance into QueryClient cache
+
     const userId = session.user.id;
-    queryClient.prefetchQuery({
-      queryKey: ['profile', userId],
-      queryFn: async () => {
-        const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
-        return data;
-      },
-      staleTime: 1000 * 300,
-    });
     queryClient.prefetchQuery({
       queryKey: ['user-balance', userId],
       queryFn: async () => {
         const { data } = await supabase.from('profiles').select('coins, beans, diamonds, pending_earnings').eq('id', userId).single();
         return data;
       },
-      staleTime: 1000 * 60,
+      staleTime: 1000 * 60 * 2,
     });
   }, [isAuthenticated, session?.user?.id]);
   
@@ -583,20 +570,31 @@ const App = () => {
       initWebViewPerformance();
     }
 
-    preloadCoreRoutes();
+    const idle = (cb: () => void, timeout = 2500) => {
+      const w = window as any;
+      if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
+      return window.setTimeout(cb, 1200);
+    };
+    const cancelIdle = (id: number) => {
+      const w = window as any;
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
+
+    const routeIdleId = idle(preloadCoreRoutes, 1800);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
-    import('@/utils/registerImageCacheSW').then(m => {
+    const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
       m.registerImageCacheSW().then(() => m.warmAppImageCache());
-    }).catch(() => {});
+    }).catch(() => {}), 4500);
 
     // Defer SVGA prewarm to idle
-    if (typeof (window as any).requestIdleCallback === 'function') {
-      const idleId = (window as any).requestIdleCallback(() => prewarmSVGA(), { timeout: 3000 });
-      return () => { if (typeof (window as any).cancelIdleCallback === 'function') (window as any).cancelIdleCallback(idleId); };
-    }
-    const t = setTimeout(() => prewarmSVGA(), 800);
-    return () => clearTimeout(t);
+    const svgaIdleId = idle(() => prewarmSVGA(), 3500);
+    return () => {
+      cancelIdle(routeIdleId);
+      cancelIdle(imageIdleId);
+      cancelIdle(svgaIdleId);
+    };
   }, []);
 
   // ⚡ REALTIME → REACT QUERY BRIDGE moved inside QueryClientProvider (see RealtimeQuerySyncBridge below)
@@ -676,7 +674,8 @@ const App = () => {
             setCachedUser({ id: session.user.id, email: session.user.email ?? undefined });
             setLoading(false); // ⚡ Unblock UI immediately
           }
-          void runLegacyProfileSync(session.user.id);
+          const syncId = window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
+          void syncId;
           return;
         }
 
@@ -702,7 +701,7 @@ const App = () => {
                   expires_at: refreshed.session.expires_at,
                 });
               }
-              void runLegacyProfileSync(refreshed.session.user.id);
+              window.setTimeout(() => void runLegacyProfileSync(refreshed.session.user.id), 2500);
               return;
             }
           } catch (e) {
@@ -725,7 +724,7 @@ const App = () => {
                     setSession(restored.session);
                     setCachedUser({ id: restored.session.user.id, email: restored.session.user.email ?? undefined });
                   }
-                  void runLegacyProfileSync(restored.session.user.id);
+                  window.setTimeout(() => void runLegacyProfileSync(restored.session.user.id), 2500);
                   return;
                 }
               }
@@ -820,7 +819,7 @@ const App = () => {
               expires_at: session.expires_at,
             });
           }
-          void runLegacyProfileSync(session.user.id);
+          window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
         } else if (event === 'SIGNED_OUT') {
           // 🛡️ CRITICAL: Only clear session if user MANUALLY logged out
           const isManualLogout = localStorage.getItem('meri_manual_logout') === 'true';
@@ -897,8 +896,6 @@ const App = () => {
             if (!mounted || window.location.pathname.startsWith('/admin')) return;
             
             try {
-              await runLegacyProfileSync(session.user.id);
-
               let { data: profile } = await supabase
                 .from('profiles')
                 .select('id, gender')
