@@ -1064,9 +1064,60 @@ const LiveStream = () => {
       .subscribe();
 
     giftBroadcastChannelRef.current = broadcastChannel;
-    
+
+    // Pkg76: parallel LiveKit DataPacket path for gift_sent.
+    // Sub-50ms fanout to every viewer in the LiveKit Room. Converges
+    // with the Supabase broadcast above via the same own-gift skip +
+    // 400ms envelope dedupe in livekitGiftSignaling.
+    const handleLiveKitGift = (ev: Event) => {
+      const data = (ev as CustomEvent<GiftSentDetail>).detail;
+      if (!data || !mountedRef.current) return;
+      if (data.scope !== 'live' || data.id !== id) return;
+      if (data.senderId === currentUserId) return;
+
+      console.log('[LiveStream] ⚡ Pkg76 livekit-gift-sent received:', data.giftName, 'from', data.senderName);
+
+      addFlyingGift({
+        senderName: data.senderName || 'User',
+        senderAvatar: data.senderAvatar || undefined,
+        giftName: data.giftName,
+        giftIcon: data.giftIcon || '🎁',
+        giftImageUrl: data.giftIconUrl || undefined,
+        animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
+        soundUrl: data.giftSoundUrl || undefined,
+        giftColor: 'bg-pink-500/50',
+        count: data.count || 1,
+        coins: data.giftCoins || 0,
+        isReceiverGift: isHost,
+      });
+
+      const giftAmount = Number(data.receiverBeans ?? (data.giftCoins || 0) * (data.count || 1));
+      if (data.giftKey) markOptimisticGiftCount(data.giftKey, giftAmount);
+      setTotalBeans(prev => prev + giftAmount);
+      if (isHost) trackTaskProgress('first_gift');
+
+      const giftChatMessage = `[GIFT:${data.giftIconUrl || ''}] sent ${data.giftName} x${data.count || 1}`;
+      const tempGiftMsgId = `livekit_gift_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      setMessages(prev => [...prev, {
+        id: tempGiftMsgId,
+        user: data.senderName || 'User',
+        initial: (data.senderName || 'U').charAt(0),
+        message: giftChatMessage,
+        color: 'text-pink-400',
+        userLevel: data.senderLevel || 1,
+        userAvatar: data.senderAvatar,
+        isHost: false,
+        isNewUser: false,
+        giftIconUrl: data.giftIconUrl || undefined,
+      }]);
+
+      playSound('gift');
+    };
+    window.addEventListener('livekit-gift-sent', handleLiveKitGift);
+
     return () => {
       giftBroadcastChannelRef.current = null;
+      window.removeEventListener('livekit-gift-sent', handleLiveKitGift);
       supabase.removeChannel(broadcastChannel);
     };
   }, [id, currentUserId, addFlyingGift, playSound, isHost, markOptimisticGiftCount]);
