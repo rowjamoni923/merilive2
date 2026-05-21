@@ -91,10 +91,20 @@ interface Entry {
 
 const registry = new Map<string, Entry>();
 
+// Family is 'party' (shared with Pkg75 room_closed). We distinguish via
+// envelope.t so we don't have to widen LiveKitFeature for a new kill-switch
+// key — kill-switch semantically lives under 'presence'.
+const FAMILY = 'party' as const;
+const PARTY_EVENT_TYPES: ReadonlySet<string> = new Set<PartyEventType>([
+  'participant_joined',
+  'seat_action',
+]);
+
 function makeHandler(roomId: string) {
   return (payload: Uint8Array, participant?: RemoteParticipant) => {
     const env = decodeEnvelope(payload);
-    if (!env || env.f !== 'party_event') return;
+    if (!env || env.f !== FAMILY) return;
+    if (!PARTY_EVENT_TYPES.has(env.t)) return;
     if (isDuplicateEnvelope(env.id)) return;
 
     const p = (env.p ?? {}) as Partial<PartyEventPayload>;
