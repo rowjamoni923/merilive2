@@ -88,7 +88,7 @@ export default function AdminAiImageStudio() {
       setItems(prev => [
         { eventName: name, url: data.url, sizeLabel: sz.label || `${w}×${h}`, w, h, createdAt: Date.now() },
         ...prev,
-      ].slice(0, 60));
+      ].slice(0, HISTORY_MAX));
       toast({ title: "Image generated", description: `Premium 3D · ${w}×${h}` });
     } catch (e: any) {
       toast({ title: "Generation failed", description: e?.message || "AI error", variant: "destructive" });
