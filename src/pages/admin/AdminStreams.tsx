@@ -270,27 +270,61 @@ export default function AdminStreams() {
 
   useEffect(() => {
     const handleRealtimeStreamUpdates = (event: Event) => {
-      const detail = (event as CustomEvent<{ table: string; eventType: string; payload?: any }>).detail;
+      const detail = (event as CustomEvent<{ table: string; eventType?: string; payload?: any }>).detail;
       if (!detail || detail.table !== 'live_streams') return;
-
-      const changedRow = detail.payload;
-      if (detail.eventType === 'UPDATE' && changedRow?.is_active === false) {
-        if (watchingStream?.id === changedRow.id) setWatchingStream(null);
-        void fetchStreams();
-      }
-
-      if (detail.eventType === 'INSERT' && changedRow?.is_active === true) {
-        void fetchStreams();
-      }
-
-      if (detail.eventType === 'DELETE') {
-        void fetchStreams();
-      }
+      // Pkg37 broadcast only carries {version, row_id} — we cannot read is_active here.
+      // ALWAYS refetch so host-side stream end / cleanup is reflected instantly in admin.
+      void fetchStreams();
     };
 
     window.addEventListener('admin-table-update', handleRealtimeStreamUpdates);
     return () => window.removeEventListener('admin-table-update', handleRealtimeStreamUpdates);
-  }, [fetchStreams, watchingStream?.id]);
+  }, [fetchStreams]);
+
+  // Safety-net poll (30s) so admin still converges if realtime ever silences.
+  // Active filter only — ended/all filters are manually-refreshed.
+  useEffect(() => {
+    if (statusFilter !== 'active') return;
+    const id = setInterval(() => { void fetchStreams(); }, 30000); // guard-ok: admin safety-net 30s
+    return () => clearInterval(id);
+  }, [statusFilter, fetchStreams]);
+
+  // Clear watched-stream modal whenever the underlying row leaves active set.
+  useEffect(() => {
+    if (watchingStream && !streams.some((s) => s.id === watchingStream.id && s.is_active)) {
+      setWatchingStream(null);
+    }
+  }, [streams, watchingStream]);
+
+  const removeStreamFromPanel = useCallback(async (stream: LiveStream) => {
+    const confirmMsg = `Remove "${stream.host?.display_name || 'Host'}" — ${stream.title || 'Live Stream'} from the admin panel?\n\nThis permanently deletes the stream row. Gift/recording history in other tables is preserved.`;
+    if (!window.confirm(confirmMsg)) return;
+    try {
+      // If still marked active for any reason, end it first so viewers are kicked.
+      if (stream.is_active) {
+        await supabase
+          .from('live_streams')
+          .update({ is_active: false, ended_at: new Date().toISOString(), viewer_count: 0 })
+          .eq('id', stream.id);
+        await forceCloseStreamSession(stream.id, stream.host?.display_name || 'Host');
+      }
+      const { error } = await supabase.from('live_streams').delete().eq('id', stream.id);
+      if (error) throw error;
+      setStreams((prev) => {
+        const next = prev.filter((s) => s.id !== stream.id);
+        calculateStatsFromStreams(next);
+        return next;
+      });
+      if (watchingStream?.id === stream.id) setWatchingStream(null);
+      toast.success('Stream removed from panel');
+    } catch (err: any) {
+      console.error('[AdminStreams] remove failed:', err);
+      recordAdminError({ kind: 'rpc', label: 'AdminStreams.removeStreamFromPanel', message: formatAdminError(err) });
+      toast.error(err?.message?.includes('foreign key')
+        ? 'Cannot delete — referenced by gifts/recordings. Already marked ended.'
+        : `Remove failed: ${err?.message || 'Unknown error'}`);
+    }
+  }, [calculateStatsFromStreams, forceCloseStreamSession, watchingStream?.id]);
 
   const forceCloseStreamSession = useCallback(async (streamId: string, hostName: string) => {
     const now = new Date().toISOString();
