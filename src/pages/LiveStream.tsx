@@ -1260,10 +1260,27 @@ const LiveStream = () => {
         }
       )
       .subscribe();
-    
+
+    // ⚡ METHOD 3 (Pkg74): LiveKit DataPacket listener — sub-50ms peer notify.
+    // Converges into the same modal path. Idempotent via showStreamEndedModal guard.
+    const handleLiveKitStreamEnded = (evt: Event) => {
+      const detail = (evt as CustomEvent).detail || {};
+      if (detail.streamId !== id) return;
+      if (isHost) return;
+      console.log('[LiveStream] ⚡ Pkg74 livekit-stream-ended received');
+      setStreamEndedBy(detail.hostName || hostInfo?.name || 'Host');
+      setShowStreamEndedModal(true);
+      setTimeout(async () => {
+        await leaveChannel();
+        navigate('/');
+      }, 3000);
+    };
+    window.addEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
+
     return () => {
       supabase.removeChannel(broadcastCloseChannel);
       supabase.removeChannel(streamCountChannel);
+      window.removeEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
     };
   }, [id, isHost, hostInfo?.name, leaveChannel, navigate, showStreamEndedModal]);
 
