@@ -68,7 +68,13 @@ interface UseLiveKitClientOptions {
    * dispatch a `livekit-viewer-count` window event for instant badge
    * updates. Persistence (entrance banner, history) stays on Supabase. */
   viewerCountStreamId?: string | null;
+  /** Pkg79: When set, the underlying Room is registered with the
+   * chat signaling registry so `publishChatMessage('live', id, …)` works
+   * and incoming `chat_message` packets reach window event listeners.
+   * The `stream_chat` row remains the source of truth for moderation. */
+  chatSignalingStreamId?: string | null;
 }
+
 
 export interface CoHostRequest {
   uid: number;
