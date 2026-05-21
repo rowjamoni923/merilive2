@@ -92,6 +92,7 @@ serve(async (req) => {
     const body = record.message || "";
     const notifType = record.type || "general";
     const data = record.data || {};
+    const imageUrl = data?.image_url || data?.imageUrl || record.image_url || record.imageUrl || "";
 
     // Skip admin-only types
     const ADMIN_ONLY_TYPES = [
@@ -151,12 +152,15 @@ serve(async (req) => {
               notification: {
                 title: title,
                 body: body.substring(0, 200),
+                ...(imageUrl ? { image: imageUrl } : {}),
               },
               data: {
                 type: notifType,
                 click_action: "FLUTTER_NOTIFICATION_CLICK",
                 ...(linkUrl ? { link_url: linkUrl } : {}),
                 ...(actionUrl ? { action_url: actionUrl } : {}),
+                ...(data?.icon_emoji ? { icon_emoji: String(data.icon_emoji) } : {}),
+                ...(imageUrl ? { image_url: String(imageUrl) } : {}),
               },
               android: {
                 priority: "HIGH",
@@ -167,6 +171,7 @@ serve(async (req) => {
                   default_sound: true,
                   notification_priority: "PRIORITY_HIGH",
                   visibility: "PUBLIC",
+                  ...(imageUrl ? { image: String(imageUrl) } : {}),
                 },
               },
               apns: {
@@ -177,6 +182,7 @@ serve(async (req) => {
                     badge: 1,
                   },
                 },
+                ...(imageUrl ? { fcm_options: { image: String(imageUrl) } } : {}),
               },
             },
           };
