@@ -2054,17 +2054,29 @@ const LiveStream = () => {
           })
           .eq('id', id);
 
-        // ⚡ INSTANT: Broadcast stream ended to all viewers
-        try {
-          await supabase.channel(`live-stream-close-${id}`).send({
+        // ⚡ INSTANT: Broadcast stream ended via BOTH Supabase Realtime
+        // (Pkg legacy) AND LiveKit DataPacket (Pkg74). Fire in parallel —
+        // viewers de-dup on streamId in the modal effect.
+        const hostName = hostInfo?.name || 'Host';
+        await Promise.allSettled([
+          supabase.channel(`live-stream-close-${id}`).send({
             type: 'broadcast',
             event: 'stream_closed',
-            payload: { streamId: id, hostName: hostInfo?.name || 'Host' }
-          });
-          console.log('[LiveStream] ⚡ Broadcast stream_closed sent to all viewers');
-        } catch (e) {
-          console.warn('[LiveStream] Broadcast send failed:', e);
-        }
+            payload: { streamId: id, hostName },
+          }),
+          (async () => {
+            try {
+              const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
+              await publishStreamEnded(id, {
+                endedBy: currentUserId || 'host',
+                hostName,
+              });
+            } catch (e) {
+              console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
+            }
+          })(),
+        ]);
+        console.log('[LiveStream] ⚡ stream_closed sent (Supabase + LiveKit)');
       }
     } catch (error) {
       console.error('[LiveStream] Error while ending stream stats flow:', error);
