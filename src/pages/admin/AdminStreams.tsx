@@ -668,10 +668,14 @@ export default function AdminStreams() {
                         <div className="flex items-center gap-1 text-yellow-600"><Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="font-medium">{formatCoins(stream.total_coins_earned || 0)}</span></div>
                       </div>
                       <div className="flex gap-2">
-                        {stream.is_active && (
-                            <Button variant="destructive" className="flex-1 text-sm" size="sm" onClick={() => openStopDialog(stream)}>
-                              <StopCircle className="w-4 h-4 mr-1" /> Stop Stream
-                            </Button>
+                        {stream.is_active ? (
+                          <Button variant="destructive" className="flex-1 text-sm" size="sm" onClick={() => openStopDialog(stream)}>
+                            <StopCircle className="w-4 h-4 mr-1" /> Stop Stream
+                          </Button>
+                        ) : (
+                          <Button variant="outline" className="flex-1 text-sm border-red-200 text-red-600 hover:bg-red-50" size="sm" onClick={() => removeStreamFromPanel(stream)}>
+                            <Trash2 className="w-4 h-4 mr-1" /> Remove from Panel
+                          </Button>
                         )}
                       </div>
                     </CardContent>
