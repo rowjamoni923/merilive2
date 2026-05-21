@@ -54,12 +54,14 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
     let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
     checkEligibilityAndFetch();
-    const channel = supabase
-      .channel(`live-tasks-sync-${hostId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_task_progress' }, () => {
-        if (!cancelled) fetchLiveTasks();
-      })
-      .subscribe();
+    // Pkg83 LiveKit-Purist: removed `live-tasks-sync-${hostId}` Supabase
+    // postgres_changes channel. Task progress updates are driven by RPCs the
+    // user themselves invokes (gift, viewer, live-minutes); a 30s safety-net
+    // REST poll catches any server-side recalc. Pkg57 ≥30s floor satisfied.
+    // guard-ok: live tasks owner-data poll, 30s safety net (Pkg83)
+    const taskPollId = setInterval(() => {
+      if (!cancelled) fetchLiveTasks();
+    }, 30000);
 
     // Auto-refresh at 12:30 AM Europe/London (server reset) — re-fetches eligibility too.
     resetTimer = setTimeout(() => {
@@ -88,7 +90,7 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      clearInterval(taskPollId);
       if (resetTimer) clearTimeout(resetTimer);
       if (hourTimer) clearTimeout(hourTimer);
       resetTimer = null;

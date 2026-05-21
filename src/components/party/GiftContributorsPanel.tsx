@@ -57,28 +57,16 @@ export function GiftContributorsPanel({
     };
     fetchCommissionRate();
     
-    // Real-time subscription for commission updates
-    const channel = supabase
-      .channel('gift-contributors-commission-realtime')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'app_settings',
-        filter: 'setting_key=eq.gift_commission'
-      }, (payload: any) => {
-        if (payload.new?.setting_value) {
-          const settings = payload.new.setting_value;
-          if (settings.host_percent !== undefined) {
-            setHostCommissionPercent(settings.host_percent);
-          } else if (settings.company_percent !== undefined) {
-            setHostCommissionPercent(100 - settings.company_percent);
-          }
-        }
-      })
-      .subscribe();
-    
+    // Pkg83: admin commission rate sync via Pkg37 admin-table-update window
+    // event (replaces static-named `gift-contributors-commission-realtime`
+    // Supabase channel which violated Pkg62 G3 + LiveKit-Purist Policy).
+    const onAdminUpdate = (e: Event) => {
+      const detail = (e as CustomEvent<{ table?: string }>).detail;
+      if (detail?.table === 'app_settings') fetchCommissionRate();
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
     };
   }, []);
 
@@ -154,27 +142,17 @@ export function GiftContributorsPanel({
 
     fetchContributors();
 
-    // Subscribe for realtime updates — no UUID filter for reliability
-    const channel = supabase
-      .channel(`gift-contributors-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'gift_transactions',
-        },
-        (payload: any) => {
-          // CLIENT-SIDE FILTER: Only refetch for this room
-          if (payload.new?.party_room_id === roomId || payload.new?.stream_id === roomId) {
-            fetchContributors();
-          }
-        }
-      )
-      .subscribe();
-
+    // Pkg83 LiveKit-Purist: refetch on Pkg76 `livekit-gift-sent` window event
+    // (party scope, this roomId only). REPLACES `gift-contributors-${roomId}`
+    // postgres_changes channel — LiveKit DataPacket is sole instant signal.
+    const onLiveKitGift = (e: Event) => {
+      const detail = (e as CustomEvent<{ scope?: string; id?: string }>).detail;
+      if (!detail || detail.scope !== 'party' || detail.id !== roomId) return;
+      fetchContributors();
+    };
+    window.addEventListener('livekit-gift-sent', onLiveKitGift as EventListener);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-gift-sent', onLiveKitGift as EventListener);
     };
   }, [isOpen, roomId, hostCommissionPercent]);
 

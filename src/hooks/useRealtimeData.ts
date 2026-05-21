@@ -205,69 +205,20 @@ export function useRealtimeLiveStream(streamId: string | null) {
 
     fetchData();
 
-    // Subscribe to stream updates
-    streamChannel = supabase
-      .channel(`stream-${streamId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'live_streams',
-          filter: `id=eq.${streamId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Stream updated:', payload.new);
-          setStream((prev: any) => ({ ...prev, ...payload.new }));
-        }
-      )
-      .subscribe();
-
-    // Subscribe to viewer changes
-    viewerChannel = supabase
-      .channel(`stream-viewers-${streamId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'stream_viewers',
-          filter: `stream_id=eq.${streamId}`
-        },
-        async (payload) => {
-          console.log('[Realtime] Viewer change:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            setViewers(prev => [...prev, payload.new]);
-          } else if (payload.eventType === 'UPDATE' && (payload.new as any).left_at) {
-            setViewers(prev => prev.filter(v => v.id !== (payload.new as any).id));
-          }
-        }
-      )
-      .subscribe();
-
-    // Subscribe to gift transactions
-    giftChannel = supabase
-      .channel(`stream-gifts-${streamId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'gift_transactions',
-          filter: `stream_id=eq.${streamId}`
-        },
-        async (payload) => {
-          console.log('[Realtime] New gift:', payload.new);
-          setGifts(prev => [payload.new, ...prev.slice(0, 49)]);
-        }
-      )
-      .subscribe();
+    // Pkg83 LiveKit-Purist: removed 3 stream-* Supabase Realtime channels
+    // (stream-${id}, stream-viewers-${id}, stream-gifts-${id}). This hook is
+    // currently unused in the app (only formatLastUpdate is imported); kept
+    // as a REST-only snapshot helper for future consumers. Any future caller
+    // must subscribe via LiveKit envelopes (livekit-gift-sent / live-event)
+    // — never re-introduce Supabase postgres_changes on stream tables.
+    streamChannel = null;
+    viewerChannel = null;
+    giftChannel = null;
 
     return () => {
-      supabase.removeChannel(streamChannel);
-      supabase.removeChannel(viewerChannel);
-      supabase.removeChannel(giftChannel);
+      if (streamChannel) supabase.removeChannel(streamChannel);
+      if (viewerChannel) supabase.removeChannel(viewerChannel);
+      if (giftChannel) supabase.removeChannel(giftChannel);
     };
   }, [streamId]);
 
