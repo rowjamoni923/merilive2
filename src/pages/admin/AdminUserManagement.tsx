@@ -2004,7 +2004,159 @@ export default function AdminUserManagement() {
           </Card>
         </TabsContent>
 
+        {/* === VERIFIED USERS TAB (face-verified non-hosts) === */}
+        <TabsContent value="verified-users" className="mt-4 space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <ScanFace className="w-8 h-8 text-emerald-500" />
+                  <div>
+                    <p className="text-emerald-600 text-xs font-medium">Total Verified Users</p>
+                    <p className="text-emerald-900 font-bold text-xl">{verifiedUserStats.total}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-8 h-8 text-green-500" />
+                  <div>
+                    <p className="text-green-600 text-xs font-medium">Active</p>
+                    <p className="text-green-900 font-bold text-xl">{verifiedUserStats.active}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <Ban className="w-8 h-8 text-red-500" />
+                  <div>
+                    <p className="text-red-600 text-xs font-medium">Blocked</p>
+                    <p className="text-red-900 font-bold text-xl">{verifiedUserStats.blocked}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="bg-white border-slate-200 shadow-sm">
+            <CardContent className="p-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Search verified users by name or UID..."
+                  value={verifiedUserSearch}
+                  onChange={(e) => setVerifiedUserSearch(e.target.value)}
+                  className="pl-10 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-slate-200 shadow-xl overflow-hidden">
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="flex items-center justify-center h-64">
+                  <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
+                </div>
+              ) : verifiedUsers.filter(u => {
+                  const q = verifiedUserSearch.trim().toLowerCase();
+                  if (!q) return true;
+                  return (u.display_name || "").toLowerCase().includes(q) || String(u.app_uid || "").toLowerCase().includes(q) || u.id.toLowerCase().includes(q);
+                }).length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+                  <ScanFace className="w-12 h-12 mb-4" />
+                  <p>No verified users found</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-slate-200 bg-slate-50">
+                        <TableHead className="text-slate-700 font-bold">User</TableHead>
+                        <TableHead className="text-slate-700 font-bold">UID</TableHead>
+                        <TableHead className="text-slate-700 font-bold">Level</TableHead>
+                        <TableHead className="text-slate-700 font-bold">Gender</TableHead>
+                        <TableHead className="text-slate-700 font-bold">Status</TableHead>
+                        <TableHead className="text-slate-700 font-bold hidden md:table-cell">Verified At</TableHead>
+                        <TableHead className="text-slate-700 font-bold text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {verifiedUsers
+                        .filter(u => {
+                          const q = verifiedUserSearch.trim().toLowerCase();
+                          if (!q) return true;
+                          return (u.display_name || "").toLowerCase().includes(q) || String(u.app_uid || "").toLowerCase().includes(q) || u.id.toLowerCase().includes(q);
+                        })
+                        .map((u) => (
+                        <TableRow key={u.id} className="border-slate-100 hover:bg-slate-50">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10 border-2 border-emerald-500/50">
+                                <AvatarImage src={u.avatar_url || ""} />
+                                <AvatarFallback className="bg-emerald-100 text-emerald-600">
+                                  {u.display_name?.charAt(0) || "U"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium flex items-center gap-1 text-slate-800">
+                                  {u.display_name || "—"}
+                                  <ScanFace className="w-4 h-4 text-emerald-500" />
+                                </p>
+                                <p className="text-slate-500 text-xs">{u.id.slice(0, 8)}...</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-slate-700 text-xs font-mono">{u.app_uid || "—"}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 text-yellow-400" />
+                              <span className="text-slate-800">{u.user_level || 1}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-slate-700 capitalize">{u.gender || "—"}</TableCell>
+                          <TableCell>
+                            <Badge className={u.is_blocked ? "bg-red-100 text-red-600 border-red-200" : "bg-emerald-100 text-emerald-600 border-emerald-200"}>
+                              {u.is_blocked ? "Blocked" : "Active"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-slate-600 text-xs">
+                            {u.face_verified_at ? new Date(u.face_verified_at).toLocaleDateString() : "—"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-slate-500 hover:text-slate-800">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-white border-slate-200">
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleVerifyUser(u.id, true)}
+                                >
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Revoke Verification
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* === AUTO VERIFIED TAB === */}
+
         <TabsContent value="auto-verified" className="mt-4 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <Card className="bg-gradient-to-br from-cyan-500/15 to-cyan-700/10 border-cyan-400/30">
