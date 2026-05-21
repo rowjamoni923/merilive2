@@ -41,7 +41,7 @@ const AdminAppSettingsHub = () => {
       if (settingsRes.error) throw settingsRes.error;
 
       setStats({
-        currentVersion: versionRes.data?.current_version_name || versionRes.data?.current_version || "1.0.0",
+        currentVersion: versionRes.data?.current_version || versionRes.data?.current_version_name || "—",
         templates: templatesRes.count || 0,
         settings: settingsRes.count || 0,
       });
