@@ -170,6 +170,73 @@ export function usePartyRoomWebRTC(
           return ms;
         };
 
+        const resetLocalPublications = async () => {
+          const publications = Array.from(room.localParticipant.trackPublications.values());
+          for (const pub of publications) {
+            if (!pub.track) continue;
+            try { await (room.localParticipant as any).unpublishTrack(pub.track, true); } catch { /* ignore */ }
+          }
+          rebuildLocalStream();
+        };
+
+        const publishLocalMediaWithRetry = async () => {
+          const previewStream = consumePreparedHostPreviewStream();
+          let lastError: unknown = null;
+
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              if (attempt > 1) {
+                await resetLocalPublications();
+                await new Promise((resolve) => setTimeout(resolve, 350 * attempt));
+              }
+
+              if (previewStream && attempt === 1) {
+                console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
+                const preloadedVideoTrack = previewStream.getVideoTracks()[0];
+                const preloadedAudioTrack = previewStream.getAudioTracks()[0];
+
+                if (roomType === 'video' && preloadedVideoTrack?.readyState === 'live') {
+                  const beautifiedTrack = await processTrackWithBeauty(preloadedVideoTrack);
+                  await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
+                } else if (roomType === 'video') {
+                  await room.localParticipant.setCameraEnabled(true);
+                }
+
+                if (preloadedAudioTrack?.readyState === 'live') {
+                  await room.localParticipant.publishTrack(preloadedAudioTrack as any, { source: Track.Source.Microphone } as any);
+                } else {
+                  await room.localParticipant.setMicrophoneEnabled(true);
+                }
+              } else if (roomType === 'video') {
+                await room.localParticipant.enableCameraAndMicrophone();
+              } else if (roomType === 'audio') {
+                await room.localParticipant.setMicrophoneEnabled(true);
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, 250));
+              rebuildLocalStream();
+
+              const hasVideo = Array.from(room.localParticipant.trackPublications.values())
+                .some((pub) => pub.kind === Track.Kind.Video && pub.track?.mediaStreamTrack?.readyState === 'live');
+              const hasAudio = Array.from(room.localParticipant.trackPublications.values())
+                .some((pub) => pub.kind === Track.Kind.Audio && pub.track?.mediaStreamTrack?.readyState === 'live');
+
+              if ((roomType !== 'video' || hasVideo) && hasAudio) {
+                console.log(`[PartyLiveKit] ✅ Local media published on attempt ${attempt}`);
+                return;
+              }
+
+              throw new Error(`party_media_missing_tracks video=${hasVideo} audio=${hasAudio}`);
+            } catch (error) {
+              lastError = error;
+              console.warn(`[PartyLiveKit] Local media publish attempt ${attempt} failed:`, error);
+            }
+          }
+
+          toast.error(roomType === 'video' ? 'Camera or mic failed to start. Please reopen the party room.' : 'Mic failed to start. Please reopen the party room.');
+          throw lastError instanceof Error ? lastError : new Error(String(lastError || 'party_media_publish_failed'));
+        };
+
         room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack, pub: RemoteTrackPublication, participant: RemoteParticipant) => {
           console.log(`[PartyLiveKit] Track subscribed: ${track.kind} from ${participant.identity}`);
 
