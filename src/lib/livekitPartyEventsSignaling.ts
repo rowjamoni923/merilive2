@@ -182,7 +182,7 @@ export async function publishPartyEvent(
 
   try {
     const env = buildEnvelope<PartyEventPayload>(
-      'party_event' as any, // family is "party_event"; kill-switch is 'presence'
+      FAMILY,
       payload.type,
       { ...payload, roomId, timestamp: payload.timestamp ?? Date.now() },
       room.localParticipant?.identity,
