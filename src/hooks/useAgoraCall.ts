@@ -21,6 +21,7 @@ import {
   VideoQuality,
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
+import { registerCallRoom, unregisterCallRoom } from '@/lib/livekitCallSignaling';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
@@ -62,6 +63,10 @@ export function useAgoraCall(
   const roomRef = useRef<Room | null>(null);
   const isInitRef = useRef(false);
   const deadRef = useRef(false);
+  // Pkg73: keep latest callId visible inside the stable `cleanup` callback
+  // (which has `[]` deps to avoid disconnect storms on every render).
+  const callIdRef = useRef<string | null>(null);
+  callIdRef.current = callId;
   // True when this private call session is published via the native
   // Android LiveKit plugin (Capacitor) instead of the browser
   // livekit-client. Drives the native branch in cleanup/toggleAudio/toggleVideo.
@@ -124,6 +129,9 @@ export function useAgoraCall(
     console.log('[LiveKitCall] cleanup');
     deadRef.current = true;
     isInitRef.current = false;
+
+    // Pkg73: drop call-signaling registration before tearing the room down.
+    try { if (callIdRef.current) unregisterCallRoom(callIdRef.current); } catch { /* ignore */ }
 
     if (usingNativeRef.current) {
       nativeLiveKitController.disconnect().catch(() => {});
@@ -396,6 +404,11 @@ export function useAgoraCall(
         })();
         await connectPromise;
         console.log('[LiveKitCall] ✅ Connected to room');
+
+        // Pkg73: bind this Room to the callId so call-end packets can be
+        // exchanged between caller and host directly (Supabase broadcast
+        // remains the fallback path).
+        if (callId) registerCallRoom(callId, room);
 
         // Enable camera and microphone
         await room.localParticipant.enableCameraAndMicrophone();
