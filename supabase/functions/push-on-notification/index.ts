@@ -165,7 +165,12 @@ serve(async (req) => {
               android: {
                 priority: "HIGH",
                 notification: {
-                  channel_id: "default_channel",
+                  // Must match an actual channel created in
+                  // NotificationHelper.createNotificationChannels.
+                  // "default_channel" did not exist → killed-app
+                  // notifications fell back to system default channel
+                  // (low importance, no sound on some OEMs).
+                  channel_id: "merilive_default",
                   sound: "default",
                   default_vibrate_timings: true,
                   default_sound: true,
