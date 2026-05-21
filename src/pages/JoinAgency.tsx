@@ -183,10 +183,16 @@ const JoinAgency = () => {
 
     setJoining(true);
     try {
+      // Pkg72: capture sub-agent referral code from URL (?ref=SAxxxxxx) so that
+      // agency_hosts.referral_code is populated → enables Pkg27 sub-agent commission.
+      const subAgentRef = (searchParams.get('ref') || '').trim().toUpperCase();
+      const isSubAgentRef = /^SA[A-Z0-9]{4,}$/.test(subAgentRef) ? subAgentRef : null;
+
       const { data, error } = await supabase.rpc('join_agency', {
         _host_id: currentUser.id,
         _agency_code: foundAgency.agency_code,
-        _joined_via: 'code'
+        _joined_via: isSubAgentRef ? 'sub_agent_link' : 'code',
+        _referral_code: isSubAgentRef,
       });
 
       if (error) throw error;
