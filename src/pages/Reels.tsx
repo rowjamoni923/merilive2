@@ -557,29 +557,8 @@ const Reels = () => {
 
                 {/* Right Side Actions - Professional TikTok Style */}
                 <div className="absolute right-2 flex flex-col items-center gap-[22px]" style={{ bottom: 'calc(var(--bottom-nav-height, 56px) + 80px)' }}>
-                  {/* User Avatar with Follow + Badge */}
-                  <div className="relative mb-1">
-                    <button onClick={() => navigate(`/profile/${currentReel.user_id}`)} className="block">
-                      <div className="w-[48px] h-[48px] rounded-full ring-[2px] ring-white/95 overflow-hidden bg-black flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
-                        <FramedAvatarWithPrivileges
-                          userId={currentReel.user_id}
-                          src={currentReel.user?.avatar_url || ''}
-                          name={currentReel.user?.display_name || currentReel.user?.app_uid || 'User'}
-                          level={currentReel.user?.user_level || 1}
-                          size="sm"
-                        />
-                      </div>
-                    </button>
-                    {!currentReel.is_following && currentReel.user_id !== currentUserId && (
-                      <button
-                        onClick={() => handleFollow(currentReel.user_id)}
-                        aria-label="Follow"
-                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[22px] h-[22px] rounded-full bg-rose-500 flex items-center justify-center shadow-[0_2px_8px_rgba(244,63,94,0.55)] border-[1.5px] border-black/10 active:scale-90 transition-transform"
-                      >
-                        <Plus className="w-[14px] h-[14px] text-white" strokeWidth={3} />
-                      </button>
-                    )}
-                  </div>
+                  {/* Avatar + follow moved next to the username for a cleaner, professional right rail */}
+
 
                   {/* Like */}
                   <motion.button
