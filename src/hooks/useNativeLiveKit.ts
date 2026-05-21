@@ -3,7 +3,7 @@
  *
  * Provides a stable, declarative API for Live broadcaster + Private Call
  * native paths (Android). Web / iOS callers fall back to the existing
- * livekit-client / Agora flow — this hook simply reports `available: false`
+ * livekit-client flow — this hook simply reports `available: false`
  * so the caller can branch.
  *
  * Lifecycle:

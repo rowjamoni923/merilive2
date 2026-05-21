@@ -512,7 +512,7 @@ const LiveStream = () => {
     generateFilterCSS: generateSyncedFilterCSS,
   } = useLiveStreamFilters(id, isHost);
 
-  // Agora client
+  // LiveKit client
   const {
     isInitialized,
     isJoined,
@@ -521,7 +521,7 @@ const LiveStream = () => {
     localVideoTrack,
     isNativeMediaActive,
     remoteUsers,
-    error: agoraError,
+    error: livekitError,
     isRemoteAudioMuted,
     joinChannel,
     leaveChannel,
@@ -538,7 +538,7 @@ const LiveStream = () => {
       console.log('👋 Viewer left (LiveKit):', uid);
     },
     onError: (error) => {
-      console.error('❌ Agora error:', error);
+      console.error('❌ LiveKit error:', error);
       recordClientError({ label: "LiveStream.deltaY", message: error instanceof Error ? error.message : String(error) });
       // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
       // on a black "Starting camera..." screen indefinitely.

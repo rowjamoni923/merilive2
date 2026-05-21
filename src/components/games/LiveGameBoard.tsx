@@ -474,7 +474,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
             <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs">
-              🎮 Agora
+              🎮 LiveKit
             </span>
             <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs">
               🎲 SudMGP

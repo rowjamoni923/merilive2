@@ -4,7 +4,7 @@
  *
  * Used by Live broadcaster (GoLive) + Private Call (CallProvider) to
  * gate the native publish path. Web + iOS callers always get `false`
- * and continue with their existing livekit-client / Agora flow.
+ * and continue with their existing livekit-client flow.
  *
  * A runtime kill-switch is supported via `app_settings.native_livekit_enabled`
  * (read by callers). Default = ON when the platform check passes.

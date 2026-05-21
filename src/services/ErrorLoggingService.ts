@@ -45,7 +45,7 @@ class ErrorLoggingService {
     'Failed to disable secure mode',
     '[DeepARBeauty] Initialize failed',
     '[LiveStream] Error fetching recent viewers',
-    '❌ Agora error: {}',
+    '❌ LiveKit error: {}',
     '[ErrorLogging] Failed to log errors:',
   ];
 

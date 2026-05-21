@@ -1,6 +1,6 @@
 /**
  * End-to-end integration test: host face renders for TWO simultaneous viewers
- * across LiveKit/Agora seat-based subscribe flow.
+ * across LiveKit seat-based subscribe flow.
  *
  * What this guards (real production bugs we've shipped fixes for):
  *

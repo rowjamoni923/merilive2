@@ -1,6 +1,6 @@
 /**
  * useLiveKitCall – Now powered by LiveKit (API-compatible replacement).
- * Same public surface as the original Agora-based hook:
+ * Same public surface as the original LiveKit-based hook:
  *   localStream, remoteStream, isConnected,
  *   isAudioEnabled, isVideoEnabled, connectionState,
  *   toggleAudio, toggleVideo, cleanup,

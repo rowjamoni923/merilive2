@@ -60,7 +60,7 @@ const GoLive = () => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
-  const [useAgora, setUseAgora] = useState(false);
+  const [useLiveKit, setUseAgora] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
   const preservePreviewForLiveRef = useRef(false);
@@ -379,23 +379,23 @@ const GoLive = () => {
     navigate(-1);
   };
 
-  // Agora client hook
+  // LiveKit client hook
   const {
-    isLoading: agoraLoading,
+    isLoading: livekitLoading,
     localVideoTrack,
     leaveChannel,
-    switchCamera: agoraSwitchCamera,
+    switchCamera: livekitSwitchCamera,
   } = useLiveKitClient({
     onError: (error) => {
-      console.error('Agora error:', error);
+      console.error('LiveKit error:', error);
       recordClientError({ label: "GoLive.handleBack", message: error instanceof Error ? error.message : String(error) });
-      toast.error(`Agora error: ${error.message}`);
+      toast.error(`LiveKit error: ${error.message}`);
     },
   });
 
   useEffect(() => {
     setPreviewHasFrame(false);
-  }, [stream, useAgora, localVideoTrack]);
+  }, [stream, useLiveKit, localVideoTrack]);
 
   // Fetch user profile on mount - camera starts ONLY on user action (Allow button)
   useEffect(() => {
@@ -423,7 +423,7 @@ const GoLive = () => {
       }
 
       // Check if permission is ALREADY granted (cached) — only then auto-start
-      if (!useAgora && isMounted) {
+      if (!useLiveKit && isMounted) {
         const permissionState = await checkPermissionStatus();
         if (permissionState === 'granted') {
           // Permission already granted from a previous session — safe to auto-start
@@ -474,7 +474,7 @@ const GoLive = () => {
         streamRef.current = null;
       }
     };
-  }, [navigate, useAgora, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativeDeepARPreview, stopNativeDeepARPreview, attachWebPreviewStream, loadUserProfile]);
+  }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativeDeepARPreview, stopNativeDeepARPreview, attachWebPreviewStream, loadUserProfile]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -804,8 +804,8 @@ const GoLive = () => {
   };
 
   const switchCamera = () => {
-    if (useAgora && localVideoTrack) {
-      agoraSwitchCamera();
+    if (useLiveKit && localVideoTrack) {
+      livekitSwitchCamera();
     } else {
       handleCameraSwitch();
     }
@@ -813,7 +813,7 @@ const GoLive = () => {
 
 
   const handleGoLive = async () => {
-    if (isStarting || agoraLoading) return;
+    if (isStarting || livekitLoading) return;
 
     const effectiveProfile = await refreshUserProfile();
     const resolvedProfile = effectiveProfile || userProfile;
@@ -911,7 +911,7 @@ const GoLive = () => {
         ]);
       }
 
-      // Create live stream record and prefetch Agora token IN PARALLEL for instant connection
+      // Create live stream record and prefetch LiveKit token IN PARALLEL for instant connection
       const streamTitle = title.trim() || `${userProfile?.display_name || 'User'}'s Live`;
       
       // Start creating stream record
@@ -957,7 +957,7 @@ const GoLive = () => {
       }
 
       // Navigate IMMEDIATELY - don't wait for anything else
-      // LiveStream page will handle Agora connection in background
+      // LiveStream page will handle LiveKit connection in background
       navigate(`/live/${liveStream.id}`, { 
         state: { 
           isHost: true,
@@ -1128,7 +1128,7 @@ const GoLive = () => {
         "absolute inset-0 overflow-hidden flex items-center justify-center",
         isNativeAndroid && nativePreviewActive ? "bg-transparent" : "bg-muted"
       )}>
-        {useAgora && localVideoTrack ? (
+        {useLiveKit && localVideoTrack ? (
           <LiveKitVideoPlayer
             videoTrack={localVideoTrack}
             mirror={facingMode === 'user'}
@@ -1648,10 +1648,10 @@ const GoLive = () => {
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleGoLive}
-            disabled={isStarting || agoraLoading}
+            disabled={isStarting || livekitLoading}
             className={cn(
               "w-full relative overflow-hidden rounded-full touch-manipulation py-4",
-              (isStarting || agoraLoading) && "opacity-70"
+              (isStarting || livekitLoading) && "opacity-70"
             )}
             style={{
               background: 'linear-gradient(to right, #f472b6, #ec4899, #f97316)'
@@ -1663,7 +1663,7 @@ const GoLive = () => {
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12"
             />
             <span className="relative text-white text-lg font-bold tracking-wide">
-              {isStarting ? "Starting..." : agoraLoading ? "Starting..." : "Go Live"}
+              {isStarting ? "Starting..." : livekitLoading ? "Starting..." : "Go Live"}
             </span>
           </motion.button>
         </div>
