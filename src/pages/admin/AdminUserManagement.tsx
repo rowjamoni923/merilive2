@@ -706,6 +706,39 @@ export default function AdminUserManagement() {
     }
   };
 
+  // === VERIFIED USERS TAB (face-verified non-hosts) ===
+  const fetchVerifiedUsers = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(`
+          id, display_name, avatar_url, gender, user_level,
+          is_verified, is_face_verified, is_blocked, is_host,
+          face_verified_at, app_uid, created_at, total_recharge_amount
+        `)
+        .eq("is_face_verified", true)
+        .eq("is_host", false)
+        .order("face_verified_at", { ascending: false, nullsFirst: false })
+        .limit(200);
+      if (error) throw error;
+      const rows = (data as any[]) || [];
+      setVerifiedUsers(rows);
+      setVerifiedUserStats({
+        total: rows.length,
+        active: rows.filter(r => !r.is_blocked).length,
+        blocked: rows.filter(r => r.is_blocked).length,
+      });
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingVerifiedUsers", message: formatAdminError(error)});
+      toast.error("Failed to load verified users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
   const handleApproveHost = async (hostId: string) => {
     if (actionLoading) return;
     const actionKey = `approve-host-${hostId}`;
