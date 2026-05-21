@@ -111,8 +111,12 @@ export function AdminMediaFrame({
   const [videoTime, setVideoTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   
-  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
-  const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
+  // Sync fast-path: public verification buckets resolve to a direct URL with
+  // zero await, so the <img> can paint on first render — no spinner flicker.
+  const initialSync = tryResolvePublicAdminStorageUrlSync(src, bucket);
+  const initialPosterSync = tryResolvePublicAdminStorageUrlSync(poster, bucket);
+  const [displaySrc, setDisplaySrc] = useState<string | null>(initialSync);
+  const [displayPoster, setDisplayPoster] = useState<string | null>(initialPosterSync || poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
   const isPrivateStorage = isPrivateAdminStorageReference(src, bucket);
   const [blobMimeType, setBlobMimeType] = useState("");
