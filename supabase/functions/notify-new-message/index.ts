@@ -135,16 +135,26 @@ const handler = async (req: Request): Promise<Response> => {
     const results = await Promise.all(
       deviceTokens.map(async (device) => {
         try {
+          // WhatsApp/Imo/Chamet pattern: data-only + priority:high.
+          // Forces onMessageReceived() in ALL states (foreground / background /
+          // killed) so our MeriFirebaseMessagingService can render rich
+          // BigPictureStyle with emoji prefix + sender avatar on the correct
+          // merilive_messages channel (HIGH importance, sound, vibration).
+          // Mixed notification+data lets the OS render a plain default-channel
+          // notification when killed — that's the bug we're fixing.
           const fcmMessage = {
             message: {
               token: device.token,
-              notification: {
-                title: senderName,
-                body,
-                image: senderAvatar || undefined,
-              },
               data: {
                 type: "message",
+                title: senderName,
+                body,
+                image_url: senderAvatar || "",
+                icon_emoji: messageType === "voice" ? "🎤"
+                          : messageType === "image" ? "📷"
+                          : messageType === "video" ? "🎥"
+                          : messageType === "gift"  ? "🎁"
+                          : "💬",
                 conversationId,
                 senderId,
                 senderName,
@@ -154,18 +164,19 @@ const handler = async (req: Request): Promise<Response> => {
               },
               android: {
                 priority: "high" as const,
-                notification: {
-                  sound: "default",
-                  channel_id: "messages",
-                  tag: `chat_${conversationId}`,
-                  icon: "ic_stat_icon_config_sample",
-                  color: "#e91e63",
-                },
+                ttl: "86400s",
+                // No `notification` block on purpose — keep data-only so
+                // killed-app onMessageReceived fires and renders via
+                // CHANNEL_MESSAGES (= "merilive_messages") with sound.
               },
               apns: {
-                headers: { "apns-priority": "10" },
+                headers: {
+                  "apns-priority": "10",
+                  "apns-push-type": "alert",
+                },
                 payload: {
                   aps: {
+                    alert: { title: senderName, body },
                     sound: "default",
                     badge: 1,
                     "thread-id": conversationId,
