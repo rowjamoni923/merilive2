@@ -1155,6 +1155,31 @@ const PartyRoom = () => {
         fetchSeatRequests();
         return;
       }
+
+      // --- room_state_changed (Pkg81) ---
+      if (payload.type === 'room_state_changed') {
+        const data = payload as RoomStateChangedPayload;
+        console.log('[PartyRoom] 🟣 ⚡ Pkg81 livekit room_state_changed:', data);
+        if (typeof data.active_seats === 'number') {
+          setRoom(prev => prev ? { ...prev, active_seats: data.active_seats! } : prev);
+        }
+        if (data.background) {
+          setCurrentBackground({
+            id: data.background.id,
+            image_url: data.background.image_url ?? null,
+            gradient_css: data.background.gradient_css ?? null,
+          } as any);
+        }
+        if (data.is_active === false) {
+          const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
+          if (!isHostNow && !showRoomClosedModal && isMountedRef.current) {
+            setShowRoomClosedModal(true);
+            cleanupWebRTC();
+            setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
+          }
+        }
+        return;
+      }
     };
     window.addEventListener('livekit-party-event', handleLiveKitPartyEvent);
 
@@ -1167,7 +1192,8 @@ const PartyRoom = () => {
       leaveRoom();
       cleanupWebRTC();
       supabase.removeChannel(participantChannel);
-      supabase.removeChannel(roomStatusChannel);
+      // Pkg81: roomStatusChannel is null (channel deleted, LiveKit-only).
+      if (roomStatusChannel) supabase.removeChannel(roomStatusChannel);
       // Pkg78: giftBroadcastChannel + roomCloseBroadcastChannel removed (null refs).
       // Pkg80: joinBroadcastChannel removed (null ref).
       if (giftBroadcastChannel) supabase.removeChannel(giftBroadcastChannel);
