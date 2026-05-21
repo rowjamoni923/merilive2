@@ -34,7 +34,7 @@ import {
   isLiveKitEnabled,
 } from './livekitSignaling';
 
-export type GiftScope = 'live' | 'party';
+export type GiftScope = 'live' | 'party' | 'call';
 
 /**
  * Visual gift payload — everything a receiver needs to render the flying
