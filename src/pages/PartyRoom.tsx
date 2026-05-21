@@ -483,46 +483,14 @@ const PartyRoom = () => {
     fetchBackground();
   }, [roomId, room?.background_id]);
   
-  // ✅ REAL-TIME BACKGROUND SYNC - Listen for party_rooms.background_id changes
-  useEffect(() => {
-    if (!roomId) return;
-    
-    const bgChannel = supabase
-      .channel(`party-room-bg-${roomId}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'party_rooms',
-        filter: `id=eq.${roomId}`
-      }, async (payload: any) => {
-        const newBgId = payload.new?.background_id;
-        
-        if (newBgId && newBgId !== currentBackground?.id) {
-          console.log('[PartyRoom] ⚡ Background updated via real-time:', newBgId);
-          
-          // Fetch new background data
-          const { data, error } = await supabase
-            .from('party_room_backgrounds')
-            .select('id, image_url, gradient_css')
-            .eq('id', newBgId)
-            .single();
-          
-          if (data && !error) {
-            setCurrentBackground(data);
-          }
-        }
-        
-        // Also handle active_seats updates
-        if (payload.new?.active_seats !== undefined) {
-          setRoom(prev => prev ? { ...prev, active_seats: payload.new.active_seats } : prev);
-        }
-      })
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(bgChannel);
-    };
-  }, [roomId, currentBackground?.id]);
+  // Pkg81: `party-room-bg-${roomId}` Supabase Realtime channel DELETED.
+  // Background changes now arrive via LiveKit `room_state_changed` DataPacket
+  // (host publishes from BackgroundPickerPanel after the party_rooms UPDATE).
+  // Late-join state = the initial `fetchBackground()` above. NO realtime
+  // subscription to party_rooms from the client anymore. Saves 1 channel +
+  // 1 party_room_backgrounds round-trip per background switch (sender packs
+  // the row into the envelope). The handler lives in the unified
+  // `livekit-party-event` listener further below.
 
   useEffect(() => {
     if (!roomId) return;
