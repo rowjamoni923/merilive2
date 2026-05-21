@@ -603,7 +603,7 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }),
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
@@ -1783,7 +1783,7 @@ const LiveStream = () => {
   useEffect(() => {
     if (!currentUserId || !isHost || !id) return;
 
-    const channel = supabase.channel("pk_random_match", {
+    const channel = supabase.channel("pk_random_match", { // channel-singleton-ok: global random PK matchmaking bus
       config: { broadcast: { self: false } },
     });
 
@@ -2359,7 +2359,7 @@ const LiveStream = () => {
     setShowRandomPKNotification(false);
     
     // Send acceptance via broadcast
-    const channel = supabase.channel("pk_random_match", {
+    const channel = supabase.channel("pk_random_match", { // channel-singleton-ok: global random PK matchmaking bus
       config: { broadcast: { self: false } },
     });
     
