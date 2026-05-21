@@ -437,69 +437,24 @@ export function usePrivateCall(userId: string | null) {
       }));
 
       // ⚡ CRITICAL FIX: Send broadcast to host BEFORE the RPC call
-      // This ensures the host sees the incoming call instantly (<1s)
-      // The RPC can take 2-10s on slow networks - don't make host wait for it
-      const broadcastPayload = {
-        callerId: userId,
-        callerName: userProfile?.display_name || 'User',
-        callerAvatar: userProfile?.avatar_url || '',
-        callerLevel: userProfile?.user_level || 1,
-        // callId will be added after RPC returns
-        callId: '', // placeholder - updated below
-      };
+      // Pkg84: FCM-only incoming-call delivery (Chamet/WhatsApp/Imo standard).
+      // No more client-side Supabase broadcast on `incoming-call-${hostId}` —
+      // `call-deliver` edge function (invoked below after RPC success) is the
+      // SOLE delivery path: high-priority data FCM (foreground + background +
+      // killed app wake) + `notifications` row insert (foreground in-app
+      // bridge via useNotifications → window 'incoming-call-notification').
 
       // ⚡ Pre-warm LiveKit token for caller while RPC is in flight
       import('@/services/livekitService').then(({ warmLiveKitToken }) => {
         warmLiveKitToken(`call_placeholder_${hostId}`, 'call').catch(() => {});
       });
 
-      // ⚡ RPC + early broadcast in parallel
-      const rpcPromise = supabase.rpc('start_private_call', {
+      const { data, error } = await supabase.rpc('start_private_call', {
         p_caller_id: userId,
         p_receiver_id: hostId,
         p_call_type: 'video',
       });
 
-      // ✅ FIXED: Send broadcast on the EXACT same channel name the host listens on
-      // Host subscribes to `incoming-call-${hostId}` — sender MUST use the same topic
-      const sendBroadcast = (payload: typeof broadcastPayload, attempt: number = 1) => {
-        // ✅ CRITICAL: Channel name must EXACTLY match host's listener channel
-        const channelName = `incoming-call-${hostId}`;
-        const sendChannel = supabase.channel(channelName);
-        const timeout = setTimeout(() => {
-          try { supabase.removeChannel(sendChannel); } catch (_) {}
-          if (attempt < 5) {
-            console.log(`[Call] Broadcast attempt ${attempt} timed out, retrying...`);
-            sendBroadcast(payload, attempt + 1);
-          }
-        }, 2000);
-
-        sendChannel.subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            sendChannel
-              .send({ type: 'broadcast', event: 'incoming_call', payload })
-              .then(() => {
-                clearTimeout(timeout);
-                console.log(`[Call] ⚡ Broadcast DELIVERED (attempt ${attempt})`);
-                // Keep channel alive briefly to ensure delivery, then cleanup
-                setTimeout(() => {
-                  try { supabase.removeChannel(sendChannel); } catch (_) {}
-                }, 500);
-              })
-              .catch(() => {
-                clearTimeout(timeout);
-                try { supabase.removeChannel(sendChannel); } catch (_) {}
-                if (attempt < 5) sendBroadcast(payload, attempt + 1);
-              });
-          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            clearTimeout(timeout);
-            try { supabase.removeChannel(sendChannel); } catch (_) {}
-            if (attempt < 5) sendBroadcast(payload, attempt + 1);
-          }
-        });
-      };
-
-      const { data, error } = await rpcPromise;
 
       if (error) {
         throw error;
