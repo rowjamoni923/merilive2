@@ -250,7 +250,7 @@ export default function SwiftPayDepositModal({
       toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
       setCreating(false);
     }
-  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomPurpose]);
 
   // Poll for credit status
   useEffect(() => {
