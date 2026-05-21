@@ -3057,9 +3057,8 @@ const Recharge = () => {
                     ))}
                   </div>
                 </div>
-                </>)}
 
-                {/* Fallback action */}
+                {/* Fallback action — also Agency/Helper only */}
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3.5 text-center">
                   <p className="text-[11px] font-semibold text-emerald-800 mb-1">
                     Want to recharge now?
@@ -3075,6 +3074,7 @@ const Recharge = () => {
                     Go to Diamond Store
                   </button>
                 </div>
+                </>)}
               </div>
             )}
           </div>
