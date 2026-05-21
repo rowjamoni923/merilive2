@@ -545,6 +545,14 @@ const LiveStream = () => {
     onError: (error) => {
       console.error('❌ Agora error:', error);
       recordClientError({ label: "LiveStream.deltaY", message: error instanceof Error ? error.message : String(error) });
+      // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
+      // on a black "Starting camera..." screen indefinitely.
+      if (location.state?.isHost === true) {
+        const msg = error instanceof Error ? error.message : String(error);
+        if (/camera|microphone|publish|getUserMedia|NotAllowed|NotReadable|Permission/i.test(msg)) {
+          toast.error('Camera failed to start — please check camera permission and try again.');
+        }
+      }
     },
   });
 
