@@ -92,7 +92,7 @@ class NativeLiveKitController {
   }
 
   async disconnect(): Promise<void> {
-    await this.waitForIdle('disconnect handoff', 1200).catch(() => undefined);
+    await this.waitForIdle('disconnect handoff', 1200);
     if (!this.connected && !this.busy) return;
     this.busy = true;
     try {
