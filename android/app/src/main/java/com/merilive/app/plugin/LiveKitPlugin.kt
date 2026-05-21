@@ -888,6 +888,9 @@ class LiveKitPlugin : Plugin() {
                         data.put("identity", event.participant.identity?.value ?: "")
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-subscribed", data)
+                        if (event.track.kind == Track.Kind.VIDEO) {
+                            activity?.runOnUiThread { attachRemoteRendererInternal(r, event.participant) }
+                        }
                     }
                     is RoomEvent.TrackUnsubscribed -> {
                         val data = JSObject()
