@@ -100,21 +100,40 @@ const AdminNotificationTemplates = () => {
   ];
   const eventPresets: string[] = eventGroups.flatMap((g) => g.items);
 
+  // Banner size presets — must match supabase/functions/generate-event-banner/index.ts
+  const BANNER_SIZES: { key: string; label: string; w: number; h: number }[] = [
+    { key: 'banner_16_9_1920', label: 'Hero Banner · 1920×1080 (16:9)', w: 1920, h: 1080 },
+    { key: 'banner_16_9_1280', label: 'Standard Banner · 1280×720 (16:9)', w: 1280, h: 720 },
+    { key: 'square_1080',      label: 'Square · 1080×1080 (1:1)', w: 1080, h: 1080 },
+    { key: 'story_1080',       label: 'Story / Reel · 1080×1920 (9:16)', w: 1080, h: 1920 },
+    { key: 'portrait_4_5',     label: 'Portrait · 1080×1350 (4:5)', w: 1080, h: 1350 },
+    { key: 'wide_3_2',         label: 'Wide · 1500×1000 (3:2)', w: 1500, h: 1000 },
+    { key: 'push_thumb',       label: 'Push Thumbnail · 512×512 (1:1)', w: 512, h: 512 },
+  ];
+
   const [aiCustomEvent, setAiCustomEvent] = useState('');
+  const [aiSizeKey, setAiSizeKey] = useState<string>('banner_16_9_1920');
   const [aiGenerating, setAiGenerating] = useState<string | null>(null);
-  const [aiBanners, setAiBanners] = useState<{ eventName: string; url: string }[]>([]);
+  const [aiBanners, setAiBanners] = useState<{ eventName: string; url: string; sizeLabel: string; w: number; h: number }[]>([]);
 
   const generateAiBanner = async (eventName: string) => {
     if (!eventName.trim()) return;
     setAiGenerating(eventName);
     try {
       const { data, error } = await supabase.functions.invoke('generate-event-banner', {
-        body: { eventName }
+        body: { eventName, sizeKey: aiSizeKey }
       });
       if (error) throw error;
       if (!data?.url) throw new Error('No URL returned');
-      setAiBanners(prev => [{ eventName, url: data.url }, ...prev].slice(0, 30));
-      toast({ title: 'Banner generated', description: `Premium 3D banner ready for "${eventName}"` });
+      const size = data.size || BANNER_SIZES.find(s => s.key === aiSizeKey)!;
+      setAiBanners(prev => [{
+        eventName,
+        url: data.url,
+        sizeLabel: size.label || `${size.width}×${size.height}`,
+        w: size.width ?? size.w,
+        h: size.height ?? size.h,
+      }, ...prev].slice(0, 30));
+      toast({ title: 'Banner generated', description: `Premium 3D banner ready · ${size.width ?? size.w}×${size.height ?? size.h}` });
     } catch (e: any) {
       toast({ title: 'Generation failed', description: e?.message || 'AI generation error', variant: 'destructive' });
     } finally {
@@ -128,6 +147,24 @@ const AdminNotificationTemplates = () => {
       toast({ title: 'Copied', description: 'Banner URL copied to clipboard' });
     } catch {
       toast({ title: 'Copy failed', variant: 'destructive' });
+    }
+  };
+
+  const downloadBanner = async (eventName: string, url: string, w: number, h: number) => {
+    try {
+      const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = `${eventName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 48)}-${w}x${h}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objUrl), 1000);
+    } catch (e: any) {
+      toast({ title: 'Download failed', description: e?.message || 'Could not download banner', variant: 'destructive' });
     }
   };
 
