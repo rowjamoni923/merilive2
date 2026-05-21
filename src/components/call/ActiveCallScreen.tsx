@@ -15,6 +15,8 @@ import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, s
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
+import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { useSound } from "@/hooks/useSound";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 
@@ -104,25 +106,16 @@ export function ActiveCallScreen({
     };
     fetchCommission();
     
-    // Real-time subscription
-    const channel = supabase
-      .channel(`activecall-gift-commission-realtime-${callId || userId || 'pending'}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'app_settings',
-        filter: 'setting_key=eq.gift_commission'
-      }, (payload: any) => {
-        if (payload.new?.setting_value) {
-          const settings = payload.new.setting_value;
-          const rate = settings.host_percent ?? (100 - (settings.company_percent ?? 45));
-          setAdminGiftCommission(rate);
-        }
-      })
-      .subscribe();
-    
+    // Pkg83 LiveKit-Purist: admin commission rate sync via Pkg37
+    // admin-table-update window event. REPLACES `activecall-gift-commission-
+    // realtime-*` Supabase postgres_changes channel.
+    const onAdminUpdate = (e: Event) => {
+      const detail = (e as CustomEvent<{ table?: string }>).detail;
+      if (detail?.table === 'app_settings') fetchCommission();
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
     };
   }, [callId, userId]);
   
@@ -135,7 +128,7 @@ export function ActiveCallScreen({
   const displayedCoinsSpent = totalCoinsSpent;
   const displayedHostEarned = hostEarned;
 
-  const chatChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Pkg83: chat now flows over LiveKit DataPacket (no Supabase channel ref).
   
   
   // Sound hook - must be before useEffects that use it
@@ -250,82 +243,47 @@ export function ActiveCallScreen({
     return () => clearInterval(interval);
   }, [hostPhotos.length, isLiveConnected]);
 
-  // Real-time gift animation subscription - listen for gifts during call
+  // Pkg83 LiveKit-Purist: in-call gift animations via LiveKit DataPacket.
+  // REPLACES `call_gift_animations_${callId}` postgres_changes channel
+  // (which was UNFILTERED — every gift INSERT on the platform hit every
+  // active-call client → catastrophic $1400-pattern read amplification).
+  // Sender publishes via `publishGiftSent('call', callId, …)` in
+  // GiftingService; receivers listen to `livekit-gift-sent` window event.
   useEffect(() => {
     if (!isOpen || !callId || !remoteUserId) return;
-    
     mountedRef.current = true;
-    
-    const giftChannel = supabase
-      .channel(`call_gift_animations_${callId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "gift_transactions",
-        },
-        async (payload: any) => {
-          // Only show for gifts between this call's participants
-          const senderId = payload.new?.sender_id;
-          const receiverId = payload.new?.receiver_id;
-          
-          const isRelevant = 
-            (senderId === userId && receiverId === remoteUserId) ||
-            (senderId === remoteUserId && receiverId === userId);
-          
-          if (!isRelevant) return;
-          
-          // ✅ FIX: Skip if I'm the sender (already showed local animation in handleSendGift)
-          if (senderId === userId) return;
-          
-          console.log('[ActiveCall] 🎁 Gift transaction detected, showing animation');
-          
-          // Fetch gift and sender info
-          const [giftResult, senderResult] = await Promise.all([
-            supabase
-              .from("gifts")
-              .select("name, icon_url, animation_url, sound_url, coin_value")
-              .eq("id", payload.new.gift_id)
-              .single(),
-            supabase
-              .from("profiles_public")
-              .select("display_name, avatar_url")
-              .eq("id", payload.new.sender_id)
-              .single()
-          ]);
-          
-          if (giftResult.data && senderResult.data && mountedRef.current) {
-            const gift = giftResult.data;
-            const sender = senderResult.data;
-            
-            // Play gift sound
-            playSound('gift');
-            
-            // Trigger flying gift animation
-            addFlyingGift({
-              senderName: sender.display_name || "User",
-              senderAvatar: sender.avatar_url || undefined,
-              receiverName: remoteUserName,
-              giftName: gift.name,
-              giftIcon: "🎁",
-              giftImageUrl: gift.icon_url || undefined,
-              animationUrl: gift.animation_url || gift.icon_url || undefined,
-              soundUrl: gift.sound_url || undefined,
-              giftColor: "bg-pink-500/50",
-              count: payload.new?.quantity || 1,
-              coins: gift.coin_value,
-              isReceiverGift: true,
-              beansEarned: payload.new?.receiver_beans ?? undefined,
-            });
-          }
-        }
-      )
-      .subscribe();
-    
+
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<GiftSentDetail>).detail;
+      if (!detail || detail.scope !== 'call' || detail.id !== callId) return;
+      // Only show gifts where I'm the receiver and remote is the sender.
+      if (detail.senderId === userId) return; // sender already showed local anim
+      if (detail.receiverId && detail.receiverId !== userId) return;
+      if (detail.senderId !== remoteUserId) return;
+      if (!mountedRef.current) return;
+
+      playSound('gift');
+      addFlyingGift({
+        senderName: detail.senderName || "User",
+        senderAvatar: detail.senderAvatar || undefined,
+        receiverName: remoteUserName,
+        giftName: detail.giftName || 'Gift',
+        giftIcon: "🎁",
+        giftImageUrl: detail.giftIconUrl || undefined,
+        animationUrl: detail.giftAnimationUrl || detail.giftIconUrl || undefined,
+        soundUrl: detail.giftSoundUrl || undefined,
+        giftColor: "bg-pink-500/50",
+        count: detail.count || 1,
+        coins: detail.giftCoins || 0,
+        isReceiverGift: true,
+        beansEarned: detail.receiverBeans ?? undefined,
+      });
+    };
+
+    window.addEventListener('livekit-gift-sent', handler as EventListener);
     return () => {
       mountedRef.current = false;
-      supabase.removeChannel(giftChannel);
+      window.removeEventListener('livekit-gift-sent', handler as EventListener);
     };
   }, [isOpen, callId, remoteUserId, userId, remoteUserName, addFlyingGift, playSound]);
 
@@ -536,26 +494,32 @@ export function ActiveCallScreen({
     }
   }, [chatMessages]);
 
-  // Subscribe to real-time chat via Supabase Broadcast
-  // ✅ Keep a persistent channel ref to avoid channel re-create lag on every message send
+  // Pkg83 LiveKit-Purist: in-call chat via LiveKit DataPacket (Pkg79 chat
+  // signaling, scope='call'). REPLACES `call-chat-${callId}` Supabase
+  // broadcast channel — useLiveKitCall already registers the call Room
+  // for chat scope, so we just listen here.
   useEffect(() => {
     if (!callId || !isOpen) return;
 
-    const channel = supabase
-      .channel(`call-chat-${callId}`)
-      .on("broadcast", { event: "call-message" }, (payload) => {
-        const msg = payload.payload as any;
-        if (msg.senderId !== userId) {
-          setChatMessages((prev) => [...prev, msg]);
-        }
-      })
-      .subscribe();
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<ChatMessageDetail>).detail;
+      if (!detail || detail.scope !== 'call' || detail.id !== callId) return;
+      if (detail.userId === userId) return; // already shown locally on send
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: detail.messageId,
+          senderId: detail.userId,
+          senderName: detail.displayName || 'User',
+          message: detail.message,
+          timestamp: detail.timestamp || Date.now(),
+        },
+      ]);
+    };
 
-    chatChannelRef.current = channel;
-
+    window.addEventListener('livekit-chat-message', handler as EventListener);
     return () => {
-      chatChannelRef.current = null;
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-chat-message', handler as EventListener);
     };
   }, [callId, isOpen, userId]);
 
@@ -577,13 +541,15 @@ export function ActiveCallScreen({
     // 🔥 AWS Comprehend toxic content moderation (background)
     checkToxic(text, { contextType: 'call', callId }).catch(() => {});
 
-    if (!chatChannelRef.current) return;
-
-    await chatChannelRef.current.send({
-      type: "broadcast",
-      event: "call-message",
-      payload: msg,
-    });
+    // Pkg83: fan out via LiveKit DataPacket (chat scope='call').
+    void publishChatMessage('call', callId, {
+      messageId: msg.id,
+      userId,
+      displayName: myDisplayName,
+      message: text,
+      messageType: 'text',
+      timestamp: msg.timestamp,
+    }).catch(() => { /* non-fatal */ });
   };
 
   if (!isOpen || typeof document === 'undefined') return null;

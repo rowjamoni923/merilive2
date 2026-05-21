@@ -275,11 +275,6 @@
       "table": "profiles"
     },
     {
-      "file": "src/features/shared/gifting/GiftingService.ts",
-      "line": 147,
-      "table": "profiles"
-    },
-    {
       "file": "src/features/shared/room/useRoomParticipants.ts",
       "line": 89,
       "table": "profiles"
@@ -396,7 +391,7 @@
     },
     {
       "file": "src/hooks/useRealtimeData.ts",
-      "line": 379,
+      "line": 330,
       "table": "profiles"
     },
     {
@@ -1666,11 +1661,6 @@
     }
   ],
   "channels": [
-    {
-      "file": "src/components/live/PKBattlePanel.tsx",
-      "line": 155,
-      "channel": "pk_random_match"
-    },
     {
       "file": "src/pages/GoLive.tsx",
       "line": 323,
