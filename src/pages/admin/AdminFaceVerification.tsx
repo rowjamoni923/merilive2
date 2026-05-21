@@ -52,6 +52,100 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { cn } from "@/lib/utils";
+
+/**
+ * Premium Approve/Reject action bar.
+ * Layout:
+ *   ┌──────────────────────────────────────────┐
+ *   │   [ 👤 User ]   [ 🎤 Host ]   (segmented)│   ← role selector
+ *   │   ┌──────────────────┬─────────────────┐ │
+ *   │   │  ✓ APPROVE       │   ✕ REJECT      │ │   ← main actions
+ *   │   └──────────────────┴─────────────────┘ │
+ *   └──────────────────────────────────────────┘
+ * Approve uses the selected role; Reject ignores role.
+ */
+function RoleApproveBar({
+  defaultRole = 'user',
+  processing,
+  onApprove,
+  onReject,
+  className,
+}: {
+  defaultRole?: 'host' | 'user';
+  processing: boolean;
+  onApprove: (role: 'host' | 'user') => void;
+  onReject: () => void;
+  className?: string;
+}) {
+  const [role, setRole] = useState<'host' | 'user'>(defaultRole);
+  return (
+    <div className={cn("space-y-2.5", className)}>
+      {/* Role selector — segmented pill */}
+      <div
+        role="tablist"
+        aria-label="Approve as"
+        className="relative grid grid-cols-2 gap-1 rounded-xl border border-amber-500/25 bg-gradient-to-b from-background/80 to-background/40 p-1 shadow-inner backdrop-blur"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={role === 'user'}
+          disabled={processing}
+          onClick={() => setRole('user')}
+          className={cn(
+            "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-200 disabled:opacity-50",
+            role === 'user'
+              ? "bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 text-amber-950 shadow-[0_4px_14px_-4px_rgba(217,119,6,0.55),inset_0_1px_0_rgba(255,255,255,0.55)]"
+              : "text-muted-foreground hover:text-amber-200 hover:bg-amber-500/10"
+          )}
+        >
+          <User className="h-3.5 w-3.5" /> User
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={role === 'host'}
+          disabled={processing}
+          onClick={() => setRole('host')}
+          className={cn(
+            "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-200 disabled:opacity-50",
+            role === 'host'
+              ? "bg-gradient-to-b from-amber-300 via-amber-500 to-amber-700 text-amber-950 shadow-[0_4px_14px_-4px_rgba(217,119,6,0.55),inset_0_1px_0_rgba(255,255,255,0.55)]"
+              : "text-muted-foreground hover:text-amber-200 hover:bg-amber-500/10"
+          )}
+        >
+          <Mic className="h-3.5 w-3.5" /> Host
+        </button>
+      </div>
+
+      {/* Main actions */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant="luxury"
+          size="default"
+          disabled={processing}
+          onClick={() => onApprove(role)}
+          className="w-full"
+        >
+          <CheckCircle2 className="h-4 w-4 mr-2" />
+          Approve {role === 'host' ? 'as Host' : 'as User'}
+        </Button>
+        <Button
+          variant="destructive"
+          size="default"
+          disabled={processing}
+          onClick={onReject}
+          className="w-full"
+        >
+          <XCircle className="h-4 w-4 mr-2" />
+          Reject
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 
 const normalizeFaceVerificationStatus = (status?: string | null): Submission['status'] => {
   const normalized = String(status || 'pending').trim().toLowerCase();
