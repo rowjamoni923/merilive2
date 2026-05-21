@@ -106,25 +106,16 @@ export function ActiveCallScreen({
     };
     fetchCommission();
     
-    // Real-time subscription
-    const channel = supabase
-      .channel(`activecall-gift-commission-realtime-${callId || userId || 'pending'}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'app_settings',
-        filter: 'setting_key=eq.gift_commission'
-      }, (payload: any) => {
-        if (payload.new?.setting_value) {
-          const settings = payload.new.setting_value;
-          const rate = settings.host_percent ?? (100 - (settings.company_percent ?? 45));
-          setAdminGiftCommission(rate);
-        }
-      })
-      .subscribe();
-    
+    // Pkg83 LiveKit-Purist: admin commission rate sync via Pkg37
+    // admin-table-update window event. REPLACES `activecall-gift-commission-
+    // realtime-*` Supabase postgres_changes channel.
+    const onAdminUpdate = (e: Event) => {
+      const detail = (e as CustomEvent<{ table?: string }>).detail;
+      if (detail?.table === 'app_settings') fetchCommission();
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
     };
   }, [callId, userId]);
   
