@@ -419,7 +419,6 @@ export function usePartyRoomWebRTC(
         await room.prepareConnection(url, token).catch(() => {});
         await room.connect(url, token);
         console.log('[PartyLiveKit] ✅ Connected to room');
-        initRetryCountRef.current = 0;
 
         setState(prev => ({
           ...prev,
@@ -485,6 +484,7 @@ export function usePartyRoomWebRTC(
         setTimeout(forceSubscribePass, 80);
         setTimeout(forceSubscribePass, 200);
         setTimeout(forceSubscribePass, 500);
+        initRetryCountRef.current = 0;
 
       } catch (error) {
         console.error('[PartyLiveKit] Initialization error:', error);
