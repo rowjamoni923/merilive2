@@ -1180,14 +1180,6 @@ const navGroups: NavGroup[] = [
         description: "Global app key/value settings (app_settings table) — feature flags, defaults, exchange rates.",
       },
       {
-        label: "Agora RTC",
-        icon: Video,
-        path: "/admin/agora-settings",
-        hubKey: "settings-hub",
-        ownerOnly: true,
-        description: "Agora app credentials and RTC configuration powering live streams and private calls.",
-      },
-      {
         label: "Branding",
         icon: Image,
         path: "/admin/branding",

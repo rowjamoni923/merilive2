@@ -2,7 +2,7 @@
  * nativeLiveKitController — imperative singleton wrapper around the
  * NativeLiveKit Capacitor plugin.
  *
- * Hooks (useAgoraClient / useAgoraCall) call this from join/leave paths
+ * Hooks (useLiveKitClient / useLiveKitCall) call this from join/leave paths
  * when `shouldUseNativeLiveKit()` is true, so the native Android publish
  * path replaces the web `livekit-client` Room.connect() flow.
  *

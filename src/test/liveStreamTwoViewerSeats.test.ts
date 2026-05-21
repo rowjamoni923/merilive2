@@ -1,6 +1,6 @@
 /**
  * End-to-end integration test: host face renders for TWO simultaneous viewers
- * across LiveKit/Agora seat-based subscribe flow.
+ * across LiveKit seat-based subscribe flow.
  *
  * What this guards (real production bugs we've shipped fixes for):
  *
@@ -101,7 +101,7 @@ const makeRoom = () => {
 };
 
 // -----------------------------------------------------------------------------
-// The viewer-side reducer extracted from useAgoraClient.ts (lines 324-365).
+// The viewer-side reducer extracted from useLiveKitClient.ts (lines 324-365).
 // Kept verbatim in behaviour so this test guards the live code path.
 // -----------------------------------------------------------------------------
 
@@ -200,7 +200,7 @@ describe('Live stream — two-viewer seat integration', () => {
 
     // Publish AUDIO FIRST so that when the VIDEO TrackSubscribed fires, the
     // wrapper-builder loop in the production reducer also picks up the
-    // existing audio publication (matches useAgoraClient.ts:354-359).
+    // existing audio publication (matches useLiveKitClient.ts:354-359).
     const host = room.addRemoteParticipant('host-42');
     const hostAudio = makeLiveKitTrack('audio');
     const hostVideo = makeLiveKitTrack('video');
@@ -228,7 +228,7 @@ describe('Live stream — two-viewer seat integration', () => {
     const viewerA = createViewerState(room);
     const viewerB = createViewerState(room);
 
-    // Wire a minimal ParticipantDisconnected handler matching useAgoraClient
+    // Wire a minimal ParticipantDisconnected handler matching useLiveKitClient
     [viewerA, viewerB].forEach((vs) => {
       room.on('ParticipantDisconnected', (p: Participant) => {
         const uid = Math.abs(
@@ -294,7 +294,7 @@ describe('Live stream — two-viewer seat integration', () => {
     'REGRESSION: beauty-track replacement does NOT stop the source camera ' +
       '(viewers would otherwise see black face)',
     () => {
-      // Simulates the exact contract from useAgoraClient.ts ~line 677:
+      // Simulates the exact contract from useLiveKitClient.ts ~line 677:
       //   await room.localParticipant.unpublishTrack(cameraPub.track, false);
       //   await room.localParticipant.publishTrack(beautifiedTrack, …);
       // The `false` flag is critical — beauty canvas keeps reading the source.

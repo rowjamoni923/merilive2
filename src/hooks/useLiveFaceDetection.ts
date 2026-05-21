@@ -245,8 +245,8 @@ export function useLiveFaceDetection({
       const parentId = v.parentElement?.id || '';
       const parentCls = v.parentElement?.className || '';
 
-      if (id.includes('agora') || cls.includes('agora') ||
-          parentId.includes('agora') || parentCls.includes('agora') ||
+      if (id.includes('livekit') || cls.includes('livekit') ||
+          parentId.includes('livekit') || parentCls.includes('livekit') ||
           id.startsWith('video_')) {
         score += 100;
       }

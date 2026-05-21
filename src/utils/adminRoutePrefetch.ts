@@ -53,7 +53,7 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/verified-badges': () => import('@/pages/admin/AdminVerifiedBadges'),
   '/admin/party-backgrounds': () => import('@/pages/admin/AdminPartyBackgrounds'),
   // Deprecated pricing routes redirect to '/admin/pricing-hub' (Pkg30+)
-  '/admin/agora-settings': () => import('@/pages/admin/AdminAgoraSettings'),
+  
   '/admin/game-settings': () => import('@/pages/admin/AdminGameSettings'),
   '/admin/game-providers': () => import('@/pages/admin/AdminGameProviders'),
   '/admin/level-tiers': () => import('@/pages/admin/AdminLevelTiers'),

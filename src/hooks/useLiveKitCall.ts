@@ -1,6 +1,6 @@
 /**
- * useAgoraCall – Now powered by LiveKit (API-compatible replacement).
- * Same public surface as the original Agora-based hook:
+ * useLiveKitCall – Now powered by LiveKit (API-compatible replacement).
+ * Same public surface as the original LiveKit-based hook:
  *   localStream, remoteStream, isConnected,
  *   isAudioEnabled, isVideoEnabled, connectionState,
  *   toggleAudio, toggleVideo, cleanup,
@@ -42,7 +42,7 @@ interface LiveKitCallState {
   connectionState: RTCPeerConnectionState | 'new';
 }
 
-export function useAgoraCall(
+export function useLiveKitCall(
   callId: string | null,
   userId: string | null,
   isHost: boolean,

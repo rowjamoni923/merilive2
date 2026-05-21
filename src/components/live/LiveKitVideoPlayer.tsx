@@ -297,7 +297,3 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     </div>
   );
 });
-
-
-// Re-export as AgoraVideoPlayer for backward compatibility
-export { LiveKitVideoPlayer as AgoraVideoPlayer };

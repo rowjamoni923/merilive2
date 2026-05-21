@@ -7,7 +7,7 @@ export { default as LiveStreamPage } from '@/pages/LiveStream';
 export { default as LivePage } from '@/pages/Live';
 
 // Components (named exports)
-export { AgoraVideoPlayer } from '@/components/live/AgoraVideoPlayer';
+export { LiveKitVideoPlayer } from '@/components/live/LiveKitVideoPlayer';
 export { default as ChametStyleGoLive } from '@/components/live/ChametStyleGoLive';
 export { CoHostPanel } from '@/components/live/CoHostPanel';
 export { MusicPlayerPanel } from '@/components/live/MusicPlayerPanel';
@@ -43,7 +43,7 @@ export { useLiveStreamFilters } from '@/hooks/useLiveStreamFilters';
 export { useLiveStreamLifecycle } from '@/hooks/useLiveStreamLifecycle';
 export { useLiveStreamSocket } from '@/hooks/useLiveStreamSocket';
 export { useLiveFaceDetection } from '@/hooks/useLiveFaceDetection';
-export { useAgoraClient } from '@/hooks/useAgoraClient';
+export { useLiveKitClient } from '@/hooks/useLiveKitClient';
 
 // Games in Live
 export { useGlobalLiveGame } from '@/hooks/useGlobalLiveGame';

@@ -1,5 +1,5 @@
 /**
- * useAgoraClient – Now powered by LiveKit (API-compatible replacement).
+ * useLiveKitClient – Now powered by LiveKit (API-compatible replacement).
  * Maintains the same public API for GoLive.tsx and LiveStream.tsx.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -22,7 +22,7 @@ import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
 
-interface AgoraConfig {
+interface LiveKitConfig {
   channelName: string;
   uid?: number;
   role: 'host' | 'audience';
@@ -48,7 +48,7 @@ interface BeautySettings {
   lipColor: number;
 }
 
-interface UseAgoraClientOptions {
+interface UseLiveKitClientOptions {
   onUserJoined?: (uid: number) => void;
   onUserLeft?: (uid: number) => void;
   onVolumeChange?: (volumes: { uid: number; level: number }[]) => void;
@@ -63,7 +63,7 @@ export interface CoHostRequest {
   timestamp: number;
 }
 
-export function useAgoraClient(options: UseAgoraClientOptions = {}) {
+export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const [isInitialized, setIsInitialized] = useState(true); // LiveKit doesn't need SDK preload
   const [isJoined, setIsJoined] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -102,7 +102,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   const isLeavingRef = useRef(false);
   const channelRef = useRef<string>('');
   const uidRef = useRef<number>(0);
-  const lastConfigRef = useRef<AgoraConfig | null>(null);
+  const lastConfigRef = useRef<LiveKitConfig | null>(null);
   // Map participant identity to a stable numeric UID for backward compat
   const participantUidMapRef = useRef<Map<string, number>>(new Map());
   const remoteAudioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
@@ -223,7 +223,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   }, [getUidForParticipant]);
 
   // Join channel - creates a LiveKit room connection
-  const joinChannel = useCallback(async (config: AgoraConfig) => {
+  const joinChannel = useCallback(async (config: LiveKitConfig) => {
     if (isJoiningRef.current || isLeavingRef.current) {
       console.log('[LiveKitClient] Already joining/leaving');
       return;
