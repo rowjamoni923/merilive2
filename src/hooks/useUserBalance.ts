@@ -46,54 +46,54 @@ async function fetchBalance(): Promise<number> {
 
   balanceFetchPromise = (async () => {
     try {
-    // Use getSession (local) instead of getUser (network) for speed
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-    if (!user) {
-      balanceCache.balance = 0;
-      balanceCache.userId = null;
+      // Use getSession (local) instead of getUser (network) for speed
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) {
+        balanceCache.balance = 0;
+        balanceCache.userId = null;
+        balanceCache.timestamp = Date.now();
+        balanceCache.initialized = true;
+        balanceCache.loading = false;
+        return 0;
+      }
+
+      // Return cached if valid
+      if (
+        balanceCache.userId === user.id &&
+        balanceCache.initialized &&
+        Date.now() - balanceCache.timestamp < CACHE_DURATION
+      ) {
+        balanceCache.loading = false;
+        return balanceCache.balance;
+      }
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('coins, diamonds')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('[UserBalance] Error:', error);
+        balanceCache.loading = false;
+        return balanceCache.balance;
+      }
+
+      const newBalance = Math.max(Number(profile?.coins || 0), Number((profile as any)?.diamonds || 0));
+      balanceCache.balance = newBalance;
+      balanceCache.userId = user.id;
       balanceCache.timestamp = Date.now();
       balanceCache.initialized = true;
-      balanceCache.loading = false;
-      return 0;
-    }
 
-    // Return cached if valid
-    if (
-      balanceCache.userId === user.id &&
-      balanceCache.initialized &&
-      Date.now() - balanceCache.timestamp < CACHE_DURATION
-    ) {
-      balanceCache.loading = false;
-      return balanceCache.balance;
-    }
+      // Notify all listeners
+      listeners.forEach(cb => cb(newBalance));
 
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('coins, diamonds')
-      .eq('id', user.id)
-      .single();
-
-    if (error) {
-      console.error('[UserBalance] Error:', error);
-      balanceCache.loading = false;
-      return balanceCache.balance;
-    }
-
-    const newBalance = Math.max(Number(profile?.coins || 0), Number((profile as any)?.diamonds || 0));
-    balanceCache.balance = newBalance;
-    balanceCache.userId = user.id;
-    balanceCache.timestamp = Date.now();
-    balanceCache.initialized = true;
-
-    // Notify all listeners
-    listeners.forEach(cb => cb(newBalance));
-
-    console.log(`[UserBalance] ✅ Cached balance: ${newBalance}`);
+      console.log(`[UserBalance] ✅ Cached balance: ${newBalance}`);
     } catch (e) {
-    console.error('[UserBalance] Failed:', e);
+      console.error('[UserBalance] Failed:', e);
     } finally {
-    balanceCache.loading = false;
+      balanceCache.loading = false;
       balanceFetchPromise = null;
     }
 
