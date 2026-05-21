@@ -1163,6 +1163,31 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     };
   }, [options.liveSignalingStreamId, isJoined]);
 
+  // Pkg76: Bind streamId → Room for LiveKit-based gift_sent signaling.
+  // Reuses the SAME Room as Pkg74 (DataReceived supports multiple listeners).
+  useEffect(() => {
+    const streamId = options.giftSignalingStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitGiftSignaling');
+        if (cancelled) return;
+        mod.registerGiftRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg76] registerGiftRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitGiftSignaling').then((mod) => {
+        mod.unregisterGiftRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.giftSignalingStreamId, isJoined]);
+
   return {
     isInitialized,
     isJoined,
