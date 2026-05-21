@@ -557,29 +557,8 @@ const Reels = () => {
 
                 {/* Right Side Actions - Professional TikTok Style */}
                 <div className="absolute right-2 flex flex-col items-center gap-[22px]" style={{ bottom: 'calc(var(--bottom-nav-height, 56px) + 80px)' }}>
-                  {/* User Avatar with Follow + Badge */}
-                  <div className="relative mb-1">
-                    <button onClick={() => navigate(`/profile/${currentReel.user_id}`)} className="block">
-                      <div className="w-[48px] h-[48px] rounded-full ring-[2px] ring-white/95 overflow-hidden bg-black flex items-center justify-center shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
-                        <FramedAvatarWithPrivileges
-                          userId={currentReel.user_id}
-                          src={currentReel.user?.avatar_url || ''}
-                          name={currentReel.user?.display_name || currentReel.user?.app_uid || 'User'}
-                          level={currentReel.user?.user_level || 1}
-                          size="sm"
-                        />
-                      </div>
-                    </button>
-                    {!currentReel.is_following && currentReel.user_id !== currentUserId && (
-                      <button
-                        onClick={() => handleFollow(currentReel.user_id)}
-                        aria-label="Follow"
-                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[22px] h-[22px] rounded-full bg-rose-500 flex items-center justify-center shadow-[0_2px_8px_rgba(244,63,94,0.55)] border-[1.5px] border-black/10 active:scale-90 transition-transform"
-                      >
-                        <Plus className="w-[14px] h-[14px] text-white" strokeWidth={3} />
-                      </button>
-                    )}
-                  </div>
+                  {/* Avatar + follow moved next to the username for a cleaner, professional right rail */}
+
 
                   {/* Like */}
                   <motion.button
@@ -685,14 +664,36 @@ const Reels = () => {
                 <div className="absolute left-0 right-0 pointer-events-none" style={{ bottom: 'var(--bottom-nav-height, 56px)' }}>
                   <div className="bg-gradient-to-t from-black/85 via-black/45 to-transparent pt-24 pb-4 px-4">
                     <div className="pointer-events-auto pr-16">
-                      {/* Username row */}
+                      {/* Username row — compact avatar + name + inline follow + */}
                       <div className="flex items-center gap-2 mb-2">
+                        <button
+                          onClick={() => navigate(`/profile/${currentReel.user_id}`)}
+                          className="w-[32px] h-[32px] rounded-full overflow-hidden ring-[1.5px] ring-white/90 bg-black flex-shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.6)] active:scale-95 transition-transform"
+                          aria-label="View profile"
+                        >
+                          <FramedAvatarWithPrivileges
+                            userId={currentReel.user_id}
+                            src={currentReel.user?.avatar_url || ''}
+                            name={currentReel.user?.display_name || currentReel.user?.app_uid || 'User'}
+                            level={currentReel.user?.user_level || 1}
+                            size="sm"
+                          />
+                        </button>
                         <button
                           onClick={() => navigate(`/profile/${currentReel.user_id}`)}
                           className="text-white font-bold text-[15px] tracking-[-0.01em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] active:opacity-70"
                         >
                           @{currentReel.user?.display_name || 'User'}
                         </button>
+                        {!currentReel.is_following && currentReel.user_id !== currentUserId && (
+                          <button
+                            onClick={() => handleFollow(currentReel.user_id)}
+                            aria-label="Follow"
+                            className="w-[18px] h-[18px] rounded-full bg-white/95 flex items-center justify-center shadow-[0_1px_4px_rgba(0,0,0,0.5)] active:scale-90 transition-transform"
+                          >
+                            <Plus className="w-[12px] h-[12px] text-black" strokeWidth={3} />
+                          </button>
+                        )}
                         {currentReel.user?.is_verified && (
                           <div className="w-[15px] h-[15px] rounded-full bg-sky-500 flex items-center justify-center shadow-[0_0_6px_rgba(14,165,233,0.5)]">
                             <span className="text-white text-[9px] font-black leading-none">✓</span>
@@ -700,6 +701,7 @@ const Reels = () => {
                         )}
                         <LevelBadge level={currentReel.user?.user_level || 1} size="sm" />
                       </div>
+
 
                       {/* Caption */}
                       {currentReel.caption && (
