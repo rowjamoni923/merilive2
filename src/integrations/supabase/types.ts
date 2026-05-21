@@ -7958,8 +7958,10 @@ export type Database = {
           category: string | null
           created_at: string | null
           description: string | null
+          icon_emoji: string | null
           icon_url: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           message_template: string | null
           template_key: string
@@ -7974,8 +7976,10 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          icon_emoji?: string | null
           icon_url?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           message_template?: string | null
           template_key: string
@@ -7990,8 +7994,10 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          icon_emoji?: string | null
           icon_url?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           message_template?: string | null
           template_key?: string
