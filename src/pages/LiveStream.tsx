@@ -535,6 +535,8 @@ const LiveStream = () => {
     liveSignalingStreamId: id,
     giftSignalingStreamId: id,
     viewerCountStreamId: id,
+    chatSignalingStreamId: id,
+
     onUserJoined: (uid) => {
       console.log('👤 Viewer joined (LiveKit):', uid);
     },
