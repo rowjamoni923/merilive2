@@ -395,8 +395,19 @@ const AdminFaceVerification = () => {
       ? (reason?.trim() || 'Rejected by admin')
       : (reason?.trim() || null);
 
-    // Optimistic: remove from current view immediately
-    setSubmissions((prev) => prev.filter((s) => s.id !== submission.id));
+    // Optimistic: update the row's status in place so it moves to the right
+    // tab (Approved / Rejected) — do NOT delete it, otherwise it vanishes
+    // from every tab until the next refetch.
+    setSubmissions((prev) => prev.map((s) =>
+      s.id === submission.id
+        ? {
+            ...s,
+            status: nextStatus as Submission['status'],
+            status_bucket: nextStatus as Submission['status_bucket'],
+            reviewed_at: new Date().toISOString(),
+          }
+        : s
+    ));
 
     // Always close modals immediately for instant feel
     setShowActionModal(false);
