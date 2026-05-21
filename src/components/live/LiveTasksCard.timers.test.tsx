@@ -56,41 +56,34 @@ describe("LiveTasksCard timer lifecycle", () => {
     vi.useRealTimers();
   });
 
-  it("clears hourly + reset timers on unmount and does not leak", () => {
+  it("clears hourly + reset + safety-poll timers on unmount and does not leak", () => {
     const { unmount } = render(<LiveTasksCard hostId="host-a" />);
-    // One channel created.
-    expect(channelInstances).toHaveLength(1);
+    // Pkg83: no realtime channel — safety-net 30s REST poll instead.
+    expect(channelInstances).toHaveLength(0);
     const activeBefore = vi.getTimerCount();
-    expect(activeBefore).toBeGreaterThanOrEqual(2); // hourly + reset
+    expect(activeBefore).toBeGreaterThanOrEqual(2); // hourly + reset (+ safety poll)
 
     unmount();
 
-    // After unmount all timers our effect owns must be cleared.
     expect(vi.getTimerCount()).toBe(0);
-    expect(removeChannel).toHaveBeenCalledTimes(1);
+    expect(removeChannel).not.toHaveBeenCalled();
 
-    // Advancing time must NOT reschedule new timers (cancelled guard).
     vi.advanceTimersByTime(5_000);
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("tears down old subscription + timers when hostId changes (no duplicates)", () => {
+  it("tears down old timers when hostId changes (no duplicates, no channels)", () => {
     const { rerender, unmount } = render(<LiveTasksCard hostId="host-a" />);
-    expect(channelInstances).toHaveLength(1);
-    expect(channelInstances[0].name).toContain("host-a");
+    expect(channelInstances).toHaveLength(0);
 
     rerender(<LiveTasksCard hostId="host-b" />);
 
-    // Old channel removed, new one created — never two channels live at once.
-    expect(removeChannel).toHaveBeenCalledTimes(1);
-    expect(channelInstances).toHaveLength(2);
-    expect(channelInstances[1].name).toContain("host-b");
+    expect(removeChannel).not.toHaveBeenCalled();
+    expect(channelInstances).toHaveLength(0);
 
-    // Active timers should be exactly the new effect's set (hourly + reset),
-    // not doubled from the previous hostId.
     const count = vi.getTimerCount();
     expect(count).toBeGreaterThanOrEqual(2);
-    expect(count).toBeLessThanOrEqual(3); // allow microtask scheduling slack
+    expect(count).toBeLessThanOrEqual(4);
 
     unmount();
     expect(vi.getTimerCount()).toBe(0);
