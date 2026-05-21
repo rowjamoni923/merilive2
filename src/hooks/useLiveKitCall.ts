@@ -414,6 +414,9 @@ export function useLiveKitCall(
         // exchanged between caller and host directly (Supabase broadcast
         // remains the fallback path).
         if (callId) registerCallRoom(callId, room);
+        // Pkg79: bind same Room to chat signaling registry for InCallChat
+        if (callId) registerChatRoom('call', callId, room);
+
 
         // Enable camera and microphone
         await room.localParticipant.enableCameraAndMicrophone();
