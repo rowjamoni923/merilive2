@@ -3554,6 +3554,29 @@ const LiveStream = () => {
               timestamp: Date.now(),
             }
           });
+
+          // Pkg76: parallel LiveKit DataPacket — sub-50ms fanout to every
+          // viewer in the LiveKit Room. Fire-and-forget; falls back silently
+          // if kill-switch `livekit_signaling_enabled.gift` is OFF.
+          if (id) {
+            publishGiftSent('live', id, {
+              senderId: currentUserId,
+              senderName,
+              senderAvatar,
+              senderLevel,
+              giftId: gift.id,
+              giftKey,
+              giftName: gift.name,
+              giftIcon: gift.emoji || '🎁',
+              giftIconUrl: gift.icon_url || undefined,
+              giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
+              giftSoundUrl: gift.sound_url || undefined,
+              giftCoins: gift.coins,
+              count,
+              receiverBeans: optimisticReceiverBeans,
+            }).catch((err) => console.warn('[Pkg76] publishGiftSent(live):', err));
+          }
+
           markOptimisticGiftCount(giftKey, optimisticReceiverBeans);
           setTotalBeans(prev => prev + optimisticReceiverBeans);
           
