@@ -1320,9 +1320,30 @@ const PartyRoom = () => {
         }
       });
 
+    // Pkg75: parallel LiveKit DataPacket path for room_closed.
+    // Sub-50ms delivery; converges with the Supabase broadcast above via
+    // `showRoomClosedModal` guard, so duplicates are no-ops.
+    const handleLiveKitPartyClosed = (ev: Event) => {
+      const detail = (ev as CustomEvent<PartyClosedDetail>).detail;
+      if (!detail || detail.roomId !== roomId) return;
+      if (!isMountedRef.current) return;
+      const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
+      if (isHostNow || showRoomClosedModal) return;
+
+      console.log('[PartyRoom] 🟣 ⚡ Pkg75 livekit-party-closed received', detail);
+      playSound('notification');
+      setShowRoomClosedModal(true);
+      cleanupWebRTC();
+      setTimeout(() => {
+        if (isMountedRef.current) navigate('/');
+      }, 3000);
+    };
+    window.addEventListener('livekit-party-closed', handleLiveKitPartyClosed);
+
     return () => {
       isMountedRef.current = false;
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('livekit-party-closed', handleLiveKitPartyClosed);
       leaveRoom();
       cleanupWebRTC();
       supabase.removeChannel(participantChannel);
