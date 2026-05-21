@@ -297,7 +297,3 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     </div>
   );
 });
-
-
-// Re-export as LiveKitVideoPlayer for backward compatibility
-export { LiveKitVideoPlayer as LiveKitVideoPlayer };
