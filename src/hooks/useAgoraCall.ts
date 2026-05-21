@@ -398,6 +398,11 @@ export function useAgoraCall(
         await connectPromise;
         console.log('[LiveKitCall] ✅ Connected to room');
 
+        // Pkg73: bind this Room to the callId so call-end packets can be
+        // exchanged between caller and host directly (Supabase broadcast
+        // remains the fallback path).
+        if (callId) registerCallRoom(callId, room);
+
         // Enable camera and microphone
         await room.localParticipant.enableCameraAndMicrophone();
         console.log('[LiveKitCall] ✅ Camera and mic enabled');
