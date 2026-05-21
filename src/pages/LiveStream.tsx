@@ -190,10 +190,12 @@ const LiveStream = () => {
   const [showPKRequest, setShowPKRequest] = useState(false);
   const [incomingPKRequest, setIncomingPKRequest] = useState<{
     battleId: string;
+    challengerId: string;
     challengerName: string;
     challengerAvatar: string;
     challengerLevel: number;
   } | null>(null);
+
   const [pkBattleState, setPKBattleState] = useState<PKBattleState>({
     isActive: false,
     battleId: null,
