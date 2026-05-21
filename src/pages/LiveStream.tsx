@@ -915,52 +915,12 @@ const LiveStream = () => {
   }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
 
 
-  // Subscribe to real-time gift transactions for THIS session's bean count
-  // IMPORTANT: Only shows gifts received during THIS live session, NOT profile total
-  useEffect(() => {
-    if (!streamData?.host_id || !id) return;
-    
-    const channel = supabase
-      .channel(`session_beans_${id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "gift_transactions",
-        },
-        (payload: any) => {
-          // Only count gifts for THIS stream session
-          if (payload.new?.stream_id === id && payload.new?.receiver_id === streamData.host_id) {
-            const giftAmount = Number(payload.new?.receiver_beans ?? payload.new?.coin_amount ?? 0);
-            const giftKey = getGiftRealtimeKey(
-              payload.new?.sender_id,
-              payload.new?.gift_id,
-              payload.new?.coin_amount,
-              payload.new?.quantity
-            );
-            const optimistic = recentBroadcastGiftKeysRef.current.get(giftKey);
+  // ========== Pkg82b: session_beans_${id} Supabase channel DELETED ==========
+  // LiveKit-Purist policy: gift bean updates flow through Pkg76 envelope
+  // (`livekit-gift-sent` window event handled below) — sole instant path.
+  // gift_transactions DB write still occurs via process_gift_transaction RPC
+  // for audit/leaderboard, but no realtime subscription on it.
 
-            if (optimistic) {
-              recentBroadcastGiftKeysRef.current.delete(giftKey);
-              if (optimistic.beans !== giftAmount) {
-                setTotalBeans(prev => Math.max(0, prev - optimistic.beans + giftAmount));
-              }
-              console.log('[LiveStream] Session beans confirmed by DB:', giftAmount);
-              return;
-            }
-
-            setTotalBeans(prev => prev + giftAmount);
-            console.log('[LiveStream] Session beans updated +', giftAmount);
-          }
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [streamData?.host_id, id, getGiftRealtimeKey]);
 
   // ========== Pkg78: LiveKit-ONLY gift broadcast receiver ==========
   // Supabase `gift_broadcast_${id}` channel removed — LiveKit DataPacket
