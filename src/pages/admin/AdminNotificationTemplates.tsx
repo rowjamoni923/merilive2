@@ -230,12 +230,6 @@ const AdminNotificationTemplates = () => {
 
   const getTemplateLabel = (key: string) => {
     switch (key) {
-        return '📢';
-    }
-  };
-
-  const getTemplateLabel = (key: string) => {
-    switch (key) {
       case 'agency_verification_code':
         return 'Agency Verification';
       case 'agency_created':
