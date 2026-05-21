@@ -39,6 +39,18 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         String title = data.containsKey("title") ? data.get("title") : "MeriLive";
         String body = data.containsKey("body") ? data.get("body") : "";
 
+        // Premium banner image + emoji icon from edge functions
+        // (push-on-notification / send-push-notification / send-app-notification).
+        // Accept both snake_case and camelCase, plus FCM notification.image fallback.
+        String imageUrl = firstNonEmpty(
+            data.get("image_url"),
+            data.get("imageUrl"),
+            remoteMessage.getNotification() != null && remoteMessage.getNotification().getImageUrl() != null
+                ? remoteMessage.getNotification().getImageUrl().toString()
+                : null
+        );
+        String iconEmoji = firstNonEmpty(data.get("icon_emoji"), data.get("iconEmoji"));
+
         if (type == null) type = "default";
 
         switch (type) {
@@ -46,7 +58,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
                 handleIncomingCall(data);
                 break;
             case "message":
-                handleMessage(data, title, body);
+                handleMessage(data, title, body, imageUrl, iconEmoji);
                 break;
             case "gift":
                 handleGift(data);
@@ -55,18 +67,31 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
                 handleLiveStart(data);
                 break;
             default:
-                handleGeneral(title, body, NotificationHelper.CHANNEL_DEFAULT);
+                handleGeneral(title, body, NotificationHelper.CHANNEL_DEFAULT, imageUrl, iconEmoji);
                 break;
         }
 
-        // Also handle Firebase notification payload if present
-        if (remoteMessage.getNotification() != null && !"incoming_call".equals(type)) {
+        // FCM notification-payload fallback (only when our data switch didn't already render).
+        if (remoteMessage.getNotification() != null
+                && !"incoming_call".equals(type)
+                && !"message".equals(type)
+                && !"gift".equals(type)
+                && !"live_start".equals(type)
+                && !data.containsKey("title")) {
             String nTitle = remoteMessage.getNotification().getTitle();
             String nBody = remoteMessage.getNotification().getBody();
             if (nTitle != null) {
-                handleGeneral(nTitle, nBody != null ? nBody : "", NotificationHelper.CHANNEL_DEFAULT);
+                handleGeneral(nTitle, nBody != null ? nBody : "", NotificationHelper.CHANNEL_DEFAULT, imageUrl, iconEmoji);
             }
         }
+    }
+
+    private static String firstNonEmpty(String... vals) {
+        if (vals == null) return "";
+        for (String v : vals) {
+            if (v != null && !v.isEmpty()) return v;
+        }
+        return "";
     }
 
     private void handleIncomingCall(Map<String, String> data) {
