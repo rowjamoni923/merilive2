@@ -41,13 +41,33 @@ interface GeneratedItem {
   createdAt: number;
 }
 
+const HISTORY_KEY = "admin_ai_image_studio_history_v1";
+const HISTORY_MAX = 200;
+
+function loadHistory(): GeneratedItem[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.slice(0, HISTORY_MAX) : [];
+  } catch { return []; }
+}
+
+function saveHistory(items: GeneratedItem[]) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, HISTORY_MAX))); } catch {}
+}
+
 export default function AdminAiImageStudio() {
   const { toast } = useToast();
   const [prompt, setPrompt] = useState("");
   const [sizeKey, setSizeKey] = useState<string>("banner_16_9_1920");
   const [generating, setGenerating] = useState<string | null>(null);
-  const [items, setItems] = useState<GeneratedItem[]>([]);
+  const [items, setItems] = useState<GeneratedItem[]>(() => loadHistory());
   const [broadcasting, setBroadcasting] = useState<string | null>(null);
+
+  // Persist gallery to localStorage so history survives reload.
+  useEffect(() => { saveHistory(items); }, [items]);
+
 
   const generate = async (eventName: string) => {
     const name = eventName.trim();
