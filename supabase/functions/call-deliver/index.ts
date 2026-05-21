@@ -181,11 +181,15 @@ serve(async (req: Request): Promise<Response> => {
     let lastResults: unknown[] = [];
     let anyFcmOk = false;
 
-    // ── ALT DELIVERY PATH #1: server-side Realtime broadcast (fires immediately,
-    // independent of FCM). Hits the same `incoming-call-{calleeId}` topic the
-    // host listens on, so foreground/recently-backgrounded apps ring instantly
-    // even when FCM is slow, throttled, or the device has no tokens yet.
-    const broadcastPayload = {
+    // ── Pkg84: foreground in-app delivery via `notifications` row.
+    // The Pkg37 master FCM trigger on `notifications` is SKIPPED for
+    // type='incoming_call' (see trigger_push_on_notification) so this
+    // does NOT cause a duplicate generic push — call-deliver's own
+    // high-priority data-only FCM below remains the SOLE push path.
+    // useNotifications short-circuits incoming_call → window event
+    // → IncomingCallModal renders <1s with zero Supabase Realtime
+    // channels open in usePrivateCall (Pkg84 LiveKit-Purist).
+    const notifPayload = {
       callId,
       callerId,
       callerName,
@@ -194,43 +198,29 @@ serve(async (req: Request): Promise<Response> => {
       callType,
       ts: Date.now(),
     };
-    const broadcastOnce = async (label: string): Promise<boolean> => {
-      try {
-        const res = await fetch(`${supabaseUrl}/realtime/v1/api/broadcast`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: serviceKey,
-            Authorization: `Bearer ${serviceKey}`,
-          },
-          body: JSON.stringify({
-            messages: [{
-              topic: `incoming-call-${calleeId}`,
-              event: "incoming_call",
-              payload: broadcastPayload,
-              private: false,
-            }],
-          }),
-        });
-        const ok = res.ok;
-        await admin.from("call_delivery_log").insert({
-          call_id: callId,
-          callee_id: calleeId,
-          attempt_number: 0,
-          channel: "realtime_broadcast",
-          status: ok ? "sent" : "failed",
-          sent_at: ok ? new Date().toISOString() : null,
-          error_message: ok ? null : `realtime_broadcast http ${res.status} (${label})`,
-          device_info: { label },
-        });
-        return ok;
-      } catch (e) {
-        console.warn("[call-deliver] realtime broadcast failed:", e);
-        return false;
-      }
-    };
-    // Fire the first broadcast immediately, in parallel with FCM.
-    const earlyBroadcast = broadcastOnce("immediate");
+    let notifInsertOk = false;
+    try {
+      const { error: notifErr } = await admin.from("notifications").insert({
+        user_id: calleeId,
+        type: "incoming_call",
+        title: `Incoming call from ${callerName}`,
+        message: `${callerName} is calling you`,
+        data: notifPayload,
+      });
+      notifInsertOk = !notifErr;
+      await admin.from("call_delivery_log").insert({
+        call_id: callId,
+        callee_id: calleeId,
+        attempt_number: 0,
+        channel: "notification_insert",
+        status: notifInsertOk ? "sent" : "failed",
+        sent_at: notifInsertOk ? new Date().toISOString() : null,
+        error_message: notifInsertOk ? null : (notifErr?.message || "notifications insert failed"),
+        device_info: { type: "incoming_call" },
+      });
+    } catch (e) {
+      console.warn("[call-deliver] notifications insert failed:", e);
+    }
 
     if (!serviceAccountJson) {
       await admin.from("call_delivery_log").insert({
@@ -242,20 +232,19 @@ serve(async (req: Request): Promise<Response> => {
         error_message: "FIREBASE_SERVICE_ACCOUNT_JSON missing",
         device_info: { reason: "FIREBASE_SERVICE_ACCOUNT_JSON missing" },
       });
-      const earlyOk = await earlyBroadcast;
-      const lateBroadcastOk = earlyOk ? false : await broadcastOnce("recovery_no_fcm");
       return new Response(JSON.stringify({
         ok: true,
         reason: "fcm_not_configured",
         attempts: 0,
         fcmDelivered: false,
-        broadcastDelivered: earlyOk || lateBroadcastOk,
+        notifInsertOk,
         lastResults,
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const credentials = JSON.parse(serviceAccountJson) as ServiceAccountCredentials;
     const accessToken = await getAccessToken(credentials);
@@ -388,20 +377,14 @@ serve(async (req: Request): Promise<Response> => {
       }
     }
 
-    // ── ALT DELIVERY PATH #2: if every FCM attempt failed, fire one more
-    // server-side realtime broadcast as a last-chance recovery before giving up.
-    const earlyOk = await earlyBroadcast;
-    let lateBroadcastOk = false;
-    if (!anyFcmOk) {
-      lateBroadcastOk = await broadcastOnce("recovery");
-    }
-
+    // Pkg84: Supabase Realtime broadcast fallback REMOVED.
+    // notifications-row insert (above) is the sole foreground delivery path.
     return new Response(
       JSON.stringify({
         ok: true,
         attempts: maxRetries,
         fcmDelivered: anyFcmOk,
-        broadcastDelivered: earlyOk || lateBroadcastOk,
+        notifInsertOk,
         lastResults,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
