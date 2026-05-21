@@ -139,6 +139,21 @@ export function BackgroundPickerPanel({
 
       if (error) throw error;
 
+      // Pkg81: LiveKit-only fanout — replaces `party-room-bg-${roomId}`
+      // Supabase Realtime background_id listener. Host is the sole writer;
+      // every participant receives within ~50ms via DataPacket, no extra
+      // `party_room_backgrounds` round-trip needed (we pack the row).
+      void import('@/lib/livekitPartyEventsSignaling').then(({ publishRoomStateChanged }) =>
+        publishRoomStateChanged(roomId, {
+          background: {
+            id: bg.id,
+            image_url: bg.image_url ?? null,
+            gradient_css: (bg as any).gradient_css ?? null,
+          },
+          background_url: bg.image_url ?? null,
+        })
+      );
+
       onSelectBackground(bg);
       toast.success("Background updated!");
       onClose();
