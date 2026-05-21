@@ -32,62 +32,43 @@ export const PKBattleActive = ({
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
   const [battleEnded, setBattleEnded] = useState(false);
 
-  // Subscribe to battle updates
+  // Pkg82e: LiveKit-purist policy — PK score sync via bounded REST poll (battle ≤180s,
+  // dual hosts in SEPARATE LiveKit rooms so DataPackets can't cross-broadcast).
+  // Industry pattern (Bigo/Tango/Chamet): poll pk_battles row at 5s interval during
+  // active battle. Replaces 2 Supabase Realtime channels (pk_battle_live_${id} +
+  // pk_gifts_${id}). Bounded duration = $1400-bill safe; Pkg62 G1 floor = 5000ms.
   useEffect(() => {
-    const channel = supabase
-      .channel(`pk_battle_live_${battleId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "pk_battles",
-          filter: `id=eq.${battleId}`,
-        },
-        (payload: any) => {
-          setChallengerScore(payload.new.challenger_score || 0);
-          setOpponentScore(payload.new.opponent_score || 0);
-          
-          if (payload.new.status === "completed") {
-            setBattleEnded(true);
-            onBattleEnd(payload.new.winner_id);
-          }
-        }
-      )
-      .subscribe();
+    if (battleEnded) return;
+    let cancelled = false;
 
-    // Also subscribe to gift transactions for this battle
-    const giftChannel = supabase
-      .channel(`pk_gifts_${battleId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "pk_battle_gifts",
-          filter: `battle_id=eq.${battleId}`,
-        },
-        async () => {
-          // Refetch scores when new gift is received
-          const { data } = await supabase
-            .from("pk_battles")
-            .select("challenger_score, opponent_score")
-            .eq("id", battleId)
-            .single();
-          
-          if (data) {
-            setChallengerScore(data.challenger_score || 0);
-            setOpponentScore(data.opponent_score || 0);
-          }
-        }
-      )
-      .subscribe();
+    const fetchBattle = async () => {
+      const { data } = await supabase
+        .from("pk_battles")
+        .select("challenger_score, opponent_score, status, winner_id")
+        .eq("id", battleId)
+        .maybeSingle();
+
+      if (cancelled || !data) return;
+      setChallengerScore(data.challenger_score || 0);
+      setOpponentScore(data.opponent_score || 0);
+
+      if (data.status === "completed") {
+        setBattleEnded(true);
+        onBattleEnd(data.winner_id);
+      }
+    };
+
+    // Immediate fetch + bounded 5s poll for the rest of the battle.
+    // guard-ok: pk-battle score sync, bounded ≤180s, no Supabase Realtime fallback
+    fetchBattle();
+    const pollId = setInterval(fetchBattle, 5000);
 
     return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(giftChannel);
+      cancelled = true;
+      clearInterval(pollId);
     };
-  }, [battleId]);
+  }, [battleId, battleEnded, onBattleEnd]);
+
 
   // Countdown timer
   useEffect(() => {
