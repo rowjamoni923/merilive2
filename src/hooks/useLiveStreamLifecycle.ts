@@ -44,14 +44,12 @@ export const useLiveStreamLifecycle = ({
     console.log('[LiveStream Lifecycle] Force ending stream:', streamId);
     
     try {
-      // ⚡ INSTANT: Broadcast stream close to all viewers first
-      try {
-        await supabase.channel(`live-stream-close-${streamId}`).send({
-          type: 'broadcast',
-          event: 'stream_closed',
-          payload: { streamId, hostName: 'Host' }
-        });
-      } catch (e) { /* broadcast is best-effort */ }
+      // Pkg78: Supabase `live-stream-close-${streamId}` broadcast REMOVED.
+      // Pkg74 LiveKit DataPacket (publishStreamEnded) + LiveKit ParticipantDisconnected
+      // event on viewer side already deliver instant close. On page-unload the
+      // LiveKit Room disconnect itself triggers viewer-side detection — no Supabase
+      // fallback needed (prevents the $1400-bill dual-path pattern).
+
 
       // Primary: use Supabase client with user's session
       const { error } = await supabase
