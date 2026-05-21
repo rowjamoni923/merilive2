@@ -1385,7 +1385,7 @@ export default function AdminLayout() {
   // ⚡ Prefetch ALL admin page chunks after first paint so every tab opens instantly.
   // Runs in idle slices (see adminRoutePrefetch.ts) — no main-thread blocking.
   useEffect(() => {
-    const t = setTimeout(() => prefetchCommonAdminRoutes(), 600);
+    const t = setTimeout(() => prefetchCommonAdminRoutes(), 100);
     return () => clearTimeout(t);
   }, []);
 
@@ -1500,7 +1500,7 @@ export default function AdminLayout() {
   // Debounced version — longer delay to prevent rapid-fire during mount & realtime storms
   const fetchPendingCounts = useCallback(() => {
     if (pendingCountsTimerRef.current) clearTimeout(pendingCountsTimerRef.current);
-    pendingCountsTimerRef.current = setTimeout(fetchPendingCountsRaw, 2000);
+    pendingCountsTimerRef.current = setTimeout(fetchPendingCountsRaw, 250);
   }, []);
 
   // Fetch notifications — ONLY unread so old/read ones never reappear
@@ -2007,10 +2007,8 @@ export default function AdminLayout() {
     // Phase 1: Fetch notifications immediately
     fetchNotifications();
 
-    // Phase 2: Defer pending counts by 2.5s so UI renders first
-    const pendingCountsTimer = setTimeout(() => {
-      fetchPendingCounts();
-    }, 2500);
+    // Phase 2: Fetch layout badges immediately via one compact RPC.
+    const pendingCountsTimer = setTimeout(fetchPendingCountsRaw, 0);
 
     // ⚡ Realtime PUSH only (no timers, no polling).
     // ONE global postgres_changes subscriber for GLOBALLY_MONITORED_TABLES.
