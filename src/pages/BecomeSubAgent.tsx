@@ -246,7 +246,7 @@ const BecomeSubAgent = () => {
           </div>
           <div>
             <h2 className="text-xl font-bold">Sub-Agent Program</h2>
-            <p className="text-slate-700 text-sm">Earn by referring</p>
+            <p className="text-white/90 text-sm">Earn by referring</p>
           </div>
         </div>
         
@@ -254,17 +254,17 @@ const BecomeSubAgent = () => {
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <TrendingUp className="w-5 h-5 mx-auto mb-1" />
             <p className="text-lg font-bold">2%</p>
-            <p className="text-xs text-slate-700">Commission</p>
+            <p className="text-xs text-white/80">Commission</p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <Gift className="w-5 h-5 mx-auto mb-1" />
             <p className="text-lg font-bold">Bonus</p>
-            <p className="text-xs text-slate-700">Top Referrer</p>
+            <p className="text-xs text-white/80">Top Referrer</p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <Coins className="w-5 h-5 mx-auto mb-1" />
             <p className="text-lg font-bold">Unlimited</p>
-            <p className="text-xs text-slate-700">Referrals</p>
+            <p className="text-xs text-white/80">Referrals</p>
           </div>
         </div>
       </div>
@@ -345,7 +345,7 @@ const BecomeSubAgent = () => {
               <div className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-200">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-slate-800" />
+                    <Building2 className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold">{agency.name}</p>
@@ -422,7 +422,7 @@ const BecomeSubAgent = () => {
           <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-200">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-slate-800" />
+                <Building2 className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h3 className="font-semibold text-purple-800">Create Your Own Agency</h3>

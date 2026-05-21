@@ -308,7 +308,7 @@ const CreateAgency = () => {
           </div>
           <div>
             <h2 className="text-xl font-bold">Start Your Agency</h2>
-            <p className="text-slate-700 text-sm">Build your team and earn together</p>
+            <p className="text-white/90 text-sm">Build your team and earn together</p>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 mt-4">
@@ -318,11 +318,11 @@ const CreateAgency = () => {
           </div>
           <div className="bg-white/10 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold">∞</p>
-            <p className="text-xs text-slate-600">Hosts</p>
+            <p className="text-xs text-white/80">Hosts</p>
           </div>
           <div className="bg-white/10 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold">24/7</p>
-            <p className="text-xs text-slate-600">Support</p>
+            <p className="text-xs text-white/80">Support</p>
           </div>
         </div>
       </div>
@@ -332,7 +332,7 @@ const CreateAgency = () => {
         <div className="mx-4 mt-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-200">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <LinkIcon className="w-5 h-5 text-slate-800" />
+              <LinkIcon className="w-5 h-5 text-white" />
             </div>
             <div>
               <h3 className="font-semibold text-purple-800">Creating as Sub-Agency</h3>
@@ -504,7 +504,7 @@ const CreateAgency = () => {
       <div className="mx-4 mt-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-200">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-slate-800" />
+            <Wallet className="w-5 h-5 text-white" />
           </div>
           <div>
             <h3 className="font-bold text-emerald-800">💰 Payroll Member System</h3>
@@ -519,7 +519,7 @@ const CreateAgency = () => {
               key={index}
               className="bg-white rounded-xl p-3 border border-emerald-100 shadow-sm"
             >
-              <div className={`w-8 h-8 bg-gradient-to-br ${benefit.color} rounded-lg flex items-center justify-center text-slate-800 mb-2`}>
+              <div className={`w-8 h-8 bg-gradient-to-br ${benefit.color} rounded-lg flex items-center justify-center text-white mb-2`}>
                 {benefit.icon}
               </div>
               <h4 className="font-semibold text-gray-800 text-xs">{benefit.title}</h4>
