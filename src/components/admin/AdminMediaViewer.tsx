@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, ExternalLink, Image as ImageIcon, Loader2, RefreshCw, Video } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
+import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl, tryResolvePublicAdminStorageUrlSync } from "@/utils/adminStorageImages";
 import { AdminLuxuryVideoPlayer } from "./AdminLuxuryVideoPlayer";
 
 export type AdminMediaKind = "auto" | "image" | "video";
@@ -111,8 +111,12 @@ export function AdminMediaFrame({
   const [videoTime, setVideoTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   
-  const [displaySrc, setDisplaySrc] = useState<string | null>(null);
-  const [displayPoster, setDisplayPoster] = useState<string | null>(poster || null);
+  // Sync fast-path: public verification buckets resolve to a direct URL with
+  // zero await, so the <img> can paint on first render — no spinner flicker.
+  const initialSync = tryResolvePublicAdminStorageUrlSync(src, bucket);
+  const initialPosterSync = tryResolvePublicAdminStorageUrlSync(poster, bucket);
+  const [displaySrc, setDisplaySrc] = useState<string | null>(initialSync);
+  const [displayPoster, setDisplayPoster] = useState<string | null>(initialPosterSync || poster || null);
   const [resolutionFailed, setResolutionFailed] = useState(false);
   const isPrivateStorage = isPrivateAdminStorageReference(src, bucket);
   const [blobMimeType, setBlobMimeType] = useState("");
@@ -159,8 +163,12 @@ export function AdminMediaFrame({
       return;
     }
     let cancelled = false;
-    setDisplaySrc(null);
-    setDisplayPoster(null);
+    // Prime with sync public URL first — never blank the tile if we already
+    // have a usable URL from the previous render.
+    const syncSrc = tryResolvePublicAdminStorageUrlSync(src, bucket);
+    const syncPoster = tryResolvePublicAdminStorageUrlSync(poster, bucket);
+    setDisplaySrc(syncSrc);
+    setDisplayPoster(syncPoster || poster || null);
     (async () => {
       const resolver = bucket === "face-verification" || bucket === "host-verification" || isPrivateStorage
         ? resolveAdminStorageObjectUrl
@@ -170,8 +178,8 @@ export function AdminMediaFrame({
         resolver(poster, bucket),
       ]);
       if (!cancelled) {
-        setDisplaySrc(resolved || src);
-        setDisplayPoster(resolvedPoster || null);
+        setDisplaySrc(resolved || syncSrc || src);
+        setDisplayPoster(resolvedPoster || syncPoster || null);
         setResolutionFailed(false);
       }
     })();
@@ -218,8 +226,10 @@ export function AdminMediaFrame({
             key={`image-fallback-${displaySrc}`}
             src={displaySrc}
             alt={alt}
-            loading="lazy"
+            loading="eager"
             decoding="async"
+            // @ts-expect-error – fetchpriority is valid HTML, React typings lag.
+            fetchpriority="high"
             referrerPolicy="no-referrer"
             className={cn("h-full w-full object-contain", mediaClassName)}
             onError={() => setImageFallbackFailed(true)}
@@ -292,8 +302,10 @@ export function AdminMediaFrame({
       key={displaySrc}
       src={displaySrc}
       alt={alt}
-      loading="lazy"
+      loading="eager"
       decoding="async"
+      // @ts-expect-error – fetchpriority is valid HTML, React typings lag.
+      fetchpriority="high"
       referrerPolicy="no-referrer"
       className={cn("h-full w-full object-contain", mediaClassName)}
       onError={() => setFailed(true)}

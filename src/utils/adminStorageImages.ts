@@ -389,6 +389,38 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
   return candidates.some((candidate) => PRIVATE_STORAGE_BUCKETS.has(candidate.bucket)) ? null : normalizeAdminStorageValue(raw, defaultBucket);
 };
 
+/**
+ * Synchronous fast-path: if `value` points at a PUBLIC verification bucket
+ * (face-verification / chat-media), return the direct public URL immediately
+ * with zero network round-trips. Used to prime <img> src so admin thumbnails
+ * render INSTANTLY instead of showing a "Resolving signed media URL…" spinner.
+ * Returns null for private buckets, raw http(s) urls, or anything that needs
+ * the async resolver.
+ */
+export const tryResolvePublicAdminStorageUrlSync = (
+  value?: string | null,
+  defaultBucket = "face-verification",
+): string | null => {
+  if (!value) return null;
+  const raw = value.trim();
+  if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return null;
+  // Already-public storage URL? Use as-is.
+  if (/^https?:\/\//i.test(raw)) {
+    const parsed = extractAdminStoragePath(raw, defaultBucket);
+    if (parsed && PUBLIC_VERIFICATION_BUCKETS.has(parsed.bucket) && !isAlreadySignedStorageUrl(raw)) {
+      return raw;
+    }
+    return null;
+  }
+  const candidates = buildStorageCandidates(raw, defaultBucket);
+  for (const candidate of candidates) {
+    if (PUBLIC_VERIFICATION_BUCKETS.has(candidate.bucket)) {
+      return getPublicStorageUrl(candidate);
+    }
+  }
+  return null;
+};
+
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
 type AdminMediaElement = HTMLImageElement | HTMLVideoElement | HTMLAudioElement | HTMLSourceElement;
