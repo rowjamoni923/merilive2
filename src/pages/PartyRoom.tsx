@@ -1130,76 +1130,11 @@ const PartyRoom = () => {
     const giftBroadcastChannel: any = null;
     giftBroadcastChannelRef.current = null;
 
-    // ============= INSTANT JOIN BROADCAST CHANNEL =============
-    // Receives instant join notifications BEFORE postgres_changes (sub-100ms vs 1-3s)
-    console.log('[PartyRoom] 🔌 Setting up INSTANT join broadcast channel for room:', roomId);
-    
-    const joinBroadcastChannel = supabase
-      .channel(`join_broadcast_party_${roomId}`)
-      .on('broadcast', { event: 'participant_joined' }, async (payload: any) => {
-        const data = payload.payload;
-        if (!data || !isMountedRef.current) return;
-        
-        // Skip own join (already shown via optimistic UI)
-        const currentUserId = currentUserRef.current?.id;
-        if (data.userId === currentUserId) return;
-        
-        // Track this join to deduplicate with postgres_changes
-        const joinKey = `${data.userId}_${Math.floor(data.timestamp / 5000)}`;
-        processedBroadcastJoinsRef.current.add(joinKey);
-        
-        console.log('[PartyRoom] ⚡ INSTANT join broadcast received:', data.userName);
-        
-        // 1. INSTANT participant refresh
-        fetchParticipants();
-        
-        // 2. INSTANT flying join banner (Bigo-style)
-        addBigoJoinNotification({
-          userId: data.userId,
-          userName: data.userName,
-          userAvatar: data.userAvatar,
-          userLevel: data.userLevel,
-        });
-        
-        // 3. INSTANT join message to chat
-        setJoinMessages(prev => [...prev.slice(-20), {
-          id: `broadcast_join_${Date.now()}_${data.userId}`,
-          userId: data.userId,
-          userName: data.userName,
-          userLevel: data.userLevel,
-          avatarUrl: data.userAvatar,
-          type: 'join' as const,
-          timestamp: new Date()
-        }]);
-        
-        // 3. Save join message to DB (non-blocking)
-        void supabase.from('party_room_messages').insert({
-          room_id: roomId,
-          user_id: data.userId,
-          content: 'joined the room ✨',
-          message_type: 'join'
-        });
-        
-        // 4. INSTANT entry animation (animation URLs already included in broadcast)
-        if ((data.entranceAnimationUrl || data.entryNameBarUrl || data.vehicleAnimationUrl) && isMountedRef.current) {
-          addEntryAnimation({
-            userId: data.userId,
-            displayName: data.userName,
-            avatarUrl: data.userAvatar,
-            level: data.userLevel,
-            entranceUrl: data.entranceAnimationUrl || undefined,
-            entryNameBarUrl: data.entryNameBarUrl || undefined,
-            vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
-            soundUrl: data.entranceSoundUrl || undefined,
-          });
-        }
-      })
-      .subscribe((status) => {
-        console.log('[PartyRoom] 🔌 Join broadcast status:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('[PartyRoom] ✅ INSTANT join broadcast ACTIVE');
-        }
-      });
+    // Pkg80: Supabase `join_broadcast_party_${roomId}` channel REMOVED.
+    // LiveKit DataPacket (`livekit-party-event` `participant_joined` handler
+    // below) is the sole instant join notifier. postgres_changes on
+    // party_room_participants INSERT (above) remains as durable fallback.
+    const joinBroadcastChannel: any = null;
 
     // Pkg75: parallel LiveKit DataPacket path for room_closed.
     // Sub-50ms delivery; converges with the Supabase broadcast above via
