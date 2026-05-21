@@ -1105,41 +1105,42 @@ export function usePrivateCall(userId: string | null) {
     };
   }, [userId]);
 
-  // 🔴 METHOD 1: BROADCAST listener for INSTANT incoming calls (sub-100ms)
-  // This is the PRIMARY method - fires before postgres_changes
+  // 🔴 Pkg84: INCOMING CALL LISTENER — FCM-only (Chamet/WhatsApp/Imo standard)
+  // The `incoming-call-${userId}` Supabase Realtime channel + 15s heartbeat
+  // are DELETED. `call-deliver` edge function (caller-side) inserts a
+  // `notifications` row + sends FCM high-priority data push. `useNotifications`
+  // listens on its already-active `notifications` subscription and bridges
+  // type='incoming_call' rows to `window 'incoming-call-notification'`.
+  // This removes one realtime channel + 15s polling tick per logged-in user
+  // ($1400-bill rule win) while gaining background/killed-app delivery.
   useEffect(() => {
     if (!userId) return;
 
-    console.log('[Broadcast] Setting up INSTANT incoming call listener for:', userId);
+    console.log('[Pkg84] Setting up FCM-bridge incoming call listener for:', userId);
     let isCleanedUp = false;
-    // ✅ Mutable ref so heartbeat can swap channels without leaking
-    let activeChannel: ReturnType<typeof supabase.channel> | null = null;
 
-    const handleIncomingBroadcast = (payload: any) => {
+    const handleIncomingNotification = (evt: Event) => {
       if (isCleanedUp) return;
-      
-      const data = payload.payload;
+      const detail = (evt as CustomEvent).detail;
+      const data = detail?.data || detail;
       const callId = typeof data?.callId === 'string' ? data.callId.trim() : '';
       if (!callId) return;
-      console.log('[Broadcast] ⚡ INSTANT incoming call received!', callId);
-      
-      // Guards: never show ended calls
+      console.log('[Pkg84] ⚡ Incoming call via FCM-bridge:', callId);
+
       if (endedCallIdsRef.current.has(callId)) {
-        console.log('[Broadcast] Skipping - already ended call');
+        console.log('[Pkg84] Skipping - already ended call');
         return;
       }
-      
-      // ✅ Only block if ACTIVELY connected to another call
+
       const currentStatus = callStateRef.current.status;
       const activeCallId = currentCallIdRef.current;
       if (activeCallId && activeCallId !== callId && (currentStatus === 'connected' || currentStatus === 'calling' || currentStatus === 'ringing')) {
-        console.log('[Broadcast] Skipping - actively in another call:', activeCallId);
+        console.log('[Pkg84] Skipping - actively in another call:', activeCallId);
         return;
       }
-      
-      // ✅ CRITICAL: Force-reset ALL blocking refs for new incoming call
+
       callEndedRef.current = false;
-      
+
       setIncomingCall({
         callId,
         callerId: data.callerId,
@@ -1149,11 +1150,9 @@ export function usePrivateCall(userId: string | null) {
       });
 
       // ⚡ Pre-warm LiveKit token
-      if (data.callId) {
-        import('@/services/livekitService').then(({ warmLiveKitToken }) => {
-          warmLiveKitToken(`call_${data.callId}`, 'call').catch(() => {});
-        });
-      }
+      import('@/services/livekitService').then(({ warmLiveKitToken }) => {
+        warmLiveKitToken(`call_${callId}`, 'call').catch(() => {});
+      });
 
       // 📳 NATIVE: Vibrate phone for incoming call
       if (typeof (window as any).Capacitor !== 'undefined') {
@@ -1163,64 +1162,21 @@ export function usePrivateCall(userId: string | null) {
           setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 600);
         }).catch(() => {});
       }
-      
+
       toastRef.current({
         title: "Incoming Call",
         description: `${data.callerName || 'User'} is calling you`,
       });
     };
 
-    // ✅ Create & subscribe a fresh channel, store in activeChannel
-    const createAndSubscribe = () => {
-      // Clean up previous channel if any
-      if (activeChannel) {
-        try { supabase.removeChannel(activeChannel); } catch (_) {}
-        activeChannel = null;
-      }
-
-      const channelName = `incoming-call-${userId}`;
-      const channel = supabase
-        .channel(channelName)
-        .on('broadcast', { event: 'incoming_call' }, handleIncomingBroadcast)
-        .subscribe((status) => {
-          console.log('[Broadcast] Incoming call channel:', status);
-          if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && !isCleanedUp) {
-            console.warn('[Broadcast] ⚠️ Channel error/timeout, scheduling reconnect...');
-            setTimeout(() => {
-              if (!isCleanedUp) createAndSubscribe();
-            }, 2000);
-          }
-        });
-      
-      activeChannel = channel;
-    };
-
-    createAndSubscribe();
-
-    // 🔄 HEARTBEAT: Every 15s verify the channel is alive
-    // If dead (e.g. network dropped during live stream), reconnect immediately
-    const heartbeatInterval = setInterval(() => {
-      if (isCleanedUp) return;
-      
-      const channels = supabase.getChannels();
-      const isAlive = channels.some(
-        ch => ch.topic === `realtime:incoming-call-${userId}` && ch.state === 'joined'
-      );
-      
-      if (!isAlive) {
-        console.warn('[Broadcast] 💀 Incoming call channel DEAD - reconnecting NOW');
-        createAndSubscribe();
-      }
-    }, 15_000);
+    window.addEventListener('incoming-call-notification', handleIncomingNotification);
 
     return () => {
       isCleanedUp = true;
-      clearInterval(heartbeatInterval);
-      if (activeChannel) {
-        try { supabase.removeChannel(activeChannel); } catch (_) {}
-      }
+      window.removeEventListener('incoming-call-notification', handleIncomingNotification);
     };
   }, [userId]);
+
 
   // 🔴 CALL-END BROADCAST LISTENER: Instant call termination for BOTH parties
   // When either side ends the call, the other side gets notified in <100ms via broadcast
