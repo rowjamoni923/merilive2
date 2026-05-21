@@ -130,6 +130,40 @@ const AdminNoticeBroadcast = () => {
 
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiSize, setAiSize] = useState<string>('banner_16_9_1920');
+  // When true, user manually picked a size — auto-suggestion stops overriding.
+  const [aiSizeManual, setAiSizeManual] = useState(false);
+  const [aiSizeAutoReason, setAiSizeAutoReason] = useState<string>("");
+
+  // Suggest best size from event name / title — keyword first, then length fallback.
+  const suggestBestSize = (raw: string): { size: string; reason: string } => {
+    const t = (raw || "").toLowerCase().trim();
+    if (!t) return { size: 'banner_16_9_1920', reason: '' };
+    // Keyword routing
+    if (/(story|reel|short|vertical|portrait|tiktok|insta\s*story)/.test(t))
+      return { size: 'story_1080', reason: 'Story / vertical keyword detected' };
+    if (/(push|thumb|icon|badge|notif(ication)?\b)/.test(t))
+      return { size: 'push_thumb', reason: 'Push / thumbnail keyword detected' };
+    if (/(square|profile|avatar|logo|sticker|gift\s*icon)/.test(t))
+      return { size: 'square_1080', reason: 'Square asset keyword detected' };
+    if (/(hero|launch|grand|gala|mega|premiere|coronation|championship|finale|carnival|festival|gala|royal|tournament|eid|diwali|christmas|new\s*year|ramadan)/.test(t))
+      return { size: 'banner_16_9_1920', reason: 'Hero / flagship event detected' };
+    // Length fallback (wide banner for longer titles, standard otherwise)
+    const len = t.length;
+    if (len >= 36) return { size: 'banner_16_9_1920', reason: `Long title (${len} chars) → Hero` };
+    if (len >= 18) return { size: 'banner_16_9_1280', reason: `Medium title (${len} chars) → Standard` };
+    return { size: 'square_1080', reason: `Short title (${len} chars) → Square` };
+  };
+
+  // Auto-update size whenever prompt / title changes, unless user manually picked.
+  useEffect(() => {
+    if (aiSizeManual) return;
+    const src = (aiPrompt.trim() || title.trim());
+    if (!src) { setAiSizeAutoReason(""); return; }
+    const { size, reason } = suggestBestSize(src);
+    setAiSize(size);
+    setAiSizeAutoReason(reason);
+  }, [aiPrompt, title, aiSizeManual]);
+
   const [aiGenerating, setAiGenerating] = useState(false);
   // Preview-before-attach: AI-generated banner sits here until admin clicks Attach.
   const [aiPreview, setAiPreview] = useState<{ url: string; width?: number; height?: number; prompt: string; sizeKey: string } | null>(null);
@@ -561,12 +595,12 @@ const AdminNoticeBroadcast = () => {
               <p className="text-[11px] text-muted-foreground mb-2">
                 Type a prompt (or leave blank to use the title) and generate a premium 3D banner — auto-attached as a notice image.
               </p>
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              <div className="flex flex-wrap items-center gap-1.5 mb-1">
                 {AI_BANNER_SIZES.map((s) => (
                   <button
                     key={s.key}
                     type="button"
-                    onClick={() => setAiSize(s.key)}
+                    onClick={() => { setAiSize(s.key); setAiSizeManual(true); }}
                     className={`px-2.5 py-1 text-[11px] rounded-md border transition ${
                       aiSize === s.key
                         ? 'bg-amber-400/20 border-amber-300/70 text-amber-100'
@@ -574,9 +608,29 @@ const AdminNoticeBroadcast = () => {
                     }`}
                   >
                     {s.label}
+                    {!aiSizeManual && aiSize === s.key && aiSizeAutoReason && (
+                      <span className="ml-1 text-[9px] uppercase tracking-wider text-amber-300/80">auto</span>
+                    )}
                   </button>
                 ))}
+                {aiSizeManual && (
+                  <button
+                    type="button"
+                    onClick={() => setAiSizeManual(false)}
+                    className="px-2 py-1 text-[10px] rounded-md border border-amber-300/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20"
+                    title="Resume auto-suggest based on event name"
+                  >
+                    ↺ Auto
+                  </button>
+                )}
               </div>
+              {!aiSizeManual && aiSizeAutoReason && (
+                <p className="text-[10px] text-amber-200/70 mb-2">✨ Auto-picked: {aiSizeAutoReason}</p>
+              )}
+              {aiSizeManual && (
+                <p className="text-[10px] text-muted-foreground mb-2">Manual size locked. Click ↺ Auto to re-enable smart suggest.</p>
+              )}
+
               <div className="flex gap-2">
                 <Input
                   value={aiPrompt}
