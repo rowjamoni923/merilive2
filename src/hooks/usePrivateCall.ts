@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
-import { publishCallEnded, type CallEndedDetail } from '@/lib/livekitCallSignaling';
+import { publishCallEnded, publishCallAccepted, type CallEndedDetail, type CallAcceptedDetail } from '@/lib/livekitCallSignaling';
 
 interface CallState {
   callId: string | null;
