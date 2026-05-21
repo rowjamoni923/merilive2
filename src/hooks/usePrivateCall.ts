@@ -939,54 +939,9 @@ export function usePrivateCall(userId: string | null) {
     clearAllTimers();
 
     try {
-      // 🔴 ALL CRITICAL OPERATIONS IN PARALLEL - sub-1-second
-      const otherPartyId = cs.remoteUserId;
-      const broadcastPromise = (async () => {
-        if (!otherPartyId) return;
-
-        const notifyChannel = supabase.channel(`call-end-notify-${callIdToEnd}-${Date.now()}`);
-        let otherChannel: ReturnType<typeof supabase.channel> | null = null;
-
-        try {
-          await new Promise<void>((resolve) => {
-            const timeout = setTimeout(() => resolve(), 2000);
-
-            notifyChannel.subscribe((status) => {
-              if (status === 'SUBSCRIBED') {
-                // Send to the other party's dedicated listener
-                otherChannel = supabase.channel(`call-end-listener-${otherPartyId}`);
-                otherChannel.subscribe((s) => {
-                  if (s === 'SUBSCRIBED') {
-                    otherChannel!
-                      .send({
-                        type: 'broadcast',
-                        event: 'call_ended',
-                        payload: { callId: callIdToEnd, endedBy: userId, reason, duration: finalDuration }
-                      })
-                      .finally(() => {
-                        clearTimeout(timeout);
-                        resolve();
-                      });
-                  } else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') {
-                    clearTimeout(timeout);
-                    resolve();
-                  }
-                });
-              } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                clearTimeout(timeout);
-                resolve();
-              }
-            });
-          });
-        } catch (_) {
-          // noop
-        } finally {
-          Promise.resolve(supabase.removeChannel(notifyChannel)).catch(() => {});
-          if (otherChannel) {
-            Promise.resolve(supabase.removeChannel(otherChannel)).catch(() => {});
-          }
-        }
-      })();
+      // 🔴 Pkg78: Supabase `call_ended` broadcast REMOVED — LiveKit DataPacket
+      // (publishCallEnded below) is the sole peer-hangup notifier. Saves
+      // ~1 Realtime channel open + send + close per call hangup.
 
       const rpcPromise = supabase.rpc('end_private_call', {
         _call_id: callIdToEnd,
@@ -1003,9 +958,8 @@ export function usePrivateCall(userId: string | null) {
         duration: finalDuration,
       }).catch(() => false);
 
-      // Run broadcast + RPC + LiveKit ALL in parallel
+      // Run RPC + LiveKit in parallel (Pkg78: Supabase broadcast removed)
       await Promise.all([
-        broadcastPromise,
         rpcPromise,
         livekitPromise,
       ]);
@@ -1350,25 +1304,10 @@ export function usePrivateCall(userId: string | null) {
         console.log('[Broadcast] ⚡ INSTANT call-accepted received for:', data.callId);
         activateCallerConnectedState(data.callId);
       })
-      .on('broadcast', { event: 'call_ended' }, (payload) => {
-        if (isCleanedUp) return;
-        const data = payload.payload;
-        if (!data?.callId) return;
-
-        // Only process if this is OUR current call
-        if (currentCallIdRef.current !== data.callId && !callEndedRef.current) {
-          // Also check if we have this call in state
-          if (callStateRef.current.callId !== data.callId) return;
-        }
-
-        console.log('[Broadcast] ⚡ INSTANT call-end received for:', data.callId, 'by:', data.endedBy);
-
-        // If WE ended the call, ignore (we already cleaned up)
-        if (data.endedBy === userId) return;
-
-        // ✅ Soft-end: keep data for CallEndedModal, set status='ended'
-        softEndCallRef.current?.();
-      })
+      // Pkg78: Supabase `call_ended` listener REMOVED — Pkg73 LiveKit
+      // DataPacket (livekit-call-ended window event handler below) is the
+      // sole peer-hangup receiver. `call_accepted` broadcast is retained
+      // because it's outside Pkg73 scope (caller-side accept signaling).
       .subscribe();
 
     // 🔥 Pkg73: LiveKit DataPacket peer notification (sub-50ms, no DB round-trip).
