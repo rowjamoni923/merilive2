@@ -52,49 +52,60 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     let mounted = true;
 
     // Synchronous decision FIRST so we never spin forever if the edge fn is slow.
+    // PRIORITY ORDER (instant grant — no flash of BlogPage):
+    //   1. Active admin session                → authorized
+    //   2. Tab already validated (sessionStorage flag) → authorized
+    //   3. URL ?access=<token>                 → wait for validation (loader, never BlogPage)
+    //   4. Nothing                             → BlogPage
     const decideSync = () => {
+      if (!mounted) return;
       const session = getAdminSession();
       const accessToken = getAccessTokenFromURL();
-      if (!mounted) return;
-      if (isLoginRoute()) {
-        // STRICT: secret link mandatory every visit. Allowed only if:
-        //  - URL has ?access=<token> AND edge validation succeeds, OR
-        //  - User already has an active admin session (post-login refresh)
-        // Persistent localStorage flag alone is NOT enough — must come via secret link.
-        if (session) {
-          setIsAuthorized(true);
-        } else if (accessToken) {
-          setIsAuthorized(null);
-        } else {
-          setIsAuthorized(false);
+      const tabAlreadyUnlocked = hasAdminAccessFlag();
+
+      if (session) {
+        // Session present — make sure header token is usable.
+        if (!isLoginRoute()) {
+          const token = getAdminSessionToken();
+          if (!token) {
+            clearAdminSession();
+            revokeAdminAccess();
+            setIsAuthorized(false);
+            return;
+          }
         }
-      } else if (session) {
-        // Session present but no usable header token → broken state, force re-login.
-        const token = getAdminSessionToken();
-        if (!token) {
-          clearAdminSession();
-          revokeAdminAccess();
-          setIsAuthorized(false);
-        } else {
-          setIsAuthorized(true);
-        }
-      } else if (accessToken) {
-        // Came via secret link but not yet logged in → wait for validation.
-        setIsAuthorized(null);
-      } else {
-        setIsAuthorized(false);
+        setIsAuthorized(true);
+        return;
       }
+
+      // No session. Tab was previously unlocked via secret link → keep allowing
+      // /admin/auth so refresh / back-nav after entering email still works.
+      if (tabAlreadyUnlocked) {
+        setIsAuthorized(true);
+        setHasValidToken(true);
+        return;
+      }
+
+      // Fresh secret-link entry — show loader, NEVER BlogPage while validating.
+      if (accessToken) {
+        setIsAuthorized(null);
+        return;
+      }
+
+      setIsAuthorized(false);
     };
 
     decideSync();
 
-    // Background: validate URL access token (with hard 6s timeout) and persist flag.
-    const accessToken = getAccessTokenFromURL();
+    // Background: validate URL access token (15s timeout) and persist flag.
+    // CRITICAL: timeout / network error must NOT flip the user to BlogPage —
+    // we keep them on the loader and let the retry below resolve.
+    const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
     if (accessToken) {
-      (async () => {
+      const validateOnce = async (attempt: number): Promise<boolean> => {
         try {
           const timeout = new Promise<{ data: any }>((_, reject) =>
-            setTimeout(() => reject(new Error('validate-admin-token timeout')), 6000)
+            setTimeout(() => reject(new Error('validate-admin-token timeout')), 15000)
           );
           const call = adminSupabase.functions.invoke('validate-admin-token', {
             body: { token: accessToken },
@@ -107,17 +118,34 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
               setHasValidToken(true);
               setIsAuthorized(true);
             }
-          } else if (mounted) {
+            return true;
+          }
+          // Real {valid:false} response → invalid token. Only then deny.
+          if (data && data.valid === false && mounted && !getAdminSession()) {
             clearAdminSession();
             revokeAdminAccess();
             setIsAuthorized(false);
+            return true;
           }
+          return false;
         } catch (e) {
-          console.warn('[AdminAccessGuard] token validation failed/timed out', e);
-          if (mounted && !getAdminSession()) {
-            revokeAdminAccess();
-            setIsAuthorized(false);
-          }
+          console.warn(`[AdminAccessGuard] validation attempt ${attempt} failed`, e);
+          return false;
+        }
+      };
+
+      (async () => {
+        // Up to 3 attempts (15s each) before giving up; if all fail and no
+        // session/flag exists, fall back to BlogPage. Network blips no longer
+        // kick a valid secret link to the block page.
+        for (let i = 1; i <= 3; i++) {
+          if (!mounted) return;
+          const resolved = await validateOnce(i);
+          if (resolved) return;
+          if (i < 3) await new Promise((r) => setTimeout(r, 1500));
+        }
+        if (mounted && !getAdminSession() && !hasAdminAccessFlag()) {
+          setIsAuthorized(false);
         }
       })();
     }
@@ -126,7 +154,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     const handler = () => {
       const session = getAdminSession();
       if (session) setIsAuthorized(true);
-      else {
+      else if (!hasAdminAccessFlag()) {
         revokeAdminAccess();
         setIsAuthorized(false);
       }
