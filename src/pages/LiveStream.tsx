@@ -1350,14 +1350,16 @@ const LiveStream = () => {
       const data = detail.data ?? {};
 
       if (detail.type === "pk_invite") {
-        if (!data.battleId) return;
+        if (!data.battleId || !data.fromUserId) return;
         setIncomingPKRequest({
           battleId: data.battleId,
+          challengerId: data.fromUserId,
           challengerName: data.fromName || "Host",
           challengerAvatar: data.fromAvatar || "",
           challengerLevel: data.fromLevel || 1,
         });
         setShowPKRequest(true);
+
       } else if (detail.type === "pk_random_invite") {
         if (pkBattleState.isActive || showPKRequest) return;
         if (data.fromUserId === currentUserId) return;
