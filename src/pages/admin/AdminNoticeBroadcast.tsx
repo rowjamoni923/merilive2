@@ -118,6 +118,8 @@ const AdminNoticeBroadcast = () => {
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiSize, setAiSize] = useState<string>('banner_16_9_1920');
   const [aiGenerating, setAiGenerating] = useState(false);
+  // Preview-before-attach: AI-generated banner sits here until admin clicks Attach.
+  const [aiPreview, setAiPreview] = useState<{ url: string; width?: number; height?: number; prompt: string; sizeKey: string } | null>(null);
 
   const generateAiBanner = async () => {
     const eventName = (aiPrompt.trim() || title.trim()).slice(0, 80);
@@ -136,15 +138,36 @@ const AdminNoticeBroadcast = () => {
       });
       if (error) throw error;
       if (!data?.url) throw new Error('No URL returned');
-      setImageUrls(prev => [...prev, data.url].slice(0, 10));
-      toast({ title: 'AI banner generated ✨', description: `Added to notice (${data.size?.width}×${data.size?.height})` });
-      setAiPrompt("");
+      // Hold in preview state — do NOT auto-attach.
+      setAiPreview({
+        url: data.url,
+        width: data.size?.width,
+        height: data.size?.height,
+        prompt: eventName,
+        sizeKey: aiSize,
+      });
+      toast({ title: 'Preview ready ✨', description: 'Review below, then click Attach to add to notice.' });
     } catch (e: any) {
       toast({ title: 'Generation failed', description: e?.message || 'AI error', variant: 'destructive' });
     } finally {
       setAiGenerating(false);
     }
   };
+
+  const attachAiPreview = () => {
+    if (!aiPreview) return;
+    if (imageUrls.length >= 10) {
+      toast({ title: "Image limit reached", description: "Max 10 images per notice", variant: "destructive" });
+      return;
+    }
+    setImageUrls(prev => [...prev, aiPreview.url].slice(0, 10));
+    toast({ title: 'Attached', description: `Banner added (${imageUrls.length + 1}/10)` });
+    setAiPreview(null);
+    setAiPrompt("");
+  };
+
+  const discardAiPreview = () => setAiPreview(null);
+
   
   const [notices, setNotices] = useState<AdminNotice[]>([]);
   const [loadingNotices, setLoadingNotices] = useState(true);
@@ -558,7 +581,65 @@ const AdminNoticeBroadcast = () => {
                   Generate
                 </Button>
               </div>
+
+              {/* Inline preview — review BEFORE attaching */}
+              {aiPreview && (
+                <div className="mt-3 rounded-xl border border-amber-300/40 bg-gradient-to-br from-amber-500/10 via-fuchsia-500/5 to-violet-600/10 p-3 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Eye className="w-4 h-4 text-amber-300 shrink-0" />
+                      <span className="text-sm font-medium truncate">Preview</span>
+                      <Badge className="bg-amber-500/20 text-amber-100 border-amber-400/30 text-[10px]">
+                        {aiPreview.width && aiPreview.height ? `${aiPreview.width}×${aiPreview.height}` : 'ready'}
+                      </Badge>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground truncate max-w-[50%]" title={aiPreview.prompt}>
+                      "{aiPreview.prompt}"
+                    </span>
+                  </div>
+                  <div className="rounded-lg overflow-hidden border border-white/10 bg-black/40 mb-3">
+                    <img
+                      src={aiPreview.url}
+                      alt={aiPreview.prompt}
+                      className="w-full h-auto max-h-[420px] object-contain"
+                      loading="eager"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={discardAiPreview}
+                      disabled={aiGenerating}
+                    >
+                      <X className="w-4 h-4 mr-1" /> Discard
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateAiBanner}
+                      disabled={aiGenerating}
+                    >
+                      {aiGenerating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+                      Regenerate
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={attachAiPreview}
+                      disabled={aiGenerating || imageUrls.length >= 10}
+                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
+                    >
+                      <Check className="w-4 h-4 mr-1" /> Attach to Notice
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
+
+
 
 
 
