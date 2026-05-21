@@ -31,7 +31,7 @@ const AdminAppSettingsHub = () => {
     setIsRefreshing(true);
     try {
       const [versionRes, templatesRes, settingsRes] = await Promise.all([
-        supabase.from("app_version_settings").select("current_version_name, current_version").eq("platform", "android").maybeSingle(),
+        supabase.from("app_version_settings").select("current_version, current_version_name").eq("platform", "android").maybeSingle(),
         supabase.from("notification_templates").select("id", { count: "exact", head: true }),
         supabase.from("app_settings").select("id", { count: "exact", head: true }),
       ]);
@@ -41,7 +41,7 @@ const AdminAppSettingsHub = () => {
       if (settingsRes.error) throw settingsRes.error;
 
       setStats({
-        currentVersion: versionRes.data?.current_version_name || versionRes.data?.current_version || "1.0.0",
+        currentVersion: versionRes.data?.current_version || versionRes.data?.current_version_name || "—",
         templates: templatesRes.count || 0,
         settings: settingsRes.count || 0,
       });
