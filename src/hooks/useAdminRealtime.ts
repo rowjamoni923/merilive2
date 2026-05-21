@@ -194,7 +194,11 @@ export const useAdminRealtime = (
     //   1. Initial auth-aware mount (above effect), OR
     //   2. Postgres pushes a real change to a tracked table.
     if (isOnAdminRoute) {
-      const eventTables = trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
+      // Admin table updates now arrive from two safe singleton sources:
+      // 1) AdminLayout direct low-noise table subscriptions, and
+      // 2) admin_broadcast singleton for dashboard/financial/high-value topics.
+      // Listen for every requested topic here without opening extra channels.
+      const eventTables = trackedTables;
       const directTables = enableAdminDirectRealtime
         ? trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t))
         : [];
