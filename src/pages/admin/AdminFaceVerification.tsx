@@ -638,29 +638,55 @@ const AdminFaceVerification = () => {
         ))}
       </div>
 
-      {/* Status legend */}
-      <div className="rounded-lg border border-border/50 bg-card/40 p-4 text-sm">
-        <div className="font-semibold text-foreground mb-2 flex items-center gap-2">
-          <ScanFace className="w-4 h-4 text-primary" /> Status Legend — How hosts are bucketed
-        </div>
-        <ul className="grid gap-2 md:grid-cols-3">
-          <li className="flex gap-2">
-            <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
-            <span className="text-muted-foreground">Host has submitted face verification but admin has not yet approved or rejected. Anything not Approved/Rejected lives here.</span>
-          </li>
-          <li className="flex gap-2">
-            <Badge className="bg-green-500/20 text-green-300 border border-green-500/30 shrink-0"><CheckCircle2 className="w-3 h-3 mr-1" />Approved</Badge>
-            <span className="text-muted-foreground">Admin (or auto-approval, when threshold met) accepted the submission. Host gains <code>is_host=true</code> and can go live.</span>
-          </li>
-          <li className="flex gap-2">
-            <Badge className="bg-red-500/20 text-red-300 border border-red-500/30 shrink-0"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>
-            <span className="text-muted-foreground">Admin declined the submission with a reason. Host stays a regular user and must resubmit to re-enter Pending.</span>
-          </li>
-        </ul>
-        <div className="mt-2 text-xs text-muted-foreground/80">
-          Auto Approved is a sub-view of Approved (admin_notes contains "auto"). Search and tab counters always reflect what is visible in the list.
+      {/* Status legend — premium admin card */}
+      <div className="relative overflow-hidden rounded-2xl border border-amber-500/15 bg-gradient-to-br from-card via-card to-card/60 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.6)]">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
+        <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
+        <div className="relative p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/25 shadow-inner">
+              <ScanFace className="w-4 h-4 text-amber-300" />
+            </span>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-foreground tracking-tight">Status Legend</span>
+              <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground/70 font-medium">How submissions are bucketed</span>
+            </div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="group rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-3.5 transition-colors hover:border-amber-500/40">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
+                  <Clock className="w-3 h-3" /> Pending
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">Submitted but not yet reviewed. Anything not Approved or Rejected lives here.</p>
+            </div>
+            <div className="group rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3.5 transition-colors hover:border-emerald-500/40">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-200">
+                  <CheckCircle2 className="w-3 h-3" /> Approved
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">Accepted manually or by auto-approval. Host gains <code className="rounded bg-emerald-500/10 px-1 text-[10px] text-emerald-200">is_host=true</code> and can go live.</p>
+            </div>
+            <div className="group rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-3.5 transition-colors hover:border-rose-500/40">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[11px] font-semibold text-rose-200">
+                  <XCircle className="w-3 h-3" /> Rejected
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">Declined with a reason. Host stays a regular user and must resubmit to re-enter Pending.</p>
+            </div>
+          </div>
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-border/40 bg-background/40 px-3 py-2">
+            <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
+            <p className="text-[11px] leading-relaxed text-muted-foreground/90">
+              <span className="text-foreground/80 font-medium">Auto Approved</span> is a sub-view of Approved (when <code className="text-amber-200/80">admin_notes</code> contains <span className="text-amber-200/80">"auto"</span>). Search and tab counters always reflect what is visible in the list.
+            </p>
+          </div>
         </div>
       </div>
+
 
       {/* Search + Mismatch filter */}
       <div className="flex flex-col md:flex-row gap-3 md:items-center">
