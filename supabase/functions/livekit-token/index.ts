@@ -126,7 +126,10 @@ serve(async (req) => {
       hidden: shouldBeHidden,
     });
 
-    at.ttl = "1h";
+    // Long-running live/party/call sessions must survive host-controlled
+    // duration plus reconnects. LiveKit validates this when reconnecting, so
+    // keep the grant long enough for professional unlimited live sessions.
+    at.ttl = "24h";
 
     const jwt = await at.toJwt();
 

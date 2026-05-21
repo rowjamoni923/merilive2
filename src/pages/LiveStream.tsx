@@ -603,7 +603,7 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }),
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
@@ -1783,7 +1783,7 @@ const LiveStream = () => {
   useEffect(() => {
     if (!currentUserId || !isHost || !id) return;
 
-    const channel = supabase.channel("pk_random_match", {
+    const channel = supabase.channel("pk_random_match", { // channel-singleton-ok: global random PK matchmaking bus
       config: { broadcast: { self: false } },
     });
 
@@ -1893,17 +1893,20 @@ const LiveStream = () => {
       // Cleanup only on unmount
     return () => {
       console.log('🧹 Component unmounting, cleaning up...');
-      streamEndedRef.current = true; // Stop task tracking immediately on unmount
       const wasHost = verifiedHostRef.current === true || initialHostRole;
+      if (wasHost) {
+        // Native Android LiveKit can momentarily unmount/remount the WebView
+        // during camera handoff, permission sheets, PiP, route suspense, or OS
+        // lifecycle churn. Do not close the host's room from cleanup; the
+        // explicit X/end button is the single source of truth for ending live.
+        return;
+      }
+
+      streamEndedRef.current = true; // Stop viewer/task cleanup immediately on unmount
       if (connectionInitiated.current) {
         leaveChannel();
         connectionInitiated.current = false;
-        if (wasHost && id) {
-          supabase
-            .from('live_streams')
-            .update({ is_active: false, ended_at: new Date().toISOString() })
-            .eq('id', id);
-          } else if (id) {
+        if (id) {
             supabase
               .rpc('leave_live_stream_viewer', { p_stream_id: id })
               .then(({ error }) => {
@@ -2356,7 +2359,7 @@ const LiveStream = () => {
     setShowRandomPKNotification(false);
     
     // Send acceptance via broadcast
-    const channel = supabase.channel("pk_random_match", {
+    const channel = supabase.channel("pk_random_match", { // channel-singleton-ok: global random PK matchmaking bus
       config: { broadcast: { self: false } },
     });
     
@@ -3487,7 +3490,7 @@ const LiveStream = () => {
               
               // Refresh actual balance from server
               const { data: updatedProfile } = await supabase
-                .from("profiles")
+                .from("profiles") // guard-ok: owner-only self balance refresh after gift send
                 .select("coins")
                 .eq("id", currentUserId)
                 .single();

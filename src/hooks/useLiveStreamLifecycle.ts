@@ -175,6 +175,15 @@ export const useLiveStreamLifecycle = ({
         }
       };
       setupNativeListener();
+
+      return () => {
+        cleanupRef.current?.();
+        cleanupRef.current = null;
+
+        // Native Android live uses a foreground LiveKit service. Never end the
+        // DB stream from React cleanup/page lifecycle; only the host's explicit
+        // in-room end button may close the stream.
+      };
     }
 
     // ============ WEB HANDLING ============

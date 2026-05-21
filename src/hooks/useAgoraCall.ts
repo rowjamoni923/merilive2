@@ -72,8 +72,18 @@ export function useAgoraCall(
     onDisconnected: (reason) => {
       console.log('[LiveKitCall/Native] disconnected:', reason);
       if (deadRef.current) return;
-      setState(p => ({ ...p, isConnected: false, connectionState: 'disconnected' }));
-      setNativeActive(false);
+      setState(p => ({ ...p, isConnected: false, connectionState: 'connecting' }));
+      toast.loading('Restoring call…', { id: 'lk-reconnect' });
+      nativeLiveKitController.reconnectNow().then((ok) => {
+        if (deadRef.current) return;
+        if (ok) {
+          setNativeActive(true);
+          setState(p => ({ ...p, isConnected: true, connectionState: 'connected' }));
+          toast.success('Reconnected', { id: 'lk-reconnect', duration: 1500 });
+        }
+      }).catch(() => {
+        if (!deadRef.current) setState(p => ({ ...p, connectionState: 'connecting' }));
+      });
     },
     // Step 19 — surface transient reconnect to the user (sticky toast).
     onConnectionState: (s) => {
@@ -81,7 +91,7 @@ export function useAgoraCall(
       if (s === 'reconnecting') {
         toast.loading('Reconnecting…', { id: 'lk-reconnect' });
         setState(p => ({ ...p, connectionState: 'connecting' }));
-      } else if (s === 'reconnect-failed' || s === 'lost') {
+      } else if (s === 'degraded' || s === 'reconnect-failed' || s === 'lost') {
         toast.loading('Restoring call…', { id: 'lk-reconnect' });
         nativeLiveKitController.reconnectNow().catch(() => {});
       } else {

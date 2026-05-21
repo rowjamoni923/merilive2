@@ -144,7 +144,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       if (s === 'reconnecting') {
         toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
         setConnectionState('CONNECTING');
-      } else if (s === 'reconnect-failed' || s === 'lost') {
+      } else if (s === 'degraded' || s === 'reconnect-failed' || s === 'lost') {
         toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
         nativeLiveKitController.reconnectNow().catch(() => {});
       } else {
