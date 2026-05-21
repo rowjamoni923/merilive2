@@ -9,13 +9,17 @@
  */
 
 type Importer = () => Promise<unknown>;
+type IdleCapableWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+};
 
 // Lazy registration so we don't pull every page on app start —
 // imports are only executed when prefetchAdminRoute() is called.
 const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin': () => import('@/pages/admin/AdminDashboard'),
   '/admin/dashboard': () => import('@/pages/admin/AdminDashboard'),
-  '/admin/users': () => import('@/pages/admin/AdminUserManagement'),
+  '/admin/users': () => import('@/pages/admin/AdminUsers'),
+  '/admin/user-management': () => import('@/pages/admin/AdminUserManagement'),
   '/admin/agencies': () => import('@/pages/admin/AdminAgencies'),
   '/admin/agency-policy': () => import('@/pages/admin/AdminAgencyPolicy'),
   '/admin/agency-hub': () => import('@/pages/admin/AdminAgencyHub'),
@@ -80,6 +84,74 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/role-frames': () => import('@/pages/admin/AdminRoleFrames'),
   '/admin/beauty-filters': () => import('@/pages/admin/AdminBeautyFilters'),
   '/admin/country-distribution': () => import('@/pages/admin/AdminCountryDistribution'),
+  '/admin/agencies/:agencyId': () => import('@/pages/admin/AdminAgencyDetail'),
+  '/admin/coin-traders/approvals': () => import('@/pages/admin/AdminTopupTraderApprovals'),
+  '/admin/coin-traders/orders': () => import('@/pages/admin/AdminTraderOrders'),
+  '/admin/coin-traders/transactions': () => import('@/pages/admin/AdminTraderTransactions'),
+  '/admin/level-privileges': () => import('@/pages/admin/AdminLevelPrivileges'),
+  '/admin/vip-privileges': () => import('@/pages/admin/AdminVIPPrivileges'),
+  '/admin/entry-bars': () => import('@/pages/admin/AdminEntryBars'),
+  '/admin/invitation-settings': () => import('@/pages/admin/AdminInvitationSettings'),
+  '/admin/helper-applications': () => import('@/pages/admin/AdminHelperApplications'),
+  '/admin/level5-helpers': () => import('@/pages/admin/AdminLevel5Helpers'),
+  '/admin/payroll-orders': () => import('@/pages/admin/AdminPayrollOrders'),
+  '/admin/game-server': () => import('@/pages/admin/AdminGameServer'),
+  '/admin/topup-payment-methods': () => import('@/pages/admin/AdminTopupPaymentMethods'),
+  '/admin/helper-requests': () => import('@/pages/admin/AdminHelperRequests'),
+  '/admin/party-rooms': () => import('@/pages/admin/AdminPartyRooms'),
+  '/admin/error-log': () => import('@/pages/admin/AdminErrorLog'),
+  '/admin/campaign-banner-hub': () => import('@/pages/admin/AdminCampaignBannerHub'),
+  '/admin/popup-banners': () => import('@/pages/admin/AdminPopupBanners'),
+  '/admin/rating-banners': () => import('@/pages/admin/AdminRatingBanners'),
+  '/admin/onboarding-slides': () => import('@/pages/admin/AdminOnboardingSlides'),
+  '/admin/notification-templates': () => import('@/pages/admin/AdminNotificationTemplates'),
+  '/admin/logs': () => import('@/pages/admin/AdminLogs'),
+  '/admin/payment-gateways': () => import('@/pages/admin/AdminPaymentGateways'),
+  '/admin/transfer-scheduler': () => import('@/pages/admin/AdminTransferScheduler'),
+  '/admin/agency-commission-log': () => import('@/pages/admin/AdminAgencyCommissionLog'),
+  '/admin/transfer-history': () => import('@/pages/admin/AdminTransferHistory'),
+  '/admin/recharge-campaigns': () => import('@/pages/admin/AdminRechargeCampaigns'),
+  '/admin/shop': () => import('@/pages/admin/AdminShop'),
+  '/admin/party-banners': () => import('@/pages/admin/AdminPartyBanners'),
+  '/admin/app-version': () => import('@/pages/admin/AdminAppVersion'),
+  '/admin/vip-medals': () => import('@/pages/admin/AdminVIPMedals'),
+  '/admin/noble-cards': () => import('@/pages/admin/AdminNobleCards'),
+  '/admin/noble-subscriptions': () => import('@/pages/admin/AdminNobleSubscriptions'),
+  '/admin/vehicle-entrances': () => import('@/pages/admin/AdminVehicleEntrances'),
+  '/admin/entry-name-bars': () => import('@/pages/admin/AdminEntryNameBars'),
+  '/admin/host-applications': () => import('@/pages/admin/AdminHostApplications'),
+  '/admin/hosts': () => import('@/pages/admin/AdminHosts'),
+  '/admin/moderation': () => import('@/pages/admin/AdminModeration'),
+  '/admin/host-conversion': () => import('@/pages/admin/AdminHostConversion'),
+  '/admin/tasks-settings': () => import('@/pages/admin/AdminTasksSettings'),
+  '/admin/ranking-rewards': () => import('@/pages/admin/AdminRankingRewards'),
+  '/admin/rewards-management': () => import('@/pages/admin/AdminRewardsManagement'),
+  '/admin/level-management': () => import('@/pages/admin/AdminLevelManagement'),
+  '/admin/vip-management': () => import('@/pages/admin/AdminVIPManagement'),
+  '/admin/game-management': () => import('@/pages/admin/AdminGameManagement'),
+  '/admin/party-management': () => import('@/pages/admin/AdminPartyManagement'),
+  '/admin/coin-trader-hub': () => import('@/pages/admin/AdminCoinTraderHub'),
+  '/admin/app-settings-hub': () => import('@/pages/admin/AdminAppSettingsHub'),
+  '/admin/host-feed-ranking': () => import('@/pages/admin/AdminHostFeedRanking'),
+  '/admin/party-discovery-ranking': () => import('@/pages/admin/AdminPartyDiscoveryRanking'),
+  '/admin/ranking-automation': () => import('@/pages/admin/AdminRankingAutomation'),
+  '/admin/visual-assets': () => import('@/pages/admin/AdminVisualAssetsHub'),
+  '/admin/user-hub': () => import('@/pages/admin/AdminUserHub'),
+  '/admin/support-tickets': () => import('@/pages/admin/AdminSupportTickets'),
+  '/admin/support-reports': () => import('@/pages/admin/AdminSupportReports'),
+  '/admin/pending-approvals': () => import('@/pages/admin/AdminPendingApprovals'),
+  '/admin/auto-actions': () => import('@/pages/admin/AdminAutoActions'),
+  '/admin/cost-monitor': () => import('@/pages/admin/AdminCostMonitor'),
+  '/admin/moderation-audit': () => import('@/pages/admin/AdminModerationAudit'),
+  '/admin/sub-admins': () => import('@/pages/admin/AdminSubAdmins'),
+  '/admin/room-welcome-messages': () => import('@/pages/admin/AdminRoomWelcomeMessages'),
+  '/admin/landing-page': () => import('@/pages/admin/AdminLandingPageManager'),
+  '/admin/push-broadcast': () => import('@/pages/admin/AdminPushBroadcast'),
+  '/admin/notice-broadcast': () => import('@/pages/admin/AdminNoticeBroadcast'),
+  '/admin/theme-manager': () => import('@/pages/admin/AdminThemeManager'),
+  '/admin/parcel-management': () => import('@/pages/admin/AdminParcelManagement'),
+  '/admin/game-leaderboard': () => import('@/pages/admin/AdminGameLeaderboard'),
+  '/admin/user-beans-exchange': () => import('@/pages/admin/AdminUserBeansExchange'),
 };
 
 const prefetched = new Set<string>();
@@ -90,7 +162,11 @@ export function prefetchAdminRoute(path: string): void {
   // Strip query/hash + trailing slashes for matching.
   const clean = path.split(/[?#]/)[0].replace(/\/+$/, '') || '/admin';
   if (prefetched.has(clean)) return;
-  const importer = ROUTE_IMPORTERS[clean];
+  const importer = ROUTE_IMPORTERS[clean] || Object.entries(ROUTE_IMPORTERS).find(([route]) => {
+    if (!route.includes('/:')) return false;
+    const base = route.split('/:')[0];
+    return clean.startsWith(`${base}/`);
+  })?.[1];
   if (!importer) return;
   prefetched.add(clean);
   // Run in a microtask to never block UI thread.
@@ -101,9 +177,10 @@ export function prefetchAdminRoute(path: string): void {
  *  Runs in idle slices to avoid blocking the main thread / network. */
 export function prefetchCommonAdminRoutes(): void {
   const all = Object.keys(ROUTE_IMPORTERS);
+  const idleWindow: IdleCapableWindow | undefined = typeof window !== 'undefined' ? window : undefined;
   const ric: (cb: () => void) => void =
-    (typeof window !== 'undefined' && (window as any).requestIdleCallback)
-      ? (cb) => (window as any).requestIdleCallback(cb, { timeout: 2000 })
+    idleWindow?.requestIdleCallback
+      ? (cb) => { idleWindow.requestIdleCallback?.(cb, { timeout: 2000 }); }
       : (cb) => setTimeout(cb, 50);
 
   let i = 0;

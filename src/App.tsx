@@ -18,6 +18,7 @@ import { clearBalanceCache } from '@/hooks/useUserBalance';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
+import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
 
 
 // =============================================
@@ -355,10 +356,7 @@ if (typeof window !== 'undefined') {
         import("./pages/admin/AdminLayout");
         import("./pages/admin/AdminDashboard");
         import("./components/admin/AdminRouteGuard");
-        import("./pages/admin/AdminFaceVerification");
-        import("./pages/admin/AdminTasksSettings");
-        import("./pages/admin/AdminSupportTickets");
-        import("./pages/admin/AdminGmailSupport");
+        prefetchCommonAdminRoutes();
       };
       if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(prefetchAdmin, { timeout: 2000 });
