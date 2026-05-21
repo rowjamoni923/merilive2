@@ -65,6 +65,13 @@ export function FullScreenPromoBanners() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
+    // Permanent per-user dismiss — once the user has closed, skipped, let
+    // auto-close fire, clicked the banner, or submitted proof, never show
+    // this banner again on this device.
+    if (typeof window !== "undefined" && localStorage.getItem(ratingBannerDismissedKey(user.id)) === "1") {
+      return false;
+    }
+
     const { data: settingData } = await supabase
       .from("app_settings")
       .select("setting_value")
@@ -80,7 +87,13 @@ export function FullScreenPromoBanners() {
       .eq("user_id", user.id)
       .limit(1);
 
-    return (existingClaims?.length ?? 0) === 0;
+    if ((existingClaims?.length ?? 0) > 0) {
+      // User already has at least one submitted claim — also persist the
+      // dismiss flag so the eligibility short-circuits on later loads.
+      try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
+      return false;
+    }
+    return true;
   }, []);
 
   const loadAdminRatingBanners = useCallback(async () => {
