@@ -152,6 +152,17 @@ class NativeLiveKitController {
     }
   }
 
+  async reconnectNow(): Promise<boolean> {
+    try {
+      const result = await NativeLiveKit.reconnectNow();
+      this.connected = !!result.connected;
+      return this.connected;
+    } catch (e) {
+      console.warn('[NativeLiveKitController] reconnectNow failed:', e);
+      return false;
+    }
+  }
+
   // --- Audio device routing (Step 13) ----------------------------
   async getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }> {
     try { return await NativeLiveKit.getAudioDevices(); }
