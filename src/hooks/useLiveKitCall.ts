@@ -23,6 +23,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { registerCallRoom, unregisterCallRoom } from '@/lib/livekitCallSignaling';
 import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
+import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -136,6 +137,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterCallRoom(callIdRef.current); } catch { /* ignore */ }
     // Pkg79: drop chat-signaling registration as well.
     try { if (callIdRef.current) unregisterChatRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg83: drop gift-signaling registration for call scope.
+    try { if (callIdRef.current) unregisterGiftRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -416,6 +419,8 @@ export function useLiveKitCall(
         if (callId) registerCallRoom(callId, room);
         // Pkg79: bind same Room to chat signaling registry for InCallChat
         if (callId) registerChatRoom('call', callId, room);
+        // Pkg83: bind same Room to gift signaling registry for ActiveCallScreen
+        if (callId) registerGiftRoom('call', callId, room);
 
 
         // Enable camera and microphone
