@@ -4,6 +4,10 @@ import { Send, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { RoomChatBubble } from "@/components/chat/UnifiedChatMessage";
+import {
+  publishChatMessage,
+  type ChatMessageDetail,
+} from "@/lib/livekitChatSignaling";
 
 interface ChatMessage {
   id: string;
@@ -51,29 +55,33 @@ export const InCallChat = memo(({
     }
   }, [isOpen]);
 
-  // Subscribe to real-time chat via Supabase Broadcast
-  // ✅ Keep a persistent channel ref to avoid re-create lag on every send
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-
+  // Pkg79: LiveKit DataPacket chat — replaces the Supabase
+  // `call-chat-${callId}` broadcast channel entirely. The LiveKit Room is
+  // already registered by useLiveKitCall on connect; we only listen here.
   useEffect(() => {
     if (!callId || !isOpen) return;
 
-    const channel = supabase
-      .channel(`call-chat-${callId}`)
-      .on("broadcast", { event: "call-message" }, (payload) => {
-        const msg = payload.payload as ChatMessage;
-        // Don't duplicate own messages
-        if (msg.senderId !== userId) {
-          setMessages((prev) => [...prev, msg]);
-        }
-      })
-      .subscribe();
-
-    channelRef.current = channel;
-
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<ChatMessageDetail>).detail;
+      if (!detail) return;
+      if (detail.scope !== 'call' || detail.id !== callId) return;
+      // Don't duplicate own messages (we already added them optimistically).
+      if (detail.userId === userId) return;
+      const msg: ChatMessage = {
+        id: detail.messageId,
+        senderId: detail.userId,
+        senderName: detail.displayName || "User",
+        message: detail.message,
+        timestamp: detail.timestamp || Date.now(),
+      };
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+    };
+    window.addEventListener('livekit-chat-message', handler as EventListener);
     return () => {
-      channelRef.current = null;
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-chat-message', handler as EventListener);
     };
   }, [callId, isOpen, userId]);
 
@@ -85,15 +93,18 @@ export const InCallChat = memo(({
     let actualName = userName;
     if (userName === "You") {
       const { data } = await supabase
+        // guard-ok: own profile self-read for display_name (userId === auth.uid())
         .from('profiles')
         .select('display_name')
         .eq('id', userId)
         .single();
+
       if (data?.display_name) actualName = data.display_name;
     }
 
+    const msgId = `${Date.now()}-${userId}`;
     const msg: ChatMessage = {
-      id: `${Date.now()}-${userId}`,
+      id: msgId,
       senderId: userId,
       senderName: actualName,
       message: text,
@@ -104,14 +115,15 @@ export const InCallChat = memo(({
     setMessages((prev) => [...prev, msg]);
     setInput("");
 
-    // Broadcast using persistent channel ref (no re-create lag)
-    if (channelRef.current) {
-      await channelRef.current.send({
-        type: "broadcast",
-        event: "call-message",
-        payload: msg,
-      });
-    }
+    // Pkg79: publish over LiveKit DataPacket — sub-50ms peer delivery.
+    void publishChatMessage('call', callId, {
+      messageId: msgId,
+      userId,
+      displayName: actualName,
+      message: text,
+      messageType: 'text',
+      timestamp: msg.timestamp,
+    });
   };
 
   return (

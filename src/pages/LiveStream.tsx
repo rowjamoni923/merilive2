@@ -45,6 +45,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { publishGiftSent, type GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
+
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
@@ -535,6 +537,8 @@ const LiveStream = () => {
     liveSignalingStreamId: id,
     giftSignalingStreamId: id,
     viewerCountStreamId: id,
+    chatSignalingStreamId: id,
+
     onUserJoined: (uid) => {
       console.log('👤 Viewer joined (LiveKit):', uid);
     },
@@ -865,98 +869,53 @@ const LiveStream = () => {
     
     fetchMessages();
     
-    // Subscribe to new messages - with deduplication
-    const channel = supabase
-      .channel(`stream_chat_${id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "stream_chat",
-          filter: `stream_id=eq.${id}`,
-        },
-        async (payload: any) => {
-          const newMessageId = payload.new.id;
-          const senderId = payload.new.user_id;
-          
-          // Skip if this is our own message (optimistic update already added it)
-          if (senderId === currentUserId) {
-            // Replace temp message with real one (update ID)
-            setMessages(prev => {
-              // Find if we have a temp message with similar content
-              const hasTempMessage = prev.some(m => 
-                m.id.startsWith('temp_') && 
-                m.message === payload.new.message
-              );
-              
-              if (hasTempMessage) {
-                // Replace temp with real
-                return prev.map(m => 
-                  m.id.startsWith('temp_') && m.message === payload.new.message
-                    ? { ...m, id: newMessageId }
-                    : m
-                );
-              }
-              
-              // Check for duplicates
-              if (prev.some(m => m.id === newMessageId)) {
-                return prev; // Already exists
-              }
-              
-              return prev; // Our message, already added optimistically
-            });
-            return;
-          }
-          
-          // Check for duplicates before adding
-          setMessages(prev => {
-            if (prev.some(m => m.id === newMessageId)) {
-              return prev; // Already exists, skip
-            }
-            
-            return prev; // Will be added below after fetching sender info
-          });
-          
-          // Fetch sender info with all needed fields
-          const { data: sender } = await supabase
-            .from("profiles_public")
-            .select("display_name, user_level, avatar_url, country_flag, created_at")
-            .eq("id", senderId)
-            .single();
-          
-          const now = new Date();
-          const userCreatedAt = sender?.created_at ? new Date(sender.created_at) : null;
-          const isNewUser = userCreatedAt ? (now.getTime() - userCreatedAt.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
-          
-          // Add new message with deduplication check
-          setMessages(prev => {
-            // Final duplicate check
-            if (prev.some(m => m.id === newMessageId)) {
-              return prev;
-            }
-            
-            return [...prev, {
-              id: newMessageId,
-              user: sender?.display_name || "User",
-              initial: (sender?.display_name || "U").charAt(0),
-              message: payload.new.message,
-              color: "text-white",
-              userLevel: sender?.user_level || 1,
-              userAvatar: sender?.avatar_url,
-              isHost: senderId === hostId,
-              isNewUser,
-              countryFlag: sender?.country_flag,
-            }];
-          });
-        }
-      )
-      .subscribe();
-    
+    fetchMessages();
+
+    // Pkg79: LiveKit DataPacket chat — replaces the Supabase
+    // `stream_chat_${id}` postgres_changes subscription entirely.
+    // The `stream_chat` row is still INSERTed by the sender for
+    // moderation/persistence, but viewers receive the bubble via
+    // sub-50ms LiveKit fanout instead of a Realtime round-trip.
+    const handleLiveKitChat = (event: Event) => {
+      const detail = (event as CustomEvent<ChatMessageDetail>).detail;
+      if (!detail || detail.scope !== 'live' || detail.id !== id) return;
+      // Skip own messages (already added optimistically).
+      if (detail.userId === currentUserId) {
+        // Replace temp row id with the real server id if present.
+        setMessages(prev => {
+          const hasTemp = prev.some(m => m.id.startsWith('temp_') && m.message === detail.message);
+          if (!hasTemp) return prev;
+          return prev.map(m =>
+            m.id.startsWith('temp_') && m.message === detail.message
+              ? { ...m, id: detail.messageId }
+              : m
+          );
+        });
+        return;
+      }
+      setMessages(prev => {
+        if (prev.some(m => m.id === detail.messageId)) return prev;
+        return [...prev, {
+          id: detail.messageId,
+          user: detail.displayName || "User",
+          initial: (detail.displayName || "U").charAt(0),
+          message: detail.message,
+          color: "text-white",
+          userLevel: detail.userLevel || 1,
+          userAvatar: detail.avatarUrl,
+          isHost: detail.userId === hostId,
+          isNewUser: false,
+          countryFlag: detail.countryFlag,
+        }];
+      });
+    };
+    window.addEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
+
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-chat-message', handleLiveKitChat as EventListener);
     };
   }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
+
 
   // Subscribe to real-time gift transactions for THIS session's bean count
   // IMPORTANT: Only shows gifts received during THIS live session, NOT profile total
@@ -1949,21 +1908,38 @@ const LiveStream = () => {
     // Clear input immediately
     setMessage("");
     
-    // Save MASKED message to database
-    const { error } = await supabase.from("stream_chat").insert({
-      stream_id: id,
-      user_id: currentUserId,
-      message: contentToSend,
-    });
-    
+    // Save MASKED message to database (moderation/persistence source of truth)
+    const { data: insertedRow, error } = await supabase
+      .from("stream_chat")
+      .insert({
+        stream_id: id,
+        user_id: currentUserId,
+        message: contentToSend,
+      })
+      .select("id")
+      .single();
+
     if (error) {
       console.error('Failed to send message:', error);
       recordClientError({ label: "LiveStream.detection", message: error instanceof Error ? error.message : String(error) });
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } else {
       trackTaskProgress('messages_sent', { increment: 1 });
+      // Pkg79: sub-50ms peer delivery via LiveKit DataPacket.
+      void publishChatMessage('live', id, {
+        messageId: insertedRow?.id || tempId,
+        userId: currentUserId,
+        displayName: currentUser?.display_name || "User",
+        avatarUrl: currentUser?.avatar_url || undefined,
+        userLevel: currentUser?.user_level || 1,
+        isHost: currentUserId === streamData?.host_id,
+        countryFlag: currentUser?.country_flag || undefined,
+        message: contentToSend,
+        messageType: 'text',
+      });
     }
   };
+
 
   const calculateDuration = () => {
     const diff = Date.now() - streamStartTime;
@@ -3499,13 +3475,33 @@ const LiveStream = () => {
                   } : m));
                 }
                 const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
-                await supabase.from("stream_chat").insert({
-                  stream_id: id,
-                  user_id: currentUserId,
-                  message: finalGiftMessage,
-                  message_type: 'gift',
-                });
+                const { data: giftRow } = await supabase
+                  .from("stream_chat")
+                  .insert({
+                    stream_id: id,
+                    user_id: currentUserId,
+                    message: finalGiftMessage,
+                    message_type: 'gift',
+                  })
+                  .select("id")
+                  .single();
+                // Pkg79: also mirror the gift bubble row through LiveKit chat
+                // so viewers see it without the Supabase Realtime round-trip.
+                if (id) {
+                  void publishChatMessage('live', id, {
+                    messageId: giftRow?.id || `gift-${Date.now()}`,
+                    userId: currentUserId,
+                    displayName: currentUser?.display_name || "User",
+                    avatarUrl: currentUser?.avatar_url || undefined,
+                    userLevel: currentUser?.user_level || 1,
+                    isHost: currentUserId === streamData?.host_id,
+                    countryFlag: currentUser?.country_flag || undefined,
+                    message: finalGiftMessage,
+                    messageType: 'gift',
+                  });
+                }
               }
+
             } catch (err) {
               console.error('[Gift] Background processing error:', err);
               recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });

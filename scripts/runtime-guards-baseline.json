@@ -171,7 +171,7 @@
     },
     {
       "file": "src/components/call/InCallChat.tsx",
-      "line": 88,
+      "line": 97,
       "table": "profiles"
     },
     {
@@ -381,7 +381,7 @@
     },
     {
       "file": "src/hooks/usePrivateCall.ts",
-      "line": 1444,
+      "line": 1383,
       "table": "profiles"
     },
     {
@@ -886,12 +886,12 @@
     },
     {
       "file": "src/pages/PartyRoom.tsx",
-      "line": 1625,
+      "line": 1532,
       "table": "profiles"
     },
     {
       "file": "src/pages/PartyRoom.tsx",
-      "line": 2610,
+      "line": 2480,
       "table": "profiles"
     },
     {

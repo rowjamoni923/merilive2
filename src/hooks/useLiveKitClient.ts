@@ -68,7 +68,13 @@ interface UseLiveKitClientOptions {
    * dispatch a `livekit-viewer-count` window event for instant badge
    * updates. Persistence (entrance banner, history) stays on Supabase. */
   viewerCountStreamId?: string | null;
+  /** Pkg79: When set, the underlying Room is registered with the
+   * chat signaling registry so `publishChatMessage('live', id, …)` works
+   * and incoming `chat_message` packets reach window event listeners.
+   * The `stream_chat` row remains the source of truth for moderation. */
+  chatSignalingStreamId?: string | null;
 }
+
 
 export interface CoHostRequest {
   uid: number;
@@ -1218,8 +1224,34 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     };
   }, [options.viewerCountStreamId, isJoined]);
 
+  // Pkg79: Bind streamId → Room for LiveKit-based chat_message signaling.
+  // Reuses the SAME Room as Pkg74/76/77 (DataReceived supports multiple listeners).
+  useEffect(() => {
+    const streamId = options.chatSignalingStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitChatSignaling');
+        if (cancelled) return;
+        mod.registerChatRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg79] registerChatRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitChatSignaling').then((mod) => {
+        mod.unregisterChatRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.chatSignalingStreamId, isJoined]);
+
 
   return {
+
     isInitialized,
     isJoined,
     isLoading,
