@@ -1,25 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  Users, Ban, UserCheck, Shield, Globe, TrendingUp,
-  Activity, ScanFace, Crown, ArrowUpRight, ArrowDownRight,
-  Sparkles, Eye, UserPlus
+  Users, Ban, UserCheck, ScanFace, Crown,
+  Eye, UserPlus
 } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { getCurrentAdminId } from "@/utils/adminSession";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 import AdminUserManagement from "./AdminUserManagement";
 import { recordAdminError } from "@/utils/adminErrorLog";
-import { cn } from "@/lib/utils";
 
 import { formatAdminError } from "@/utils/formatAdminError";
-interface CountryData {
-  country_name: string | null;
-  country_code: string | null;
-  country_flag: string | null;
-  count: number;
-}
 
 const AdminUserHub = () => {
   const [stats, setStats] = useState({
