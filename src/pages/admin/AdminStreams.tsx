@@ -3,7 +3,7 @@ import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import {
-  Video, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, StopCircle, Play, Film, MonitorPlay, Ban, AlertTriangle, Skull, Heart, Timer, ShieldAlert
+  Video, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, StopCircle, Play, Film, MonitorPlay, Ban, AlertTriangle, Skull, Heart, Timer, ShieldAlert, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
