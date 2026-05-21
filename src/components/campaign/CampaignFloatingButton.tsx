@@ -1396,6 +1396,8 @@ function CampaignFloatingButton() {
           userCustomCoins={campaign.diamonds_amount + (campaign.bonus_diamonds || 0)}
           userCustomPriceUsd={campaign.offer_price_usd || campaign.original_price_usd}
           userCustomLabel={campaign.campaign_name}
+          userCustomPurpose="campaign"
+
           onCredited={() => {
             localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
             sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
