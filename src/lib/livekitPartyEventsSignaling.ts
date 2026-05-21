@@ -42,8 +42,24 @@ import {
 
 export type PartyEventType =
   | 'participant_joined'
+  | 'participant_left'
   | 'seat_action'
   | 'room_state_changed';
+
+/**
+ * Pkg81b: ParticipantDisconnected is a LOCAL LiveKit RoomEvent — every
+ * remote client fires it independently when a participant leaves. No
+ * DataPacket needs to be published; we only translate the LiveKit event
+ * into the same `livekit-party-event` window event so PartyRoom /
+ * UnifiedPartyRoom can converge their handlers.
+ */
+export interface ParticipantLeftPayload {
+  type: 'participant_left';
+  roomId: string;
+  /** LiveKit participant identity (usually the user's profile id). */
+  userId: string;
+  timestamp: number;
+}
 
 export interface ParticipantJoinedPayload {
   type: 'participant_joined';
