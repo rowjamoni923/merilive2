@@ -534,6 +534,7 @@ const LiveStream = () => {
   } = useLiveKitClient({
     liveSignalingStreamId: id,
     giftSignalingStreamId: id,
+    viewerCountStreamId: id,
     onUserJoined: (uid) => {
       console.log('👤 Viewer joined (LiveKit):', uid);
     },
