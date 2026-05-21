@@ -587,7 +587,7 @@ const AdminNoticeBroadcast = () => {
                 />
                 <Button
                   type="button"
-                  onClick={generateAiBanner}
+                  onClick={() => generateAiBanner()}
                   disabled={aiGenerating || imageUrls.length >= 10}
                   className="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white"
                 >
@@ -633,7 +633,7 @@ const AdminNoticeBroadcast = () => {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={generateAiBanner}
+                      onClick={() => generateAiBanner()}
                       disabled={aiGenerating}
                     >
                       {aiGenerating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
