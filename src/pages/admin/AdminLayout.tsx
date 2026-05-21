@@ -1649,6 +1649,9 @@ export default function AdminLayout() {
 
       if (normalizedSectionPath) {
         dismissPath(normalizedSectionPath);
+        // Sticky cleanup: remove this section from the persistent snapshot so it doesn't
+        // reappear on the next render.
+        delete stickySectionCountsRef.current[normalizedSectionPath];
       }
 
       // Optimistic instant removal from bell list
