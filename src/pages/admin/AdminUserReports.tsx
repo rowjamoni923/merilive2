@@ -52,8 +52,8 @@ interface Report {
   admin_notes: string | null;
   action_taken: string | null;
   created_at: string;
-  reporter: { display_name: string; avatar_url: string | null } | null;
-  reported_user: { display_name: string; avatar_url: string | null; is_host: boolean } | null;
+  reporter: { display_name: string; avatar_url: string | null; app_uid: string | null } | null;
+  reported_user: { display_name: string; avatar_url: string | null; is_host: boolean; app_uid: string | null } | null;
 }
 
 export default function AdminUserReports() {
