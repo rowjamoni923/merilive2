@@ -1005,71 +1005,13 @@ const LiveStream = () => {
     };
   }, [streamData?.host_id, id, getGiftRealtimeKey]);
 
-  // ========== INSTANT GIFT BROADCAST RECEIVER ==========
-  // Uses Supabase broadcast (not postgres_changes) for sub-100ms delivery
-  // This replaces the slow DB-based realtime subscription for gift animations
+  // ========== Pkg78: LiveKit-ONLY gift broadcast receiver ==========
+  // Supabase `gift_broadcast_${id}` channel removed — LiveKit DataPacket
+  // (Pkg76 `livekit-gift-sent` window event) is the sole instant fanout path.
+  // Persistent gift_transactions DB writes still happen via sendGift RPC.
   useEffect(() => {
     if (!id || !currentUserId) return;
-    
-    const broadcastChannel = supabase
-      .channel(`gift_broadcast_${id}`)
-      .on('broadcast', { event: 'gift_sent' }, (payload: any) => {
-        const data = payload.payload;
-        if (!data || !mountedRef.current) return;
-        
-        // Skip own gifts (already shown via optimistic UI)
-        if (data.senderId === currentUserId) return;
-        
-        console.log('[LiveStream] ⚡ INSTANT gift broadcast received:', data.giftName, 'from', data.senderName);
-        
-        // 1. INSTANT flying gift animation
-        addFlyingGift({
-          senderName: data.senderName || "User",
-          senderAvatar: data.senderAvatar || undefined,
-          giftName: data.giftName,
-          giftIcon: data.giftIcon || "🎁",
-          giftImageUrl: data.giftIconUrl || undefined,
-          animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
-          soundUrl: data.giftSoundUrl || undefined,
-          giftColor: "bg-pink-500/50",
-          count: data.count || 1,
-          coins: data.giftCoins || 0,
-          isReceiverGift: isHost,
-        });
-        
-        // 2. INSTANT beans counter update for everyone in the room
-        const giftAmount = Number(data.receiverBeans ?? (data.giftCoins || 0) * (data.count || 1));
-        if (data.giftKey) markOptimisticGiftCount(data.giftKey, giftAmount);
-        setTotalBeans(prev => prev + giftAmount);
-        if (isHost) trackTaskProgress('first_gift');
-        
-        // 3. INSTANT chat message
-        const giftChatMessage = `[GIFT:${data.giftIconUrl || ''}] sent ${data.giftName} x${data.count || 1}`;
-        const tempGiftMsgId = `broadcast_gift_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-        setMessages(prev => [...prev, {
-          id: tempGiftMsgId,
-          user: data.senderName || "User",
-          initial: (data.senderName || "U").charAt(0),
-          message: giftChatMessage,
-          color: "text-pink-400",
-          userLevel: data.senderLevel || 1,
-          userAvatar: data.senderAvatar,
-          isHost: false,
-          isNewUser: false,
-          giftIconUrl: data.giftIconUrl || undefined,
-        }]);
-        
-        // Play gift sound
-        playSound('gift');
-      })
-      .subscribe();
 
-    giftBroadcastChannelRef.current = broadcastChannel;
-
-    // Pkg76: parallel LiveKit DataPacket path for gift_sent.
-    // Sub-50ms fanout to every viewer in the LiveKit Room. Converges
-    // with the Supabase broadcast above via the same own-gift skip +
-    // 400ms envelope dedupe in livekitGiftSignaling.
     const handleLiveKitGift = (ev: Event) => {
       const data = (ev as CustomEvent<GiftSentDetail>).detail;
       if (!data || !mountedRef.current) return;
@@ -1117,9 +1059,7 @@ const LiveStream = () => {
     window.addEventListener('livekit-gift-sent', handleLiveKitGift);
 
     return () => {
-      giftBroadcastChannelRef.current = null;
       window.removeEventListener('livekit-gift-sent', handleLiveKitGift);
-      supabase.removeChannel(broadcastChannel);
     };
   }, [id, currentUserId, addFlyingGift, playSound, isHost, markOptimisticGiftCount]);
 
@@ -1260,63 +1200,14 @@ const LiveStream = () => {
   const [showStreamEndedModal, setShowStreamEndedModal] = useState(false);
   const [streamEndedBy, setStreamEndedBy] = useState<string>("");
 
-  // Subscribe to viewer_count and stream status updates from live_streams table (real-time)
-  // DUAL: Broadcast (instant) + postgres_changes (reliable fallback)
+  // Pkg78: LiveKit-ONLY stream-ended + viewer-count signaling.
+  // Removed: Supabase `live-stream-close-${id}` broadcast + `stream_viewer_count_${id}` postgres_changes.
+  // Safety net: 30s stale-stream check (separate useEffect below) covers
+  // the rare LiveKit disconnect case via DB poll (no realtime cost).
   useEffect(() => {
     if (!id) return;
-    
-    // ⚡ METHOD 1: Broadcast channel for INSTANT stream close (sub-100ms)
-    const broadcastCloseChannel = supabase
-      .channel(`live-stream-close-${id}`)
-      .on('broadcast', { event: 'stream_closed' }, (payload) => {
-        if (!isHost) {
-          console.log('[LiveStream] ⚡ INSTANT stream_closed broadcast received!');
-          setStreamEndedBy(payload.payload?.hostName || hostInfo?.name || "Host");
-          setShowStreamEndedModal(true);
-          setTimeout(async () => {
-            await leaveChannel();
-            navigate('/');
-          }, 3000);
-        }
-      })
-      .subscribe();
 
-    // 🔵 METHOD 2: postgres_changes (reliable fallback)
-    const streamCountChannel = supabase
-      .channel(`stream_viewer_count_${id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "live_streams",
-        },
-        async (payload: any) => {
-          const changedStreamId = payload.new?.id ?? payload.old?.id;
-          if (changedStreamId !== id) return;
-
-          // viewer_count from live_streams is not used as source-of-truth here
-          // Source-of-truth is active rows in stream_viewers (see fetchRecentViewers)
-
-          
-          // CRITICAL: Check if stream was ended by host (viewers need to be notified)
-          if (payload.new?.is_active === false && !isHost && !showStreamEndedModal) {
-            console.log('[LiveStream] 🔵 DB fallback: Stream ended by host');
-            setStreamEndedBy(hostInfo?.name || "Host");
-            setShowStreamEndedModal(true);
-            
-            // Auto-close after 3 seconds
-            setTimeout(async () => {
-              await leaveChannel();
-              navigate('/');
-            }, 3000);
-          }
-        }
-      )
-      .subscribe();
-
-    // ⚡ METHOD 3 (Pkg74): LiveKit DataPacket listener — sub-50ms peer notify.
-    // Converges into the same modal path. Idempotent via showStreamEndedModal guard.
+    // ⚡ Pkg74: LiveKit DataPacket listener — sub-50ms peer notify on host end.
     const handleLiveKitStreamEnded = (evt: Event) => {
       const detail = (evt as CustomEvent).detail || {};
       if (detail.streamId !== id) return;
@@ -1331,32 +1222,25 @@ const LiveStream = () => {
     };
     window.addEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
 
-    // ⚡ METHOD 4 (Pkg77): LiveKit ParticipantConnected/Disconnected → instant
-    // viewer count badge. Source-of-truth for entrance banner / history stays
-    // on Supabase `stream_viewers` rows; we only bump the *displayed* count
-    // upward (Math.max) so it never under-counts vs. the DB-derived value.
+    // ⚡ Pkg77: LiveKit ParticipantConnected/Disconnected → instant viewer count badge.
     const handleLiveKitViewerCount = (evt: Event) => {
       const detail = (evt as CustomEvent).detail || {};
       if (detail.streamId !== id) return;
       const lkCount: number = typeof detail.count === 'number' ? detail.count : 0;
       if (isHost) {
-        // Host: every remote participant IS a viewer → trust LiveKit directly.
         setViewerCount((prev) => (lkCount > prev ? lkCount : prev));
       } else {
-        // Viewer: remote includes host + other viewers; subtract 1 (host).
-        const adjusted = Math.max(0, lkCount - 1) + 1; // +1 for self viewer
+        const adjusted = Math.max(0, lkCount - 1) + 1;
         setViewerCount((prev) => (adjusted > prev ? adjusted : prev));
       }
     };
     window.addEventListener('livekit-viewer-count', handleLiveKitViewerCount);
 
     return () => {
-      supabase.removeChannel(broadcastCloseChannel);
-      supabase.removeChannel(streamCountChannel);
       window.removeEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
       window.removeEventListener('livekit-viewer-count', handleLiveKitViewerCount);
     };
-  }, [id, isHost, hostInfo?.name, leaveChannel, navigate, showStreamEndedModal]);
+  }, [id, isHost, hostInfo?.name, leaveChannel, navigate]);
 
   // VIEWER: Periodic stale stream detection (every 30s)
   // If host crashed/exited and heartbeat stopped, server marks stream inactive
@@ -2145,29 +2029,18 @@ const LiveStream = () => {
           })
           .eq('id', id);
 
-        // ⚡ INSTANT: Broadcast stream ended via BOTH Supabase Realtime
-        // (Pkg legacy) AND LiveKit DataPacket (Pkg74). Fire in parallel —
-        // viewers de-dup on streamId in the modal effect.
+        // Pkg78: LiveKit-ONLY stream_ended fanout (Supabase broadcast removed).
         const hostName = hostInfo?.name || 'Host';
-        await Promise.allSettled([
-          supabase.channel(`live-stream-close-${id}`).send({
-            type: 'broadcast',
-            event: 'stream_closed',
-            payload: { streamId: id, hostName },
-          }),
-          (async () => {
-            try {
-              const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
-              await publishStreamEnded(id, {
-                endedBy: currentUserId || 'host',
-                hostName,
-              });
-            } catch (e) {
-              console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
-            }
-          })(),
-        ]);
-        console.log('[LiveStream] ⚡ stream_closed sent (Supabase + LiveKit)');
+        try {
+          const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
+          await publishStreamEnded(id, {
+            endedBy: currentUserId || 'host',
+            hostName,
+          });
+        } catch (e) {
+          console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
+        }
+        console.log('[LiveStream] ⚡ stream_ended sent (LiveKit only)');
       }
     } catch (error) {
       console.error('[LiveStream] Error while ending stream stats flow:', error);
@@ -3551,30 +3424,8 @@ const LiveStream = () => {
           
           // Gift animation is already playing - no toast needed
           
-          // ========== INSTANT BROADCAST TO HOST & ALL VIEWERS (< 50ms) ==========
-          // Send on the already-subscribed room channel; creating a fresh channel here can drop broadcasts.
-          giftBroadcastChannelRef.current?.send({
-            type: 'broadcast',
-            event: 'gift_sent',
-            payload: {
-              senderId: currentUserId,
-              senderName,
-              senderAvatar,
-              senderLevel,
-              giftName: gift.name,
-              giftIcon: gift.emoji || "🎁",
-              giftIconUrl: gift.icon_url || undefined,
-              giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
-              giftSoundUrl: gift.sound_url || undefined,
-              giftCoins: gift.coins,
-              receiverBeans: optimisticReceiverBeans,
-              count,
-              streamId: id,
-              giftId: gift.id,
-              giftKey,
-              timestamp: Date.now(),
-            }
-          });
+          // Pkg78: Supabase gift broadcast REMOVED — LiveKit DataPacket
+          // (publishGiftSent below) is the sole instant fanout path.
 
           // Pkg76: parallel LiveKit DataPacket — sub-50ms fanout to every
           // viewer in the LiveKit Room. Fire-and-forget; falls back silently

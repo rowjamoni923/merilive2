@@ -1087,46 +1087,11 @@ const PartyRoom = () => {
         }
       });
     
-    // ============= INSTANT ROOM CLOSE BROADCAST LISTENER =============
-    // CRITICAL: Use broadcast channel for INSTANT room close notification (no DB delay)
-    // This ensures visitors see the modal IMMEDIATELY when host clicks close
-    console.log('[PartyRoom] 🔌 Setting up INSTANT room close broadcast listener');
-    
-    const roomCloseBroadcastChannel = supabase
-      .channel(`party-room-close-${roomId}`)
-      .on('broadcast', { event: 'room_closed' }, (payload: any) => {
-        console.log('[PartyRoom] 🔴 ⚡ INSTANT room_closed broadcast received!', payload);
-        
-        if (!isMountedRef.current) return;
-        
-        // Check if we are not the host (only visitors should see modal)
-        const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
-        
-        if (!isHostNow && !showRoomClosedModal) {
-          console.log('[PartyRoom] 🎬 INSTANT: Showing RoomEndedModal to visitor');
-          
-          // Play sound for notification
-          playSound('notification');
-          
-          // Show modal immediately
-          setShowRoomClosedModal(true);
-          cleanupWebRTC();
-          
-          // Auto-redirect after 3 seconds
-          setTimeout(() => {
-            if (isMountedRef.current) {
-              console.log('[PartyRoom] 🏠 Auto-redirecting visitor to home');
-              navigate('/');
-            }
-          }, 3000);
-        }
-      })
-      .subscribe((status) => {
-        console.log('[PartyRoom] 🔌 Room close broadcast subscription:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('[PartyRoom] ✅ INSTANT room close broadcast listener ACTIVE');
-        }
-      });
+    // Pkg78: Supabase `party-room-close-${roomId}` broadcast listener REMOVED.
+    // LiveKit DataPacket (Pkg75 `livekit-party-closed` window event handler
+    // below) is the sole instant room-end notifier. Safety net: 5s polling
+    // useEffect at the bottom of this file covers LiveKit disconnect cases.
+    const roomCloseBroadcastChannel: any = null;
 
     // Continue with the participant channel for messages only
     const participantChannelContinued = participantChannel
@@ -1184,71 +1149,12 @@ const PartyRoom = () => {
         }
       });
 
-    // ============= INSTANT GIFT BROADCAST CHANNEL =============
-    // Use Supabase Broadcast for INSTANT gift sync (no database wait)
-    // When sender sends gift, they broadcast to all participants immediately
-    console.log('[PartyRoom] 🔌 Setting up INSTANT gift broadcast channel for room:', roomId);
-    
-    const giftBroadcastChannel = supabase
-      .channel(`party-gifts-instant-${roomId}`)
-      .on('broadcast', { event: 'gift_sent' }, (payload: any) => {
-        console.log('[PartyRoom] 🎁 ⚡ INSTANT gift broadcast received:', payload);
-        
-        if (!isMountedRef.current) return;
-        
-        const giftData = payload.payload;
-        if (!giftData) return;
-        
-        // Don't show our own gift (we already triggered it locally)
-        // Use ref to avoid stale closure
-        const currentUserId = currentUserRef.current?.id;
-        if (giftData.senderId === currentUserId) {
-          console.log('[PartyRoom] Skipping own gift broadcast');
-          return;
-        }
-        
-        console.log('[PartyRoom] 🎁 🎉 INSTANT ANIMATION for:', giftData.giftName, 'from', giftData.senderName);
-        const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.coins || 0) * (giftData.count || 1) * hostCommissionPercentRef.current / 100));
-        const broadcastCoins = Number(giftData.totalCoins ?? (giftData.coins || 0) * (giftData.count || 1));
-        
-        // Trigger flying gift animation IMMEDIATELY (no DB fetch delay!)
-        addFlyingGift({
-          senderName: giftData.senderName || 'Someone',
-          giftName: giftData.giftName,
-          giftIcon: giftData.giftIcon || '🎁',
-          giftImageUrl: giftData.giftImageUrl,
-          animationUrl: giftData.animationUrl,
-          soundUrl: giftData.soundUrl || undefined,
-          giftColor: 'from-pink-500 to-purple-500',
-          count: giftData.count || 1,
-          coins: giftData.coins || 0,
-          isReceiverGift: giftData.receiverId
-            ? giftData.receiverId === currentUserId
-            : false,
-        });
-        
-        // Host + room counters update instantly from broadcast, DB confirmation dedupes later
-        if (giftData.giftKey) markOptimisticPartyGiftCount(giftData.giftKey, broadcastBeans, broadcastCoins);
-        setTotalRoomBeans(prev => prev + broadcastBeans);
-        if (giftData.senderId) {
-          setParticipantBeans(prev => ({
-            ...prev,
-            [giftData.senderId]: (prev[giftData.senderId] || 0) + broadcastCoins,
-          }));
-        }
-        
-        // Play gift sound for all participants
-        playSound('gift');
-      })
-      .subscribe((status) => {
-        console.log('[PartyRoom] 🔌 Gift broadcast status:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('[PartyRoom] ✅ INSTANT gift broadcast ACTIVE - zero-latency gift sync enabled');
-        }
-      });
-    
-    // Store channel ref for broadcasting gifts
-    giftBroadcastChannelRef.current = giftBroadcastChannel;
+    // Pkg78: Supabase `party-gifts-instant-${roomId}` broadcast channel REMOVED.
+    // LiveKit DataPacket (Pkg76 `livekit-gift-sent` window event handler below)
+    // is the sole instant gift fanout path. DB persistence still happens via
+    // sendGift RPC. Saves ~1 Realtime channel per active party room.
+    const giftBroadcastChannel: any = null;
+    giftBroadcastChannelRef.current = null;
 
     // ============= INSTANT JOIN BROADCAST CHANNEL =============
     // Receives instant join notifications BEFORE postgres_changes (sub-100ms vs 1-3s)
@@ -1389,9 +1295,10 @@ const PartyRoom = () => {
       cleanupWebRTC();
       supabase.removeChannel(participantChannel);
       supabase.removeChannel(roomStatusChannel);
-      supabase.removeChannel(giftBroadcastChannel);
+      // Pkg78: giftBroadcastChannel + roomCloseBroadcastChannel removed (null refs).
+      if (giftBroadcastChannel) supabase.removeChannel(giftBroadcastChannel);
       supabase.removeChannel(joinBroadcastChannel);
-      supabase.removeChannel(roomCloseBroadcastChannel);
+      if (roomCloseBroadcastChannel) supabase.removeChannel(roomCloseBroadcastChannel);
     };
     }, [roomId, markOptimisticPartyGiftCount]);
 
@@ -1729,20 +1636,8 @@ const PartyRoom = () => {
         console.log('[PartyRoom] Host leaving - closing room with is_active: false');
         const closedAt = new Date().toISOString();
 
-        // CRITICAL: Broadcast room close to ALL participants FIRST (instant notification)
-        // This ensures visitors see the modal immediately, before database update
-        const closeChannel = supabase.channel(`party-room-close-${roomId}`);
-        await closeChannel.subscribe();
-        await closeChannel.send({
-          type: 'broadcast',
-          event: 'room_closed',
-          payload: {
-            roomId,
-            hostId: currentUser.id,
-            closedAt,
-          }
-        });
-        console.log('[PartyRoom] ✅ Broadcast room_closed sent to all participants');
+        // Pkg78: Supabase `party-room-close-${roomId}` broadcast REMOVED.
+        // LiveKit publishPartyClosed (below) is the sole instant fanout path.
 
         // Pkg75: also fire a LiveKit DataPacket to every viewer in parallel.
         // Sub-50ms delivery (vs 1–3s Supabase broadcast). Fire-and-forget;
@@ -1772,8 +1667,7 @@ const PartyRoom = () => {
           .eq('room_id', roomId)
           .is('left_at', null);
         
-        // Cleanup broadcast channel
-        supabase.removeChannel(closeChannel);
+        // Pkg78: closeChannel removed; no cleanup needed.
       } else {
         // Regular participant leaving
         await supabase
@@ -2531,32 +2425,8 @@ const PartyRoom = () => {
               // Trigger flying gift animation IMMEDIATELY (for sender)
               addFlyingGift(giftAnimationData);
               
-              // INSTANT BROADCAST: Send gift to ALL participants immediately
-              // No database wait - direct WebSocket broadcast for zero-latency sync
-              if (giftBroadcastChannelRef.current) {
-                console.log('[PartyRoom] 📡 INSTANT broadcasting gift to all participants...');
-                giftBroadcastChannelRef.current.send({
-                  type: 'broadcast',
-                  event: 'gift_sent',
-                  payload: {
-                    senderId: currentUser.id,
-                    senderName: currentUser?.profile?.display_name || 'Someone',
-                    receiverId: room.host?.id,
-                    giftName: gift.name,
-                    giftIcon: gift.emoji,
-                    giftImageUrl: gift.icon_url,
-                    animationUrl: gift.animation_url || gift.icon_url,
-                    soundUrl: gift.sound_url || undefined,
-                    count: count,
-                    coins: gift.coins,
-                    totalCoins: totalCost,
-                    receiverBeans: optimisticReceiverBeans,
-                    giftId: gift.id,
-                    giftKey,
-                  }
-                });
-                console.log('[PartyRoom] ✅ Gift broadcast sent instantly!');
-              }
+              // Pkg78: Supabase gift broadcast REMOVED — LiveKit DataPacket
+              // (publishGiftSent below) is the sole instant fanout path.
 
               // Pkg76: parallel LiveKit DataPacket fanout (sub-50ms).
               if (roomId) {
