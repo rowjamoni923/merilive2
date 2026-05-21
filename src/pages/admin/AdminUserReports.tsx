@@ -284,11 +284,22 @@ export default function AdminUserReports() {
                               {report.reported_user?.display_name?.charAt(0) || "U"}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="text-white text-sm font-medium">{report.reported_user?.display_name || "Unknown"}</p>
-                            <Badge className={`text-[10px] ${report.reported_user?.is_host ? "bg-pink-600" : "bg-blue-600"} text-white`}>
-                              {report.reported_user?.is_host ? "Host" : "User"}
-                            </Badge>
+                          <div className="min-w-0">
+                            <p className="text-white text-sm font-medium truncate">{report.reported_user?.display_name || "Unknown"}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <Badge className={`text-[10px] ${report.reported_user?.is_host ? "bg-pink-600" : "bg-blue-600"} text-white`}>
+                                {report.reported_user?.is_host ? "Host" : "User"}
+                              </Badge>
+                              {report.reported_user?.app_uid && (
+                                <button
+                                  onClick={() => copyId(report.reported_user?.app_uid)}
+                                  className="text-[10px] text-amber-300 hover:text-amber-200 font-mono inline-flex items-center gap-0.5"
+                                  title="Copy ID"
+                                >
+                                  ID: {report.reported_user.app_uid} <Copy className="w-2.5 h-2.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
@@ -297,6 +308,15 @@ export default function AdminUserReports() {
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         <p className="text-slate-300 text-sm">{report.reporter?.display_name || "Unknown"}</p>
+                        {report.reporter?.app_uid && (
+                          <button
+                            onClick={() => copyId(report.reporter?.app_uid)}
+                            className="text-[10px] text-amber-300/80 hover:text-amber-200 font-mono inline-flex items-center gap-0.5"
+                            title="Copy ID"
+                          >
+                            ID: {report.reporter.app_uid} <Copy className="w-2.5 h-2.5" />
+                          </button>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge className={`${STATUS_COLORS[report.status]} text-white text-[10px]`}>
