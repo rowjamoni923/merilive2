@@ -337,6 +337,19 @@ export const useNotifications = () => {
             return;
           }
 
+          // Pkg84: bridge incoming_call notifications to a window event so
+          // usePrivateCall can react WITHOUT opening its own `incoming-call-*`
+          // Supabase Realtime channel + 15s heartbeat (cost-safe — reuses the
+          // already-active `notifications` realtime subscription).
+          if (newNotification.type === 'incoming_call') {
+            try {
+              window.dispatchEvent(new CustomEvent('incoming-call-notification', { detail: newNotification }));
+            } catch {/* noop */}
+            // Do NOT surface as a regular banner — IncomingCallModal handles UI.
+            return;
+          }
+
+
           // Live/party/chat gifts are rendered by the room/chat gift feed and animation system.
           // Do not show the global top toast, otherwise one gift appears as a repeating notification banner.
           if (ROOM_GIFT_NOTIFICATION_TYPES.has(newNotification.type)) {
