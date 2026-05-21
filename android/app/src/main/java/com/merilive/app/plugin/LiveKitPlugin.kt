@@ -873,6 +873,34 @@ class LiveKitPlugin : Plugin() {
         ) connect(call) else call.reject("Camera/Microphone permission denied")
     }
 
+    private fun attachRemoteRendererInternal(
+        r: Room,
+        participant: RemoteParticipant,
+    ): Boolean {
+        val sid = participant.sid.value
+        val track = participant.getTrackPublication(Track.Source.CAMERA)
+            ?.track as? io.livekit.android.room.track.VideoTrack ?: return false
+        val renderer = remoteRenderers.getOrPut(sid) { createRenderer() }
+        return try {
+            r.initVideoRenderer(renderer)
+            track.addRenderer(renderer)
+            mountBehindWebView(renderer)
+            installStallSink(track, key = sid, sid = sid, isLocal = false)
+            true
+        } catch (e: Exception) {
+            Log.w(TAG, "attachRemoteRendererInternal failed for $sid: ${e.message}")
+            false
+        }
+    }
+
+    private fun attachAllRemoteRenderersInternal(r: Room): Int {
+        var attached = 0
+        for (participant in r.remoteParticipants.values) {
+            if (attachRemoteRendererInternal(r, participant)) attached++
+        }
+        return attached
+    }
+
     private fun attachEventListeners(r: Room) {
         eventJob?.cancel()
         eventJob = scope.launch {
