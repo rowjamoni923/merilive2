@@ -320,34 +320,63 @@ const EditProfile = () => {
     }
   };
 
+  const handleSendLinkOtp = async () => {
+    const email = linkEmail.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      sonnerToast.error("Enter a valid email address");
+      return;
+    }
+    if (linkPassword.length < 8) {
+      sonnerToast.error("Password must be at least 8 characters");
+      return;
+    }
+    setLinkOtpSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-email-otp", {
+        body: { email, purpose: "verify" },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Failed to send code");
+      sonnerToast.success("Verification code sent to your email");
+      setLinkStep("otp");
+      setLinkOtpCooldown(60);
+      const t = setInterval(() => {
+        setLinkOtpCooldown((s) => {
+          if (s <= 1) { clearInterval(t); return 0; }
+          return s - 1;
+        });
+      }, 1000);
+    } catch (err: any) {
+      sonnerToast.error(err?.message || "Failed to send code");
+    } finally {
+      setLinkOtpSending(false);
+    }
+  };
+
   const handleEmailLinking = async () => {
-    if (!linkEmail.trim() || !linkPassword.trim()) {
-      sonnerToast.error("Enter email and password");
+    const email = linkEmail.trim().toLowerCase();
+    if (!/^\d{6}$/.test(linkOtp)) {
+      sonnerToast.error("Enter the 6-digit code");
       return;
     }
-    
-    if (linkPassword.length < 6) {
-      sonnerToast.error("Password must be at least 6 characters");
-      return;
-    }
-    
     setEmailLinking(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        email: linkEmail,
-        password: linkPassword
+      const { data, error } = await supabase.functions.invoke("link-email-to-account", {
+        body: { email, password: linkPassword, otp: linkOtp },
       });
-      
       if (error) throw error;
-      
-      setUserEmail(linkEmail);
+      if (!data?.success) throw new Error(data?.error || "Failed to link email");
+
+      setUserEmail(email);
       setHasPassword(true);
       setShowEmailModal(false);
+      setLinkStep("form");
       setLinkEmail("");
       setLinkPassword("");
-      sonnerToast.success("Email and password set!");
-    } catch (error: any) {
-      sonnerToast.error(error.message || "Email linking failed");
+      setLinkOtp("");
+      sonnerToast.success("Email and password linked!");
+    } catch (err: any) {
+      sonnerToast.error(err?.message || "Email linking failed");
     } finally {
       setEmailLinking(false);
     }
