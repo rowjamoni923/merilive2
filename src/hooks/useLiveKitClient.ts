@@ -55,6 +55,10 @@ interface UseLiveKitClientOptions {
   onError?: (error: Error) => void;
   onCoHostRequest?: (uid: number, userName: string) => void;
   onRoleChanged?: (uid: number, role: 'host' | 'audience') => void;
+  /** Pkg74: When set, the underlying Room is registered with the
+   * live-stream signaling registry so `publishStreamEnded(id, …)` works
+   * and incoming `stream_ended` packets reach window event listeners. */
+  liveSignalingStreamId?: string | null;
 }
 
 export interface CoHostRequest {
@@ -1128,6 +1132,32 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       });
     });
   }, [ensureParticipantSubscribed]);
+
+  // Pkg74: Bind streamId → Room for LiveKit-based stream_ended signaling.
+  // Re-runs whenever the join state flips or the streamId changes.
+  useEffect(() => {
+    const streamId = options.liveSignalingStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    // Lazy import to avoid pulling signaling code into non-live paths.
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitLiveSignaling');
+        if (cancelled) return;
+        mod.registerStreamRoom(streamId, room);
+      } catch (e) {
+        console.warn('[Pkg74] registerStreamRoom failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitLiveSignaling').then((mod) => {
+        mod.unregisterStreamRoom(streamId);
+      }).catch(() => {});
+    };
+  }, [options.liveSignalingStreamId, isJoined]);
 
   return {
     isInitialized,

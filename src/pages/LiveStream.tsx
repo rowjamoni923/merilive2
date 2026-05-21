@@ -531,6 +531,7 @@ const LiveStream = () => {
     toggleAudio,
     retrySubscription,
   } = useLiveKitClient({
+    liveSignalingStreamId: id,
     onUserJoined: (uid) => {
       console.log('👤 Viewer joined (LiveKit):', uid);
     },
@@ -1259,10 +1260,27 @@ const LiveStream = () => {
         }
       )
       .subscribe();
-    
+
+    // ⚡ METHOD 3 (Pkg74): LiveKit DataPacket listener — sub-50ms peer notify.
+    // Converges into the same modal path. Idempotent via showStreamEndedModal guard.
+    const handleLiveKitStreamEnded = (evt: Event) => {
+      const detail = (evt as CustomEvent).detail || {};
+      if (detail.streamId !== id) return;
+      if (isHost) return;
+      console.log('[LiveStream] ⚡ Pkg74 livekit-stream-ended received');
+      setStreamEndedBy(detail.hostName || hostInfo?.name || 'Host');
+      setShowStreamEndedModal(true);
+      setTimeout(async () => {
+        await leaveChannel();
+        navigate('/');
+      }, 3000);
+    };
+    window.addEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
+
     return () => {
       supabase.removeChannel(broadcastCloseChannel);
       supabase.removeChannel(streamCountChannel);
+      window.removeEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
     };
   }, [id, isHost, hostInfo?.name, leaveChannel, navigate, showStreamEndedModal]);
 
@@ -2053,17 +2071,29 @@ const LiveStream = () => {
           })
           .eq('id', id);
 
-        // ⚡ INSTANT: Broadcast stream ended to all viewers
-        try {
-          await supabase.channel(`live-stream-close-${id}`).send({
+        // ⚡ INSTANT: Broadcast stream ended via BOTH Supabase Realtime
+        // (Pkg legacy) AND LiveKit DataPacket (Pkg74). Fire in parallel —
+        // viewers de-dup on streamId in the modal effect.
+        const hostName = hostInfo?.name || 'Host';
+        await Promise.allSettled([
+          supabase.channel(`live-stream-close-${id}`).send({
             type: 'broadcast',
             event: 'stream_closed',
-            payload: { streamId: id, hostName: hostInfo?.name || 'Host' }
-          });
-          console.log('[LiveStream] ⚡ Broadcast stream_closed sent to all viewers');
-        } catch (e) {
-          console.warn('[LiveStream] Broadcast send failed:', e);
-        }
+            payload: { streamId: id, hostName },
+          }),
+          (async () => {
+            try {
+              const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
+              await publishStreamEnded(id, {
+                endedBy: currentUserId || 'host',
+                hostName,
+              });
+            } catch (e) {
+              console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
+            }
+          })(),
+        ]);
+        console.log('[LiveStream] ⚡ stream_closed sent (Supabase + LiveKit)');
       }
     } catch (error) {
       console.error('[LiveStream] Error while ending stream stats flow:', error);
