@@ -715,7 +715,7 @@ export default function AdminUserManagement() {
         .select(`
           id, display_name, avatar_url, gender, user_level,
           is_verified, is_face_verified, is_blocked, is_host,
-          face_verified_at, app_uid, created_at, total_recharge_amount
+          face_verified_at, app_uid, created_at, total_recharged
         `)
         .eq("is_face_verified", true)
         .eq("is_host", false)
