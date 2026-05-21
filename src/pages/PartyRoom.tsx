@@ -1775,17 +1775,15 @@ const PartyRoom = () => {
       
       console.log('[PartyRoom] ✅ Seat request created for position:', position);
       
-      // Send INSTANT broadcast to host about new seat request
-      const broadcastChannel = supabase.channel(`party-room-all-${roomId}`);
-      broadcastChannel.send({
-        type: 'broadcast',
-        event: 'seat_action',
-        payload: {
-          action: 'new_request',
-          requester_id: currentUser.id,
-          seat_position: position,
-          requester_name: currentUser.profile?.display_name || 'User'
-        }
+      // Pkg80: LiveKit DataPacket replaces `party-room-all-*` seat_action send.
+      void publishPartyEvent(roomId, {
+        type: 'seat_action',
+        roomId,
+        action: 'new_request',
+        requester_id: currentUser.id,
+        seat_position: position,
+        requester_name: currentUser.profile?.display_name || 'User',
+        timestamp: Date.now(),
       });
       
       setMessages(prev => [...prev, {
