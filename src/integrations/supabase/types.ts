@@ -16443,6 +16443,7 @@ export type Database = {
       cleanup_stale_live_streams: { Args: never; Returns: number }
       cleanup_stale_online_users: { Args: never; Returns: undefined }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
+      cleanup_stale_party_rooms: { Args: never; Returns: number }
       cleanup_stuck_calls: { Args: never; Returns: undefined }
       coin_trader_self_recharge: { Args: { amount: number }; Returns: Json }
       coin_trader_transfer_to_agency: {
