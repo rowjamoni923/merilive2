@@ -186,15 +186,34 @@ export function useAgoraCall(
             const { token, url } = await getLiveKitToken(roomName, 'call');
             if (deadRef.current) return;
 
-            await nativeLiveKitController.connectAndPublish({
-              url,
-              token,
-              video: true,
-              audio: true,
-              lens: 'front',
-              resolution: '1080p',
-              attachLocal: true,
-            });
+            // One quick retry — Camera2 device can be briefly held by the
+            // previous preview / freshly-revoked call on the same device.
+            let nAttempt = 0;
+            let lastNErr: unknown = null;
+            while (nAttempt < 2) {
+              nAttempt++;
+              try {
+                await nativeLiveKitController.connectAndPublish({
+                  url,
+                  token,
+                  video: true,
+                  audio: true,
+                  lens: 'front',
+                  resolution: '1080p',
+                  attachLocal: true,
+                });
+                lastNErr = null;
+                break;
+              } catch (e) {
+                lastNErr = e;
+                if (nAttempt < 2) {
+                  console.warn('[LiveKitCall/Native] connect failed, retrying in 500ms:', e);
+                  try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+                  await new Promise((r) => setTimeout(r, 500));
+                }
+              }
+            }
+            if (lastNErr) throw lastNErr;
 
             usingNativeRef.current = true;
             setNativeActive(true);
@@ -208,10 +227,11 @@ export function useAgoraCall(
             console.log('[LiveKitCall/Native] ✅ Connected');
             return;
           } catch (nativeErr) {
-            console.error('[LiveKitCall/Native] init failed, falling back to web:', nativeErr);
+            console.error('[LiveKitCall/Native] init failed after retry, falling back to web:', nativeErr);
             usingNativeRef.current = false;
             setNativeActive(false);
-            // Fall through to web path.
+            // Fall through to web path — WebView's livekit-client can still
+            // bring up the call as a safety net.
           }
         }
 
