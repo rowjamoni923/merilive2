@@ -2748,10 +2748,11 @@ export default function AdminLayout() {
                               onTouchStart={() => prefetchAdminRoute(item.path)}
                               onClick={() => {
                                 setIsMobileSidebarOpen(false);
-                                const normalizedItemPath = normalizeAdminPath(item.path);
-                                dismissPath(normalizedItemPath);
-                                void markPathNotificationsAsRead(normalizedItemPath);
+                                // Do NOT auto-dismiss the sidebar/bell badge on click —
+                                // owner directive: notifications persist until manually
+                                // cleared from the bell panel.
                               }}
+
                               className={cn(
                                 "flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200 group/item relative overflow-hidden",
                                 isActive
