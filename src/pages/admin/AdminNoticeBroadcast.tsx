@@ -115,14 +115,28 @@ const AdminNoticeBroadcast = () => {
     { key: 'story_1080',       label: 'Story · 1080×1920' },
     { key: 'push_thumb',       label: 'Push Thumb · 512×512' },
   ];
+  // One-click event name templates — grouped, mirrors AI Photo Generator presets.
+  const EVENT_TEMPLATES: { group: string; items: string[] }[] = [
+    { group: "💎 Recharge & Diamonds", items: ["Recharge Mega Offer", "Double Diamond Bonus", "Flash Recharge Sale", "Diamond Rush Weekend", "First Recharge Gift", "Weekend Top-Up Bonus", "VIP Recharge Pack"] },
+    { group: "👑 VIP & Noble", items: ["VIP Launch", "Noble Coronation", "Royal Membership Sale", "Crown Upgrade Event", "VIP Exclusive Gala", "Noble Anniversary"] },
+    { group: "🎤 Live & Host", items: ["Host Of The Week", "Golden Hour 3x Earnings", "Live Battle Royale", "PK Championship", "New Host Welcome Bonus", "5-Hour Live Milestone", "Top Streamer Awards", "Weekly Streaming Bonus"] },
+    { group: "🎁 Gifts & Earnings", items: ["Gift Storm Event", "Double Beans Weekend", "Lucky Gift Lottery", "Mega Gift Carnival", "Gifter Of The Month", "Charm Leaderboard Final"] },
+    { group: "🏆 Tournament & PK", items: ["Weekly Tournament", "Monthly Championship", "Season Grand Finale", "Wealth Ranking Battle", "Game Leaderboard Showdown"] },
+    { group: "🎊 Festivals & Holidays", items: ["Eid Special", "Ramadan Kareem", "Diwali Lights", "Christmas Gala", "New Year Event", "Holi Color Fest", "Chinese New Year", "Thanksgiving Bonus", "Valentine Special", "Summer Carnival"] },
+    { group: "👥 Referral & Growth", items: ["Referral Mania", "Invite & Earn Bonus", "Friend Reward Weekend", "Top Inviter Awards"] },
+    { group: "🎂 User Moments", items: ["Birthday Bash", "Anniversary Celebration", "Welcome Bonus", "Level Up Reward", "Daily Check-in Mega"] },
+    { group: "🏢 Agency & Helper", items: ["Agency Champions", "Top Agency Of The Week", "Helper Recharge Bonanza", "Agency Recruitment Drive"] },
+  ];
+
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiSize, setAiSize] = useState<string>('banner_16_9_1920');
   const [aiGenerating, setAiGenerating] = useState(false);
   // Preview-before-attach: AI-generated banner sits here until admin clicks Attach.
   const [aiPreview, setAiPreview] = useState<{ url: string; width?: number; height?: number; prompt: string; sizeKey: string } | null>(null);
 
-  const generateAiBanner = async () => {
-    const eventName = (aiPrompt.trim() || title.trim()).slice(0, 80);
+  const generateAiBanner = async (overrideName?: string) => {
+    const eventName = (overrideName?.trim() || aiPrompt.trim() || title.trim()).slice(0, 80);
+
     if (!eventName) {
       toast({ title: "Add a prompt", description: "Type an event name or title first", variant: "destructive" });
       return;
@@ -573,7 +587,7 @@ const AdminNoticeBroadcast = () => {
                 />
                 <Button
                   type="button"
-                  onClick={generateAiBanner}
+                  onClick={() => generateAiBanner()}
                   disabled={aiGenerating || imageUrls.length >= 10}
                   className="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white"
                 >
@@ -581,6 +595,33 @@ const AdminNoticeBroadcast = () => {
                   Generate
                 </Button>
               </div>
+
+              {/* One-click event name templates (mirrors AI Photo Generator presets) */}
+              <div className="mt-3 space-y-2">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Event Name Templates · one click to generate</div>
+                <div className="max-h-56 overflow-y-auto pr-1 space-y-2">
+                  {EVENT_TEMPLATES.map((g) => (
+                    <div key={g.group}>
+                      <div className="text-[11px] font-medium text-amber-200/80 mb-1">{g.group}</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {g.items.map((name) => (
+                          <button
+                            key={name}
+                            type="button"
+                            disabled={aiGenerating || imageUrls.length >= 10}
+                            onClick={() => { setAiPrompt(name); generateAiBanner(name); }}
+                            className="px-2 py-1 text-[11px] rounded-md border border-white/15 bg-white/[0.04] hover:bg-amber-400/15 hover:border-amber-300/50 text-white/80 hover:text-amber-100 transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1"
+                          >
+                            <Sparkles className="w-3 h-3 text-amber-300" />
+                            {name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
 
               {/* Inline preview — review BEFORE attaching */}
               {aiPreview && (
@@ -619,7 +660,7 @@ const AdminNoticeBroadcast = () => {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={generateAiBanner}
+                      onClick={() => generateAiBanner()}
                       disabled={aiGenerating}
                     >
                       {aiGenerating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
