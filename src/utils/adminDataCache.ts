@@ -34,10 +34,10 @@ export function getAdminCache<T>(key: string): T | null {
   return null;
 }
 
-/** Store data in both memory and localStorage — skips empty/zero data to prevent stale 0s */
+/** Store data in both memory and localStorage */
 export function setAdminCache<T>(key: string, data: T): void {
-  // Don't cache empty arrays — they represent failed/incomplete fetches
-  if (Array.isArray(data) && data.length === 0) return;
+  // Empty arrays are valid results. Cache them so old rows do not reappear
+  // after an item is closed/ended and the next fetch returns no rows.
   // Don't cache null/undefined
   if (data === null || data === undefined) return;
 
