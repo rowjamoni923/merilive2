@@ -245,6 +245,7 @@ const Recharge = () => {
   const [uploadingProof, setUploadingProof] = useState(false);
   const [userCountryCode, setUserCountryCode] = useState<string | null>(null); // Start with null, load from profile first
   const [isAgencyOwner, setIsAgencyOwner] = useState(false);
+  const [isPersonalHelper, setIsPersonalHelper] = useState(false);
 
   // Get user's geolocation
   const geoLocation = useGeolocation(userId, true);
