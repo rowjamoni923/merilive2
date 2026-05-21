@@ -527,33 +527,20 @@ const App = () => {
     }
   };
 
-  // 🚀 INSTANT PREFETCH — Load gifts, balance, and profile data immediately on auth
+  // 🚀 INSTANT PREFETCH — warm only tiny user-specific caches on auth.
+  // Heavy gifts/assets/routes are deferred to idle so first screen data can win.
   const isAuthenticated = !!session?.user;
   useEffect(() => {
     if (!isAuthenticated || !session?.user?.id) return;
-    
-    // Prefetch gifts immediately (no delay)
-    import('@/hooks/useGiftPrefetch').then(m => m.prefetchGifts()).catch(() => {});
-    
-    void runLegacyProfileSync(session.user.id);
-    
-    // Prefetch user profile & balance into QueryClient cache
+
     const userId = session.user.id;
-    queryClient.prefetchQuery({
-      queryKey: ['profile', userId],
-      queryFn: async () => {
-        const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
-        return data;
-      },
-      staleTime: 1000 * 300,
-    });
     queryClient.prefetchQuery({
       queryKey: ['user-balance', userId],
       queryFn: async () => {
         const { data } = await supabase.from('profiles').select('coins, beans, diamonds, pending_earnings').eq('id', userId).single();
         return data;
       },
-      staleTime: 1000 * 60,
+      staleTime: 1000 * 60 * 2,
     });
   }, [isAuthenticated, session?.user?.id]);
   
@@ -568,20 +555,31 @@ const App = () => {
       initWebViewPerformance();
     }
 
-    preloadCoreRoutes();
+    const idle = (cb: () => void, timeout = 2500) => {
+      const w = window as any;
+      if (typeof w.requestIdleCallback === 'function') return w.requestIdleCallback(cb, { timeout });
+      return window.setTimeout(cb, 1200);
+    };
+    const cancelIdle = (id: number) => {
+      const w = window as any;
+      if (typeof w.cancelIdleCallback === 'function') w.cancelIdleCallback(id);
+      else clearTimeout(id);
+    };
+
+    const routeIdleId = idle(preloadCoreRoutes, 1800);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
-    import('@/utils/registerImageCacheSW').then(m => {
+    const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
       m.registerImageCacheSW().then(() => m.warmAppImageCache());
-    }).catch(() => {});
+    }).catch(() => {}), 4500);
 
     // Defer SVGA prewarm to idle
-    if (typeof (window as any).requestIdleCallback === 'function') {
-      const idleId = (window as any).requestIdleCallback(() => prewarmSVGA(), { timeout: 3000 });
-      return () => { if (typeof (window as any).cancelIdleCallback === 'function') (window as any).cancelIdleCallback(idleId); };
-    }
-    const t = setTimeout(() => prewarmSVGA(), 800);
-    return () => clearTimeout(t);
+    const svgaIdleId = idle(() => prewarmSVGA(), 3500);
+    return () => {
+      cancelIdle(routeIdleId);
+      cancelIdle(imageIdleId);
+      cancelIdle(svgaIdleId);
+    };
   }, []);
 
   // ⚡ REALTIME → REACT QUERY BRIDGE moved inside QueryClientProvider (see RealtimeQuerySyncBridge below)
