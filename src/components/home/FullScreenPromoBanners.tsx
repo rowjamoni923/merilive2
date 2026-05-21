@@ -38,6 +38,10 @@ const SESSION_KEY = "promo_banner_shown_this_entry";
 const ROTATION_KEY = "promo_banner_rotation_index";
 const RATING_PENDING_KEY = "rating_reward_return_pending";
 const RATING_ENABLED_SETTING_KEY = "rating_popup_enabled";
+// Per-user permanent dismiss flag. Once set, the rating banner NEVER shows
+// again on this device for this user (whether they dismissed it, let it
+// auto-close, clicked the banner to rate, or submitted proof).
+const ratingBannerDismissedKey = (userId: string) => `rating_banner_dismissed_v1_${userId}`;
 
 export function FullScreenPromoBanners() {
   const [currentBanner, setCurrentBanner] = useState<PromoBanner | null>(null);
@@ -61,6 +65,13 @@ export function FullScreenPromoBanners() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
+    // Permanent per-user dismiss — once the user has closed, skipped, let
+    // auto-close fire, clicked the banner, or submitted proof, never show
+    // this banner again on this device.
+    if (typeof window !== "undefined" && localStorage.getItem(ratingBannerDismissedKey(user.id)) === "1") {
+      return false;
+    }
+
     const { data: settingData } = await supabase
       .from("app_settings")
       .select("setting_value")
@@ -76,7 +87,13 @@ export function FullScreenPromoBanners() {
       .eq("user_id", user.id)
       .limit(1);
 
-    return (existingClaims?.length ?? 0) === 0;
+    if ((existingClaims?.length ?? 0) > 0) {
+      // User already has at least one submitted claim — also persist the
+      // dismiss flag so the eligibility short-circuits on later loads.
+      try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
+      return false;
+    }
+    return true;
   }, []);
 
   const loadAdminRatingBanners = useCallback(async () => {
@@ -113,10 +130,20 @@ export function FullScreenPromoBanners() {
 
   const closeBanner = useCallback(() => {
     advanceRotation(rotationIndex);
+    // Permanently dismiss the rating banner for this user on this device —
+    // it will never auto-show again (covers Skip, X, auto-close, and
+    // click-through paths).
+    if (currentBanner?.id === "rating") {
+      void supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
+        }
+      });
+    }
     setIsVisible(false);
     setCurrentBanner(null);
     setRotationIndex(null);
-  }, [advanceRotation, rotationIndex]);
+  }, [advanceRotation, rotationIndex, currentBanner?.id]);
 
   useEffect(() => {
     let ratingDelayTimer: number | undefined;
