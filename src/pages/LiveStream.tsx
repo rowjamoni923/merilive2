@@ -45,6 +45,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { publishGiftSent, type GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
+
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
