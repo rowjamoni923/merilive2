@@ -489,6 +489,18 @@ const App = () => {
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
   // app_settings realtime is already handled by useGlobalSettings
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('meri_maintenance_mode_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && Date.now() - Number(parsed.at || 0) < 5 * 60_000) {
+            setMaintenanceMode(parsed.value ?? null);
+          }
+        }
+      } catch {}
+    }
+
     const checkMaintenance = async () => {
       try {
         const { data, error } = await supabase
@@ -500,6 +512,9 @@ const App = () => {
         if (error) throw error;
         if (data?.setting_value) {
           setMaintenanceMode(data.setting_value as any);
+          try {
+            localStorage.setItem('meri_maintenance_mode_cache', JSON.stringify({ at: Date.now(), value: data.setting_value }));
+          } catch {}
         }
       } catch (e) {
         console.error('[App] Maintenance check failed:', e);
@@ -659,7 +674,8 @@ const App = () => {
             setCachedUser({ id: session.user.id, email: session.user.email ?? undefined });
             setLoading(false); // ⚡ Unblock UI immediately
           }
-          void runLegacyProfileSync(session.user.id);
+          const syncId = window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
+          void syncId;
           return;
         }
 
@@ -685,7 +701,7 @@ const App = () => {
                   expires_at: refreshed.session.expires_at,
                 });
               }
-              void runLegacyProfileSync(refreshed.session.user.id);
+              window.setTimeout(() => void runLegacyProfileSync(refreshed.session.user.id), 2500);
               return;
             }
           } catch (e) {
@@ -708,7 +724,7 @@ const App = () => {
                     setSession(restored.session);
                     setCachedUser({ id: restored.session.user.id, email: restored.session.user.email ?? undefined });
                   }
-                  void runLegacyProfileSync(restored.session.user.id);
+                  window.setTimeout(() => void runLegacyProfileSync(restored.session.user.id), 2500);
                   return;
                 }
               }
@@ -803,7 +819,7 @@ const App = () => {
               expires_at: session.expires_at,
             });
           }
-          void runLegacyProfileSync(session.user.id);
+          window.setTimeout(() => void runLegacyProfileSync(session.user.id), 2500);
         } else if (event === 'SIGNED_OUT') {
           // 🛡️ CRITICAL: Only clear session if user MANUALLY logged out
           const isManualLogout = localStorage.getItem('meri_manual_logout') === 'true';
