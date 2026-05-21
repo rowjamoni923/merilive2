@@ -91,7 +91,7 @@ export function useAgoraCall(
       if (s === 'reconnecting') {
         toast.loading('Reconnecting…', { id: 'lk-reconnect' });
         setState(p => ({ ...p, connectionState: 'connecting' }));
-      } else if (s === 'reconnect-failed' || s === 'lost') {
+      } else if (s === 'degraded' || s === 'reconnect-failed' || s === 'lost') {
         toast.loading('Restoring call…', { id: 'lk-reconnect' });
         nativeLiveKitController.reconnectNow().catch(() => {});
       } else {
