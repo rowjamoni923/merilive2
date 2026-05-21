@@ -1545,6 +1545,18 @@ const Recharge = () => {
           }
           setIsAgencyOwner(!!(profileRes.data as any).is_agency_owner);
         }
+
+        // Detect if current user is an active + verified personal helper (trader)
+        try {
+          const { data: helperRow } = await supabase
+            .from('topup_helpers')
+            .select('id, is_active, is_verified')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          setIsPersonalHelper(!!(helperRow && helperRow.is_active && helperRow.is_verified));
+        } catch {
+          setIsPersonalHelper(false);
+        }
         
         setIsFirstRecharge(!firstRechargeRes.data);
         if (bonusConfigRes.data) {
