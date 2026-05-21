@@ -1377,34 +1377,10 @@ export default function AdminLayout() {
     localStorage.setItem(dismissStorageKey, JSON.stringify(payload));
   }, [dismissedPaths, dismissStorageKey]);
 
-  // Debounced header stats fetch - prevents excessive DB queries
-  const headerStatsTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const fetchHeaderStats = useCallback(async () => {
-    try {
-      const [onlineRes, liveRes] = await Promise.all([
-        (adminSupabase.from('profiles') as any).select('id', { count: 'exact', head: true }).eq('is_online', true),
-        (adminSupabase.from('live_streams') as any).select('id', { count: 'exact', head: true }).eq('is_active', true),
-      ]);
-      setOnlineUsersCount(onlineRes.count || 0);
-      setLiveStreamsCount(liveRes.count || 0);
-    } catch (e) {
-      console.error('Error fetching header stats:', e);
-      recordAdminError({ kind: "rpc", label: "AdminLayout.fetchHeaderStats", message: formatAdminError(e) });
-    }
-  }, []);
-
-  const debouncedFetchHeaderStats = useCallback(() => {
-    if (headerStatsTimerRef.current) clearTimeout(headerStatsTimerRef.current);
-    headerStatsTimerRef.current = setTimeout(fetchHeaderStats, 2000);
-  }, [fetchHeaderStats]);
-
-  useEffect(() => {
-    // ⚡ Defer header stats by 2s — not needed for initial render
-    const initialTimer = setTimeout(fetchHeaderStats, 2000);
-    // No realtime header subscription: profiles/live_streams are noisy and caused
-    // constant admin layout refreshes while admins were editing pages.
-    return () => clearTimeout(initialTimer);
-  }, [fetchHeaderStats]);
+  const toCount = (value: unknown): number => {
+    const n = Number(value ?? 0);
+    return Number.isFinite(n) ? n : 0;
+  };
 
   // ⚡ Prefetch ALL admin page chunks after first paint so every tab opens instantly.
   // Runs in idle slices (see adminRoutePrefetch.ts) — no main-thread blocking.
@@ -1428,66 +1404,38 @@ export default function AdminLayout() {
   const pendingCountsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fetchPendingCountsRaw = async () => {
     try {
-      // Admin panel uses dedicated admin session (not auth.users) — adminSupabase
-      // attaches the x-admin-token header which RLS recognizes via is_active_admin_session().
-      // No need to check user app session here.
+      const { data, error } = await (adminSupabase.rpc as any)('admin_layout_counts');
+      if (error) throw error;
+      const counts = (data || {}) as Record<string, unknown>;
 
-      // Fetch ALL counts in parallel for maximum speed
-      // Batch 1: Core counts
-      const [upgradeRes, topupRes, helperAppRes, hostAppRes, withdrawalRes, helperRepliesRes, supportTicketsCountRes, userVerifyRes] = await Promise.all([
-        adminSupabase.from('helper_upgrade_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('helper_topup_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('helper_applications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).in('status', ['pending', 'submitted', 'under_review']).eq('verification_type', 'host'),
-        adminSupabase.from('agency_withdrawals').select('*', { count: 'exact', head: true }).in('status', ['pending', 'processing']),
-        adminSupabase.from('helper_message_replies').select('*', { count: 'exact', head: true }).eq('sender_type', 'helper').eq('is_read', false),
-        adminSupabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('category', 'live_chat').in('status', ['open', 'pending']),
-        adminSupabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).in('status', ['pending', 'submitted', 'under_review']).eq('verification_type', 'face'),
-      ]);
-
-      // Batch 2: Extended section counts
-      const batch2 = await Promise.all([
-        adminSupabase.from('user_reports' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('payroll_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('helper_orders' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('live_bans' as any).select('*', { count: 'exact', head: true }).eq('is_active', true),
-        adminSupabase.from('live_face_violations' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('host_conversion_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('chat_moderation_logs' as any).select('*', { count: 'exact', head: true }).is('reviewed_at', null),
-        adminSupabase.from('helper_withdrawal_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      ]);
-      const [userReportsRes, payrollRes, helperOrdersRes, liveBansRes, facViolationsRes, hostConvRes, moderationRes, helperWithdrawalRes] = batch2;
-
-      // Batch 3: Additional section counts (only PENDING/actionable items — no daily activity counts)
-      const batch3 = await Promise.all([
-        adminSupabase.from('rating_reward_claims' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        // NOTE: recharge_transactions & gift_transactions are informational (daily activity), NOT pending items
-        // Do NOT show them as notification badges — they are not actionable
-        adminSupabase.from('leaderboard_reward_history' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('consumption_return_history' as any).select('*', { count: 'exact', head: true }).eq('is_claimed', false),
-        adminSupabase.from('agency_earnings_transfers' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        adminSupabase.from('coin_transfers' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      ]);
-      const [ratingRewardsRes, leaderboardRewardsRes, consumptionRes, agencyTransfersRes, coinTransfersRes] = batch3;
-
-      const queryErrors = [
-        upgradeRes.error, topupRes.error, helperAppRes.error, hostAppRes.error,
-        withdrawalRes.error, helperRepliesRes.error, supportTicketsCountRes.error, userVerifyRes.error,
-      ].filter(Boolean);
-
-      if (queryErrors.length > 0) {
-        // Just log — admin session handles its own validity (no user-app refresh needed)
-        console.warn('[AdminLayout] pending-counts query errors:', queryErrors.map((e: any) => e?.message).join(' | '));
-        return;
-      }
+      setOnlineUsersCount(toCount(counts.online_users));
+      setLiveStreamsCount(toCount(counts.live_streams));
       
       // Calculate counts for each section
-      const helperManagementCount = (upgradeRes.count || 0) + (topupRes.count || 0) + (helperAppRes.count || 0) + (helperWithdrawalRes?.count || 0);
-      const userHubCount = (hostAppRes.count || 0) + (userVerifyRes.count || 0) + (userReportsRes?.count || 0);
-      const agencyHubCount = (withdrawalRes.count || 0) + (agencyTransfersRes?.count || 0);
-      const financeCount = (helperRepliesRes.count || 0) + (payrollRes?.count || 0) + (coinTransfersRes?.count || 0);
-      const supportCount = supportTicketsCountRes.count || 0;
-      const contentCount = (ratingRewardsRes?.count || 0) + (leaderboardRewardsRes?.count || 0);
+      const helperAppCount = toCount(counts.helper_applications_pending);
+      const hostAppCount = toCount(counts.host_applications_pending);
+      const userVerifyCount = toCount(counts.face_verifications_pending);
+      const userReportsCount = toCount(counts.user_reports_pending);
+      const agencyWithdrawalCount = toCount(counts.agency_withdrawals_pending);
+      const helperRepliesCount = toCount(counts.helper_replies_unread);
+      const payrollCount = toCount(counts.payroll_requests_pending);
+      const helperOrdersCount = toCount(counts.helper_orders_pending);
+      const liveBansCount = toCount(counts.live_bans_active);
+      const faceViolationsCount = toCount(counts.live_face_violations_pending);
+      const hostConvCount = toCount(counts.host_conversion_requests_pending);
+      const moderationCount = toCount(counts.chat_moderation_unreviewed);
+      const helperWithdrawalCount = toCount(counts.helper_withdrawal_requests_pending);
+      const ratingRewardsCount = toCount(counts.rating_reward_claims_pending);
+      const leaderboardRewardsCount = toCount(counts.leaderboard_reward_history_pending);
+      const agencyTransfersCount = toCount(counts.agency_earnings_transfers_pending);
+      const coinTransfersCount = toCount(counts.coin_transfers_pending);
+
+      const helperManagementCount = toCount(counts.helper_upgrade_requests_pending) + toCount(counts.helper_topup_requests_pending) + helperAppCount + helperWithdrawalCount;
+      const userHubCount = hostAppCount + userVerifyCount + userReportsCount;
+      const agencyHubCount = agencyWithdrawalCount + agencyTransfersCount;
+      const financeCount = helperRepliesCount + payrollCount + coinTransfersCount;
+      const supportCount = toCount(counts.support_tickets_live_open);
+      const contentCount = ratingRewardsCount + leaderboardRewardsCount;
       
       setPendingCounts({
         // Overview
