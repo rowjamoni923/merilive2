@@ -625,11 +625,7 @@ const Reels = () => {
                       whileHover={{ y: -2 }}
                     >
                       <motion.div
-                        animate={{ boxShadow: [
-                          "0_8px_24px_-4px_rgba(245,158,11,0.55),inset_0_1.5px_0_rgba(255,255,255,0.45)",
-                          "0_10px_30px_-2px_rgba(245,158,11,0.85),inset_0_1.5px_0_rgba(255,255,255,0.55)",
-                          "0_8px_24px_-4px_rgba(245,158,11,0.55),inset_0_1.5px_0_rgba(255,255,255,0.45)",
-                        ].map(s => s.replace(/_/g, ' ')) }}
+                        animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
                         className="relative w-[52px] h-[52px] rounded-full flex items-center justify-center bg-gradient-to-br from-amber-300 via-orange-500 to-rose-600 ring-1 ring-amber-200/50"
                       >
