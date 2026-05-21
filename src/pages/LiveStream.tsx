@@ -1908,21 +1908,38 @@ const LiveStream = () => {
     // Clear input immediately
     setMessage("");
     
-    // Save MASKED message to database
-    const { error } = await supabase.from("stream_chat").insert({
-      stream_id: id,
-      user_id: currentUserId,
-      message: contentToSend,
-    });
-    
+    // Save MASKED message to database (moderation/persistence source of truth)
+    const { data: insertedRow, error } = await supabase
+      .from("stream_chat")
+      .insert({
+        stream_id: id,
+        user_id: currentUserId,
+        message: contentToSend,
+      })
+      .select("id")
+      .single();
+
     if (error) {
       console.error('Failed to send message:', error);
       recordClientError({ label: "LiveStream.detection", message: error instanceof Error ? error.message : String(error) });
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } else {
       trackTaskProgress('messages_sent', { increment: 1 });
+      // Pkg79: sub-50ms peer delivery via LiveKit DataPacket.
+      void publishChatMessage('live', id, {
+        messageId: insertedRow?.id || tempId,
+        userId: currentUserId,
+        displayName: currentUser?.display_name || "User",
+        avatarUrl: currentUser?.avatar_url || undefined,
+        userLevel: currentUser?.user_level || 1,
+        isHost: currentUserId === streamData?.host_id,
+        countryFlag: currentUser?.country_flag || undefined,
+        message: contentToSend,
+        messageType: 'text',
+      });
     }
   };
+
 
   const calculateDuration = () => {
     const diff = Date.now() - streamStartTime;
