@@ -896,8 +896,6 @@ const App = () => {
             if (!mounted || window.location.pathname.startsWith('/admin')) return;
             
             try {
-              await runLegacyProfileSync(session.user.id);
-
               let { data: profile } = await supabase
                 .from('profiles')
                 .select('id, gender')
