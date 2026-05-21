@@ -1444,50 +1444,50 @@ export default function AdminLayout() {
         '/admin/logs': 0,
         // User System
         '/admin/user-hub': userHubCount,
-        '/admin/host-applications': hostAppRes.count || 0,
-        '/admin/face-verification': userVerifyRes.count || 0,
-        '/admin/user-reports': userReportsRes?.count || 0,
-        '/admin/live-bans': liveBansRes?.count || 0,
-        '/admin/face-violations': facViolationsRes?.count || 0,
-        '/admin/moderation': moderationRes?.count || 0,
-        '/admin/user-management': hostConvRes?.count || 0,
+        '/admin/host-applications': hostAppCount,
+        '/admin/face-verification': userVerifyCount,
+        '/admin/user-reports': userReportsCount,
+        '/admin/live-bans': liveBansCount,
+        '/admin/face-violations': faceViolationsCount,
+        '/admin/moderation': moderationCount,
+        '/admin/user-management': hostConvCount,
         // Agency System
         '/admin/agency-hub': agencyHubCount,
-        '/admin/withdrawals': withdrawalRes.count || 0,
-        '/admin/agencies': agencyTransfersRes?.count || 0,
+        '/admin/withdrawals': agencyWithdrawalCount,
+        '/admin/agencies': agencyTransfersCount,
         // Level & VIP
         '/admin/level-management': 0,
         '/admin/vip-management': 0,
-        '/admin/ranking-rewards': leaderboardRewardsRes?.count || 0,
+        '/admin/ranking-rewards': leaderboardRewardsCount,
         // Visual Assets
         '/admin/visual-assets': 0,
         // Calling
         '/admin/pricing-hub': 0,
         // Coin & Finance
-        '/admin/coin-trader-hub': coinTransfersRes?.count || 0,
+        '/admin/coin-trader-hub': coinTransfersCount,
         '/admin/finance': financeCount,
-        '/admin/payroll-orders': payrollRes?.count || 0,
+        '/admin/payroll-orders': payrollCount,
         '/admin/recharge-history': 0,
-        '/admin/transfer-history': agencyTransfersRes?.count || 0,
+        '/admin/transfer-history': agencyTransfersCount,
         // Game
         '/admin/game-management': 0,
         // Content
         '/admin/content-management': contentCount,
         '/admin/rewards-management': 0,
-        '/admin/rating-rewards': ratingRewardsRes?.count || 0,
-        '/admin/leaderboard-management': leaderboardRewardsRes?.count || 0,
+        '/admin/rating-rewards': ratingRewardsCount,
+        '/admin/leaderboard-management': leaderboardRewardsCount,
         '/admin/gifts': 0,
         // Party
         '/admin/party-management': 0,
         // Support
         '/admin/support-tickets': supportCount,
-        '/admin/number-sharing': moderationRes?.count || 0,
-        '/admin/chat-inspector': moderationRes?.count || 0,
+        '/admin/number-sharing': moderationCount,
+        '/admin/chat-inspector': moderationCount,
         // Helpers
         '/admin/helper-management': helperManagementCount,
-        '/admin/helper-applications': helperAppRes.count || 0,
-        '/admin/helper-orders': helperOrdersRes?.count || 0,
-        '/admin/helper-requests': helperRepliesRes.count || 0,
+        '/admin/helper-applications': helperAppCount,
+        '/admin/helper-orders': helperOrdersCount,
+        '/admin/helper-requests': helperRepliesCount,
         // Settings
         '/admin/app-settings-hub': 0,
       });
