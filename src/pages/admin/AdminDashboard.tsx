@@ -278,7 +278,20 @@ export default function AdminDashboard() {
   }, []);
 
   useAdminRealtime(
-    ['profiles', 'gift_transactions', 'live_streams', 'agencies', 'private_calls', 'face_verification_submissions'],
+    [
+      'profiles',
+      'agencies',
+      'blocked_users',
+      'live_streams',
+      'party_rooms',
+      'gift_transactions',
+      'private_calls',
+      'face_verification_submissions',
+      'recharge_transactions',
+      'payment_transactions',
+      'coin_transactions',
+      'vip_daily_rewards_log',
+    ],
     () => { loadData(); }
   );
 
