@@ -935,6 +935,17 @@ const PartyRoom = () => {
         return;
       }
 
+      // --- participant_left (Pkg81b) ---
+      // Translated from LiveKit RoomEvent.ParticipantDisconnected by
+      // livekitPartyEventsSignaling. Replaces participants DELETE
+      // postgres_changes. Just refresh participants list — DB state is
+      // already reconciled by the leaving client's leaveRoom RPC.
+      if (payload.type === 'participant_left') {
+        console.log('[PartyRoom] 🟣 ⚡ Pkg81b livekit participant_left:', (payload as any).userId);
+        fetchParticipants();
+        return;
+      }
+
       // --- room_state_changed (Pkg81) ---
       if (payload.type === 'room_state_changed') {
         const data = payload as RoomStateChangedPayload;
@@ -970,8 +981,10 @@ const PartyRoom = () => {
       window.removeEventListener('livekit-party-event', handleLiveKitPartyEvent);
       leaveRoom();
       cleanupWebRTC();
-      supabase.removeChannel(participantChannel);
-      // Pkg81: roomStatusChannel is null (channel deleted, LiveKit-only).
+      // Pkg81b/c: participantChannel + participantChannelContinued deleted (null refs).
+      if (participantChannel) supabase.removeChannel(participantChannel);
+      if (participantChannelContinued) supabase.removeChannel(participantChannelContinued);
+      // Pkg81: roomStatusChannel deleted (null ref).
       if (roomStatusChannel) supabase.removeChannel(roomStatusChannel);
       // Pkg78: giftBroadcastChannel + roomCloseBroadcastChannel removed (null refs).
       // Pkg80: joinBroadcastChannel removed (null ref).
@@ -980,6 +993,7 @@ const PartyRoom = () => {
       if (roomCloseBroadcastChannel) supabase.removeChannel(roomCloseBroadcastChannel);
     };
     }, [roomId, markOptimisticPartyGiftCount]);
+
 
   // ============= POLLING FALLBACK FOR ROOM CLOSE DETECTION =============
   // In case realtime subscription fails, poll every 5 seconds to check room status
