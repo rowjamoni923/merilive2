@@ -148,6 +148,7 @@ export function ActiveCallScreen({
     remoteVideoTrack,
     localVideoTrack,
     isNativeMediaActive,
+    localMediaReady,
     isConnected,
     isAudioEnabled,
     isVideoEnabled,
@@ -188,13 +189,13 @@ export function ActiveCallScreen({
       return;
     }
 
-    const mediaLive = !!localStream && isConnected;
+    const mediaLive = (localMediaReady || !!localStream || isNativeMediaActive) && isConnected;
     if (!mediaLive) return;
     if (mediaConnectedNotifiedRef.current === callId) return;
 
     mediaConnectedNotifiedRef.current = callId;
     onMediaConnected?.(callId);
-  }, [isOpen, callId, callStatus, localStream, isConnected, onMediaConnected]);
+  }, [isOpen, callId, callStatus, localMediaReady, localStream, isNativeMediaActive, isConnected, onMediaConnected]);
 
   // Fetch user coins, display name AND host photos
   useEffect(() => {
