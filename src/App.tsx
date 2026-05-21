@@ -1306,7 +1306,7 @@ const App = () => {
                   <Route path="email-broadcast" element={<AdminRouteGuard routeSegment="email-broadcast"><AdminEmailBroadcast /></AdminRouteGuard>} />
                   <Route path="leaderboard-management" element={<AdminRouteGuard routeSegment="leaderboard-management"><AdminLeaderboardManagement /></AdminRouteGuard>} />
                   <Route path="allowed-links" element={<AdminRouteGuard routeSegment="allowed-links"><AdminAllowedLinks /></AdminRouteGuard>} />
-                  <Route path="agora-settings" element={<AdminRouteGuard routeSegment="agora-settings"><AdminAgoraSettings /></AdminRouteGuard>} />
+                  
                   <Route path="theme-manager" element={<AdminRouteGuard routeSegment="theme-manager"><AdminThemeManager /></AdminRouteGuard>} />
                   <Route path="rating-rewards" element={<AdminRouteGuard routeSegment="rating-rewards"><AdminRatingRewards /></AdminRouteGuard>} />
                   <Route path="icon-registry" element={<AdminRouteGuard routeSegment="icon-registry"><AdminIconRegistry /></AdminRouteGuard>} />
