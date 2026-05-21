@@ -42,7 +42,8 @@ import {
 
 export type PartyEventType =
   | 'participant_joined'
-  | 'seat_action';
+  | 'seat_action'
+  | 'room_state_changed';
 
 export interface ParticipantJoinedPayload {
   type: 'participant_joined';
@@ -73,7 +74,36 @@ export interface SeatActionPayload {
   timestamp: number;
 }
 
-export type PartyEventPayload = ParticipantJoinedPayload | SeatActionPayload;
+/**
+ * Pkg81: replaces 3 Supabase Realtime channels in PartyRoom.tsx:
+ *   - `party-room-bg-${roomId}`     (party_rooms.background_id UPDATE)
+ *   - `party-room-status-${roomId}` (party_rooms.active_seats / is_active UPDATE)
+ *   - active_seats half of `party-room-all-${roomId}`
+ *
+ * Sender = host (only host can change bg/seats). Receiver = every participant.
+ * Late-join state comes from the existing party_rooms SELECT on mount —
+ * no postgres_changes subscription required.
+ */
+export interface RoomStateChangedPayload {
+  type: 'room_state_changed';
+  roomId: string;
+  /** Pre-resolved background row so receivers skip a `party_room_backgrounds` round-trip. */
+  background?: {
+    id: string;
+    image_url?: string | null;
+    gradient_css?: string | null;
+  } | null;
+  /** Direct background_url (when host picks a free preset that doesn't have a backgrounds row). */
+  background_url?: string | null;
+  active_seats?: number;
+  is_active?: boolean;
+  timestamp: number;
+}
+
+export type PartyEventPayload =
+  | ParticipantJoinedPayload
+  | SeatActionPayload
+  | RoomStateChangedPayload;
 
 export interface PartyEventDetail<P extends PartyEventPayload = PartyEventPayload> {
   payload: P;
@@ -98,6 +128,7 @@ const FAMILY = 'party' as const;
 const PARTY_EVENT_TYPES: ReadonlySet<string> = new Set<PartyEventType>([
   'participant_joined',
   'seat_action',
+  'room_state_changed',
 ]);
 
 function makeHandler(roomId: string) {
