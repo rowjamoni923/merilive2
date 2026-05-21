@@ -449,13 +449,19 @@ export function usePartyRoomWebRTC(
           console.warn('[Pkg76] registerGiftRoom(party) failed:', err);
         }
 
-        // Pkg80: bind for participant_joined + seat_action ephemeral
-        // events. Replaces `join_broadcast_party_${roomId}` channel and
-        // the in-`party-room-all-` seat_action broadcast listener.
+        // Pkg80: bind for participant_joined + seat_action ephemeral events.
         try {
           registerPartyEventsRoom(roomId, room);
         } catch (err) {
           console.warn('[Pkg80] registerPartyEventsRoom failed:', err);
+        }
+
+        // Pkg81c: bind for in-room chat DataPackets. Replaces the
+        // `party-chat-${roomId}` Supabase postgres_changes subscription.
+        try {
+          registerChatRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg81c] registerChatRoom(party) failed:', err);
         }
 
         setState(prev => ({
