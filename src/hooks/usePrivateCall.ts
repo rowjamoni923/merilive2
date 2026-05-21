@@ -1371,9 +1371,34 @@ export function usePrivateCall(userId: string | null) {
       })
       .subscribe();
 
+    // 🔥 Pkg73: LiveKit DataPacket peer notification (sub-50ms, no DB round-trip).
+    // Mirrors the Supabase 'call_ended' handler above; both paths converge on
+    // softEndCallRef + endedCallIdsRef so the same call is processed exactly once.
+    const handleLiveKitCallEnded = (ev: Event) => {
+      if (isCleanedUp) return;
+      const detail = (ev as CustomEvent<CallEndedDetail>).detail;
+      if (!detail?.callId) return;
+
+      const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
+      if (trackedCallId !== detail.callId) return;
+
+      if (endedCallIdsRef.current.has(detail.callId) || callEndedRef.current) return;
+      if (detail.endedBy === userId) return;
+
+      console.log('[Pkg73] ⚡ LiveKit call-end received for:', detail.callId, 'by:', detail.endedBy);
+      softEndCallRef.current?.();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('livekit-call-ended', handleLiveKitCallEnded);
+    }
+
     return () => {
       isCleanedUp = true;
       supabase.removeChannel(endChannel);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
+      }
     };
   }, [userId]);
 
