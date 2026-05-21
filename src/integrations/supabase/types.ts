@@ -4081,6 +4081,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           min_level: number | null
+          min_level_host: number | null
+          min_level_user: number | null
           min_vip_level: number | null
           updated_at: string | null
         }
@@ -4091,6 +4093,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           min_level?: number | null
+          min_level_host?: number | null
+          min_level_user?: number | null
           min_vip_level?: number | null
           updated_at?: string | null
         }
@@ -4101,6 +4105,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           min_level?: number | null
+          min_level_host?: number | null
+          min_level_user?: number | null
           min_vip_level?: number | null
           updated_at?: string | null
         }
