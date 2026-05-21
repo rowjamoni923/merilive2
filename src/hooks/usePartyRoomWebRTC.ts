@@ -17,6 +17,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+import { toast } from 'sonner';
 
 interface PartyWebRTCState {
   localStream: MediaStream | null;
@@ -43,10 +44,14 @@ export function usePartyRoomWebRTC(
     isAudioEnabled: true,
     isVideoEnabled: true,
   });
+  const [restartNonce, setRestartNonce] = useState(0);
 
   const roomRef = useRef<Room | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
   const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initRetryCountRef = useRef(0);
+  const deadRef = useRef(false);
 
   const detachAudioForIdentity = (identity: string) => {
     const els = audioElementsRef.current.get(identity);
@@ -66,12 +71,19 @@ export function usePartyRoomWebRTC(
 
   const cleanup = useCallback(() => {
     console.log('[PartyLiveKit] Cleaning up...');
+    deadRef.current = true;
+
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
       roomRef.current = null;
     }
 
+    destroyBeautyProcessor();
     detachAllAudio();
     peerStreamsRef.current.clear();
 
@@ -105,10 +117,12 @@ export function usePartyRoomWebRTC(
   }, [state.isVideoEnabled]);
 
   useEffect(() => {
-    if (!roomId || !userId || roomType === 'game') {
+    if (!roomId || !userId) {
       console.log('[PartyLiveKit] Skipping init - roomId:', roomId, 'userId:', userId, 'roomType:', roomType);
       return;
     }
+
+    deadRef.current = false;
 
     const roomName = `party_${roomId}`;
 
@@ -156,6 +170,73 @@ export function usePartyRoomWebRTC(
             }
           });
           return ms;
+        };
+
+        const resetLocalPublications = async () => {
+          const publications = Array.from(room.localParticipant.trackPublications.values());
+          for (const pub of publications) {
+            if (!pub.track) continue;
+            try { await (room.localParticipant as any).unpublishTrack(pub.track, true); } catch { /* ignore */ }
+          }
+          rebuildLocalStream();
+        };
+
+        const publishLocalMediaWithRetry = async () => {
+          const previewStream = consumePreparedHostPreviewStream();
+          let lastError: unknown = null;
+
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              if (attempt > 1) {
+                await resetLocalPublications();
+                await new Promise((resolve) => setTimeout(resolve, 350 * attempt));
+              }
+
+              if (previewStream && attempt === 1) {
+                console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
+                const preloadedVideoTrack = previewStream.getVideoTracks()[0];
+                const preloadedAudioTrack = previewStream.getAudioTracks()[0];
+
+                if (roomType === 'video' && preloadedVideoTrack?.readyState === 'live') {
+                  const beautifiedTrack = await processTrackWithBeauty(preloadedVideoTrack);
+                  await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
+                } else if (roomType === 'video') {
+                  await room.localParticipant.setCameraEnabled(true);
+                }
+
+                if (preloadedAudioTrack?.readyState === 'live') {
+                  await room.localParticipant.publishTrack(preloadedAudioTrack as any, { source: Track.Source.Microphone } as any);
+                } else {
+                  await room.localParticipant.setMicrophoneEnabled(true);
+                }
+              } else if (roomType === 'video') {
+                await room.localParticipant.enableCameraAndMicrophone();
+              } else if (roomType === 'audio' || roomType === 'game') {
+                await room.localParticipant.setMicrophoneEnabled(true);
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, 250));
+              rebuildLocalStream();
+
+              const hasVideo = Array.from(room.localParticipant.trackPublications.values())
+                .some((pub) => pub.kind === Track.Kind.Video && pub.track?.mediaStreamTrack?.readyState === 'live');
+              const hasAudio = Array.from(room.localParticipant.trackPublications.values())
+                .some((pub) => pub.kind === Track.Kind.Audio && pub.track?.mediaStreamTrack?.readyState === 'live');
+
+              if ((roomType !== 'video' || hasVideo) && hasAudio) {
+                console.log(`[PartyLiveKit] ✅ Local media published on attempt ${attempt}`);
+                return;
+              }
+
+              throw new Error(`party_media_missing_tracks video=${hasVideo} audio=${hasAudio}`);
+            } catch (error) {
+              lastError = error;
+              console.warn(`[PartyLiveKit] Local media publish attempt ${attempt} failed:`, error);
+            }
+          }
+
+          toast.error(roomType === 'video' ? 'Camera or mic failed to start. Please reopen the party room.' : 'Mic failed to start. Please reopen the party room.');
+          throw lastError instanceof Error ? lastError : new Error(String(lastError || 'party_media_publish_failed'));
         };
 
         room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack, pub: RemoteTrackPublication, participant: RemoteParticipant) => {
@@ -272,9 +353,28 @@ export function usePartyRoomWebRTC(
         }));
         });
 
+        room.on(RoomEvent.ConnectionStateChanged, (connectionState: ConnectionState) => {
+          if (connectionState === ConnectionState.Connected) {
+            if (reconnectTimerRef.current) {
+              clearTimeout(reconnectTimerRef.current);
+              reconnectTimerRef.current = null;
+            }
+            setState(prev => ({ ...prev, isConnected: true }));
+          }
+        });
+
         room.on(RoomEvent.Disconnected, () => {
           console.log('[PartyLiveKit] Room disconnected');
           setState(prev => ({ ...prev, isConnected: false }));
+          if (!deadRef.current && !reconnectTimerRef.current) {
+            try { room.disconnect(true); } catch { /* ignore */ }
+            reconnectTimerRef.current = setTimeout(() => {
+              reconnectTimerRef.current = null;
+              if (deadRef.current) return;
+              console.warn('[PartyLiveKit] Unexpected disconnect, restarting room session');
+              setRestartNonce(prev => prev + 1);
+            }, 1200);
+          }
         });
 
         // CRITICAL: Rebuild localStream whenever local tracks are published/unpublished
@@ -332,32 +432,7 @@ export function usePartyRoomWebRTC(
           await room.localParticipant.setCameraEnabled(false);
           await room.localParticipant.setMicrophoneEnabled(false);
         } else {
-          // Enable media based on room type, reusing preloaded tracks when available
-          const previewStream = consumePreparedHostPreviewStream();
-
-          if (previewStream) {
-            console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
-            const preloadedVideoTrack = previewStream.getVideoTracks()[0];
-            const preloadedAudioTrack = previewStream.getAudioTracks()[0];
-
-            if (preloadedVideoTrack && preloadedVideoTrack.readyState === 'live') {
-              // Apply Tencent Beauty (Web only, graceful fallback)
-              const beautifiedTrack = await processTrackWithBeauty(preloadedVideoTrack);
-              await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
-            } else if (roomType === 'video') {
-              await room.localParticipant.setCameraEnabled(true);
-            }
-
-            if (preloadedAudioTrack && preloadedAudioTrack.readyState === 'live') {
-              await room.localParticipant.publishTrack(preloadedAudioTrack as any, { source: Track.Source.Microphone } as any);
-            } else {
-              await room.localParticipant.setMicrophoneEnabled(true);
-            }
-          } else if (roomType === 'video') {
-            await room.localParticipant.enableCameraAndMicrophone();
-          } else if (roomType === 'audio') {
-            await room.localParticipant.setMicrophoneEnabled(true);
-          }
+          await publishLocalMediaWithRetry();
         }
 
         // Build local stream (initial pass)
@@ -410,9 +485,20 @@ export function usePartyRoomWebRTC(
         setTimeout(forceSubscribePass, 80);
         setTimeout(forceSubscribePass, 200);
         setTimeout(forceSubscribePass, 500);
+        initRetryCountRef.current = 0;
 
       } catch (error) {
         console.error('[PartyLiveKit] Initialization error:', error);
+        if (!deadRef.current && initRetryCountRef.current < 3) {
+          initRetryCountRef.current += 1;
+          reconnectTimerRef.current = setTimeout(() => {
+            reconnectTimerRef.current = null;
+            if (deadRef.current) return;
+            setRestartNonce(prev => prev + 1);
+          }, 1200 * initRetryCountRef.current);
+        } else if (!deadRef.current) {
+          toast.error('Party media could not connect. Please leave and rejoin once.');
+        }
       }
     };
 
@@ -421,7 +507,7 @@ export function usePartyRoomWebRTC(
     return () => {
       cleanup();
     };
-  }, [roomId, userId, roomType, partyCanPublish]);
+  }, [roomId, userId, roomType, partyCanPublish, restartNonce]);
 
   return {
     ...state,
