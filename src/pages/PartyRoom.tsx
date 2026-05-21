@@ -1667,8 +1667,7 @@ const PartyRoom = () => {
           .eq('room_id', roomId)
           .is('left_at', null);
         
-        // Cleanup broadcast channel
-        supabase.removeChannel(closeChannel);
+        // Pkg78: closeChannel removed; no cleanup needed.
       } else {
         // Regular participant leaving
         await supabase
