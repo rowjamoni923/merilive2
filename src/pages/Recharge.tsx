@@ -245,6 +245,7 @@ const Recharge = () => {
   const [uploadingProof, setUploadingProof] = useState(false);
   const [userCountryCode, setUserCountryCode] = useState<string | null>(null); // Start with null, load from profile first
   const [isAgencyOwner, setIsAgencyOwner] = useState(false);
+  const [isPersonalHelper, setIsPersonalHelper] = useState(false);
 
   // Get user's geolocation
   const geoLocation = useGeolocation(userId, true);
@@ -1544,6 +1545,18 @@ const Recharge = () => {
           }
           setIsAgencyOwner(!!(profileRes.data as any).is_agency_owner);
         }
+
+        // Detect if current user is an active + verified personal helper (trader)
+        try {
+          const { data: helperRow } = await supabase
+            .from('topup_helpers')
+            .select('id, is_active, is_verified')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          setIsPersonalHelper(!!(helperRow && helperRow.is_active && helperRow.is_verified));
+        } catch {
+          setIsPersonalHelper(false);
+        }
         
         setIsFirstRecharge(!firstRechargeRes.data);
         if (bonusConfigRes.data) {
@@ -2731,8 +2744,8 @@ const Recharge = () => {
                   </p>
                 </div>
 
-                {isAgencyOwner && (<>
-                {/* Diagnostic panel — WHY is it empty? (Agency owners only) */}
+                {(isAgencyOwner || isPersonalHelper) && (<>
+                {/* Diagnostic + tier-requirements + fallback CTA — Agency owners & active personal helpers ONLY (never for regular users) */}
                 <div className="rounded-2xl border border-amber-100 bg-gradient-to-b from-amber-50/60 to-white p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2.5">
                     <div className="flex items-center gap-2">
@@ -3044,9 +3057,8 @@ const Recharge = () => {
                     ))}
                   </div>
                 </div>
-                </>)}
 
-                {/* Fallback action */}
+                {/* Fallback action — also Agency/Helper only */}
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3.5 text-center">
                   <p className="text-[11px] font-semibold text-emerald-800 mb-1">
                     Want to recharge now?
@@ -3062,6 +3074,7 @@ const Recharge = () => {
                     Go to Diamond Store
                   </button>
                 </div>
+                </>)}
               </div>
             )}
           </div>
