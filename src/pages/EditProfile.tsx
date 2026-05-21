@@ -1142,7 +1142,10 @@ const EditProfile = () => {
       </Dialog>
 
       {/* Email Modal */}
-      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+      <Dialog open={showEmailModal} onOpenChange={(open) => {
+        setShowEmailModal(open);
+        if (!open) { setLinkStep("form"); setLinkOtp(""); }
+      }}>
         <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-heading text-center flex items-center justify-center gap-2">
@@ -1150,46 +1153,93 @@ const EditProfile = () => {
               Link Email Account
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div>
-              <Label className="text-sm text-heading">Email Address</Label>
-              <Input
-                type="email"
-                value={linkEmail}
-                onChange={(e) => setLinkEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600"
-              />
-            </div>
-            <div>
-              <Label className="text-sm text-heading">Set Password</Label>
-              <div className="relative mt-2">
+
+          {linkStep === "form" ? (
+            <div className="space-y-4 pt-4">
+              <div>
+                <Label className="text-sm text-heading">Email Address</Label>
                 <Input
-                  type={showLinkPassword ? "text" : "password"}
-                  value={linkPassword}
-                  onChange={(e) => setLinkPassword(e.target.value)}
-                  placeholder="Create a password"
-                  className="h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600 pr-12"
+                  type="email"
+                  value={linkEmail}
+                  onChange={(e) => setLinkEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600"
                 />
+              </div>
+              <div>
+                <Label className="text-sm text-heading">Set Password</Label>
+                <div className="relative mt-2">
+                  <Input
+                    type={showLinkPassword ? "text" : "password"}
+                    value={linkPassword}
+                    onChange={(e) => setLinkPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                    className="h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600 pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLinkPassword(!showLinkPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    {showLinkPassword ? <EyeOff className="w-5 h-5 text-body" /> : <Eye className="w-5 h-5 text-body" />}
+                  </button>
+                </div>
+              </div>
+              <Button
+                onClick={handleSendLinkOtp}
+                disabled={linkOtpSending}
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90"
+              >
+                {linkOtpSending ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : "Send Verification Code"}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4 pt-4">
+              <p className="text-sm text-body text-center">
+                We sent a 6-digit code to <span className="font-semibold text-heading">{linkEmail}</span>
+              </p>
+              <div>
+                <Label className="text-sm text-heading">Verification Code</Label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={linkOtp}
+                  onChange={(e) => setLinkOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="123456"
+                  className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600 text-center text-xl tracking-[0.4em] font-bold"
+                />
+              </div>
+              <Button
+                onClick={handleEmailLinking}
+                disabled={emailLinking || linkOtp.length !== 6}
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90"
+              >
+                {emailLinking ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : "Verify & Link Email"}
+              </Button>
+              <div className="flex items-center justify-between text-sm">
                 <button
                   type="button"
-                  onClick={() => setShowLinkPassword(!showLinkPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  onClick={() => setLinkStep("form")}
+                  className="text-blue-600 hover:underline"
                 >
-                  {showLinkPassword ? <EyeOff className="w-5 h-5 text-body" /> : <Eye className="w-5 h-5 text-body" />}
+                  ← Change email
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendLinkOtp}
+                  disabled={linkOtpSending || linkOtpCooldown > 0}
+                  className="text-blue-600 hover:underline disabled:text-slate-400 disabled:no-underline"
+                >
+                  {linkOtpCooldown > 0 ? `Resend in ${linkOtpCooldown}s` : "Resend code"}
                 </button>
               </div>
             </div>
-            <Button 
-              onClick={handleEmailLinking}
-              disabled={emailLinking}
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90"
-            >
-              {emailLinking ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : "Link Email & Set Password"}
-            </Button>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
