@@ -132,6 +132,13 @@ class NativeLiveKitController {
     }
   }
 
+  async attachAllRemotes(): Promise<void> {
+    if (!this.connected) return;
+    try { await NativeLiveKit.attachAllRemotes(); } catch (e) {
+      console.warn('[NativeLiveKitController] attachAllRemotes failed:', e);
+    }
+  }
+
   // --- Audio routing (Step 11) ----------------------------------
   async setSpeakerphone(enabled: boolean): Promise<void> {
     try { await NativeLiveKit.setSpeakerphoneEnabled({ enabled }); } catch (e) {

@@ -212,6 +212,7 @@ export interface NativeLiveKitPlugin {
   switchCamera(): Promise<void>;
   attachLocal(): Promise<void>;
   attachRemote(opts: { sid: string }): Promise<void>;
+  attachAllRemotes(): Promise<{ attached: number }>;
   detachAll(): Promise<void>;
 
   // --- Audio routing (Step 11) ---------------------------------
