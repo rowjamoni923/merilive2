@@ -202,8 +202,7 @@ export function ActiveCallScreen({
     const fetchUserInfo = async () => {
       if (!userId) return;
       const { data } = await supabase
-        // guard-ok: owner-only balance read for the authenticated caller/host; not a cross-user profile lookup.
-        .from('profiles')
+        .from('profiles') // guard-ok: owner-only balance read for authenticated caller/host, not cross-user.
         .select('coins, display_name, avatar_url, user_level')
         .eq('id', userId)
         .single();
