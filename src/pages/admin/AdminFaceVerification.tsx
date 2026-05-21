@@ -1037,36 +1037,13 @@ const AdminFaceVerification = () => {
             return (
               <div className="space-y-5">
                 {isPendingBucket(selectedSubmission) && (
-                  <div className="sticky top-0 z-20 rounded-xl border border-border bg-background/95 p-3 shadow-xl backdrop-blur">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <Button
-                        disabled={processing}
-                        onClick={() => approveSubmissionAs(selectedSubmission)}
-                      >
-                        <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
-                      </Button>
-                      <Button
-                        variant="outline"
-                        disabled={processing}
-                        onClick={() => approveSubmissionAs(selectedSubmission, 'host')}
-                      >
-                        <Mic className="w-4 h-4 mr-2" /> Host
-                      </Button>
-                      <Button
-                        variant="outline"
-                        disabled={processing}
-                        onClick={() => approveSubmissionAs(selectedSubmission, 'user')}
-                      >
-                        <User className="w-4 h-4 mr-2" /> User
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        disabled={processing}
-                        onClick={() => processSubmissionAction({ submission: selectedSubmission, action: 'reject', reason: actionReason })}
-                      >
-                        <XCircle className="w-4 h-4 mr-2" /> Reject
-                      </Button>
-                    </div>
+                  <div className="sticky top-0 z-20 rounded-2xl border border-amber-500/25 bg-background/95 p-3 shadow-xl backdrop-blur">
+                    <RoleApproveBar
+                      defaultRole={selectedSubmission.verification_type === 'host' ? 'host' : 'user'}
+                      processing={processing}
+                      onApprove={(role) => approveSubmissionAs(selectedSubmission, role)}
+                      onReject={() => processSubmissionAction({ submission: selectedSubmission, action: 'reject', reason: actionReason })}
+                    />
                   </div>
                 )}
 
