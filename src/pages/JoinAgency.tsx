@@ -319,14 +319,14 @@ const JoinAgency = () => {
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
                   {pendingRequest.agency_logo_url ? (
-                    <Avatar className="w-14 h-14 rounded-xl">
+                  <Avatar className="w-14 h-14 rounded-xl">
                       <AvatarImage src={pendingRequest.agency_logo_url} />
                       <AvatarFallback>
-                        <Building2 className="w-7 h-7 text-slate-800" />
+                        <Building2 className="w-7 h-7 text-white" />
                       </AvatarFallback>
                     </Avatar>
                   ) : (
-                    <Building2 className="w-7 h-7 text-slate-800" />
+                    <Building2 className="w-7 h-7 text-white" />
                   )}
                 </div>
                 <div className="flex-1">
@@ -489,7 +489,7 @@ const JoinAgency = () => {
           </div>
           <div>
             <h2 className="text-xl font-bold">Join Agency</h2>
-            <p className="text-slate-700 text-sm">Join with agency code</p>
+            <p className="text-white/90 text-sm">Join with agency code</p>
           </div>
         </div>
       </div>
@@ -527,7 +527,7 @@ const JoinAgency = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-slate-800" />
+                  <Building2 className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <p className="font-semibold text-green-800">{foundAgency.name}</p>
