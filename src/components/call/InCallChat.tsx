@@ -93,10 +93,12 @@ export const InCallChat = memo(({
     let actualName = userName;
     if (userName === "You") {
       const { data } = await supabase
+        // guard-ok: own profile self-read for display_name (userId === auth.uid())
         .from('profiles')
         .select('display_name')
         .eq('id', userId)
         .single();
+
       if (data?.display_name) actualName = data.display_name;
     }
 
