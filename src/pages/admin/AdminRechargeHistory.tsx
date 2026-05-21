@@ -337,14 +337,18 @@ const AdminRechargeHistory = () => {
         .filter(r => r.source === 'diamond_transfer' && r.payment_details?.sender_id)
         .map(r => r.payment_details.sender_id))];
 
-      const allProfileIds = [...new Set([...userIds, ...senderIds])];
+      const allProfileIds = [...new Set([...userIds, ...senderIds])].filter(Boolean);
 
-      const { data: userProfiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, app_uid')
-        .in('id', allProfileIds.length > 0 ? allProfileIds : ['none']);
+      let userProfiles: any[] = [];
+      if (allProfileIds.length > 0) {
+        const { data } = await supabase
+          .from('profiles_public')
+          .select('id, display_name, avatar_url, app_uid')
+          .in('id', allProfileIds);
+        userProfiles = data || [];
+      }
 
-      const profileMap = new Map(userProfiles?.map(p => [p.id, p]) || []);
+      const profileMap = new Map(userProfiles.map(p => [p.id, p]));
 
       const helperNameMap = new Map<string, string>();
       if (helperIds.length > 0) {
