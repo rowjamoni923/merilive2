@@ -73,6 +73,12 @@ interface UseLiveKitClientOptions {
    * and incoming `chat_message` packets reach window event listeners.
    * The `stream_chat` row remains the source of truth for moderation. */
   chatSignalingStreamId?: string | null;
+  /** Pkg82a: When set, the underlying Room is registered with the
+   * live-events registry so `publishLiveEvent(id, …)` works and incoming
+   * `viewer_joined` packets (plus local `viewer_left` from LiveKit
+   * ParticipantDisconnected) reach window event listeners. The
+   * `stream_viewers` rows remain the source of truth for durable state. */
+  liveEventsStreamId?: string | null;
 }
 
 
@@ -1248,6 +1254,34 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.chatSignalingStreamId, isJoined]);
+
+  // Pkg82a: Bind streamId → Room for LiveKit-based viewer presence signaling.
+  // Reuses the SAME Room (DataReceived + ParticipantDisconnected support
+  // multiple listeners). Replaces 3 Supabase Realtime channels in LiveStream.tsx.
+  useEffect(() => {
+    const streamId = options.liveEventsStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitLiveEventsSignaling');
+        if (cancelled) return;
+        mod.registerLiveEventsRoom(streamId, room);
+      } catch (e) {
+        console.warn('[Pkg82a] registerLiveEventsRoom failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitLiveEventsSignaling').then((mod) => {
+        mod.unregisterLiveEventsRoom(streamId);
+      }).catch(() => {});
+    };
+  }, [options.liveEventsStreamId, isJoined]);
+
+
 
 
   return {
