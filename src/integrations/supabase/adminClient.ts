@@ -209,7 +209,10 @@ const adminFetch: typeof fetch = (input, init) => {
       ttlMs: 90_000,
       staleWhileRevalidateMs: 10 * 60_000,
       maxEntries: 320,
-      skipUrl: (requestUrl) => requestUrl.includes('/rest/v1/rpc/admin_authenticate') || requestUrl.includes('/rest/v1/notifications'),
+      // Admin RPCs power live counters, permissions, and financial summaries.
+      // Never serve them from session cache: stale RPC JSON made dashboard counts
+      // show old zero values even after the database was already correct.
+      skipUrl: (requestUrl) => requestUrl.includes('/rest/v1/rpc/') || requestUrl.includes('/rest/v1/notifications'),
     }).then(logIfFailed);
     inflight.set(key, { p, t: now });
     p.finally(() => {
