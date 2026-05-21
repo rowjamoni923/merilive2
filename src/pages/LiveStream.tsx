@@ -915,52 +915,12 @@ const LiveStream = () => {
   }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
 
 
-  // Subscribe to real-time gift transactions for THIS session's bean count
-  // IMPORTANT: Only shows gifts received during THIS live session, NOT profile total
-  useEffect(() => {
-    if (!streamData?.host_id || !id) return;
-    
-    const channel = supabase
-      .channel(`session_beans_${id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "gift_transactions",
-        },
-        (payload: any) => {
-          // Only count gifts for THIS stream session
-          if (payload.new?.stream_id === id && payload.new?.receiver_id === streamData.host_id) {
-            const giftAmount = Number(payload.new?.receiver_beans ?? payload.new?.coin_amount ?? 0);
-            const giftKey = getGiftRealtimeKey(
-              payload.new?.sender_id,
-              payload.new?.gift_id,
-              payload.new?.coin_amount,
-              payload.new?.quantity
-            );
-            const optimistic = recentBroadcastGiftKeysRef.current.get(giftKey);
+  // ========== Pkg82b: session_beans_${id} Supabase channel DELETED ==========
+  // LiveKit-Purist policy: gift bean updates flow through Pkg76 envelope
+  // (`livekit-gift-sent` window event handled below) — sole instant path.
+  // gift_transactions DB write still occurs via process_gift_transaction RPC
+  // for audit/leaderboard, but no realtime subscription on it.
 
-            if (optimistic) {
-              recentBroadcastGiftKeysRef.current.delete(giftKey);
-              if (optimistic.beans !== giftAmount) {
-                setTotalBeans(prev => Math.max(0, prev - optimistic.beans + giftAmount));
-              }
-              console.log('[LiveStream] Session beans confirmed by DB:', giftAmount);
-              return;
-            }
-
-            setTotalBeans(prev => prev + giftAmount);
-            console.log('[LiveStream] Session beans updated +', giftAmount);
-          }
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [streamData?.host_id, id, getGiftRealtimeKey]);
 
   // ========== Pkg78: LiveKit-ONLY gift broadcast receiver ==========
   // Supabase `gift_broadcast_${id}` channel removed — LiveKit DataPacket
@@ -1117,49 +1077,28 @@ const LiveStream = () => {
   }, [id, currentUserId, addBigoJoinNotification, addEntryAnimation]);
 
 
-  // This ensures no gifts are missed if broadcast fails
+  // ========== Pkg82b: stream_gift_fallback_${id} Supabase channel DELETED ==========
+  // LiveKit-Purist policy: no `postgres_changes` on gift_transactions.
+  // Host-side bean reconciliation now uses a 30s REST safety-net poll
+  // (safe per $1400-bill rule: ≥30s, host-only, single row sum).
+  // Pkg76 envelope remains the instant path; this only catches the rare
+  // case where the host's tab missed a DataPacket (e.g. backgrounded).
   useEffect(() => {
-    if (!id) return;
-    
-    const giftChannel = supabase
-      .channel(`stream_gift_fallback_${id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "gift_transactions",
-        },
-        async (payload: any) => {
-          // Only process gifts for THIS stream
-          if (payload.new?.stream_id !== id) return;
-          
-          // Skip own gifts
-          if (payload.new?.sender_id === currentUserId) return;
-          
-          // The broadcast channel handles instant display
-          // This fallback only updates beans counter if broadcast was missed
-          if (isHost && payload.new?.receiver_id === streamData?.host_id) {
-            // Beans are already updated via broadcast, but sync with DB value
-            const { data: freshStream } = await supabase
-              .from("gift_transactions")
-              .select("coin_amount")
-              .eq("stream_id", id)
-              .eq("receiver_id", streamData.host_id);
-            
-            if (freshStream) {
-              const totalFromDb = freshStream.reduce((sum: number, tx: any) => sum + (tx.coin_amount || 0), 0);
-              setTotalBeans(totalFromDb);
-            }
-          }
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(giftChannel);
+    if (!id || !isHost || !streamData?.host_id) return;
+    const reconcile = async () => {
+      const { data } = await supabase
+        .from('gift_transactions')
+        .select('coin_amount')
+        .eq('stream_id', id)
+        .eq('receiver_id', streamData.host_id);
+      if (!data || !mountedRef.current) return;
+      const totalFromDb = data.reduce((s: number, tx: any) => s + (tx.coin_amount || 0), 0);
+      setTotalBeans((prev) => (totalFromDb > prev ? totalFromDb : prev));
     };
-  }, [id, streamData?.host_id, currentUserId, isHost]);
+    const timer = setInterval(reconcile, 30000); // safety-net poll: 30s (Pkg57 floor)
+    return () => clearInterval(timer);
+  }, [id, isHost, streamData?.host_id]);
+
 
   // State for stream ended modal (for viewers)
   const [showStreamEndedModal, setShowStreamEndedModal] = useState(false);
