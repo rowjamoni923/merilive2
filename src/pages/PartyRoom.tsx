@@ -54,6 +54,7 @@ import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { publishGiftSent, type GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload } from "@/lib/livekitPartyEventsSignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
 import { GameSelectionModal } from "@/components/party/GameSelectionModal";
