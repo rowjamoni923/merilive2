@@ -129,40 +129,42 @@ Deno.serve(async (req) => {
         if (!Number.isFinite(priceUsd) || priceUsd <= 0) return json({ error: "invalid_custom_price_usd" }, 400);
 
         // SERVER-SIDE FLOOR — Swift Pay's on-chain auto-verification has a hard
-        // minimum (the helper-application crypto flow). Even if a tampered
-        // client posts $1, the gateway will reject and we'd leak a pending row.
-        // Read the floor from app_settings.swift_pay_crypto_min_usd (jsonb
-        // { "min_usd": 100 } or raw number), default 100. Applies to the
-        // user_diamond custom path (helper-application upgrade fee).
-        let minUsd = 100;
-        try {
-          const { data: setting } = await admin
-            .from("app_settings")
-            .select("setting_value")
-            .eq("setting_key", "swift_pay_crypto_min_usd")
-            .maybeSingle();
-          const raw = setting?.setting_value as unknown;
-          const parsed = typeof raw === "number"
-            ? raw
-            : typeof raw === "string"
-              ? Number(raw)
-              : (raw && typeof raw === "object" && "min_usd" in (raw as Record<string, unknown>))
-                ? Number((raw as Record<string, unknown>).min_usd)
-                : NaN;
-          if (Number.isFinite(parsed) && parsed > 0) minUsd = parsed;
-        } catch {
-          // ignore — fall back to default 100
-        }
-        if (priceUsd < minUsd) {
-          return json({
-            error: "below_minimum",
-            min_usd: minUsd,
-            message: `Minimum crypto payment is $${minUsd}. Please choose a higher amount.`,
-          }, 400);
+        // minimum for the helper-application crypto flow (default $100). The
+        // campaign recharge flow mirrors the My Diamond package path and must
+        // NOT be floored — campaigns can be priced at any amount the admin sets.
+        const isCampaign = body.purpose === "campaign";
+        if (!isCampaign) {
+          let minUsd = 100;
+          try {
+            const { data: setting } = await admin
+              .from("app_settings")
+              .select("setting_value")
+              .eq("setting_key", "swift_pay_crypto_min_usd")
+              .maybeSingle();
+            const raw = setting?.setting_value as unknown;
+            const parsed = typeof raw === "number"
+              ? raw
+              : typeof raw === "string"
+                ? Number(raw)
+                : (raw && typeof raw === "object" && "min_usd" in (raw as Record<string, unknown>))
+                  ? Number((raw as Record<string, unknown>).min_usd)
+                  : NaN;
+            if (Number.isFinite(parsed) && parsed > 0) minUsd = parsed;
+          } catch {
+            // ignore — fall back to default 100
+          }
+          if (priceUsd < minUsd) {
+            return json({
+              error: "below_minimum",
+              min_usd: minUsd,
+              message: `Minimum crypto payment is $${minUsd}. Please choose a higher amount.`,
+            }, 400);
+          }
         }
       } else {
         return json({ error: "package_id or (custom_coins + custom_price_usd) required" }, 400);
       }
+
     }
 
     const idempotencyKey = crypto.randomUUID();
