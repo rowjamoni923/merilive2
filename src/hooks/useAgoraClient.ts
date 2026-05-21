@@ -71,6 +71,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   const [connectionState, setConnectionState] = useState<'DISCONNECTED' | 'CONNECTING' | 'CONNECTED' | 'DISCONNECTING'>('DISCONNECTED');
   const [localVideoTrack, setLocalVideoTrack] = useState<any>(null);
   const [localAudioTrack, setLocalAudioTrack] = useState<any>(null);
+  const [isNativeMediaActive, setIsNativeMediaActive] = useState(false);
   const [screenTrack, setScreenTrack] = useState<any>(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState<Map<number, any>>(new Map());
@@ -295,6 +296,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
         usingNativeRef.current = true;
         setNativeActive(true);
+        setIsNativeMediaActive(true);
         channelRef.current = normalizedChannel;
         setIsJoined(true);
         setConnectionState('CONNECTED');
@@ -308,6 +310,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         console.error('[LiveKitClient/Native] join failed after retry, falling back to web:', nativeErr);
         usingNativeRef.current = false;
         setNativeActive(false);
+        setIsNativeMediaActive(false);
         // Surface to the host so they aren't stuck on a black "Starting camera..." UI.
         try { options.onError?.(nativeErr instanceof Error ? nativeErr : new Error(String((nativeErr as any)?.message || nativeErr))); } catch { /* ignore */ }
         // Fall through to web path — web livekit-client inside the WebView
@@ -545,6 +548,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       room.on(RoomEvent.LocalTrackPublished, (publication) => {
         if (publication.track) {
           if (publication.track.kind === Track.Kind.Video) {
+              setIsNativeMediaActive(false);
             console.log('[LiveKitClient] LocalTrackPublished: video');
             setLocalVideoTrack(publication.track);
             // CRYSTAL CLEAR: Set contentHint on every published video track
@@ -891,6 +895,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
         usingNativeRef.current = false;
         setNativeActive(false);
+        setIsNativeMediaActive(false);
       }
 
       if (roomRef.current) {
@@ -900,6 +905,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
       setLocalVideoTrack(null);
       setLocalAudioTrack(null);
+      setIsNativeMediaActive(false);
       setScreenTrack(null);
       setIsScreenSharing(false);
       setIsJoined(false);
@@ -1131,6 +1137,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     connectionState,
     localVideoTrack,
     localAudioTrack,
+    isNativeMediaActive,
     screenTrack,
     isScreenSharing,
     remoteUsers,

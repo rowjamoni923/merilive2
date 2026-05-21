@@ -147,6 +147,7 @@ export function ActiveCallScreen({
     remoteStream,
     remoteVideoTrack,
     localVideoTrack,
+    isNativeMediaActive,
     isConnected,
     isAudioEnabled,
     isVideoEnabled,
@@ -164,6 +165,7 @@ export function ActiveCallScreen({
   }, [remoteVideoTrack]);
 
   const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
+  const showNativeCallSurface = isNativeMediaActive && isConnected && !localVideoTrack && !remoteVideoTrack;
   const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
   const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
   const primaryHasVideo = isSwapped ? !!localVideoTrack && isVideoEnabled : hasRemoteVideo;
@@ -787,7 +789,7 @@ export function ActiveCallScreen({
         )}
 
         {/* ===== LIVE CONNECTED VIDEO LAYOUT - Vertical Top/Bottom ===== */}
-        {isLiveConnected && (
+        {isLiveConnected && !showNativeCallSurface && (
           <div className="absolute inset-0 z-[3]">
             {/* Full-screen primary (remote) video */}
             <div className="absolute inset-0">
