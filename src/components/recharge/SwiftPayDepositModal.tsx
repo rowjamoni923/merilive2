@@ -30,8 +30,11 @@ interface Props {
   userCustomCoins?: number | null;
   userCustomPriceUsd?: number | null;
   userCustomLabel?: string | null;
+  /** "helper_application" (default, server enforces $100 crypto floor) | "campaign" (no floor — mirrors My Diamond package flow) */
+  userCustomPurpose?: "helper_application" | "campaign";
   /** Called after successful credit so parent can refresh or proceed. */
   onCredited?: (coins: number, topupId?: string) => void;
+
 }
 
 // Recommendation logic (per owner directive):
