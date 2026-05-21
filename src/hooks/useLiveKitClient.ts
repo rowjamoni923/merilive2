@@ -1193,6 +1193,32 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     };
   }, [options.giftSignalingStreamId, isJoined]);
 
+  // Pkg77: Bind streamId → Room for INSTANT viewer count via LiveKit
+  // ParticipantConnected/Disconnected. Same Room reused, zero new channels.
+  useEffect(() => {
+    const streamId = options.viewerCountStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitViewerCount');
+        if (cancelled) return;
+        mod.registerViewerCountRoom(streamId, room);
+      } catch (e) {
+        console.warn('[Pkg77] registerViewerCountRoom failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitViewerCount').then((mod) => {
+        mod.unregisterViewerCountRoom(streamId);
+      }).catch(() => {});
+    };
+  }, [options.viewerCountStreamId, isJoined]);
+
+
   return {
     isInitialized,
     isJoined,
