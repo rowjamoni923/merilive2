@@ -227,6 +227,23 @@ export async function publishPartyEvent(
   }
 }
 
+/**
+ * Pkg81 helper — convenience wrapper for the host-only `room_state_changed`
+ * publish. Always safe to call from any code path (no-op when caller is not
+ * the host LiveKit publisher / room not registered / kill-switch off).
+ */
+export async function publishRoomStateChanged(
+  roomId: string,
+  patch: Omit<RoomStateChangedPayload, 'type' | 'roomId' | 'timestamp'>,
+): Promise<boolean> {
+  return publishPartyEvent(roomId, {
+    type: 'room_state_changed',
+    roomId,
+    timestamp: Date.now(),
+    ...patch,
+  });
+}
+
 /** Test-only — clears the registry between specs. */
 export function __resetPartyEventsRegistryForTests() {
   for (const [id] of registry) unregisterPartyEventsRoom(id);
