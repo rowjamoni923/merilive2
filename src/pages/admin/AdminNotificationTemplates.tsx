@@ -392,23 +392,29 @@ const AdminNotificationTemplates = () => {
               </Button>
             </div>
 
-            {/* Event preset chips */}
-            <div>
-              <p className="text-xs text-white/50 mb-2">Quick presets — tap to generate instantly:</p>
-              <div className="flex flex-wrap gap-2">
-                {eventPresets.map((evt) => (
-                  <button
-                    key={evt}
-                    onClick={() => generateAiBanner(evt)}
-                    disabled={!!aiGenerating}
-                    className="px-3 py-1.5 text-xs rounded-full border border-amber-300/30 bg-white/[0.04] text-amber-100 hover:bg-amber-400/15 hover:border-amber-300/60 transition disabled:opacity-50"
-                  >
-                    {aiGenerating === evt ? <Loader2 className="w-3 h-3 animate-spin inline mr-1" /> : <Sparkles className="w-3 h-3 inline mr-1" />}
-                    {evt}
-                  </button>
-                ))}
-              </div>
+            {/* Event preset chips - grouped by category */}
+            <div className="space-y-3">
+              <p className="text-xs text-white/50">Tap any event below — premium 3D luxury banner generates instantly. Unlimited generations.</p>
+              {eventGroups.map((group) => (
+                <div key={group.group}>
+                  <p className="text-[11px] uppercase tracking-wider text-amber-300/70 font-semibold mb-1.5">{group.group}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {group.items.map((evt) => (
+                      <button
+                        key={evt}
+                        onClick={() => generateAiBanner(evt)}
+                        disabled={!!aiGenerating}
+                        className="px-3 py-1.5 text-xs rounded-full border border-amber-300/30 bg-white/[0.04] text-amber-100 hover:bg-amber-400/15 hover:border-amber-300/60 transition disabled:opacity-50"
+                      >
+                        {aiGenerating === evt ? <Loader2 className="w-3 h-3 animate-spin inline mr-1" /> : <Sparkles className="w-3 h-3 inline mr-1" />}
+                        {evt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
+
 
             {/* Generated banners gallery */}
             {aiBanners.length > 0 && (
