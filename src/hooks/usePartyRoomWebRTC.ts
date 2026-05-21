@@ -17,6 +17,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
