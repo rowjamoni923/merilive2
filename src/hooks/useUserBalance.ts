@@ -175,7 +175,7 @@ export function useUserBalancePrefetch(): void {
       if (!user) return;
 
       const channel = supabase
-        .channel('user-balance-updates')
+        .channel(`user-balance-updates-${user.id}`)
         .on(
           'postgres_changes',
           {
@@ -185,9 +185,17 @@ export function useUserBalancePrefetch(): void {
             filter: `id=eq.${user.id}`,
           },
           (payload) => {
-            const next = payload.new as { coins?: number; diamonds?: number };
-            const newBalance = Math.max(Number(next?.coins || 0), Number(next?.diamonds || 0));
+            const next = payload.new as { coins?: number; diamonds?: number; beans?: number };
+            const newBalance = Math.max(Number(next?.coins || 0), Number((next as any)?.diamonds || 0));
             updateCachedBalance(newBalance);
+            // Pkg85: own-row beans push for My Beans instant update (Profile page, etc.)
+            if (next?.beans !== undefined) {
+              try {
+                window.dispatchEvent(new CustomEvent('own-beans-updated', {
+                  detail: { beans: Number(next.beans || 0), userId: user.id },
+                }));
+              } catch {}
+            }
           }
         )
         .subscribe();
