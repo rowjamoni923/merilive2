@@ -895,6 +895,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
         usingNativeRef.current = false;
         setNativeActive(false);
+        setIsNativeMediaActive(false);
       }
 
       if (roomRef.current) {
@@ -904,6 +905,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
       setLocalVideoTrack(null);
       setLocalAudioTrack(null);
+      setIsNativeMediaActive(false);
       setScreenTrack(null);
       setIsScreenSharing(false);
       setIsJoined(false);
