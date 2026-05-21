@@ -123,6 +123,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   useNativeLiveKitEvents(nativeActive, {
     onDisconnected: (reason) => {
       console.log('[LiveKitClient/Native] disconnected:', reason);
+      if (isLeavingRef.current || !usingNativeRef.current) return;
       setConnectionState('CONNECTING');
       toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
       nativeLiveKitController.reconnectNow().then((ok) => {
