@@ -987,41 +987,12 @@ const PartyRoom = () => {
           fetchSeatRequests();
         }
       )
-      // INSTANT broadcast listener for seat actions (faster than postgres_changes)
-      // Pkg80 NOTE: LiveKit replacement lib (livekitPartyEventsSignaling.ts)
-      // exists but full sender-site migration deferred — keeping this active.
-      .on('broadcast', { event: 'seat_action' }, (payload: any) => {
-        const myId = currentUserRef.current?.id;
-        if (!myId) return;
-        
-        const data = payload.payload;
-        console.log('[PartyRoom] ⚡ INSTANT seat_action broadcast:', data);
-        
-        if (data.action === 'approved' && data.requester_id === myId) {
-          console.log('[PartyRoom] 🎉 INSTANT: My seat approved at position:', data.seat_position);
-          toast.success(`🎉 Seat approved! You are now on seat ${data.seat_position + 1}!`);
-          setMyPendingRequest(null);
-          setMyPosition(data.seat_position);
-          setParticipants(prev => prev.map(p => 
-            p.user_id === myId 
-              ? { ...p, position: data.seat_position, role: 'speaker' }
-              : p
-          ));
-          // Refresh from DB for consistency
-          setTimeout(() => {
-            if (isMountedRef.current) fetchParticipants();
-          }, 300);
-        }
-        
-        if (data.action === 'rejected' && data.requester_id === myId) {
-          console.log('[PartyRoom] ❌ INSTANT: My seat request rejected');
-          toast.error('Your seat request was rejected by the host');
-          setMyPendingRequest(null);
-        }
-        
-        // For all users: refresh seat requests
-        fetchSeatRequests();
-      });
+      ;
+      // Pkg80: Supabase `.on('broadcast', { event: 'seat_action' })` REMOVED.
+      // LiveKit DataPacket (`livekit-party-event` window handler below) is the
+      // sole instant seat-action notifier. postgres_changes on seat_requests
+      // (above) remains as the durable fallback path. Saves cross-room
+      // realtime broadcast traffic on every approve/reject/new_request.
     // ============= SEPARATE ROOM STATUS CHANNEL =============
     // CRITICAL: Use a DEDICATED channel for room status to ensure visitors see room close
     // This avoids filter issues with the combined channel
