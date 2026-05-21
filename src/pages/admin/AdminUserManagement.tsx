@@ -1539,7 +1539,11 @@ export default function AdminUserManagement() {
           </TabsTrigger>
           <TabsTrigger value="hosts" className="data-[state=active]:bg-pink-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
             <UserCheck className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            Hosts
+            Verified Hosts
+          </TabsTrigger>
+          <TabsTrigger value="verified-users" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm">
+            <ScanFace className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            Verified Users
           </TabsTrigger>
           <TabsTrigger value="auto-verified" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white text-slate-200 text-xs md:text-sm relative">
             <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
