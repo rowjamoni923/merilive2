@@ -118,6 +118,8 @@ const AdminNoticeBroadcast = () => {
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiSize, setAiSize] = useState<string>('banner_16_9_1920');
   const [aiGenerating, setAiGenerating] = useState(false);
+  // Preview-before-attach: AI-generated banner sits here until admin clicks Attach.
+  const [aiPreview, setAiPreview] = useState<{ url: string; width?: number; height?: number; prompt: string; sizeKey: string } | null>(null);
 
   const generateAiBanner = async () => {
     const eventName = (aiPrompt.trim() || title.trim()).slice(0, 80);
@@ -136,15 +138,36 @@ const AdminNoticeBroadcast = () => {
       });
       if (error) throw error;
       if (!data?.url) throw new Error('No URL returned');
-      setImageUrls(prev => [...prev, data.url].slice(0, 10));
-      toast({ title: 'AI banner generated ✨', description: `Added to notice (${data.size?.width}×${data.size?.height})` });
-      setAiPrompt("");
+      // Hold in preview state — do NOT auto-attach.
+      setAiPreview({
+        url: data.url,
+        width: data.size?.width,
+        height: data.size?.height,
+        prompt: eventName,
+        sizeKey: aiSize,
+      });
+      toast({ title: 'Preview ready ✨', description: 'Review below, then click Attach to add to notice.' });
     } catch (e: any) {
       toast({ title: 'Generation failed', description: e?.message || 'AI error', variant: 'destructive' });
     } finally {
       setAiGenerating(false);
     }
   };
+
+  const attachAiPreview = () => {
+    if (!aiPreview) return;
+    if (imageUrls.length >= 10) {
+      toast({ title: "Image limit reached", description: "Max 10 images per notice", variant: "destructive" });
+      return;
+    }
+    setImageUrls(prev => [...prev, aiPreview.url].slice(0, 10));
+    toast({ title: 'Attached', description: `Banner added (${imageUrls.length + 1}/10)` });
+    setAiPreview(null);
+    setAiPrompt("");
+  };
+
+  const discardAiPreview = () => setAiPreview(null);
+
   
   const [notices, setNotices] = useState<AdminNotice[]>([]);
   const [loadingNotices, setLoadingNotices] = useState(true);
