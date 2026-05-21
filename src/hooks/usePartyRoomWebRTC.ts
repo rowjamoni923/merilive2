@@ -477,7 +477,16 @@ export function usePartyRoomWebRTC(
                 try { pub.setVideoQuality?.(VideoQuality.HIGH); } catch { /* ignore */ }
               }
             });
+
+            const peerStream = buildPeerStream(participant);
+            if (peerStream.getTracks().length > 0) {
+              peerStreamsRef.current.set(participant.identity, peerStream);
+            }
           });
+          setState(prev => ({
+            ...prev,
+            peerStreams: new Map(peerStreamsRef.current),
+          }));
         };
 
         forceSubscribePass();
