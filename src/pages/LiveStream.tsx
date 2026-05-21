@@ -1903,10 +1903,42 @@ const LiveStream = () => {
     });
   };
 
-  const handlePKRequestAccept = () => {
-    if (!incomingPKRequest || !hostInfo) return;
-    
+  const handlePKRequestAccept = async () => {
+    if (!incomingPKRequest || !hostInfo || !currentUserId) return;
+
     setShowPKRequest(false);
+
+    // Persist accept on the battle row (challenger is watching pk_battles via RPC poll fallback,
+    // but instant reply path is FCM-only via pk-invite-deliver below).
+    await supabase
+      .from("pk_battles")
+      .update({ status: "accepted", started_at: new Date().toISOString() })
+      .eq("id", incomingPKRequest.battleId);
+
+    // Pkg82d: notify challenger via FCM/notifications (was Supabase channel `pk_battle_${battleId}`).
+    try {
+      const { data: battle } = await supabase
+        .from("pk_battles")
+        .select("challenger_id")
+        .eq("id", incomingPKRequest.battleId)
+        .maybeSingle();
+      if (battle?.challenger_id) {
+        await supabase.functions.invoke("pk-invite-deliver", {
+          body: {
+            kind: "accept",
+            battleId: incomingPKRequest.battleId,
+            toUserId: battle.challenger_id,
+            fromUserId: currentUserId,
+            fromName: hostInfo.name,
+            fromAvatar: hostInfo.avatar,
+            fromLevel: hostInfo.level,
+          },
+        });
+      }
+    } catch (err) {
+      console.warn("[LiveStream] pk-invite-deliver accept failed:", err);
+    }
+
     setPKBattleState({
       isActive: true,
       battleId: incomingPKRequest.battleId,
@@ -1926,42 +1958,72 @@ const LiveStream = () => {
     });
   };
 
-  const handlePKRequestDecline = () => {
+  const handlePKRequestDecline = async () => {
     setShowPKRequest(false);
+    if (incomingPKRequest && currentUserId && hostInfo) {
+      try {
+        await supabase
+          .from("pk_battles")
+          .update({ status: "declined" })
+          .eq("id", incomingPKRequest.battleId);
+        const { data: battle } = await supabase
+          .from("pk_battles")
+          .select("challenger_id")
+          .eq("id", incomingPKRequest.battleId)
+          .maybeSingle();
+        if (battle?.challenger_id) {
+          await supabase.functions.invoke("pk-invite-deliver", {
+            body: {
+              kind: "decline",
+              battleId: incomingPKRequest.battleId,
+              toUserId: battle.challenger_id,
+              fromUserId: currentUserId,
+              fromName: hostInfo.name,
+              fromAvatar: hostInfo.avatar,
+              fromLevel: hostInfo.level,
+            },
+          });
+        }
+      } catch (err) {
+        console.warn("[LiveStream] pk-invite-deliver decline failed:", err);
+      }
+    }
     setIncomingPKRequest(null);
   };
 
   // Random PK handlers
   const handleRandomPKAccept = async () => {
     if (!randomPKRequest || !hostInfo || !currentUserId || !id) return;
-    
+
     setShowRandomPKNotification(false);
-    
-    // Send acceptance via broadcast
-    const channel = supabase.channel("pk_random_match", { // channel-singleton-ok: global random PK matchmaking bus
-      config: { broadcast: { self: false } },
-    });
-    
-    await channel.subscribe();
-    await channel.send({
-      type: "broadcast",
-      event: "random_pk_accepted",
-      payload: {
-        challengerId: randomPKRequest.challengerId,
-        acceptorId: currentUserId,
-        acceptorName: hostInfo.name,
-        acceptorAvatar: hostInfo.avatar,
-        acceptorLevel: hostInfo.level,
-        acceptorStreamId: id,
-      },
-    });
-    
-    // Wait a moment for the challenger to create the battle, then check
+
+    // Pkg82d: send `random_accept` via pk-invite-deliver (FCM) — replaces
+    // `pk_random_match` Supabase broadcast bus.
+    try {
+      await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "random_accept",
+          toUserId: randomPKRequest.challengerId,
+          fromUserId: currentUserId,
+          fromName: hostInfo.name,
+          fromAvatar: hostInfo.avatar,
+          fromLevel: hostInfo.level,
+          fromStreamId: id,
+        },
+      });
+    } catch (err) {
+      console.warn("[LiveStream] pk-invite-deliver random_accept failed:", err);
+    }
+
+    // Challenger receives FCM and creates the pk_battles row with status='accepted'
+    // (see PKBattlePanel sendRandomPKRequest handler). Poll briefly for it.
     setTimeout(async () => {
       const { data: battle } = await supabase
         .from("pk_battles")
         .select("*")
-        .or(`and(challenger_id.eq.${randomPKRequest.challengerId},opponent_id.eq.${currentUserId}),and(challenger_id.eq.${currentUserId},opponent_id.eq.${randomPKRequest.challengerId})`)
+        .or(
+          `and(challenger_id.eq.${randomPKRequest.challengerId},opponent_id.eq.${currentUserId}),and(challenger_id.eq.${currentUserId},opponent_id.eq.${randomPKRequest.challengerId})`
+        )
         .eq("status", "accepted")
         .order("created_at", { ascending: false })
         .limit(1)
@@ -1986,11 +2048,11 @@ const LiveStream = () => {
           },
         });
       }
-      supabase.removeChannel(channel);
     }, 2000);
-    
+
     setRandomPKRequest(null);
   };
+
 
   const handleRandomPKDecline = () => {
     setShowRandomPKNotification(false);
