@@ -30,8 +30,11 @@ interface Props {
   userCustomCoins?: number | null;
   userCustomPriceUsd?: number | null;
   userCustomLabel?: string | null;
+  /** "helper_application" (default, server enforces $100 crypto floor) | "campaign" (no floor — mirrors My Diamond package flow) */
+  userCustomPurpose?: "helper_application" | "campaign";
   /** Called after successful credit so parent can refresh or proceed. */
   onCredited?: (coins: number, topupId?: string) => void;
+
 }
 
 // Recommendation logic (per owner directive):
@@ -118,7 +121,9 @@ export default function SwiftPayDepositModal({
   userCustomCoins = null,
   userCustomPriceUsd = null,
   userCustomLabel = null,
+  userCustomPurpose = "helper_application",
   onCredited,
+
 }: Props) {
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
@@ -187,6 +192,8 @@ export default function SwiftPayDepositModal({
         } else if (mode === "user" && userCustomCoins && userCustomPriceUsd) {
           requestBody.custom_coins = userCustomCoins;
           requestBody.custom_price_usd = userCustomPriceUsd;
+          requestBody.purpose = userCustomPurpose;
+
         } else {
           requestBody.package_id = pkg.id;
         }
@@ -243,7 +250,7 @@ export default function SwiftPayDepositModal({
       toast({ title: "Error", description: e?.message ?? "unknown", variant: "destructive" });
       setCreating(false);
     }
-  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd]);
+  }, [pkg, currency, toast, mode, helperId, helperCustomCoins, helperCustomPriceUsd, userCustomCoins, userCustomPriceUsd, userCustomPurpose]);
 
   // Poll for credit status
   useEffect(() => {
