@@ -59,6 +59,10 @@ interface UseLiveKitClientOptions {
    * live-stream signaling registry so `publishStreamEnded(id, …)` works
    * and incoming `stream_ended` packets reach window event listeners. */
   liveSignalingStreamId?: string | null;
+  /** Pkg76: When set, the underlying Room is also registered with the
+   * gift signaling registry so `publishGiftSent('live', id, …)` works
+   * and incoming `gift_sent` packets reach window event listeners. */
+  giftSignalingStreamId?: string | null;
 }
 
 export interface CoHostRequest {
