@@ -765,8 +765,31 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
                 });
             }
           }, 1800);
-        } catch (trackErr) {
+        } catch (trackErr: any) {
           console.error('[LiveKitClient] Track creation error:', trackErr);
+          // 🚨 Surface the error so the host sees a clear toast instead of
+          // staring at a "Starting camera..." screen forever.
+          try { options.onError?.(trackErr instanceof Error ? trackErr : new Error(String(trackErr?.message || trackErr))); } catch { /* ignore */ }
+          // Schedule a single retry — camera may have been busy/locked transiently
+          // (Android WebView competing with native preview, permission race, etc.).
+          setTimeout(() => {
+            if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
+            const hasVideo = Array.from(room.localParticipant.trackPublications.values())
+              .some((p) => p.track?.kind === Track.Kind.Video && p.source === Track.Source.Camera);
+            if (hasVideo) return;
+            console.log('[LiveKitClient] 🔁 Retrying camera publish after initial failure');
+            room.localParticipant.enableCameraAndMicrophone()
+              .then(() => {
+                room.localParticipant.trackPublications.forEach((pub) => {
+                  if (pub.track?.kind === Track.Kind.Video) setLocalVideoTrack(pub.track);
+                  if (pub.track?.kind === Track.Kind.Audio) setLocalAudioTrack(pub.track);
+                });
+              })
+              .catch((retryErr) => {
+                console.error('[LiveKitClient] Camera publish retry failed:', retryErr);
+                try { options.onError?.(retryErr instanceof Error ? retryErr : new Error(String(retryErr?.message || retryErr))); } catch { /* ignore */ }
+              });
+          }, 1200);
         }
       }
 
