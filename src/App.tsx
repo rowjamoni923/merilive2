@@ -247,6 +247,7 @@ const AdminPricingHub = lazy(lazyRetry(() => import("./pages/admin/AdminPricingH
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
 const AdminNotificationTemplates = lazy(lazyRetry(() => import("./pages/admin/AdminNotificationTemplates")));
+const AdminAiImageStudio = lazy(lazyRetry(() => import("./pages/admin/AdminAiImageStudio")));
 const AdminReports = lazy(lazyRetry(() => import("./pages/admin/AdminReports")));
 const AdminLogs = lazy(lazyRetry(() => import("./pages/admin/AdminLogs")));
 const AdminAgoraSettings = lazy(lazyRetry(() => import("./pages/admin/AdminAgoraSettings")));
