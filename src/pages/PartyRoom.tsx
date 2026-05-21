@@ -52,6 +52,7 @@ import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
+import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
 import { GameSelectionModal } from "@/components/party/GameSelectionModal";
