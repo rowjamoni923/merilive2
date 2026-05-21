@@ -106,6 +106,45 @@ const AdminNoticeBroadcast = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // ── AI Banner Generator (inline, same edge function as Notification Templates) ──
+  const AI_BANNER_SIZES = [
+    { key: 'banner_16_9_1920', label: 'Hero · 1920×1080' },
+    { key: 'banner_16_9_1280', label: 'Standard · 1280×720' },
+    { key: 'square_1080',      label: 'Square · 1080×1080' },
+    { key: 'story_1080',       label: 'Story · 1080×1920' },
+    { key: 'push_thumb',       label: 'Push Thumb · 512×512' },
+  ];
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiSize, setAiSize] = useState<string>('banner_16_9_1920');
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  const generateAiBanner = async () => {
+    const eventName = (aiPrompt.trim() || title.trim()).slice(0, 80);
+    if (!eventName) {
+      toast({ title: "Add a prompt", description: "Type an event name or title first", variant: "destructive" });
+      return;
+    }
+    if (imageUrls.length >= 10) {
+      toast({ title: "Image limit reached", description: "Max 10 images per notice", variant: "destructive" });
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-event-banner', {
+        body: { eventName, sizeKey: aiSize },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error('No URL returned');
+      setImageUrls(prev => [...prev, data.url].slice(0, 10));
+      toast({ title: 'AI banner generated ✨', description: `Added to notice (${data.size?.width}×${data.size?.height})` });
+      setAiPrompt("");
+    } catch (e: any) {
+      toast({ title: 'Generation failed', description: e?.message || 'AI error', variant: 'destructive' });
+    } finally {
+      setAiGenerating(false);
+    }
+  };
   
   const [notices, setNotices] = useState<AdminNotice[]>([]);
   const [loadingNotices, setLoadingNotices] = useState(true);
