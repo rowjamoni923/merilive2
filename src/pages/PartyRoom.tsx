@@ -1568,27 +1568,23 @@ const PartyRoom = () => {
         console.log('[PartyRoom] ⚠️ Self has NO equipped entry animation');
       }
       
-      // ⚡ INSTANT BROADCAST: Send join event with all profile + animation data to all participants
-      const joinBroadcastChannel = supabase.channel(`join_broadcast_party_${roomId}`);
-      joinBroadcastChannel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          joinBroadcastChannel.send({
-            type: 'broadcast',
-            event: 'participant_joined',
-            payload: {
-              userId: currentUser.id,
-              userName,
-              userAvatar: avatarUrl,
-              userLevel,
-              entranceAnimationUrl: selfEntranceUrl || null,
-              entranceSoundUrl: selfEntranceSound || null,
-              entryNameBarUrl: selfNameBarUrl || null,
-              vehicleAnimationUrl: selfVehicleUrl || null,
-              timestamp: Date.now(),
-            }
-          });
-          console.log('[PartyRoom] ⚡ INSTANT join broadcast sent for:', userName);
-        }
+      // Pkg80: LiveKit DataPacket replaces Supabase `join_broadcast_party_*`
+      // channel. Sub-50ms fanout; postgres_changes INSERT on
+      // party_room_participants remains as durable fallback.
+      void publishPartyEvent(roomId, {
+        type: 'participant_joined',
+        roomId,
+        userId: currentUser.id,
+        userName,
+        userAvatar: avatarUrl,
+        userLevel,
+        entranceAnimationUrl: selfEntranceUrl || null,
+        entranceSoundUrl: selfEntranceSound || null,
+        entryNameBarUrl: selfNameBarUrl || null,
+        vehicleAnimationUrl: selfVehicleUrl || null,
+        timestamp: Date.now(),
+      }).then((sent) => {
+        if (sent) console.log('[PartyRoom] ⚡ Pkg80 livekit participant_joined published for:', userName);
       });
       
       await fetchParticipants();
