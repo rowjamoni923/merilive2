@@ -137,6 +137,14 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       host_percent: result.hostPercent
     });
 
+    // Pkg85: Instant optimistic My Diamond deduction for sender.
+    // Own-row postgres_changes will reconcile within ~1s; this hides the lag.
+    if (result.coinsSpent && result.coinsSpent > 0) {
+      try {
+        updateCachedBalance(Math.max(0, getCachedBalance() - result.coinsSpent));
+      } catch {}
+    }
+
     // ⚡ INSTANT BROADCAST: fire-and-forget so every viewer sees the animation
     // in <100ms (vs 1-3s postgres_changes latency).
     const broadcastRoomId = streamId || roomId;
