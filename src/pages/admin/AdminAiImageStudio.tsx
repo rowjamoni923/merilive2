@@ -236,14 +236,35 @@ export default function AdminAiImageStudio() {
         </CardContent>
       </Card>
 
-      {/* Gallery */}
+      {/* Gallery / History */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="w-5 h-5" /> Generated Gallery
-            <Badge variant="outline" className="ml-2">{items.length}</Badge>
-          </CardTitle>
-          <CardDescription>Last 60 images stay in this session. Download or push to users instantly.</CardDescription>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <History className="w-5 h-5 text-amber-300" /> Generated History
+                <Badge variant="outline" className="ml-2">{items.length}{items.length >= HISTORY_MAX ? "+" : ""} / {HISTORY_MAX}</Badge>
+              </CardTitle>
+              <CardDescription>
+                Last {HISTORY_MAX} generated images persist across reloads. Download, copy URL, or re-push any past image.
+              </CardDescription>
+            </div>
+            {items.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs border-rose-400/40 text-rose-200 hover:bg-rose-500/15 hover:text-rose-100"
+                onClick={() => {
+                  if (confirm(`Clear all ${items.length} images from history? This cannot be undone.`)) {
+                    setItems([]);
+                    toast({ title: "History cleared" });
+                  }
+                }}
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" /> Clear History
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {items.length === 0 ? (
@@ -262,12 +283,26 @@ export default function AdminAiImageStudio() {
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
+                    <button
+                      type="button"
+                      title="Remove from history"
+                      onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 hover:bg-rose-600/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                   <div className="p-3 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="font-medium text-sm truncate">{it.eventName}</div>
-                        <div className="text-xs text-muted-foreground">{it.sizeLabel}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <span>{it.sizeLabel}</span>
+                          <span className="opacity-60">·</span>
+                          <span title={new Date(it.createdAt).toLocaleString()}>
+                            {new Date(it.createdAt).toLocaleDateString()} {new Date(it.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 pt-1">
@@ -295,6 +330,7 @@ export default function AdminAiImageStudio() {
           )}
         </CardContent>
       </Card>
+
     </div>
   );
 }
