@@ -752,249 +752,28 @@ const PartyRoom = () => {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     
-    // Setup realtime subscriptions
-    console.log('[PartyRoom] Setting up realtime subscription for room:', roomId);
-    
-    // CRITICAL FIX: Use a single channel for all participant events to prevent race conditions
-    // and ensure animations work for ALL room types (Audio, Video, Game)
-    const participantChannel = supabase
-      .channel(`party-room-all-${roomId}`)
-      .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
-        async (payload: any) => {
-          console.log('[PartyRoom] ⚡ Participant INSERT detected:', payload.new?.user_id);
-          
-          // CRITICAL: Refresh participants for ALL users in the room immediately
-          fetchParticipants();
-          
-          // DEDUP: Skip join notification if already handled by instant broadcast
-          const userId = payload.new?.user_id;
-          const joinKey = `${userId}_${Math.floor(Date.now() / 5000)}`;
-          if (processedBroadcastJoinsRef.current.has(joinKey)) {
-            console.log('[PartyRoom] Skipping postgres_changes join - already handled by broadcast:', userId);
-            return;
-          }
-          
-          // IMPORTANT: Show join notification to EVERYONE including the joiner themselves
-          // This ensures host, visitors, and the joining user all see the notification
-          // NO SKIPPING - All participants should see the join notification
-          
-          // Get current values from refs to avoid stale closure
-          const currentUserVal = currentUserRef.current;
-          const roomVal = roomRef.current;
-          
-          // Show animation for ALL users joining (including self for consistency)
-          if (payload.new?.user_id && isMountedRef.current) {
-            console.log('[PartyRoom] 🎬 Fetching profile for new participant:', payload.new.user_id);
-            // Fetch user profile with entry effect info
-            const { data: profile } = await supabase
-              .from('profiles_public')
-              .select('display_name, avatar_url, user_level, host_level, is_host, equipped_entrance_id, equipped_entry_name_bar_id')
-              .eq('id', payload.new.user_id)
-              .single();
-            
-            const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
-            const resolvedParticipantLevel = profile
-              ? await resolveLevelFromTiers({ id: payload.new.user_id, ...profile }).then(result => result.level).catch(() => profile.user_level || profile.host_level || 1)
-              : 1;
-
-            console.log('[PartyRoom] Profile fetched:', profile?.display_name, 'Level:', resolvedParticipantLevel);
-            
-            if (profile && isMountedRef.current) {
-              const userName = profile.display_name || 'User';
-              const userLevel = resolvedParticipantLevel;
-              const avatarUrl = profile.avatar_url || undefined;
-              
-              console.log('[PartyRoom] Adding join message for:', userName, 'Level:', userLevel);
-              
-              // Save join message to party_room_messages table - VISIBLE TO ALL via realtime
-              // This ensures host, visitors, and joining user ALL see the message
-              await supabase.from('party_room_messages').insert({
-                room_id: roomId,
-                user_id: payload.new.user_id,
-                content: 'joined the room ✨',
-                message_type: 'join'
-              });
-              
-              // Also update local state for immediate feedback
-              setJoinMessages(prev => [...prev.slice(-20), {
-                id: `realtime_${Date.now()}_${payload.new.user_id}`,
-                userId: payload.new.user_id,
-                userName,
-                userLevel,
-                avatarUrl,
-                type: 'join' as const,
-                timestamp: new Date()
-              }]);
-              
-              // Show flying join banner (Bigo-style)
-              addBigoJoinNotification({
-                userId: payload.new.user_id,
-                userName,
-                userAvatar: avatarUrl,
-                userLevel,
-              });
-              
-              // NOTE: Entry animations are now triggered via UnifiedPartyRoom's onTriggerEntryEffect callback
-              // This ensures consistent real-time subscription handling and prevents duplicate animations
-              // The UnifiedPartyRoom component fetches and triggers entry effects for ALL participants
-            }
-          }
-        }
-      )
-      .on('postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
-        (payload: any) => {
-          console.log('[PartyRoom] 👤 Participant UPDATE detected:', payload.new?.user_id, 'position:', payload.new?.position);
-          // CRITICAL: Refresh participants for ALL users in the room
-          fetchParticipants();
-        }
-      )
-      .on('postgres_changes', 
-        { event: 'DELETE', schema: 'public', table: 'party_room_participants', filter: `room_id=eq.${roomId}` },
-        (payload: any) => {
-          console.log('[PartyRoom] 👋 Participant DELETE detected:', payload.old?.user_id);
-          // CRITICAL: Refresh participants for ALL users in the room
-          fetchParticipants();
-        }
-      )
-      // Also listen for seat requests in the same channel
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'seat_requests', filter: `room_id=eq.${roomId}` },
-        (payload: any) => {
-          console.log('[PartyRoom] 💺 Seat request change:', payload.eventType, payload.new);
-          
-          // Use ref for INSTANT user check - NO async auth.getUser() call
-          const myId = currentUserRef.current?.id;
-          
-          // For the REQUESTER: Check if their request was approved
-          if (payload.eventType === 'UPDATE' && payload.new?.status === 'approved') {
-            if (myId && payload.new.requester_id === myId) {
-              const seatPosition = payload.new.seat_position;
-              console.log('[PartyRoom] 🎉 MY seat request approved! Position:', seatPosition);
-              toast.success(`🎉 Seat approved! You are now on seat ${seatPosition + 1}!`);
-              
-              // Clear pending request IMMEDIATELY
-              setMyPendingRequest(null);
-              
-              // Update my position in LOCAL STATE immediately - this persists the seat
-              setMyPosition(seatPosition);
-              
-              // Also update participants local state to show me on the seat instantly
-              setParticipants(prev => prev.map(p => 
-                p.user_id === myId 
-                  ? { ...p, position: seatPosition, role: 'speaker' }
-                  : p
-              ));
-              
-              // Also refresh from DB after a short delay to ensure consistency
-              setTimeout(() => {
-                if (isMountedRef.current) {
-                  fetchParticipants();
-                }
-              }, 500);
-              
-              console.log('[PartyRoom] ✅ Requester PERSISTED on seat:', seatPosition);
-            }
-          }
-          
-          // For REJECTED requests
-          if (payload.eventType === 'UPDATE' && payload.new?.status === 'rejected') {
-            if (myId && payload.new.requester_id === myId) {
-              console.log('[PartyRoom] ❌ MY seat request was rejected');
-              toast.error('Your seat request was rejected by the host');
-              setMyPendingRequest(null);
-            }
-          }
-          
-          // Refresh seat requests list (for host) - INSTANT
-          fetchSeatRequests();
-        }
-      )
-      ;
-      // Pkg80: Supabase `.on('broadcast', { event: 'seat_action' })` REMOVED.
-      // LiveKit DataPacket (`livekit-party-event` window handler below) is the
-      // sole instant seat-action notifier. postgres_changes on seat_requests
-      // (above) remains as the durable fallback path. Saves cross-room
-      // realtime broadcast traffic on every approve/reject/new_request.
+    // ============= Pkg81b/c: ALL party_room postgres_changes DELETED =============
+    // Removed channels (LiveKit-only — zero Supabase Realtime inside party rooms):
+    //   - `party-room-all-${roomId}` (participants INSERT/UPDATE/DELETE + seat_requests *)
+    //   - `party_room_messages` INSERT subscription (join/chat fanout)
+    //
+    // Replacements:
+    //   - participant join  → Pkg80 LiveKit `participant_joined` DataPacket
+    //   - participant leave → Pkg81b LiveKit `RoomEvent.ParticipantDisconnected`
+    //     translated to `participant_left` by livekitPartyEventsSignaling.
+    //   - seat_requests approve/reject → Pkg80 `seat_action` DataPacket.
+    //   - chat fanout → Pkg81c LiveKit `chat_message` DataPacket
+    //     (UnifiedPartyRoom handles the receive side). DB INSERT stays
+    //     (moderation/audit/late-join history), only the realtime
+    //     SUBSCRIPTION is gone.
+    // Late-join state = fetchParticipants() / fetchSeatRequests() / fetchRoom()
+    // already running on mount. NO postgres_changes — LiveKit-Purist policy.
+    const participantChannel: any = null;
+    const participantChannelContinued: any = null;
     // ============= Pkg81: ROOM STATUS CHANNEL DELETED =============
-    // `party-room-status-${roomId}` Supabase Realtime channel REMOVED.
-    // Room state changes (active_seats / background / is_active) now arrive
-    // purely via LiveKit:
-    //   - active_seats + background → `room_state_changed` DataPacket
-    //     (host publishes from SeatSelectorPanel / BackgroundPickerPanel
-    //      AFTER the party_rooms UPDATE). Handler is wired in the unified
-    //      `livekit-party-event` listener further below.
-    //   - is_active=false → Pkg75 `livekit-party-closed` event already
-    //     handles host-initiated close; auto-silence close path publishes
-    //     the same event from `handleSilenceTimeout`.
-    //   - 20s polling useEffect at the bottom of this file remains as the
-    //     LAST-resort safety net (network blip / LiveKit disconnect).
-    // Late-join state = the initial party_rooms SELECT on mount. NO
-    // postgres_changes subscription to party_rooms from the client anymore.
     const roomStatusChannel: any = null;
-    
-    // Pkg78: Supabase `party-room-close-${roomId}` broadcast listener REMOVED.
-    // LiveKit DataPacket (Pkg75 `livekit-party-closed` window event handler
-    // below) is the sole instant room-end notifier. Safety net: 5s polling
-    // useEffect at the bottom of this file covers LiveKit disconnect cases.
     const roomCloseBroadcastChannel: any = null;
 
-    // Continue with the participant channel for messages only
-    const participantChannelContinued = participantChannel
-      // Listen for join/chat messages
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'party_room_messages', filter: `room_id=eq.${roomId}` },
-        async (payload: any) => {
-          console.log('[PartyRoom] 📨 New message received:', payload.new?.message_type, payload.new?.content);
-          
-          if (!isMountedRef.current) return;
-          
-          const messageType = payload.new?.message_type;
-          const senderId = payload.new?.user_id;
-          
-          // Handle join messages - show notification to EVERYONE
-          if (messageType === 'join' && senderId) {
-            // Fetch sender profile for display
-            const { data: senderProfile } = await supabase
-              .from('profiles_public')
-              .select('display_name, avatar_url, user_level')
-              .eq('id', senderId)
-              .single();
-            
-            if (senderProfile && isMountedRef.current) {
-              const userName = senderProfile.display_name || 'User';
-              const userLevel = senderProfile.user_level || 1;
-              const avatarUrl = senderProfile.avatar_url || undefined;
-              
-              console.log('[PartyRoom] ✨ Showing join notification for:', userName, 'to all participants');
-              
-              // Add to local join messages state - visible to ALL
-              setJoinMessages(prev => {
-                // Prevent duplicates
-                const exists = prev.some(m => m.userId === senderId && Date.now() - m.timestamp.getTime() < 5000);
-                if (exists) return prev;
-                
-                return [...prev.slice(-20), {
-                  id: `msg_${payload.new.id}`,
-                  userId: senderId,
-                  userName,
-                  userLevel,
-                  avatarUrl,
-                  type: 'join' as const,
-                  timestamp: new Date(payload.new.created_at)
-                }];
-              });
-            }
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('[PartyRoom] 📡 UNIFIED realtime subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('[PartyRoom] ✅ ALL real-time subscriptions ACTIVE (participants, seat requests, room status, messages)');
-        }
-      });
 
     // Pkg78: Supabase `party-gifts-instant-${roomId}` broadcast channel REMOVED.
     // LiveKit DataPacket (Pkg76 `livekit-gift-sent` window event handler below)
@@ -1156,6 +935,17 @@ const PartyRoom = () => {
         return;
       }
 
+      // --- participant_left (Pkg81b) ---
+      // Translated from LiveKit RoomEvent.ParticipantDisconnected by
+      // livekitPartyEventsSignaling. Replaces participants DELETE
+      // postgres_changes. Just refresh participants list — DB state is
+      // already reconciled by the leaving client's leaveRoom RPC.
+      if (payload.type === 'participant_left') {
+        console.log('[PartyRoom] 🟣 ⚡ Pkg81b livekit participant_left:', (payload as any).userId);
+        fetchParticipants();
+        return;
+      }
+
       // --- room_state_changed (Pkg81) ---
       if (payload.type === 'room_state_changed') {
         const data = payload as RoomStateChangedPayload;
@@ -1191,8 +981,10 @@ const PartyRoom = () => {
       window.removeEventListener('livekit-party-event', handleLiveKitPartyEvent);
       leaveRoom();
       cleanupWebRTC();
-      supabase.removeChannel(participantChannel);
-      // Pkg81: roomStatusChannel is null (channel deleted, LiveKit-only).
+      // Pkg81b/c: participantChannel + participantChannelContinued deleted (null refs).
+      if (participantChannel) supabase.removeChannel(participantChannel);
+      if (participantChannelContinued) supabase.removeChannel(participantChannelContinued);
+      // Pkg81: roomStatusChannel deleted (null ref).
       if (roomStatusChannel) supabase.removeChannel(roomStatusChannel);
       // Pkg78: giftBroadcastChannel + roomCloseBroadcastChannel removed (null refs).
       // Pkg80: joinBroadcastChannel removed (null ref).
@@ -1201,6 +993,7 @@ const PartyRoom = () => {
       if (roomCloseBroadcastChannel) supabase.removeChannel(roomCloseBroadcastChannel);
     };
     }, [roomId, markOptimisticPartyGiftCount]);
+
 
   // ============= POLLING FALLBACK FOR ROOM CLOSE DETECTION =============
   // In case realtime subscription fails, poll every 5 seconds to check room status

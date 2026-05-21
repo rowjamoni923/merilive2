@@ -48,9 +48,15 @@ import {
   type JoinNotification, 
   type RoomChatMessage 
 } from "@/features/shared/room";
-import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
+// Pkg81b: fetchUserEntryAnimations no longer needed — Pkg80 LiveKit envelope
+// carries pre-resolved entrance/entry-name-bar/vehicle URLs from the sender.
 import { getEquippedBubble } from "@/utils/fetchEquippedBubbles";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
+// Pkg81c: LiveKit-only in-room chat (replaces `party-chat-${roomId}` Supabase channel).
+import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
+// Pkg81b: LiveKit-only participant join/leave (replaces `unified-party-joins-*`
+// and `unified-room-viewers-*` Supabase channels).
+import type { PartyEventDetail, ParticipantJoinedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 
@@ -771,42 +777,31 @@ export function UnifiedPartyRoom({
     }
   }, []); // No dependencies - uses refs
   
-  // Real-time subscription for viewer updates in header
+  // Pkg81b: `unified-room-viewers-${roomId}` Supabase channel DELETED.
+  // Viewer list now refreshes off LiveKit `participant_joined` /
+  // `participant_left` window events dispatched by livekitPartyEventsSignaling
+  // (registered once per room in usePartyRoomWebRTC). Late-join state =
+  // initial fetchRealtimeViewers() on mount. PartyRoom's 20s poll is the
+  // safety net.
   useEffect(() => {
     if (!roomId) return;
-    
-    console.log('[UnifiedPartyRoom] 🚀 Setting up viewer subscription for room:', roomId);
-    
-    // Initial fetch
+
+    console.log('[UnifiedPartyRoom] 🚀 LiveKit-only viewer sync for room:', roomId);
     fetchRealtimeViewers();
-    
-    // Real-time subscription for ALL participant events
-    const viewerChannel = supabase
-      .channel(`unified-room-viewers-${roomId}-${Date.now()}`) // Unique channel name
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "party_room_participants",
-          filter: `room_id=eq.${roomId}`,
-        },
-        (payload) => {
-          console.log('[UnifiedPartyRoom] 📡 Viewer update event:', payload.eventType);
-          // Refetch all viewers to ensure accurate list
-          fetchRealtimeViewers();
-        }
-      )
-      .subscribe((status) => {
-        console.log('[UnifiedPartyRoom] Viewer subscription status:', status);
-        if (status === 'CHANNEL_ERROR') {
-          console.log('[UnifiedPartyRoom] ⚠️ Channel error - will rely on polling');
-        }
-      });
-    
+
+    const handlePartyEvent = (ev: Event) => {
+      const detail = (ev as CustomEvent<PartyEventDetail>).detail;
+      const p = detail?.payload as any;
+      if (!p || p.roomId !== roomId) return;
+      if (p.type === 'participant_joined' || p.type === 'participant_left') {
+        console.log('[UnifiedPartyRoom] 📡 Pkg81b viewer event:', p.type);
+        fetchRealtimeViewers();
+      }
+    };
+    window.addEventListener('livekit-party-event', handlePartyEvent);
+
     return () => {
-      console.log('[UnifiedPartyRoom] Cleaning up viewer subscription');
-      supabase.removeChannel(viewerChannel);
+      window.removeEventListener('livekit-party-event', handlePartyEvent);
     };
   }, [roomId, fetchRealtimeViewers]);
   
@@ -818,146 +813,62 @@ export function UnifiedPartyRoom({
     }
   }, [hostInfo?.id, roomId, fetchRealtimeViewers]);
   
-  // ==================== REAL-TIME PARTICIPANT JOIN SUBSCRIPTION ====================
-  // CRITICAL: Subscribe DIRECTLY to party_room_participants for instant join banners
-  // This ensures ALL users (host & visitors) see join animations in real-time
+  // ==================== Pkg81b: LiveKit-only participant_joined ====================
+  // `unified-party-joins-${roomId}` Supabase channel DELETED.
+  // The Pkg80 `livekit-party-event` envelope already carries entrance + entry
+  // name bar + vehicle animation URLs (sender pre-resolved them before
+  // publishing), so receivers can render banner + entry effect without any
+  // `profiles_public` round-trip — true LiveKit-only path.
   useEffect(() => {
     if (!roomId) return;
-    
-    console.log('[UnifiedPartyRoom] 🚀 Setting up DIRECT participant join subscription for room:', roomId);
-    
-    const participantChannel = supabase
-      .channel(`unified-party-joins-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'party_room_participants',
-          filter: `room_id=eq.${roomId}`
-        },
-        async (payload) => {
-          const newParticipant = payload.new as any;
-          const joinKey = `${newParticipant.user_id}_${newParticipant.joined_at}`;
-          
-          // Prevent duplicate processing
-          if (processedParticipantJoinsRef.current.has(joinKey)) {
-            console.log('[UnifiedPartyRoom] Skipping duplicate join:', joinKey);
-            return;
-          }
-          processedParticipantJoinsRef.current.add(joinKey);
-          
-          console.log('[UnifiedPartyRoom] ⚡ NEW participant detected via direct subscription:', newParticipant.user_id);
-          
-          // Fetch user profile with entry effect info for display
-          const { data: profile } = await supabase
-            .from('profiles_public')
-            .select('display_name, user_level, avatar_url, equipped_entrance_id, equipped_entry_name_bar_id')
-            .eq('id', newParticipant.user_id)
-            .single();
-          
-          if (profile) {
-            const userName = profile.display_name || 'User';
-            const userLevel = profile.user_level || 1;
-            const avatarUrl = profile.avatar_url || undefined;
-            
-            console.log('[UnifiedPartyRoom] 🎉 User joined:', userName, 'Level:', userLevel);
-            
-            // Also add to join notifications for stacking display
-            setJoinNotifications(prev => [...prev.slice(-5), {
-              id: `direct_join_${joinKey}`,
-              userId: newParticipant.user_id,
-              userName,
-              userLevel,
-              userAvatar: avatarUrl,
-              timestamp: Date.now()
-            }]);
-            
-            // CRITICAL FIX: ONLY trigger entry animation for users who have ACTUAL animation URLs
-            // NOT just users with equipped IDs - the ID must resolve to a valid URL
-            console.log('[UnifiedPartyRoom] 🔍 Checking entry animations for:', userName,
-              'entranceId:', profile.equipped_entrance_id,
-              'nameBarId:', profile.equipped_entry_name_bar_id);
-            
-            // Get the callback reference BEFORE any async operations to avoid stale closure
-            const triggerCallback = onTriggerEntryEffectRef.current;
-            
-            // CRITICAL: Check if we've already triggered animation for this user in this room session
-            const animationKey = `${newParticipant.user_id}_${roomId}`;
-            if (triggeredEntryAnimationsRef.current.has(animationKey)) {
-              console.log('[UnifiedPartyRoom] ⏭️ Animation already triggered for user, skipping:', userName);
-              return;
-            }
-            
-            // Check if user has equipped IDs OR qualifies for level-based entry name bar
-            const hasEquippedItems = profile.equipped_entrance_id || profile.equipped_entry_name_bar_id;
-            if (!hasEquippedItems && userLevel < 20) {
-              console.log('[UnifiedPartyRoom] ℹ️ User has NO equipped entry items and level < 20 - skipping animation lookup');
-              return;
-            }
-            
-            try {
-              // Fetch actual animation URLs from database (includes level-based auto-assign)
-              const { entranceAnimationUrl, entryNameBarUrl } = await fetchUserEntryAnimations(
-                profile.equipped_entrance_id,
-                profile.equipped_entry_name_bar_id,
-                undefined,
-                userLevel,
-                newParticipant.user_id
-              );
-              
-              console.log('[UnifiedPartyRoom] 📍 Animation lookup result:', {
-                equippedEntranceId: profile.equipped_entrance_id,
-                equippedNameBarId: profile.equipped_entry_name_bar_id,
-                resolvedEntranceUrl: entranceAnimationUrl || 'NOT FOUND - NO ANIMATION',
-                resolvedEntryNameBarUrl: entryNameBarUrl || 'NOT FOUND - NO ANIMATION'
-              });
-              
-              // CRITICAL SAFETY: Only trigger if we have ACTUAL animation URLs
-              // Having an equipped ID is NOT enough - we need the actual URL to display
-              const hasValidEntranceUrl = entranceAnimationUrl && entranceAnimationUrl.length > 0;
-              const hasValidNameBarUrl = entryNameBarUrl && entryNameBarUrl.length > 0;
-              
-              if (!hasValidEntranceUrl && !hasValidNameBarUrl) {
-                console.log('[UnifiedPartyRoom] ⛔ NO valid animation URLs found - NOT triggering animation for:', userName);
-                return;
-              }
-              
-              if (triggerCallback) {
-                // Mark as triggered BEFORE calling callback to prevent race conditions
-                triggeredEntryAnimationsRef.current.add(animationKey);
-                
-                console.log('[UnifiedPartyRoom] 🎬 TRIGGERING entry effect for:', userName, 
-                  '| Entrance:', hasValidEntranceUrl ? '✅' : '❌',
-                  '| NameBar:', hasValidNameBarUrl ? '✅' : '❌');
-                
-                // Use setTimeout to ensure state updates are not batched
-                triggerCallback({
-                  userId: newParticipant.user_id,
-                  displayName: userName,
-                  avatarUrl,
-                  level: userLevel,
-                  entranceUrl: hasValidEntranceUrl ? entranceAnimationUrl : undefined,
-                  entryNameBarUrl: hasValidNameBarUrl ? entryNameBarUrl : undefined
-                });
-              } else {
-                console.log('[UnifiedPartyRoom] ⚠️ No callback available for triggering animation');
-              }
-            } catch (err) {
-              console.error('[UnifiedPartyRoom] Error fetching entry animations:', err);
-            }
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('[UnifiedPartyRoom] Participant join subscription status:', status);
-      });
-    
-    return () => {
-      console.log('[UnifiedPartyRoom] Cleaning up participant join subscription');
-      supabase.removeChannel(participantChannel);
+
+    const handlePartyEvent = (ev: Event) => {
+      const detail = (ev as CustomEvent<PartyEventDetail>).detail;
+      const payload = detail?.payload;
+      if (!payload || (payload as any).roomId !== roomId) return;
+      if (payload.type !== 'participant_joined') return;
+
+      const data = payload as ParticipantJoinedPayload;
+      const joinKey = `${data.userId}_${Math.floor(data.timestamp / 5000)}`;
+      if (processedParticipantJoinsRef.current.has(joinKey)) return;
+      processedParticipantJoinsRef.current.add(joinKey);
+
+      console.log('[UnifiedPartyRoom] ⚡ Pkg81b livekit participant_joined:', data.userName);
+
+      setJoinNotifications(prev => [...prev.slice(-5), {
+        id: `livekit_join_${joinKey}`,
+        userId: data.userId,
+        userName: data.userName,
+        userLevel: data.userLevel,
+        userAvatar: data.userAvatar,
+        timestamp: Date.now(),
+      }]);
+
+      const triggerCallback = onTriggerEntryEffectRef.current;
+      const animationKey = `${data.userId}_${roomId}`;
+      if (triggeredEntryAnimationsRef.current.has(animationKey)) return;
+
+      const entranceUrl = data.entranceAnimationUrl || undefined;
+      const entryNameBarUrl = data.entryNameBarUrl || undefined;
+      const vehicleUrl = data.vehicleAnimationUrl || undefined;
+      if (!entranceUrl && !entryNameBarUrl && !vehicleUrl) return;
+
+      if (triggerCallback) {
+        triggeredEntryAnimationsRef.current.add(animationKey);
+        triggerCallback({
+          userId: data.userId,
+          displayName: data.userName,
+          avatarUrl: data.userAvatar,
+          level: data.userLevel,
+          entranceUrl,
+          entryNameBarUrl,
+        });
+      }
     };
+    window.addEventListener('livekit-party-event', handlePartyEvent);
+    return () => window.removeEventListener('livekit-party-event', handlePartyEvent);
   }, [roomId]);
+
   
   // ==================== REAL-TIME CHAT SUBSCRIPTION ====================
   // Subscribe to party_room_messages for real-time messages (Party Room specific table)
@@ -1020,73 +931,64 @@ export function UnifiedPartyRoom({
     
     loadMessages();
     
-    // Real-time subscription - NOW using party_room_messages table
-    const channel = supabase
-      .channel(`party-chat-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'party_room_messages',
-          filter: `room_id=eq.${roomId}`
-        },
-        async (payload) => {
-          const newMsg = payload.new as any;
+    // ============= Pkg81c: LiveKit-only chat fanout =============
+    // `party-chat-${roomId}` Supabase postgres_changes subscription DELETED.
+    // Sender (handleSendMessage below) INSERTs to party_room_messages first
+    // (moderation/audit/history), then publishes a `chat_message` DataPacket
+    // via livekitChatSignaling. Receivers listen to the `livekit-chat-message`
+    // window event dispatched by registerChatRoom('party', roomId, room) —
+    // which is wired in usePartyRoomWebRTC. ZERO Supabase Realtime channels.
+    const handleLiveKitChat = (ev: Event) => {
+      const data = (ev as CustomEvent<ChatMessageDetail>).detail;
+      if (!data || data.scope !== 'party' || data.id !== roomId) return;
+      if (processedMsgIdsRef.current.has(data.messageId)) return;
+      processedMsgIdsRef.current.add(data.messageId);
 
-          // 1. Skip if we already processed this real id
-          if (processedMsgIdsRef.current.has(newMsg.id)) return;
-          processedMsgIdsRef.current.add(newMsg.id);
+      const msgType = (data.messageType || 'text') as RoomChatMessage['type'];
+      const unifiedMsg: RoomChatMessage = {
+        id: data.messageId,
+        userId: data.userId,
+        user: data.displayName || 'User',
+        initial: (data.displayName || 'U').charAt(0).toUpperCase(),
+        message: data.message,
+        color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
+        userLevel: data.userLevel || 1,
+        userAvatar: data.avatarUrl,
+        isHost: data.isHost || (data.userId === hostInfo?.id),
+        isNewUser: false,
+        type: msgType,
+        bubbleUrl: null,
+      };
 
-          // 2. Fetch sender info
-          const { data: senderData } = await supabase
-            .from('profiles_public')
-            .select('display_name, user_level, avatar_url, is_host')
-            .eq('id', newMsg.user_id)
-            .single();
-
-          const msgType = newMsg.message_type || 'text';
-          const bubbleUrl = await getEquippedBubble(newMsg.user_id);
-
-          const unifiedMsg: RoomChatMessage = {
-            id: newMsg.id,
-            userId: newMsg.user_id,
-            user: senderData?.display_name || 'User',
-            initial: (senderData?.display_name || 'U').charAt(0).toUpperCase(),
-            message: newMsg.content,
-            color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
-            userLevel: senderData?.user_level || 1,
-            userAvatar: senderData?.avatar_url,
-            isHost: senderData?.is_host || (newMsg.user_id === hostInfo?.id),
-            isNewUser: false,
-            type: msgType,
-            bubbleUrl,
-          };
-
-          // 3. REPLACE-OR-APPEND dedupe: if an optimistic temp from same user with
-          // same content already exists, swap it in place (no duplicate bubble).
-          setPremiumMessages(prev => {
-            if (prev.some(m => m.id === newMsg.id)) return prev;
-            const tempIdx = prev.findIndex(m =>
-              typeof m.id === 'string' && m.id.startsWith('temp-')
-              && m.userId === newMsg.user_id
-              && m.message === newMsg.content
-            );
-            if (tempIdx >= 0) {
-              const copy = prev.slice();
-              copy[tempIdx] = { ...copy[tempIdx], ...unifiedMsg };
-              return copy;
-            }
-            return [...prev.slice(-100), unifiedMsg];
-          });
+      // REPLACE-OR-APPEND dedupe — same logic as old postgres_changes handler.
+      setPremiumMessages(prev => {
+        if (prev.some(m => m.id === data.messageId)) return prev;
+        const tempIdx = prev.findIndex(m =>
+          typeof m.id === 'string' && m.id.startsWith('temp-')
+          && m.userId === data.userId
+          && m.message === data.message
+        );
+        if (tempIdx >= 0) {
+          const copy = prev.slice();
+          copy[tempIdx] = { ...copy[tempIdx], ...unifiedMsg };
+          return copy;
         }
-      )
-      .subscribe();
-    
+        return [...prev.slice(-100), unifiedMsg];
+      });
+
+      // Async bubble enrichment — cached per user.
+      void getEquippedBubble(data.userId).then(bubbleUrl => {
+        if (!bubbleUrl) return;
+        setPremiumMessages(prev => prev.map(pm => pm.id === data.messageId ? { ...pm, bubbleUrl } : pm));
+      });
+    };
+    window.addEventListener('livekit-chat-message', handleLiveKitChat);
+
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-chat-message', handleLiveKitChat);
     };
   }, [roomId, hostInfo?.id]);
+
   
   // ==================== LEGACY: JOIN MESSAGES FROM PROPS (for chat only) ====================
   // joinMessages prop comes from PartyRoom.tsx realtime subscription
@@ -1194,11 +1096,25 @@ export function UnifiedPartyRoom({
     } else if (data) {
       // SUCCESS: Replace temp ID with real DB ID to prevent real-time duplicate
       processedMsgIdsRef.current.add(data.id);
-      setPremiumMessages(prev => prev.map(m => 
+      setPremiumMessages(prev => prev.map(m =>
         m.id === tempId ? { ...m, id: data.id } : m
       ));
       pendingMessagesRef.current.delete(msgKey);
-      
+
+      // Pkg81c: publish chat over LiveKit DataPacket. Receivers render
+      // sub-50ms without any postgres_changes subscription. DB row above
+      // remains the moderation/audit/late-join history source.
+      void publishChatMessage('party', roomId, {
+        messageId: data.id,
+        userId: currentUserId,
+        displayName: senderName,
+        avatarUrl: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
+        userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
+        isHost,
+        message: trimmedMessage,
+        messageType: 'chat',
+      });
+
       // Track message sent for task progress
       trackTaskProgress('messages_sent', { increment: 1 });
     }
