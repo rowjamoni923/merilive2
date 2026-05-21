@@ -19,7 +19,9 @@ import {
   XCircle,
   Languages,
   ImagePlus,
-  X
+  X,
+  Wand2,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +106,45 @@ const AdminNoticeBroadcast = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // ── AI Banner Generator (inline, same edge function as Notification Templates) ──
+  const AI_BANNER_SIZES = [
+    { key: 'banner_16_9_1920', label: 'Hero · 1920×1080' },
+    { key: 'banner_16_9_1280', label: 'Standard · 1280×720' },
+    { key: 'square_1080',      label: 'Square · 1080×1080' },
+    { key: 'story_1080',       label: 'Story · 1080×1920' },
+    { key: 'push_thumb',       label: 'Push Thumb · 512×512' },
+  ];
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiSize, setAiSize] = useState<string>('banner_16_9_1920');
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  const generateAiBanner = async () => {
+    const eventName = (aiPrompt.trim() || title.trim()).slice(0, 80);
+    if (!eventName) {
+      toast({ title: "Add a prompt", description: "Type an event name or title first", variant: "destructive" });
+      return;
+    }
+    if (imageUrls.length >= 10) {
+      toast({ title: "Image limit reached", description: "Max 10 images per notice", variant: "destructive" });
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-event-banner', {
+        body: { eventName, sizeKey: aiSize },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error('No URL returned');
+      setImageUrls(prev => [...prev, data.url].slice(0, 10));
+      toast({ title: 'AI banner generated ✨', description: `Added to notice (${data.size?.width}×${data.size?.height})` });
+      setAiPrompt("");
+    } catch (e: any) {
+      toast({ title: 'Generation failed', description: e?.message || 'AI error', variant: 'destructive' });
+    } finally {
+      setAiGenerating(false);
+    }
+  };
   
   const [notices, setNotices] = useState<AdminNotice[]>([]);
   const [loadingNotices, setLoadingNotices] = useState(true);
@@ -472,6 +513,54 @@ const AdminNoticeBroadcast = () => {
                 </Button>
               )}
             </div>
+
+            {/* AI Banner Generator (inline) */}
+            <div className="rounded-xl p-3 border border-amber-400/30 bg-gradient-to-br from-indigo-900/30 via-purple-900/20 to-amber-900/10">
+              <div className="flex items-center gap-2 mb-2">
+                <Wand2 className="w-4 h-4 text-amber-300" />
+                <span className="text-sm font-medium">AI Banner Generator</span>
+                <Badge className="ml-1 bg-amber-500/20 text-amber-200 border-amber-400/30 text-[10px]">Nano Banana 3D</Badge>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Type a prompt (or leave blank to use the title) and generate a premium 3D banner — auto-attached as a notice image.
+              </p>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {AI_BANNER_SIZES.map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => setAiSize(s.key)}
+                    className={`px-2.5 py-1 text-[11px] rounded-md border transition ${
+                      aiSize === s.key
+                        ? 'bg-amber-400/20 border-amber-300/70 text-amber-100'
+                        : 'bg-white/[0.04] border-white/15 text-white/70 hover:bg-white/[0.08]'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder={title.trim() ? `Will use title: "${title.trim().slice(0,40)}"` : "Event name (e.g. Eid Special, Recharge Mega Offer)..."}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); generateAiBanner(); } }}
+                  disabled={aiGenerating}
+                />
+                <Button
+                  type="button"
+                  onClick={generateAiBanner}
+                  disabled={aiGenerating || imageUrls.length >= 10}
+                  className="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white"
+                >
+                  {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+                  Generate
+                </Button>
+              </div>
+            </div>
+
+
 
 
             <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl p-3 border border-blue-500/20">
