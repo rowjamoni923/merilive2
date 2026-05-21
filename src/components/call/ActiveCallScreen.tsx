@@ -106,7 +106,7 @@ export function ActiveCallScreen({
     
     // Real-time subscription
     const channel = supabase
-      .channel('activecall-gift-commission-realtime')
+      .channel(`activecall-gift-commission-realtime-${callId || userId || 'pending'}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -124,7 +124,7 @@ export function ActiveCallScreen({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [callId, userId]);
   
   // BILLING DISPLAY LOGIC:
   // The actual deduction happens on the backend every 60 seconds
@@ -148,6 +148,7 @@ export function ActiveCallScreen({
     remoteVideoTrack,
     localVideoTrack,
     isNativeMediaActive,
+    localMediaReady,
     isConnected,
     isAudioEnabled,
     isVideoEnabled,
@@ -188,20 +189,20 @@ export function ActiveCallScreen({
       return;
     }
 
-    const mediaLive = !!localStream && isConnected;
+    const mediaLive = (localMediaReady || !!localStream || isNativeMediaActive) && isConnected;
     if (!mediaLive) return;
     if (mediaConnectedNotifiedRef.current === callId) return;
 
     mediaConnectedNotifiedRef.current = callId;
     onMediaConnected?.(callId);
-  }, [isOpen, callId, callStatus, localStream, isConnected, onMediaConnected]);
+  }, [isOpen, callId, callStatus, localMediaReady, localStream, isNativeMediaActive, isConnected, onMediaConnected]);
 
   // Fetch user coins, display name AND host photos
   useEffect(() => {
     const fetchUserInfo = async () => {
       if (!userId) return;
       const { data } = await supabase
-        .from('profiles')
+        .from('profiles') // guard-ok: owner-only balance read for authenticated caller/host, not cross-user.
         .select('coins, display_name, avatar_url, user_level')
         .eq('id', userId)
         .single();
@@ -287,7 +288,7 @@ export function ActiveCallScreen({
               .eq("id", payload.new.gift_id)
               .single(),
             supabase
-              .from("profiles")
+              .from("profiles_public")
               .select("display_name, avatar_url")
               .eq("id", payload.new.sender_id)
               .single()

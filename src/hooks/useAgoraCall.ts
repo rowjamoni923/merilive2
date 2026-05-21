@@ -34,6 +34,7 @@ interface LiveKitCallState {
   remoteVideoTrack: Track | null;
   localVideoTrack: Track | null;
   isNativeMediaActive: boolean;
+  localMediaReady: boolean;
   isConnected: boolean;
   isAudioEnabled: boolean;
   isVideoEnabled: boolean;
@@ -51,6 +52,7 @@ export function useAgoraCall(
     remoteVideoTrack: null,
     localVideoTrack: null,
     isNativeMediaActive: false,
+    localMediaReady: false,
     isConnected: false,
     isAudioEnabled: true,
     isVideoEnabled: true,
@@ -140,6 +142,7 @@ export function useAgoraCall(
       remoteVideoTrack: null,
       localVideoTrack: null,
       isNativeMediaActive: false,
+      localMediaReady: false,
       isConnected: false,
       isAudioEnabled: true,
       isVideoEnabled: true,
@@ -236,6 +239,7 @@ export function useAgoraCall(
             setState(p => ({
               ...p,
               isNativeMediaActive: true,
+              localMediaReady: true,
               isConnected: true,
               connectionState: 'connected',
               isAudioEnabled: true,
@@ -434,6 +438,7 @@ export function useAgoraCall(
           localStream: localMs.getTracks().length > 0 ? localMs : null,
           localVideoTrack: localVidTrack,
           isNativeMediaActive: false,
+          localMediaReady: localMs.getTracks().length > 0,
           isVideoEnabled: true,
           isAudioEnabled: true,
           connectionState: 'connected',
