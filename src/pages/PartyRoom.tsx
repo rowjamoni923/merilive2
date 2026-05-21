@@ -1935,16 +1935,14 @@ const PartyRoom = () => {
         return;
       }
       
-      // Send INSTANT broadcast notification to the requester
-      const broadcastChannel = supabase.channel(`party-room-all-${roomId}`);
-      broadcastChannel.send({
-        type: 'broadcast',
-        event: 'seat_action',
-        payload: {
-          action: 'rejected',
-          requester_id: request.requester_id,
-          request_id: request.id
-        }
+      // Pkg80: LiveKit DataPacket replaces `party-room-all-*` seat_action send.
+      void publishPartyEvent(roomId, {
+        type: 'seat_action',
+        roomId,
+        action: 'rejected',
+        requester_id: request.requester_id,
+        request_id: request.id,
+        timestamp: Date.now(),
       });
       
       console.log('[PartyRoom] Seat rejected for request:', request.id);
