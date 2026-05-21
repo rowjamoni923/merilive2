@@ -10,6 +10,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { callGiftService } from '@/utils/giftServiceClient';
 import { broadcastGiftSent } from '@/features/shared/room/roomBroadcast';
+import { publishGiftSent } from '@/lib/livekitGiftSignaling';
 
 export interface GiftItem {
   id: string;
@@ -138,31 +139,65 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     // ⚡ INSTANT BROADCAST: fire-and-forget so every viewer sees the animation
     // in <100ms (vs 1-3s postgres_changes latency).
     const broadcastRoomId = streamId || roomId;
-    if (broadcastRoomId) {
+    const liveKitScope: 'live' | 'party' | 'call' | null =
+      context === 'live' ? 'live'
+      : context === 'party' ? 'party'
+      : context === 'call' ? 'call'
+      : null;
+    const liveKitId = streamId || roomId || callId;
+    if (broadcastRoomId || (liveKitScope === 'call' && liveKitId)) {
       (async () => {
         try {
           const [gift, senderRes] = await Promise.all([
             getGiftById(giftId),
             supabase
-              .from('profiles')
-              .select('display_name, avatar_url')
+              .from('profiles_public')
+              .select('display_name, avatar_url, user_level')
               .eq('id', senderId)
               .maybeSingle(),
           ]);
-          broadcastGiftSent(broadcastRoomId, {
-            senderId,
-            senderName: senderRes.data?.display_name || 'Someone',
-            senderAvatar: senderRes.data?.avatar_url || undefined,
-            giftId,
-            giftName: gift?.name || 'Gift',
-            giftIconUrl: gift?.icon_url,
-            giftAnimationUrl: gift?.animation_url,
-            giftSoundUrl: gift?.sound_url,
-            quantity,
-            coinAmount: result.coinsSpent || 0,
-            beansEarned: result.hostReceived || 0,
-            timestamp: Date.now(),
-          });
+          const senderName = senderRes.data?.display_name || 'Someone';
+          const senderAvatar = senderRes.data?.avatar_url || undefined;
+          const senderLevel = (senderRes.data as any)?.user_level;
+
+          // Pkg82/83 LiveKit-Purist: publish via DataPacket for in-room scopes.
+          if (liveKitScope && liveKitId) {
+            publishGiftSent(liveKitScope, liveKitId, {
+              senderId,
+              senderName,
+              senderAvatar,
+              senderLevel,
+              receiverId,
+              giftId,
+              giftName: gift?.name || 'Gift',
+              giftIconUrl: gift?.icon_url,
+              giftAnimationUrl: gift?.animation_url,
+              giftSoundUrl: gift?.sound_url,
+              count: quantity,
+              giftCoins: gift?.coins || 0,
+              totalCoins: result.coinsSpent || 0,
+              receiverBeans: result.hostReceived || 0,
+              timestamp: Date.now(),
+            }).catch((err) => console.warn('[Pkg76] publishGiftSent failed:', err));
+          }
+
+          // Legacy live/party Supabase broadcast retained for non-LiveKit fallback paths.
+          if (broadcastRoomId) {
+            broadcastGiftSent(broadcastRoomId, {
+              senderId,
+              senderName,
+              senderAvatar,
+              giftId,
+              giftName: gift?.name || 'Gift',
+              giftIconUrl: gift?.icon_url,
+              giftAnimationUrl: gift?.animation_url,
+              giftSoundUrl: gift?.sound_url,
+              quantity,
+              coinAmount: result.coinsSpent || 0,
+              beansEarned: result.hostReceived || 0,
+              timestamp: Date.now(),
+            });
+          }
         } catch (err) {
           console.warn('[GiftingService] Broadcast failed (non-fatal):', err);
         }
