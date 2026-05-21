@@ -2745,7 +2745,7 @@ const LiveStream = () => {
         onComplete={completeBigoJoin}
       />
 
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: showNativeHostSurface ? 'transparent' : '#050208' }}>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ background: showNativeHostSurface ? 'transparent' : 'hsl(var(--background))' }}>
         {/* Instant blurred host avatar background — visible only until video track arrives */}
         {!isHost && !remoteVideoTrack && hostInfo?.avatar && (
           <div className="absolute inset-0 z-[0]">
@@ -2772,7 +2772,7 @@ const LiveStream = () => {
             />
           </div>
         ) : showNativeHostSurface ? (
-          <div className="absolute inset-0 pointer-events-none" />
+          <div className="absolute inset-0 pointer-events-none bg-transparent" />
         ) : showHostTransitionPreview ? (
           <video
             ref={hostTransitionVideoRef}
