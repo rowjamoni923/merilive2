@@ -930,73 +930,64 @@ export function UnifiedPartyRoom({
     
     loadMessages();
     
-    // Real-time subscription - NOW using party_room_messages table
-    const channel = supabase
-      .channel(`party-chat-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'party_room_messages',
-          filter: `room_id=eq.${roomId}`
-        },
-        async (payload) => {
-          const newMsg = payload.new as any;
+    // ============= Pkg81c: LiveKit-only chat fanout =============
+    // `party-chat-${roomId}` Supabase postgres_changes subscription DELETED.
+    // Sender (handleSendMessage below) INSERTs to party_room_messages first
+    // (moderation/audit/history), then publishes a `chat_message` DataPacket
+    // via livekitChatSignaling. Receivers listen to the `livekit-chat-message`
+    // window event dispatched by registerChatRoom('party', roomId, room) —
+    // which is wired in usePartyRoomWebRTC. ZERO Supabase Realtime channels.
+    const handleLiveKitChat = (ev: Event) => {
+      const data = (ev as CustomEvent<ChatMessageDetail>).detail;
+      if (!data || data.scope !== 'party' || data.id !== roomId) return;
+      if (processedMsgIdsRef.current.has(data.messageId)) return;
+      processedMsgIdsRef.current.add(data.messageId);
 
-          // 1. Skip if we already processed this real id
-          if (processedMsgIdsRef.current.has(newMsg.id)) return;
-          processedMsgIdsRef.current.add(newMsg.id);
+      const msgType = data.messageType || 'text';
+      const unifiedMsg: RoomChatMessage = {
+        id: data.messageId,
+        userId: data.userId,
+        user: data.displayName || 'User',
+        initial: (data.displayName || 'U').charAt(0).toUpperCase(),
+        message: data.message,
+        color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
+        userLevel: data.userLevel || 1,
+        userAvatar: data.avatarUrl,
+        isHost: data.isHost || (data.userId === hostInfo?.id),
+        isNewUser: false,
+        type: msgType,
+        bubbleUrl: null,
+      };
 
-          // 2. Fetch sender info
-          const { data: senderData } = await supabase
-            .from('profiles_public')
-            .select('display_name, user_level, avatar_url, is_host')
-            .eq('id', newMsg.user_id)
-            .single();
-
-          const msgType = newMsg.message_type || 'text';
-          const bubbleUrl = await getEquippedBubble(newMsg.user_id);
-
-          const unifiedMsg: RoomChatMessage = {
-            id: newMsg.id,
-            userId: newMsg.user_id,
-            user: senderData?.display_name || 'User',
-            initial: (senderData?.display_name || 'U').charAt(0).toUpperCase(),
-            message: newMsg.content,
-            color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
-            userLevel: senderData?.user_level || 1,
-            userAvatar: senderData?.avatar_url,
-            isHost: senderData?.is_host || (newMsg.user_id === hostInfo?.id),
-            isNewUser: false,
-            type: msgType,
-            bubbleUrl,
-          };
-
-          // 3. REPLACE-OR-APPEND dedupe: if an optimistic temp from same user with
-          // same content already exists, swap it in place (no duplicate bubble).
-          setPremiumMessages(prev => {
-            if (prev.some(m => m.id === newMsg.id)) return prev;
-            const tempIdx = prev.findIndex(m =>
-              typeof m.id === 'string' && m.id.startsWith('temp-')
-              && m.userId === newMsg.user_id
-              && m.message === newMsg.content
-            );
-            if (tempIdx >= 0) {
-              const copy = prev.slice();
-              copy[tempIdx] = { ...copy[tempIdx], ...unifiedMsg };
-              return copy;
-            }
-            return [...prev.slice(-100), unifiedMsg];
-          });
+      // REPLACE-OR-APPEND dedupe — same logic as old postgres_changes handler.
+      setPremiumMessages(prev => {
+        if (prev.some(m => m.id === data.messageId)) return prev;
+        const tempIdx = prev.findIndex(m =>
+          typeof m.id === 'string' && m.id.startsWith('temp-')
+          && m.userId === data.userId
+          && m.message === data.message
+        );
+        if (tempIdx >= 0) {
+          const copy = prev.slice();
+          copy[tempIdx] = { ...copy[tempIdx], ...unifiedMsg };
+          return copy;
         }
-      )
-      .subscribe();
-    
+        return [...prev.slice(-100), unifiedMsg];
+      });
+
+      // Async bubble enrichment — cached per user.
+      void getEquippedBubble(data.userId).then(bubbleUrl => {
+        if (!bubbleUrl) return;
+        setPremiumMessages(prev => prev.map(pm => pm.id === data.messageId ? { ...pm, bubbleUrl } : pm));
+      });
+    };
+    window.addEventListener('livekit-chat-message', handleLiveKitChat);
+
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-chat-message', handleLiveKitChat);
     };
   }, [roomId, hostInfo?.id]);
+
   
   // ==================== LEGACY: JOIN MESSAGES FROM PROPS (for chat only) ====================
   // joinMessages prop comes from PartyRoom.tsx realtime subscription
