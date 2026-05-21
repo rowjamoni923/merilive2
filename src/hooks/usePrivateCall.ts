@@ -1245,8 +1245,34 @@ export function usePrivateCall(userId: string | null) {
       softEndCallRef.current?.();
     };
 
+    // 🔥 Pkg86 audit: LiveKit `call_accepted` listener (mirrors Supabase broadcast above).
+    // Primary path once caller's LiveKit Room is connected; Supabase remains as pre-Room fallback.
+    const handleLiveKitCallAccepted = (ev: Event) => {
+      if (isCleanedUp) return;
+      const detail = (ev as CustomEvent<CallAcceptedDetail>).detail;
+      if (!detail?.callId) return;
+
+      const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
+      if (trackedCallId && trackedCallId !== detail.callId) return;
+      if (!trackedCallId) {
+        currentCallIdRef.current = detail.callId;
+        setCallState(prev => (
+          prev.status === 'calling' || prev.status === 'ringing'
+            ? { ...prev, callId: detail.callId }
+            : prev
+        ));
+      }
+
+      if (endedCallIdsRef.current.has(detail.callId) || callEndedRef.current) return;
+      if (detail.acceptedBy === userId) return;
+
+      console.log('[Pkg86] ⚡ LiveKit call-accepted received for:', detail.callId);
+      activateCallerConnectedState(detail.callId);
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('livekit-call-ended', handleLiveKitCallEnded);
+      window.addEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
     }
 
     return () => {
@@ -1254,9 +1280,11 @@ export function usePrivateCall(userId: string | null) {
       supabase.removeChannel(endChannel);
       if (typeof window !== 'undefined') {
         window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
+        window.removeEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
       }
     };
   }, [userId]);
+
 
   // 🔵 METHOD 2: Universal realtime listener (no extra filtered channels)
   // Handles call status updates for both caller and host
