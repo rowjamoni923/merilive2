@@ -163,8 +163,12 @@ export function AdminMediaFrame({
       return;
     }
     let cancelled = false;
-    setDisplaySrc(null);
-    setDisplayPoster(null);
+    // Prime with sync public URL first — never blank the tile if we already
+    // have a usable URL from the previous render.
+    const syncSrc = tryResolvePublicAdminStorageUrlSync(src, bucket);
+    const syncPoster = tryResolvePublicAdminStorageUrlSync(poster, bucket);
+    setDisplaySrc(syncSrc);
+    setDisplayPoster(syncPoster || poster || null);
     (async () => {
       const resolver = bucket === "face-verification" || bucket === "host-verification" || isPrivateStorage
         ? resolveAdminStorageObjectUrl
@@ -174,8 +178,8 @@ export function AdminMediaFrame({
         resolver(poster, bucket),
       ]);
       if (!cancelled) {
-        setDisplaySrc(resolved || src);
-        setDisplayPoster(resolvedPoster || null);
+        setDisplaySrc(resolved || syncSrc || src);
+        setDisplayPoster(resolvedPoster || syncPoster || null);
         setResolutionFailed(false);
       }
     })();
