@@ -154,10 +154,17 @@ const BecomeSubAgent = () => {
 
     setLoading(true);
     try {
+      // Pkg72: DB signature is (_agency_id, _user_id, _name, _commission_rate DEFAULT 5).
+      // Previous call passed _referrer_id which doesn't exist → sub-agent creation 100% failed.
+      const subAgentName =
+        currentUser?.display_name?.trim() ||
+        currentUser?.username?.trim() ||
+        `Sub-Agent ${(currentUser?.app_uid || currentUser?.id || '').toString().slice(-6)}`;
+
       const { data, error } = await supabase.rpc('create_sub_agent', {
         _agency_id: agency.id,
         _user_id: currentUser.id,
-        _referrer_id: null
+        _name: subAgentName,
       });
 
       if (error) throw error;
