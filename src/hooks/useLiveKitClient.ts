@@ -55,6 +55,10 @@ interface UseLiveKitClientOptions {
   onError?: (error: Error) => void;
   onCoHostRequest?: (uid: number, userName: string) => void;
   onRoleChanged?: (uid: number, role: 'host' | 'audience') => void;
+  /** Pkg74: When set, the underlying Room is registered with the
+   * live-stream signaling registry so `publishStreamEnded(id, …)` works
+   * and incoming `stream_ended` packets reach window event listeners. */
+  liveSignalingStreamId?: string | null;
 }
 
 export interface CoHostRequest {
