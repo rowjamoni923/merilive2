@@ -22,6 +22,8 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { registerCallRoom, unregisterCallRoom } from '@/lib/livekitCallSignaling';
+import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
+
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
