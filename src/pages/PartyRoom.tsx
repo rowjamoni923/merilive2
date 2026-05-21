@@ -54,7 +54,7 @@ import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { publishGiftSent, type GiftSentDetail } from "@/lib/livekitGiftSignaling";
-import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload } from "@/lib/livekitPartyEventsSignaling";
+import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload, type RoomStateChangedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
 import { GameSelectionModal } from "@/components/party/GameSelectionModal";
@@ -483,46 +483,14 @@ const PartyRoom = () => {
     fetchBackground();
   }, [roomId, room?.background_id]);
   
-  // ✅ REAL-TIME BACKGROUND SYNC - Listen for party_rooms.background_id changes
-  useEffect(() => {
-    if (!roomId) return;
-    
-    const bgChannel = supabase
-      .channel(`party-room-bg-${roomId}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'party_rooms',
-        filter: `id=eq.${roomId}`
-      }, async (payload: any) => {
-        const newBgId = payload.new?.background_id;
-        
-        if (newBgId && newBgId !== currentBackground?.id) {
-          console.log('[PartyRoom] ⚡ Background updated via real-time:', newBgId);
-          
-          // Fetch new background data
-          const { data, error } = await supabase
-            .from('party_room_backgrounds')
-            .select('id, image_url, gradient_css')
-            .eq('id', newBgId)
-            .single();
-          
-          if (data && !error) {
-            setCurrentBackground(data);
-          }
-        }
-        
-        // Also handle active_seats updates
-        if (payload.new?.active_seats !== undefined) {
-          setRoom(prev => prev ? { ...prev, active_seats: payload.new.active_seats } : prev);
-        }
-      })
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(bgChannel);
-    };
-  }, [roomId, currentBackground?.id]);
+  // Pkg81: `party-room-bg-${roomId}` Supabase Realtime channel DELETED.
+  // Background changes now arrive via LiveKit `room_state_changed` DataPacket
+  // (host publishes from BackgroundPickerPanel after the party_rooms UPDATE).
+  // Late-join state = the initial `fetchBackground()` above. NO realtime
+  // subscription to party_rooms from the client anymore. Saves 1 channel +
+  // 1 party_room_backgrounds round-trip per background switch (sender packs
+  // the row into the envelope). The handler lives in the unified
+  // `livekit-party-event` listener further below.
 
   useEffect(() => {
     if (!roomId) return;
@@ -568,59 +536,15 @@ const PartyRoom = () => {
     // Initial fetch
     fetchTotalBeans();
 
-    // Subscribe for realtime updates to gift transactions
-    // CRITICAL: No UUID filter — Supabase Realtime UUID filters can fail silently
-    const giftChannel = supabase
-      .channel(`party-beans-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'gift_transactions',
-        },
-        (payload: any) => {
-          // CLIENT-SIDE FILTER: Only count gifts for THIS party room
-          if (payload.new?.party_room_id !== roomId) return;
-          
-          const newGiftValue = payload.new?.coin_amount || 0;
-          const newHostBeans = payload.new?.receiver_beans ?? Math.floor(newGiftValue * hostCommissionPercent / 100);
-          const senderId = payload.new?.sender_id;
-          const giftKey = getPartyGiftRealtimeKey(senderId, payload.new?.gift_id, newGiftValue, payload.new?.quantity);
-          const optimistic = optimisticGiftCountsRef.current.get(giftKey);
-          if (optimistic) {
-            optimisticGiftCountsRef.current.delete(giftKey);
-            if (optimistic.beans !== newHostBeans || optimistic.coins !== newGiftValue) {
-              setTotalRoomBeans(prev => Math.max(0, prev - optimistic.beans + newHostBeans));
-              if (senderId) {
-                setParticipantBeans(prev => ({
-                  ...prev,
-                  [senderId]: Math.max(0, (prev[senderId] || 0) - optimistic.coins + newGiftValue),
-                }));
-              }
-            }
-            console.log('[PartyRoom] Gift confirmed by DB:', newHostBeans, 'from:', senderId);
-            return;
-          }
-          console.log('[PartyRoom] New gift received! Adding beans:', newHostBeans, 'from:', senderId);
-          setTotalRoomBeans(prev => prev + newHostBeans);
-          
-          // Update per-participant beans
-          if (senderId) {
-            setParticipantBeans(prev => ({
-              ...prev,
-              [senderId]: (prev[senderId] || 0) + newGiftValue
-            }));
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('[PartyRoom] Beans realtime subscription status:', status);
-      });
-
-    return () => {
-      supabase.removeChannel(giftChannel);
-    };
+    // Pkg81: `party-beans-${roomId}` Supabase Realtime channel DELETED.
+    // Beans counter realtime now arrives purely via Pkg76 LiveKit
+    // `livekit-gift-sent` DataPacket — the handler further below already
+    // bumps `setTotalRoomBeans` + `setParticipantBeans` from the same
+    // envelope. Late-join state = the initial `fetchTotalBeans()` above.
+    // Net result: every active party room saves 1 Realtime channel + 1
+    // gift_transactions postgres_changes subscription. ZERO functional
+    // regression — the LiveKit path was already the primary; this just
+    // removes the redundant fallback.
   }, [roomId, hostCommissionPercent, getPartyGiftRealtimeKey]);
 
   // Determine if current user is host or admin
@@ -993,73 +917,22 @@ const PartyRoom = () => {
       // sole instant seat-action notifier. postgres_changes on seat_requests
       // (above) remains as the durable fallback path. Saves cross-room
       // realtime broadcast traffic on every approve/reject/new_request.
-    // ============= SEPARATE ROOM STATUS CHANNEL =============
-    // CRITICAL: Use a DEDICATED channel for room status to ensure visitors see room close
-    // This avoids filter issues with the combined channel
-    console.log('[PartyRoom] 🔌 Setting up DEDICATED room status channel for room:', roomId);
-    
-    const roomStatusChannel = supabase
-      .channel(`party-room-status-${roomId}`)
-      .on('postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'party_rooms', filter: `id=eq.${roomId}` },
-        async (payload: any) => {
-          console.log('[PartyRoom] 📡 Room update received:', {
-            is_active: payload.new?.is_active,
-            background_id: payload.new?.background_id,
-            background_url: payload.new?.background_url,
-            active_seats: payload.new?.active_seats
-          });
-          
-          // Handle active_seats updates - sync to ALL participants in real-time
-          if (payload.new?.active_seats !== undefined && isMountedRef.current) {
-            console.log('[PartyRoom] 🪑 Active seats changed:', payload.new.active_seats);
-            setRoom(prev => prev ? {
-              ...prev,
-              active_seats: payload.new.active_seats
-            } : null);
-          }
-          
-          // Handle background updates - REMOVED (handled by dedicated bgChannel listener above)
-          // This prevents conflict between two listeners updating different state
-          // Background sync is now only handled by the `party-room-bg-${roomId}` channel
-          
-          // Handle room close
-          if (payload.new?.is_active === false && isMountedRef.current) {
-            console.log('[PartyRoom] 🔴 Room closed by host - showing modal to visitors');
-            
-            // Use ref to check host status (avoid stale closure)
-            const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
-            
-            console.log('[PartyRoom] isHostNow:', isHostNow, 'hostId:', roomRef.current?.host_id, 'currentUserId:', currentUserRef.current?.id);
-            
-            // Only show modal to non-hosts (visitors)
-            if (!isHostNow) {
-              console.log('[PartyRoom] 🎬 Showing RoomEndedModal to visitor');
-              setShowRoomClosedModal(true);
-              cleanupWebRTC();
-              
-              // Auto-redirect after 3 seconds
-              setTimeout(() => {
-                if (isMountedRef.current) {
-                  console.log('[PartyRoom] 🏠 Auto-redirecting visitor to home');
-                  navigate('/');
-                }
-              }, 3000);
-            } else {
-              // Host just navigates away
-              console.log('[PartyRoom] 👋 Host closing room - redirecting');
-              cleanupWebRTC();
-              navigate('/');
-            }
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('[PartyRoom] 📡 Room status subscription:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('[PartyRoom] ✅ Room status listener ACTIVE - will detect room close & background changes');
-        }
-      });
+    // ============= Pkg81: ROOM STATUS CHANNEL DELETED =============
+    // `party-room-status-${roomId}` Supabase Realtime channel REMOVED.
+    // Room state changes (active_seats / background / is_active) now arrive
+    // purely via LiveKit:
+    //   - active_seats + background → `room_state_changed` DataPacket
+    //     (host publishes from SeatSelectorPanel / BackgroundPickerPanel
+    //      AFTER the party_rooms UPDATE). Handler is wired in the unified
+    //      `livekit-party-event` listener further below.
+    //   - is_active=false → Pkg75 `livekit-party-closed` event already
+    //     handles host-initiated close; auto-silence close path publishes
+    //     the same event from `handleSilenceTimeout`.
+    //   - 20s polling useEffect at the bottom of this file remains as the
+    //     LAST-resort safety net (network blip / LiveKit disconnect).
+    // Late-join state = the initial party_rooms SELECT on mount. NO
+    // postgres_changes subscription to party_rooms from the client anymore.
+    const roomStatusChannel: any = null;
     
     // Pkg78: Supabase `party-room-close-${roomId}` broadcast listener REMOVED.
     // LiveKit DataPacket (Pkg75 `livekit-party-closed` window event handler
@@ -1282,6 +1155,31 @@ const PartyRoom = () => {
         fetchSeatRequests();
         return;
       }
+
+      // --- room_state_changed (Pkg81) ---
+      if (payload.type === 'room_state_changed') {
+        const data = payload as RoomStateChangedPayload;
+        console.log('[PartyRoom] 🟣 ⚡ Pkg81 livekit room_state_changed:', data);
+        if (typeof data.active_seats === 'number') {
+          setRoom(prev => prev ? { ...prev, active_seats: data.active_seats! } : prev);
+        }
+        if (data.background) {
+          setCurrentBackground({
+            id: data.background.id,
+            image_url: data.background.image_url ?? null,
+            gradient_css: data.background.gradient_css ?? null,
+          } as any);
+        }
+        if (data.is_active === false) {
+          const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
+          if (!isHostNow && !showRoomClosedModal && isMountedRef.current) {
+            setShowRoomClosedModal(true);
+            cleanupWebRTC();
+            setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
+          }
+        }
+        return;
+      }
     };
     window.addEventListener('livekit-party-event', handleLiveKitPartyEvent);
 
@@ -1294,7 +1192,8 @@ const PartyRoom = () => {
       leaveRoom();
       cleanupWebRTC();
       supabase.removeChannel(participantChannel);
-      supabase.removeChannel(roomStatusChannel);
+      // Pkg81: roomStatusChannel is null (channel deleted, LiveKit-only).
+      if (roomStatusChannel) supabase.removeChannel(roomStatusChannel);
       // Pkg78: giftBroadcastChannel + roomCloseBroadcastChannel removed (null refs).
       // Pkg80: joinBroadcastChannel removed (null ref).
       if (giftBroadcastChannel) supabase.removeChannel(giftBroadcastChannel);
