@@ -1912,33 +1912,27 @@ const LiveStream = () => {
 
     setShowPKRequest(false);
 
-    // Persist accept on the battle row (challenger is watching pk_battles via RPC poll fallback,
-    // but instant reply path is FCM-only via pk-invite-deliver below).
+    // Persist accept on the battle row (audit/state of truth).
     await supabase
       .from("pk_battles")
       .update({ status: "accepted", started_at: new Date().toISOString() })
       .eq("id", incomingPKRequest.battleId);
 
-    // Pkg82d: notify challenger via FCM/notifications (was Supabase channel `pk_battle_${battleId}`).
+    // Pkg82d: notify challenger via FCM (replaces `pk_battle_${battleId}` channel).
+    // challengerId is threaded from the original pk_invite notification —
+    // no extra SELECT needed (avoids RLS edge cases + 1 round-trip).
     try {
-      const { data: battle } = await supabase
-        .from("pk_battles")
-        .select("challenger_id")
-        .eq("id", incomingPKRequest.battleId)
-        .maybeSingle();
-      if (battle?.challenger_id) {
-        await supabase.functions.invoke("pk-invite-deliver", {
-          body: {
-            kind: "accept",
-            battleId: incomingPKRequest.battleId,
-            toUserId: battle.challenger_id,
-            fromUserId: currentUserId,
-            fromName: hostInfo.name,
-            fromAvatar: hostInfo.avatar,
-            fromLevel: hostInfo.level,
-          },
-        });
-      }
+      await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "accept",
+          battleId: incomingPKRequest.battleId,
+          toUserId: incomingPKRequest.challengerId,
+          fromUserId: currentUserId,
+          fromName: hostInfo.name,
+          fromAvatar: hostInfo.avatar,
+          fromLevel: hostInfo.level,
+        },
+      });
     } catch (err) {
       console.warn("[LiveStream] pk-invite-deliver accept failed:", err);
     }
@@ -1951,7 +1945,7 @@ const LiveStream = () => {
         name: incomingPKRequest.challengerName,
         avatar: incomingPKRequest.challengerAvatar,
         level: incomingPKRequest.challengerLevel,
-        id: "",
+        id: incomingPKRequest.challengerId,
       },
       opponentInfo: {
         name: hostInfo.name,
@@ -1970,29 +1964,23 @@ const LiveStream = () => {
           .from("pk_battles")
           .update({ status: "declined" })
           .eq("id", incomingPKRequest.battleId);
-        const { data: battle } = await supabase
-          .from("pk_battles")
-          .select("challenger_id")
-          .eq("id", incomingPKRequest.battleId)
-          .maybeSingle();
-        if (battle?.challenger_id) {
-          await supabase.functions.invoke("pk-invite-deliver", {
-            body: {
-              kind: "decline",
-              battleId: incomingPKRequest.battleId,
-              toUserId: battle.challenger_id,
-              fromUserId: currentUserId,
-              fromName: hostInfo.name,
-              fromAvatar: hostInfo.avatar,
-              fromLevel: hostInfo.level,
-            },
-          });
-        }
+        await supabase.functions.invoke("pk-invite-deliver", {
+          body: {
+            kind: "decline",
+            battleId: incomingPKRequest.battleId,
+            toUserId: incomingPKRequest.challengerId,
+            fromUserId: currentUserId,
+            fromName: hostInfo.name,
+            fromAvatar: hostInfo.avatar,
+            fromLevel: hostInfo.level,
+          },
+        });
       } catch (err) {
         console.warn("[LiveStream] pk-invite-deliver decline failed:", err);
       }
     }
     setIncomingPKRequest(null);
+
   };
 
   // Random PK handlers
