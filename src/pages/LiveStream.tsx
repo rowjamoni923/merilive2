@@ -1893,17 +1893,20 @@ const LiveStream = () => {
       // Cleanup only on unmount
     return () => {
       console.log('🧹 Component unmounting, cleaning up...');
-      streamEndedRef.current = true; // Stop task tracking immediately on unmount
       const wasHost = verifiedHostRef.current === true || initialHostRole;
+      if (wasHost) {
+        // Native Android LiveKit can momentarily unmount/remount the WebView
+        // during camera handoff, permission sheets, PiP, route suspense, or OS
+        // lifecycle churn. Do not close the host's room from cleanup; the
+        // explicit X/end button is the single source of truth for ending live.
+        return;
+      }
+
+      streamEndedRef.current = true; // Stop viewer/task cleanup immediately on unmount
       if (connectionInitiated.current) {
         leaveChannel();
         connectionInitiated.current = false;
-        if (wasHost && id) {
-          supabase
-            .from('live_streams')
-            .update({ is_active: false, ended_at: new Date().toISOString() })
-            .eq('id', id);
-          } else if (id) {
+        if (id) {
             supabase
               .rpc('leave_live_stream_viewer', { p_stream_id: id })
               .then(({ error }) => {
