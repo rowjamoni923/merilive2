@@ -383,9 +383,9 @@ const AdminRechargeHistory = () => {
 
         if (traderHelpers && traderHelpers.length > 0) {
           const { data: thProfiles } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('id, display_name')
-            .in('id', traderHelpers.map(h => h.user_id));
+            .in('id', traderHelpers.map(h => h.user_id).filter(Boolean));
 
           const thMap = new Map(thProfiles?.map(p => [p.id, p.display_name]) || []);
           traderHelpers.forEach(h => {
