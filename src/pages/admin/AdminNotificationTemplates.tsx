@@ -10,7 +10,10 @@ import {
   Eye,
   MessageSquare,
   AlertCircle,
-  Info
+  Info,
+  ImageIcon,
+  Send,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +38,9 @@ interface NotificationTemplate {
   title_template: string;
   message_template: string;
   description: string | null;
+  category?: string | null;
+  icon_emoji?: string | null;
+  image_url?: string | null;
   updated_at: string;
 }
 
@@ -51,12 +57,31 @@ const AdminNotificationTemplates = () => {
   const [editForm, setEditForm] = useState({
     title_template: "",
     message_template: "",
-    description: ""
+    description: "",
+    icon_emoji: "",
+    image_url: ""
   });
 
   // Preview dialog
   const [previewDialog, setPreviewDialog] = useState(false);
-  const [previewContent, setPreviewContent] = useState({ title: "", message: "" });
+  const [previewContent, setPreviewContent] = useState({ title: "", message: "", image_url: "", icon_emoji: "" });
+  const [broadcastingKey, setBroadcastingKey] = useState<string | null>(null);
+
+  const premiumIcons = [
+    { label: 'Face Verification', url: '/images/premium-notifications/face-verification-3d.png' },
+    { label: 'Recharge Mega', url: '/images/premium-notifications/recharge-mega-3d.png' },
+    { label: 'VIP Crown', url: '/images/premium-notifications/vip-crown-3d.png' },
+    { label: 'Referral Gift', url: '/images/premium-notifications/referral-gift-3d.png' },
+    { label: 'Live Reward', url: '/images/premium-notifications/live-reward-3d.png' },
+  ];
+
+  const eventBanners = [
+    { title: 'Recharge Mega Offer', url: '/images/premium-events/recharge-mega-offer.png' },
+    { title: 'VIP Launch', url: '/images/premium-events/vip-launch.png' },
+    { title: 'Weekly Tournament', url: '/images/premium-events/weekly-tournament.png' },
+    { title: 'Eid Special', url: '/images/premium-events/eid-special.png' },
+    { title: 'New Year Event', url: '/images/premium-events/new-year-event.png' },
+  ];
 
   useAdminRealtime(['notification_templates'], () => fetchTemplates());
 
@@ -85,7 +110,9 @@ const AdminNotificationTemplates = () => {
     setEditForm({
       title_template: template.title_template,
       message_template: template.message_template,
-      description: template.description || ""
+      description: template.description || "",
+      icon_emoji: template.icon_emoji || "",
+      image_url: template.image_url || ""
     });
     setEditDialog(true);
   };
@@ -103,6 +130,8 @@ const AdminNotificationTemplates = () => {
           title_template: editForm.title_template,
           message_template: editForm.message_template,
           description: editForm.description || null,
+          icon_emoji: editForm.icon_emoji || null,
+          image_url: editForm.image_url || null,
           updated_at: new Date().toISOString()
         })
         .eq("id", selectedTemplate.id)
@@ -154,7 +183,7 @@ const AdminNotificationTemplates = () => {
       message = message.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), value);
     }
 
-    setPreviewContent({ title, message });
+    setPreviewContent({ title, message, image_url: template.image_url || '', icon_emoji: template.icon_emoji || '' });
     setPreviewDialog(true);
   };
 
@@ -167,6 +196,40 @@ const AdminNotificationTemplates = () => {
       case 'welcome_message':
         return '👋';
       default:
+        return key.includes('recharge') ? '💎' : key.includes('vip') ? '👑' : key.includes('face') ? '🛡️' : key.includes('referral') || key.includes('invite') ? '🎁' : key.includes('live') ? '🔥' : '📢';
+    }
+  };
+
+  const sendTemplateBroadcast = async (template: NotificationTemplate) => {
+    setBroadcastingKey(template.template_key);
+    try {
+      const { error } = await supabase.functions.invoke('send-push-notification', {
+        body: {
+          target: 'all',
+          title: template.title_template,
+          body: template.message_template,
+          imageUrl: template.image_url || undefined,
+          type: 'broadcast',
+          data: {
+            template_key: template.template_key,
+            icon_emoji: template.icon_emoji || getTemplateIcon(template.template_key),
+            image_url: template.image_url || '',
+            action_url: '/chat?tab=notifications',
+            persist_fallback: 'false'
+          }
+        }
+      });
+      if (error) throw error;
+      toast({ title: 'Broadcast sent', description: 'Premium push notification has been sent to active devices.' });
+    } catch (error: any) {
+      toast({ title: 'Send failed', description: error.message || 'Could not send broadcast', variant: 'destructive' });
+    } finally {
+      setBroadcastingKey(null);
+    }
+  };
+
+  const getTemplateLabel = (key: string) => {
+    switch (key) {
         return '📢';
     }
   };
@@ -180,7 +243,7 @@ const AdminNotificationTemplates = () => {
       case 'welcome_message':
         return 'Welcome Message';
       default:
-        return key;
+        return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
   };
 
@@ -224,6 +287,37 @@ const AdminNotificationTemplates = () => {
         </div>
       </div>
 
+      <div className="p-4 grid gap-4 lg:grid-cols-2">
+        <Card className="bg-white/5 border-white/10 overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center gap-2"><Sparkles className="w-5 h-5 text-amber-300" /> Premium 3D PNG Icons</CardTitle>
+            <CardDescription className="text-white/50">5 industry-standard PNG icons for push + in-app notifications.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-5 gap-3">
+            {premiumIcons.map((icon) => (
+              <div key={icon.url} className="rounded-xl bg-white/[0.04] border border-white/10 p-2 text-center">
+                <img src={icon.url} alt={icon.label} className="w-full aspect-square object-contain" loading="lazy" />
+                <p className="mt-1 text-[10px] text-white/70 truncate">{icon.label}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/5 border-white/10 overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center gap-2"><ImageIcon className="w-5 h-5 text-blue-300" /> Premium Event Banners</CardTitle>
+            <CardDescription className="text-white/50">5 universal event banners ready for campaigns and notification images.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            {eventBanners.map((banner) => (
+              <div key={banner.url} className="rounded-xl overflow-hidden border border-white/10 bg-white/[0.04]">
+                <img src={banner.url} alt={banner.title} className="w-full aspect-[4/1.8] object-cover" loading="lazy" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Templates List */}
       <div className="p-4 space-y-4">
         {templates.map((template) => (
@@ -231,7 +325,11 @@ const AdminNotificationTemplates = () => {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{getTemplateIcon(template.template_key)}</span>
+                  {template.image_url ? (
+                      <img src={template.image_url} alt={getTemplateLabel(template.template_key)} className="w-11 h-11 rounded-xl object-cover bg-white/10" loading="lazy" />
+                    ) : (
+                      <span className="text-2xl">{template.icon_emoji || getTemplateIcon(template.template_key)}</span>
+                    )}
                   <div>
                     <CardTitle className="text-base text-white">
                       {getTemplateLabel(template.template_key)}
@@ -270,6 +368,15 @@ const AdminNotificationTemplates = () => {
                   <Edit3 className="w-4 h-4 mr-1" />
                   Edit
                 </Button>
+                <Button
+                  size="sm"
+                  onClick={() => sendTemplateBroadcast(template)}
+                  disabled={broadcastingKey === template.template_key}
+                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-950"
+                >
+                  {broadcastingKey === template.template_key ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+                  Send
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -304,6 +411,27 @@ const AdminNotificationTemplates = () => {
                 placeholder="Description of this template"
                 className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-sm font-medium text-white/80">Unicode Emoji</Label>
+                <Input
+                  value={editForm.icon_emoji}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, icon_emoji: e.target.value }))}
+                  placeholder="💎"
+                  className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-white/80">Premium PNG URL</Label>
+                <Input
+                  value={editForm.image_url}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, image_url: e.target.value }))}
+                  placeholder="/images/premium-notifications/recharge-mega-3d.png"
+                  className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                />
+              </div>
             </div>
 
             <div>
@@ -367,9 +495,13 @@ const AdminNotificationTemplates = () => {
           <div className="mt-4">
             <div className="bg-purple-500/10 rounded-xl p-4 border border-purple-500/20">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white">
-                  <Bell className="w-5 h-5" />
-                </div>
+                {previewContent.image_url ? (
+                  <img src={previewContent.image_url} alt="Notification preview" className="w-12 h-12 rounded-xl object-cover bg-white/10" />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white">
+                    {previewContent.icon_emoji || <Bell className="w-5 h-5" />}
+                  </div>
+                )}
                 <div className="flex-1">
                   <p className="font-semibold text-sm text-white">{previewContent.title}</p>
                   <p className="text-xs text-white/60 mt-1 whitespace-pre-wrap">
