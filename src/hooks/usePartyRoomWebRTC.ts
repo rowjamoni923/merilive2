@@ -17,6 +17,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+import { toast } from 'sonner';
 
 interface PartyWebRTCState {
   localStream: MediaStream | null;
@@ -47,6 +48,8 @@ export function usePartyRoomWebRTC(
   const roomRef = useRef<Room | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
   const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deadRef = useRef(false);
 
   const detachAudioForIdentity = (identity: string) => {
     const els = audioElementsRef.current.get(identity);
@@ -66,12 +69,19 @@ export function usePartyRoomWebRTC(
 
   const cleanup = useCallback(() => {
     console.log('[PartyLiveKit] Cleaning up...');
+    deadRef.current = true;
+
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
       roomRef.current = null;
     }
 
+    destroyBeautyProcessor();
     detachAllAudio();
     peerStreamsRef.current.clear();
 
@@ -109,6 +119,8 @@ export function usePartyRoomWebRTC(
       console.log('[PartyLiveKit] Skipping init - roomId:', roomId, 'userId:', userId, 'roomType:', roomType);
       return;
     }
+
+    deadRef.current = false;
 
     const roomName = `party_${roomId}`;
 
