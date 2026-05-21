@@ -1,7 +1,7 @@
 /**
  * Live Stream Lifecycle Hook
  * 1. Host heartbeat every 15s (server detects stale after 60s)
- * 2. Ends stream on app exit/background/close using proper auth
+ * 2. Keeps native Android live alive until the host explicitly ends it
  * 3. Viewer-side stale stream detection
  */
 
@@ -141,30 +141,29 @@ export const useLiveStreamLifecycle = ({
     };
   }, [streamId, isHost, isHostVerified]);
 
-  // HOST: Lifecycle monitoring (exit/background/close)
+  // HOST: Lifecycle monitoring (exit/close)
   useEffect(() => {
     if (!streamId || !isHost || !isHostVerified) return;
 
     console.log('[LiveStream Lifecycle] Setting up lifecycle monitoring for host stream:', streamId);
 
     // ============ NATIVE APP HANDLING ============
+    // Android LiveKit runs through a foreground service. Transient Capacitor
+    // pause/appStateChange events happen during permission dialogs, PiP,
+    // notification shade, camera handoff and brief network switches. Ending the
+    // DB room from those events caused 5–15s premature stream closures.
+    // Requirement: host stays live until they press the in-room X button.
     if (isNativeApp()) {
       const setupNativeListener = async () => {
         try {
           const { App } = await import('@capacitor/app');
           
-          const stateListener = await App.addListener('appStateChange', async ({ isActive }) => {
+          const stateListener = await App.addListener('appStateChange', ({ isActive }) => {
             console.log('[LiveStream Lifecycle] App state:', isActive ? 'FOREGROUND' : 'BACKGROUND');
-            if (!isActive && !hasEndedRef.current) {
-              await forceEndStream();
-            }
           });
 
-          const pauseListener = await App.addListener('pause', async () => {
-            console.log('[LiveStream Lifecycle] App paused');
-            if (!hasEndedRef.current) {
-              await forceEndStream();
-            }
+          const pauseListener = await App.addListener('pause', () => {
+            console.log('[LiveStream Lifecycle] App paused — native LiveKit foreground service keeps stream alive');
           });
 
           cleanupRef.current = () => {
@@ -201,9 +200,9 @@ export const useLiveStreamLifecycle = ({
       window.removeEventListener('pagehide', handlePageHide);
       cleanupRef.current?.();
       
-      if (!hasEndedRef.current) {
-        forceEndStream();
-      }
+      // Do not end on React effect cleanup. StrictMode/dev remounts and native
+      // WebView lifecycle churn can run cleanup while the stream must continue.
+      // Manual end path still updates live_streams and notifies viewers.
     };
   }, [streamId, isHost, isHostVerified, forceEndStream, forceEndStreamSync]);
 
