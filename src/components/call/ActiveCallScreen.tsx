@@ -137,7 +137,7 @@ export function ActiveCallScreen({
   const displayedCoinsSpent = totalCoinsSpent;
   const displayedHostEarned = hostEarned;
 
-  const chatChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Pkg83: chat now flows over LiveKit DataPacket (no Supabase channel ref).
   
   
   // Sound hook - must be before useEffects that use it
@@ -503,26 +503,32 @@ export function ActiveCallScreen({
     }
   }, [chatMessages]);
 
-  // Subscribe to real-time chat via Supabase Broadcast
-  // ✅ Keep a persistent channel ref to avoid channel re-create lag on every message send
+  // Pkg83 LiveKit-Purist: in-call chat via LiveKit DataPacket (Pkg79 chat
+  // signaling, scope='call'). REPLACES `call-chat-${callId}` Supabase
+  // broadcast channel — useLiveKitCall already registers the call Room
+  // for chat scope, so we just listen here.
   useEffect(() => {
     if (!callId || !isOpen) return;
 
-    const channel = supabase
-      .channel(`call-chat-${callId}`)
-      .on("broadcast", { event: "call-message" }, (payload) => {
-        const msg = payload.payload as any;
-        if (msg.senderId !== userId) {
-          setChatMessages((prev) => [...prev, msg]);
-        }
-      })
-      .subscribe();
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<ChatMessageDetail>).detail;
+      if (!detail || detail.scope !== 'call' || detail.id !== callId) return;
+      if (detail.userId === userId) return; // already shown locally on send
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: detail.messageId,
+          senderId: detail.userId,
+          senderName: detail.displayName || 'User',
+          message: detail.message,
+          timestamp: detail.timestamp || Date.now(),
+        },
+      ]);
+    };
 
-    chatChannelRef.current = channel;
-
+    window.addEventListener('livekit-chat-message', handler as EventListener);
     return () => {
-      chatChannelRef.current = null;
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-chat-message', handler as EventListener);
     };
   }, [callId, isOpen, userId]);
 
@@ -544,13 +550,15 @@ export function ActiveCallScreen({
     // 🔥 AWS Comprehend toxic content moderation (background)
     checkToxic(text, { contextType: 'call', callId }).catch(() => {});
 
-    if (!chatChannelRef.current) return;
-
-    await chatChannelRef.current.send({
-      type: "broadcast",
-      event: "call-message",
-      payload: msg,
-    });
+    // Pkg83: fan out via LiveKit DataPacket (chat scope='call').
+    void publishChatMessage('call', callId, {
+      messageId: msg.id,
+      userId,
+      displayName: myDisplayName,
+      message: text,
+      messageType: 'text',
+      timestamp: msg.timestamp,
+    }).catch(() => { /* non-fatal */ });
   };
 
   if (!isOpen || typeof document === 'undefined') return null;
