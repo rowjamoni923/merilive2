@@ -2744,8 +2744,8 @@ const Recharge = () => {
                   </p>
                 </div>
 
-                {isAgencyOwner && (<>
-                {/* Diagnostic panel — WHY is it empty? (Agency owners only) */}
+                {(isAgencyOwner || isPersonalHelper) && (<>
+                {/* Diagnostic + tier-requirements + fallback CTA — Agency owners & active personal helpers ONLY (never for regular users) */}
                 <div className="rounded-2xl border border-amber-100 bg-gradient-to-b from-amber-50/60 to-white p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2.5">
                     <div className="flex items-center gap-2">
