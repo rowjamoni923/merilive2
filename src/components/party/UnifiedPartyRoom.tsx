@@ -51,6 +51,11 @@ import {
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
 import { getEquippedBubble } from "@/utils/fetchEquippedBubbles";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
+// Pkg81c: LiveKit-only in-room chat (replaces `party-chat-${roomId}` Supabase channel).
+import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
+// Pkg81b: LiveKit-only participant join/leave (replaces `unified-party-joins-*`
+// and `unified-room-viewers-*` Supabase channels).
+import type { PartyEventDetail, ParticipantJoinedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 
