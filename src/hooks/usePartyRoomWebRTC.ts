@@ -411,32 +411,7 @@ export function usePartyRoomWebRTC(
           await room.localParticipant.setCameraEnabled(false);
           await room.localParticipant.setMicrophoneEnabled(false);
         } else {
-          // Enable media based on room type, reusing preloaded tracks when available
-          const previewStream = consumePreparedHostPreviewStream();
-
-          if (previewStream) {
-            console.log('[PartyLiveKit] ♻️ Reusing preloaded camera tracks from CreateParty');
-            const preloadedVideoTrack = previewStream.getVideoTracks()[0];
-            const preloadedAudioTrack = previewStream.getAudioTracks()[0];
-
-            if (preloadedVideoTrack && preloadedVideoTrack.readyState === 'live') {
-              // Apply Tencent Beauty (Web only, graceful fallback)
-              const beautifiedTrack = await processTrackWithBeauty(preloadedVideoTrack);
-              await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
-            } else if (roomType === 'video') {
-              await room.localParticipant.setCameraEnabled(true);
-            }
-
-            if (preloadedAudioTrack && preloadedAudioTrack.readyState === 'live') {
-              await room.localParticipant.publishTrack(preloadedAudioTrack as any, { source: Track.Source.Microphone } as any);
-            } else {
-              await room.localParticipant.setMicrophoneEnabled(true);
-            }
-          } else if (roomType === 'video') {
-            await room.localParticipant.enableCameraAndMicrophone();
-          } else if (roomType === 'audio') {
-            await room.localParticipant.setMicrophoneEnabled(true);
-          }
+          await publishLocalMediaWithRetry();
         }
 
         // Build local stream (initial pass)
