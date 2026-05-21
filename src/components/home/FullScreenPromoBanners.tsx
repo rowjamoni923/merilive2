@@ -38,6 +38,10 @@ const SESSION_KEY = "promo_banner_shown_this_entry";
 const ROTATION_KEY = "promo_banner_rotation_index";
 const RATING_PENDING_KEY = "rating_reward_return_pending";
 const RATING_ENABLED_SETTING_KEY = "rating_popup_enabled";
+// Per-user permanent dismiss flag. Once set, the rating banner NEVER shows
+// again on this device for this user (whether they dismissed it, let it
+// auto-close, clicked the banner to rate, or submitted proof).
+const ratingBannerDismissedKey = (userId: string) => `rating_banner_dismissed_v1_${userId}`;
 
 export function FullScreenPromoBanners() {
   const [currentBanner, setCurrentBanner] = useState<PromoBanner | null>(null);
