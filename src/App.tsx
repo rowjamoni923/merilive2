@@ -70,8 +70,8 @@ const Discover = lazy(lazyRetry(() => import("./pages/Discover")));
 const Live = lazy(lazyRetry(() => import("./pages/Live")));
 
 // =============================================
-// ROUTE PRELOADING — Download core page chunks in background after first paint
-// so navigation feels instant.  Each import() resolves to a cached module.
+// ROUTE PRELOADING — Download only next-likely page chunks after first paint.
+// The previous all-at-once prefetch caused a script storm on cold start.
 // =============================================
 const CORE_PAGE_IMPORTERS = [
   () => import("./pages/Index"),
@@ -80,36 +80,17 @@ const CORE_PAGE_IMPORTERS = [
   () => import("./pages/Chat"),
   () => import("./pages/Live"),
   () => import("./pages/Reels"),
-  () => import("./pages/ProfileDetail"),
-  () => import("./pages/GoLive"),
-  () => import("./pages/SearchUsers"),
-  () => import("./pages/Settings"),
-  () => import("./pages/Level"),
-  () => import("./pages/Tasks"),
-  () => import("./pages/Shop"),
-  () => import("./pages/VIP"),
-  () => import("./pages/Agency"),
-  () => import("./pages/AgencyDashboard"),
-  () => import("./pages/PartyRooms"),
-  () => import("./pages/CreateParty"),
-  () => import("./pages/FollowingList"),
-  () => import("./pages/CallHistory"),
-  () => import("./pages/EditProfile"),
-  () => import("./pages/Invitation"),
   () => import("./pages/Recharge"),
-  () => import("./pages/LiveStream"),
+  () => import("./pages/PartyRooms"),
 ];
 
 let coreChunksPreloaded = false;
 function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
-  // Pkg51: kick off chunk downloads in parallel batches of 4 so the network
-  // stays saturated but doesn't stall main-thread parse. With HTTP/2
-  // multiplexing this completes in ~one round-trip on broadband.
-  const batchSize = 4;
+  const batchSize = 2;
   CORE_PAGE_IMPORTERS.forEach((fn, i) => {
-    setTimeout(() => fn().catch(() => {}), Math.floor(i / batchSize) * 30);
+    setTimeout(() => fn().catch(() => {}), 700 + Math.floor(i / batchSize) * 180);
   });
 }
 
@@ -117,8 +98,12 @@ function preloadCoreRoutes() {
 // The useEffect inside App still calls it as a safety net — preloadCoreRoutes
 // is idempotent. Guarded by `window` so SSR/test environments stay safe.
 if (typeof window !== 'undefined') {
-  // Defer one microtask so we don't block the initial paint of <App />.
-  Promise.resolve().then(preloadCoreRoutes);
+  const schedule = (cb: () => void) => {
+    const w = window as any;
+    if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(cb, { timeout: 1800 });
+    else setTimeout(cb, 900);
+  };
+  schedule(preloadCoreRoutes);
 }
 
 const EditProfile = lazy(lazyRetry(() => import("./pages/EditProfile")));
