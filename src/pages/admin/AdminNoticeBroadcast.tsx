@@ -115,6 +115,19 @@ const AdminNoticeBroadcast = () => {
     { key: 'story_1080',       label: 'Story · 1080×1920' },
     { key: 'push_thumb',       label: 'Push Thumb · 512×512' },
   ];
+  // One-click event name templates — grouped, mirrors AI Photo Generator presets.
+  const EVENT_TEMPLATES: { group: string; items: string[] }[] = [
+    { group: "💎 Recharge & Diamonds", items: ["Recharge Mega Offer", "Double Diamond Bonus", "Flash Recharge Sale", "Diamond Rush Weekend", "First Recharge Gift", "Weekend Top-Up Bonus", "VIP Recharge Pack"] },
+    { group: "👑 VIP & Noble", items: ["VIP Launch", "Noble Coronation", "Royal Membership Sale", "Crown Upgrade Event", "VIP Exclusive Gala", "Noble Anniversary"] },
+    { group: "🎤 Live & Host", items: ["Host Of The Week", "Golden Hour 3x Earnings", "Live Battle Royale", "PK Championship", "New Host Welcome Bonus", "5-Hour Live Milestone", "Top Streamer Awards", "Weekly Streaming Bonus"] },
+    { group: "🎁 Gifts & Earnings", items: ["Gift Storm Event", "Double Beans Weekend", "Lucky Gift Lottery", "Mega Gift Carnival", "Gifter Of The Month", "Charm Leaderboard Final"] },
+    { group: "🏆 Tournament & PK", items: ["Weekly Tournament", "Monthly Championship", "Season Grand Finale", "Wealth Ranking Battle", "Game Leaderboard Showdown"] },
+    { group: "🎊 Festivals & Holidays", items: ["Eid Special", "Ramadan Kareem", "Diwali Lights", "Christmas Gala", "New Year Event", "Holi Color Fest", "Chinese New Year", "Thanksgiving Bonus", "Valentine Special", "Summer Carnival"] },
+    { group: "👥 Referral & Growth", items: ["Referral Mania", "Invite & Earn Bonus", "Friend Reward Weekend", "Top Inviter Awards"] },
+    { group: "🎂 User Moments", items: ["Birthday Bash", "Anniversary Celebration", "Welcome Bonus", "Level Up Reward", "Daily Check-in Mega"] },
+    { group: "🏢 Agency & Helper", items: ["Agency Champions", "Top Agency Of The Week", "Helper Recharge Bonanza", "Agency Recruitment Drive"] },
+  ];
+
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiSize, setAiSize] = useState<string>('banner_16_9_1920');
   const [aiGenerating, setAiGenerating] = useState(false);
