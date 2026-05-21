@@ -17210,7 +17210,12 @@ export type Database = {
       is_real_user: { Args: never; Returns: boolean }
       is_user_live_banned: { Args: { p_user_id: string }; Returns: boolean }
       join_agency: {
-        Args: { _agency_code: string; _host_id: string; _joined_via?: string }
+        Args: {
+          _agency_code: string
+          _host_id: string
+          _joined_via?: string
+          _referral_code?: string
+        }
         Returns: boolean
       }
       join_live_stream_viewer: {
