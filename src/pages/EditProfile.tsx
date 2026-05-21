@@ -98,6 +98,10 @@ const EditProfile = () => {
   const [showLinkPassword, setShowLinkPassword] = useState(false);
   const [emailLinking, setEmailLinking] = useState(false);
   const [hasPassword, setHasPassword] = useState(false);
+  const [linkStep, setLinkStep] = useState<"form" | "otp">("form");
+  const [linkOtp, setLinkOtp] = useState("");
+  const [linkOtpSending, setLinkOtpSending] = useState(false);
+  const [linkOtpCooldown, setLinkOtpCooldown] = useState(0);
   const [showCropModal, setShowCropModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
