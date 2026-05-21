@@ -35,9 +35,10 @@ export function useNativeLiveKitLifecycle(
 
     let cancelled = false;
     let handle: PluginListenerHandle | null = null;
-    // Remember whether camera/mic were live at pause time so resume only
-    // re-enables what was actually on (don't fight a user mute).
-    const wasOn = { camera: false, microphone: false };
+    // Native foreground service keeps camera/mic alive. We intentionally do
+    // not pause tracks on appStateChange because Android fires pause for
+    // permission sheets, notification shade, PiP transitions and WebView
+    // focus churn; toggling tracks there caused viewers to lose audio/video.
 
     const register = async () => {
       try {
@@ -47,25 +48,9 @@ export function useNativeLiveKitLifecycle(
           if (!nativeLiveKitController.isConnected()) return;
           try {
             if (!isActive) {
-              // Going to background. Assume both were on (controller has
-              // no getter); pause aggressively to release the camera.
-              if (optsRef.current.manageCamera) {
-                wasOn.camera = true;
-                await nativeLiveKitController.setCameraEnabled(false);
-              }
-              if (optsRef.current.manageMicrophone) {
-                wasOn.microphone = true;
-                await nativeLiveKitController.setMicrophoneEnabled(false);
-              }
+              console.log('[useNativeLiveKitLifecycle] App inactive — keeping native LiveKit tracks alive');
             } else {
-              if (optsRef.current.manageCamera && wasOn.camera) {
-                await nativeLiveKitController.setCameraEnabled(true);
-                wasOn.camera = false;
-              }
-              if (optsRef.current.manageMicrophone && wasOn.microphone) {
-                await nativeLiveKitController.setMicrophoneEnabled(true);
-                wasOn.microphone = false;
-              }
+              await nativeLiveKitController.reconnectNow();
             }
           } catch (err) {
             console.warn('[useNativeLiveKitLifecycle] toggle failed:', err);

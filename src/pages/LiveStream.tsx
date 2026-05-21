@@ -454,16 +454,10 @@ const LiveStream = () => {
     roomType: 'live',
     enabled: true,
     onNetworkClose: async () => {
-      console.log('[LiveStream] Network lost - closing stream');
-      streamEndedRef.current = true; // Stop task tracking on network loss
-      if (isHost && id) {
-        // Mark stream as inactive
-        await supabase
-          .from('live_streams')
-          .update({ is_active: false, ended_at: new Date().toISOString() })
-          .eq('id', id);
+      console.log('[LiveStream] Network lost - keeping live open and letting LiveKit reconnect');
+      if (!isHost) {
+        await retrySubscription();
       }
-      await leaveChannel();
     },
   });
 
