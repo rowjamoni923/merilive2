@@ -532,10 +532,10 @@ const LiveStream = () => {
     retrySubscription,
   } = useLiveKitClient({
     onUserJoined: (uid) => {
-      console.log('👤 Viewer joined (Agora RTC):', uid);
+      console.log('👤 Viewer joined (LiveKit):', uid);
     },
     onUserLeft: (uid) => {
-      console.log('👋 Viewer left (Agora RTC):', uid);
+      console.log('👋 Viewer left (LiveKit):', uid);
     },
     onError: (error) => {
       console.error('❌ Agora error:', error);
