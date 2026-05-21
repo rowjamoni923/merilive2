@@ -447,6 +447,15 @@ export function usePartyRoomWebRTC(
           console.warn('[Pkg76] registerGiftRoom(party) failed:', err);
         }
 
+        // Pkg80: bind for participant_joined + seat_action ephemeral
+        // events. Replaces `join_broadcast_party_${roomId}` channel and
+        // the in-`party-room-all-` seat_action broadcast listener.
+        try {
+          registerPartyEventsRoom(roomId, room);
+        } catch (err) {
+          console.warn('[Pkg80] registerPartyEventsRoom failed:', err);
+        }
+
         setState(prev => ({
           ...prev,
           isConnected: true,
