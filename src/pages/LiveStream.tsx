@@ -3490,7 +3490,7 @@ const LiveStream = () => {
               
               // Refresh actual balance from server
               const { data: updatedProfile } = await supabase
-                .from("profiles")
+                .from("profiles") // guard-ok: owner-only self balance refresh after gift send
                 .select("coins")
                 .eq("id", currentUserId)
                 .single();
