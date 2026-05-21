@@ -134,8 +134,9 @@ const AdminNoticeBroadcast = () => {
   // Preview-before-attach: AI-generated banner sits here until admin clicks Attach.
   const [aiPreview, setAiPreview] = useState<{ url: string; width?: number; height?: number; prompt: string; sizeKey: string } | null>(null);
 
-  const generateAiBanner = async () => {
-    const eventName = (aiPrompt.trim() || title.trim()).slice(0, 80);
+  const generateAiBanner = async (overrideName?: string) => {
+    const eventName = (overrideName?.trim() || aiPrompt.trim() || title.trim()).slice(0, 80);
+
     if (!eventName) {
       toast({ title: "Add a prompt", description: "Type an event name or title first", variant: "destructive" });
       return;
