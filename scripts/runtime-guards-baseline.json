@@ -29,7 +29,7 @@
     },
     {
       "file": "src/pages/GoLive.tsx",
-      "line": 358,
+      "line": 364,
       "ms": 1000
     },
     {
@@ -41,27 +41,27 @@
   "rls": [
     {
       "file": "src/App.tsx",
-      "line": 862,
+      "line": 860,
       "table": "profiles"
     },
     {
       "file": "src/App.tsx",
-      "line": 869,
+      "line": 867,
       "table": "agencies"
     },
     {
       "file": "src/App.tsx",
-      "line": 877,
+      "line": 875,
       "table": "agencies"
     },
     {
       "file": "src/App.tsx",
-      "line": 904,
+      "line": 900,
       "table": "profiles"
     },
     {
       "file": "src/App.tsx",
-      "line": 921,
+      "line": 917,
       "table": "profiles"
     },
     {
@@ -221,12 +221,12 @@
     },
     {
       "file": "src/components/games/GameFooterNew.tsx",
-      "line": 787,
+      "line": 794,
       "table": "profiles"
     },
     {
       "file": "src/components/games/LiveGameBoard.tsx",
-      "line": 261,
+      "line": 263,
       "table": "profiles"
     },
     {
@@ -290,13 +290,13 @@
       "table": "profiles"
     },
     {
-      "file": "src/features/shared/room/useRoomGifts.ts",
-      "line": 135,
+      "file": "src/features/shared/room/useRoomParticipants.ts",
+      "line": 89,
       "table": "profiles"
     },
     {
-      "file": "src/features/shared/room/useRoomParticipants.ts",
-      "line": 89,
+      "file": "src/hooks/useDailyLoginReward.ts",
+      "line": 37,
       "table": "profiles"
     },
     {
@@ -431,7 +431,7 @@
     },
     {
       "file": "src/hooks/useUserBalance.ts",
-      "line": 70,
+      "line": 72,
       "table": "profiles"
     },
     {
@@ -731,17 +731,17 @@
     },
     {
       "file": "src/pages/CreateParty.tsx",
-      "line": 179,
+      "line": 180,
       "table": "profiles"
     },
     {
       "file": "src/pages/CreateParty.tsx",
-      "line": 259,
+      "line": 260,
       "table": "profiles"
     },
     {
       "file": "src/pages/CreateParty.tsx",
-      "line": 283,
+      "line": 284,
       "table": "profiles"
     },
     {
@@ -796,42 +796,42 @@
     },
     {
       "file": "src/pages/GoLive.tsx",
-      "line": 261,
+      "line": 267,
       "table": "profiles"
     },
     {
       "file": "src/pages/GoLive.tsx",
-      "line": 1451,
+      "line": 1457,
       "table": "profiles"
     },
     {
       "file": "src/pages/HelperDashboard.tsx",
-      "line": 384,
+      "line": 394,
       "table": "profiles"
     },
     {
       "file": "src/pages/HelperDashboard.tsx",
-      "line": 476,
+      "line": 486,
       "table": "agencies"
     },
     {
       "file": "src/pages/HelperDashboard.tsx",
-      "line": 520,
+      "line": 530,
       "table": "profiles"
     },
     {
       "file": "src/pages/HelperDashboard.tsx",
-      "line": 531,
+      "line": 541,
       "table": "agencies"
     },
     {
       "file": "src/pages/HelperDashboard.tsx",
-      "line": 910,
+      "line": 920,
       "table": "agencies"
     },
     {
       "file": "src/pages/HelperDashboard.tsx",
-      "line": 970,
+      "line": 980,
       "table": "agencies"
     },
     {
@@ -881,7 +881,7 @@
     },
     {
       "file": "src/pages/Level5HelperDashboard.tsx",
-      "line": 383,
+      "line": 475,
       "table": "agencies"
     },
     {
@@ -891,7 +891,7 @@
     },
     {
       "file": "src/pages/LiveStream.tsx",
-      "line": 3489,
+      "line": 3488,
       "table": "profiles"
     },
     {
@@ -971,22 +971,17 @@
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 1964,
+      "line": 1968,
       "table": "agencies"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 3136,
+      "line": 3140,
       "table": "profiles"
     },
     {
       "file": "src/pages/ProfileDetail.tsx",
       "line": 232,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/Recharge.tsx",
-      "line": 737,
       "table": "profiles"
     },
     {
@@ -1321,7 +1316,7 @@
     },
     {
       "file": "src/pages/admin/AdminHelperApplications.tsx",
-      "line": 184,
+      "line": 186,
       "table": "profiles"
     },
     {
@@ -1373,11 +1368,6 @@
       "file": "src/pages/admin/AdminHostSearch.tsx",
       "line": 154,
       "table": "agencies"
-    },
-    {
-      "file": "src/pages/admin/AdminLayout.tsx",
-      "line": 1376,
-      "table": "profiles"
     },
     {
       "file": "src/pages/admin/AdminLeaderboardManagement.tsx",
@@ -1626,12 +1616,12 @@
     },
     {
       "file": "src/pages/admin/AdminUsers.tsx",
-      "line": 105,
+      "line": 106,
       "table": "profiles"
     },
     {
       "file": "src/pages/admin/AdminUsers.tsx",
-      "line": 211,
+      "line": 212,
       "table": "profiles"
     },
     {
@@ -1667,11 +1657,6 @@
     {
       "file": "src/services/gameBalanceService.ts",
       "line": 132,
-      "table": "profiles"
-    },
-    {
-      "file": "src/services/gameWinNotificationService.ts",
-      "line": 49,
       "table": "profiles"
     },
     {
@@ -1718,7 +1703,7 @@
     },
     {
       "file": "src/pages/GoLive.tsx",
-      "line": 317,
+      "line": 323,
       "channel": "golive-ban-check"
     },
     {
