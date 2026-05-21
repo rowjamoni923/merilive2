@@ -247,6 +247,7 @@ const AdminPricingHub = lazy(lazyRetry(() => import("./pages/admin/AdminPricingH
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
 const AdminNotificationTemplates = lazy(lazyRetry(() => import("./pages/admin/AdminNotificationTemplates")));
+const AdminAiImageStudio = lazy(lazyRetry(() => import("./pages/admin/AdminAiImageStudio")));
 const AdminReports = lazy(lazyRetry(() => import("./pages/admin/AdminReports")));
 const AdminLogs = lazy(lazyRetry(() => import("./pages/admin/AdminLogs")));
 const AdminAgoraSettings = lazy(lazyRetry(() => import("./pages/admin/AdminAgoraSettings")));
@@ -1227,6 +1228,7 @@ const App = () => {
                   <Route path="withdrawals" element={<AdminRouteGuard routeSegment="withdrawals"><AdminWithdrawals /></AdminRouteGuard>} />
                   <Route path="branding" element={<AdminRouteGuard routeSegment="branding"><AdminBranding /></AdminRouteGuard>} />
                   <Route path="notification-templates" element={<AdminRouteGuard routeSegment="notification-templates"><AdminNotificationTemplates /></AdminRouteGuard>} />
+                  <Route path="ai-image-studio" element={<AdminRouteGuard routeSegment="ai-image-studio"><AdminAiImageStudio /></AdminRouteGuard>} />
                   <Route path="reports" element={<AdminRouteGuard routeSegment="reports"><AdminReports /></AdminRouteGuard>} />
                   <Route path="logs" element={<AdminRouteGuard routeSegment="logs"><AdminLogs /></AdminRouteGuard>} />
                   <Route path="coins" element={<AdminRouteGuard routeSegment="coins"><AdminCoins /></AdminRouteGuard>} />
