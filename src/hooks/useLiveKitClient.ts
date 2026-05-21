@@ -1224,8 +1224,34 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     };
   }, [options.viewerCountStreamId, isJoined]);
 
+  // Pkg79: Bind streamId → Room for LiveKit-based chat_message signaling.
+  // Reuses the SAME Room as Pkg74/76/77 (DataReceived supports multiple listeners).
+  useEffect(() => {
+    const streamId = options.chatSignalingStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitChatSignaling');
+        if (cancelled) return;
+        mod.registerChatRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg79] registerChatRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitChatSignaling').then((mod) => {
+        mod.unregisterChatRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.chatSignalingStreamId, isJoined]);
+
 
   return {
+
     isInitialized,
     isJoined,
     isLoading,
