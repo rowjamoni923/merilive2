@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import {
-  ShieldAlert, Search, Clock, Eye, CheckCircle, XCircle, Ban, Users, AlertTriangle, Filter
+  ShieldAlert, Search, Clock, Eye, CheckCircle, XCircle, Ban, Users, AlertTriangle, Filter, RefreshCw, Copy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,8 +52,8 @@ interface Report {
   admin_notes: string | null;
   action_taken: string | null;
   created_at: string;
-  reporter: { display_name: string; avatar_url: string | null } | null;
-  reported_user: { display_name: string; avatar_url: string | null; is_host: boolean } | null;
+  reporter: { display_name: string; avatar_url: string | null; app_uid: string | null } | null;
+  reported_user: { display_name: string; avatar_url: string | null; is_host: boolean; app_uid: string | null } | null;
 }
 
 export default function AdminUserReports() {
@@ -88,7 +88,7 @@ export default function AdminUserReports() {
       if (userIds.length) {
         const { data: profs } = await supabase
           .from("profiles_public")
-          .select("id, display_name, avatar_url, is_host")
+          .select("id, display_name, avatar_url, is_host, app_uid")
           .in("id", userIds);
         profileMap = Object.fromEntries((profs || []).map((p: any) => [p.id, p]));
       }
@@ -144,14 +144,22 @@ export default function AdminUserReports() {
   };
 
   const filtered = reports.filter((r) => {
-    const matchSearch =
-      r.reported_user?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.reporter?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q ||
+      r.reported_user?.display_name?.toLowerCase().includes(q) ||
+      r.reporter?.display_name?.toLowerCase().includes(q) ||
+      r.reported_user?.app_uid?.toLowerCase().includes(q) ||
+      r.reporter?.app_uid?.toLowerCase().includes(q) ||
+      r.description?.toLowerCase().includes(q);
     const matchStatus = statusFilter === "all" || r.status === statusFilter;
     const matchCategory = categoryFilter === "all" || r.report_category === categoryFilter;
     return matchSearch && matchStatus && matchCategory;
   });
+
+  const copyId = (v?: string | null) => {
+    if (!v) return;
+    navigator.clipboard.writeText(v).then(() => toast.success("Copied: " + v));
+  };
 
   const stats = {
     total: reports.length,
@@ -162,12 +170,22 @@ export default function AdminUserReports() {
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
-        <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
-          <ShieldAlert className="w-6 h-6" />
-          User Reports
-        </h1>
-        <p className="text-white/80 text-xs md:text-sm mt-1">Review and manage user reports</p>
+      <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+            <ShieldAlert className="w-6 h-6" />
+            User Reports
+          </h1>
+          <p className="text-white/80 text-xs md:text-sm mt-1">Review and manage user reports</p>
+        </div>
+        <Button
+          onClick={() => fetchReports()}
+          disabled={loading}
+          className="bg-white/15 hover:bg-white/25 text-white border border-white/30"
+          size="sm"
+        >
+          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
+        </Button>
       </div>
 
       {/* Stats */}
@@ -266,11 +284,22 @@ export default function AdminUserReports() {
                               {report.reported_user?.display_name?.charAt(0) || "U"}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="text-white text-sm font-medium">{report.reported_user?.display_name || "Unknown"}</p>
-                            <Badge className={`text-[10px] ${report.reported_user?.is_host ? "bg-pink-600" : "bg-blue-600"} text-white`}>
-                              {report.reported_user?.is_host ? "Host" : "User"}
-                            </Badge>
+                          <div className="min-w-0">
+                            <p className="text-white text-sm font-medium truncate">{report.reported_user?.display_name || "Unknown"}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <Badge className={`text-[10px] ${report.reported_user?.is_host ? "bg-pink-600" : "bg-blue-600"} text-white`}>
+                                {report.reported_user?.is_host ? "Host" : "User"}
+                              </Badge>
+                              {report.reported_user?.app_uid && (
+                                <button
+                                  onClick={() => copyId(report.reported_user?.app_uid)}
+                                  className="text-[10px] text-amber-300 hover:text-amber-200 font-mono inline-flex items-center gap-0.5"
+                                  title="Copy ID"
+                                >
+                                  ID: {report.reported_user.app_uid} <Copy className="w-2.5 h-2.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
@@ -279,6 +308,15 @@ export default function AdminUserReports() {
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         <p className="text-slate-300 text-sm">{report.reporter?.display_name || "Unknown"}</p>
+                        {report.reporter?.app_uid && (
+                          <button
+                            onClick={() => copyId(report.reporter?.app_uid)}
+                            className="text-[10px] text-amber-300/80 hover:text-amber-200 font-mono inline-flex items-center gap-0.5"
+                            title="Copy ID"
+                          >
+                            ID: {report.reporter.app_uid} <Copy className="w-2.5 h-2.5" />
+                          </button>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge className={`${STATUS_COLORS[report.status]} text-white text-[10px]`}>
@@ -335,11 +373,27 @@ export default function AdminUserReports() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-slate-400">Reported User</p>
-                  <p className="text-white font-medium">{selectedReport.reported_user?.display_name}</p>
+                  <p className="text-white font-medium">{selectedReport.reported_user?.display_name || "Unknown"}</p>
+                  {selectedReport.reported_user?.app_uid && (
+                    <button
+                      onClick={() => copyId(selectedReport.reported_user?.app_uid)}
+                      className="text-[11px] text-amber-300 hover:text-amber-200 font-mono inline-flex items-center gap-1 mt-0.5"
+                    >
+                      ID: {selectedReport.reported_user.app_uid} <Copy className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Reporter</p>
-                  <p className="text-white font-medium">{selectedReport.reporter?.display_name}</p>
+                  <p className="text-white font-medium">{selectedReport.reporter?.display_name || "Unknown"}</p>
+                  {selectedReport.reporter?.app_uid && (
+                    <button
+                      onClick={() => copyId(selectedReport.reporter?.app_uid)}
+                      className="text-[11px] text-amber-300 hover:text-amber-200 font-mono inline-flex items-center gap-1 mt-0.5"
+                    >
+                      ID: {selectedReport.reporter.app_uid} <Copy className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Category</p>
