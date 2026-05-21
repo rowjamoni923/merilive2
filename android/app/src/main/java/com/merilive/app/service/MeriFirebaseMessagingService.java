@@ -39,6 +39,18 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         String title = data.containsKey("title") ? data.get("title") : "MeriLive";
         String body = data.containsKey("body") ? data.get("body") : "";
 
+        // Premium banner image + emoji icon from edge functions
+        // (push-on-notification / send-push-notification / send-app-notification).
+        // Accept both snake_case and camelCase, plus FCM notification.image fallback.
+        String imageUrl = firstNonEmpty(
+            data.get("image_url"),
+            data.get("imageUrl"),
+            remoteMessage.getNotification() != null && remoteMessage.getNotification().getImageUrl() != null
+                ? remoteMessage.getNotification().getImageUrl().toString()
+                : null
+        );
+        String iconEmoji = firstNonEmpty(data.get("icon_emoji"), data.get("iconEmoji"));
+
         if (type == null) type = "default";
 
         switch (type) {
@@ -46,7 +58,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
                 handleIncomingCall(data);
                 break;
             case "message":
-                handleMessage(data, title, body);
+                handleMessage(data, title, body, imageUrl, iconEmoji);
                 break;
             case "gift":
                 handleGift(data);
@@ -55,18 +67,31 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
                 handleLiveStart(data);
                 break;
             default:
-                handleGeneral(title, body, NotificationHelper.CHANNEL_DEFAULT);
+                handleGeneral(title, body, NotificationHelper.CHANNEL_DEFAULT, imageUrl, iconEmoji);
                 break;
         }
 
-        // Also handle Firebase notification payload if present
-        if (remoteMessage.getNotification() != null && !"incoming_call".equals(type)) {
+        // FCM notification-payload fallback (only when our data switch didn't already render).
+        if (remoteMessage.getNotification() != null
+                && !"incoming_call".equals(type)
+                && !"message".equals(type)
+                && !"gift".equals(type)
+                && !"live_start".equals(type)
+                && !data.containsKey("title")) {
             String nTitle = remoteMessage.getNotification().getTitle();
             String nBody = remoteMessage.getNotification().getBody();
             if (nTitle != null) {
-                handleGeneral(nTitle, nBody != null ? nBody : "", NotificationHelper.CHANNEL_DEFAULT);
+                handleGeneral(nTitle, nBody != null ? nBody : "", NotificationHelper.CHANNEL_DEFAULT, imageUrl, iconEmoji);
             }
         }
+    }
+
+    private static String firstNonEmpty(String... vals) {
+        if (vals == null) return "";
+        for (String v : vals) {
+            if (v != null && !v.isEmpty()) return v;
+        }
+        return "";
     }
 
     private void handleIncomingCall(Map<String, String> data) {
@@ -179,59 +204,78 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         try { startActivity(fullScreenIntent); } catch (Exception ignored) {}
     }
 
-    private void handleMessage(Map<String, String> data, String title, String body) {
+    private void handleMessage(Map<String, String> data, String title, String body, String imageUrl, String iconEmoji) {
         String senderId = data.containsKey("sender_id") ? data.get("sender_id") : "";
         int notifId = NotificationHelper.NOTIFICATION_MESSAGE + (senderId != null ? senderId.hashCode() % 1000 : 0);
-        NotificationHelper.showMessageNotification(this, title, body, senderId, notifId);
+        // Prefer rich banner render when an image_url is present; otherwise fall back to existing helper.
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            handleGeneral(title, body, NotificationHelper.CHANNEL_MESSAGES, imageUrl, iconEmoji);
+        } else {
+            String richTitle = (iconEmoji != null && !iconEmoji.isEmpty()) ? (iconEmoji + " " + title) : title;
+            NotificationHelper.showMessageNotification(this, richTitle, body, senderId, notifId);
+        }
     }
 
-    private void handleGift(Map<String, String> data) {
-        String senderName = data.containsKey("sender_name") ? data.get("sender_name") : "Someone";
-        String giftName = data.containsKey("gift_name") ? data.get("gift_name") : "a gift";
-        int giftValue = 0;
-        try {
-            String val = data.get("gift_value");
-            if (val != null) giftValue = Integer.parseInt(val);
-        } catch (NumberFormatException ignored) {}
-        NotificationHelper.showGiftNotification(this, senderName, giftName, giftValue);
-    }
-
-    private void handleLiveStart(Map<String, String> data) {
-        String hostName = data.containsKey("host_name") ? data.get("host_name") : "Someone";
-        String roomId = data.containsKey("room_id") ? data.get("room_id") : "";
-        NotificationHelper.showLiveNotification(this, hostName, roomId);
-    }
-
-    private void handleGeneral(String title, String body, String channelId) {
+    private void handleGeneral(String title, String body, String channelId, String imageUrl, String iconEmoji) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        // Prefix title with emoji for premium feel (Recharge Mega → 💎 Recharge Mega)
+        String finalTitle = (iconEmoji != null && !iconEmoji.isEmpty())
+            ? (iconEmoji + " " + title)
+            : title;
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
+            .setContentTitle(finalTitle)
             .setContentText(body)
             .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(pi);
 
-        int notifId = (int) System.currentTimeMillis() % 100000;
-        NotificationManagerCompat.from(this).notify(notifId, builder.build());
+        // Premium 3D banner — BigPictureStyle expanded view + large icon thumbnail.
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Bitmap banner = loadBitmapFromUrl(imageUrl);
+            if (banner != null) {
+                builder.setLargeIcon(banner)
+                       .setStyle(new NotificationCompat.BigPictureStyle()
+                            .bigPicture(banner)
+                            .bigLargeIcon((Bitmap) null) // collapse thumb when expanded
+                            .setBigContentTitle(finalTitle)
+                            .setSummaryText(body));
+            } else {
+                builder.setStyle(new NotificationCompat.BigTextStyle().bigText(body));
+            }
+        } else {
+            builder.setStyle(new NotificationCompat.BigTextStyle().bigText(body));
+        }
+
+        int notifId = (int) (System.currentTimeMillis() % 100000);
+        try {
+            NotificationManagerCompat.from(this).notify(notifId, builder.build());
+        } catch (SecurityException ignored) {
+            // POST_NOTIFICATIONS not granted on Android 13+; silently skip.
+        }
     }
 
     private Bitmap loadBitmapFromUrl(String urlString) {
         try {
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setInstanceFollowRedirects(true);
             conn.setDoInput(true);
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(8000);
             conn.connect();
             InputStream input = conn.getInputStream();
             return BitmapFactory.decodeStream(input);
         } catch (Exception e) {
+            Log.w(TAG, "loadBitmapFromUrl failed: " + e.getMessage());
             return null;
         }
     }
