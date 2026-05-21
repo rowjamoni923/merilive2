@@ -82,6 +82,7 @@ export function usePartyRoomWebRTC(
 
     // Pkg75: detach signaling handler before disconnecting the Room.
     try { unregisterPartyRoom(roomId); } catch { /* ignore */ }
+    try { unregisterGiftRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
