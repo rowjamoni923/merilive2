@@ -63,6 +63,11 @@ interface UseLiveKitClientOptions {
    * gift signaling registry so `publishGiftSent('live', id, …)` works
    * and incoming `gift_sent` packets reach window event listeners. */
   giftSignalingStreamId?: string | null;
+  /** Pkg77: When set, the underlying Room is registered with the
+   * viewer-count registry so ParticipantConnected/Disconnected events
+   * dispatch a `livekit-viewer-count` window event for instant badge
+   * updates. Persistence (entrance banner, history) stays on Supabase. */
+  viewerCountStreamId?: string | null;
 }
 
 export interface CoHostRequest {
@@ -1187,6 +1192,32 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.giftSignalingStreamId, isJoined]);
+
+  // Pkg77: Bind streamId → Room for INSTANT viewer count via LiveKit
+  // ParticipantConnected/Disconnected. Same Room reused, zero new channels.
+  useEffect(() => {
+    const streamId = options.viewerCountStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitViewerCount');
+        if (cancelled) return;
+        mod.registerViewerCountRoom(streamId, room);
+      } catch (e) {
+        console.warn('[Pkg77] registerViewerCountRoom failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitViewerCount').then((mod) => {
+        mod.unregisterViewerCountRoom(streamId);
+      }).catch(() => {});
+    };
+  }, [options.viewerCountStreamId, isJoined]);
+
 
   return {
     isInitialized,

@@ -534,6 +534,7 @@ const LiveStream = () => {
   } = useLiveKitClient({
     liveSignalingStreamId: id,
     giftSignalingStreamId: id,
+    viewerCountStreamId: id,
     onUserJoined: (uid) => {
       console.log('👤 Viewer joined (LiveKit):', uid);
     },
@@ -1330,10 +1331,30 @@ const LiveStream = () => {
     };
     window.addEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
 
+    // ⚡ METHOD 4 (Pkg77): LiveKit ParticipantConnected/Disconnected → instant
+    // viewer count badge. Source-of-truth for entrance banner / history stays
+    // on Supabase `stream_viewers` rows; we only bump the *displayed* count
+    // upward (Math.max) so it never under-counts vs. the DB-derived value.
+    const handleLiveKitViewerCount = (evt: Event) => {
+      const detail = (evt as CustomEvent).detail || {};
+      if (detail.streamId !== id) return;
+      const lkCount: number = typeof detail.count === 'number' ? detail.count : 0;
+      if (isHost) {
+        // Host: every remote participant IS a viewer → trust LiveKit directly.
+        setViewerCount((prev) => (lkCount > prev ? lkCount : prev));
+      } else {
+        // Viewer: remote includes host + other viewers; subtract 1 (host).
+        const adjusted = Math.max(0, lkCount - 1) + 1; // +1 for self viewer
+        setViewerCount((prev) => (adjusted > prev ? adjusted : prev));
+      }
+    };
+    window.addEventListener('livekit-viewer-count', handleLiveKitViewerCount);
+
     return () => {
       supabase.removeChannel(broadcastCloseChannel);
       supabase.removeChannel(streamCountChannel);
       window.removeEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
+      window.removeEventListener('livekit-viewer-count', handleLiveKitViewerCount);
     };
   }, [id, isHost, hostInfo?.name, leaveChannel, navigate, showStreamEndedModal]);
 
