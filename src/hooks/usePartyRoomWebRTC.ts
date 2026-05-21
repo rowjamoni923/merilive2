@@ -437,6 +437,14 @@ export function usePartyRoomWebRTC(
           console.warn('[Pkg75] registerPartyRoom failed:', err);
         }
 
+        // Pkg76: also bind for high-fanout gift_sent envelopes on the
+        // SAME Room. DataReceived supports multiple listeners.
+        try {
+          registerGiftRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg76] registerGiftRoom(party) failed:', err);
+        }
+
         setState(prev => ({
           ...prev,
           isConnected: true,
