@@ -596,6 +596,33 @@ const AdminNoticeBroadcast = () => {
                 </Button>
               </div>
 
+              {/* One-click event name templates (mirrors AI Photo Generator presets) */}
+              <div className="mt-3 space-y-2">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Event Name Templates · one click to generate</div>
+                <div className="max-h-56 overflow-y-auto pr-1 space-y-2">
+                  {EVENT_TEMPLATES.map((g) => (
+                    <div key={g.group}>
+                      <div className="text-[11px] font-medium text-amber-200/80 mb-1">{g.group}</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {g.items.map((name) => (
+                          <button
+                            key={name}
+                            type="button"
+                            disabled={aiGenerating || imageUrls.length >= 10}
+                            onClick={() => { setAiPrompt(name); generateAiBanner(name); }}
+                            className="px-2 py-1 text-[11px] rounded-md border border-white/15 bg-white/[0.04] hover:bg-amber-400/15 hover:border-amber-300/50 text-white/80 hover:text-amber-100 transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1"
+                          >
+                            <Sparkles className="w-3 h-3 text-amber-300" />
+                            {name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+
               {/* Inline preview — review BEFORE attaching */}
               {aiPreview && (
                 <div className="mt-3 rounded-xl border border-amber-300/40 bg-gradient-to-br from-amber-500/10 via-fuchsia-500/5 to-violet-600/10 p-3 animate-in fade-in zoom-in-95 duration-200">
