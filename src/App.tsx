@@ -82,6 +82,7 @@ const CORE_PAGE_IMPORTERS = [
   () => import("./pages/Reels"),
   () => import("./pages/Recharge"),
   () => import("./pages/PartyRooms"),
+  () => import("./pages/GoLive"),
 ];
 
 let coreChunksPreloaded = false;
