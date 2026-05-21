@@ -38,6 +38,7 @@ const giftCache: GiftCache = {
 
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 const listeners: Set<() => void> = new Set();
+let loadingPromise: Promise<GiftCacheItem[]> | null = null;
 
 /**
  * Fetch gifts and cache them globally
@@ -53,21 +54,14 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
 
   // Prevent duplicate fetches
   if (giftCache.loading) {
-    // Wait for current fetch to complete
-    return new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (!giftCache.loading) {
-          clearInterval(checkInterval);
-          resolve(giftCache.gifts);
-        }
-      }, 50);
-    });
+    return loadingPromise ?? Promise.resolve(giftCache.gifts);
   }
 
   giftCache.loading = true;
   const requestVersion = giftCache.version;
 
-  try {
+  loadingPromise = (async () => {
+    try {
     const { data, error } = await supabase
       .from('gifts')
       .select('id, name, coin_value, category, icon_url, animation_url, sound_url, display_order')
@@ -88,13 +82,17 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
     }
 
     console.log(`[GiftPrefetch] ✅ Cached ${giftCache.gifts.length} gifts`);
-  } catch (e) {
+    } catch (e) {
     console.error('[GiftPrefetch] Failed:', e);
-  } finally {
+    } finally {
     giftCache.loading = false;
-  }
+      loadingPromise = null;
+    }
 
-  return giftCache.gifts;
+    return giftCache.gifts;
+  })();
+
+  return loadingPromise;
 }
 
 /**
