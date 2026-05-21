@@ -94,10 +94,6 @@ Deno.serve(async (req) => {
       console.log(
         `[admin-reset-user-password] ✅ Reset for ${profile?.display_name || user_id} by admin ${adminUser.id}`,
       );
-      await adminClient.from("profiles").update({
-        password_reset_by: adminUser.id,
-        password_reset_at: new Date().toISOString(),
-      }).eq("id", user_id);
     } catch (e) {
       console.warn("[admin-reset-user-password] audit log skipped:", e);
     }
