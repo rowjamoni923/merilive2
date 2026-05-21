@@ -62,30 +62,30 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
 
   loadingPromise = (async () => {
     try {
-    const { data, error } = await supabase
-      .from('gifts')
-      .select('id, name, coin_value, category, icon_url, animation_url, sound_url, display_order')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true })
-      .order('coin_value', { ascending: true });
+      const { data, error } = await supabase
+        .from('gifts')
+        .select('id, name, coin_value, category, icon_url, animation_url, sound_url, display_order')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .order('coin_value', { ascending: true });
 
-    if (error) {
-      console.error('[GiftPrefetch] Error:', error);
-      giftCache.loading = false;
-      return giftCache.gifts;
-    }
+      if (error) {
+        console.error('[GiftPrefetch] Error:', error);
+        giftCache.loading = false;
+        return giftCache.gifts;
+      }
 
-    if (requestVersion === giftCache.version) {
-      giftCache.gifts = data || [];
-      giftCache.timestamp = Date.now();
-      listeners.forEach(cb => cb());
-    }
+      if (requestVersion === giftCache.version) {
+        giftCache.gifts = data || [];
+        giftCache.timestamp = Date.now();
+        listeners.forEach(cb => cb());
+      }
 
-    console.log(`[GiftPrefetch] ✅ Cached ${giftCache.gifts.length} gifts`);
+      console.log(`[GiftPrefetch] ✅ Cached ${giftCache.gifts.length} gifts`);
     } catch (e) {
-    console.error('[GiftPrefetch] Failed:', e);
+      console.error('[GiftPrefetch] Failed:', e);
     } finally {
-    giftCache.loading = false;
+      giftCache.loading = false;
       loadingPromise = null;
     }
 
