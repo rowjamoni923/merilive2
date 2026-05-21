@@ -46,12 +46,18 @@ export function useNativeLiveKitEvents(
     const subs: PluginListenerHandle[] = [];
     let cancelled = false;
 
+    const attachAllRemoteSurfaces = () => {
+      if (cancelled) return;
+      nativeLiveKitController.attachAllRemotes().catch(() => {});
+    };
+
     const register = async () => {
       try {
         const trackSubscribed = await NativeLiveKit.addListener('track-subscribed', (e) => {
           // Auto-attach incoming video so the React layer never has to.
           if (e.kind === 'video') {
             nativeLiveKitController.attachRemote(e.sid).catch(() => {});
+            attachAllRemoteSurfaces();
           }
         });
         if (cancelled) { trackSubscribed.remove(); return; }
@@ -71,6 +77,9 @@ export function useNativeLiveKitEvents(
 
         const pConnected = await NativeLiveKit.addListener('participant-connected', (e) => {
           handlersRef.current.onParticipantConnected?.(e.sid, e.identity);
+          nativeLiveKitController.attachRemote(e.sid).catch(() => {});
+          setTimeout(attachAllRemoteSurfaces, 80);
+          setTimeout(attachAllRemoteSurfaces, 250);
         });
         if (cancelled) { pConnected.remove(); return; }
         subs.push(pConnected);
@@ -84,6 +93,10 @@ export function useNativeLiveKitEvents(
         // Step 18 — transient reconnect lifecycle (network drop recovery).
         const connState = await NativeLiveKit.addListener('connection-state', (e) => {
           handlersRef.current.onConnectionState?.(e.state);
+          if (e.state === 'reconnected') {
+            setTimeout(attachAllRemoteSurfaces, 80);
+            setTimeout(attachAllRemoteSurfaces, 250);
+          }
         });
         if (cancelled) { connState.remove(); return; }
         subs.push(connState);
@@ -100,6 +113,9 @@ export function useNativeLiveKitEvents(
     };
 
     register();
+    attachAllRemoteSurfaces();
+    setTimeout(attachAllRemoteSurfaces, 120);
+    setTimeout(attachAllRemoteSurfaces, 400);
 
     return () => {
       cancelled = true;
