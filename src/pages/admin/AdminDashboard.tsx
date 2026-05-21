@@ -251,6 +251,9 @@ export default function AdminDashboard() {
         const { data, error } = await supabase.rpc("get_admin_dashboard_stats");
         if (error) throw error;
         const parsed = data as any;
+        if (!parsed || typeof parsed !== 'object') {
+          throw new Error('Admin dashboard stats RPC returned an invalid payload');
+        }
         // RPC now returns daily_active_* + recent_activities in same payload — single round trip.
         setStats(parsed as DashboardStats);
         saveCachedDashboardStats(parsed as DashboardStats);
