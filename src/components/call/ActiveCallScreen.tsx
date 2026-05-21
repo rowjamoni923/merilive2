@@ -4,13 +4,13 @@ import { createPortal } from "react-dom";
 import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useAgoraCall } from "@/hooks/useAgoraCall";
+import { useLiveKitCall } from "@/hooks/useLiveKitCall";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
-import { AgoraVideoPlayer } from "@/components/live/AgoraVideoPlayer";
+import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,11 +156,11 @@ export function ActiveCallScreen({
     toggleAudio,
     toggleVideo,
     cleanup,
-  } = useAgoraCall(isOpen ? callId : null, userId, isHost);
+  } = useLiveKitCall(isOpen ? callId : null, userId, isHost);
   
   const mediaConnectedNotifiedRef = useRef<string | null>(null);
 
-  // ✅ Track remote video readiness via AgoraVideoPlayer
+  // ✅ Track remote video readiness via LiveKitVideoPlayer
   useEffect(() => {
     setRemoteStreamReady(!!remoteVideoTrack);
   }, [remoteVideoTrack]);
@@ -747,7 +747,7 @@ export function ActiveCallScreen({
             {/* Show local camera feed as background during calling/ringing */}
             {localVideoTrack ? (
               <div className="absolute inset-0">
-                <AgoraVideoPlayer
+                <LiveKitVideoPlayer
                   videoTrack={localVideoTrack}
                   mirror={true}
                   fit="cover"
@@ -799,7 +799,7 @@ export function ActiveCallScreen({
             {/* Full-screen primary (remote) video */}
             <div className="absolute inset-0">
               {primaryHasVideo && primaryVideoTrack ? (
-                <AgoraVideoPlayer
+                <LiveKitVideoPlayer
                   videoTrack={primaryVideoTrack}
                   mirror={primaryMirror}
                   fit="cover"
@@ -829,7 +829,7 @@ export function ActiveCallScreen({
               style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
             >
               {secondaryHasVideo && secondaryVideoTrack ? (
-                <AgoraVideoPlayer
+                <LiveKitVideoPlayer
                   videoTrack={secondaryVideoTrack}
                   mirror={secondaryMirror}
                   fit="cover"

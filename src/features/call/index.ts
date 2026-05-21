@@ -36,5 +36,5 @@ export { default as CallHistoryPage } from '@/pages/CallHistory';
 export { useCallBilling } from '@/hooks/useCallBilling';
 export { useHostCallRate } from '@/hooks/useHostCallRate';
 export { usePrivateCall } from '@/hooks/usePrivateCall';
-export { useAgoraCall } from '@/hooks/useAgoraCall';
+export { useLiveKitCall } from '@/hooks/useLiveKitCall';
 export { useCallPhoneDetection } from '@/hooks/useCallPhoneDetection';

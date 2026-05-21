@@ -1,5 +1,5 @@
 /**
- * useAgoraClient – Now powered by LiveKit (API-compatible replacement).
+ * useLiveKitClient – Now powered by LiveKit (API-compatible replacement).
  * Maintains the same public API for GoLive.tsx and LiveStream.tsx.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -48,7 +48,7 @@ interface BeautySettings {
   lipColor: number;
 }
 
-interface UseAgoraClientOptions {
+interface UseLiveKitClientOptions {
   onUserJoined?: (uid: number) => void;
   onUserLeft?: (uid: number) => void;
   onVolumeChange?: (volumes: { uid: number; level: number }[]) => void;
@@ -63,7 +63,7 @@ export interface CoHostRequest {
   timestamp: number;
 }
 
-export function useAgoraClient(options: UseAgoraClientOptions = {}) {
+export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const [isInitialized, setIsInitialized] = useState(true); // LiveKit doesn't need SDK preload
   const [isJoined, setIsJoined] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

@@ -43,8 +43,8 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useAgoraClient } from "@/hooks/useAgoraClient";
-import { AgoraVideoPlayer } from "@/components/live/AgoraVideoPlayer";
+import { useLiveKitClient } from "@/hooks/useLiveKitClient";
+import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
 import { PKBattleActive } from "@/components/live/PKBattleActive";
@@ -530,7 +530,7 @@ const LiveStream = () => {
     toggleRemoteAudio,
     toggleAudio,
     retrySubscription,
-  } = useAgoraClient({
+  } = useLiveKitClient({
     onUserJoined: (uid) => {
       console.log('👤 Viewer joined (Agora RTC):', uid);
     },
@@ -2764,7 +2764,7 @@ const LiveStream = () => {
             className="w-full h-full relative flex items-center justify-center"
             style={{ filter: combinedFilterCSS || undefined }}
           >
-            <AgoraVideoPlayer
+            <LiveKitVideoPlayer
               videoTrack={localVideoTrack}
               mirror={true}
               fit="cover"
@@ -2820,7 +2820,7 @@ const LiveStream = () => {
             className="w-full h-full relative flex items-center justify-center"
             style={{ filter: combinedFilterCSS || undefined }}
           >
-            <AgoraVideoPlayer
+            <LiveKitVideoPlayer
               videoTrack={remoteVideoTrack}
               mirror={false}
               fit="cover"

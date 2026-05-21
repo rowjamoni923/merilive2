@@ -35,16 +35,16 @@ describe("media surfaces — room-name parity", () => {
     expect(otherShape.length).toBe(0);
   });
 
-  it("private call: useAgoraCall uses `call_<callId>`", () => {
-    const hook = read("src/hooks/useAgoraCall.ts");
+  it("private call: useLiveKitCall uses `call_<callId>`", () => {
+    const hook = read("src/hooks/useLiveKitCall.ts");
     expect(hook).toMatch(/`call_\$\{callId\}`/);
   });
 });
 
 describe("media surfaces — subscription handlers wired", () => {
   const SURFACES: { name: string; path: string; needsParticipantConnected: boolean }[] = [
-    { name: "live stream / call (useAgoraClient)", path: "src/hooks/useAgoraClient.ts", needsParticipantConnected: true },
-    { name: "private call (useAgoraCall)", path: "src/hooks/useAgoraCall.ts", needsParticipantConnected: false },
+    { name: "live stream / call (useLiveKitClient)", path: "src/hooks/useLiveKitClient.ts", needsParticipantConnected: true },
+    { name: "private call (useLiveKitCall)", path: "src/hooks/useLiveKitCall.ts", needsParticipantConnected: false },
     { name: "audio/video/game party (usePartyRoomWebRTC)", path: "src/hooks/usePartyRoomWebRTC.ts", needsParticipantConnected: true },
   ];
 

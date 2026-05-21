@@ -4,7 +4,7 @@
  * SEPARATE from existing camera system. Does NOT modify:
  * - useNativeCameraPermission.ts
  * - useDeepARBeauty.ts / useDeepAR.ts
- * - useAgoraClient.ts / useAgoraCall.ts / usePartyRoomWebRTC.ts
+ * - useLiveKitClient.ts / useLiveKitCall.ts / usePartyRoomWebRTC.ts
  * 
  * This hooks into the existing camera MediaStream and applies
  * beauty effects, returning a processed stream for LiveKit publishing.

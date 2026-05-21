@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAgoraClient } from "@/hooks/useAgoraClient";
-import { AgoraVideoPlayer } from "@/components/live/AgoraVideoPlayer";
+import { useLiveKitClient } from "@/hooks/useLiveKitClient";
+import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -385,7 +385,7 @@ const GoLive = () => {
     localVideoTrack,
     leaveChannel,
     switchCamera: agoraSwitchCamera,
-  } = useAgoraClient({
+  } = useLiveKitClient({
     onError: (error) => {
       console.error('Agora error:', error);
       recordClientError({ label: "GoLive.handleBack", message: error instanceof Error ? error.message : String(error) });
@@ -1129,7 +1129,7 @@ const GoLive = () => {
         isNativeAndroid && nativePreviewActive ? "bg-transparent" : "bg-muted"
       )}>
         {useAgora && localVideoTrack ? (
-          <AgoraVideoPlayer
+          <LiveKitVideoPlayer
             videoTrack={localVideoTrack}
             mirror={facingMode === 'user'}
             fit="cover"
