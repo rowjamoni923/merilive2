@@ -1004,35 +1004,12 @@ const AdminFaceVerification = () => {
                     )}
 
                     {isPendingBucket(submission) && (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <Button
-                          disabled={processing}
-                          onClick={() => approveSubmissionAs(submission)}
-                        >
-                          <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
-                        </Button>
-                        <Button
-                          variant="outline"
-                          disabled={processing}
-                          onClick={() => approveSubmissionAs(submission, 'host')}
-                        >
-                          <Mic className="w-4 h-4 mr-2" /> Host
-                        </Button>
-                        <Button
-                          variant="outline"
-                          disabled={processing}
-                          onClick={() => approveSubmissionAs(submission, 'user')}
-                        >
-                          <User className="w-4 h-4 mr-2" /> User
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          disabled={processing}
-                          onClick={() => processSubmissionAction({ submission, action: 'reject' })}
-                        >
-                          <XCircle className="w-4 h-4 mr-2" /> Reject
-                        </Button>
-                      </div>
+                      <RoleApproveBar
+                        defaultRole={submission.verification_type === 'host' ? 'host' : 'user'}
+                        processing={processing}
+                        onApprove={(role) => approveSubmissionAs(submission, role)}
+                        onReject={() => processSubmissionAction({ submission, action: 'reject' })}
+                      />
                     )}
                   </div>
                 );
