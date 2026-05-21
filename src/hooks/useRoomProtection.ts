@@ -3,11 +3,11 @@
  * 
  * Protects Party Room and Live Stream from:
  * 1. Accidental back button exit (only close button should exit)
- * 2. Auto-closes on network disconnection
+ * 2. Keeps the room open during transient network drops while LiveKit reconnects
  * 
  * Features:
  * - Back button is completely blocked in rooms
- * - Network monitoring with auto-close
+ * - Network monitoring with non-destructive reconnect feedback
  * - Proper cleanup on unmount
  */
 
@@ -21,7 +21,7 @@ import { isAndroid, isIOS, isNativeApp } from '@/utils/nativeUtils';
 interface UseRoomProtectionOptions {
   /** Room type for proper messaging */
   roomType: 'live' | 'party';
-  /** Callback when room should close (network loss) */
+  /** Callback when network is lost (must not end the room automatically) */
   onNetworkClose?: () => void;
   /** Whether protection is active */
   enabled?: boolean;
@@ -69,17 +69,14 @@ export function useRoomProtection({
       const roomName = roomType === 'live' ? 'Live Stream' : 'Party Room';
       
       toast.error(`Network disconnected`, {
-        description: `${roomName} closing...`,
+        description: `${roomName} is reconnecting...`,
         duration: 3000,
       });
 
-      // Call latest network close callback (stable listener, fresh logic)
+      // Call latest callback for recovery UI only. Do NOT auto-close/end the
+      // database room: LiveKit's reconnect policy + native foreground service
+      // must keep live/party/private-call sessions alive through short drops.
       onNetworkCloseRef.current?.();
-
-      // Auto close after short delay
-      setTimeout(() => {
-        closeRoom();
-      }, 1500);
     }
   }, [roomType, closeRoom]);
 
