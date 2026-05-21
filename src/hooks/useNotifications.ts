@@ -324,6 +324,19 @@ export const useNotifications = () => {
           const newNotification = { ...payload.new as Notification, source: 'regular' as const };
           // Skip admin-only notification types in the user app
           if (ADMIN_ONLY_TYPES.includes(newNotification.type) || newNotification.is_read) return;
+
+          // Pkg82d: bridge PK signaling notifications to a window event so
+          // LiveStream + PKBattlePanel can react WITHOUT opening their own
+          // Supabase Realtime channels (cost-safe — single subscription).
+          if (typeof newNotification.type === 'string' && newNotification.type.startsWith('pk_')) {
+            try {
+              window.dispatchEvent(new CustomEvent('pk-notification', { detail: newNotification }));
+            } catch {/* noop */}
+            // Do NOT surface PK signaling as a regular toast/notification entry —
+            // the UI handles it as a transient overlay (accept/decline modal).
+            return;
+          }
+
           // Live/party/chat gifts are rendered by the room/chat gift feed and animation system.
           // Do not show the global top toast, otherwise one gift appears as a repeating notification banner.
           if (ROOM_GIFT_NOTIFICATION_TYPES.has(newNotification.type)) {
@@ -342,6 +355,7 @@ export const useNotifications = () => {
 
           // Push/FCM handles user-facing notification delivery. No in-app toast banner here.
         }
+
       )
       .on(
         'postgres_changes',

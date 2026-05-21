@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Swords, Crown, Search, Users, Shuffle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,11 +45,91 @@ export const PKBattlePanel = ({
   const [sendingRequest, setSendingRequest] = useState<string | null>(null);
   const [sendingRandom, setSendingRandom] = useState(false);
 
+  // Pkg82d: track pending invites (direct + random) so the window-event
+  // listener can route incoming pk_invite_accepted / pk_invite_declined /
+  // pk_random_accepted notifications back to the right handler WITHOUT
+  // opening any Supabase Realtime channel.
+  const pendingDirectRef = useRef<Map<string, LiveHost>>(new Map());
+  const pendingRandomRef = useRef<boolean>(false);
+  const randomTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (isOpen) {
       fetchLiveHosts();
     }
   }, [isOpen]);
+
+  // Pkg82d: single window-event bridge for ALL PK reply signals.
+  useEffect(() => {
+    const handler = async (ev: Event) => {
+      const detail = (ev as CustomEvent).detail as any;
+      if (!detail || typeof detail.type !== "string") return;
+      const data = detail.data ?? {};
+
+      if (detail.type === "pk_invite_accepted" && data.battleId) {
+        const opponent = pendingDirectRef.current.get(data.battleId);
+        if (opponent) {
+          pendingDirectRef.current.delete(data.battleId);
+          toast.success("PK Battle starting!");
+          onBattleStarted(data.battleId, opponent);
+        }
+      } else if (detail.type === "pk_invite_declined" && data.battleId) {
+        const opponent = pendingDirectRef.current.get(data.battleId);
+        if (opponent) {
+          pendingDirectRef.current.delete(data.battleId);
+          toast.error(`${opponent.display_name} declined the PK request`);
+        }
+      } else if (detail.type === "pk_random_accepted" && pendingRandomRef.current) {
+        pendingRandomRef.current = false;
+        if (randomTimeoutRef.current) {
+          clearTimeout(randomTimeoutRef.current);
+          randomTimeoutRef.current = null;
+        }
+        // Acceptor info comes from the notification payload.
+        const acceptorId = data.fromUserId;
+        const acceptorName = data.fromName || "Host";
+        const acceptorAvatar = data.fromAvatar || "";
+        const acceptorLevel = data.fromLevel || 1;
+        const acceptorStreamId = data.fromStreamId || "";
+
+        const { data: battle, error } = await supabase
+          .from("pk_battles")
+          .insert({
+            challenger_id: currentUserId,
+            opponent_id: acceptorId,
+            challenger_stream_id: currentStreamId,
+            opponent_stream_id: acceptorStreamId,
+            status: "accepted",
+            started_at: new Date().toISOString(),
+            duration_seconds: 180,
+          })
+          .select()
+          .single();
+
+        if (!error && battle) {
+          toast.success(`${acceptorName} accepted your PK!`);
+          onBattleStarted(battle.id, {
+            id: acceptorId,
+            display_name: acceptorName,
+            avatar_url: acceptorAvatar,
+            user_level: acceptorLevel,
+            gender: "female",
+            stream_id: acceptorStreamId,
+            viewer_count: 0,
+          });
+        }
+      }
+    };
+
+    window.addEventListener("pk-notification", handler);
+    return () => window.removeEventListener("pk-notification", handler);
+  }, [currentUserId, currentStreamId, onBattleStarted]);
+
+  useEffect(() => {
+    return () => {
+      if (randomTimeoutRef.current) clearTimeout(randomTimeoutRef.current);
+    };
+  }, []);
 
   const fetchLiveHosts = async () => {
     setLoading(true);
@@ -113,31 +193,27 @@ export const PKBattlePanel = ({
 
       if (error) throw error;
 
-      toast.success(`PK request sent to ${opponent.display_name}!`);
-      
-      const channel = supabase
-        .channel(`pk_battle_${battle.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "pk_battles",
-            filter: `id=eq.${battle.id}`,
+      // Pkg82d: send invite via FCM (was `pk_battle_${battleId}` postgres_changes).
+      pendingDirectRef.current.set(battle.id, opponent);
+      try {
+        await supabase.functions.invoke("pk-invite-deliver", {
+          body: {
+            kind: "direct_invite",
+            battleId: battle.id,
+            toUserId: opponent.id,
+            fromUserId: currentUserId,
+            fromName: currentUserName,
+            fromAvatar: currentUserAvatar,
+            fromLevel: currentUserLevel,
+            fromStreamId: currentStreamId,
+            toStreamId: opponent.stream_id,
           },
-          (payload: any) => {
-            if (payload.new.status === "accepted") {
-              toast.success("PK Battle starting!");
-              onBattleStarted(battle.id, opponent);
-              supabase.removeChannel(channel);
-            } else if (payload.new.status === "declined") {
-              toast.error(`${opponent.display_name} declined the PK request`);
-              supabase.removeChannel(channel);
-            }
-          }
-        )
-        .subscribe();
+        });
+      } catch (err) {
+        console.warn("[PKBattlePanel] pk-invite-deliver direct_invite failed:", err);
+      }
 
+      toast.success(`PK request sent to ${opponent.display_name}!`);
       onClose();
     } catch (error) {
       console.error("Error sending PK request:", error);
@@ -147,86 +223,42 @@ export const PKBattlePanel = ({
     }
   };
 
-  // Random PK Match - broadcasts to ALL live hosts
+  // Random PK Match — broadcasts to ALL live female hosts via FCM (Pkg82d).
   const sendRandomPKRequest = async () => {
     setSendingRandom(true);
     try {
-      // Broadcast random PK request to all live hosts via Supabase Broadcast
-      const channel = supabase.channel("pk_random_match", {
-        config: { broadcast: { self: false } },
-      });
+      pendingRandomRef.current = true;
 
-      await channel.subscribe();
-
-      await channel.send({
-        type: "broadcast",
-        event: "random_pk_request",
-        payload: {
-          challengerId: currentUserId,
-          challengerName: currentUserName,
-          challengerAvatar: currentUserAvatar,
-          challengerLevel: currentUserLevel,
-          challengerStreamId: currentStreamId,
-          timestamp: Date.now(),
+      const { data, error } = await supabase.functions.invoke("pk-invite-deliver", {
+        body: {
+          kind: "random_invite",
+          fromUserId: currentUserId,
+          fromName: currentUserName,
+          fromAvatar: currentUserAvatar,
+          fromLevel: currentUserLevel,
+          fromStreamId: currentStreamId,
         },
       });
 
-      toast.success("Random PK request sent to all live hosts!");
-      
-      // Listen for acceptance
-      channel.on("broadcast", { event: "random_pk_accepted" }, async (msg) => {
-        const payload = msg.payload as any;
-        if (payload.challengerId === currentUserId) {
-          // Someone accepted! Create the battle
-          const { data: battle, error } = await supabase
-            .from("pk_battles")
-            .insert({
-              challenger_id: currentUserId,
-              opponent_id: payload.acceptorId,
-              challenger_stream_id: currentStreamId,
-              opponent_stream_id: payload.acceptorStreamId,
-              status: "accepted",
-              started_at: new Date().toISOString(),
-              duration_seconds: 180,
-            })
-            .select()
-            .single();
+      if (error) throw error;
+      const delivered = (data as any)?.delivered ?? 0;
+      toast.success(
+        delivered > 0
+          ? `Random PK request sent to ${delivered} live host${delivered > 1 ? "s" : ""}!`
+          : "No live hosts available right now"
+      );
 
-          if (!error && battle) {
-            toast.success(`${payload.acceptorName} accepted your PK!`);
-            onBattleStarted(battle.id, {
-              id: payload.acceptorId,
-              display_name: payload.acceptorName,
-              avatar_url: payload.acceptorAvatar,
-              user_level: payload.acceptorLevel,
-              gender: "female",
-              stream_id: payload.acceptorStreamId,
-              viewer_count: 0,
-            });
-
-            // Broadcast that match is taken so others dismiss
-            await channel.send({
-              type: "broadcast",
-              event: "random_pk_matched",
-              payload: {
-                challengerId: currentUserId,
-                acceptorId: payload.acceptorId,
-              },
-            });
-          }
-          supabase.removeChannel(channel);
-        }
-      });
-
-      // Auto-cleanup after 25 seconds if no one accepts
-      setTimeout(() => {
-        supabase.removeChannel(channel);
+      // Auto-clear pending flag after 25s — matches the prior cleanup window.
+      randomTimeoutRef.current = setTimeout(() => {
+        pendingRandomRef.current = false;
+        randomTimeoutRef.current = null;
       }, 25000);
 
       onClose();
     } catch (error) {
       console.error("Error sending random PK:", error);
       toast.error("Failed to send random PK request");
+      pendingRandomRef.current = false;
     } finally {
       setSendingRandom(false);
     }
