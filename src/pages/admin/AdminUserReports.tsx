@@ -88,7 +88,7 @@ export default function AdminUserReports() {
       if (userIds.length) {
         const { data: profs } = await supabase
           .from("profiles_public")
-          .select("id, display_name, avatar_url, is_host")
+          .select("id, display_name, avatar_url, is_host, app_uid")
           .in("id", userIds);
         profileMap = Object.fromEntries((profs || []).map((p: any) => [p.id, p]));
       }
