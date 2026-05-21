@@ -15,6 +15,8 @@ import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, s
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
+import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { useSound } from "@/hooks/useSound";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 
@@ -250,82 +252,47 @@ export function ActiveCallScreen({
     return () => clearInterval(interval);
   }, [hostPhotos.length, isLiveConnected]);
 
-  // Real-time gift animation subscription - listen for gifts during call
+  // Pkg83 LiveKit-Purist: in-call gift animations via LiveKit DataPacket.
+  // REPLACES `call_gift_animations_${callId}` postgres_changes channel
+  // (which was UNFILTERED — every gift INSERT on the platform hit every
+  // active-call client → catastrophic $1400-pattern read amplification).
+  // Sender publishes via `publishGiftSent('call', callId, …)` in
+  // GiftingService; receivers listen to `livekit-gift-sent` window event.
   useEffect(() => {
     if (!isOpen || !callId || !remoteUserId) return;
-    
     mountedRef.current = true;
-    
-    const giftChannel = supabase
-      .channel(`call_gift_animations_${callId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "gift_transactions",
-        },
-        async (payload: any) => {
-          // Only show for gifts between this call's participants
-          const senderId = payload.new?.sender_id;
-          const receiverId = payload.new?.receiver_id;
-          
-          const isRelevant = 
-            (senderId === userId && receiverId === remoteUserId) ||
-            (senderId === remoteUserId && receiverId === userId);
-          
-          if (!isRelevant) return;
-          
-          // ✅ FIX: Skip if I'm the sender (already showed local animation in handleSendGift)
-          if (senderId === userId) return;
-          
-          console.log('[ActiveCall] 🎁 Gift transaction detected, showing animation');
-          
-          // Fetch gift and sender info
-          const [giftResult, senderResult] = await Promise.all([
-            supabase
-              .from("gifts")
-              .select("name, icon_url, animation_url, sound_url, coin_value")
-              .eq("id", payload.new.gift_id)
-              .single(),
-            supabase
-              .from("profiles_public")
-              .select("display_name, avatar_url")
-              .eq("id", payload.new.sender_id)
-              .single()
-          ]);
-          
-          if (giftResult.data && senderResult.data && mountedRef.current) {
-            const gift = giftResult.data;
-            const sender = senderResult.data;
-            
-            // Play gift sound
-            playSound('gift');
-            
-            // Trigger flying gift animation
-            addFlyingGift({
-              senderName: sender.display_name || "User",
-              senderAvatar: sender.avatar_url || undefined,
-              receiverName: remoteUserName,
-              giftName: gift.name,
-              giftIcon: "🎁",
-              giftImageUrl: gift.icon_url || undefined,
-              animationUrl: gift.animation_url || gift.icon_url || undefined,
-              soundUrl: gift.sound_url || undefined,
-              giftColor: "bg-pink-500/50",
-              count: payload.new?.quantity || 1,
-              coins: gift.coin_value,
-              isReceiverGift: true,
-              beansEarned: payload.new?.receiver_beans ?? undefined,
-            });
-          }
-        }
-      )
-      .subscribe();
-    
+
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<GiftSentDetail>).detail;
+      if (!detail || detail.scope !== 'call' || detail.id !== callId) return;
+      // Only show gifts where I'm the receiver and remote is the sender.
+      if (detail.senderId === userId) return; // sender already showed local anim
+      if (detail.receiverId && detail.receiverId !== userId) return;
+      if (detail.senderId !== remoteUserId) return;
+      if (!mountedRef.current) return;
+
+      playSound('gift');
+      addFlyingGift({
+        senderName: detail.senderName || "User",
+        senderAvatar: detail.senderAvatar || undefined,
+        receiverName: remoteUserName,
+        giftName: detail.giftName || 'Gift',
+        giftIcon: "🎁",
+        giftImageUrl: detail.giftIconUrl || undefined,
+        animationUrl: detail.giftAnimationUrl || detail.giftIconUrl || undefined,
+        soundUrl: detail.giftSoundUrl || undefined,
+        giftColor: "bg-pink-500/50",
+        count: detail.count || 1,
+        coins: detail.giftCoins || 0,
+        isReceiverGift: true,
+        beansEarned: detail.receiverBeans ?? undefined,
+      });
+    };
+
+    window.addEventListener('livekit-gift-sent', handler as EventListener);
     return () => {
       mountedRef.current = false;
-      supabase.removeChannel(giftChannel);
+      window.removeEventListener('livekit-gift-sent', handler as EventListener);
     };
   }, [isOpen, callId, remoteUserId, userId, remoteUserName, addFlyingGift, playSound]);
 
