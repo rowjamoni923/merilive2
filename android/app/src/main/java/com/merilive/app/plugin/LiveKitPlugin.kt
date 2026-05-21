@@ -544,6 +544,10 @@ class LiveKitPlugin : Plugin() {
         try { localSid = newRoom.localParticipant.sid.value } catch (_: Exception) {}
         startStatsCollector()
 
+        activity?.runOnUiThread {
+            attachAllRemoteRenderersInternal(newRoom)
+        }
+
         if (isReconnect) {
             // Step 26 — emit a "reconnected" event so JS knows our hard
             // reconnect succeeded and can re-attach renderers (the old
@@ -734,23 +738,8 @@ class LiveKitPlugin : Plugin() {
     fun attachAllRemotes(call: PluginCall) {
         val r = room ?: return call.reject("Not connected")
         activity?.runOnUiThread {
-            var attached = 0
             try {
-                for (participant in r.remoteParticipants.values) {
-                    val sid = participant.sid.value
-                    val track = participant.getTrackPublication(Track.Source.CAMERA)
-                        ?.track as? io.livekit.android.room.track.VideoTrack ?: continue
-                    val renderer = remoteRenderers.getOrPut(sid) { createRenderer() }
-                    try {
-                        r.initVideoRenderer(renderer)
-                        track.addRenderer(renderer)
-                        mountBehindWebView(renderer)
-                        installStallSink(track, key = sid, sid = sid, isLocal = false)
-                        attached++
-                    } catch (inner: Exception) {
-                        android.util.Log.w("LiveKitPlugin", "attachAllRemotes: skip $sid: ${inner.message}")
-                    }
-                }
+                val attached = attachAllRemoteRenderersInternal(r)
                 val ret = JSObject(); ret.put("attached", attached); call.resolve(ret)
             } catch (e: Exception) {
                 call.reject("attachAllRemotes failed: ${e.message}")
