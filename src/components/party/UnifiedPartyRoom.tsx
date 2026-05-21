@@ -1095,11 +1095,25 @@ export function UnifiedPartyRoom({
     } else if (data) {
       // SUCCESS: Replace temp ID with real DB ID to prevent real-time duplicate
       processedMsgIdsRef.current.add(data.id);
-      setPremiumMessages(prev => prev.map(m => 
+      setPremiumMessages(prev => prev.map(m =>
         m.id === tempId ? { ...m, id: data.id } : m
       ));
       pendingMessagesRef.current.delete(msgKey);
-      
+
+      // Pkg81c: publish chat over LiveKit DataPacket. Receivers render
+      // sub-50ms without any postgres_changes subscription. DB row above
+      // remains the moderation/audit/late-join history source.
+      void publishChatMessage('party', roomId, {
+        messageId: data.id,
+        userId: currentUserId,
+        displayName: senderName,
+        avatarUrl: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
+        userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
+        isHost,
+        message: trimmedMessage,
+        messageType: 'chat',
+      });
+
       // Track message sent for task progress
       trackTaskProgress('messages_sent', { increment: 1 });
     }
