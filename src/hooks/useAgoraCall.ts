@@ -131,7 +131,7 @@ export function useAgoraCall(
     isInitRef.current = false;
 
     // Pkg73: drop call-signaling registration before tearing the room down.
-    try { if (callId) unregisterCallRoom(callId); } catch { /* ignore */ }
+    try { if (callIdRef.current) unregisterCallRoom(callIdRef.current); } catch { /* ignore */ }
 
     if (usingNativeRef.current) {
       nativeLiveKitController.disconnect().catch(() => {});
