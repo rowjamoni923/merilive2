@@ -812,146 +812,62 @@ export function UnifiedPartyRoom({
     }
   }, [hostInfo?.id, roomId, fetchRealtimeViewers]);
   
-  // ==================== REAL-TIME PARTICIPANT JOIN SUBSCRIPTION ====================
-  // CRITICAL: Subscribe DIRECTLY to party_room_participants for instant join banners
-  // This ensures ALL users (host & visitors) see join animations in real-time
+  // ==================== Pkg81b: LiveKit-only participant_joined ====================
+  // `unified-party-joins-${roomId}` Supabase channel DELETED.
+  // The Pkg80 `livekit-party-event` envelope already carries entrance + entry
+  // name bar + vehicle animation URLs (sender pre-resolved them before
+  // publishing), so receivers can render banner + entry effect without any
+  // `profiles_public` round-trip — true LiveKit-only path.
   useEffect(() => {
     if (!roomId) return;
-    
-    console.log('[UnifiedPartyRoom] 🚀 Setting up DIRECT participant join subscription for room:', roomId);
-    
-    const participantChannel = supabase
-      .channel(`unified-party-joins-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'party_room_participants',
-          filter: `room_id=eq.${roomId}`
-        },
-        async (payload) => {
-          const newParticipant = payload.new as any;
-          const joinKey = `${newParticipant.user_id}_${newParticipant.joined_at}`;
-          
-          // Prevent duplicate processing
-          if (processedParticipantJoinsRef.current.has(joinKey)) {
-            console.log('[UnifiedPartyRoom] Skipping duplicate join:', joinKey);
-            return;
-          }
-          processedParticipantJoinsRef.current.add(joinKey);
-          
-          console.log('[UnifiedPartyRoom] ⚡ NEW participant detected via direct subscription:', newParticipant.user_id);
-          
-          // Fetch user profile with entry effect info for display
-          const { data: profile } = await supabase
-            .from('profiles_public')
-            .select('display_name, user_level, avatar_url, equipped_entrance_id, equipped_entry_name_bar_id')
-            .eq('id', newParticipant.user_id)
-            .single();
-          
-          if (profile) {
-            const userName = profile.display_name || 'User';
-            const userLevel = profile.user_level || 1;
-            const avatarUrl = profile.avatar_url || undefined;
-            
-            console.log('[UnifiedPartyRoom] 🎉 User joined:', userName, 'Level:', userLevel);
-            
-            // Also add to join notifications for stacking display
-            setJoinNotifications(prev => [...prev.slice(-5), {
-              id: `direct_join_${joinKey}`,
-              userId: newParticipant.user_id,
-              userName,
-              userLevel,
-              userAvatar: avatarUrl,
-              timestamp: Date.now()
-            }]);
-            
-            // CRITICAL FIX: ONLY trigger entry animation for users who have ACTUAL animation URLs
-            // NOT just users with equipped IDs - the ID must resolve to a valid URL
-            console.log('[UnifiedPartyRoom] 🔍 Checking entry animations for:', userName,
-              'entranceId:', profile.equipped_entrance_id,
-              'nameBarId:', profile.equipped_entry_name_bar_id);
-            
-            // Get the callback reference BEFORE any async operations to avoid stale closure
-            const triggerCallback = onTriggerEntryEffectRef.current;
-            
-            // CRITICAL: Check if we've already triggered animation for this user in this room session
-            const animationKey = `${newParticipant.user_id}_${roomId}`;
-            if (triggeredEntryAnimationsRef.current.has(animationKey)) {
-              console.log('[UnifiedPartyRoom] ⏭️ Animation already triggered for user, skipping:', userName);
-              return;
-            }
-            
-            // Check if user has equipped IDs OR qualifies for level-based entry name bar
-            const hasEquippedItems = profile.equipped_entrance_id || profile.equipped_entry_name_bar_id;
-            if (!hasEquippedItems && userLevel < 20) {
-              console.log('[UnifiedPartyRoom] ℹ️ User has NO equipped entry items and level < 20 - skipping animation lookup');
-              return;
-            }
-            
-            try {
-              // Fetch actual animation URLs from database (includes level-based auto-assign)
-              const { entranceAnimationUrl, entryNameBarUrl } = await fetchUserEntryAnimations(
-                profile.equipped_entrance_id,
-                profile.equipped_entry_name_bar_id,
-                undefined,
-                userLevel,
-                newParticipant.user_id
-              );
-              
-              console.log('[UnifiedPartyRoom] 📍 Animation lookup result:', {
-                equippedEntranceId: profile.equipped_entrance_id,
-                equippedNameBarId: profile.equipped_entry_name_bar_id,
-                resolvedEntranceUrl: entranceAnimationUrl || 'NOT FOUND - NO ANIMATION',
-                resolvedEntryNameBarUrl: entryNameBarUrl || 'NOT FOUND - NO ANIMATION'
-              });
-              
-              // CRITICAL SAFETY: Only trigger if we have ACTUAL animation URLs
-              // Having an equipped ID is NOT enough - we need the actual URL to display
-              const hasValidEntranceUrl = entranceAnimationUrl && entranceAnimationUrl.length > 0;
-              const hasValidNameBarUrl = entryNameBarUrl && entryNameBarUrl.length > 0;
-              
-              if (!hasValidEntranceUrl && !hasValidNameBarUrl) {
-                console.log('[UnifiedPartyRoom] ⛔ NO valid animation URLs found - NOT triggering animation for:', userName);
-                return;
-              }
-              
-              if (triggerCallback) {
-                // Mark as triggered BEFORE calling callback to prevent race conditions
-                triggeredEntryAnimationsRef.current.add(animationKey);
-                
-                console.log('[UnifiedPartyRoom] 🎬 TRIGGERING entry effect for:', userName, 
-                  '| Entrance:', hasValidEntranceUrl ? '✅' : '❌',
-                  '| NameBar:', hasValidNameBarUrl ? '✅' : '❌');
-                
-                // Use setTimeout to ensure state updates are not batched
-                triggerCallback({
-                  userId: newParticipant.user_id,
-                  displayName: userName,
-                  avatarUrl,
-                  level: userLevel,
-                  entranceUrl: hasValidEntranceUrl ? entranceAnimationUrl : undefined,
-                  entryNameBarUrl: hasValidNameBarUrl ? entryNameBarUrl : undefined
-                });
-              } else {
-                console.log('[UnifiedPartyRoom] ⚠️ No callback available for triggering animation');
-              }
-            } catch (err) {
-              console.error('[UnifiedPartyRoom] Error fetching entry animations:', err);
-            }
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('[UnifiedPartyRoom] Participant join subscription status:', status);
-      });
-    
-    return () => {
-      console.log('[UnifiedPartyRoom] Cleaning up participant join subscription');
-      supabase.removeChannel(participantChannel);
+
+    const handlePartyEvent = (ev: Event) => {
+      const detail = (ev as CustomEvent<PartyEventDetail>).detail;
+      const payload = detail?.payload;
+      if (!payload || (payload as any).roomId !== roomId) return;
+      if (payload.type !== 'participant_joined') return;
+
+      const data = payload as ParticipantJoinedPayload;
+      const joinKey = `${data.userId}_${Math.floor(data.timestamp / 5000)}`;
+      if (processedParticipantJoinsRef.current.has(joinKey)) return;
+      processedParticipantJoinsRef.current.add(joinKey);
+
+      console.log('[UnifiedPartyRoom] ⚡ Pkg81b livekit participant_joined:', data.userName);
+
+      setJoinNotifications(prev => [...prev.slice(-5), {
+        id: `livekit_join_${joinKey}`,
+        userId: data.userId,
+        userName: data.userName,
+        userLevel: data.userLevel,
+        userAvatar: data.userAvatar,
+        timestamp: Date.now(),
+      }]);
+
+      const triggerCallback = onTriggerEntryEffectRef.current;
+      const animationKey = `${data.userId}_${roomId}`;
+      if (triggeredEntryAnimationsRef.current.has(animationKey)) return;
+
+      const entranceUrl = data.entranceAnimationUrl || undefined;
+      const entryNameBarUrl = data.entryNameBarUrl || undefined;
+      const vehicleUrl = data.vehicleAnimationUrl || undefined;
+      if (!entranceUrl && !entryNameBarUrl && !vehicleUrl) return;
+
+      if (triggerCallback) {
+        triggeredEntryAnimationsRef.current.add(animationKey);
+        triggerCallback({
+          userId: data.userId,
+          displayName: data.userName,
+          avatarUrl: data.userAvatar,
+          level: data.userLevel,
+          entranceUrl,
+          entryNameBarUrl,
+        });
+      }
     };
+    window.addEventListener('livekit-party-event', handlePartyEvent);
+    return () => window.removeEventListener('livekit-party-event', handlePartyEvent);
   }, [roomId]);
+
   
   // ==================== REAL-TIME CHAT SUBSCRIPTION ====================
   // Subscribe to party_room_messages for real-time messages (Party Room specific table)
