@@ -13,6 +13,15 @@ interface NotificationRequest {
   type?: string;
 }
 
+interface NotificationTemplateRow {
+  title_template?: string;
+  message_template?: string;
+  title?: string;
+  body?: string;
+  icon_emoji?: string;
+  image_url?: string;
+}
+
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const applyTemplateVariables = (template: string, variables: Record<string, string>) => {
@@ -49,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: template, error: templateError } = await supabase
       .from("notification_templates")
-      .select("title, body")
+      .select("title,title_template,body,message_template,icon_emoji,image_url")
       .eq("template_key", templateKey)
       .eq("is_active", true)
       .maybeSingle();
@@ -59,8 +68,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Template '${templateKey}' not found`);
     }
 
-    const title = applyTemplateVariables(template.title, variables ?? {});
-    const message = applyTemplateVariables(template.body, variables ?? {});
+    const row = template as NotificationTemplateRow;
+    const title = applyTemplateVariables(row.title_template || row.title || "", variables ?? {});
+    const message = applyTemplateVariables(row.message_template || row.body || "", variables ?? {});
 
     const { data: notification, error: insertError } = await supabase
       .from("notifications")
@@ -69,7 +79,7 @@ const handler = async (req: Request): Promise<Response> => {
         type,
         title,
         message,
-        data: variables ?? {},
+        data: { ...(variables ?? {}), icon_emoji: row.icon_emoji || "", image_url: row.image_url || "" },
       })
       .select("id")
       .single();
