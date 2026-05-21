@@ -377,20 +377,14 @@ serve(async (req: Request): Promise<Response> => {
       }
     }
 
-    // ── ALT DELIVERY PATH #2: if every FCM attempt failed, fire one more
-    // server-side realtime broadcast as a last-chance recovery before giving up.
-    const earlyOk = await earlyBroadcast;
-    let lateBroadcastOk = false;
-    if (!anyFcmOk) {
-      lateBroadcastOk = await broadcastOnce("recovery");
-    }
-
+    // Pkg84: Supabase Realtime broadcast fallback REMOVED.
+    // notifications-row insert (above) is the sole foreground delivery path.
     return new Response(
       JSON.stringify({
         ok: true,
         attempts: maxRetries,
         fcmDelivered: anyFcmOk,
-        broadcastDelivered: earlyOk || lateBroadcastOk,
+        notifInsertOk,
         lastResults,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
