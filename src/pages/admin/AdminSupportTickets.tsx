@@ -298,16 +298,23 @@ const AdminSupportTickets = () => {
 
         if (ticketMessagesError) throw ticketMessagesError;
 
-        const validTicketIds = new Set(
-          (ticketMessages || [])
-            // ✅ Only hide truly AI-generated messages. The old `/.*AI/is`
-            // sub-regex matched any English word containing "ai" and hid real tickets.
-            .filter((m: any) => !isAiSummarySupportMessage(m.content))
-            .map((m: any) => m.ticket_id)
-        );
+        // Group user messages per ticket so we can tell apart:
+        //  (a) tickets with NO user messages at all (newly opened) → SHOW
+        //  (b) tickets where ALL user messages match AI bot patterns → HIDE
+        //  (c) tickets with at least one real user message → SHOW
+        const userMsgsByTicket = new Map<string, string[]>();
+        (ticketMessages || []).forEach((m: any) => {
+          if (!m?.ticket_id) return;
+          const arr = userMsgsByTicket.get(m.ticket_id) || [];
+          arr.push(m.content || '');
+          userMsgsByTicket.set(m.ticket_id, arr);
+        });
 
-
-        visibleTickets = allTickets.filter((t) => validTicketIds.has(t.id));
+        visibleTickets = allTickets.filter((t) => {
+          const msgs = userMsgsByTicket.get(t.id);
+          if (!msgs || msgs.length === 0) return true; // newly opened, no msgs yet
+          return msgs.some((c) => !isAiSummarySupportMessage(c));
+        });
       }
 
       // Fetch profiles for filtered users
