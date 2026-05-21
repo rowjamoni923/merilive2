@@ -144,14 +144,22 @@ export default function AdminUserReports() {
   };
 
   const filtered = reports.filter((r) => {
-    const matchSearch =
-      r.reported_user?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.reporter?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q ||
+      r.reported_user?.display_name?.toLowerCase().includes(q) ||
+      r.reporter?.display_name?.toLowerCase().includes(q) ||
+      r.reported_user?.app_uid?.toLowerCase().includes(q) ||
+      r.reporter?.app_uid?.toLowerCase().includes(q) ||
+      r.description?.toLowerCase().includes(q);
     const matchStatus = statusFilter === "all" || r.status === statusFilter;
     const matchCategory = categoryFilter === "all" || r.report_category === categoryFilter;
     return matchSearch && matchStatus && matchCategory;
   });
+
+  const copyId = (v?: string | null) => {
+    if (!v) return;
+    navigator.clipboard.writeText(v).then(() => toast.success("Copied: " + v));
+  };
 
   const stats = {
     total: reports.length,
