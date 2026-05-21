@@ -748,30 +748,27 @@ const LiveStream = () => {
                 console.log('[LiveStream] ⚠️ No animation URL found for self');
               }
               
-              // ⚡ INSTANT BROADCAST: Tell ALL other viewers about this join immediately
-              // This fires BEFORE postgres_changes reaches other clients (sub-100ms vs 1-3s)
-              const joinBroadcastChannel = supabase.channel(`join_broadcast_${id}`);
-              joinBroadcastChannel.subscribe((status) => {
-                if (status === 'SUBSCRIBED') {
-                  joinBroadcastChannel.send({
-                    type: 'broadcast',
-                    event: 'viewer_joined',
-                    payload: {
-                      userId: currentUserId,
-                      appUid: selfProfile.app_uid || null,
-                      userName,
-                      userAvatar: avatarUrl,
-                      userLevel,
-                      entranceAnimationUrl: entranceAnimationUrl || null,
-                      entranceSoundUrl: entranceSoundUrl || null,
-                      entryNameBarUrl: entryNameBarUrl || null,
-                      vehicleAnimationUrl: vehicleAnimationUrl || null,
-                      timestamp: Date.now(),
-                    }
-                  });
-                  console.log('[LiveStream] ⚡ INSTANT join broadcast sent for:', userName);
-                }
-              });
+              // ⚡ Pkg82a: LiveKit-ONLY viewer_joined publish (replaces Supabase
+              // `join_broadcast_${id}` broadcast). Fires after `stream_viewers`
+              // INSERT has happened, so receivers can patch UI in <50ms while
+              // late-joiners pick up state from the durable row.
+              try {
+                const { publishViewerJoined } = await import('@/lib/livekitLiveEventsSignaling');
+                await publishViewerJoined(id!, {
+                  userId: currentUserId,
+                  appUid: selfProfile.app_uid || null,
+                  userName,
+                  userAvatar: avatarUrl,
+                  userLevel,
+                  entranceAnimationUrl: entranceAnimationUrl || null,
+                  entranceSoundUrl: entranceSoundUrl || null,
+                  entryNameBarUrl: entryNameBarUrl || null,
+                  vehicleAnimationUrl: vehicleAnimationUrl || null,
+                });
+                console.log('[LiveStream] ⚡ Pkg82a viewer_joined published for:', userName);
+              } catch (e) {
+                console.warn('[LiveStream] Pkg82a publishViewerJoined failed:', e);
+              }
             }, 500);
           }
         }
