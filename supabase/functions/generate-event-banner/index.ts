@@ -34,9 +34,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const prompt =
-      customPrompt?.trim() ||
-      `Ultra-premium luxurious 3D rendered marketing banner for "${eventName}" event in a live-streaming/social entertainment app. ${style || "Midnight indigo and gold palette, deep cinematic lighting, glossy reflections, rich volumetric glow, sparkles, floating diamonds and crystals, depth of field, octane render quality. Bold ornate 3D typography reading "${eventName}" centered, premium gold + indigo gradient with rim light. 16:9 aspect ratio, no watermarks, no logos, no extra text besides the title.`}`;
+    const eventTitle = String(eventName).trim().slice(0, 80);
+    const styleClause = (style && String(style).trim()) ||
+      "Ultra-premium luxurious 3D rendered marketing banner, midnight indigo and royal gold palette, deep cinematic lighting, glossy reflections, rich volumetric glow, sparkles, floating diamonds and crystals, depth of field, octane render quality. Bold ornate 3D typography centered, premium gold + indigo gradient with rim light. 16:9 aspect ratio, no watermarks, no logos, no extra text besides the title.";
+    const prompt = (customPrompt && String(customPrompt).trim()) ||
+      `Premium 3D marketing banner for a live-streaming social entertainment app. Event title (must be the only readable text, rendered in bold 3D luxury typography, perfectly spelled): ${eventTitle}. ${styleClause}`;
 
     // Call Lovable AI Gateway - Nano Banana image generation
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

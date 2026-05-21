@@ -86,14 +86,19 @@ const AdminNotificationTemplates = () => {
     { title: 'New Year Event', url: '/images/premium-events/new-year-event.png' },
   ];
 
-  // AI Banner Generator presets - click to auto-generate a premium 3D banner
-  const eventPresets: string[] = [
-    'Recharge Mega Offer', 'VIP Launch', 'Weekly Tournament', 'Eid Special', 'New Year Event',
-    'Diamond Rush', 'Lucky Draw', 'Top Spender Reward', 'Host Of The Week', 'Agency Champions',
-    'Double Beans Weekend', 'Golden Hour 3x', 'Referral Mania', 'Live Battle Royale', 'Gift Storm',
-    'Christmas Gala', 'Ramadan Kareem', 'Diwali Lights', 'PK Championship', 'Noble Coronation',
-    'Summer Carnival', 'Valentine Special', 'Birthday Bash', 'Anniversary Celebration', 'Welcome Bonus',
+  // AI Banner Generator presets - grouped by category, click to auto-generate premium 3D banner
+  const eventGroups: { group: string; items: string[] }[] = [
+    { group: '💎 Recharge & Diamonds', items: ['Recharge Mega Offer', 'Double Diamond Bonus', 'Flash Recharge Sale', 'Diamond Rush Weekend', 'First Recharge Gift', 'Weekend Top-Up Bonus', 'VIP Recharge Pack'] },
+    { group: '👑 VIP & Noble', items: ['VIP Launch', 'Noble Coronation', 'Royal Membership Sale', 'Crown Upgrade Event', 'VIP Exclusive Gala', 'Noble Anniversary'] },
+    { group: '🎤 Live & Host', items: ['Host Of The Week', 'Golden Hour 3x Earnings', 'Live Battle Royale', 'PK Championship', 'New Host Welcome Bonus', '5-Hour Live Milestone', 'Top Streamer Awards', 'Weekly Streaming Bonus'] },
+    { group: '🎁 Gifts & Earnings', items: ['Gift Storm Event', 'Double Beans Weekend', 'Lucky Gift Lottery', 'Mega Gift Carnival', 'Gifter Of The Month', 'Charm Leaderboard Final'] },
+    { group: '🏆 Tournament & PK', items: ['Weekly Tournament', 'Monthly Championship', 'Season Grand Finale', 'Wealth Ranking Battle', 'Game Leaderboard Showdown'] },
+    { group: '🎊 Festivals & Holidays', items: ['Eid Special', 'Ramadan Kareem', 'Diwali Lights', 'Christmas Gala', 'New Year Event', 'Holi Color Fest', 'Chinese New Year', 'Thanksgiving Bonus', 'Valentine Special', 'Summer Carnival'] },
+    { group: '👥 Referral & Growth', items: ['Referral Mania', 'Invite & Earn Bonus', 'Friend Reward Weekend', 'Top Inviter Awards'] },
+    { group: '🎂 User Moments', items: ['Birthday Bash', 'Anniversary Celebration', 'Welcome Bonus', 'Level Up Reward', 'Daily Check-in Mega'] },
+    { group: '🏢 Agency & Helper', items: ['Agency Champions', 'Top Agency Of The Week', 'Helper Recharge Bonanza', 'Agency Recruitment Drive'] },
   ];
+  const eventPresets: string[] = eventGroups.flatMap((g) => g.items);
 
   const [aiCustomEvent, setAiCustomEvent] = useState('');
   const [aiGenerating, setAiGenerating] = useState<string | null>(null);
@@ -387,23 +392,29 @@ const AdminNotificationTemplates = () => {
               </Button>
             </div>
 
-            {/* Event preset chips */}
-            <div>
-              <p className="text-xs text-white/50 mb-2">Quick presets — tap to generate instantly:</p>
-              <div className="flex flex-wrap gap-2">
-                {eventPresets.map((evt) => (
-                  <button
-                    key={evt}
-                    onClick={() => generateAiBanner(evt)}
-                    disabled={!!aiGenerating}
-                    className="px-3 py-1.5 text-xs rounded-full border border-amber-300/30 bg-white/[0.04] text-amber-100 hover:bg-amber-400/15 hover:border-amber-300/60 transition disabled:opacity-50"
-                  >
-                    {aiGenerating === evt ? <Loader2 className="w-3 h-3 animate-spin inline mr-1" /> : <Sparkles className="w-3 h-3 inline mr-1" />}
-                    {evt}
-                  </button>
-                ))}
-              </div>
+            {/* Event preset chips - grouped by category */}
+            <div className="space-y-3">
+              <p className="text-xs text-white/50">Tap any event below — premium 3D luxury banner generates instantly. Unlimited generations.</p>
+              {eventGroups.map((group) => (
+                <div key={group.group}>
+                  <p className="text-[11px] uppercase tracking-wider text-amber-300/70 font-semibold mb-1.5">{group.group}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {group.items.map((evt) => (
+                      <button
+                        key={evt}
+                        onClick={() => generateAiBanner(evt)}
+                        disabled={!!aiGenerating}
+                        className="px-3 py-1.5 text-xs rounded-full border border-amber-300/30 bg-white/[0.04] text-amber-100 hover:bg-amber-400/15 hover:border-amber-300/60 transition disabled:opacity-50"
+                      >
+                        {aiGenerating === evt ? <Loader2 className="w-3 h-3 animate-spin inline mr-1" /> : <Sparkles className="w-3 h-3 inline mr-1" />}
+                        {evt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
+
 
             {/* Generated banners gallery */}
             {aiBanners.length > 0 && (
