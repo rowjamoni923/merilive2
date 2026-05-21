@@ -536,59 +536,15 @@ const PartyRoom = () => {
     // Initial fetch
     fetchTotalBeans();
 
-    // Subscribe for realtime updates to gift transactions
-    // CRITICAL: No UUID filter — Supabase Realtime UUID filters can fail silently
-    const giftChannel = supabase
-      .channel(`party-beans-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'gift_transactions',
-        },
-        (payload: any) => {
-          // CLIENT-SIDE FILTER: Only count gifts for THIS party room
-          if (payload.new?.party_room_id !== roomId) return;
-          
-          const newGiftValue = payload.new?.coin_amount || 0;
-          const newHostBeans = payload.new?.receiver_beans ?? Math.floor(newGiftValue * hostCommissionPercent / 100);
-          const senderId = payload.new?.sender_id;
-          const giftKey = getPartyGiftRealtimeKey(senderId, payload.new?.gift_id, newGiftValue, payload.new?.quantity);
-          const optimistic = optimisticGiftCountsRef.current.get(giftKey);
-          if (optimistic) {
-            optimisticGiftCountsRef.current.delete(giftKey);
-            if (optimistic.beans !== newHostBeans || optimistic.coins !== newGiftValue) {
-              setTotalRoomBeans(prev => Math.max(0, prev - optimistic.beans + newHostBeans));
-              if (senderId) {
-                setParticipantBeans(prev => ({
-                  ...prev,
-                  [senderId]: Math.max(0, (prev[senderId] || 0) - optimistic.coins + newGiftValue),
-                }));
-              }
-            }
-            console.log('[PartyRoom] Gift confirmed by DB:', newHostBeans, 'from:', senderId);
-            return;
-          }
-          console.log('[PartyRoom] New gift received! Adding beans:', newHostBeans, 'from:', senderId);
-          setTotalRoomBeans(prev => prev + newHostBeans);
-          
-          // Update per-participant beans
-          if (senderId) {
-            setParticipantBeans(prev => ({
-              ...prev,
-              [senderId]: (prev[senderId] || 0) + newGiftValue
-            }));
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('[PartyRoom] Beans realtime subscription status:', status);
-      });
-
-    return () => {
-      supabase.removeChannel(giftChannel);
-    };
+    // Pkg81: `party-beans-${roomId}` Supabase Realtime channel DELETED.
+    // Beans counter realtime now arrives purely via Pkg76 LiveKit
+    // `livekit-gift-sent` DataPacket — the handler further below already
+    // bumps `setTotalRoomBeans` + `setParticipantBeans` from the same
+    // envelope. Late-join state = the initial `fetchTotalBeans()` above.
+    // Net result: every active party room saves 1 Realtime channel + 1
+    // gift_transactions postgres_changes subscription. ZERO functional
+    // regression — the LiveKit path was already the primary; this just
+    // removes the redundant fallback.
   }, [roomId, hostCommissionPercent, getPartyGiftRealtimeKey]);
 
   // Determine if current user is host or admin
