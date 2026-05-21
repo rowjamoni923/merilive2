@@ -226,8 +226,10 @@ export function AdminMediaFrame({
             key={`image-fallback-${displaySrc}`}
             src={displaySrc}
             alt={alt}
-            loading="lazy"
+            loading="eager"
             decoding="async"
+            // @ts-expect-error – fetchpriority is valid HTML, React typings lag.
+            fetchpriority="high"
             referrerPolicy="no-referrer"
             className={cn("h-full w-full object-contain", mediaClassName)}
             onError={() => setImageFallbackFailed(true)}
