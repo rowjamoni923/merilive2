@@ -422,6 +422,16 @@ export function usePartyRoomWebRTC(
         await room.connect(url, token);
         console.log('[PartyLiveKit] ✅ Connected to room');
 
+        // Pkg75: bind this LiveKit Room to the party roomId so the host
+        // can publish `room_closed` packets and viewers can receive them
+        // with sub-50ms latency. Reuses the existing Room — zero new
+        // Supabase Realtime channels, zero polling.
+        try {
+          registerPartyRoom(roomId, room);
+        } catch (err) {
+          console.warn('[Pkg75] registerPartyRoom failed:', err);
+        }
+
         setState(prev => ({
           ...prev,
           isConnected: true,
