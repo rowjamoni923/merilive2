@@ -123,10 +123,20 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   useNativeLiveKitEvents(nativeActive, {
     onDisconnected: (reason) => {
       console.log('[LiveKitClient/Native] disconnected:', reason);
-      setNativeActive(false);
-      setIsJoined(false);
-      setConnectionState('DISCONNECTED');
-      try { options.onError?.(new Error(`native_livekit_disconnected: ${reason}`)); } catch { /* noop */ }
+      setConnectionState('CONNECTING');
+      toast.loading('Restoring live camera…', { id: 'lk-live-reconnect' });
+      nativeLiveKitController.reconnectNow().then((ok) => {
+        if (ok) {
+          setNativeActive(true);
+          setIsJoined(true);
+          setConnectionState('CONNECTED');
+          toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
+        } else {
+          setConnectionState('CONNECTING');
+        }
+      }).catch(() => {
+        setConnectionState('CONNECTING');
+      });
     },
     // Step 19 — sticky reconnect toast for live broadcasters/viewers.
     onConnectionState: (s) => {
