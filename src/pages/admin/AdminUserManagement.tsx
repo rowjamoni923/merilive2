@@ -453,6 +453,13 @@ export default function AdminUserManagement() {
   }, [activeTab, hostStatusFilter]);
   
   useEffect(() => {
+    if (activeTab === "verified-users") {
+      fetchVerifiedUsers();
+    }
+  }, [activeTab]);
+
+  
+  useEffect(() => {
     if (activeTab === "auto-verified" || activeTab === "auto-rejected") {
       fetchFaceSubmissions();
     }
