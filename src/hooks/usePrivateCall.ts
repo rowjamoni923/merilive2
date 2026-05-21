@@ -499,14 +499,11 @@ export function usePrivateCall(userId: string | null) {
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
       const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
 
-      // ✅ Send broadcast WITH real callId — staggered retries for guaranteed delivery
-      broadcastPayload.callId = resolvedCallId;
-      sendBroadcast(broadcastPayload);
-      setTimeout(() => sendBroadcast(broadcastPayload), 800);
-      setTimeout(() => sendBroadcast(broadcastPayload), 2000);
-      setTimeout(() => sendBroadcast(broadcastPayload), 4000);
-      
+      // Pkg84: client Supabase broadcast removed. `call-deliver` edge function
+      // (invoked just below) is sole delivery path → FCM high-priority data
+      // push + `notifications` row insert.
       currentCallIdRef.current = resolvedCallId;
+
 
       // ⚡ Pre-warm LiveKit token for caller side - room will connect instantly when host accepts
       import('@/services/livekitService').then(({ warmLiveKitToken }) => {
