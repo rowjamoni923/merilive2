@@ -1302,98 +1302,13 @@ const LiveStream = () => {
     };
   }, [id, isHost, hostInfo?.id]);
 
-  // Subscribe to stream viewers for entrance animation - Host MUST see viewer entries
-  useEffect(() => {
-    if (!id) return;
-    
-    const viewerChannel = supabase
-      .channel(`stream_viewers_entrance_${id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // Listen to INSERT AND UPDATE (for UPSERT returning viewers)
-          schema: "public",
-          table: "stream_viewers",
-        },
-        async (payload: any) => {
-          const changedStreamId = payload.new?.stream_id ?? payload.old?.stream_id;
-          if (changedStreamId !== id) return;
+  // Pkg82a: REMOVED Supabase `stream_viewers_entrance_${id}` postgres_changes
+  // subscription. Entry animations are now triggered by the unified
+  // `livekit-live-event` handler above (viewer_joined envelope carries
+  // pre-resolved entranceAnimationUrl / entryNameBarUrl / vehicleAnimationUrl
+  // packed by the sender — zero extra fetches, sub-50ms latency).
 
-          // Check if this is a returning viewer (UPDATE with left_at becoming null)
-          const isReturningViewer = payload.eventType === 'UPDATE' && 
-            payload.old?.left_at !== null && 
-            payload.new?.left_at === null;
-          
-          const isNewViewer = payload.eventType === 'INSERT';
-          
-          // Only process if this is a new viewer or returning viewer
-          if (!isNewViewer && !isReturningViewer) return;
-          
-          // Don't show animation for self
-          if (payload.new?.viewer_id === currentUserId) return;
-          
-          console.log('[LiveStream] Viewer joined/returned:', payload.new.viewer_id, isReturningViewer ? '(returning)' : '(new)');
-          
-          // Fetch viewer profile with entry effect info
-          const { data: profile } = await supabase
-            .from("profiles_public")
-            .select("display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id")
-            .eq("id", payload.new.viewer_id)
-            .single();
-          
-          if (profile && mountedRef.current) {
-            const userName = profile.display_name || "User";
-            const userLevel = profile.user_level || 1;
-            const avatarUrl = profile.avatar_url || undefined;
-            
-            console.log('[LiveStream] 👤 Viewer entry details:', {
-              userName,
-              userLevel,
-              hasEntranceId: !!profile.equipped_entrance_id,
-              hasNameBarId: !!profile.equipped_entry_name_bar_id,
-              hasVehicleId: !!profile.equipped_vehicle_id
-            });
-            
-            // Fetch Entry Animation URLs - uses centralized function that checks ALL tables
-            // This returns entranceAnimationUrl, entryNameBarUrl, AND vehicleAnimationUrl
-            const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
-              profile.equipped_entrance_id,
-              profile.equipped_entry_name_bar_id,
-              profile.equipped_vehicle_id,
-              userLevel
-            );
-            
-            console.log('[LiveStream] 📍 Animation lookup result:', {
-              entranceUrl: entranceAnimationUrl || 'not found',
-              nameBarUrl: entryNameBarUrl || 'not found',
-              vehicleUrl: vehicleAnimationUrl || 'not found'
-            });
 
-            // ==================== UNIFIED ENTRY ANIMATION (LIKE GIFTS) ====================
-            // Single animation, priority-based: Vehicle > Entrance > NameBar
-            if ((entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl) && mountedRef.current) {
-              console.log('[LiveStream] 🎬 Using UNIFIED entry animation system for:', userName);
-              
-              addEntryAnimation({
-                userId: payload.new.viewer_id,
-                displayName: userName,
-                avatarUrl,
-                level: userLevel,
-                entranceUrl: entranceAnimationUrl || undefined,
-                entryNameBarUrl: entryNameBarUrl || undefined,
-                vehicleAnimationUrl: vehicleAnimationUrl || undefined,
-                soundUrl: entranceSoundUrl || undefined,
-              });
-            }
-          }
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(viewerChannel);
-    };
-  }, [id, currentUserId]);
 
   // Fetch recent viewer avatars for header display
   useEffect(() => {
