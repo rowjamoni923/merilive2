@@ -1881,18 +1881,16 @@ const PartyRoom = () => {
         recordClientError({ label: "PartyRoom.approveSeatRequest", message: updateError instanceof Error ? updateError.message : String(updateError) });
       }
 
-      // STEP 3: Send INSTANT broadcast notification to the requester
-      // This is faster than postgres_changes (which can have 1-2s delay)
-      const broadcastChannel = supabase.channel(`party-room-all-${roomId}`);
-      broadcastChannel.send({
-        type: 'broadcast',
-        event: 'seat_action',
-        payload: {
-          action: 'approved',
-          requester_id: request.requester_id,
-          seat_position: request.seat_position,
-          request_id: request.id
-        }
+      // Pkg80: LiveKit DataPacket replaces `party-room-all-*` seat_action send.
+      // postgres_changes on seat_requests UPDATE remains as durable fallback.
+      void publishPartyEvent(roomId, {
+        type: 'seat_action',
+        roomId,
+        action: 'approved',
+        requester_id: request.requester_id,
+        seat_position: request.seat_position,
+        request_id: request.id,
+        timestamp: Date.now(),
       });
       
       // Force refresh participants to update UI immediately for all users
