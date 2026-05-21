@@ -127,8 +127,13 @@ export function invalidateLiveKitFlags() {
 }
 
 if (typeof window !== 'undefined') {
-  // Pkg37/52/53 admin_broadcast singleton emits this event when settings change.
-  window.addEventListener('admin-broadcast-app-settings', invalidateLiveKitFlags);
+  // Pkg37/52/53 admin_broadcast singleton dispatches `admin-table-update`
+  // with detail.table = the changed table. Invalidate only when app_settings
+  // changes so an admin kill-switch flip propagates within ~1s.
+  window.addEventListener('admin-table-update', (ev: Event) => {
+    const detail = (ev as CustomEvent<{ table?: string }>).detail;
+    if (detail?.table === 'app_settings') invalidateLiveKitFlags();
+  });
 }
 
 // ─── Envelope helpers ─────────────────────────────────────────────────────

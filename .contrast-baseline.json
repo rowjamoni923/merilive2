@@ -1,3 +1,4 @@
 [
-  "src/components/campaign/CampaignFloatingButton.tsx::C1::min-w-[92px] rounded-2xl px-4 py-3 text-sm font-bold transition-all ${ isSelected ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25' : 'bg-white text-gray-700 bo"
+  "src/components/campaign/CampaignFloatingButton.tsx::C1::min-w-[92px] rounded-2xl px-4 py-3 text-sm font-bold transition-all ${ isSelected ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25' : 'bg-white text-gray-700 bo",
+  "src/pages/AgentRank.tsx::C1::flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${ periodType === p ? \"bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-lg shadow-purple-500/30\" : \"bg-whit"
 ]

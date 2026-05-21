@@ -170,16 +170,6 @@
       "table": "profiles"
     },
     {
-      "file": "src/components/call/ActiveCallScreen.tsx",
-      "line": 204,
-      "table": "profiles"
-    },
-    {
-      "file": "src/components/call/ActiveCallScreen.tsx",
-      "line": 290,
-      "table": "profiles"
-    },
-    {
       "file": "src/components/call/InCallChat.tsx",
       "line": 88,
       "table": "profiles"
@@ -1425,21 +1415,6 @@
       "table": "profiles"
     },
     {
-      "file": "src/pages/admin/AdminRechargeHistory.tsx",
-      "line": 343,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/admin/AdminRechargeHistory.tsx",
-      "line": 358,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/admin/AdminRechargeHistory.tsx",
-      "line": 382,
-      "table": "profiles"
-    },
-    {
       "file": "src/pages/admin/AdminRecordings.tsx",
       "line": 113,
       "table": "profiles"
@@ -1476,12 +1451,12 @@
     },
     {
       "file": "src/pages/admin/AdminSupportTickets.tsx",
-      "line": 319,
+      "line": 326,
       "table": "profiles"
     },
     {
       "file": "src/pages/admin/AdminSupportTickets.tsx",
-      "line": 666,
+      "line": 673,
       "table": "agencies"
     },
     {
@@ -1708,7 +1683,7 @@
     },
     {
       "file": "src/pages/admin/AdminSupportTickets.tsx",
-      "line": 975,
+      "line": 982,
       "channel": "support_realtime"
     },
     {
