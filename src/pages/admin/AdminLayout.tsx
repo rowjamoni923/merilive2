@@ -1864,16 +1864,11 @@ export default function AdminLayout() {
     return () => window.removeEventListener('admin-badge-refresh', handleBadgeRefresh);
   }, []);
 
-  // Auto-dismiss badges when visiting a page
-  useEffect(() => {
-    const currentPath = normalizeAdminPath(location.pathname);
+  // Per owner directive: admin notifications must persist until manually cleared
+  // by the admin (click the notification, or "Mark all as read"). Do NOT
+  // auto-dismiss badges or mark DB notifications as read just because the admin
+  // navigated to the corresponding page — they stay in the bell until acted on.
 
-    // Dismiss current section + related hub so bell/sidebar badges clear instantly
-    dismissPath(currentPath);
-
-    // Instantly clear DB notifications for the opened page
-    void markPathNotificationsAsRead(currentPath);
-  }, [location.pathname, dismissPath, markPathNotificationsAsRead]);
 
   // Notification sound - pre-initialize AudioContext on first user interaction
   const audioCtxRef = useRef<AudioContext | null>(null);
