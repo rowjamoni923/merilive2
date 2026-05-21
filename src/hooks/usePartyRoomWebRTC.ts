@@ -19,6 +19,7 @@ import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSes
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -80,9 +81,10 @@ export function usePartyRoomWebRTC(
       reconnectTimerRef.current = null;
     }
 
-    // Pkg75: detach signaling handler before disconnecting the Room.
+    // Pkg75/76/80: detach signaling handlers before disconnecting the Room.
     try { unregisterPartyRoom(roomId); } catch { /* ignore */ }
     try { unregisterGiftRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterPartyEventsRoom(roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -443,6 +445,15 @@ export function usePartyRoomWebRTC(
           registerGiftRoom('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg76] registerGiftRoom(party) failed:', err);
+        }
+
+        // Pkg80: bind for participant_joined + seat_action ephemeral
+        // events. Replaces `join_broadcast_party_${roomId}` channel and
+        // the in-`party-room-all-` seat_action broadcast listener.
+        try {
+          registerPartyEventsRoom(roomId, room);
+        } catch (err) {
+          console.warn('[Pkg80] registerPartyEventsRoom failed:', err);
         }
 
         setState(prev => ({
