@@ -60,7 +60,7 @@ const GoLive = () => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
-  const [useLiveKit, setUseAgora] = useState(false);
+  const [useLiveKit, setUseLiveKit] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
   const preservePreviewForLiveRef = useRef(false);
