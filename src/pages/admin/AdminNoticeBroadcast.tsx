@@ -595,12 +595,12 @@ const AdminNoticeBroadcast = () => {
               <p className="text-[11px] text-muted-foreground mb-2">
                 Type a prompt (or leave blank to use the title) and generate a premium 3D banner — auto-attached as a notice image.
               </p>
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              <div className="flex flex-wrap items-center gap-1.5 mb-1">
                 {AI_BANNER_SIZES.map((s) => (
                   <button
                     key={s.key}
                     type="button"
-                    onClick={() => setAiSize(s.key)}
+                    onClick={() => { setAiSize(s.key); setAiSizeManual(true); }}
                     className={`px-2.5 py-1 text-[11px] rounded-md border transition ${
                       aiSize === s.key
                         ? 'bg-amber-400/20 border-amber-300/70 text-amber-100'
@@ -608,9 +608,29 @@ const AdminNoticeBroadcast = () => {
                     }`}
                   >
                     {s.label}
+                    {!aiSizeManual && aiSize === s.key && aiSizeAutoReason && (
+                      <span className="ml-1 text-[9px] uppercase tracking-wider text-amber-300/80">auto</span>
+                    )}
                   </button>
                 ))}
+                {aiSizeManual && (
+                  <button
+                    type="button"
+                    onClick={() => setAiSizeManual(false)}
+                    className="px-2 py-1 text-[10px] rounded-md border border-amber-300/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20"
+                    title="Resume auto-suggest based on event name"
+                  >
+                    ↺ Auto
+                  </button>
+                )}
               </div>
+              {!aiSizeManual && aiSizeAutoReason && (
+                <p className="text-[10px] text-amber-200/70 mb-2">✨ Auto-picked: {aiSizeAutoReason}</p>
+              )}
+              {aiSizeManual && (
+                <p className="text-[10px] text-muted-foreground mb-2">Manual size locked. Click ↺ Auto to re-enable smart suggest.</p>
+              )}
+
               <div className="flex gap-2">
                 <Input
                   value={aiPrompt}
