@@ -170,12 +170,22 @@ export default function AdminUserReports() {
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg">
-        <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
-          <ShieldAlert className="w-6 h-6" />
-          User Reports
-        </h1>
-        <p className="text-white/80 text-xs md:text-sm mt-1">Review and manage user reports</p>
+      <div className="bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 rounded-xl md:rounded-2xl p-4 md:p-6 shadow-lg flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+            <ShieldAlert className="w-6 h-6" />
+            User Reports
+          </h1>
+          <p className="text-white/80 text-xs md:text-sm mt-1">Review and manage user reports</p>
+        </div>
+        <Button
+          onClick={() => fetchReports()}
+          disabled={loading}
+          className="bg-white/15 hover:bg-white/25 text-white border border-white/30"
+          size="sm"
+        >
+          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
+        </Button>
       </div>
 
       {/* Stats */}
