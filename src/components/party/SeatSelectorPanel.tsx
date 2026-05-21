@@ -54,6 +54,13 @@ export function SeatSelectorPanel({
 
       if (error) throw error;
 
+      // Pkg81: LiveKit-only fanout — replaces `party-room-status-${roomId}`
+      // Supabase Realtime active_seats listener. Host is the sole writer;
+      // every participant receives within ~50ms via DataPacket.
+      void import('@/lib/livekitPartyEventsSignaling').then(({ publishRoomStateChanged }) =>
+        publishRoomStateChanged(roomId, { active_seats: seatCount })
+      );
+
       onSeatsChanged(seatCount);
       // System notification hidden per design requirements
       onClose();
