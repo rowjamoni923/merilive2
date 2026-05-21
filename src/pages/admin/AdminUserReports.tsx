@@ -373,11 +373,27 @@ export default function AdminUserReports() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-slate-400">Reported User</p>
-                  <p className="text-white font-medium">{selectedReport.reported_user?.display_name}</p>
+                  <p className="text-white font-medium">{selectedReport.reported_user?.display_name || "Unknown"}</p>
+                  {selectedReport.reported_user?.app_uid && (
+                    <button
+                      onClick={() => copyId(selectedReport.reported_user?.app_uid)}
+                      className="text-[11px] text-amber-300 hover:text-amber-200 font-mono inline-flex items-center gap-1 mt-0.5"
+                    >
+                      ID: {selectedReport.reported_user.app_uid} <Copy className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Reporter</p>
-                  <p className="text-white font-medium">{selectedReport.reporter?.display_name}</p>
+                  <p className="text-white font-medium">{selectedReport.reporter?.display_name || "Unknown"}</p>
+                  {selectedReport.reporter?.app_uid && (
+                    <button
+                      onClick={() => copyId(selectedReport.reporter?.app_uid)}
+                      className="text-[11px] text-amber-300 hover:text-amber-200 font-mono inline-flex items-center gap-1 mt-0.5"
+                    >
+                      ID: {selectedReport.reporter.app_uid} <Copy className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-slate-400">Category</p>
