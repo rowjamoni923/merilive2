@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { callGiftService } from '@/utils/giftServiceClient';
 import { broadcastGiftSent } from '@/features/shared/room/roomBroadcast';
 import { publishGiftSent } from '@/lib/livekitGiftSignaling';
+import { getCachedBalance, updateCachedBalance } from '@/hooks/useUserBalance';
 
 export interface GiftItem {
   id: string;
