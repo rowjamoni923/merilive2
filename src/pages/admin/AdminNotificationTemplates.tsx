@@ -13,7 +13,10 @@ import {
   Info,
   ImageIcon,
   Send,
-  Sparkles
+  Sparkles,
+  Wand2,
+  Copy,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +85,46 @@ const AdminNotificationTemplates = () => {
     { title: 'Eid Special', url: '/images/premium-events/eid-special.png' },
     { title: 'New Year Event', url: '/images/premium-events/new-year-event.png' },
   ];
+
+  // AI Banner Generator presets - click to auto-generate a premium 3D banner
+  const eventPresets: string[] = [
+    'Recharge Mega Offer', 'VIP Launch', 'Weekly Tournament', 'Eid Special', 'New Year Event',
+    'Diamond Rush', 'Lucky Draw', 'Top Spender Reward', 'Host Of The Week', 'Agency Champions',
+    'Double Beans Weekend', 'Golden Hour 3x', 'Referral Mania', 'Live Battle Royale', 'Gift Storm',
+    'Christmas Gala', 'Ramadan Kareem', 'Diwali Lights', 'PK Championship', 'Noble Coronation',
+    'Summer Carnival', 'Valentine Special', 'Birthday Bash', 'Anniversary Celebration', 'Welcome Bonus',
+  ];
+
+  const [aiCustomEvent, setAiCustomEvent] = useState('');
+  const [aiGenerating, setAiGenerating] = useState<string | null>(null);
+  const [aiBanners, setAiBanners] = useState<{ eventName: string; url: string }[]>([]);
+
+  const generateAiBanner = async (eventName: string) => {
+    if (!eventName.trim()) return;
+    setAiGenerating(eventName);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-event-banner', {
+        body: { eventName }
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error('No URL returned');
+      setAiBanners(prev => [{ eventName, url: data.url }, ...prev].slice(0, 30));
+      toast({ title: 'Banner generated', description: `Premium 3D banner ready for "${eventName}"` });
+    } catch (e: any) {
+      toast({ title: 'Generation failed', description: e?.message || 'AI generation error', variant: 'destructive' });
+    } finally {
+      setAiGenerating(null);
+    }
+  };
+
+  const copyBannerUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: 'Copied', description: 'Banner URL copied to clipboard' });
+    } catch {
+      toast({ title: 'Copy failed', variant: 'destructive' });
+    }
+  };
 
   useAdminRealtime(['notification_templates'], () => fetchTemplates());
 
@@ -311,6 +354,83 @@ const AdminNotificationTemplates = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Banner Generator */}
+      <div className="p-4">
+        <Card className="bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-amber-900/20 border-amber-400/20 overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center gap-2">
+              <Wand2 className="w-5 h-5 text-amber-300" /> AI Banner Generator
+              <Badge className="ml-2 bg-amber-500/20 text-amber-200 border-amber-400/30">Nano Banana 3D</Badge>
+            </CardTitle>
+            <CardDescription className="text-white/60">
+              Click any event name below to auto-generate a premium 3D luxury banner. Or type your own event name.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Custom event input */}
+            <div className="flex gap-2">
+              <Input
+                value={aiCustomEvent}
+                onChange={(e) => setAiCustomEvent(e.target.value)}
+                placeholder="Type any event name (e.g. New Year Mega Bash)..."
+                className="bg-white/5 border-white/15 text-white placeholder:text-white/40"
+                onKeyDown={(e) => { if (e.key === 'Enter' && aiCustomEvent.trim()) generateAiBanner(aiCustomEvent.trim()); }}
+              />
+              <Button
+                onClick={() => aiCustomEvent.trim() && generateAiBanner(aiCustomEvent.trim())}
+                disabled={!aiCustomEvent.trim() || !!aiGenerating}
+                className="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white"
+              >
+                {aiGenerating === aiCustomEvent.trim() ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4 mr-1" />}
+                Generate
+              </Button>
+            </div>
+
+            {/* Event preset chips */}
+            <div>
+              <p className="text-xs text-white/50 mb-2">Quick presets — tap to generate instantly:</p>
+              <div className="flex flex-wrap gap-2">
+                {eventPresets.map((evt) => (
+                  <button
+                    key={evt}
+                    onClick={() => generateAiBanner(evt)}
+                    disabled={!!aiGenerating}
+                    className="px-3 py-1.5 text-xs rounded-full border border-amber-300/30 bg-white/[0.04] text-amber-100 hover:bg-amber-400/15 hover:border-amber-300/60 transition disabled:opacity-50"
+                  >
+                    {aiGenerating === evt ? <Loader2 className="w-3 h-3 animate-spin inline mr-1" /> : <Sparkles className="w-3 h-3 inline mr-1" />}
+                    {evt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Generated banners gallery */}
+            {aiBanners.length > 0 && (
+              <div>
+                <p className="text-xs text-white/50 mb-2">Generated banners ({aiBanners.length}):</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {aiBanners.map((b) => (
+                    <div key={b.url} className="rounded-xl overflow-hidden border border-white/10 bg-black/30">
+                      <img src={b.url} alt={b.eventName} className="w-full aspect-[16/9] object-cover" />
+                      <div className="p-2 flex items-center justify-between gap-2">
+                        <p className="text-xs text-white/80 truncate flex-1">{b.eventName}</p>
+                        <Button size="sm" variant="ghost" onClick={() => copyBannerUrl(b.url)} className="h-7 px-2 text-white/70 hover:text-white">
+                          <Copy className="w-3.5 h-3.5" />
+                        </Button>
+                        <a href={b.url} target="_blank" rel="noreferrer" download className="h-7 px-2 inline-flex items-center text-white/70 hover:text-white">
+                          <Download className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
 
       {/* Templates List */}
       <div className="p-4 space-y-4">
