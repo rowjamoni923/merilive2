@@ -2557,6 +2557,26 @@ const PartyRoom = () => {
                 });
                 console.log('[PartyRoom] ✅ Gift broadcast sent instantly!');
               }
+
+              // Pkg76: parallel LiveKit DataPacket fanout (sub-50ms).
+              if (roomId) {
+                publishGiftSent('party', roomId, {
+                  senderId: currentUser.id,
+                  senderName: currentUser?.profile?.display_name || 'Someone',
+                  receiverId: room.host?.id,
+                  giftId: gift.id,
+                  giftKey,
+                  giftName: gift.name,
+                  giftIcon: gift.emoji,
+                  giftIconUrl: gift.icon_url || undefined,
+                  giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
+                  giftSoundUrl: gift.sound_url || undefined,
+                  giftCoins: gift.coins,
+                  count,
+                  totalCoins: totalCost,
+                  receiverBeans: optimisticReceiverBeans,
+                }).catch((err) => console.warn('[Pkg76] publishGiftSent(party):', err));
+              }
               markOptimisticPartyGiftCount(giftKey, optimisticReceiverBeans, totalCost);
               setTotalRoomBeans(prev => prev + optimisticReceiverBeans);
               setParticipantBeans(prev => ({
