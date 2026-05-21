@@ -3,7 +3,13 @@ import { Loader2 } from "lucide-react";
 import BlogPage from "@/pages/BlogPage";
 import { Navigate, useLocation } from "react-router-dom";
 import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
-import { grantAdminAccess, revokeAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
+import {
+  grantAdminAccess,
+  revokeAdminAccess,
+  setAdminLinkToken,
+  hasAdminAccessFlag,
+  getAdminLinkToken,
+} from "@/utils/adminAccessStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 
 /**
