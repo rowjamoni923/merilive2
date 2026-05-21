@@ -130,10 +130,20 @@ export function FullScreenPromoBanners() {
 
   const closeBanner = useCallback(() => {
     advanceRotation(rotationIndex);
+    // Permanently dismiss the rating banner for this user on this device —
+    // it will never auto-show again (covers Skip, X, auto-close, and
+    // click-through paths).
+    if (currentBanner?.id === "rating") {
+      void supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          try { localStorage.setItem(ratingBannerDismissedKey(user.id), "1"); } catch { /* ignore */ }
+        }
+      });
+    }
     setIsVisible(false);
     setCurrentBanner(null);
     setRotationIndex(null);
-  }, [advanceRotation, rotationIndex]);
+  }, [advanceRotation, rotationIndex, currentBanner?.id]);
 
   useEffect(() => {
     let ratingDelayTimer: number | undefined;
