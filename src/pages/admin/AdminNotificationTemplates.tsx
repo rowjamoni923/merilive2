@@ -100,21 +100,40 @@ const AdminNotificationTemplates = () => {
   ];
   const eventPresets: string[] = eventGroups.flatMap((g) => g.items);
 
+  // Banner size presets — must match supabase/functions/generate-event-banner/index.ts
+  const BANNER_SIZES: { key: string; label: string; w: number; h: number }[] = [
+    { key: 'banner_16_9_1920', label: 'Hero Banner · 1920×1080 (16:9)', w: 1920, h: 1080 },
+    { key: 'banner_16_9_1280', label: 'Standard Banner · 1280×720 (16:9)', w: 1280, h: 720 },
+    { key: 'square_1080',      label: 'Square · 1080×1080 (1:1)', w: 1080, h: 1080 },
+    { key: 'story_1080',       label: 'Story / Reel · 1080×1920 (9:16)', w: 1080, h: 1920 },
+    { key: 'portrait_4_5',     label: 'Portrait · 1080×1350 (4:5)', w: 1080, h: 1350 },
+    { key: 'wide_3_2',         label: 'Wide · 1500×1000 (3:2)', w: 1500, h: 1000 },
+    { key: 'push_thumb',       label: 'Push Thumbnail · 512×512 (1:1)', w: 512, h: 512 },
+  ];
+
   const [aiCustomEvent, setAiCustomEvent] = useState('');
+  const [aiSizeKey, setAiSizeKey] = useState<string>('banner_16_9_1920');
   const [aiGenerating, setAiGenerating] = useState<string | null>(null);
-  const [aiBanners, setAiBanners] = useState<{ eventName: string; url: string }[]>([]);
+  const [aiBanners, setAiBanners] = useState<{ eventName: string; url: string; sizeLabel: string; w: number; h: number }[]>([]);
 
   const generateAiBanner = async (eventName: string) => {
     if (!eventName.trim()) return;
     setAiGenerating(eventName);
     try {
       const { data, error } = await supabase.functions.invoke('generate-event-banner', {
-        body: { eventName }
+        body: { eventName, sizeKey: aiSizeKey }
       });
       if (error) throw error;
       if (!data?.url) throw new Error('No URL returned');
-      setAiBanners(prev => [{ eventName, url: data.url }, ...prev].slice(0, 30));
-      toast({ title: 'Banner generated', description: `Premium 3D banner ready for "${eventName}"` });
+      const size = data.size || BANNER_SIZES.find(s => s.key === aiSizeKey)!;
+      setAiBanners(prev => [{
+        eventName,
+        url: data.url,
+        sizeLabel: size.label || `${size.width}×${size.height}`,
+        w: size.width ?? size.w,
+        h: size.height ?? size.h,
+      }, ...prev].slice(0, 30));
+      toast({ title: 'Banner generated', description: `Premium 3D banner ready · ${size.width ?? size.w}×${size.height ?? size.h}` });
     } catch (e: any) {
       toast({ title: 'Generation failed', description: e?.message || 'AI generation error', variant: 'destructive' });
     } finally {
@@ -128,6 +147,24 @@ const AdminNotificationTemplates = () => {
       toast({ title: 'Copied', description: 'Banner URL copied to clipboard' });
     } catch {
       toast({ title: 'Copy failed', variant: 'destructive' });
+    }
+  };
+
+  const downloadBanner = async (eventName: string, url: string, w: number, h: number) => {
+    try {
+      const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = `${eventName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 48)}-${w}x${h}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objUrl), 1000);
+    } catch (e: any) {
+      toast({ title: 'Download failed', description: e?.message || 'Could not download banner', variant: 'destructive' });
     }
   };
 
@@ -373,6 +410,27 @@ const AdminNotificationTemplates = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Size selector */}
+            <div>
+              <Label className="text-white/80 text-xs uppercase tracking-wider mb-1.5 block">Banner Size</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {BANNER_SIZES.map((s) => (
+                  <button
+                    key={s.key}
+                    onClick={() => setAiSizeKey(s.key)}
+                    className={`px-3 py-1.5 text-[11px] rounded-lg border transition ${
+                      aiSizeKey === s.key
+                        ? 'bg-amber-400/20 border-amber-300/70 text-amber-100'
+                        : 'bg-white/[0.04] border-white/15 text-white/70 hover:bg-white/[0.08]'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-white/40 mt-1.5">Selected size is pixel-exact — AI render is cover-cropped to {BANNER_SIZES.find(s => s.key === aiSizeKey)?.w}×{BANNER_SIZES.find(s => s.key === aiSizeKey)?.h}.</p>
+            </div>
+
             {/* Custom event input */}
             <div className="flex gap-2">
               <Input
@@ -394,7 +452,7 @@ const AdminNotificationTemplates = () => {
 
             {/* Event preset chips - grouped by category */}
             <div className="space-y-3">
-              <p className="text-xs text-white/50">Tap any event below — premium 3D luxury banner generates instantly. Unlimited generations.</p>
+              <p className="text-xs text-white/50">Tap any event below — premium 3D luxury banner generates instantly at the selected size. Unlimited generations.</p>
               {eventGroups.map((group) => (
                 <div key={group.group}>
                   <p className="text-[11px] uppercase tracking-wider text-amber-300/70 font-semibold mb-1.5">{group.group}</p>
@@ -423,15 +481,18 @@ const AdminNotificationTemplates = () => {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {aiBanners.map((b) => (
                     <div key={b.url} className="rounded-xl overflow-hidden border border-white/10 bg-black/30">
-                      <img src={b.url} alt={b.eventName} className="w-full aspect-[16/9] object-cover" />
+                      <img src={b.url} alt={b.eventName} className="w-full object-cover" style={{ aspectRatio: `${b.w} / ${b.h}` }} />
                       <div className="p-2 flex items-center justify-between gap-2">
-                        <p className="text-xs text-white/80 truncate flex-1">{b.eventName}</p>
-                        <Button size="sm" variant="ghost" onClick={() => copyBannerUrl(b.url)} className="h-7 px-2 text-white/70 hover:text-white">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-white/90 truncate">{b.eventName}</p>
+                          <p className="text-[10px] text-white/50">{b.w}×{b.h}</p>
+                        </div>
+                        <Button size="sm" variant="ghost" onClick={() => copyBannerUrl(b.url)} className="h-7 px-2 text-white/70 hover:text-white" title="Copy URL">
                           <Copy className="w-3.5 h-3.5" />
                         </Button>
-                        <a href={b.url} target="_blank" rel="noreferrer" download className="h-7 px-2 inline-flex items-center text-white/70 hover:text-white">
+                        <Button size="sm" variant="ghost" onClick={() => downloadBanner(b.eventName, b.url, b.w, b.h)} className="h-7 px-2 text-white/70 hover:text-white" title="Download PNG">
                           <Download className="w-3.5 h-3.5" />
-                        </a>
+                        </Button>
                       </div>
                     </div>
                   ))}
