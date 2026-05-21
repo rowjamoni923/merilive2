@@ -268,6 +268,23 @@ export default function AdminStreams() {
     void fetchActiveBans();
   });
 
+  const forceCloseStreamSession = useCallback(async (streamId: string, hostName: string) => {
+    const now = new Date().toISOString();
+
+    await Promise.allSettled([
+      supabase
+        .from("stream_viewers")
+        .update({ left_at: now } as any)
+        .eq("stream_id", streamId)
+        .is("left_at", null),
+      supabase.channel(`live-stream-close-${streamId}`).send({
+        type: "broadcast",
+        event: "stream_closed",
+        payload: { streamId, hostName },
+      }),
+    ]);
+  }, []);
+
   useEffect(() => {
     const handleRealtimeStreamUpdates = (event: Event) => {
       const detail = (event as CustomEvent<{ table: string; eventType?: string; payload?: any }>).detail;
@@ -300,7 +317,6 @@ export default function AdminStreams() {
     const confirmMsg = `Remove "${stream.host?.display_name || 'Host'}" — ${stream.title || 'Live Stream'} from the admin panel?\n\nThis permanently deletes the stream row. Gift/recording history in other tables is preserved.`;
     if (!window.confirm(confirmMsg)) return;
     try {
-      // If still marked active for any reason, end it first so viewers are kicked.
       if (stream.is_active) {
         await supabase
           .from('live_streams')
@@ -325,23 +341,6 @@ export default function AdminStreams() {
         : `Remove failed: ${err?.message || 'Unknown error'}`);
     }
   }, [calculateStatsFromStreams, forceCloseStreamSession, watchingStream?.id]);
-
-  const forceCloseStreamSession = useCallback(async (streamId: string, hostName: string) => {
-    const now = new Date().toISOString();
-
-    await Promise.allSettled([
-      supabase
-        .from("stream_viewers")
-        .update({ left_at: now } as any)
-        .eq("stream_id", streamId)
-        .is("left_at", null),
-      supabase.channel(`live-stream-close-${streamId}`).send({
-        type: "broadcast",
-        event: "stream_closed",
-        payload: { streamId, hostName },
-      }),
-    ]);
-  }, []);
 
   const openStopDialog = (stream: LiveStream) => {
     setStopStreamDialog({
