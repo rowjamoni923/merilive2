@@ -44,6 +44,7 @@ export function usePartyRoomWebRTC(
     isAudioEnabled: true,
     isVideoEnabled: true,
   });
+  const [restartNonce, setRestartNonce] = useState(0);
 
   const roomRef = useRef<Room | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
@@ -351,9 +352,27 @@ export function usePartyRoomWebRTC(
         }));
         });
 
+        room.on(RoomEvent.ConnectionStateChanged, (connectionState: ConnectionState) => {
+          if (connectionState === ConnectionState.Connected) {
+            if (reconnectTimerRef.current) {
+              clearTimeout(reconnectTimerRef.current);
+              reconnectTimerRef.current = null;
+            }
+            setState(prev => ({ ...prev, isConnected: true }));
+          }
+        });
+
         room.on(RoomEvent.Disconnected, () => {
           console.log('[PartyLiveKit] Room disconnected');
           setState(prev => ({ ...prev, isConnected: false }));
+          if (!deadRef.current && !reconnectTimerRef.current) {
+            reconnectTimerRef.current = setTimeout(() => {
+              reconnectTimerRef.current = null;
+              if (deadRef.current) return;
+              console.warn('[PartyLiveKit] Unexpected disconnect, restarting room session');
+              setRestartNonce(prev => prev + 1);
+            }, 1200);
+          }
         });
 
         // CRITICAL: Rebuild localStream whenever local tracks are published/unpublished
@@ -475,7 +494,7 @@ export function usePartyRoomWebRTC(
     return () => {
       cleanup();
     };
-  }, [roomId, userId, roomType, partyCanPublish]);
+  }, [roomId, userId, roomType, partyCanPublish, restartNonce]);
 
   return {
     ...state,
