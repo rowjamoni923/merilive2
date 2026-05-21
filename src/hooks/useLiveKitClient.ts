@@ -63,6 +63,11 @@ interface UseLiveKitClientOptions {
    * gift signaling registry so `publishGiftSent('live', id, …)` works
    * and incoming `gift_sent` packets reach window event listeners. */
   giftSignalingStreamId?: string | null;
+  /** Pkg77: When set, the underlying Room is registered with the
+   * viewer-count registry so ParticipantConnected/Disconnected events
+   * dispatch a `livekit-viewer-count` window event for instant badge
+   * updates. Persistence (entrance banner, history) stays on Supabase. */
+  viewerCountStreamId?: string | null;
 }
 
 export interface CoHostRequest {
