@@ -731,12 +731,42 @@ class LiveKitPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun attachAllRemotes(call: PluginCall) {
+        val r = room ?: return call.reject("Not connected")
+        activity?.runOnUiThread {
+            var attached = 0
+            try {
+                for (participant in r.remoteParticipants.values) {
+                    val sid = participant.sid.value
+                    val track = participant.getTrackPublication(Track.Source.CAMERA)
+                        ?.track as? io.livekit.android.room.track.VideoTrack ?: continue
+                    val renderer = remoteRenderers.getOrPut(sid) { createRenderer() }
+                    try {
+                        r.initVideoRenderer(renderer)
+                        track.addRenderer(renderer)
+                        mountBehindWebView(renderer)
+                        installStallSink(track, key = sid, sid = sid, isLocal = false)
+                        attached++
+                    } catch (inner: Exception) {
+                        android.util.Log.w("LiveKitPlugin", "attachAllRemotes: skip $sid: ${inner.message}")
+                    }
+                }
+                val ret = JSObject(); ret.put("attached", attached); call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("attachAllRemotes failed: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
     fun detachAll(call: PluginCall) {
         activity?.runOnUiThread {
             detachAllRenderersInternal()
             call.resolve()
         }
     }
+
+
 
     // --- Audio routing API (Step 11) -------------------------------
 
