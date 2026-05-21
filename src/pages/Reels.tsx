@@ -472,22 +472,33 @@ const Reels = () => {
   const currentReel = reels[currentIndex];
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col overflow-hidden">
-      {/* Header - Professional Minimal (TikTok-style) */}
+    <div className="fixed inset-0 bg-[#05050d] flex flex-col overflow-hidden">
+      {/* Header — Premium Midnight Indigo */}
       <div className="fixed top-0 left-0 right-0 z-50 safe-area-top pointer-events-none">
-        <div className="px-4 pt-3 pb-10 flex items-center justify-between bg-gradient-to-b from-black/55 via-black/20 to-transparent">
-          <h1 className="text-white font-bold text-[17px] tracking-[-0.01em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] pointer-events-auto">
+        <div className="px-4 pt-3 pb-12 flex items-center justify-between bg-gradient-to-b from-[#0a0a1a]/85 via-[#0a0a1a]/30 to-transparent">
+          <motion.h1
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="pointer-events-auto text-[18px] font-extrabold tracking-[-0.02em] bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(79,70,229,0.45)]"
+          >
             Reels
-          </h1>
+          </motion.h1>
 
           {currentUserId && (
-            <button
+            <motion.button
               onClick={() => setShowUploadModal(true)}
               aria-label="Upload reel"
-              className="pointer-events-auto w-9 h-9 rounded-full bg-white/12 hover:bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/15 transition-all active:scale-90"
+              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.06 }}
+              className="pointer-events-auto relative w-10 h-10 rounded-full flex items-center justify-center text-white transition-shadow
+                         bg-gradient-to-br from-indigo-500/90 via-indigo-600/80 to-[#1e1e5a]/90
+                         shadow-[0_6px_20px_-4px_rgba(79,70,229,0.65),inset_0_1px_0_rgba(255,255,255,0.25)]
+                         ring-1 ring-indigo-300/30 backdrop-blur-xl"
             >
-              <Plus className="w-[18px] h-[18px]" strokeWidth={2.5} />
-            </button>
+              <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+              <Plus className="w-[18px] h-[18px] relative z-10" strokeWidth={2.6} />
+            </motion.button>
           )}
         </div>
       </div>
