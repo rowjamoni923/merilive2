@@ -19,6 +19,7 @@ import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSes
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
