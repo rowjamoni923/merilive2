@@ -167,6 +167,7 @@ export function ActiveCallScreen({
 
   const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
   const showNativeCallSurface = isNativeMediaActive && isConnected && !localVideoTrack && !remoteVideoTrack;
+  const showNativeCallingSurface = isNativeMediaActive && !localVideoTrack;
   const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
   const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
   const primaryHasVideo = isSwapped ? !!localVideoTrack && isVideoEnabled : hasRemoteVideo;
@@ -599,8 +600,11 @@ export function ActiveCallScreen({
         height: '100dvh',
       }}
     >
-      {/* Background - lightweight solid gradient (no animated orbs for performance) */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]" />
+      {/* Background - lightweight solid gradient (transparent when native video is mounted behind WebView) */}
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]"
+        style={{ opacity: showNativeCallingSurface ? 0 : 1 }}
+      />
 
       {/* Privacy Warning Overlay */}
       <AnimatePresence>
@@ -738,7 +742,7 @@ export function ActiveCallScreen({
         style={{ contain: 'layout' }}
       >
         {/* ===== CALLING/RINGING STATE: Show local camera feed immediately ===== */}
-        {!isLiveConnected && (
+        {!isLiveConnected && !showNativeCallingSurface && (
           <div className="absolute inset-0 z-[2]">
             {/* Show local camera feed as background during calling/ringing */}
             {localVideoTrack ? (
