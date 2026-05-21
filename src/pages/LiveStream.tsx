@@ -811,33 +811,22 @@ const LiveStream = () => {
     
     fetchGiftCommission();
     
-    // Real-time subscription for gift_commission changes
-    const commissionChannel = supabase
-      .channel('livestream-gift-commission-realtime')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'app_settings',
-        filter: 'setting_key=eq.gift_commission'
-      }, (payload: any) => {
-        console.log('[LiveStream] ⚡ Gift commission updated in real-time:', payload.new?.setting_value);
-        if (payload.new?.setting_value) {
-          const settings = payload.new.setting_value;
-          let rate = 55;
-          if (settings.host_percent !== undefined) {
-            rate = settings.host_percent;
-          } else if (settings.company_percent !== undefined) {
-            rate = 100 - settings.company_percent;
-          }
-          setAdminGiftCommission(rate);
-        }
-      })
-      .subscribe();
-    
+    // Pkg82c: Supabase `livestream-gift-commission-realtime` channel DELETED.
+    // Replaced by Pkg37 `admin-table-update` window event (dispatched by the
+    // singleton `useAdminBroadcastSync` hook) → re-fetch on app_settings change.
+    const handleAdminTableUpdate = (evt: Event) => {
+      const detail = (evt as CustomEvent).detail || {};
+      if (detail.table === 'app_settings') {
+        fetchGiftCommission();
+      }
+    };
+    window.addEventListener('admin-table-update', handleAdminTableUpdate);
+
     return () => {
-      supabase.removeChannel(commissionChannel);
+      window.removeEventListener('admin-table-update', handleAdminTableUpdate);
     };
   }, []);
+
 
   // Subscribe to real-time chat messages - FIXED: Proper deduplication and race condition handling
   useEffect(() => {
@@ -1224,22 +1213,17 @@ const LiveStream = () => {
     fetchHostPhotos();
     refreshHostBusyStatus();
 
-    const hostCallChannel = supabase
-      .channel(`host-call-status-${hostInfo.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'private_calls',
-        filter: `host_id=eq.${hostInfo.id}`,
-      }, () => {
-        refreshHostBusyStatus();
-      })
-      .subscribe();
+    // Pkg82c: Supabase `host-call-status-${hostId}` postgres_changes channel DELETED.
+    // Per LiveKit-Purist policy + Pkg35 (live auto-ends on host accept-call),
+    // viewer's "Host Busy" overlay only matters during the brief ringing window.
+    // 30s safety-net REST poll (≥30s Pkg57 floor, $1400-rule safe) replaces realtime.
+    const busyPollTimer = setInterval(refreshHostBusyStatus, 30000);
 
     return () => {
-      supabase.removeChannel(hostCallChannel);
+      clearInterval(busyPollTimer);
     };
   }, [id, isHost, hostInfo?.id]);
+
 
   // Pkg82a: REMOVED Supabase `stream_viewers_entrance_${id}` postgres_changes
   // subscription. Entry animations are now triggered by the unified
