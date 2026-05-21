@@ -32,13 +32,14 @@ function applyReferrer(raw: string): void {
   //  agency/agencyCode/agency_code/code/agent/agent_code/...).
   const { ref, agencyCode } = parseReferralPayload(raw);
 
+  // Pkg72 fix: an inviter app_uid is NOT a valid agency code.
+  // Previously we wrote ref into `meri_pending_referral`, which made
+  // AuthCallback call join_agency(_agency_code=<app_uid>) → silent failure.
+  // Now: invitation slot only gets the inviter ref; agency slot only gets agency code.
   if (ref) {
     localStorage.setItem("meri_pending_invitation_ref", ref);
-    localStorage.setItem("meri_pending_referral", ref);
   }
   if (agencyCode) {
-    // Agency code overrides ref for the agency-pending slot — JoinAgency
-    // reads this exact key. Invitation tracking still uses the ref key.
     localStorage.setItem("meri_pending_referral", agencyCode);
   }
 }
