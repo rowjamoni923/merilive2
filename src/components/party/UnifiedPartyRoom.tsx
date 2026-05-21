@@ -943,7 +943,7 @@ export function UnifiedPartyRoom({
       if (processedMsgIdsRef.current.has(data.messageId)) return;
       processedMsgIdsRef.current.add(data.messageId);
 
-      const msgType = data.messageType || 'text';
+      const msgType = (data.messageType || 'text') as RoomChatMessage['type'];
       const unifiedMsg: RoomChatMessage = {
         id: data.messageId,
         userId: data.userId,
