@@ -1665,7 +1665,8 @@ const PartyRoom = () => {
       
       if (isHost) {
         console.log('[PartyRoom] Host leaving - closing room with is_active: false');
-        
+        const closedAt = new Date().toISOString();
+
         // CRITICAL: Broadcast room close to ALL participants FIRST (instant notification)
         // This ensures visitors see the modal immediately, before database update
         const closeChannel = supabase.channel(`party-room-close-${roomId}`);
@@ -1673,18 +1674,26 @@ const PartyRoom = () => {
         await closeChannel.send({
           type: 'broadcast',
           event: 'room_closed',
-          payload: { 
-            roomId, 
+          payload: {
+            roomId,
             hostId: currentUser.id,
-            closedAt: new Date().toISOString()
+            closedAt,
           }
         });
         console.log('[PartyRoom] ✅ Broadcast room_closed sent to all participants');
-        
+
+        // Pkg75: also fire a LiveKit DataPacket to every viewer in parallel.
+        // Sub-50ms delivery (vs 1–3s Supabase broadcast). Fire-and-forget;
+        // viewers converge with the broadcast handler via showRoomClosedModal guard.
+        publishPartyClosed(roomId, {
+          hostId: currentUser.id,
+          closedAt,
+        }).catch((err) => console.warn('[Pkg75] publishPartyClosed:', err));
+
         // Then mark room as inactive in database
         const { error: updateError } = await supabase
           .from('party_rooms')
-          .update({ is_active: false, ended_at: new Date().toISOString() })
+          .update({ is_active: false, ended_at: closedAt })
           .eq('id', roomId);
         
         if (updateError) {
@@ -1697,7 +1706,7 @@ const PartyRoom = () => {
         // Leave all participants
         await supabase
           .from('party_room_participants')
-          .update({ left_at: new Date().toISOString(), position: null })
+          .update({ left_at: closedAt, position: null })
           .eq('room_id', roomId)
           .is('left_at', null);
         
