@@ -41,12 +41,22 @@ class NativeLiveKitController {
   private connected = false;
   private busy = false;
 
+  private async waitForIdle(label: string, timeoutMs = 1800): Promise<void> {
+    const started = Date.now();
+    while (this.busy) {
+      if (Date.now() - started > timeoutMs) {
+        throw new Error(`NativeLiveKit: timed out waiting for ${label}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+  }
+
   isConnected() {
     return this.connected;
   }
 
   async connectAndPublish(opts: NativeJoinOptions): Promise<{ sid: string; identity: string }> {
-    if (this.busy) throw new Error('NativeLiveKit: previous connect/disconnect still in flight');
+    await this.waitForIdle('previous media operation');
     this.busy = true;
     try {
       // If a stale session is around, tear it down first to avoid duplicate publishers.
@@ -82,6 +92,7 @@ class NativeLiveKitController {
   }
 
   async disconnect(): Promise<void> {
+    await this.waitForIdle('disconnect handoff', 1200).catch(() => undefined);
     if (!this.connected && !this.busy) return;
     this.busy = true;
     try {
