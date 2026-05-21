@@ -776,42 +776,31 @@ export function UnifiedPartyRoom({
     }
   }, []); // No dependencies - uses refs
   
-  // Real-time subscription for viewer updates in header
+  // Pkg81b: `unified-room-viewers-${roomId}` Supabase channel DELETED.
+  // Viewer list now refreshes off LiveKit `participant_joined` /
+  // `participant_left` window events dispatched by livekitPartyEventsSignaling
+  // (registered once per room in usePartyRoomWebRTC). Late-join state =
+  // initial fetchRealtimeViewers() on mount. PartyRoom's 20s poll is the
+  // safety net.
   useEffect(() => {
     if (!roomId) return;
-    
-    console.log('[UnifiedPartyRoom] 🚀 Setting up viewer subscription for room:', roomId);
-    
-    // Initial fetch
+
+    console.log('[UnifiedPartyRoom] 🚀 LiveKit-only viewer sync for room:', roomId);
     fetchRealtimeViewers();
-    
-    // Real-time subscription for ALL participant events
-    const viewerChannel = supabase
-      .channel(`unified-room-viewers-${roomId}-${Date.now()}`) // Unique channel name
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "party_room_participants",
-          filter: `room_id=eq.${roomId}`,
-        },
-        (payload) => {
-          console.log('[UnifiedPartyRoom] 📡 Viewer update event:', payload.eventType);
-          // Refetch all viewers to ensure accurate list
-          fetchRealtimeViewers();
-        }
-      )
-      .subscribe((status) => {
-        console.log('[UnifiedPartyRoom] Viewer subscription status:', status);
-        if (status === 'CHANNEL_ERROR') {
-          console.log('[UnifiedPartyRoom] ⚠️ Channel error - will rely on polling');
-        }
-      });
-    
+
+    const handlePartyEvent = (ev: Event) => {
+      const detail = (ev as CustomEvent<PartyEventDetail>).detail;
+      const p = detail?.payload as any;
+      if (!p || p.roomId !== roomId) return;
+      if (p.type === 'participant_joined' || p.type === 'participant_left') {
+        console.log('[UnifiedPartyRoom] 📡 Pkg81b viewer event:', p.type);
+        fetchRealtimeViewers();
+      }
+    };
+    window.addEventListener('livekit-party-event', handlePartyEvent);
+
     return () => {
-      console.log('[UnifiedPartyRoom] Cleaning up viewer subscription');
-      supabase.removeChannel(viewerChannel);
+      window.removeEventListener('livekit-party-event', handlePartyEvent);
     };
   }, [roomId, fetchRealtimeViewers]);
   
