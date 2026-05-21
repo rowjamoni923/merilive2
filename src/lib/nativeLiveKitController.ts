@@ -41,6 +41,23 @@ class NativeLiveKitController {
   private connected = false;
   private busy = false;
 
+  private async attachLocalWithRetry(): Promise<void> {
+    const delays = [0, 120, 300, 700, 1200];
+    let lastError: unknown = null;
+
+    for (const delay of delays) {
+      if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+      try {
+        await NativeLiveKit.attachLocal();
+        return;
+      } catch (e) {
+        lastError = e;
+      }
+    }
+
+    console.warn('[NativeLiveKitController] attachLocal failed after camera-ready retries:', lastError);
+  }
+
   private async waitForIdle(label: string, timeoutMs = 1800): Promise<void> {
     const started = Date.now();
     while (this.busy) {
@@ -79,11 +96,7 @@ class NativeLiveKitController {
       const res = await NativeLiveKit.connect(payload);
       this.connected = true;
 
-      if (opts.attachLocal !== false) {
-        try { await NativeLiveKit.attachLocal(); } catch (e) {
-          console.warn('[NativeLiveKitController] attachLocal failed:', e);
-        }
-      }
+      if (opts.attachLocal !== false) await this.attachLocalWithRetry();
 
       return { sid: res.sid, identity: res.identity };
     } finally {

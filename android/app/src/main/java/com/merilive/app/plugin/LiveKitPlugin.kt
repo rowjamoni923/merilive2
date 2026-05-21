@@ -21,6 +21,7 @@ import android.util.Log
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.graphics.Color
 import com.getcapacitor.JSObject
 import com.getcapacitor.PermissionState
 import com.getcapacitor.Plugin
@@ -1014,8 +1015,11 @@ class LiveKitPlugin : Plugin() {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
             root.addView(renderer, 0, lp)
-            webView.setBackgroundColor(0x00000000)
         }
+        renderer.visibility = android.view.View.VISIBLE
+        renderer.alpha = 1f
+        webView.setBackgroundColor(Color.TRANSPARENT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) webView.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
     }
 
     private fun detachAllRenderersInternal() {
