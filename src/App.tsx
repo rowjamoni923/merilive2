@@ -250,7 +250,7 @@ const AdminNotificationTemplates = lazy(lazyRetry(() => import("./pages/admin/Ad
 const AdminAiImageStudio = lazy(lazyRetry(() => import("./pages/admin/AdminAiImageStudio")));
 const AdminReports = lazy(lazyRetry(() => import("./pages/admin/AdminReports")));
 const AdminLogs = lazy(lazyRetry(() => import("./pages/admin/AdminLogs")));
-const AdminAgoraSettings = lazy(lazyRetry(() => import("./pages/admin/AdminAgoraSettings")));
+
 const AdminVIPPrivileges = lazy(lazyRetry(() => import("./pages/admin/AdminVIPPrivileges")));
 const AdminLiveBans = lazy(lazyRetry(() => import("./pages/admin/AdminLiveBans")));
 const AdminPermanentBan = lazy(lazyRetry(() => import("./pages/admin/AdminPermanentBan")));
