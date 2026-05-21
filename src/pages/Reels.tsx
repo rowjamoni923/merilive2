@@ -844,14 +844,25 @@ const Reels = () => {
 
       {/* Settings / More Options Sheet */}
       <Sheet open={showSettings} onOpenChange={setShowSettings}>
-        <SheetContent side="bottom" className="rounded-t-3xl border-t border-white/10 bg-gradient-to-b from-zinc-900 to-black p-0 max-h-[80vh]">
-          <SheetHeader className="px-5 pt-4 pb-2">
-            <SheetTitle className="text-white text-base font-bold text-center">Reel Options</SheetTitle>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-3xl border-t border-white/10 bg-[#0B0F19] p-0 max-h-[85vh] shadow-[0_-12px_40px_rgba(0,0,0,0.6)]"
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1">
+            <div className="h-1.5 w-12 rounded-full bg-white/15" />
+          </div>
+
+          <SheetHeader className="px-5 pt-2 pb-3">
+            <SheetTitle className="text-white text-[17px] font-semibold tracking-tight text-center">
+              Reel Options
+            </SheetTitle>
           </SheetHeader>
-          <div className="px-3 pb-6">
+
+          <div className="px-3 pb-7">
             {currentReel && (
-              <div className="space-y-1">
-                {/* Save / Bookmark */}
+              <div className="space-y-1.5">
+                {/* Save */}
                 <button
                   onClick={async () => {
                     if (!currentUserId) { toast.error("Please login"); return; }
@@ -864,14 +875,14 @@ const Reels = () => {
                     }
                     setShowSettings(false);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+                  className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/[0.06] transition-colors text-left"
                 >
-                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                    <Bookmark className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/15 ring-1 ring-blue-400/20 flex items-center justify-center shrink-0">
+                    <Bookmark className="w-[18px] h-[18px] text-blue-300" />
                   </div>
-                  <div>
-                    <div className="text-white text-sm font-semibold">Save</div>
-                    <div className="text-white/50 text-xs">Add to your collection</div>
+                  <div className="min-w-0">
+                    <div className="text-white text-[14.5px] font-semibold leading-tight">Save</div>
+                    <div className="text-slate-400 text-[12px] mt-0.5">Add to your collection</div>
                   </div>
                 </button>
 
@@ -887,14 +898,14 @@ const Reels = () => {
                     }
                     setShowSettings(false);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+                  className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/[0.06] transition-colors text-left"
                 >
-                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                    <Share2 className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/15 ring-1 ring-indigo-400/20 flex items-center justify-center shrink-0">
+                    <Share2 className="w-[18px] h-[18px] text-indigo-300" />
                   </div>
-                  <div>
-                    <div className="text-white text-sm font-semibold">Copy Link</div>
-                    <div className="text-white/50 text-xs">Share this reel anywhere</div>
+                  <div className="min-w-0">
+                    <div className="text-white text-[14.5px] font-semibold leading-tight">Copy Link</div>
+                    <div className="text-slate-400 text-[12px] mt-0.5">Share this reel anywhere</div>
                   </div>
                 </button>
 
@@ -906,14 +917,14 @@ const Reels = () => {
                       toast.success("We'll show fewer reels like this");
                       setShowSettings(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+                    className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/[0.06] transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                      <X className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 ring-1 ring-amber-400/20 flex items-center justify-center shrink-0">
+                      <X className="w-[18px] h-[18px] text-amber-300" />
                     </div>
-                    <div>
-                      <div className="text-white text-sm font-semibold">Not Interested</div>
-                      <div className="text-white/50 text-xs">Hide and improve recommendations</div>
+                    <div className="min-w-0">
+                      <div className="text-white text-[14.5px] font-semibold leading-tight">Not Interested</div>
+                      <div className="text-slate-400 text-[12px] mt-0.5">Hide and improve recommendations</div>
                     </div>
                   </button>
                 )}
@@ -933,23 +944,25 @@ const Reels = () => {
                       }
                       setShowSettings(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+                    className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-rose-500/[0.06] hover:bg-rose-500/[0.12] active:bg-rose-500/[0.18] border border-rose-500/15 transition-colors text-left"
                   >
-                    <div className="w-10 h-10 rounded-full bg-rose-500/15 flex items-center justify-center">
-                      <User className="w-5 h-5 text-rose-400" />
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/20 ring-1 ring-rose-400/30 flex items-center justify-center shrink-0">
+                      <User className="w-[18px] h-[18px] text-rose-300" />
                     </div>
-                    <div>
-                      <div className="text-rose-300 text-sm font-semibold">Block User</div>
-                      <div className="text-white/50 text-xs">You won't see their content</div>
+                    <div className="min-w-0">
+                      <div className="text-rose-200 text-[14.5px] font-semibold leading-tight">Block User</div>
+                      <div className="text-rose-300/60 text-[12px] mt-0.5">You won't see their content</div>
                     </div>
                   </button>
                 )}
 
                 {/* Report */}
                 {currentReel.user_id !== currentUserId && (
-                  <div className="px-1 pt-2">
-                    <div className="px-3 mb-2 text-[11px] uppercase tracking-wider text-white/40 font-semibold">Report</div>
-                    <div className="grid grid-cols-2 gap-2 px-1">
+                  <div className="pt-4 mt-2 border-t border-white/[0.06]">
+                    <div className="px-2 mb-2.5 text-[11px] uppercase tracking-[0.12em] text-slate-400 font-semibold">
+                      Report this reel
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
                       {["Spam", "Nudity", "Violence", "Hate", "Harassment", "Other"].map((reason) => (
                         <button
                           key={reason}
@@ -976,9 +989,9 @@ const Reels = () => {
                               setReportReason("");
                             }
                           }}
-                          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 text-white/90 text-xs font-semibold transition-colors disabled:opacity-50"
+                          className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.12] border border-white/[0.06] text-white text-[13px] font-medium transition-colors disabled:opacity-50"
                         >
-                          <Flag className="w-3.5 h-3.5" />
+                          <Flag className="w-3.5 h-3.5 text-slate-400" />
                           {submittingReport && reportReason === reason ? "..." : reason}
                         </button>
                       ))}
@@ -990,6 +1003,7 @@ const Reels = () => {
           </div>
         </SheetContent>
       </Sheet>
+
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={(path) => navigate(path)} />
