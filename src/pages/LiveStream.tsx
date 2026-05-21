@@ -3475,13 +3475,33 @@ const LiveStream = () => {
                   } : m));
                 }
                 const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
-                await supabase.from("stream_chat").insert({
-                  stream_id: id,
-                  user_id: currentUserId,
-                  message: finalGiftMessage,
-                  message_type: 'gift',
-                });
+                const { data: giftRow } = await supabase
+                  .from("stream_chat")
+                  .insert({
+                    stream_id: id,
+                    user_id: currentUserId,
+                    message: finalGiftMessage,
+                    message_type: 'gift',
+                  })
+                  .select("id")
+                  .single();
+                // Pkg79: also mirror the gift bubble row through LiveKit chat
+                // so viewers see it without the Supabase Realtime round-trip.
+                if (id) {
+                  void publishChatMessage('live', id, {
+                    messageId: giftRow?.id || `gift-${Date.now()}`,
+                    userId: currentUserId,
+                    displayName: currentUser?.display_name || "User",
+                    avatarUrl: currentUser?.avatar_url || undefined,
+                    userLevel: currentUser?.user_level || 1,
+                    isHost: currentUserId === streamData?.host_id,
+                    countryFlag: currentUser?.country_flag || undefined,
+                    message: finalGiftMessage,
+                    messageType: 'gift',
+                  });
+                }
               }
+
             } catch (err) {
               console.error('[Gift] Background processing error:', err);
               recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });
