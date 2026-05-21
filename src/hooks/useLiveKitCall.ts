@@ -134,6 +134,9 @@ export function useLiveKitCall(
 
     // Pkg73: drop call-signaling registration before tearing the room down.
     try { if (callIdRef.current) unregisterCallRoom(callIdRef.current); } catch { /* ignore */ }
+    // Pkg79: drop chat-signaling registration as well.
+    try { if (callIdRef.current) unregisterChatRoom('call', callIdRef.current); } catch { /* ignore */ }
+
 
     if (usingNativeRef.current) {
       nativeLiveKitController.disconnect().catch(() => {});
