@@ -18,6 +18,7 @@ import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
+import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -81,6 +82,7 @@ export function usePartyRoomWebRTC(
 
     // Pkg75: detach signaling handler before disconnecting the Room.
     try { unregisterPartyRoom(roomId); } catch { /* ignore */ }
+    try { unregisterGiftRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -433,6 +435,14 @@ export function usePartyRoomWebRTC(
           registerPartyRoom(roomId, room);
         } catch (err) {
           console.warn('[Pkg75] registerPartyRoom failed:', err);
+        }
+
+        // Pkg76: also bind for high-fanout gift_sent envelopes on the
+        // SAME Room. DataReceived supports multiple listeners.
+        try {
+          registerGiftRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg76] registerGiftRoom(party) failed:', err);
         }
 
         setState(prev => ({

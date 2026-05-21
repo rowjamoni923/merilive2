@@ -53,6 +53,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
+import { publishGiftSent, type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
 import { GameSelectionModal } from "@/components/party/GameSelectionModal";
@@ -1340,10 +1341,50 @@ const PartyRoom = () => {
     };
     window.addEventListener('livekit-party-closed', handleLiveKitPartyClosed);
 
+    // Pkg76: parallel LiveKit DataPacket path for gift_sent.
+    // Sub-50ms fanout; converges with Supabase broadcast above via own-gift
+    // skip + 400ms envelope dedupe in livekitGiftSignaling.
+    const handleLiveKitPartyGift = (ev: Event) => {
+      const giftData = (ev as CustomEvent<GiftSentDetail>).detail;
+      if (!giftData || !isMountedRef.current) return;
+      if (giftData.scope !== 'party' || giftData.id !== roomId) return;
+      const cuid = currentUserRef.current?.id;
+      if (giftData.senderId === cuid) return;
+
+      console.log('[PartyRoom] 🟣 ⚡ Pkg76 livekit-gift-sent received:', giftData.giftName);
+      const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.giftCoins || 0) * (giftData.count || 1) * hostCommissionPercentRef.current / 100));
+      const broadcastCoins = Number(giftData.totalCoins ?? (giftData.giftCoins || 0) * (giftData.count || 1));
+
+      addFlyingGift({
+        senderName: giftData.senderName || 'Someone',
+        giftName: giftData.giftName,
+        giftIcon: giftData.giftIcon || '🎁',
+        giftImageUrl: giftData.giftIconUrl,
+        animationUrl: giftData.giftAnimationUrl,
+        soundUrl: giftData.giftSoundUrl || undefined,
+        giftColor: 'from-pink-500 to-purple-500',
+        count: giftData.count || 1,
+        coins: giftData.giftCoins || 0,
+        isReceiverGift: giftData.receiverId ? giftData.receiverId === cuid : false,
+      });
+
+      if (giftData.giftKey) markOptimisticPartyGiftCount(giftData.giftKey, broadcastBeans, broadcastCoins);
+      setTotalRoomBeans(prev => prev + broadcastBeans);
+      if (giftData.senderId) {
+        setParticipantBeans(prev => ({
+          ...prev,
+          [giftData.senderId!]: (prev[giftData.senderId!] || 0) + broadcastCoins,
+        }));
+      }
+      playSound('gift');
+    };
+    window.addEventListener('livekit-gift-sent', handleLiveKitPartyGift);
+
     return () => {
       isMountedRef.current = false;
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('livekit-party-closed', handleLiveKitPartyClosed);
+      window.removeEventListener('livekit-gift-sent', handleLiveKitPartyGift);
       leaveRoom();
       cleanupWebRTC();
       supabase.removeChannel(participantChannel);
@@ -2515,6 +2556,26 @@ const PartyRoom = () => {
                   }
                 });
                 console.log('[PartyRoom] ✅ Gift broadcast sent instantly!');
+              }
+
+              // Pkg76: parallel LiveKit DataPacket fanout (sub-50ms).
+              if (roomId) {
+                publishGiftSent('party', roomId, {
+                  senderId: currentUser.id,
+                  senderName: currentUser?.profile?.display_name || 'Someone',
+                  receiverId: room.host?.id,
+                  giftId: gift.id,
+                  giftKey,
+                  giftName: gift.name,
+                  giftIcon: gift.emoji,
+                  giftIconUrl: gift.icon_url || undefined,
+                  giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
+                  giftSoundUrl: gift.sound_url || undefined,
+                  giftCoins: gift.coins,
+                  count,
+                  totalCoins: totalCost,
+                  receiverBeans: optimisticReceiverBeans,
+                }).catch((err) => console.warn('[Pkg76] publishGiftSent(party):', err));
               }
               markOptimisticPartyGiftCount(giftKey, optimisticReceiverBeans, totalCost);
               setTotalRoomBeans(prev => prev + optimisticReceiverBeans);

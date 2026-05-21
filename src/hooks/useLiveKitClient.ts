@@ -59,6 +59,10 @@ interface UseLiveKitClientOptions {
    * live-stream signaling registry so `publishStreamEnded(id, …)` works
    * and incoming `stream_ended` packets reach window event listeners. */
   liveSignalingStreamId?: string | null;
+  /** Pkg76: When set, the underlying Room is also registered with the
+   * gift signaling registry so `publishGiftSent('live', id, …)` works
+   * and incoming `gift_sent` packets reach window event listeners. */
+  giftSignalingStreamId?: string | null;
 }
 
 export interface CoHostRequest {
@@ -1158,6 +1162,31 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.liveSignalingStreamId, isJoined]);
+
+  // Pkg76: Bind streamId → Room for LiveKit-based gift_sent signaling.
+  // Reuses the SAME Room as Pkg74 (DataReceived supports multiple listeners).
+  useEffect(() => {
+    const streamId = options.giftSignalingStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitGiftSignaling');
+        if (cancelled) return;
+        mod.registerGiftRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg76] registerGiftRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitGiftSignaling').then((mod) => {
+        mod.unregisterGiftRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.giftSignalingStreamId, isJoined]);
 
   return {
     isInitialized,
