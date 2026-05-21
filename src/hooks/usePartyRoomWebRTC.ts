@@ -81,9 +81,10 @@ export function usePartyRoomWebRTC(
       reconnectTimerRef.current = null;
     }
 
-    // Pkg75: detach signaling handler before disconnecting the Room.
+    // Pkg75/76/80: detach signaling handlers before disconnecting the Room.
     try { unregisterPartyRoom(roomId); } catch { /* ignore */ }
     try { unregisterGiftRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterPartyEventsRoom(roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
