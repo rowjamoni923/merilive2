@@ -249,15 +249,35 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
         const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
 
-        await nativeLiveKitController.connectAndPublish({
-          url,
-          token,
-          video: true,
-          audio: true,
-          lens: 'front',
-          resolution: '1080p',
-          attachLocal: true,
-        });
+        // Native LiveKit publish with one quick retry — Camera2 device may
+        // be transiently held by the previous CameraX preview during the
+        // GoLive→/live navigation. A 600ms wait + retry recovers cleanly.
+        let nativeAttempt = 0;
+        let lastNativeErr: unknown = null;
+        while (nativeAttempt < 2) {
+          nativeAttempt++;
+          try {
+            await nativeLiveKitController.connectAndPublish({
+              url,
+              token,
+              video: true,
+              audio: true,
+              lens: 'front',
+              resolution: '1080p',
+              attachLocal: true,
+            });
+            lastNativeErr = null;
+            break;
+          } catch (e) {
+            lastNativeErr = e;
+            if (nativeAttempt < 2) {
+              console.warn('[LiveKitClient/Native] connect failed, retrying in 600ms:', e);
+              try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+              await new Promise((r) => setTimeout(r, 600));
+            }
+          }
+        }
+        if (lastNativeErr) throw lastNativeErr;
 
         usingNativeRef.current = true;
         setNativeActive(true);
@@ -271,10 +291,13 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         console.log(`[LiveKitClient/Native] ✅ Connected in ${joinTime.toFixed(0)}ms`);
         return { uid: uidRef.current || 0, channel: normalizedChannel };
       } catch (nativeErr) {
-        console.error('[LiveKitClient/Native] join failed, falling back to web:', nativeErr);
+        console.error('[LiveKitClient/Native] join failed after retry, falling back to web:', nativeErr);
         usingNativeRef.current = false;
         setNativeActive(false);
-        // Fall through to web path.
+        // Surface to the host so they aren't stuck on a black "Starting camera..." UI.
+        try { options.onError?.(nativeErr instanceof Error ? nativeErr : new Error(String((nativeErr as any)?.message || nativeErr))); } catch { /* ignore */ }
+        // Fall through to web path — web livekit-client inside the WebView
+        // can still publish via getUserMedia as a safety net.
       }
     }
 
