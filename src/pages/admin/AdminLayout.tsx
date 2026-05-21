@@ -1101,6 +1101,13 @@ const navGroups: NavGroup[] = [
         description: "Reusable notification templates referenced by server-side triggers (gift received, follow, etc.).",
       },
       {
+        label: "AI Photo Generator",
+        icon: Sparkles,
+        path: "/admin/ai-image-studio",
+        hubKey: "settings-hub",
+        description: "Generate premium 3D event banners, push thumbnails, and social images with AI — download or push instantly.",
+      },
+      {
         label: "Allowed Links",
         icon: Shield,
         path: "/admin/allowed-links",
