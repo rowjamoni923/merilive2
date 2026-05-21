@@ -208,16 +208,20 @@ const handler = async (req: Request): Promise<Response> => {
                     }),
                   },
                   android: {
-                    priority: isCallType ? 'high' : 'normal',
+                    priority: isCallType ? 'high' : 'high',
                     ...(isCallType ? {
                       ttl: '60s',
                     } : {
                       notification: {
                         sound: 'default',
-                        channel_id: 'default',
-                        // Android Big Picture style for image notifications
+                        // Must match a real channel in NotificationHelper
+                        // ('default' did not exist → silent fallback).
+                        channel_id: 'merilive_default',
+                        notification_priority: 'PRIORITY_HIGH',
+                        default_sound: true,
+                        default_vibrate_timings: true,
+                        visibility: 'PUBLIC',
                         ...(imageUrl ? { image: imageUrl } : {}),
-                        // Click action to open app with link
                         ...(data.link_url ? { click_action: 'OPEN_LINK' } : {}),
                       },
                     }),
