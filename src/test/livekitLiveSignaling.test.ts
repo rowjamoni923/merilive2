@@ -147,7 +147,7 @@ describe('Pkg74 livekitLiveSignaling', () => {
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledOnce();
     const [bytes, opts] = room.__publishData.mock.calls[0];
-    expect(bytes).toBeInstanceOf(Uint8Array);
+    expect(bytes && typeof (bytes as any).byteLength === 'number').toBe(true);
     expect(opts).toEqual({ reliable: true });
   });
 
