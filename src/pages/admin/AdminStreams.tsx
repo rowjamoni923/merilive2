@@ -3,7 +3,7 @@ import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import {
-  Video, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, StopCircle, Play, Film, MonitorPlay, Ban, AlertTriangle, Skull, Heart, Timer, ShieldAlert
+  Video, Search, Eye, Clock, Users, Gift, Diamond, RefreshCw, StopCircle, Play, Film, MonitorPlay, Ban, AlertTriangle, Skull, Heart, Timer, ShieldAlert, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -268,30 +268,6 @@ export default function AdminStreams() {
     void fetchActiveBans();
   });
 
-  useEffect(() => {
-    const handleRealtimeStreamUpdates = (event: Event) => {
-      const detail = (event as CustomEvent<{ table: string; eventType: string; payload?: any }>).detail;
-      if (!detail || detail.table !== 'live_streams') return;
-
-      const changedRow = detail.payload;
-      if (detail.eventType === 'UPDATE' && changedRow?.is_active === false) {
-        if (watchingStream?.id === changedRow.id) setWatchingStream(null);
-        void fetchStreams();
-      }
-
-      if (detail.eventType === 'INSERT' && changedRow?.is_active === true) {
-        void fetchStreams();
-      }
-
-      if (detail.eventType === 'DELETE') {
-        void fetchStreams();
-      }
-    };
-
-    window.addEventListener('admin-table-update', handleRealtimeStreamUpdates);
-    return () => window.removeEventListener('admin-table-update', handleRealtimeStreamUpdates);
-  }, [fetchStreams, watchingStream?.id]);
-
   const forceCloseStreamSession = useCallback(async (streamId: string, hostName: string) => {
     const now = new Date().toISOString();
 
@@ -308,6 +284,63 @@ export default function AdminStreams() {
       }),
     ]);
   }, []);
+
+  useEffect(() => {
+    const handleRealtimeStreamUpdates = (event: Event) => {
+      const detail = (event as CustomEvent<{ table: string; eventType?: string; payload?: any }>).detail;
+      if (!detail || detail.table !== 'live_streams') return;
+      // Pkg37 broadcast only carries {version, row_id} — we cannot read is_active here.
+      // ALWAYS refetch so host-side stream end / cleanup is reflected instantly in admin.
+      void fetchStreams();
+    };
+
+    window.addEventListener('admin-table-update', handleRealtimeStreamUpdates);
+    return () => window.removeEventListener('admin-table-update', handleRealtimeStreamUpdates);
+  }, [fetchStreams]);
+
+  // Safety-net poll (30s) so admin still converges if realtime ever silences.
+  // Active filter only — ended/all filters are manually-refreshed.
+  useEffect(() => {
+    if (statusFilter !== 'active') return;
+    const id = setInterval(() => { void fetchStreams(); }, 30000); // guard-ok: admin safety-net 30s
+    return () => clearInterval(id);
+  }, [statusFilter, fetchStreams]);
+
+  // Clear watched-stream modal whenever the underlying row leaves active set.
+  useEffect(() => {
+    if (watchingStream && !streams.some((s) => s.id === watchingStream.id && s.is_active)) {
+      setWatchingStream(null);
+    }
+  }, [streams, watchingStream]);
+
+  const removeStreamFromPanel = useCallback(async (stream: LiveStream) => {
+    const confirmMsg = `Remove "${stream.host?.display_name || 'Host'}" — ${stream.title || 'Live Stream'} from the admin panel?\n\nThis permanently deletes the stream row. Gift/recording history in other tables is preserved.`;
+    if (!window.confirm(confirmMsg)) return;
+    try {
+      if (stream.is_active) {
+        await supabase
+          .from('live_streams')
+          .update({ is_active: false, ended_at: new Date().toISOString(), viewer_count: 0 })
+          .eq('id', stream.id);
+        await forceCloseStreamSession(stream.id, stream.host?.display_name || 'Host');
+      }
+      const { error } = await supabase.from('live_streams').delete().eq('id', stream.id);
+      if (error) throw error;
+      setStreams((prev) => {
+        const next = prev.filter((s) => s.id !== stream.id);
+        calculateStatsFromStreams(next);
+        return next;
+      });
+      if (watchingStream?.id === stream.id) setWatchingStream(null);
+      toast.success('Stream removed from panel');
+    } catch (err: any) {
+      console.error('[AdminStreams] remove failed:', err);
+      recordAdminError({ kind: 'rpc', label: 'AdminStreams.removeStreamFromPanel', message: formatAdminError(err) });
+      toast.error(err?.message?.includes('foreign key')
+        ? 'Cannot delete — referenced by gifts/recordings. Already marked ended.'
+        : `Remove failed: ${err?.message || 'Unknown error'}`);
+    }
+  }, [calculateStatsFromStreams, forceCloseStreamSession, watchingStream?.id]);
 
   const openStopDialog = (stream: LiveStream) => {
     setStopStreamDialog({
@@ -635,10 +668,14 @@ export default function AdminStreams() {
                         <div className="flex items-center gap-1 text-yellow-600"><Diamond className="w-3.5 h-3.5 sm:w-4 sm:h-4" /><span className="font-medium">{formatCoins(stream.total_coins_earned || 0)}</span></div>
                       </div>
                       <div className="flex gap-2">
-                        {stream.is_active && (
-                            <Button variant="destructive" className="flex-1 text-sm" size="sm" onClick={() => openStopDialog(stream)}>
-                              <StopCircle className="w-4 h-4 mr-1" /> Stop Stream
-                            </Button>
+                        {stream.is_active ? (
+                          <Button variant="destructive" className="flex-1 text-sm" size="sm" onClick={() => openStopDialog(stream)}>
+                            <StopCircle className="w-4 h-4 mr-1" /> Stop Stream
+                          </Button>
+                        ) : (
+                          <Button variant="outline" className="flex-1 text-sm border-red-200 text-red-600 hover:bg-red-50" size="sm" onClick={() => removeStreamFromPanel(stream)}>
+                            <Trash2 className="w-4 h-4 mr-1" /> Remove from Panel
+                          </Button>
                         )}
                       </div>
                     </CardContent>
