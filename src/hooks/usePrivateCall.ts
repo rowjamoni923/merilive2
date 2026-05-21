@@ -995,11 +995,21 @@ export function usePrivateCall(userId: string | null) {
         if (error) console.error('[Call] RPC error:', error);
       });
 
-      // Run broadcast + RPC ALL in parallel
+      // Pkg73: also publish via LiveKit DataPacket — sub-50ms peer notify.
+      // Fire-and-forget; Supabase broadcast above is the always-on fallback.
+      const livekitPromise = publishCallEnded(callIdToEnd, {
+        endedBy: userId!,
+        reason,
+        duration: finalDuration,
+      }).catch(() => false);
+
+      // Run broadcast + RPC + LiveKit ALL in parallel
       await Promise.all([
         broadcastPromise,
         rpcPromise,
+        livekitPromise,
       ]);
+      
       
       console.log('[Call] ⚡ Call ended + is_in_call reset in <1 second');
 
