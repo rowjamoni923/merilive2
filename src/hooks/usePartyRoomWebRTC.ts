@@ -116,7 +116,7 @@ export function usePartyRoomWebRTC(
   }, [state.isVideoEnabled]);
 
   useEffect(() => {
-    if (!roomId || !userId || roomType === 'game') {
+    if (!roomId || !userId) {
       console.log('[PartyLiveKit] Skipping init - roomId:', roomId, 'userId:', userId, 'roomType:', roomType);
       return;
     }
@@ -210,7 +210,7 @@ export function usePartyRoomWebRTC(
                 }
               } else if (roomType === 'video') {
                 await room.localParticipant.enableCameraAndMicrophone();
-              } else if (roomType === 'audio') {
+              } else if (roomType === 'audio' || roomType === 'game') {
                 await room.localParticipant.setMicrophoneEnabled(true);
               }
 
