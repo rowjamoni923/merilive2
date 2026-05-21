@@ -514,6 +514,54 @@ const AdminNoticeBroadcast = () => {
               )}
             </div>
 
+            {/* AI Banner Generator (inline) */}
+            <div className="rounded-xl p-3 border border-amber-400/30 bg-gradient-to-br from-indigo-900/30 via-purple-900/20 to-amber-900/10">
+              <div className="flex items-center gap-2 mb-2">
+                <Wand2 className="w-4 h-4 text-amber-300" />
+                <span className="text-sm font-medium">AI Banner Generator</span>
+                <Badge className="ml-1 bg-amber-500/20 text-amber-200 border-amber-400/30 text-[10px]">Nano Banana 3D</Badge>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Type a prompt (or leave blank to use the title) and generate a premium 3D banner — auto-attached as a notice image.
+              </p>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {AI_BANNER_SIZES.map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => setAiSize(s.key)}
+                    className={`px-2.5 py-1 text-[11px] rounded-md border transition ${
+                      aiSize === s.key
+                        ? 'bg-amber-400/20 border-amber-300/70 text-amber-100'
+                        : 'bg-white/[0.04] border-white/15 text-white/70 hover:bg-white/[0.08]'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder={title.trim() ? `Will use title: "${title.trim().slice(0,40)}"` : "Event name (e.g. Eid Special, Recharge Mega Offer)..."}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); generateAiBanner(); } }}
+                  disabled={aiGenerating}
+                />
+                <Button
+                  type="button"
+                  onClick={generateAiBanner}
+                  disabled={aiGenerating || imageUrls.length >= 10}
+                  className="bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white"
+                >
+                  {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+                  Generate
+                </Button>
+              </div>
+            </div>
+
+
+
 
             <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl p-3 border border-blue-500/20">
               <div className="flex items-center gap-2 mb-2">
