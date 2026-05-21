@@ -50,6 +50,7 @@ export function usePartyRoomWebRTC(
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
   const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initRetryCountRef = useRef(0);
   const deadRef = useRef(false);
 
   const detachAudioForIdentity = (identity: string) => {
@@ -418,6 +419,7 @@ export function usePartyRoomWebRTC(
         await room.prepareConnection(url, token).catch(() => {});
         await room.connect(url, token);
         console.log('[PartyLiveKit] ✅ Connected to room');
+        initRetryCountRef.current = 0;
 
         setState(prev => ({
           ...prev,
@@ -486,6 +488,16 @@ export function usePartyRoomWebRTC(
 
       } catch (error) {
         console.error('[PartyLiveKit] Initialization error:', error);
+        if (!deadRef.current && initRetryCountRef.current < 3) {
+          initRetryCountRef.current += 1;
+          reconnectTimerRef.current = setTimeout(() => {
+            reconnectTimerRef.current = null;
+            if (deadRef.current) return;
+            setRestartNonce(prev => prev + 1);
+          }, 1200 * initRetryCountRef.current);
+        } else if (!deadRef.current) {
+          toast.error('Party media could not connect. Please leave and rejoin once.');
+        }
       }
     };
 
