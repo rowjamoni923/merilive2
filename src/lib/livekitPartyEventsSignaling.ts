@@ -118,6 +118,7 @@ export interface RoomStateChangedPayload {
 
 export type PartyEventPayload =
   | ParticipantJoinedPayload
+  | ParticipantLeftPayload
   | SeatActionPayload
   | RoomStateChangedPayload;
 
@@ -133,19 +134,28 @@ interface Entry {
     payload: Uint8Array,
     participant?: RemoteParticipant,
   ) => void;
+  /** Pkg81b: LiveKit RoomEvent.ParticipantDisconnected → participant_left */
+  leftHandler?: (participant: RemoteParticipant) => void;
 }
 
 const registry = new Map<string, Entry>();
 
-// Family is 'party' (shared with Pkg75 room_closed). We distinguish via
-// envelope.t so we don't have to widen LiveKitFeature for a new kill-switch
-// key — kill-switch semantically lives under 'presence'.
 const FAMILY = 'party' as const;
 const PARTY_EVENT_TYPES: ReadonlySet<string> = new Set<PartyEventType>([
   'participant_joined',
+  'participant_left',
   'seat_action',
   'room_state_changed',
 ]);
+
+function dispatchPartyEvent(payload: PartyEventPayload, sender?: string) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent<PartyEventDetail>('livekit-party-event', {
+      detail: { payload, sender },
+    }),
+  );
+}
 
 function makeHandler(roomId: string) {
   return (payload: Uint8Array, participant?: RemoteParticipant) => {
@@ -156,20 +166,10 @@ function makeHandler(roomId: string) {
 
     const p = (env.p ?? {}) as Partial<PartyEventPayload>;
 
-    // Strict roomId guard — never leak a sibling party's events.
     if (!p || (p as any).roomId !== roomId) return;
     if (env.t !== p.type) return;
 
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent<PartyEventDetail>('livekit-party-event', {
-          detail: {
-            payload: p as PartyEventPayload,
-            sender: participant?.identity,
-          },
-        }),
-      );
-    }
+    dispatchPartyEvent(p as PartyEventPayload, participant?.identity);
   };
 }
 
@@ -182,12 +182,23 @@ export function registerPartyEventsRoom(
   unregisterPartyEventsRoom(roomId);
 
   const handler = makeHandler(roomId);
+  const leftHandler = (participant: RemoteParticipant) => {
+    const userId = participant?.identity;
+    if (!userId) return;
+    dispatchPartyEvent({
+      type: 'participant_left',
+      roomId,
+      userId,
+      timestamp: Date.now(),
+    });
+  };
   try {
     room.on(RoomEvent.DataReceived, handler);
+    room.on(RoomEvent.ParticipantDisconnected, leftHandler);
   } catch {
     return;
   }
-  registry.set(roomId, { room, handler });
+  registry.set(roomId, { room, handler, leftHandler });
 }
 
 export function unregisterPartyEventsRoom(roomId: string | null | undefined) {
@@ -196,6 +207,7 @@ export function unregisterPartyEventsRoom(roomId: string | null | undefined) {
   if (!entry) return;
   try {
     entry.room.off(RoomEvent.DataReceived, entry.handler);
+    if (entry.leftHandler) entry.room.off(RoomEvent.ParticipantDisconnected, entry.leftHandler);
   } catch {
     // ignore — room may already be disconnected
   }
