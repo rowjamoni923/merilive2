@@ -1864,16 +1864,11 @@ export default function AdminLayout() {
     return () => window.removeEventListener('admin-badge-refresh', handleBadgeRefresh);
   }, []);
 
-  // Auto-dismiss badges when visiting a page
-  useEffect(() => {
-    const currentPath = normalizeAdminPath(location.pathname);
+  // Per owner directive: admin notifications must persist until manually cleared
+  // by the admin (click the notification, or "Mark all as read"). Do NOT
+  // auto-dismiss badges or mark DB notifications as read just because the admin
+  // navigated to the corresponding page — they stay in the bell until acted on.
 
-    // Dismiss current section + related hub so bell/sidebar badges clear instantly
-    dismissPath(currentPath);
-
-    // Instantly clear DB notifications for the opened page
-    void markPathNotificationsAsRead(currentPath);
-  }, [location.pathname, dismissPath, markPathNotificationsAsRead]);
 
   // Notification sound - pre-initialize AudioContext on first user interaction
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -2753,10 +2748,11 @@ export default function AdminLayout() {
                               onTouchStart={() => prefetchAdminRoute(item.path)}
                               onClick={() => {
                                 setIsMobileSidebarOpen(false);
-                                const normalizedItemPath = normalizeAdminPath(item.path);
-                                dismissPath(normalizedItemPath);
-                                void markPathNotificationsAsRead(normalizedItemPath);
+                                // Do NOT auto-dismiss the sidebar/bell badge on click —
+                                // owner directive: notifications persist until manually
+                                // cleared from the bell panel.
                               }}
+
                               className={cn(
                                 "flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200 group/item relative overflow-hidden",
                                 isActive
