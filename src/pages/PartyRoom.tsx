@@ -52,6 +52,7 @@ import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
+import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
 import { GameSelectionModal } from "@/components/party/GameSelectionModal";
@@ -1319,9 +1320,30 @@ const PartyRoom = () => {
         }
       });
 
+    // Pkg75: parallel LiveKit DataPacket path for room_closed.
+    // Sub-50ms delivery; converges with the Supabase broadcast above via
+    // `showRoomClosedModal` guard, so duplicates are no-ops.
+    const handleLiveKitPartyClosed = (ev: Event) => {
+      const detail = (ev as CustomEvent<PartyClosedDetail>).detail;
+      if (!detail || detail.roomId !== roomId) return;
+      if (!isMountedRef.current) return;
+      const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
+      if (isHostNow || showRoomClosedModal) return;
+
+      console.log('[PartyRoom] 🟣 ⚡ Pkg75 livekit-party-closed received', detail);
+      playSound('notification');
+      setShowRoomClosedModal(true);
+      cleanupWebRTC();
+      setTimeout(() => {
+        if (isMountedRef.current) navigate('/');
+      }, 3000);
+    };
+    window.addEventListener('livekit-party-closed', handleLiveKitPartyClosed);
+
     return () => {
       isMountedRef.current = false;
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('livekit-party-closed', handleLiveKitPartyClosed);
       leaveRoom();
       cleanupWebRTC();
       supabase.removeChannel(participantChannel);
@@ -1664,7 +1686,8 @@ const PartyRoom = () => {
       
       if (isHost) {
         console.log('[PartyRoom] Host leaving - closing room with is_active: false');
-        
+        const closedAt = new Date().toISOString();
+
         // CRITICAL: Broadcast room close to ALL participants FIRST (instant notification)
         // This ensures visitors see the modal immediately, before database update
         const closeChannel = supabase.channel(`party-room-close-${roomId}`);
@@ -1672,18 +1695,26 @@ const PartyRoom = () => {
         await closeChannel.send({
           type: 'broadcast',
           event: 'room_closed',
-          payload: { 
-            roomId, 
+          payload: {
+            roomId,
             hostId: currentUser.id,
-            closedAt: new Date().toISOString()
+            closedAt,
           }
         });
         console.log('[PartyRoom] ✅ Broadcast room_closed sent to all participants');
-        
+
+        // Pkg75: also fire a LiveKit DataPacket to every viewer in parallel.
+        // Sub-50ms delivery (vs 1–3s Supabase broadcast). Fire-and-forget;
+        // viewers converge with the broadcast handler via showRoomClosedModal guard.
+        publishPartyClosed(roomId, {
+          hostId: currentUser.id,
+          closedAt,
+        }).catch((err) => console.warn('[Pkg75] publishPartyClosed:', err));
+
         // Then mark room as inactive in database
         const { error: updateError } = await supabase
           .from('party_rooms')
-          .update({ is_active: false, ended_at: new Date().toISOString() })
+          .update({ is_active: false, ended_at: closedAt })
           .eq('id', roomId);
         
         if (updateError) {
@@ -1696,7 +1727,7 @@ const PartyRoom = () => {
         // Leave all participants
         await supabase
           .from('party_room_participants')
-          .update({ left_at: new Date().toISOString(), position: null })
+          .update({ left_at: closedAt, position: null })
           .eq('room_id', roomId)
           .is('left_at', null);
         

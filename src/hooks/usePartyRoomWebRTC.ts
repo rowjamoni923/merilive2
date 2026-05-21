@@ -17,6 +17,7 @@ import {
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -78,6 +79,9 @@ export function usePartyRoomWebRTC(
       reconnectTimerRef.current = null;
     }
 
+    // Pkg75: detach signaling handler before disconnecting the Room.
+    try { unregisterPartyRoom(roomId); } catch { /* ignore */ }
+
     if (roomRef.current) {
       roomRef.current.disconnect(true);
       roomRef.current = null;
@@ -94,7 +98,7 @@ export function usePartyRoomWebRTC(
       isAudioEnabled: true,
       isVideoEnabled: true,
     });
-  }, []);
+  }, [roomId]);
 
   const toggleAudio = useCallback(() => {
     if (!partyCanPublishRef.current) return;
@@ -420,6 +424,16 @@ export function usePartyRoomWebRTC(
         await room.prepareConnection(url, token).catch(() => {});
         await room.connect(url, token);
         console.log('[PartyLiveKit] ✅ Connected to room');
+
+        // Pkg75: bind this LiveKit Room to the party roomId so the host
+        // can publish `room_closed` packets and viewers can receive them
+        // with sub-50ms latency. Reuses the existing Room — zero new
+        // Supabase Realtime channels, zero polling.
+        try {
+          registerPartyRoom(roomId, room);
+        } catch (err) {
+          console.warn('[Pkg75] registerPartyRoom failed:', err);
+        }
 
         setState(prev => ({
           ...prev,
