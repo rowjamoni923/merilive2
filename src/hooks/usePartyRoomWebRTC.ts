@@ -367,6 +367,7 @@ export function usePartyRoomWebRTC(
           console.log('[PartyLiveKit] Room disconnected');
           setState(prev => ({ ...prev, isConnected: false }));
           if (!deadRef.current && !reconnectTimerRef.current) {
+            try { room.disconnect(true); } catch { /* ignore */ }
             reconnectTimerRef.current = setTimeout(() => {
               reconnectTimerRef.current = null;
               if (deadRef.current) return;
