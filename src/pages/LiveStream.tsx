@@ -3599,6 +3599,7 @@ const LiveStream = () => {
             open={showVirtualBackground}
             onClose={() => setShowVirtualBackground(false)}
             localVideoTrack={localVideoTrack}
+            isNative={deepAR.isNativeAndroid}
           />
           <NoiseCancellationDialog
             open={showNoiseCancellation}
