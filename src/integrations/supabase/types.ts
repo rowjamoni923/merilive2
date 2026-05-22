@@ -17837,8 +17837,11 @@ export type Database = {
           country_flag: string
           display_name: string
           frame_id: string
+          gender: string
           host_level: number
           id: string
+          is_host: boolean
+          max_user_level: number
           stat_value: number
           user_level: number
         }[]
@@ -17876,8 +17879,11 @@ export type Database = {
           country_flag: string
           display_name: string
           frame_id: string
+          gender: string
           host_level: number
           id: string
+          is_host: boolean
+          max_user_level: number
           stat_value: number
           user_level: number
         }[]
@@ -17970,8 +17976,11 @@ export type Database = {
           country_flag: string
           display_name: string
           frame_id: string
+          gender: string
           host_level: number
           id: string
+          is_host: boolean
+          max_user_level: number
           stat_value: number
           user_level: number
         }[]
