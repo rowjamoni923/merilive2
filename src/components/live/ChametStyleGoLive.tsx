@@ -313,6 +313,26 @@ export const ChametSettingsPanel = ({
             </div>
             <Switch checked={isMicEnabled} onCheckedChange={onMicToggle} />
           </div>
+
+          <div className="h-px bg-gray-100 mx-6" />
+
+          {/* Auto-record Live (Pkg129) */}
+          <div className="w-full px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-100 to-red-100 flex items-center justify-center">
+                <Video className="w-5 h-5 text-rose-500" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-gray-800 font-medium">Auto-record Live</span>
+                <span className="text-[11px] text-gray-500">Save an MP4 of every live you start</span>
+              </div>
+            </div>
+            <Switch
+              checked={autoRecord}
+              disabled={autoRecordLoading}
+              onCheckedChange={(v) => void handleAutoRecordToggle(v)}
+            />
+          </div>
         </div>
       </motion.div>
     </motion.div>
