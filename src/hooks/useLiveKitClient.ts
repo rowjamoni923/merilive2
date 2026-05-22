@@ -1286,6 +1286,16 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     });
   }, [ensureParticipantSubscribed]);
 
+  // Pkg147: Audio-only viewer mode — apply on join + on every preference change.
+  useEffect(() => {
+    if (!isJoined) return;
+    const apply = () => applyAudioOnlyToRoom(roomRef.current, isAudioOnlyEnabled());
+    apply();
+    const onChange = () => apply();
+    window.addEventListener(AUDIO_ONLY_CHANGED_EVENT, onChange as EventListener);
+    return () => window.removeEventListener(AUDIO_ONLY_CHANGED_EVENT, onChange as EventListener);
+  }, [isJoined]);
+
   // Pkg74: Bind streamId → Room for LiveKit-based stream_ended signaling.
   // Re-runs whenever the join state flips or the streamId changes.
   useEffect(() => {
