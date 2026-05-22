@@ -52,15 +52,14 @@ export function MusicPlayerPanel({
   const allTracks = [...localTracks, ...tracks];
 
   useEffect(() => {
-    if (isOpen) {
-      fetchMusicTracks();
-      subscribeToMusicSync();
-    }
-    
+    if (!isOpen) return;
+    fetchMusicTracks();
+    const cleanup = subscribeToMusicSync();
     return () => {
-      // Cleanup subscription
+      if (typeof cleanup === 'function') cleanup();
     };
   }, [isOpen, roomId]);
+
 
   useEffect(() => {
     // Create audio element
@@ -88,35 +87,39 @@ export function MusicPlayerPanel({
     }
   }, [volume, isMuted]);
 
-  // Subscribe to real-time music sync for visitors
+  // Pkg81 LiveKit-Purist audit: REMOVED `music-sync-${roomId}` Supabase
+  // postgres_changes channel on party_rooms / live_streams. Host->viewer
+  // music sync now uses a low-frequency REST poll (15s) — music switches
+  // are rare and viewers tolerate a few seconds of drift. Zero Realtime
+  // subscriptions, satisfies LiveKit-Purist + $1400-rule (≥5s G1).
   const subscribeToMusicSync = () => {
-    const table = roomType === 'party' ? 'party_rooms' : 'live_streams';
-    
-    const channel = supabase
-      .channel(`music-sync-${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: table,
-          filter: `id=eq.${roomId}`
-        },
-        (payload: any) => {
-          const { current_music_url, current_music_title, music_playing, music_started_at } = payload.new;
-          
-          // If we're not the host, sync to the host's music
-          if (!isHost && current_music_url) {
-            syncToHostMusic(current_music_url, current_music_title, music_playing, music_started_at);
-          }
-        }
-      )
-      .subscribe();
+    if (isHost) return () => {}; // host is the sender, no need to sync
 
-    return () => {
-      supabase.removeChannel(channel);
+    const table = roomType === 'party' ? 'party_rooms' : 'live_streams';
+
+    const pull = async () => {
+      try {
+        const { data } = await supabase
+          .from(table as any)
+          .select('current_music_url, current_music_title, music_playing, music_started_at')
+          .eq('id', roomId)
+          .maybeSingle();
+        if (!data) return;
+        const d: any = data;
+        if (d.current_music_url) {
+          syncToHostMusic(d.current_music_url, d.current_music_title, d.music_playing, d.music_started_at);
+        }
+      } catch (err) {
+        console.error('[MusicPlayerPanel] music sync pull failed:', err);
+      }
     };
+
+    pull();
+    // guard-ok: 15s ≥ 5s floor, bounded single poll, no realtime channel
+    const id = window.setInterval(pull, 15000);
+    return () => window.clearInterval(id);
   };
+
 
   // Sync visitor's playback to host's music
   const syncToHostMusic = (url: string, title: string, playing: boolean, startedAt: string) => {
