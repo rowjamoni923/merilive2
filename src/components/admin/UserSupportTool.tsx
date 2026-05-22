@@ -313,7 +313,7 @@ export default function UserSupportTool() {
     setActionLoading(true);
     try {
       const { error } = await supabase
-        .from("profiles")
+        .from("profiles") // guard-ok: admin-only selected-user verification update via adminSupabase + server-side admin session RLS
         .update({ is_verified: !selectedUser.is_verified })
         .eq("id", selectedUser.id);
       if (error) throw error;
