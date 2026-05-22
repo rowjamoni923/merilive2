@@ -93,6 +93,10 @@ interface UseLiveKitClientOptions {
    * dispatches a `livekit-connection-quality` window event. Consumers use
    * `useConnectionQuality('live', id)` to render network bars. */
   connectionQualityStreamId?: string | null;
+  /** Pkg105: When set (host side only), the underlying Room is registered
+   * with the track-subscription-permission registry so hosts can hard-block
+   * specific viewer identities at the SFU level via `setHostBlocklist`. */
+  trackPermissionStreamId?: string | null;
 }
 
 
