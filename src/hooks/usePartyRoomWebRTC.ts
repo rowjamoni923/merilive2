@@ -116,6 +116,10 @@ export function usePartyRoomWebRTC(
     // Pkg133: drop reactions registration.
     try { unregisterReactionRoom('party', roomId); } catch { /* ignore */ }
 
+    if (tokenRefreshDetachRef.current) {
+      try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+      tokenRefreshDetachRef.current = null;
+    }
     if (roomRef.current) {
       roomRef.current.disconnect(true);
       roomRef.current = null;
