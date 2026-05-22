@@ -190,23 +190,12 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
             }).catch((err) => console.warn('[Pkg76] publishGiftSent failed:', err));
           }
 
-          // Legacy live/party Supabase broadcast retained for non-LiveKit fallback paths.
-          if (broadcastRoomId) {
-            broadcastGiftSent(broadcastRoomId, {
-              senderId,
-              senderName,
-              senderAvatar,
-              giftId,
-              giftName: gift?.name || 'Gift',
-              giftIconUrl: gift?.icon_url,
-              giftAnimationUrl: gift?.animation_url,
-              giftSoundUrl: gift?.sound_url,
-              quantity,
-              coinAmount: result.coinsSpent || 0,
-              beansEarned: result.hostReceived || 0,
-              timestamp: Date.now(),
-            });
-          }
+          // Pkg88: LiveKit-Purist — Supabase `room-instant-${id}` broadcast REMOVED.
+          // Its only consumer (`useRoomGifts`) is dead code, and Pkg78 deleted every
+          // real receiver of legacy gift_broadcast_* channels. LiveKit DataPacket
+          // above is the sole instant fanout path; postgres_changes via own-row
+          // own-beans-updated event (Pkg85) reconciles within ~1s as safety net.
+
         } catch (err) {
           console.warn('[GiftingService] Broadcast failed (non-fatal):', err);
         }
