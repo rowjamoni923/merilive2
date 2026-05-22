@@ -761,8 +761,8 @@ const PartyRoom = () => {
 
     // Pkg80: Supabase `join_broadcast_party_${roomId}` channel REMOVED.
     // LiveKit DataPacket (`livekit-party-event` `participant_joined` handler
-    // below) is the sole instant join notifier. postgres_changes on
-    // party_room_participants INSERT (above) remains as durable fallback.
+    // below) is the sole instant join notifier. DB rows remain only for
+    // REST snapshots/history — no party-room postgres_changes fallback.
     const joinBroadcastChannel: any = null;
 
     // Pkg75: parallel LiveKit DataPacket path for room_closed.
@@ -1014,7 +1014,7 @@ const PartyRoom = () => {
       }
     };
     
-    // COST-OPTIMISED: 20s fallback poll (was 3s → ~85% fewer DB reads). Realtime handles primary instant updates; this is purely a safety net.
+    // COST-OPTIMISED: 20s fallback poll (was 3s → ~85% fewer DB reads). LiveKit handles primary instant updates; this is purely a safety net.
     const pollInterval = setInterval(pollRoomStatus, 20000);
     
     return () => {
@@ -1134,7 +1134,7 @@ const PartyRoom = () => {
   }, []);
 
   // NATIVE APP FALLBACK: Polling for participants & seat requests
-  // COST-OPTIMISED: 20s interval (was 3s → ~85% fewer DB reads). Realtime is primary; this is a safety net for native packet loss.
+  // COST-OPTIMISED: 20s interval (was 3s → ~85% fewer DB reads). LiveKit is primary; this is a safety net for native packet loss.
   useEffect(() => {
     if (!roomId || !currentUser) return;
     
@@ -1239,8 +1239,7 @@ const PartyRoom = () => {
       }
       
       // Pkg80: LiveKit DataPacket replaces Supabase `join_broadcast_party_*`
-      // channel. Sub-50ms fanout; postgres_changes INSERT on
-      // party_room_participants remains as durable fallback.
+      // channel. Sub-50ms fanout; DB row remains for REST snapshot/history.
       void publishPartyEvent(roomId, {
         type: 'participant_joined',
         roomId,
@@ -1558,7 +1557,7 @@ const PartyRoom = () => {
       }
 
       // Pkg80: LiveKit DataPacket replaces `party-room-all-*` seat_action send.
-      // postgres_changes on seat_requests UPDATE remains as durable fallback.
+      // DB status update remains for persistence/late-join REST snapshots.
       void publishPartyEvent(roomId, {
         type: 'seat_action',
         roomId,
