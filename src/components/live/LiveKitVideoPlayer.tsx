@@ -275,10 +275,11 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         playsInline
         muted
         controls={false}
-        disablePictureInPicture
+        {...(enablePictureInPicture ? {} : { disablePictureInPicture: true })}
         disableRemotePlayback
-        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+        controlsList={enablePictureInPicture ? "nodownload nofullscreen noremoteplayback noplaybackrate" : "nodownload nofullscreen noremoteplayback noplaybackrate"}
         poster=""
+        {...(pipId ? { 'data-pip-id': pipId } : {})}
         {...nativeInlineVideoProps}
         className="w-full h-full pointer-events-none select-none"
         style={{
