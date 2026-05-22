@@ -43,6 +43,7 @@ import {
   Phone,
   PhoneIncoming,
   Radio,
+  Antenna,
   Crown,
   Star,
   TrendingDown,
