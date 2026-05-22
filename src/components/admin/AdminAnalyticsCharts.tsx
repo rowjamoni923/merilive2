@@ -294,7 +294,7 @@ export const AdminAnalyticsCharts = memo(() => {
               <CardHeader className="pb-2 border-b border-slate-700/30">
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <Gift className="w-4 h-4 text-amber-400" />
-                  Gift Volume (Coins)
+                  Gift Volume (Diamonds)
                   {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-amber-600/20 text-amber-300 border-amber-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
