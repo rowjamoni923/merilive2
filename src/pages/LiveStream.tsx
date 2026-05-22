@@ -1938,8 +1938,6 @@ const LiveStream = () => {
       .eq("id", incomingPKRequest.battleId);
 
     // Pkg82d: notify challenger via FCM (replaces `pk_battle_${battleId}` channel).
-    // challengerId is threaded from the original pk_invite notification —
-    // no extra SELECT needed (avoids RLS edge cases + 1 round-trip).
     try {
       await supabase.functions.invoke("pk-invite-deliver", {
         body: {
@@ -1956,6 +1954,16 @@ const LiveStream = () => {
       console.warn("[LiveStream] pk-invite-deliver accept failed:", err);
     }
 
+    // Fetch battle row for stream IDs (needed for PK cross-room audio bridge).
+    const { data: battle } = await supabase
+      .from("pk_battles")
+      .select("challenger_stream_id, opponent_stream_id, challenger_id, opponent_id")
+      .eq("id", incomingPKRequest.battleId)
+      .maybeSingle();
+
+    const challengerStreamId = battle?.challenger_stream_id || "";
+    const opponentStreamId = battle?.opponent_stream_id || "";
+
     setPKBattleState({
       isActive: true,
       battleId: incomingPKRequest.battleId,
@@ -1965,12 +1973,14 @@ const LiveStream = () => {
         avatar: incomingPKRequest.challengerAvatar,
         level: incomingPKRequest.challengerLevel,
         id: incomingPKRequest.challengerId,
+        streamId: challengerStreamId,
       },
       opponentInfo: {
         name: hostInfo.name,
         avatar: hostInfo.avatar,
         level: hostInfo.level,
         id: currentUserId || "",
+        streamId: opponentStreamId,
       },
     });
   };
