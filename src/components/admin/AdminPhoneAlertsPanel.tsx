@@ -50,7 +50,7 @@ export function AdminAlertBell() {
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
-      .from('profiles')
+      .from('profiles_public')
       .select('display_name, avatar_url, app_uid')
       .eq('id', userId)
       .single();
