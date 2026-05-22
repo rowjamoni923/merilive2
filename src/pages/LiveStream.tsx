@@ -2314,6 +2314,11 @@ const LiveStream = () => {
         setShowMoreOptions(false);
         setShowRecording(true);
       } },
+    // Pkg114: Simulcast room out to YouTube / Facebook / Twitch / custom RTMP.
+    { id: "simulcast", name: "Simulcast", iconName: "Cast" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowSimulcast(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
