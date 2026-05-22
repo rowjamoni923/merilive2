@@ -382,6 +382,7 @@ import { AndroidBackButtonHandler } from "@/components/common/AndroidBackButtonH
 import { MandatoryPermissionsGate } from "@/components/common/MandatoryPermissionsGate";
 const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScreen")));
 import ScrollToTop from "@/components/common/ScrollToTop";
+import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 
 
 
