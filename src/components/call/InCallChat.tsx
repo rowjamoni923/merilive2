@@ -235,6 +235,19 @@ export const InCallChat = memo(({
             )}
             {messages.map((msg) => {
               const isMe = msg.senderId === userId;
+              if (msg.attachment) {
+                return (
+                  <div key={msg.id} className={cn("w-full flex", isMe && "justify-end")}>
+                    <ChatAttachmentBubble
+                      kind={msg.attachment.kind}
+                      bytes={msg.attachment.bytes}
+                      mimeType={msg.attachment.mimeType}
+                      name={msg.attachment.name}
+                      isMe={isMe}
+                    />
+                  </div>
+                );
+              }
               return (
                 <div key={msg.id} className={cn("w-full", isMe && "text-right")}>
                   <RoomChatBubble
@@ -247,6 +260,33 @@ export const InCallChat = memo(({
                 </div>
               );
             })}
+          </div>
+
+          {/* Input */}
+          <div className="flex items-center gap-1 px-2 py-2 border-t border-white/10">
+            {callId && (
+              <ChatAttachmentButtons
+                scope="call"
+                id={callId}
+                onLocalSent={handleLocalAttachment}
+              />
+            )}
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Type a message..."
+              className="flex-1 bg-white/10 text-white text-xs px-3 py-2 rounded-full outline-none placeholder:text-white/30 border border-white/10 focus:border-purple-500/50"
+            />
+            <button
+              onClick={sendMessage}
+              disabled={!input.trim()}
+              className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white disabled:opacity-30 active:scale-95 transition-transform"
+            >
+              <Send className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Input */}
