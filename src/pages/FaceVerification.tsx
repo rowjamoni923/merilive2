@@ -47,6 +47,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
