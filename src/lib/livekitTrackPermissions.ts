@@ -26,9 +26,15 @@ import type { Room } from 'livekit-client';
 
 type Scope = 'live' | 'call' | 'party';
 
+type Mode = 'blocklist' | 'allowlist';
+
 type Entry = {
   room: Room;
+  /** Identities to *deny* (blocklist mode) or *allow* (allowlist mode). */
   blocked: Set<string>;
+  mode: Mode;
+  /** Pkg193 — restrict to specific track sources, e.g. allow audio but deny video. */
+  allowedTrackSids?: string[];
   off?: () => void;
 };
 
@@ -39,12 +45,24 @@ function applyPermissions(entry: Entry) {
   try {
     const lp: any = entry.room?.localParticipant;
     if (!lp?.setTrackSubscriptionPermissions) return;
+
+    if (entry.mode === 'allowlist') {
+      // Pkg193 — VIP-only / private-room mode: everyone DENIED by default;
+      // listed identities are explicit grants.
+      const granted = Array.from(entry.blocked).map((identity) => ({
+        participantIdentity: identity,
+        allowAll: !entry.allowedTrackSids,
+        allowedTrackSids: entry.allowedTrackSids,
+      }));
+      lp.setTrackSubscriptionPermissions(false, granted);
+      return;
+    }
+
+    // Default blocklist mode: everyone allowed; listed identities denied.
     const denied = Array.from(entry.blocked).map((identity) => ({
       participantIdentity: identity,
       allowAll: false,
     }));
-    // allParticipantsAllowed = true means everyone subscribes by default;
-    // listed identities are explicit denials (allowAll:false, no allowedTrackSids).
     lp.setTrackSubscriptionPermissions(true, denied);
   } catch (e) {
     console.warn('[TrackPermissions] applyPermissions failed (non-fatal):', e);
