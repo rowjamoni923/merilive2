@@ -9272,6 +9272,7 @@ export type Database = {
           connected_at: string | null
           created_at: string
           duration_seconds: number | null
+          e2ee_key: string | null
           end_reason: string | null
           ended_at: string | null
           host_earned: number | null
@@ -9299,6 +9300,7 @@ export type Database = {
           connected_at?: string | null
           created_at?: string
           duration_seconds?: number | null
+          e2ee_key?: string | null
           end_reason?: string | null
           ended_at?: string | null
           host_earned?: number | null
@@ -9326,6 +9328,7 @@ export type Database = {
           connected_at?: string | null
           created_at?: string
           duration_seconds?: number | null
+          e2ee_key?: string | null
           end_reason?: string | null
           ended_at?: string | null
           host_earned?: number | null
@@ -17023,6 +17026,7 @@ export type Database = {
         }[]
       }
       get_beans_per_usd: { Args: never; Returns: number }
+      get_call_e2ee_key: { Args: { _call_id: string }; Returns: string }
       get_conversations_with_details: {
         Args: { p_user_id: string }
         Returns: Json

@@ -292,6 +292,14 @@ export function useLiveKitCall(
           }
         }
 
+        // Pkg108: Fetch E2EE key + build options BEFORE Room construction.
+        // Key is shared with peer via `private_calls.e2ee_key` RPC. If kill
+        // switch is off OR browser lacks Insertable Streams, e2eeOption is
+        // undefined and the call falls back to plain SFU media (no break).
+        const { fetchCallE2EEKey, buildE2EEOptions } = await import('@/lib/livekitE2EE');
+        const e2eeKey = await fetchCallE2EEKey(callId);
+        const { e2eeOption } = await buildE2EEOptions(e2eeKey);
+
         const room = new Room({
           // CRYSTAL CLEAR: No adaptive downgrade for calls
           adaptiveStream: false,
@@ -314,8 +322,20 @@ export function useLiveKitCall(
             degradationPreference: 'maintain-resolution',
             simulcast: false,
           },
+          // Pkg108: undefined when disabled — Room treats as plain.
+          e2ee: e2eeOption,
         });
         roomRef.current = room;
+
+        // Pkg108: enable E2EE on the Room post-construction (per SDK API).
+        if (e2eeOption) {
+          try {
+            await room.setE2EEEnabled(true);
+            console.log('[LiveKitCall] 🔐 E2EE enabled');
+          } catch (err) {
+            console.warn('[LiveKitCall] setE2EEEnabled failed — continuing plaintext:', err);
+          }
+        }
 
         // Handle remote tracks
         room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
