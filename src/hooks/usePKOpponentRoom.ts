@@ -51,9 +51,15 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
     status: 'idle',
   });
   const roomRef = useRef<Room | null>(null);
+  // Pkg189: token refresh detach handle.
+  const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const mountedRef = useRef(true);
 
   const disconnect = useCallback(() => {
+    if (tokenRefreshDetachRef.current) {
+      try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+      tokenRefreshDetachRef.current = null;
+    }
     const room = roomRef.current;
     if (room) {
       room.removeAllListeners();
