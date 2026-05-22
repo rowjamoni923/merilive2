@@ -248,7 +248,7 @@ const AgencyCoinTrader = () => {
     if (isNaN(amount) || amount < tradeSettings.min_trade_amount) {
       toast({
         title: "Error",
-        description: `Minimum ${tradeSettings.min_trade_amount} coins required`,
+        description: `Minimum ${tradeSettings.min_trade_amount} Diamonds required`,
         variant: "destructive"
       });
       return;
@@ -267,7 +267,7 @@ const AgencyCoinTrader = () => {
     if (activeTab === "sell" && amount > totalAvailable) {
       toast({
         title: "Error",
-        description: "Insufficient coins in your wallet",
+        description: "Insufficient Diamonds in your wallet",
         variant: "destructive"
       });
       return;
@@ -387,7 +387,7 @@ const AgencyCoinTrader = () => {
     if (isNaN(amount) || amount < tradeSettings.min_trade_amount) {
       toast({
         title: "Error",
-        description: `Minimum ${tradeSettings.min_trade_amount} coins to buy`,
+        description: `Minimum ${tradeSettings.min_trade_amount} Diamonds to buy`,
         variant: "destructive"
       });
       return;
@@ -416,7 +416,7 @@ const AgencyCoinTrader = () => {
 
       toast({
         title: "Order Submitted",
-        description: `Order for ${amount.toLocaleString()} coins is being processed.`,
+        description: `Order for ${amount.toLocaleString()} Diamonds is being processed.`,
       });
 
       // Reset form
