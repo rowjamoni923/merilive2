@@ -47,6 +47,7 @@ import {
   ArrowUpCircle,
   Gamepad2,
   Play,
+  Film,
   ShoppingBag,
   UserCog,
   Smartphone,
