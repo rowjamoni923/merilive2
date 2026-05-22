@@ -23,7 +23,6 @@ import {
   Sparkles,
   RotateCcw,
   MonitorUp,
-  Wand2,
   Gamepad2,
   Swords,
   MessageCircle,
