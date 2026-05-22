@@ -188,16 +188,26 @@ export const ChametStyleHeader = ({
               boxShadow: "0 6px 20px rgba(168,85,247,0.35)",
             }}
           >
+            {/* Pulsing live dot — Bigo-style "LIVE" energy */}
+            <motion.div
+              className="relative z-10 w-2 h-2 rounded-full bg-white"
+              animate={{ opacity: [1, 0.45, 1], scale: [1, 0.85, 1] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              style={{ boxShadow: "0 0 8px rgba(255,255,255,0.7)" }}
+            />
             <Users className="w-3.5 h-3.5 text-white relative z-10" />
             <motion.span
               key={viewerCount}
-              initial={{ scale: 1.3 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 1.45, y: -3, opacity: 0.6 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              transition={{ type: "spring", damping: 12, stiffness: 380 }}
               className="text-white text-xs font-black relative z-10 tabular-nums"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}
             >
-              {viewerCount}
+              {formatNumber(viewerCount)}
             </motion.span>
             <ChevronRight className="w-3 h-3 text-white/60 relative z-10" />
+
 
             {/* Pending badge */}
             <AnimatePresence>
@@ -231,21 +241,35 @@ export const ChametStyleHeader = ({
             {topThree.map((viewer, i) => (
               <motion.div
                 key={viewer.id}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.25 + i * 0.08 }}
-                className="relative"
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", damping: 14, stiffness: 320, delay: 0.25 + i * 0.08 }}
+                whileTap={{ scale: 0.9 }}
+                className="relative cursor-pointer"
                 onClick={() => navigate(`/profile/${viewer.id}`)}
               >
+                {/* Rank-1 rotating gold shimmer ring */}
+                {i === 0 && (
+                  <motion.div
+                    className="absolute -inset-1 rounded-full pointer-events-none"
+                    style={{
+                      background: "conic-gradient(from 0deg, transparent, rgba(251,191,36,0.85), transparent 40%, transparent 60%, rgba(251,191,36,0.85), transparent)",
+                      filter: "blur(2px)",
+                    }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                  />
+                )}
                 <Avatar
                   className={cn(
-                    "w-7 h-7 cursor-pointer ring-[1.5px] shadow-md",
+                    "w-7 h-7 ring-[1.5px] shadow-md relative",
                     i === 0
                       ? "ring-amber-400"
                       : i === 1
                       ? "ring-slate-300"
                       : "ring-amber-600"
                   )}
+                  style={i === 0 ? { boxShadow: "0 0 10px rgba(251,191,36,0.55)" } : undefined}
                 >
                   <AvatarImage
                     src={viewer.avatarUrl || getDisplayAvatar(viewer.displayName)}
@@ -255,7 +279,7 @@ export const ChametStyleHeader = ({
                     {viewer.displayName.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="absolute -bottom-0.5 -right-0.5 text-[7px] leading-none drop-shadow-md">
+                <span className="absolute -bottom-0.5 -right-0.5 text-[7px] leading-none drop-shadow-md z-10">
                   {RANK_MEDALS[i]}
                 </span>
               </motion.div>
@@ -263,6 +287,7 @@ export const ChametStyleHeader = ({
           </motion.div>
         )}
       </div>
+
     </div>
   );
 };
