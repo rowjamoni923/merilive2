@@ -1123,10 +1123,10 @@ const LiveStream = () => {
       if (detail.streamId !== id) return;
       const lkCount: number = typeof detail.count === 'number' ? detail.count : 0;
       if (isHost) {
-        setViewerCount((prev) => (lkCount > prev ? lkCount : prev));
+        setViewerCount(Math.max(0, lkCount));
       } else {
         const adjusted = Math.max(0, lkCount - 1) + 1;
-        setViewerCount((prev) => (adjusted > prev ? adjusted : prev));
+        setViewerCount(adjusted);
       }
     };
     window.addEventListener('livekit-viewer-count', handleLiveKitViewerCount);
@@ -1624,15 +1624,21 @@ const LiveStream = () => {
           audiences = viewers.length;
         }
 
-        // Update stream with final stats
-        await supabase
-          .from('live_streams')
-          .update({
-            is_active: false,
-            ended_at: new Date().toISOString(),
-            total_coins_earned: giftEarnings,
-          })
-          .eq('id', id);
+        // Server-side end flow is the source of truth: marks stream ended,
+        // closes active stream_viewers rows, resets viewer_count, and returns
+        // exact session stats. No Supabase Realtime channel is used here.
+        const { data: endResult, error: endError } = await supabase.rpc('end_live_stream', {
+          p_stream_id: id,
+        });
+
+        if (endError) {
+          console.error('[LiveStream] end_live_stream RPC failed:', endError);
+          recordClientError({ label: 'LiveStream.end_live_stream', message: endError.message });
+        } else if (endResult && typeof endResult === 'object') {
+          const result = endResult as any;
+          audiences = Number(result.audience_count ?? audiences) || audiences;
+          giftEarnings = Number(result.beans_earned ?? giftEarnings) || giftEarnings;
+        }
 
         // Pkg78: LiveKit-ONLY stream_ended fanout (Supabase broadcast removed).
         const hostName = hostInfo?.name || 'Host';
@@ -1675,13 +1681,15 @@ const LiveStream = () => {
 
   // Handle viewer leaving the stream
   const handleLeaveStream = async () => {
-    // Update stream_viewers to mark leave time
+    // Server-side leave flow keeps stream_viewers + live_streams.viewer_count in sync.
     if (!isHost && currentUserId && id) {
-      await supabase
-        .from("stream_viewers")
-        .update({ left_at: new Date().toISOString() })
-        .eq("stream_id", id)
-        .eq("viewer_id", currentUserId);
+      const { data, error } = await supabase.rpc('leave_live_stream_viewer', { p_stream_id: id });
+      if (error) {
+        console.error('[LiveStream] Viewer leave RPC failed:', error);
+      } else if (typeof data === 'number') {
+        activeViewerIdsRef.current.delete(currentUserId);
+        setViewerCount(data);
+      }
     }
     
     await leaveChannel();
