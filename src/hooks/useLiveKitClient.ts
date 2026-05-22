@@ -819,7 +819,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // Get token (determine room type from role)
       const roomType = config.role === 'host' ? 'host_stream' : 'viewer_stream';
       warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
-      const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
+      const tokenResp = await getLiveKitToken(normalizedChannel, roomType);
+      const { token, url, ttl } = tokenResp;
 
       const tokenTime = performance.now() - startTime;
       console.log(`[LiveKitClient] Token ready in ${tokenTime.toFixed(0)}ms`);
@@ -830,6 +831,20 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       setIsJoined(true);
       setConnectionState('CONNECTED');
       setCurrentRole(config.role);
+
+      // Pkg189: schedule silent token refresh before TTL expiry.
+      if (tokenRefreshDetachRef.current) {
+        try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+      }
+      tokenRefreshDetachRef.current = attachLiveKitTokenRefresh(
+        room,
+        async () => {
+          const fresh = await getLiveKitToken(normalizedChannel, roomType);
+          return { token: fresh.token, url: fresh.url, ttl: fresh.ttl };
+        },
+        ttl ?? 60 * 60 * 6,
+        { label: `lk-live-${roomType}` }
+      );
 
       const joinTime = performance.now() - startTime;
       console.log(`[LiveKitClient] ✅ Connected in ${joinTime.toFixed(0)}ms`);
