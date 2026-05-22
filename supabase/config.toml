@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.livekit-move-participant]
 verify_jwt = true
+
+[functions.livekit-room-ops]
+verify_jwt = false
