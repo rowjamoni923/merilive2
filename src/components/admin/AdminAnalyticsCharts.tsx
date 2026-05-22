@@ -300,7 +300,7 @@ export const AdminAnalyticsCharts = memo(() => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                {chartGiftRevenue.some(d => d.Coins > 0) ? (
+                {chartGiftRevenue.some(d => d.Diamonds > 0) ? (
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={chartGiftRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                       <defs>
