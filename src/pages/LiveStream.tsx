@@ -3734,6 +3734,12 @@ const LiveStream = () => {
             onClose={() => setShowSimulcast(false)}
             streamId={id}
           />
+          <AgentDispatchDialog
+            open={showAgentDispatch}
+            onClose={() => setShowAgentDispatch(false)}
+            roomName={id ? `live_${id}` : ""}
+            scope="live"
+          />
           <RaiseHandQueueSheet
             open={showRaiseHandQueue}
             onClose={() => setShowRaiseHandQueue(false)}
