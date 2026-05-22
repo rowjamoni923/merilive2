@@ -4,6 +4,7 @@ import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundD
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
+import { RecordingDialog } from "@/components/livekit/RecordingDialog";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
