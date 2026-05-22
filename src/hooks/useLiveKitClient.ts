@@ -1526,6 +1526,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.streamsStreamId, isJoined]);
+
+  // Pkg120: bind for participant RPC (typed peer request/response).
+  useEffect(() => {
+    const streamId = options.rpcStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitRpc');
+        if (cancelled) return;
+        mod.registerRpcRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg120] registerRpcRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitRpc').then((mod) => {
+        mod.unregisterRpcRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.rpcStreamId, isJoined]);
   // Pkg105: bind for track-subscription permissions (host hard-block).
   useEffect(() => {
     const streamId = options.trackPermissionStreamId;
