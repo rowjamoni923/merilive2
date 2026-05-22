@@ -3213,6 +3213,7 @@ const LiveStream = () => {
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
                       Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
                       Cast: <Cast className="w-6 h-6" strokeWidth={1.8} />,
+                      Hand: <Hand className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
                     
