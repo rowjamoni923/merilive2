@@ -526,71 +526,60 @@ const ProfileDetail = () => {
     return () => clearInterval(interval);
   }, [purchasedItems.length]);
 
-  // Real-time subscription for profile level updates
+  // Pkg90: removed dead postgres_changes channel.
+  //   - `profiles` UPDATE: not in supabase_realtime publication → was silent no-op.
+  //     Own-row updates now flow via Pkg85 `own-beans-updated` + Pkg91 `app-sync`.
+  //   - `gift_transactions` INSERT was UNFILTERED → every gift system-wide woke every
+  //     mounted ProfileDetail (exact $1400-rule pattern). Pkg76 `livekit-gift-sent`
+  //     already covers in-stream; here a visibilitychange refetch is enough.
+  //   - `live_streams` filtered postgres_changes also not in publication → bounded
+  //     30s safety REST poll on this host's active stream (Pkg82c pattern).
   useEffect(() => {
     const targetId = userId || currentUser?.id;
     if (!targetId) return;
 
-    const channel = supabase
-      .channel(`profile-detail-realtime-${targetId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${targetId}`,
-        },
-        (payload) => {
-          console.log("[ProfileDetail] Real-time update:", payload.new);
-          // Update profile with new data including level
-          setProfile((prev) => prev ? { ...prev, ...payload.new } as ProfileData : null);
-          void fetchData(true);
+    const onAppSync = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { topic?: string; userId?: string } | undefined;
+      if (!detail) return;
+      // Own profile balance/level updates from server (Pkg91 app_sync)
+      if (currentUser?.id && targetId === currentUser.id) {
+        void fetchData(true);
+      } else if (detail.userId === targetId) {
+        void fetchData(true);
+      }
+    };
+    const onOwnBeans = () => {
+      if (currentUser?.id && targetId === currentUser.id) void fetchData(true);
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void fetchData(true);
+    };
+    // Bounded safety poll for this host's live status (30s, $1400-rule safe per Pkg57).
+    // guard-ok: bounded 30s poll, single host filter, Pkg82c pattern.
+    const liveStatusPoll = setInterval(async () => {
+      try {
+        const { data } = await supabase
+          .from('live_streams')
+          .select('id, title, viewer_count, is_active')
+          .eq('host_id', targetId)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (data) {
+          setActiveLiveStream({ id: data.id, title: data.title || '', viewer_count: data.viewer_count || 0 });
+        } else {
+          setActiveLiveStream(null);
         }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "gift_transactions",
-        },
-        (payload) => {
-          const tx = payload.new as any;
-          // Refetch if this profile is sender or receiver
-          if (tx.sender_id === targetId || tx.receiver_id === targetId) {
-            fetchData();
-          }
-        }
-      )
-      // ⚡ LIVE STATUS: Instant update when stream ends or starts for this user
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "live_streams",
-          filter: `host_id=eq.${targetId}`,
-        },
-        (payload) => {
-          const stream = payload.new as any;
-          if (payload.eventType === "INSERT" && stream?.is_active) {
-            setActiveLiveStream({ id: stream.id, title: stream.title || "", viewer_count: stream.viewer_count || 0 });
-          } else if (payload.eventType === "UPDATE") {
-            if (stream?.is_active) {
-              setActiveLiveStream({ id: stream.id, title: stream.title || "", viewer_count: stream.viewer_count || 0 });
-            } else {
-              setActiveLiveStream(null);
-            }
-          } else if (payload.eventType === "DELETE") {
-            setActiveLiveStream(null);
-          }
-        }
-      )
-      .subscribe();
+      } catch { /* noop */ }
+    }, 30000);
 
+    window.addEventListener('app-sync', onAppSync as EventListener);
+    window.addEventListener('own-beans-updated', onOwnBeans);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('app-sync', onAppSync as EventListener);
+      window.removeEventListener('own-beans-updated', onOwnBeans);
+      document.removeEventListener('visibilitychange', onVisible);
+      clearInterval(liveStatusPoll);
     };
   }, [userId, currentUser?.id, fetchData]);
 
