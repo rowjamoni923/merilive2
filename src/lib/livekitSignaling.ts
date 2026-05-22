@@ -31,7 +31,8 @@ export type LiveKitFeature =
   | 'transcription'
   | 'agent'
   | 'virtual_background'
-  | 'rpc';
+  | 'rpc'
+  | 'streams';
 
 
 
@@ -77,6 +78,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   agent: false, // Pkg117: OFF by default; admin opts in via app_settings
   virtual_background: false, // Pkg119: OFF by default; admin opts in via app_settings
   rpc: true, // Pkg120: ON by default — peer-to-peer LiveKit RPC wrapper (admin can flip OFF)
+  streams: true, // Pkg121: ON by default — text/file streams wrapper (admin can flip OFF)
 };
 
 
@@ -117,6 +119,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       agent: parsed.agent === true, // Pkg117: explicit opt-in only
       virtual_background: parsed.virtual_background === true, // Pkg119: explicit opt-in only
       rpc: parsed.rpc !== false, // Pkg120: ON unless admin explicitly disables
+      streams: parsed.streams !== false, // Pkg121: ON unless admin explicitly disables
     };
 
 
