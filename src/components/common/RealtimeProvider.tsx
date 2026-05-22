@@ -99,6 +99,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
                   payload: data,
                 },
               }));
+              document.dispatchEvent(new Event('visibilitychange'));
             }
             return;
           }
