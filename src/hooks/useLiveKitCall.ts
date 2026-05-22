@@ -31,6 +31,7 @@ import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/live
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
+import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
