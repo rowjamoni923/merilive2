@@ -17822,7 +17822,9 @@ export type Database = {
           task_id: string
         }[]
       }
-      get_effective_host_percent: { Args: never; Returns: number }
+      get_effective_host_percent:
+        | { Args: never; Returns: number }
+        | { Args: { p_user_id: string }; Returns: number }
       get_effective_user_receiver_percent: { Args: never; Returns: number }
       get_game_rankings_leaderboard: {
         Args: { p_period_type?: string }
