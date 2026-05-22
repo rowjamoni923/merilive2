@@ -36,7 +36,8 @@ export type LiveKitFeature =
   | 'room_metadata'
   | 'noise_cancellation'
   | 'hls_egress'
-  | 'moderation';
+  | 'moderation'
+  | 'forward_participant';
 
 
 
@@ -87,6 +88,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   noise_cancellation: false, // Pkg123: OFF by default — Krisp noise filter (admin opts in)
   hls_egress: false, // Pkg126: OFF by default — HLS (.m3u8) recording (admin opts in)
   moderation: true, // Pkg127: ON by default — host mute-all/kick (admin can flip OFF instantly)
+  forward_participant: false, // Pkg128: OFF by default — move participant between rooms (admin opts in)
 };
 
 
@@ -132,6 +134,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       noise_cancellation: parsed.noise_cancellation === true, // Pkg123: explicit opt-in only
       hls_egress: parsed.hls_egress === true, // Pkg126: explicit opt-in only
       moderation: parsed.moderation !== false, // Pkg127: ON unless admin explicitly disables
+      forward_participant: parsed.forward_participant === true, // Pkg128: explicit opt-in only
     };
 
 
