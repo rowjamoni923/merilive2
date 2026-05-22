@@ -21,6 +21,13 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('authorization') || ''
+    if (!authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ synced: false, reason: 'unauthorized' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     const newUrl = Deno.env.get('SUPABASE_URL')!
     const newKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const newClient = createClient(newUrl, newKey)
@@ -28,8 +35,8 @@ Deno.serve(async (req) => {
     const token = authHeader.replace('Bearer ', '').trim()
     const { data: { user }, error: userError } = await newClient.auth.getUser(token)
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
+      return new Response(JSON.stringify({ synced: false, reason: 'unauthorized' }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
