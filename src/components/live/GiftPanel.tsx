@@ -668,16 +668,23 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 onClick={handleSend}
                 disabled={!hasBalance}
                 className={cn(
-                  "w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform",
+                  "relative w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform overflow-hidden",
                   hasBalance
-                    ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-[0_4px_20px_rgba(236,72,153,0.35)]"
+                    ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white animate-[giftSendBreathe_2.4s_ease-in-out_infinite]"
                     : "bg-white/10 text-white/30"
                 )}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                <Send className="w-4 h-4" />
-                <span>Send</span>
-                <Sparkles className="w-3.5 h-3.5" />
+                {hasBalance && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 left-0 w-1/3 animate-[giftSendShine_2.6s_ease-in-out_infinite]"
+                    style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)' }}
+                  />
+                )}
+                <Send className="w-4 h-4 relative" />
+                <span className="relative">Send</span>
+                <Sparkles className="w-3.5 h-3.5 relative" />
               </button>
             ) : (
               <div className="flex items-center justify-end gap-3">
@@ -693,7 +700,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   disabled={!hasBalance}
                   className={cn(
                     "relative w-20 h-20 rounded-full flex items-center justify-center active:scale-95 transition-transform select-none",
-                    hasBalance ? "" : "opacity-50"
+                    hasBalance ? "animate-[giftComboPulse_1.4s_ease-in-out_infinite]" : "opacity-50"
                   )}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                   aria-label="Combo send"
@@ -718,9 +725,14 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                     </defs>
                   </svg>
                   {/* Inner button */}
-                  <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-500 to-purple-600 flex flex-col items-center justify-center shadow-[0_6px_24px_rgba(236,72,153,0.45)]">
-                    <span className="text-white font-black text-base leading-none">COMBO</span>
-                    <span className="text-white/90 font-bold text-[10px] leading-none mt-0.5">Tap!</span>
+                  <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-500 to-purple-600 flex flex-col items-center justify-center overflow-hidden">
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-y-0 left-0 w-1/2 animate-[giftSendShine_1.8s_ease-in-out_infinite]"
+                      style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }}
+                    />
+                    <span className="text-white font-black text-base leading-none relative">COMBO</span>
+                    <span className="text-white/90 font-bold text-[10px] leading-none mt-0.5 relative">Tap!</span>
                   </div>
                 </button>
               </div>
