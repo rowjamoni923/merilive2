@@ -47,7 +47,8 @@ export type LiveKitFeature =
   | 'ingress_ops'
   | 'sip_ops'
   | 'agent_ops'
-  | 'webhook_events_ops';
+  | 'webhook_events_ops'
+  | 'auto_audio_only';
 
 
 
@@ -109,6 +110,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   sip_ops: false, // Pkg138: OFF by default — admin LiveKit SIP trunk/rule inspection + delete (admin opts in)
   agent_ops: false, // Pkg139: OFF by default — admin LiveKit Agent dispatch inspection + cancel (admin opts in)
   webhook_events_ops: false, // Pkg140: OFF by default — admin LiveKit webhook events audit stream viewer (admin opts in)
+  auto_audio_only: true, // Pkg154: ON by default — auto unsubscribe remote video on poor connection (admin can flip OFF)
 };
 
 
@@ -165,6 +167,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       sip_ops: parsed.sip_ops === true, // Pkg138: explicit opt-in only
       agent_ops: parsed.agent_ops === true, // Pkg139: explicit opt-in only
       webhook_events_ops: parsed.webhook_events_ops === true, // Pkg140: explicit opt-in only
+      auto_audio_only: parsed.auto_audio_only !== false, // Pkg154: ON unless admin explicitly disables
     };
 
 

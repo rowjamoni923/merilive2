@@ -23,6 +23,7 @@ import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/liveki
 import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
+import { registerAutoAudioOnlyRoom, unregisterAutoAudioOnlyRoom } from '@/lib/livekitAutoAudioOnly';
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
@@ -102,6 +103,7 @@ export function usePartyRoomWebRTC(
     try { unregisterChatRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterActiveSpeakerRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterConnectionQualityRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterAutoAudioOnlyRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRoomMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterStreamRoom('party', roomId); } catch { /* ignore */ }
@@ -505,6 +507,12 @@ export function usePartyRoomWebRTC(
           registerConnectionQualityRoom('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg101] registerConnectionQualityRoom(party) failed:', err);
+        }
+        // Pkg154: auto audio-only on sustained poor connection.
+        try {
+          registerAutoAudioOnlyRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg154] registerAutoAudioOnlyRoom(party) failed:', err);
         }
         // Pkg107: participant metadata sync (AFK/mod flags/theme).
         try {
