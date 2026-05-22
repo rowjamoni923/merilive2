@@ -1,0 +1,2 @@
+ALTER TABLE public.gift_transactions
+ADD COLUMN IF NOT EXISTS total_coins INTEGER NOT NULL DEFAULT 0;
