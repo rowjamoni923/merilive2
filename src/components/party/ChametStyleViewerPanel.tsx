@@ -279,6 +279,15 @@ export const ChametStyleViewerPanel = ({
                               >
                                 <UserX className="w-4 h-4" />
                               </Button>
+                              {onModerateViewer && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => onModerateViewer(viewer.id, viewer.displayName)}
+                                  className="bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-full px-3"
+                                >
+                                  <Shield className="w-4 h-4" />
+                                </Button>
+                              )}
                             </div>
                           )}
                         </motion.div>
