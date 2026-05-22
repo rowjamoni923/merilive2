@@ -1049,8 +1049,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     try {
       await room.localParticipant.setScreenShareEnabled(true);
       setIsScreenSharing(true);
+      // Pkg102: expose the published screen track so the host UI can render
+      // its own preview overlay (LiveKit only auto-renders remote tracks).
+      try {
+        const pub = room.localParticipant.getTrackPublication(Track.Source.ScreenShare);
+        const t = (pub as any)?.videoTrack || (pub as any)?.track || null;
+        if (t) setScreenTrack(t);
+      } catch { /* ignore */ }
     } catch (err) {
       console.error('[LiveKitClient] Screen share error:', err);
+      setIsScreenSharing(false);
+      throw err;
     }
   }, [isScreenSharing]);
 
