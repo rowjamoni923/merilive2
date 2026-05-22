@@ -150,7 +150,7 @@ const SearchUsers = () => {
       const tagPromise = tags.length > 0
         ? supabase
             .from('profiles_public')
-            .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
+            .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, gender, user_level, host_level, max_user_level, country_flag, bio, tags, app_uid')
             .overlaps('tags', tags)
             .limit(50)
         : Promise.resolve({ data: [] as UserProfile[] });
