@@ -35,7 +35,8 @@ export type LiveKitFeature =
   | 'streams'
   | 'room_metadata'
   | 'noise_cancellation'
-  | 'hls_egress';
+  | 'hls_egress'
+  | 'moderation';
 
 
 
