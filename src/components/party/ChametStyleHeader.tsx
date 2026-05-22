@@ -80,22 +80,33 @@ export const ChametStyleHeader = ({
           <motion.div
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 relative overflow-hidden"
+            transition={{ type: "spring", stiffness: 320, damping: 26, mass: 0.7 }}
+            className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 relative overflow-hidden will-change-transform"
             style={{
               background: "linear-gradient(135deg, rgba(10,10,20,0.88), rgba(25,15,45,0.85))",
               backdropFilter: "blur(20px)",
               border: "1px solid rgba(168,85,247,0.12)",
               boxShadow: "0 6px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)",
+              transform: "translateZ(0)",
             }}
           >
-            {/* Shimmer */}
+            {/* Top shimmer */}
             <motion.div
               className="absolute top-0 left-0 right-0 h-px"
               style={{ background: "linear-gradient(90deg, transparent, rgba(168,85,247,0.35), transparent)" }}
               animate={{ opacity: [0.3, 0.7, 0.3] }}
               transition={{ duration: 3, repeat: Infinity }}
             />
+            {/* Specular shine sweep — premium glass feel */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.10) 50%, transparent 65%)",
+              }}
+              animate={{ x: ["-110%", "120%"] }}
+              transition={{ duration: 4.5, repeat: Infinity, ease: "linear", repeatDelay: 2.2 }}
+            />
+
 
             {/* Avatar */}
             <div onClick={() => hostId && navigate(`/profile/${hostId}`)} className="cursor-pointer relative">
@@ -177,16 +188,26 @@ export const ChametStyleHeader = ({
               boxShadow: "0 6px 20px rgba(168,85,247,0.35)",
             }}
           >
+            {/* Pulsing live dot — Bigo-style "LIVE" energy */}
+            <motion.div
+              className="relative z-10 w-2 h-2 rounded-full bg-white"
+              animate={{ opacity: [1, 0.45, 1], scale: [1, 0.85, 1] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              style={{ boxShadow: "0 0 8px rgba(255,255,255,0.7)" }}
+            />
             <Users className="w-3.5 h-3.5 text-white relative z-10" />
             <motion.span
               key={viewerCount}
-              initial={{ scale: 1.3 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 1.45, y: -3, opacity: 0.6 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              transition={{ type: "spring", damping: 12, stiffness: 380 }}
               className="text-white text-xs font-black relative z-10 tabular-nums"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}
             >
-              {viewerCount}
+              {formatNumber(viewerCount)}
             </motion.span>
             <ChevronRight className="w-3 h-3 text-white/60 relative z-10" />
+
 
             {/* Pending badge */}
             <AnimatePresence>
@@ -220,21 +241,35 @@ export const ChametStyleHeader = ({
             {topThree.map((viewer, i) => (
               <motion.div
                 key={viewer.id}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.25 + i * 0.08 }}
-                className="relative"
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", damping: 14, stiffness: 320, delay: 0.25 + i * 0.08 }}
+                whileTap={{ scale: 0.9 }}
+                className="relative cursor-pointer"
                 onClick={() => navigate(`/profile/${viewer.id}`)}
               >
+                {/* Rank-1 rotating gold shimmer ring */}
+                {i === 0 && (
+                  <motion.div
+                    className="absolute -inset-1 rounded-full pointer-events-none"
+                    style={{
+                      background: "conic-gradient(from 0deg, transparent, rgba(251,191,36,0.85), transparent 40%, transparent 60%, rgba(251,191,36,0.85), transparent)",
+                      filter: "blur(2px)",
+                    }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                  />
+                )}
                 <Avatar
                   className={cn(
-                    "w-7 h-7 cursor-pointer ring-[1.5px] shadow-md",
+                    "w-7 h-7 ring-[1.5px] shadow-md relative",
                     i === 0
                       ? "ring-amber-400"
                       : i === 1
                       ? "ring-slate-300"
                       : "ring-amber-600"
                   )}
+                  style={i === 0 ? { boxShadow: "0 0 10px rgba(251,191,36,0.55)" } : undefined}
                 >
                   <AvatarImage
                     src={viewer.avatarUrl || getDisplayAvatar(viewer.displayName)}
@@ -244,7 +279,7 @@ export const ChametStyleHeader = ({
                     {viewer.displayName.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="absolute -bottom-0.5 -right-0.5 text-[7px] leading-none drop-shadow-md">
+                <span className="absolute -bottom-0.5 -right-0.5 text-[7px] leading-none drop-shadow-md z-10">
                   {RANK_MEDALS[i]}
                 </span>
               </motion.div>
@@ -252,6 +287,7 @@ export const ChametStyleHeader = ({
           </motion.div>
         )}
       </div>
+
     </div>
   );
 };
