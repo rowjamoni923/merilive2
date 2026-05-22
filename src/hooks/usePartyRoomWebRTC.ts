@@ -506,6 +506,13 @@ export function usePartyRoomWebRTC(
         } catch (err) {
           console.warn('[Pkg122] registerRoomMetadataRoom(party) failed:', err);
         }
+        // Pkg121: bind for text/byte streams (chunked chat, file attachments).
+        try {
+          registerStreamRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg121] registerStreamRoom(party) failed:', err);
+        }
+
 
         setState(prev => ({
           ...prev,
