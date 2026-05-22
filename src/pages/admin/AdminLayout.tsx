@@ -920,6 +920,13 @@ const navGroups: NavGroup[] = [
         description: "Pkg136 — every active recording / HLS / RTMP simulcast job. Inspect status, view file outputs, swap layout on room-composite jobs.",
       },
       {
+        label: "LiveKit Ingress",
+        icon: Antenna,
+        path: "/admin/livekit-ingress",
+        hubKey: "content-hub",
+        description: "Pkg137 — inspect RTMP/WHIP ingress jobs (OBS / external encoders). Safe delete with confirmation. Stream keys server-masked.",
+      },
+      {
         label: "LiveKit SIP",
         icon: Phone,
         path: "/admin/livekit-sip",
