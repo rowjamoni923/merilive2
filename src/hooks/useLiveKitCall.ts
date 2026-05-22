@@ -182,6 +182,10 @@ export function useLiveKitCall(
       setNativeActive(false);
     }
 
+    if (tokenRefreshDetachRef.current) {
+      try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+      tokenRefreshDetachRef.current = null;
+    }
     if (roomRef.current) {
       roomRef.current.disconnect(true);
       roomRef.current = null;
