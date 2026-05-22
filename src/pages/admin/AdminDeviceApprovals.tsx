@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
+import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,14 +55,13 @@ export default function AdminDeviceApprovals() {
     load();
 
     if (!session?.admin_id) return;
-    const channel = adminSupabase
-      .channel(`owner-device-approvals-${crypto.randomUUID()}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_allowed_devices' }, () => {
-        load();
-      })
-      .subscribe();
+    const handleDeviceSync = (event: Event) => {
+      const detail = (event as CustomEvent<AdminTableUpdateEvent>).detail;
+      if (detail?.table === 'admin_allowed_devices') load();
+    };
+    window.addEventListener(ADMIN_REALTIME_EVENT, handleDeviceSync);
 
-    return () => { adminSupabase.removeChannel(channel); };
+    return () => { window.removeEventListener(ADMIN_REALTIME_EVENT, handleDeviceSync); };
   }, [session?.admin_id]);
 
   const approve = async (id: string) => {
