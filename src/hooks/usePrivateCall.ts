@@ -1162,32 +1162,9 @@ export function usePrivateCall(userId: string | null) {
     if (!userId) return;
     let isCleanedUp = false;
 
-
-        // Ignore events from a different active call; if callId isn't set yet, bind now
-        if (trackedCallId && trackedCallId !== data.callId) return;
-        if (!trackedCallId) {
-          currentCallIdRef.current = data.callId;
-          setCallState(prev => (
-            prev.status === 'calling' || prev.status === 'ringing'
-              ? { ...prev, callId: data.callId }
-              : prev
-          ));
-        }
-
-        if (endedCallIdsRef.current.has(data.callId) || callEndedRef.current) return;
-
-        console.log('[Broadcast] ⚡ INSTANT call-accepted received for:', data.callId);
-        activateCallerConnectedState(data.callId);
-      })
-      // Pkg78: Supabase `call_ended` listener REMOVED — Pkg73 LiveKit
-      // DataPacket (livekit-call-ended window event handler below) is the
-      // sole peer-hangup receiver. `call_accepted` broadcast is retained
-      // because it's outside Pkg73 scope (caller-side accept signaling).
-      .subscribe();
-
     // 🔥 Pkg73: LiveKit DataPacket peer notification (sub-50ms, no DB round-trip).
-    // Mirrors the Supabase 'call_ended' handler above; both paths converge on
-    // softEndCallRef + endedCallIdsRef so the same call is processed exactly once.
+    // Single sole receiver for call_ended — Supabase removed in Pkg78 + Pkg86.
+
     const handleLiveKitCallEnded = (ev: Event) => {
       if (isCleanedUp) return;
       const detail = (ev as CustomEvent<CallEndedDetail>).detail;
