@@ -81,7 +81,12 @@ export function registerTrackPermissionRoom(scope: Scope, id: string, room: Room
   // Different room → unregister old first.
   if (existing) existing.off?.();
 
-  const entry: Entry = { room, blocked: existing?.blocked ?? new Set() };
+  const entry: Entry = {
+    room,
+    blocked: existing?.blocked ?? new Set(),
+    mode: existing?.mode ?? 'blocklist',
+    allowedTrackSids: existing?.allowedTrackSids,
+  };
 
   // Re-apply when a participant joins (could be a blocked viewer).
   const handler = () => applyPermissions(entry);
@@ -114,11 +119,11 @@ export function setHostBlocklist(scope: Scope, id: string, blocked: Set<string>)
   const key = keyOf(scope, id);
   const e = registry.get(key);
   if (!e) {
-    // Room not yet registered — stash the set so it applies on register.
-    registry.set(key, { room: null as any, blocked: new Set(blocked) });
+    registry.set(key, { room: null as any, blocked: new Set(blocked), mode: 'blocklist' });
     return;
   }
   e.blocked = new Set(blocked);
+  e.mode = 'blocklist';
   if (e.room) applyPermissions(e);
 }
 
@@ -126,7 +131,7 @@ export function addToHostBlocklist(scope: Scope, id: string, identity: string) {
   const key = keyOf(scope, id);
   const e = registry.get(key);
   if (!e) {
-    registry.set(key, { room: null as any, blocked: new Set([identity]) });
+    registry.set(key, { room: null as any, blocked: new Set([identity]), mode: 'blocklist' });
     return;
   }
   e.blocked.add(identity);
@@ -138,6 +143,49 @@ export function removeFromHostBlocklist(scope: Scope, id: string, identity: stri
   const e = registry.get(key);
   if (!e) return;
   e.blocked.delete(identity);
+  if (e.room) applyPermissions(e);
+}
+
+// ─── Pkg193 — Allowlist mode (Item #5, sub-participant advanced control) ─
+
+/**
+ * Switch to allowlist mode: deny ALL viewers from subscribing to the host's
+ * tracks except the listed identities. Use for private/VIP-only rooms.
+ *
+ * @param allowedTrackSids Optional — restrict grant to specific track SIDs
+ *   (e.g. only allow audio, deny video). Pass `undefined` to grant all.
+ */
+export function setHostAllowlist(
+  scope: Scope,
+  id: string,
+  allowed: Set<string>,
+  allowedTrackSids?: string[],
+) {
+  const key = keyOf(scope, id);
+  const e = registry.get(key);
+  if (!e) {
+    registry.set(key, {
+      room: null as any,
+      blocked: new Set(allowed),
+      mode: 'allowlist',
+      allowedTrackSids,
+    });
+    return;
+  }
+  e.blocked = new Set(allowed);
+  e.mode = 'allowlist';
+  e.allowedTrackSids = allowedTrackSids;
+  if (e.room) applyPermissions(e);
+}
+
+/** Reset to default-open: everyone allowed, no overrides. */
+export function clearHostPermissions(scope: Scope, id: string) {
+  const key = keyOf(scope, id);
+  const e = registry.get(key);
+  if (!e) return;
+  e.blocked = new Set();
+  e.mode = 'blocklist';
+  e.allowedTrackSids = undefined;
   if (e.room) applyPermissions(e);
 }
 
