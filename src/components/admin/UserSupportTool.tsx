@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { dispatchAdminTableUpdate } from "@/hooks/useAdminRealtime";
+import { ADMIN_REALTIME_EVENT, dispatchAdminTableUpdate, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
 import { toast } from "sonner";
 import {
   Search, Loader2, User, Crown, Ban, Unlock,
@@ -203,19 +203,14 @@ export default function UserSupportTool() {
       void loadUserContext(userId, agencyId);
     };
 
-    let channel = supabase
-      .channel(`uid-support-live-${userId}-${crypto.randomUUID()}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` }, sync)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'face_verification_submissions', filter: `user_id=eq.${userId}` }, sync);
-
-    if (agencyId) {
-      channel = channel.on('postgres_changes', { event: '*', schema: 'public', table: 'agencies', filter: `id=eq.${agencyId}` }, sync);
-    }
-
-    channel.subscribe();
+    const handleSupportSync = (event: Event) => {
+      const table = (event as CustomEvent<AdminTableUpdateEvent>).detail?.table;
+      if (table === 'profiles' || table === 'face_verification_submissions' || table === 'agencies') sync();
+    };
+    window.addEventListener(ADMIN_REALTIME_EVENT, handleSupportSync);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener(ADMIN_REALTIME_EVENT, handleSupportSync);
     };
   }, [selectedUser?.id, selectedUser?.agency_id, loadUserContext]);
 
