@@ -77,3 +77,6 @@ verify_jwt = false
 
 [functions.swift-pay-create-payout]
 verify_jwt = false
+
+[functions.livekit-move-participant]
+verify_jwt = true
