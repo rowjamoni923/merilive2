@@ -3304,9 +3304,11 @@ const LiveStream = () => {
           challengerName={pkBattleState.challengerInfo.name}
           challengerAvatar={pkBattleState.challengerInfo.avatar}
           challengerLevel={pkBattleState.challengerInfo.level}
+          challengerId={pkBattleState.challengerInfo.id}
           opponentName={pkBattleState.opponentInfo.name}
           opponentAvatar={pkBattleState.opponentInfo.avatar}
           opponentLevel={pkBattleState.opponentInfo.level}
+          opponentId={pkBattleState.opponentInfo.id}
           onBattleEnd={handlePKBattleEnd}
         />
       )}
