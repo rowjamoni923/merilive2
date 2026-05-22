@@ -405,7 +405,19 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // Set up room event handlers
       room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
         const pUid = getUidForParticipant(participant.identity);
-        console.log(`[LiveKitClient] Track subscribed: ${track.kind} from ${participant.identity} (uid: ${pUid})`);
+        console.log(`[LiveKitClient] Track subscribed: ${track.kind}/${publication.source} from ${participant.identity} (uid: ${pUid})`);
+
+        // Pkg102: route screen-share video into separate map so it doesn't
+        // clobber the host camera tile. Viewer renders it as an overlay.
+        if (track.kind === Track.Kind.Video && publication.source === Track.Source.ScreenShare) {
+          setRemoteScreenTracks(prev => {
+            const next = new Map(prev);
+            next.set(participant.identity, track);
+            return next;
+          });
+          options.onUserJoined?.(pUid);
+          return;
+        }
 
         if (track.kind === Track.Kind.Audio && !isRemoteAudioMuted) {
           const audioEl = track.attach();
@@ -434,7 +446,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
           // Also check for audio
           participant.trackPublications.forEach(pub => {
-            if (pub.track?.kind === Track.Kind.Audio) {
+            if (pub.track?.kind === Track.Kind.Audio && pub.source !== Track.Source.ScreenShareAudio) {
               userWrapper.audioTrack = pub.track;
               userWrapper.hasAudio = true;
             }
@@ -444,6 +456,18 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
 
         options.onUserJoined?.(pUid);
+      });
+
+      // Pkg102: clean up screen-share map on unsubscribe / unpublish.
+      room.on(RoomEvent.TrackUnsubscribed, (_track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        if (publication.source === Track.Source.ScreenShare) {
+          setRemoteScreenTracks(prev => {
+            if (!prev.has(participant.identity)) return prev;
+            const next = new Map(prev);
+            next.delete(participant.identity);
+            return next;
+          });
+        }
       });
 
       // Subscribe immediately as soon as remote track is published to reduce first-frame delay
