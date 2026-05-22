@@ -3187,7 +3187,7 @@ const Chat = () => {
                       userId={conv.other_user.id}
                       src={conv.other_user?.avatar_url}
                       name={conv.other_user?.display_name || 'User'}
-                      level={conv.other_user?.user_level || 1}
+                      level={pickDisplayLevel(conv.other_user as any)}
                       size="md"
                       showAnimation={false}
                     />
