@@ -28,6 +28,7 @@ import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/live
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
+import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
