@@ -323,6 +323,12 @@ export const useNotifications = () => {
         },
         (payload) => {
           const newNotification = { ...payload.new as Notification, source: 'regular' as const };
+          try {
+            window.dispatchEvent(new CustomEvent('notifications:change', {
+              detail: { eventType: 'INSERT', notification: newNotification },
+            }));
+          } catch {/* noop */}
+
           if (newNotification.type === 'app_sync') {
             const data = (newNotification.data || {}) as Record<string, any>;
             if (typeof data.topic === 'string') {
@@ -411,6 +417,11 @@ export const useNotifications = () => {
           filter: `user_id=eq.${currentUserId}`
         },
         () => {
+          try {
+            window.dispatchEvent(new CustomEvent('notifications:change', {
+              detail: { eventType: 'UPDATE' },
+            }));
+          } catch {/* noop */}
           fetchNotificationsRef.current();
         }
       )

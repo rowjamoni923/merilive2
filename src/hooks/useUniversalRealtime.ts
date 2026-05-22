@@ -58,16 +58,9 @@ const HIGH_FREQUENCY_TABLES = new Set<string>();
 // ⚡ COST-OPTIMISED: Only tables in the Supabase Realtime publication may bind.
 // Room/call/live/party/PK/gift/chat fanout is LiveKit/FCM + REST snapshots only.
 // Each postgres_changes subscription generates realtime messages that cost $2.50/million.
-const BASE_MONITORED_TABLES: TableSubscription[] = [
-  // Only approved user-facing realtime table. Admin sync uses admin_broadcast elsewhere.
-  { table: 'notifications' },
-];
+const BASE_MONITORED_TABLES: TableSubscription[] = [];
 
-const REALTIME_PUBLICATION_TABLES = new Set([
-  'admin_broadcast',
-  'notifications',
-  'user_active_sessions',
-]);
+const REALTIME_PUBLICATION_TABLES = new Set<string>();
 
 const getActiveMonitoredTables = (): TableSubscription[] => {
   const tables = new Set<string>(BASE_MONITORED_TABLES.map((t) => t.table));
@@ -146,6 +139,11 @@ const ensureExternalSyncBridge = () => {
     const detail = (event as CustomEvent<any>).detail || {};
     notifySubscribers('profiles', 'UPDATE', detail);
   });
+
+  window.addEventListener('notifications:change', (event: Event) => {
+    const detail = (event as CustomEvent<any>).detail || {};
+    notifySubscribers('notifications', normalizeEventType(detail.eventType), detail.notification || detail.payload || detail);
+  });
 };
 
 // ============= Channel Management =============
@@ -207,6 +205,18 @@ const cleanupUniversalChannels = async () => {
 
 const initializeUniversalChannel = async () => {
   if (universalChannel || isInitializing || !hasActiveSubscribers()) return;
+
+  // Pkg94 audit: this bridge must NOT open its own postgres_changes channel.
+  // `useNotifications` owns the only user-facing notifications subscription
+  // with a strict `user_id=eq.<currentUser>` filter. Admin/app sync reaches
+  // this bridge through window events (`admin-table-update`, `app-sync`,
+  // `own-beans-updated`) registered in ensureExternalSyncBridge().
+  const monitoredTables = getActiveMonitoredTables();
+  if (monitoredTables.length === 0) {
+    isConnected = false;
+    return;
+  }
+
   isInitializing = true;
 
   console.log('[UniversalRealtime] 🚀 Initializing...');
@@ -230,8 +240,7 @@ const initializeUniversalChannel = async () => {
       }
     });
 
-    // Subscribe to all currently requested tables (dynamic)
-    const monitoredTables = getActiveMonitoredTables();
+    // Subscribe only to explicitly publication-approved tables (dynamic).
     activeTableSet.clear();
     monitoredTables.forEach(({ table }) => activeTableSet.add(table));
 
