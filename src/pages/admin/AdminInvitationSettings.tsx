@@ -291,7 +291,7 @@ const AdminInvitationSettings = () => {
                   <Input type="number" value={formData.reward_beans || 0} onChange={(e) => setFormData({ ...formData, reward_beans: parseInt(e.target.value) })} />
                 </div>
                 <div>
-                  <Label>Coins Reward</Label>
+                  <Label>Diamonds Reward</Label>
                   <Input type="number" value={formData.reward_coins || 0} onChange={(e) => setFormData({ ...formData, reward_coins: parseInt(e.target.value) })} />
                 </div>
               </div>

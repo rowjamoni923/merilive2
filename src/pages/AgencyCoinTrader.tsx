@@ -821,7 +821,7 @@ const AgencyCoinTrader = () => {
                   {tradeAmount && (
                     <div className="bg-success-50 rounded-lg p-3">
                       <div className="flex justify-between text-sm">
-                        <span>Coins:</span>
+                        <span>Diamonds:</span>
                         <span className="font-bold">{parseFloat(tradeAmount).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-sm mt-1">

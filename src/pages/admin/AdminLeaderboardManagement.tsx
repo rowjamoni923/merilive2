@@ -649,7 +649,7 @@ const AdminLeaderboardManagement = () => {
                         />
                       </div>
                       <div>
-                        <Label className="text-white/50 text-[10px]">Coins 💰</Label>
+                        <Label className="text-white/50 text-[10px]">Diamonds 💰</Label>
                         <Input
                           type="number" min={0}
                           value={reward.reward_coins}

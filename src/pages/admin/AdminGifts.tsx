@@ -1003,7 +1003,7 @@ export default function AdminGifts() {
 
             {/* Coin Value */}
             <div>
-              <Label className="text-slate-300 font-medium text-sm md:text-base">Coin Value</Label>
+              <Label className="text-slate-300 font-medium text-sm md:text-base">Diamond Value</Label>
               <Input
                 type="number"
                 value={formData.coin_value}

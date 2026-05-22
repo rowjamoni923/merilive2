@@ -211,7 +211,7 @@ export const AdminAnalyticsCharts = memo(() => {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <SummaryCard icon={DollarSign} label="Revenue" value={formatNumber(summary.total_revenue_period)} color={COLORS.revenue} />
-          <SummaryCard icon={Gift} label="Gifts (Coins)" value={formatNumber(summary.total_gifts_period)} color={COLORS.coins} />
+          <SummaryCard icon={Gift} label="Gifts (Diamonds)" value={formatNumber(summary.total_gifts_period)} color={COLORS.coins} />
           <SummaryCard icon={Phone} label="Calls" value={formatNumber(summary.total_calls_period)} color={COLORS.calls} />
           <SummaryCard icon={Users} label="New Users" value={formatNumber(summary.total_new_users_period)} color={COLORS.users} />
           <SummaryCard icon={Zap} label="New Hosts" value={formatNumber(summary.total_new_hosts_period)} color={COLORS.hosts} />
@@ -313,7 +313,7 @@ export const AdminAnalyticsCharts = memo(() => {
                       <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="Coins" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Diamonds" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : <ChartEmpty label="gifts sent" />}
