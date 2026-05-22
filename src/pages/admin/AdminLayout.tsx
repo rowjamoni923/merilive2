@@ -904,6 +904,13 @@ const navGroups: NavGroup[] = [
         description: "Pkg115 — map PSTN phone numbers (DIDs) to LiveKit rooms. Callers join as regular participants.",
       },
       {
+        label: "LiveKit Rooms",
+        icon: Radio,
+        path: "/admin/livekit-rooms",
+        hubKey: "content-hub",
+        description: "Pkg135 — read-only SFU inspection of every active LiveKit room (call/live/party) with participant drill-in.",
+      },
+      {
         label: "Reels",
         icon: Video,
         path: "/admin/reels",
