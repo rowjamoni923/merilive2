@@ -1199,10 +1199,11 @@ const PartyRoom = () => {
       // FRESH fetch of profile to ensure we have latest equipped_entrance_id
       // This is critical because user might have just equipped an animation on VIP page
       const { data: freshProfile } = await supabase
-        .from('profiles')
+        .from('profiles') // guard-ok: owner-only self equipped-asset fetch
         .select('equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
         .eq('id', currentUser.id)
         .single();
+
       
       const entranceId = freshProfile?.equipped_entrance_id || currentUser.profile?.equipped_entrance_id;
       const nameBarId = freshProfile?.equipped_entry_name_bar_id || currentUser.profile?.equipped_entry_name_bar_id;
