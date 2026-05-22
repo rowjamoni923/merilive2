@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
+import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
@@ -24,6 +25,7 @@ import {
   Sparkles,
   RotateCcw,
   MonitorUp,
+  ShieldCheck,
   Gamepad2,
   Swords,
   MessageCircle,
@@ -180,6 +182,7 @@ const LiveStream = () => {
   const [showStickerPanel, setShowStickerPanel] = useState(false);
   // Pkg125: Virtual Background dialog (web hosts only)
   const [showVirtualBackground, setShowVirtualBackground] = useState(false);
+  const [showNoiseCancellation, setShowNoiseCancellation] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -574,6 +577,7 @@ const LiveStream = () => {
     isLoading,
     connectionState,
     localVideoTrack,
+    localAudioTrack,
     isNativeMediaActive,
     remoteUsers,
     error: livekitError,
@@ -2277,6 +2281,15 @@ const LiveStream = () => {
         }
         setShowVirtualBackground(true);
       } },
+    // Pkg123: Noise Cancellation toggle (Krisp — web hosts; native uses WebRTC NS)
+    { id: "noisecancel", name: "Noise Cut", iconName: "ShieldCheck" as const, color: "from-sky-400 to-indigo-600", shadowColor: "shadow-sky-500/40", action: () => {
+        setShowMoreOptions(false);
+        if (deepAR.isNativeAndroid) {
+          toast.info("Native mic uses built-in noise suppression.");
+          return;
+        }
+        setShowNoiseCancellation(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
@@ -3124,6 +3137,7 @@ const LiveStream = () => {
                       Music: <Music className="w-6 h-6" strokeWidth={1.8} />,
                       LogOut: <LogOut className="w-6 h-6" strokeWidth={1.8} />,
                       MonitorUp: <MonitorUp className="w-6 h-6" strokeWidth={1.8} />,
+                      ShieldCheck: <ShieldCheck className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
                     
@@ -3590,6 +3604,12 @@ const LiveStream = () => {
             onClose={() => setShowVirtualBackground(false)}
             localVideoTrack={localVideoTrack}
           />
+          <NoiseCancellationDialog
+            open={showNoiseCancellation}
+            onClose={() => setShowNoiseCancellation(false)}
+            localAudioTrack={localAudioTrack}
+          />
+
         </>
       )}
     </div>
