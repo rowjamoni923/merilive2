@@ -57,9 +57,6 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
       return;
     }
 
-    let agencyChannel: RealtimeChannel;
-    let performanceChannel: RealtimeChannel;
-
     const fetchData = async () => {
       // Fetch agency info
       const { data: agencyData } = await supabase
@@ -67,7 +64,7 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
         .select('*')
         .eq('id', agencyId)
         .single();
-      
+
       if (agencyData) {
         setStats(agencyData);
       }
@@ -81,62 +78,32 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
         .eq('period_type', 'weekly')
         .eq('period_start', weekStart)
         .maybeSingle();
-      
+
       if (perfData) {
         setPerformance(perfData);
       }
-      
+
       setLoading(false);
     };
 
     fetchData();
 
-    // Subscribe to agency updates
-    agencyChannel = supabase
-      .channel(`agency-${agencyId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'agencies',
-          filter: `id=eq.${agencyId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Agency updated:', payload.new);
-          setStats(payload.new);
-        }
-      )
-      .subscribe();
-
-    // Subscribe to performance updates
-    performanceChannel = supabase
-      .channel(`agency-perf-${agencyId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'agency_performance',
-          filter: `agency_id=eq.${agencyId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Performance updated:', payload.new);
-          if (payload.eventType !== 'DELETE') {
-            setPerformance(payload.new);
-          }
-        }
-      )
-      .subscribe();
-
+    // Pkg89 LiveKit-Purist: removed `agency-${agencyId}` + `agency-perf-${agencyId}`
+    // postgres_changes subscriptions. Neither table is in supabase_realtime publication,
+    // and this hook has ZERO consumers. Use admin-broadcast push (Pkg37) or visibility
+    // refresh — never re-subscribe to cross-user `agencies` tables.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchData();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(agencyChannel);
-      supabase.removeChannel(performanceChannel);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [agencyId]);
 
   return { stats, performance, loading };
 }
+
 
 // Hook for real-time live stream stats
 export function useRealtimeLiveStream(streamId: string | null) {
