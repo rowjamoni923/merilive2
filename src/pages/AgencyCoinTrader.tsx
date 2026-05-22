@@ -724,7 +724,7 @@ const AgencyCoinTrader = () => {
               {buyCoinsAmount && parseFloat(buyCoinsAmount) > 0 && parseFloat(buyCoinsAmount) < tradeSettings.min_trade_amount && (
                 <div className="bg-danger-50 border border-danger-200 rounded-lg p-3 text-sm text-danger-600 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4" />
-                  Minimum {tradeSettings.min_trade_amount.toLocaleString()} coins required
+                  Minimum {tradeSettings.min_trade_amount.toLocaleString()} Diamonds required
                 </div>
               )}
             </TabsContent>
@@ -732,7 +732,7 @@ const AgencyCoinTrader = () => {
             <TabsContent value="sell" className="p-4 space-y-4">
               <div className="bg-success-50 rounded-lg p-3 text-sm text-success-700">
                 <TrendingUp className="w-4 h-4 inline mr-2" />
-                Sell coins to users and receive payment
+                Sell Diamonds to users and receive payment
               </div>
 
               {/* User Search */}
@@ -811,7 +811,7 @@ const AgencyCoinTrader = () => {
                   <Label>Diamond Amount</Label>
                   <Input
                     type="number"
-                    placeholder="How many coins to sell"
+                    placeholder="How many Diamonds to sell"
                     value={tradeAmount}
                     onChange={(e) => setTradeAmount(e.target.value)}
                   />
