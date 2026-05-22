@@ -757,38 +757,16 @@ export function usePrivateCall(userId: string | null) {
       }).catch(() => {});
 
       // ⚡ Notify caller instantly so they switch to connected UI without waiting for DB propagation.
-      // Pkg86 audit: dual-path (LiveKit primary + Supabase fallback) — caller may not yet have
-      // joined the LiveKit Room when host accepts, so Supabase broadcast remains as safety net
-      // until LiveKit Room is established. publishCallAccepted retries up to 5s waiting for Room.
+      // Pkg86 audit (LiveKit-Purist policy): Supabase fallback REMOVED.
+      // Caller's ActiveCallScreen mounts on status='calling' → useLiveKitCall connects
+      // & registers Room BEFORE host accepts (Room state warmed during ringing).
+      // publishCallAccepted retries 20×250ms (=5s ceiling) waiting for Room.
+      // Worst-case (caller LiveKit fetch slow / fails): the 5s `outgoingStatusPollRef`
+      // REST poll on `private_calls.status` catches the accept within one tick.
       if (callData?.caller_id) {
-        // Primary: LiveKit DataPacket (sub-50ms once Room is up, retries 20×250ms)
         void publishCallAccepted(callId, { acceptedBy: userId });
-
-        // Fallback: Supabase broadcast (works pre-Room)
-        const callerChannel = supabase.channel(`call-end-listener-${callData.caller_id}`);
-        Promise.resolve(new Promise<void>((resolve) => {
-          const timeout = setTimeout(() => resolve(), 1500);
-          callerChannel.subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-              callerChannel
-                .send({
-                  type: 'broadcast',
-                  event: 'call_accepted',
-                  payload: { callId, acceptedBy: userId, at: Date.now() }
-                })
-                .finally(() => {
-                  clearTimeout(timeout);
-                  resolve();
-                });
-            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-              clearTimeout(timeout);
-              resolve();
-            }
-          });
-        })).finally(() => {
-          Promise.resolve(supabase.removeChannel(callerChannel)).catch(() => {});
-        });
       }
+
 
 
       // Host billing display fetch every 10s (billing changes every 60s — display only)
