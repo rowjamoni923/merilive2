@@ -20,6 +20,11 @@ import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
+import {
+  AUDIO_ONLY_CHANGED_EVENT,
+  applyAudioOnlyToRoom,
+  isAudioOnlyEnabled,
+} from '@/lib/livekitAudioOnlyMode';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
