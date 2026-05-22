@@ -5,6 +5,7 @@ import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationD
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
 import { RecordingDialog } from "@/components/livekit/RecordingDialog";
+import { SimulcastDialog } from "@/components/livekit/SimulcastDialog";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
@@ -32,6 +33,7 @@ import {
   Radio,
   PhoneCall,
   Video,
+  Cast,
   Gamepad2,
   Swords,
   MessageCircle,
@@ -192,6 +194,7 @@ const LiveStream = () => {
   const [showIngress, setShowIngress] = useState(false);
   const [showSipDial, setShowSipDial] = useState(false);
   const [showRecording, setShowRecording] = useState(false);
+  const [showSimulcast, setShowSimulcast] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -2311,6 +2314,11 @@ const LiveStream = () => {
         setShowMoreOptions(false);
         setShowRecording(true);
       } },
+    // Pkg114: Simulcast room out to YouTube / Facebook / Twitch / custom RTMP.
+    { id: "simulcast", name: "Simulcast", iconName: "Cast" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowSimulcast(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
@@ -3162,6 +3170,7 @@ const LiveStream = () => {
                       Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
                       Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
+                      Cast: <Cast className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
                     
@@ -3647,6 +3656,11 @@ const LiveStream = () => {
           <RecordingDialog
             open={showRecording}
             onClose={() => setShowRecording(false)}
+            streamId={id}
+          />
+          <SimulcastDialog
+            open={showSimulcast}
+            onClose={() => setShowSimulcast(false)}
             streamId={id}
           />
 
