@@ -312,10 +312,11 @@ export function ActiveCallScreen({
     const previousCoins = userCoins;
 
     try {
-      // Optimistic balance update
+      // Optimistic local balance update for this screen only.
+      // Pkg85 made GiftingService the single source for global cached balance
+      // deduction after the RPC succeeds. Do NOT also update useUserBalance here,
+      // or call gifts double-deduct the app-wide diamond cache.
       setUserCoins(prev => prev - totalCost);
-      const { updateCachedBalance: updateBalance, getCachedBalance: getBalance } = await import("@/hooks/useUserBalance");
-      updateBalance(getBalance() - totalCost);
 
       const result = await sendGift({
         giftId: gift.id,
@@ -350,8 +351,6 @@ export function ActiveCallScreen({
       console.error("Gift send error:", error);
       // Rollback optimistic update
       setUserCoins(previousCoins);
-      const { updateCachedBalance } = await import("@/hooks/useUserBalance");
-      updateCachedBalance(previousCoins);
       toast.error("Failed to send gift");
     }
   };
