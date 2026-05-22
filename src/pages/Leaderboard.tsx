@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Suspense, lazy } from "react";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import { useLeaderboardRealtime } from "@/hooks/useLeaderboardRealtime";
+import { pickDisplayLevel } from "@/utils/displayLevel";
 
 const UniversalFramePlayer = lazy(() => import("@/components/common/UniversalFramePlayer"));
 
@@ -35,6 +36,9 @@ interface RankingData {
   country_flag: string | null;
   host_level: number | null;
   user_level: number | null;
+  max_user_level?: number | null;
+  gender?: string | null;
+  is_host?: boolean | null;
   stat_value: number;
   frame_id?: string | null;
 }
@@ -219,14 +223,15 @@ const Leaderboard = () => {
 
       const userIds = Object.keys(stats).filter(id => stats[id] > 0);
       if (!userIds.length) return [];
-      const { data: profiles } = await supabase.from("profiles_public").select("id, display_name, app_uid, avatar_url, country_flag, host_level, user_level, frame_id").in("id", userIds);
+      const { data: profiles } = await supabase.from("profiles_public").select("id, display_name, app_uid, avatar_url, country_flag, host_level, user_level, max_user_level, gender, is_host, frame_id").in("id", userIds);
       const pMap: Record<string, any> = {};
       (profiles || []).forEach(p => { pMap[p.id] = p; });
 
       return Object.entries(stats).filter(([, val]) => val > 0).sort(([, a], [, b]) => b - a).slice(0, 50).map(([uid, val]) => ({
         id: uid, display_name: pMap[uid]?.display_name || null, app_uid: pMap[uid]?.app_uid || null,
         avatar_url: pMap[uid]?.avatar_url || null, country_flag: pMap[uid]?.country_flag || null,
-        host_level: pMap[uid]?.host_level || null, user_level: pMap[uid]?.user_level || null,
+        host_level: pMap[uid]?.host_level ?? null, user_level: pMap[uid]?.user_level ?? null,
+        max_user_level: pMap[uid]?.max_user_level ?? null, gender: pMap[uid]?.gender ?? null, is_host: pMap[uid]?.is_host ?? null,
         frame_id: pMap[uid]?.frame_id || null, stat_value: val,
       })) as RankingData[];
     },
@@ -324,7 +329,7 @@ const Leaderboard = () => {
   };
 
   const getLevel = (item: RankingData) => {
-    return activeCategory === "host_earning" ? (item.host_level || 1) : (item.user_level || 1);
+    return pickDisplayLevel(item as any);
   };
 
   const getDisplayId = (item: RankingData) => {

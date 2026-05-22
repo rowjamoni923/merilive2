@@ -69,6 +69,7 @@ import { LevelBadge } from "@/components/common/LevelBadge";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { pickDisplayLevel } from "@/utils/displayLevel";
 
 interface Conversation {
   id: string;
@@ -84,6 +85,8 @@ interface Conversation {
     is_host: boolean | null;
     gender: string | null;
     user_level?: number | null;
+    host_level?: number | null;
+    max_user_level?: number | null;
     country_flag?: string | null;
     country_name?: string | null;
     city?: string | null;
@@ -128,6 +131,10 @@ interface GroupMessage {
     display_name: string | null;
     avatar_url: string | null;
     user_level?: number | null;
+    host_level?: number | null;
+    max_user_level?: number | null;
+    gender?: string | null;
+    is_host?: boolean | null;
   };
 }
 
@@ -234,7 +241,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number; is_host: boolean } | null>(null);
+  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number; host_level: number; max_user_level: number; gender: string | null; is_host: boolean } | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOtherTyping, setIsOtherTyping] = useState(false);
@@ -987,7 +994,7 @@ const Chat = () => {
         const senderIds = [...new Set(data.map((m: any) => m.sender_id))];
         const { data: senders } = await supabase
           .from('profiles_public')
-          .select('id, display_name, avatar_url, user_level')
+          .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
           .in('id', senderIds);
         const sMap = new Map((senders || []).map((s: any) => [s.id, s]));
         setGroupMessages(
@@ -1086,7 +1093,7 @@ const Chat = () => {
       
       // Parallel fetch - coins + conversations + groups at once
       const [profileResult] = await Promise.all([
-        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, is_host').eq('id', user.id).single(),
+        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', user.id).single(),
         fetchConversations(user.id),
         fetchGroups()
       ]);
@@ -1097,6 +1104,9 @@ const Chat = () => {
           display_name: profileResult.data.display_name,
           avatar_url: profileResult.data.avatar_url,
           user_level: profileResult.data.user_level || 1,
+          host_level: (profileResult.data as any).host_level || 0,
+          max_user_level: (profileResult.data as any).max_user_level || 0,
+          gender: (profileResult.data as any).gender || null,
           is_host: profileResult.data.is_host === true,
         });
       }
@@ -1207,7 +1217,7 @@ const Chat = () => {
     if (existing) {
       const { data: profile } = await supabase
         .from('profiles_public')
-        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute, user_level, country_flag, country_name, city, last_seen_at')
+        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute, user_level, host_level, max_user_level, country_flag, country_name, city, last_seen_at')
         .eq('id', otherUserId)
         .maybeSingle();
 
@@ -1235,7 +1245,7 @@ const Chat = () => {
 
       const { data: profile } = await supabase
         .from('profiles_public')
-        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute, user_level, country_flag, country_name, city, last_seen_at')
+        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute, user_level, host_level, max_user_level, country_flag, country_name, city, last_seen_at')
         .eq('id', otherUserId)
         .maybeSingle();
 
@@ -1420,7 +1430,7 @@ const Chat = () => {
     const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
     const { data: profiles } = await supabase
       .from('profiles_public')
-      .select('id, display_name, avatar_url, user_level')
+      .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
       .in('id', senderIds);
 
     const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
@@ -1879,7 +1889,7 @@ const Chat = () => {
     const chatName = isGroup ? selectedGroup?.name : selectedConversation?.other_user?.display_name || 'User';
     const chatAvatar = isGroup ? selectedGroup?.avatar_url : selectedConversation?.other_user?.avatar_url;
     const currentMessages = isGroup ? groupMessages : messages;
-    const userLevel = selectedConversation?.other_user?.user_level || 1;
+    const userLevel = pickDisplayLevel(selectedConversation?.other_user as any);
     const countryFlag = selectedConversation?.other_user?.country_flag || "🌍";
 
     return (
@@ -2098,8 +2108,8 @@ const Chat = () => {
                 ? myProfile?.avatar_url
                 : (isGroup ? msg.sender?.avatar_url : selectedConversation?.other_user?.avatar_url);
               const senderLevel = isMine
-                ? (myProfile?.user_level || 1)
-                : (isGroup ? (msg.sender?.user_level || 1) : selectedConversation?.other_user?.user_level || 1);
+                ? pickDisplayLevel(myProfile as any)
+                : pickDisplayLevel((isGroup ? msg.sender : selectedConversation?.other_user) as any);
               const senderUserId = isMine ? currentUserId : otherUserId;
               
               return (
@@ -2383,7 +2393,7 @@ const Chat = () => {
                     userId={selectedConversation?.other_user?.id || ''}
                     src={selectedConversation?.other_user?.avatar_url || undefined}
                     name={selectedConversation?.other_user?.display_name || '?'}
-                    level={selectedConversation?.other_user?.user_level || 1}
+                    level={pickDisplayLevel(selectedConversation?.other_user as any)}
                     size="xs"
                     showAnimation={false}
                   />
@@ -3183,7 +3193,7 @@ const Chat = () => {
                       userId={conv.other_user.id}
                       src={conv.other_user?.avatar_url}
                       name={conv.other_user?.display_name || 'User'}
-                      level={conv.other_user?.user_level || 1}
+                      level={pickDisplayLevel(conv.other_user as any)}
                       size="md"
                       showAnimation={false}
                     />
@@ -3205,7 +3215,7 @@ const Chat = () => {
                     {conv.other_user?.country_flag && (
                       <span className="text-xs">{conv.other_user.country_flag}</span>
                     )}
-                    <LevelBadge level={conv.other_user?.user_level || 1} size="xs" />
+                    <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
                     <span className="text-[10px] text-slate-600 shrink-0 ml-auto font-medium">
                       {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
                     </span>

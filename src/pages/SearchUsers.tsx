@@ -12,6 +12,7 @@ import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { pickDisplayLevel } from "@/utils/displayLevel";
 
 import {
   Sheet,
@@ -142,7 +143,7 @@ const SearchUsers = () => {
         const padded = cleanQuery.padStart(10, '0');
         uidPromise = supabase
           .from('profiles_public')
-          .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
+          .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, gender, user_level, host_level, max_user_level, country_flag, bio, tags, app_uid')
           .or(`app_uid.eq.${padded},app_uid.ilike.%${cleanQuery}%`)
           .limit(50) as any;
       }
@@ -150,7 +151,7 @@ const SearchUsers = () => {
       const tagPromise = tags.length > 0
         ? supabase
             .from('profiles_public')
-            .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
+            .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, gender, user_level, host_level, max_user_level, country_flag, bio, tags, app_uid')
             .overlaps('tags', tags)
             .limit(50)
         : Promise.resolve({ data: [] as UserProfile[] });
@@ -289,7 +290,7 @@ const SearchUsers = () => {
             userId={user.id}
             src={user.avatar_url || undefined}
             name={user.display_name || user.username || '?'}
-            level={(user as any).user_level || 1}
+            level={pickDisplayLevel(user as any)}
             isHost={!!user.is_host}
             size="md"
             showFrame={true}
