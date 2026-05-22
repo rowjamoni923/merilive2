@@ -142,7 +142,7 @@ const SearchUsers = () => {
         const padded = cleanQuery.padStart(10, '0');
         uidPromise = supabase
           .from('profiles_public')
-          .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
+          .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, gender, user_level, host_level, max_user_level, country_flag, bio, tags, app_uid')
           .or(`app_uid.eq.${padded},app_uid.ilike.%${cleanQuery}%`)
           .limit(50) as any;
       }
