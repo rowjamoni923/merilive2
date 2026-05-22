@@ -3048,6 +3048,12 @@ const LiveStream = () => {
       {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
       {id && <CaptionOverlay scope="live" id={id} />}
 
+      {/* Pkg146: Picture-in-Picture toggle for viewers (auto-hidden if unsupported) */}
+      {!isHost && remoteVideoTrack && (
+        <PictureInPictureButton pipId="live-host" label="Picture in picture" />
+      )}
+
+
 
       {/* Bottom Section - Input Bar & Action Buttons */}
       <motion.div 
