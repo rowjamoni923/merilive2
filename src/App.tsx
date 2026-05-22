@@ -322,6 +322,7 @@ const AdminLiveKitRooms = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKi
 const AdminLiveKitEgress = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitEgress")));
 const AdminLiveKitIngress = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitIngress")));
 const AdminLiveKitSip = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitSip")));
+const AdminLiveKitWebhook = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitWebhook")));
 const AdminCostMonitor = lazy(lazyRetry(() => import("./pages/admin/AdminCostMonitor")));
 const AdminModerationAudit = lazy(lazyRetry(() => import("./pages/admin/AdminModerationAudit")));
 const AdminGmailSupport = lazy(lazyRetry(() => import("./pages/admin/AdminGmailSupport")));
@@ -1277,6 +1278,7 @@ const App = () => {
                   <Route path="livekit-egress" element={<AdminRouteGuard routeSegment="livekit-egress"><AdminLiveKitEgress /></AdminRouteGuard>} />
                   <Route path="livekit-ingress" element={<AdminRouteGuard routeSegment="livekit-ingress"><AdminLiveKitIngress /></AdminRouteGuard>} />
                   <Route path="livekit-sip" element={<AdminRouteGuard routeSegment="livekit-sip"><AdminLiveKitSip /></AdminRouteGuard>} />
+                  <Route path="livekit-webhook" element={<AdminRouteGuard routeSegment="livekit-webhook"><AdminLiveKitWebhook /></AdminRouteGuard>} />
 
                   <Route path="cost-monitor" element={<AdminRouteGuard routeSegment="cost-monitor"><AdminCostMonitor /></AdminRouteGuard>} />
                   <Route path="moderation-audit" element={<AdminRouteGuard routeSegment="moderation-audit"><AdminModerationAudit /></AdminRouteGuard>} />
