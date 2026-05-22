@@ -988,7 +988,7 @@ const Chat = () => {
         const senderIds = [...new Set(data.map((m: any) => m.sender_id))];
         const { data: senders } = await supabase
           .from('profiles_public')
-          .select('id, display_name, avatar_url, user_level')
+          .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
           .in('id', senderIds);
         const sMap = new Map((senders || []).map((s: any) => [s.id, s]));
         setGroupMessages(
