@@ -581,6 +581,13 @@ export function ActiveCallScreen({
       {/* Pkg145: Realtime captions (rides Pkg116 transcription kill-switch) */}
       {callId && <CaptionOverlay scope="call" id={callId} />}
 
+      {/* Pkg146: Picture-in-Picture toggle (web only; auto-hidden when unsupported) */}
+      {isLiveConnected && primaryHasVideo && (
+        <PictureInPictureButton pipId="call-primary" label="Picture in picture" />
+      )}
+
+
+
 
       {/* Privacy Warning Overlay */}
       <AnimatePresence>
