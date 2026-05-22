@@ -22,6 +22,7 @@ import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling
 import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
 import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
+import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
