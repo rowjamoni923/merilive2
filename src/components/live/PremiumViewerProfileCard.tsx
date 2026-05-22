@@ -57,6 +57,8 @@ interface PremiumViewerProfileCardProps {
   onBlock?: (viewerId: string) => void;
   onReport?: (viewerId: string) => void;
   onViewProfile?: (viewerId: string) => void;
+  /** Pkg130 — host-only: open LiveKit moderation sheet for this viewer. */
+  onModerate?: (viewerId: string) => void;
 }
 
 // Floating particles for background effect
