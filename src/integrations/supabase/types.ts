@@ -7503,6 +7503,48 @@ export type Database = {
         }
         Relationships: []
       }
+      livekit_permission_updates: {
+        Row: {
+          actor_type: string
+          actor_user_id: string | null
+          admin_token_role: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          participant_identity: string
+          permission: Json
+          reason: string | null
+          room_name: string
+          success: boolean
+        }
+        Insert: {
+          actor_type: string
+          actor_user_id?: string | null
+          admin_token_role?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          participant_identity: string
+          permission: Json
+          reason?: string | null
+          room_name: string
+          success?: boolean
+        }
+        Update: {
+          actor_type?: string
+          actor_user_id?: string | null
+          admin_token_role?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          participant_identity?: string
+          permission?: Json
+          reason?: string | null
+          room_name?: string
+          success?: boolean
+        }
+        Relationships: []
+      }
       livekit_room_events: {
         Row: {
           created_at: string
