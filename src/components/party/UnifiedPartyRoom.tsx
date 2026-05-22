@@ -1749,6 +1749,7 @@ export function UnifiedPartyRoom({
         onRejectApplicant={onRejectSeatRequest}
         onInviteViewer={onInviteViewer}
         onKickViewer={onKickViewer}
+        onModerateViewer={onModerateViewer}
         roomId={roomId}
       />
 
