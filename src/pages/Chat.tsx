@@ -1033,7 +1033,15 @@ const Chat = () => {
     };
   }, [selectedConversation?.other_user?.id]);
 
-  // Debounced conversation list refresh on new messages - via direct channel
+  // Pkg92: conversation list refresh.
+  // The legacy `conv-refresh-${currentUserId}-${Date.now()}` channel subscribed to
+  // postgres_changes on `messages` + `conversations` — neither table is in the
+  // supabase_realtime publication, so it was a silent no-op AND an unfiltered
+  // global `messages` INSERT bind (exact $1400-pattern if the publication ever
+  // included it). Replaced with:
+  //   1. window 'chat:new-message' event (dispatched by useNotifications on
+  //      `notifications.type='message'` inserts — single existing subscription).
+  //   2. visibilitychange refetch (tab refocus).
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -1043,24 +1051,18 @@ const Chat = () => {
       refreshTimer = setTimeout(() => fetchConversations(), 250);
     };
 
-    const channelName = `conv-refresh-${currentUserId}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        () => debouncedRefresh()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'conversations' },
-        () => debouncedRefresh()
-      )
-      .subscribe();
+    const onNewMessage = () => debouncedRefresh();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') debouncedRefresh();
+    };
+
+    window.addEventListener('chat:new-message', onNewMessage);
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       if (refreshTimer) clearTimeout(refreshTimer);
-      supabase.removeChannel(channel);
+      window.removeEventListener('chat:new-message', onNewMessage);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [currentUserId]);
 
