@@ -67,7 +67,7 @@ export default function SyncTest() {
       setStatus('connecting');
 
       const ch = supabase
-        .channel('sync-test-' + Math.random().toString(36).slice(2, 8))
+        .channel(`sync-test-${session.user.id}-${Math.random().toString(36).slice(2, 8)}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'admin_broadcast', filter: 'topic=eq.__sync_test' },
