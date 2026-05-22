@@ -784,6 +784,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             }
           }
 
+          // Pkg103: apply Krisp noise filter to whichever mic we just published
+          import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
+
           // Apply Tencent Beauty to the published camera track (Web only)
           // This handles the enableCameraAndMicrophone / setCameraEnabled path
           if (!hasPreloadedVideo) {
