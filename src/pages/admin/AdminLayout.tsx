@@ -41,6 +41,7 @@ import {
   UserPlus,
   DollarSign,
   Phone,
+  PhoneIncoming,
   Crown,
   Star,
   TrendingDown,
