@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.PowerManager
 import com.merilive.app.service.CallForegroundService
 import android.util.Log
+import android.util.Base64
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -45,6 +46,7 @@ import io.livekit.android.room.track.CameraPosition
 import io.livekit.android.room.track.LocalVideoTrack
 import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
+import io.livekit.android.room.track.DataPublishReliability
 import io.livekit.android.room.track.VideoCaptureParameter
 import io.livekit.android.room.track.VideoEncoding
 import io.livekit.android.room.track.VideoPreset169
@@ -597,6 +599,26 @@ class LiveKitPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun sendData(call: PluginCall) {
+        val payloadBase64 = call.getString("payloadBase64")
+            ?: return call.reject("payloadBase64 required")
+        val reliable = call.getBoolean("reliable", true) ?: true
+        val topic = call.getString("topic", null)
+        val r = room ?: return call.reject("Not connected")
+        scope.launch {
+            try {
+                val bytes = Base64.decode(payloadBase64, Base64.DEFAULT)
+                val reliability = if (reliable) DataPublishReliability.RELIABLE else DataPublishReliability.LOSSY
+                val result = r.localParticipant.publishData(bytes, reliability, topic)
+                result.exceptionOrNull()?.let { throw it }
+                val ret = JSObject(); ret.put("sent", true); call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("sendData failed: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
     fun setMicrophoneEnabled(call: PluginCall) {
         val enabled = call.getBoolean("enabled", true) ?: true
         val r = room ?: return call.reject("Not connected")
@@ -927,6 +949,14 @@ class LiveKitPlugin : Plugin() {
                         data.put("identity", event.participant.identity?.value ?: "")
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-unsubscribed", data)
+                    }
+                    is RoomEvent.DataReceived -> {
+                        val data = JSObject()
+                        data.put("payloadBase64", Base64.encodeToString(event.data, Base64.NO_WRAP))
+                        data.put("participantSid", event.participant?.sid?.value ?: "")
+                        data.put("participantIdentity", event.participant?.identity?.value ?: "")
+                        data.put("topic", event.topic ?: "")
+                        notifyListeners("data-received", data)
                     }
                     is RoomEvent.Disconnected -> {
                         val data = JSObject()

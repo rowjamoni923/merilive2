@@ -34,6 +34,7 @@ import {
   isDuplicateEnvelope,
   isLiveKitEnabled,
 } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
 
 export type ChatScope = 'call' | 'live' | 'party';
 
@@ -66,6 +67,8 @@ interface Entry {
 
 // `${scope}:${id}` → Room + DataReceived handler
 const registry = new Map<string, Entry>();
+const nativeRegistry = new Set<string>();
+let nativeUnsubscribe: (() => void) | null = null;
 
 function keyFor(scope: ChatScope, id: string): string {
   return `${scope}:${id}`;
@@ -96,6 +99,23 @@ function makeHandler(scope: ChatScope, id: string) {
       );
     }
   };
+}
+
+function dispatchChatEnvelope(scope: ChatScope, id: string, payload: Uint8Array, participantIdentity?: string) {
+  if (typeof window === 'undefined') return;
+  const env = decodeEnvelope(payload);
+  if (!env || env.f !== 'chat') return;
+  if (isDuplicateEnvelope(env.id)) return;
+  if (env.t !== 'chat_message') return;
+
+  const p = (env.p ?? {}) as Partial<ChatMessagePayload>;
+  if (p.scope !== scope) return;
+  if (p.id && p.id !== id) return;
+  if (!p.message || !p.userId || !p.messageId) return;
+
+  window.dispatchEvent(new CustomEvent<ChatMessageDetail>('livekit-chat-message', {
+    detail: { ...(p as ChatMessagePayload), scope, id, sender: participantIdentity },
+  }));
 }
 
 /** Bind a (scope,id) tuple to its LiveKit Room. */
@@ -132,6 +152,27 @@ export function unregisterChatRoom(
   registry.delete(k);
 }
 
+export function registerNativeChatRoom(scope: ChatScope, id: string | null | undefined) {
+  if (!id || typeof window === 'undefined') return;
+  nativeRegistry.add(keyFor(scope, id));
+  if (nativeUnsubscribe) return;
+  nativeUnsubscribe = nativeLiveKitController.onDataReceived((payload, participantIdentity) => {
+    for (const k of nativeRegistry) {
+      const [scope, id] = k.split(':') as [ChatScope, string];
+      dispatchChatEnvelope(scope, id, payload, participantIdentity);
+    }
+  });
+}
+
+export function unregisterNativeChatRoom(scope: ChatScope, id: string | null | undefined) {
+  if (!id) return;
+  nativeRegistry.delete(keyFor(scope, id));
+  if (nativeRegistry.size === 0 && nativeUnsubscribe) {
+    nativeUnsubscribe();
+    nativeUnsubscribe = null;
+  }
+}
+
 /**
  * Publish a `chat_message` packet to every participant.
  * Returns `true` only when actually sent. Never throws.
@@ -145,9 +186,8 @@ export async function publishChatMessage(
     return false;
   }
   const entry = registry.get(keyFor(scope, id));
-  if (!entry) return false;
-  const room = entry.room;
-  if (!room || room.state !== 'connected') return false;
+  const room = entry?.room;
+  if ((!room || room.state !== 'connected') && !nativeRegistry.has(keyFor(scope, id))) return false;
 
   let allowed = false;
   try {
@@ -167,9 +207,12 @@ export async function publishChatMessage(
         id,
         timestamp: payload.timestamp ?? Date.now(),
       },
-      room.localParticipant?.identity,
+        room?.localParticipant?.identity ?? payload.userId,
     );
     const bytes = encodeEnvelope(env);
+    if (!room || room.state !== 'connected') {
+      return nativeLiveKitController.sendData(bytes, { reliable: true, topic: 'chat' });
+    }
     await room.localParticipant.publishData(bytes, { reliable: true });
     return true;
   } catch (err) {

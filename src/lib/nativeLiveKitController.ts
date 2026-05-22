@@ -117,6 +117,44 @@ class NativeLiveKitController {
     }
   }
 
+  async sendData(payload: Uint8Array, opts: { reliable?: boolean; topic?: string } = {}): Promise<boolean> {
+    if (!this.connected) return false;
+    try {
+      let binary = '';
+      for (const b of payload) binary += String.fromCharCode(b);
+      await NativeLiveKit.sendData({
+        payloadBase64: btoa(binary),
+        reliable: opts.reliable !== false,
+        topic: opts.topic,
+      });
+      return true;
+    } catch (e) {
+      console.warn('[NativeLiveKitController] sendData failed:', e);
+      return false;
+    }
+  }
+
+  onDataReceived(cb: (payload: Uint8Array, participantIdentity?: string) => void): () => void {
+    let handle: PluginListenerHandle | null = null;
+    let cancelled = false;
+    NativeLiveKit.addListener('data-received', (e) => {
+      try {
+        const raw = atob(e.payloadBase64 || '');
+        const bytes = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        cb(bytes, e.participantIdentity);
+      } catch (err) {
+        console.warn('[NativeLiveKitController] data-received decode failed:', err);
+      }
+    }).then((h) => { if (cancelled) h.remove(); else handle = h; })
+      .catch(() => { /* not implemented on web/iOS */ });
+    return () => {
+      cancelled = true;
+      try { handle?.remove(); } catch { /* noop */ }
+      handle = null;
+    };
+  }
+
   async setMicrophoneEnabled(enabled: boolean): Promise<void> {
     if (!this.connected) return;
     try { await NativeLiveKit.setMicrophoneEnabled({ enabled }); } catch (e) {
