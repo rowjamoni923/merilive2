@@ -3053,6 +3053,9 @@ const LiveStream = () => {
         <PictureInPictureButton pipId="live-host" label="Picture in picture" />
       )}
 
+      {/* Pkg147: Audio-only data-saver toggle for viewers */}
+      {!isHost && <AudioOnlyToggleButton label="Audio-only mode" />}
+
 
 
       {/* Bottom Section - Input Bar & Action Buttons */}
