@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { toast } from "sonner";
 import { useGameSound } from "@/hooks/useGameSound";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
