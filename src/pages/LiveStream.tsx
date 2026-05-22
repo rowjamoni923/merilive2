@@ -22,6 +22,7 @@ import {
   Smile,
   Sparkles,
   RotateCcw,
+  MonitorUp,
   Gamepad2,
   Swords,
   MessageCircle,
