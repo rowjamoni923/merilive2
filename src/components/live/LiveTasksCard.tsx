@@ -207,32 +207,50 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
 
   if (!isEligible || tasks.length === 0) return null;
 
-  // All tasks claimed
+  // All tasks claimed — Pkg174 polish
   if (!currentTask) {
     return (
       <motion.div
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="w-full rounded-2xl overflow-hidden p-3"
+        initial={{ y: 10, opacity: 0, scale: 0.96 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', damping: 24, stiffness: 320 }}
+        className="relative w-full rounded-2xl overflow-hidden p-3"
         style={{
-          background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(34,197,94,0.08))',
-          border: '1px solid rgba(34,197,94,0.25)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
+          background:
+            'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(34,197,94,0.12) 50%, rgba(20,83,45,0.18) 100%)',
+          border: '1px solid rgba(34,197,94,0.32)',
+          backdropFilter: 'blur(20px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+          boxShadow:
+            '0 10px 28px -10px rgba(34,197,94,0.45), inset 0 1px 0 rgba(255,255,255,0.12)',
         }}
       >
-        <div className="flex items-center gap-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={{
+            background:
+              'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%)',
+            animation: 'giftSendShine 3.6s ease-in-out infinite',
+            mixBlendMode: 'overlay',
+          }}
+        />
+        <div className="relative flex items-center gap-2.5">
           <motion.div
             animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', boxShadow: '0 0 16px rgba(34,197,94,0.4)' }}
+            className="w-9 h-9 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(145deg, #22c55e, #10b981)',
+              boxShadow:
+                '0 0 18px rgba(34,197,94,0.55), 0 4px 10px -3px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
+            }}
           >
-            <Check className="w-4 h-4 text-white" />
+            <Check className="w-4 h-4 text-white" strokeWidth={3} />
           </motion.div>
           <div>
-            <span className="text-green-300 text-[11px] font-bold">All Tasks Complete! 🎉</span>
-            <p className="text-green-400/50 text-[9px]">{tasks.length}/{tasks.length} done</p>
+            <span className="text-emerald-200 text-[12px] font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">All Tasks Complete! 🎉</span>
+            <p className="text-emerald-300/60 text-[10px] font-medium">{tasks.length}/{tasks.length} done</p>
           </div>
         </div>
       </motion.div>
@@ -343,7 +361,28 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
             transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
           />
 
-          <div className="px-3.5 py-3 flex items-center gap-3">
+          {/* Aurora overlay — Pkg174 */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              background:
+                'radial-gradient(120% 80% at 0% 0%, rgba(168,85,247,0.18), transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(236,72,153,0.16), transparent 55%)',
+            }}
+          />
+          {/* Shine sweep overlay — Pkg174 */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden"
+            style={{
+              background:
+                'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.10) 50%, transparent 70%)',
+              animation: 'giftSendShine 4.2s ease-in-out infinite',
+              mixBlendMode: 'overlay',
+            }}
+          />
+
+          <div className="relative px-3.5 py-3 flex items-center gap-3">
             {/* Premium 3D icon */}
             <motion.div
               animate={isCompleted ? { scale: [1, 1.15, 1], boxShadow: ['0 0 12px rgba(34,197,94,0.3)', '0 0 24px rgba(34,197,94,0.6)', '0 0 12px rgba(34,197,94,0.3)'] } : {}}
@@ -449,15 +488,21 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                 className="flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-extrabold text-white relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(145deg, #a855f7, #d946ef, #ec4899)',
-                  boxShadow: '0 0 20px rgba(168,85,247,0.5), 0 6px 16px rgba(236,72,153,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                  boxShadow:
+                    '0 0 20px rgba(168,85,247,0.5), 0 6px 16px rgba(236,72,153,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                  animation: 'giftSendBreathe 2.4s ease-in-out infinite',
                 }}
               >
-                {/* Button shimmer */}
-                <motion.div
-                  className="absolute inset-0"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)' }}
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.5 }}
+                {/* Pkg174 shine sweep */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)',
+                    animation: 'giftSendShine 2.6s ease-in-out infinite',
+                    mixBlendMode: 'overlay',
+                  }}
                 />
                 <motion.span
                   animate={{ scale: [1, 1.05, 1] }}
