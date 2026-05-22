@@ -53,7 +53,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
-import { publishGiftSent, type GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload, type RoomStateChangedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
