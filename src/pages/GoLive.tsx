@@ -1716,6 +1716,11 @@ const GoLive = () => {
         )}
       </AnimatePresence>
 
+      {/* Pkg144: Pre-join device picker */}
+      <PreJoinDevicesDialog open={showPreJoinDevices} onOpenChange={setShowPreJoinDevices} />
+
+
+
       {/* Chamet More Menu */}
       <AnimatePresence>
         {showMoreMenu && (
