@@ -144,6 +144,7 @@ const ProfileDetail = lazy(lazyRetry(() => import("./pages/ProfileDetail")));
 const Tags = lazy(lazyRetry(() => import("./pages/Tags")));
 const MyPoster = lazy(lazyRetry(() => import("./pages/MyPoster")));
 const HostDashboard = lazy(lazyRetry(() => import("./pages/HostDashboard")));
+const MyRecordings = lazy(lazyRetry(() => import("./pages/MyRecordings")));
 const HostVerification = lazy(lazyRetry(() => import("./pages/HostVerification")));
 const FaceVerification = lazy(lazyRetry(() => import("./pages/FaceVerification")));
 const FacePoseRegression = lazy(lazyRetry(() => import("./pages/FacePoseRegression")));
@@ -1124,6 +1125,7 @@ const App = () => {
                 <Route path="/tags" element={<ProtectedRoute session={session}><Tags /></ProtectedRoute>} />
                 <Route path="/my-poster" element={<ProtectedRoute session={session}><MyPoster /></ProtectedRoute>} />
                 <Route path="/host-dashboard" element={<ProtectedRoute session={session}><HostDashboard /></ProtectedRoute>} />
+                <Route path="/my-recordings" element={<ProtectedRoute session={session}><MyRecordings /></ProtectedRoute>} />
                 <Route path="/host-verification" element={<ProtectedRoute session={session}><HostVerification /></ProtectedRoute>} />
                 <Route path="/face-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
                 <Route path="/dev/face-pose-tests" element={<ProtectedRoute session={session}><FacePoseRegression /></ProtectedRoute>} />
