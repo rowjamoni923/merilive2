@@ -50,6 +50,7 @@ export const ChametStyleViewerPanel = ({
   onRejectApplicant,
   onInviteViewer,
   onKickViewer,
+  onModerateViewer,
   isHost,
   roomId
 }: ChametStyleViewerPanelProps) => {
