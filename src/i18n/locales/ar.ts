@@ -120,7 +120,7 @@ const ar = {
     friends: "الأصدقاء",
     visitors: "الزوار",
     level: "المستوى",
-    coins: "العملات",
+    coins: "Diamonds",
     beans: "البينز",
     diamonds: "الماس",
     wallet: "المحفظة",
