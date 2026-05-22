@@ -29,7 +29,8 @@ export type LiveKitFeature =
   | 'stream_egress'
   | 'sip_inbound'
   | 'transcription'
-  | 'agent';
+  | 'agent'
+  | 'virtual_background';
 
 
 
@@ -73,6 +74,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   sip_inbound: false, // Pkg115: OFF by default; admin opts in via app_settings
   transcription: false, // Pkg116: OFF by default; admin opts in via app_settings
   agent: false, // Pkg117: OFF by default; admin opts in via app_settings
+  virtual_background: false, // Pkg119: OFF by default; admin opts in via app_settings
 };
 
 
@@ -111,6 +113,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       sip_inbound: parsed.sip_inbound === true, // Pkg115: explicit opt-in only
       transcription: parsed.transcription === true, // Pkg116: explicit opt-in only
       agent: parsed.agent === true, // Pkg117: explicit opt-in only
+      virtual_background: parsed.virtual_background === true, // Pkg119: explicit opt-in only
     };
 
 
