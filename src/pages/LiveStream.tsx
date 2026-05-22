@@ -31,6 +31,7 @@ import {
   ShieldCheck,
   Radio,
   PhoneCall,
+  Video,
   Gamepad2,
   Swords,
   MessageCircle,
