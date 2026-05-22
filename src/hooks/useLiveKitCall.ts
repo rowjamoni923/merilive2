@@ -320,9 +320,10 @@ export function useLiveKitCall(
         const { e2eeOption } = await buildE2EEOptions(e2eeKey);
 
         const room = new Room({
-          // CRYSTAL CLEAR: No adaptive downgrade for calls
-          adaptiveStream: false,
-          dynacast: false,
+          // Pkg155: Chamet/Imo-parity — adaptive stream + dynacast ON for 1:1 calls
+          // Both sides save uplink/downlink based on visible video size + connection quality.
+          adaptiveStream: true,
+          dynacast: true,
           reconnectPolicy: {
             nextRetryDelayInMs: (context: any) => {
               if (context.retryCount > 12) return null;

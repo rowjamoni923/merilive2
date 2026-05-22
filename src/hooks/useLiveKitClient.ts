@@ -431,9 +431,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       const simulcastLayers = layerCfg?.simulcastLayers ?? [];
       const useSimulcast = simulcastLayers.length > 0;
       const room = new Room({
-        // CRYSTAL CLEAR: Disable adaptive stream to prevent auto quality reduction
-        adaptiveStream: false,
-        dynacast: false,
+        // Pkg155: Chamet/Bigo-parity — adaptive stream + dynacast ON
+        // Viewers auto-receive only the simulcast layer matching their video element size + bandwidth.
+        // Host's `maintain-resolution` degradation preference + simulcastLayers below keep top-layer crisp;
+        // adaptive only switches DOWN-layer for off-screen / small / poor-net viewers. Net result: smoother,
+        // no stalls for weak networks, no quality loss for strong networks.
+        adaptiveStream: true,
+        dynacast: true,
         reconnectPolicy: {
           nextRetryDelayInMs: (context: any) => {
             if (context.retryCount > 15) return null;
