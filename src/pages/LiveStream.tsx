@@ -2196,6 +2196,25 @@ const LiveStream = () => {
     { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (deepAR.isNativeAndroid) { void deepAR.openBeautyPanel().catch(() => { /* native optional */ }); } } },
     { id: "sticker", name: "Sticker", iconName: "Smile" as const, color: "from-orange-400 to-amber-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); setShowStickerPanel(true); } },
     { id: "flip", name: "Flip", iconName: "RotateCcw" as const, color: "from-blue-500 to-cyan-600", shadowColor: "shadow-blue-500/40", action: () => { setShowMoreOptions(false); switchCamera(); } },
+    // Pkg102: Screen Share toggle (web only — native Android screen capture is a future plugin)
+    { id: "screen", name: isScreenSharing ? "Stop Share" : "Share Screen", iconName: "MonitorUp" as const, color: "from-indigo-500 to-violet-600", shadowColor: "shadow-indigo-500/40", action: async () => {
+        setShowMoreOptions(false);
+        if (deepAR.isNativeAndroid) {
+          toast.info("Screen share is not supported on mobile yet.");
+          return;
+        }
+        try {
+          if (isScreenSharing) {
+            await stopScreenShare();
+            toast.success("Screen share stopped");
+          } else {
+            await startScreenShare();
+            toast.success("Screen share started");
+          }
+        } catch (err: any) {
+          if (err?.name !== 'NotAllowedError') toast.error("Couldn't start screen share");
+        }
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
