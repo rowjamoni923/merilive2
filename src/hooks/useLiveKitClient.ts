@@ -1425,7 +1425,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     screenTrack,
     remoteScreenTracks,
     isScreenSharing,
-    isScreenSharing,
     remoteUsers,
     currentRole,
     coHosts,
