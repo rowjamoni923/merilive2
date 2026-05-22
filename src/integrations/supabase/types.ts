@@ -12268,6 +12268,69 @@ export type Database = {
         }
         Relationships: []
       }
+      track_recordings: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          egress_id: string
+          ended_at: string | null
+          error: string | null
+          file_url: string | null
+          id: string
+          initiated_by_role: string | null
+          output_type: string
+          participant_identity: string
+          reason: string | null
+          room_name: string
+          size_bytes: number | null
+          started_at: string
+          status: string
+          stream_id: string | null
+          track_kind: string | null
+          track_sid: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          egress_id: string
+          ended_at?: string | null
+          error?: string | null
+          file_url?: string | null
+          id?: string
+          initiated_by_role?: string | null
+          output_type?: string
+          participant_identity: string
+          reason?: string | null
+          room_name: string
+          size_bytes?: number | null
+          started_at?: string
+          status?: string
+          stream_id?: string | null
+          track_kind?: string | null
+          track_sid?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          egress_id?: string
+          ended_at?: string | null
+          error?: string | null
+          file_url?: string | null
+          id?: string
+          initiated_by_role?: string | null
+          output_type?: string
+          participant_identity?: string
+          reason?: string | null
+          room_name?: string
+          size_bytes?: number | null
+          started_at?: string
+          status?: string
+          stream_id?: string | null
+          track_kind?: string | null
+          track_sid?: string | null
+        }
+        Relationships: []
+      }
       trader_level_purchases: {
         Row: {
           admin_notes: string | null
