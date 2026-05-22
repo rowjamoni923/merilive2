@@ -3729,6 +3729,13 @@ const LiveStream = () => {
             id={id}
             roomName={id ? `live_${id}` : null}
           />
+          <ReactionPickerSheet
+            open={showReactionPicker}
+            onClose={() => setShowReactionPicker(false)}
+            scope="live"
+            id={id}
+          />
+          <FloatingReactionsOverlay scope="live" id={id} bottomOffset={120} />
 
         </>
       )}
