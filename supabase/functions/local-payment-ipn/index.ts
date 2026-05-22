@@ -201,23 +201,30 @@ serve(async (req) => {
         throw new Error(result?.error || "Failed to credit diamonds");
       }
 
-      // Record in recharge_transactions
-      await supabaseAdmin.from("recharge_transactions").insert({
+      // Record in recharge_transactions (schema-aligned)
+      const { error: txErr } = await supabaseAdmin.from("recharge_transactions").insert({
         user_id: userId,
-        amount: order.amount_usd,
-        coins_added: totalCoins,
+        helper_id: order.helper_id,
+        order_id: orderId,
         payment_method: gatewayType,
         transaction_id: txnId,
+        amount: order.amount_usd,
+        usd_amount: order.amount_usd,
+        currency: "USD",
+        coins_amount: totalCoins,
+        coins_received: totalCoins,
         status: "completed",
-        payment_details: {
+        completed_at: new Date().toISOString(),
+        purchase_source: gatewayType,
+        local_payment_provider: gatewayType,
+        notes: JSON.stringify({
           gateway: gatewayType,
           ...validationData,
-          order_id: orderId,
-          helper_id: order.helper_id,
           balance_before: result.balance_before,
           balance_after: result.balance_after,
-        },
+        }),
       });
+      if (txErr) console.error("[IPN] recharge_transactions insert error:", txErr);
 
       // Update order status
       await supabaseAdmin
@@ -235,14 +242,24 @@ serve(async (req) => {
         })
         .eq("id", orderId);
 
-      // First recharge bonus
+      // First recharge bonus (schema-aligned)
       const orderDetails = order.payment_details as any;
-      if (orderDetails?.is_first_recharge) {
-        await supabaseAdmin.from("first_recharge_claims").insert({
-          user_id: userId,
-          package_id: order.package_id,
-          bonus_coins: orderDetails.bonus_coins || 0,
-        }).onConflict("user_id").doNothing();
+      if (orderDetails?.is_first_recharge && (orderDetails.bonus_coins || 0) > 0) {
+        const { data: bonusRow } = await supabaseAdmin
+          .from("first_recharge_bonus")
+          .select("id")
+          .eq("is_active", true)
+          .limit(1)
+          .maybeSingle();
+        if (bonusRow?.id) {
+          const { error: claimErr } = await supabaseAdmin.from("first_recharge_claims").insert({
+            user_id: userId,
+            bonus_id: bonusRow.id,
+            original_amount: orderDetails.base_coins || (totalCoins - (orderDetails.bonus_coins || 0)),
+            bonus_amount: orderDetails.bonus_coins || 0,
+          });
+          if (claimErr) console.error("[IPN] first_recharge_claims insert error:", claimErr);
+        }
       }
 
       // Notification
