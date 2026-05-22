@@ -896,25 +896,27 @@ const PartyRoom = () => {
         return;
       }
 
-      // --- seat_action ---
+      // --- seat_action (Pkg186 LiveKit-Purist) ---
+      // ALL viewers apply the seat change as an in-memory delta so the
+      // new speaker pops onto the seat instantly (0ms) — no REST refetch.
       if (payload.type === 'seat_action') {
         const data = payload as SeatActionPayload;
         const myId = currentUserRef.current?.id;
         if (!myId) return;
         console.log('[PartyRoom] 🟣 ⚡ Pkg80 livekit seat_action:', data.action, data.requester_id);
 
-        if (data.action === 'approved' && data.requester_id === myId && typeof data.seat_position === 'number') {
-          toast.success(`🎉 Seat approved! You are now on seat ${data.seat_position + 1}!`);
-          setMyPendingRequest(null);
-          setMyPosition(data.seat_position);
+        if (data.action === 'approved' && typeof data.seat_position === 'number') {
+          // Pkg186: optimistic seat assignment for ALL viewers (not just requester)
           setParticipants(prev => prev.map(p =>
-            p.user_id === myId
+            p.user_id === data.requester_id
               ? { ...p, position: data.seat_position!, role: 'speaker' }
               : p
           ));
-          setTimeout(() => {
-            if (isMountedRef.current) fetchParticipants();
-          }, 300);
+          if (data.requester_id === myId) {
+            toast.success(`🎉 Seat approved! You are now on seat ${data.seat_position + 1}!`);
+            setMyPendingRequest(null);
+            setMyPosition(data.seat_position);
+          }
         }
 
         if (data.action === 'rejected' && data.requester_id === myId) {
@@ -922,9 +924,11 @@ const PartyRoom = () => {
           setMyPendingRequest(null);
         }
 
+        // Host-side pending queue still needs refresh (Supabase source of truth)
         fetchSeatRequests();
         return;
       }
+
 
       // --- participant_left (Pkg81b) ---
       // Translated from LiveKit RoomEvent.ParticipantDisconnected by
