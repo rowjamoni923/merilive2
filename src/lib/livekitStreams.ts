@@ -67,6 +67,8 @@ export function unregisterStreamRoom(scope: StreamScope, id: string) {
  */
 export function _getRegisteredRoom(scope: StreamScope, id: string): Room | null {
   return registry.get(key(scope, id))?.room ?? null;
+}
+
 
 // ─── Text streams ─────────────────────────────────────────────────────────
 
