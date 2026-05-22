@@ -75,6 +75,8 @@ export function useLiveKitCall(
   });
 
   const roomRef = useRef<Room | null>(null);
+  // Pkg189: token refresh detach handle.
+  const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const isInitRef = useRef(false);
   const deadRef = useRef(false);
   // Pkg73: keep latest callId visible inside the stable `cleanup` callback
