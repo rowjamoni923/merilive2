@@ -466,7 +466,7 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   --text-muted-pro:  222 12% 50%;   /* Secondary / helper text */
   --text-caption:    222 10% 58%;   /* Smallest meta text */
   --text-link:       330 85% 48%;   /* Inline links — brand pink */
-  --text-money:      35 92% 38%;    /* Diamond / coins / beans amounts */
+  --text-money:      35 92% 38%;    /* Diamond / beans amounts */
   --text-danger-pro: 0 78% 48%;     /* Errors, destructive copy */
   --text-success-pro: 152 72% 32%;  /* Success / completed */
   /* On-dark surfaces (live rooms, party, modals on glass) */
