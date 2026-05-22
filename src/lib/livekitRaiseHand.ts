@@ -1,28 +1,31 @@
 /**
- * Pkg131: LiveKit Raise-Hand
+ * Pkg131: LiveKit Raise-Hand (built on Pkg107 metadata)
  * --------------------------------------------------------------
- * Audience members request to come on stage by "raising their hand";
- * hosts see an ordered queue and can promote them via Pkg130
+ * Audience members "raise their hand" to request promotion to speaker;
+ * hosts watch an ordered FIFO queue and can promote via Pkg130
  * `promoteToSpeaker(roomName, identity)`.
  *
- * Implementation: stores `{ raisedHand:true, raisedAt:<ms>, reason? }`
- * inside the participant's own LiveKit metadata (Pkg107). The SFU
- * persists + replicates it — late-joining hosts see the existing
- * queue for free, no Supabase round-trip, no polls, no channels.
+ * State lives inside each participant's own LiveKit metadata
+ * (`{ raisedHand:true, raisedAt:<ms>, raiseReason? }`). SFU persists
+ * & replicates it — late-joining hosts see the existing queue for
+ * free, no Supabase round-trip, no polls, no channels.
  *
  * LiveKit-Purist:
  *   - Zero new Supabase channels, zero polls, zero cross-user reads
  *   - Reuses `livekit-participant-metadata` window event from Pkg107
+ *   - Merges into existing local metadata so AFK/theme keys survive
  *   - No new kill-switch (rides Pkg107 `presence` informational state)
  *
- * Producer:  raiseHand(scope, id, { reason? })
- * Producer:  lowerHand(scope, id)
- * Consumer:  useRaisedHands(scope, id)  → ordered array of entries
- * Consumer:  hasRaisedHand(scope, id, identity)  (sync)
+ * API:
+ *   - raiseHand(scope, id, { reason? })  →  Promise<boolean>
+ *   - lowerHand(scope, id)               →  Promise<boolean>
+ *   - hasRaisedHand(scope, id, identity) →  boolean
+ *   - useRaisedHands(scope, id)          →  RaisedHandEntry[] (FIFO)
  */
 import { useEffect, useState } from 'react';
 import {
   type MetadataScope,
+  readLocalMetadata,
   readParticipantMetadata,
   setLocalParticipantMetadata,
 } from '@/lib/livekitMetadata';
@@ -42,37 +45,14 @@ export interface RaiseHandOptions {
   reason?: string;
 }
 
-function getLocalIdentity(scope: MetadataScope, id: string): string | null {
-  // Read our own metadata is a no-op if the room isn't registered;
-  // we still need our identity to build the entry. Pkg107 registry
-  // stores the Room; look it up by re-reading current local metadata
-  // (an existing-entry shortcut). For simplicity we fall back to
-  // probing the registry through a public read.
-  // We can't get identity directly from Pkg107 exports, so we rely on
-  // setLocalParticipantMetadata silently failing when not connected.
-  const current = readParticipantMetadata(scope, id, '__never_matches__');
-  // void result is fine; we just needed to ensure registry side-effect free.
-  void current;
-  return null;
-}
-
-/**
- * Raise the local participant's hand in the bound Room.
- * Merges with any existing Pkg107 metadata so other keys (AFK, theme…)
- * are preserved.
- */
+/** Raise the local participant's hand (merges; preserves other metadata keys). */
 export async function raiseHand(
   scope: MetadataScope,
   id: string,
   options: RaiseHandOptions = {},
 ): Promise<boolean> {
   if (!scope || !id) return false;
-  // Read whatever the local participant already has stored.
-  // We can't pull our own identity from Pkg107 helpers, but
-  // setLocalParticipantMetadata reads it internally — we just need
-  // to preserve other keys, so probe the registry via window event
-  // cache (best-effort: empty object if nothing).
-  const existing = readLocalMetadataBestEffort(scope, id);
+  const existing = readLocalMetadata(scope, id);
 
   const reason =
     typeof options.reason === 'string' && options.reason.trim().length
@@ -90,13 +70,13 @@ export async function raiseHand(
   return setLocalParticipantMetadata(scope, id, next);
 }
 
-/** Lower the local participant's hand (clears the 3 raise-hand keys). */
+/** Lower the local participant's hand — clears the 3 raise-hand keys only. */
 export async function lowerHand(
   scope: MetadataScope,
   id: string,
 ): Promise<boolean> {
   if (!scope || !id) return false;
-  const existing = readLocalMetadataBestEffort(scope, id);
+  const existing = readLocalMetadata(scope, id);
   const next = { ...existing };
   delete next[RAISED_KEY];
   delete next[RAISED_AT_KEY];
@@ -104,7 +84,7 @@ export async function lowerHand(
   return setLocalParticipantMetadata(scope, id, next);
 }
 
-/** Sync check — has this identity currently raised their hand? */
+/** Sync check — is this identity currently raised? */
 export function hasRaisedHand(
   scope: MetadataScope,
   id: string,
@@ -114,10 +94,18 @@ export function hasRaisedHand(
   return !!(m && m[RAISED_KEY] === true);
 }
 
-/**
- * React hook: live, ordered queue of raised hands for a bound Room.
- * Earliest raise first (FIFO). Order is stable across re-renders.
- */
+// ─── React hook (FIFO queue) ────────────────────────────────────────────────
+
+const queues = new Map<string, Map<string, RaisedHandEntry>>(); // `${scope}:${id}` → identity→entry
+
+function qkey(scope: MetadataScope, id: string) {
+  return `${scope}:${id}`;
+}
+
+function sortAsc(arr: RaisedHandEntry[]): RaisedHandEntry[] {
+  return [...arr].sort((a, b) => a.raisedAt - b.raisedAt);
+}
+
 export function useRaisedHands(
   scope: MetadataScope | undefined,
   id: string | undefined,
@@ -130,15 +118,9 @@ export function useRaisedHands(
       return;
     }
 
-    // Snapshot any rows already cached for this room.
-    const initial: RaisedHandEntry[] = [];
-    const cache = identityCache.get(`${scope}:${id}`);
-    if (cache) {
-      for (const [identity, entry] of cache) {
-        if (entry.raised) initial.push({ identity, ...entry.payload });
-      }
-    }
-    setHands(sortAsc(initial));
+    // Seed from existing queue cache (instant for late-mount components).
+    const cache = queues.get(qkey(scope, id));
+    if (cache && cache.size) setHands(sortAsc([...cache.values()]));
 
     const handler = (ev: Event) => {
       const d = (ev as CustomEvent).detail as
@@ -157,30 +139,18 @@ export function useRaisedHands(
       const reasonRaw = meta[REASON_KEY];
       const reason = typeof reasonRaw === 'string' ? reasonRaw : undefined;
 
-      // Update identity cache so subsequent useRaisedHands instances
-      // can seed without waiting for another event.
-      const ck = `${scope}:${id}`;
-      let c = identityCache.get(ck);
-      if (!c) {
-        c = new Map();
-        identityCache.set(ck, c);
+      const ck = qkey(scope, id);
+      let cmap = queues.get(ck);
+      if (!cmap) {
+        cmap = new Map();
+        queues.set(ck, cmap);
       }
       if (raised && Number.isFinite(raisedAt)) {
-        c.set(d.identity, {
-          raised: true,
-          payload: { raisedAt, reason },
-        });
+        cmap.set(d.identity, { identity: d.identity, raisedAt, reason });
       } else {
-        c.delete(d.identity);
+        cmap.delete(d.identity);
       }
-
-      setHands((prev) => {
-        const filtered = prev.filter((h) => h.identity !== d.identity);
-        if (raised && Number.isFinite(raisedAt)) {
-          filtered.push({ identity: d.identity, raisedAt, reason });
-        }
-        return sortAsc(filtered);
-      });
+      setHands(sortAsc([...cmap.values()]));
     };
 
     window.addEventListener('livekit-participant-metadata', handler as EventListener);
@@ -195,62 +165,7 @@ export function useRaisedHands(
   return hands;
 }
 
-function sortAsc(arr: RaisedHandEntry[]): RaisedHandEntry[] {
-  return [...arr].sort((a, b) => a.raisedAt - b.raisedAt);
-}
-
-// ─── Best-effort local-metadata cache ───────────────────────────────────────
-// Pkg107 doesn't expose a "read MY current metadata" helper, so we mirror
-// the last-seen local metadata from the window-event stream. This avoids
-// clobbering other keys (AFK, theme, etc.) when we write raiseHand state.
-
-const identityCache = new Map<
-  string,
-  Map<
-    string,
-    { raised: boolean; payload: { raisedAt: number; reason?: string } }
-  >
->();
-
-const localMetaCache = new Map<string, Record<string, unknown>>(); // `${scope}:${id}` → last MY metadata
-
-function readLocalMetadataBestEffort(
-  scope: MetadataScope,
-  id: string,
-): Record<string, unknown> {
-  return localMetaCache.get(`${scope}:${id}`) ?? {};
-}
-
-// Mirror local-only metadata events into localMetaCache so raiseHand/lowerHand
-// preserve any unrelated keys written by other features (Pkg107 AFK, etc.).
-if (typeof window !== 'undefined') {
-  window.addEventListener('livekit-participant-metadata', (ev: Event) => {
-    const d = (ev as CustomEvent).detail as
-      | {
-          scope?: string;
-          id?: string;
-          identity?: string;
-          metadata?: Record<string, unknown> | null;
-          __local?: boolean;
-        }
-      | undefined;
-    if (!d || !d.scope || !d.id || !d.identity) return;
-    // We can't tell from Pkg107 events whether this was the local participant.
-    // Workaround: also stash every identity we ever wrote so we can recover.
-    // The setLocalParticipantMetadata call we issue immediately re-fires the
-    // event for our own identity, so the LAST event for the local participant
-    // wins by virtue of being most recent.
-    const ck = `${d.scope}:${d.id}`;
-    const probable = d.metadata && typeof d.metadata === 'object' ? d.metadata : {};
-    localMetaCache.set(`${ck}:${d.identity}`, probable as Record<string, unknown>);
-  });
-}
-
-/** Test-only — clears caches between specs. */
+/** Test-only — clears the queue cache between specs. */
 export function __resetRaiseHandForTests() {
-  identityCache.clear();
-  localMetaCache.clear();
+  queues.clear();
 }
-
-// Re-export the unused helper to keep getLocalIdentity tree-shake friendly.
-void getLocalIdentity;
