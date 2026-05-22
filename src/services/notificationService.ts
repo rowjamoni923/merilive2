@@ -184,7 +184,7 @@ export const sendCoinsAddedNotification = async (
   return sendNotification({
     userId,
     type: helperName ? 'coin_purchase_helper' : typeMap[source],
-    title: helperName ? `💎 ${helperName} added coins!` : `💎 Coins added!`,
+    title: helperName ? `💎 ${helperName} added coins!` : `💎 Diamonds added!`,
     message: `${amount.toLocaleString()} Diamonds have been added to your account`,
     data: {
       amount,

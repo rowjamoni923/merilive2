@@ -319,7 +319,7 @@ const CallHistory = () => {
                       </span>
                     )}
                     
-                    {/* Coins Spent (for caller) or Earned (for host) */}
+                    {/* Diamonds Spent (for caller) or Earned (for host) */}
                     {call.coins_spent && call.coins_spent > 0 && (
                       call.is_outgoing ? (
                         <span className="flex items-center gap-1 text-red-400">

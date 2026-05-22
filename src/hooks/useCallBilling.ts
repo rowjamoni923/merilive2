@@ -44,7 +44,7 @@ export function useCallBilling(
       if (!result.success) {
         if (result.call_ended) {
           toast({
-            title: "Insufficient Coins",
+            title: "Insufficient Diamonds",
             description: "Call ended due to low balance",
             variant: "destructive",
           });
