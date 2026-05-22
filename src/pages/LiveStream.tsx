@@ -538,6 +538,11 @@ const LiveStream = () => {
     toggleRemoteAudio,
     toggleAudio,
     retrySubscription,
+    startScreenShare,
+    stopScreenShare,
+    isScreenSharing,
+    screenTrack,
+    remoteScreenTracks,
   } = useLiveKitClient({
     liveSignalingStreamId: id,
     giftSignalingStreamId: id,
