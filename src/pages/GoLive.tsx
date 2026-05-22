@@ -1636,6 +1636,18 @@ const GoLive = () => {
             </div>
             <span className="text-[11px] text-white/50 font-semibold">More</span>
           </motion.button>
+
+          {/* Pkg144: Devices (pre-join camera/mic/speaker picker) */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowPreJoinDevices(true)}
+            className="flex flex-col items-center gap-1 touch-manipulation"
+          >
+            <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center">
+              <Sliders className="w-6 h-6 text-white/70" />
+            </div>
+            <span className="text-[11px] text-white/50 font-semibold">Devices</span>
+          </motion.button>
         </div>
 
         {/* Go Live Button - Chamet Style */}
