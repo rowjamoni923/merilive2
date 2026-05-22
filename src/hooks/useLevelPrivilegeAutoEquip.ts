@@ -37,7 +37,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
     const syncLevelRewards = async () => {
       try {
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('profiles') // guard-ok: owner-only auto-equip sync for authenticated current user
           .select(`
             id,
             is_host,
