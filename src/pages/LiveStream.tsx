@@ -190,6 +190,7 @@ const LiveStream = () => {
   const [showNoiseCancellation, setShowNoiseCancellation] = useState(false);
   const [showIngress, setShowIngress] = useState(false);
   const [showSipDial, setShowSipDial] = useState(false);
+  const [showRecording, setShowRecording] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
