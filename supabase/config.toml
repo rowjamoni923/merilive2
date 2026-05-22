@@ -51,6 +51,10 @@ verify_jwt = true
 [functions.livekit-hls-egress]
 verify_jwt = true
 
+[functions.livekit-forward-participant]
+verify_jwt = true
+
+
 
 
 
