@@ -3604,6 +3604,12 @@ const LiveStream = () => {
             onClose={() => setShowVirtualBackground(false)}
             localVideoTrack={localVideoTrack}
           />
+          <NoiseCancellationDialog
+            open={showNoiseCancellation}
+            onClose={() => setShowNoiseCancellation(false)}
+            localAudioTrack={localAudioTrack}
+          />
+
         </>
       )}
     </div>
