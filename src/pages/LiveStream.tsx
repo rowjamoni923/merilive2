@@ -2264,6 +2264,15 @@ const LiveStream = () => {
           if (err?.name !== 'NotAllowedError') toast.error("Couldn't start screen share");
         }
       } },
+    // Pkg125: Virtual Background (web hosts only — native uses DeepAR pipeline)
+    { id: "virtualbg", name: "Background", iconName: "Wand2" as const, color: "from-emerald-400 to-teal-600", shadowColor: "shadow-emerald-500/40", action: () => {
+        setShowMoreOptions(false);
+        if (deepAR.isNativeAndroid) {
+          toast.info("Use the Beauty panel for native background effects.");
+          return;
+        }
+        setShowVirtualBackground(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
