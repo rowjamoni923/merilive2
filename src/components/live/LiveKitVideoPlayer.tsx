@@ -39,6 +39,10 @@ interface LiveKitVideoPlayerProps {
   fit?: 'cover' | 'contain';
   muted?: boolean;
   onVideoStalled?: () => void;
+  /** Pkg146: opt-in browser Picture-in-Picture. Adds data-pip-id and drops disablePictureInPicture. */
+  enablePictureInPicture?: boolean;
+  /** Pkg146: stable id used by <PictureInPictureButton pipId={...} /> to locate this video. */
+  pipId?: string;
 }
 
 export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
@@ -48,6 +52,8 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   fit = 'cover',
   muted = true,
   onVideoStalled,
+  enablePictureInPicture = false,
+  pipId,
 }: LiveKitVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const onVideoStalledRef = useRef(onVideoStalled);
