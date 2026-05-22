@@ -33,6 +33,7 @@ import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
+import { runPreflightProbe } from "@/lib/livekitPreflightProbe";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_image";
 
@@ -61,6 +62,8 @@ const GoLive = () => {
   const [title, setTitle] = useState("");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  // Pkg157: pre-join "Checking connection…" probe state.
+  const [isProbing, setIsProbing] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [useLiveKit, setUseLiveKit] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
@@ -808,7 +811,7 @@ const GoLive = () => {
 
 
   const handleGoLive = async () => {
-    if (isStarting || livekitLoading) return;
+    if (isStarting || isProbing || livekitLoading) return;
 
     const effectiveProfile = await refreshUserProfile();
     const resolvedProfile = effectiveProfile || userProfile;
@@ -847,6 +850,18 @@ const GoLive = () => {
         }
       }
     }
+
+    // Pkg157: brief pre-join connection probe (1.5s budget) — Chamet/Bigo parity.
+    // Shows "Checking connection…" overlay so the tap feels responsive while
+    // we measure RTT; warns on poor network but never blocks Go Live.
+    setIsProbing(true);
+    try {
+      const probe = await runPreflightProbe();
+      if (probe.quality === 'poor') {
+        toast.warning('Weak network detected — video may start in low quality.');
+      }
+    } catch { /* probe never throws, just in case */ }
+    setIsProbing(false);
 
     setIsStarting(true);
 
@@ -1655,10 +1670,10 @@ const GoLive = () => {
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleGoLive}
-            disabled={isStarting || livekitLoading}
+            disabled={isStarting || isProbing || livekitLoading}
             className={cn(
               "w-full relative overflow-hidden rounded-full touch-manipulation py-4",
-              (isStarting || livekitLoading) && "opacity-70"
+              (isStarting || isProbing || livekitLoading) && "opacity-70"
             )}
             style={{
               background: 'linear-gradient(to right, #f472b6, #ec4899, #f97316)'
@@ -1670,7 +1685,7 @@ const GoLive = () => {
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12"
             />
             <span className="relative text-white text-lg font-bold tracking-wide">
-              {isStarting ? "Starting..." : livekitLoading ? "Starting..." : "Go Live"}
+              {isProbing ? "Checking connection..." : (isStarting || livekitLoading) ? "Starting..." : "Go Live"}
             </span>
           </motion.button>
         </div>
@@ -1876,6 +1891,29 @@ const GoLive = () => {
 
       {/* Face-tracked Sticker Overlay */}
       <StickerOverlay stickerName={activeSticker} onDismiss={() => handleStickerChange(null)} />
+
+      {/* Pkg157: Pre-join connection warmup overlay (Chamet/Bigo parity) */}
+      <AnimatePresence>
+        {(isProbing || isStarting) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 backdrop-blur-[2px] pointer-events-none"
+          >
+            <div className="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl bg-black/60 border border-white/10 shadow-2xl">
+              <div className="relative h-10 w-10">
+                <div className="absolute inset-0 rounded-full border-2 border-white/15" />
+                <div className="absolute inset-0 rounded-full border-2 border-t-primary border-r-primary/60 border-b-transparent border-l-transparent animate-spin" />
+              </div>
+              <div className="text-white text-sm font-medium tracking-wide">
+                {isProbing ? 'Checking connection…' : 'Going live…'}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
