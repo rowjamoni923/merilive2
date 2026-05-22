@@ -27,6 +27,7 @@ import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregiste
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
+import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -151,6 +152,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterConnectionQualityRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg107: drop participant-metadata registration.
     try { if (callIdRef.current) unregisterMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg122: drop room-metadata registration.
+    try { if (callIdRef.current) unregisterRoomMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -467,6 +470,8 @@ export function useLiveKitCall(
         if (callId) registerConnectionQualityRoom('call', callId, room);
         // Pkg107: bind for participant metadata sync (AFK/role/mod flags).
         if (callId) registerMetadataRoom('call', callId, room);
+        // Pkg122: bind for room-wide metadata (shared room state).
+        if (callId) registerRoomMetadataRoom('call', callId, room);
 
 
         // Enable camera and microphone

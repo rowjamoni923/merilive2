@@ -102,6 +102,11 @@ interface UseLiveKitClientOptions {
    * dispatches a `livekit-participant-metadata` window event. Consumers use
    * `useParticipantMetadata('live', id, identity)` to read live state. */
   metadataStreamId?: string | null;
+  /** Pkg122: When set, the underlying Room is registered with the
+   * room-metadata registry so `RoomEvent.RoomMetadataChanged` dispatches a
+   * `livekit-room-metadata` window event. Consumers use
+   * `useRoomMetadata('live', id)` to read shared room state. */
+  roomMetadataStreamId?: string | null;
 }
 
 
@@ -1465,6 +1470,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.metadataStreamId, isJoined]);
+
+  // Pkg122: bind for room-wide metadata sync (shared room state blob).
+  useEffect(() => {
+    const streamId = options.roomMetadataStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitRoomMetadata');
+        if (cancelled) return;
+        mod.registerRoomMetadataRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg122] registerRoomMetadataRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitRoomMetadata').then((mod) => {
+        mod.unregisterRoomMetadataRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.roomMetadataStreamId, isJoined]);
   // Pkg105: bind for track-subscription permissions (host hard-block).
   useEffect(() => {
     const streamId = options.trackPermissionStreamId;
