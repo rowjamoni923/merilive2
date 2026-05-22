@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
+import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
@@ -177,6 +178,8 @@ const LiveStream = () => {
   const deepAR = useDeepARBeauty();
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
   const [showStickerPanel, setShowStickerPanel] = useState(false);
+  // Pkg125: Virtual Background dialog (web hosts only)
+  const [showVirtualBackground, setShowVirtualBackground] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -2261,6 +2264,15 @@ const LiveStream = () => {
           if (err?.name !== 'NotAllowedError') toast.error("Couldn't start screen share");
         }
       } },
+    // Pkg125: Virtual Background (web hosts only — native uses DeepAR pipeline)
+    { id: "virtualbg", name: "Background", iconName: "Wand2" as const, color: "from-emerald-400 to-teal-600", shadowColor: "shadow-emerald-500/40", action: () => {
+        setShowMoreOptions(false);
+        if (deepAR.isNativeAndroid) {
+          toast.info("Use the Beauty panel for native background effects.");
+          return;
+        }
+        setShowVirtualBackground(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
@@ -3568,6 +3580,11 @@ const LiveStream = () => {
             onClose={() => setShowStickerPanel(false)}
             activeSticker={deepAR.activeSticker}
             onStickerChange={(name) => { setActiveSticker(name); deepAR.handleStickerChange(name); }}
+          />
+          <VirtualBackgroundDialog
+            open={showVirtualBackground}
+            onClose={() => setShowVirtualBackground(false)}
+            localVideoTrack={localVideoTrack}
           />
         </>
       )}
