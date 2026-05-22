@@ -14,7 +14,7 @@ import { secureStorage } from '@/utils/encryptedStorage';
 import { saveSessionToNative, clearNativeSession, getSessionFromNative } from '@/utils/nativeSessionStorage';
 import { prewarmSVGA } from '@/utils/svgaPrewarm';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
-import { clearBalanceCache } from '@/hooks/useUserBalance';
+import { clearBalanceCache, useUserBalancePrefetch } from '@/hooks/useUserBalance';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
@@ -422,6 +422,8 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isPublicPage = ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/google-library-order-rules', '/join-agency', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
+
+  useUserBalancePrefetch();
 
   return (
     <>
