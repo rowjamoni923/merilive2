@@ -586,6 +586,9 @@ export function ActiveCallScreen({
         <PictureInPictureButton pipId="call-primary" label="Picture in picture" />
       )}
 
+      {/* Pkg147: Audio-only data-saver toggle */}
+      {isLiveConnected && <AudioOnlyToggleButton label="Audio-only mode" />}
+
 
 
 
