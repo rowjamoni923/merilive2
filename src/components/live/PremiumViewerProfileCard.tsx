@@ -134,6 +134,7 @@ export const PremiumViewerProfileCard = ({
   onBlock,
   onReport,
   onViewProfile,
+  onModerate,
 }: PremiumViewerProfileCardProps) => {
   const [isFollowing, setIsFollowing] = useState(viewer?.isFollowing || false);
   const [showMoreActions, setShowMoreActions] = useState(false);
