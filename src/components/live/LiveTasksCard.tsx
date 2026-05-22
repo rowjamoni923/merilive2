@@ -488,15 +488,21 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
                 className="flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-extrabold text-white relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(145deg, #a855f7, #d946ef, #ec4899)',
-                  boxShadow: '0 0 20px rgba(168,85,247,0.5), 0 6px 16px rgba(236,72,153,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                  boxShadow:
+                    '0 0 20px rgba(168,85,247,0.5), 0 6px 16px rgba(236,72,153,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                  animation: 'giftSendBreathe 2.4s ease-in-out infinite',
                 }}
               >
-                {/* Button shimmer */}
-                <motion.div
-                  className="absolute inset-0"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)' }}
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.5 }}
+                {/* Pkg174 shine sweep */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)',
+                    animation: 'giftSendShine 2.6s ease-in-out infinite',
+                    mixBlendMode: 'overlay',
+                  }}
                 />
                 <motion.span
                   animate={{ scale: [1, 1.05, 1] }}
