@@ -1,15 +1,12 @@
 /**
  * 🔄 Admin Global Realtime Subscriber
  * =====================================================
- * Single source of truth for admin-side postgres_changes.
+ * Admin global realtime lifecycle shim.
  *
- * - Subscribes ONCE to all GLOBALLY_MONITORED_TABLES via chunked channels
- *   (Supabase has a per-channel binding limit, so we split into chunks of 8).
- * - Dispatches ADMIN_REALTIME_EVENT on the window for every change.
- * - Per-event dedupe: ignores duplicate INSERT/UPDATE deliveries arriving
- *   within DEDUPE_WINDOW_MS of each other.
- * - Exponential reconnect on channel errors / disconnects.
- * - Auto-reconnect on tab visibility resume after >30s away.
+ * Pkg93 audit: direct admin postgres_changes channels are forbidden because
+ * the server publication contains only admin_broadcast/notifications/session.
+ * Admin pages now consume the global `admin-table-update` event emitted by
+ * useAdminBroadcastSync's single admin_broadcast subscription.
  *
  * Lifecycle: started by AdminLayout once admin session is verified, stopped
  * on admin logout. Multiple start() calls are idempotent.
@@ -28,7 +25,6 @@ const recentEvents = new Map<string, number>();
 let lastVisibilityHidden = 0;
 let visibilityHandler: (() => void) | null = null;
 let cleanupInterval: ReturnType<typeof setInterval> | null = null;
-let adminBroadcastHandler: ((event: Event) => void) | null = null;
 
 function makeDedupeKey(table: string, eventType: string, payload: any): string {
   const id = payload?.id ?? payload?.uuid ?? "";
@@ -88,14 +84,6 @@ export function startAdminGlobalRealtime() {
   started = true;
   const tables = Array.from(GLOBALLY_MONITORED_TABLES);
 
-  adminBroadcastHandler = (event: Event) => {
-    const detail = (event as CustomEvent<AdminTableUpdateEvent>).detail;
-    if (!detail?.table || !tables.includes(detail.table)) return;
-    if (!shouldDispatch(detail)) return;
-    window.dispatchEvent(new CustomEvent(ADMIN_REALTIME_EVENT, { detail }));
-  };
-  window.addEventListener(ADMIN_REALTIME_EVENT, adminBroadcastHandler);
-
   setupVisibilityHandler();
   if (!cleanupInterval) {
     cleanupInterval = setInterval(pruneDedupeMap, 5_000);
@@ -109,10 +97,6 @@ export function startAdminGlobalRealtime() {
 export function stopAdminGlobalRealtime() {
   if (!started) return;
   started = false;
-  if (adminBroadcastHandler) {
-    window.removeEventListener(ADMIN_REALTIME_EVENT, adminBroadcastHandler);
-    adminBroadcastHandler = null;
-  }
   recentEvents.clear();
   teardownVisibilityHandler();
   if (cleanupInterval) {
