@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Suspense, lazy } from "react";
 import { useMobileOptimization } from "@/hooks/useMobileOptimization";
 import { useLeaderboardRealtime } from "@/hooks/useLeaderboardRealtime";
+import { pickDisplayLevel } from "@/utils/displayLevel";
 
 const UniversalFramePlayer = lazy(() => import("@/components/common/UniversalFramePlayer"));
 
