@@ -781,8 +781,8 @@ export function UnifiedPartyRoom({
   // Viewer list now refreshes off LiveKit `participant_joined` /
   // `participant_left` window events dispatched by livekitPartyEventsSignaling
   // (registered once per room in usePartyRoomWebRTC). Late-join state =
-  // initial fetchRealtimeViewers() on mount. PartyRoom's 20s poll is the
-  // safety net.
+  // initial fetchRealtimeViewers() on mount; PartyRoom keeps a 20s REST
+  // safety poll for native packet-loss recovery.
   useEffect(() => {
     if (!roomId) return;
 
@@ -870,12 +870,12 @@ export function UnifiedPartyRoom({
   }, [roomId]);
 
   
-  // ==================== REAL-TIME CHAT SUBSCRIPTION ====================
-  // Subscribe to party_room_messages for real-time messages (Party Room specific table)
+  // ==================== LIVEKIT CHAT FANOUT ====================
+  // Load history from party_room_messages; live fanout arrives via LiveKit.
   useEffect(() => {
     if (!roomId) return;
     
-    console.log('[UnifiedPartyRoom] Setting up real-time chat subscription for room:', roomId);
+    console.log('[UnifiedPartyRoom] Setting up LiveKit chat fanout for room:', roomId);
     
     // Load existing chat messages - UNIFIED format only (ONE LINK)
     const loadMessages = async () => {
