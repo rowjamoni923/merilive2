@@ -239,10 +239,11 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     if (user) {
       setCurrentUserId(user.id);
       const { data } = await supabase
-        .from('profiles')
+        .from('profiles') // guard-ok: own-row read (id=eq.user.id), not cross-user
         .select('coins, username, user_level')
         .eq('id', user.id)
         .single();
+
       if (data) {
         setUserCoins(data.coins);
         setCurrentUserProfile({
