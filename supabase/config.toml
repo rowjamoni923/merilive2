@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.livekit-agent-ops]
 verify_jwt = false
+
+[functions.livekit-webhook-events-ops]
+verify_jwt = false
