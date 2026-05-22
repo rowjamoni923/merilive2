@@ -1526,11 +1526,22 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       } catch (e) {
         console.warn('[Pkg101] registerConnectionQualityRoom(live) failed:', e);
       }
+      // Pkg154: auto audio-only on poor connection.
+      try {
+        const mod = await import('@/lib/livekitAutoAudioOnly');
+        if (cancelled) return;
+        mod.registerAutoAudioOnlyRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg154] registerAutoAudioOnlyRoom(live) failed:', e);
+      }
     })();
     return () => {
       cancelled = true;
       import('@/lib/livekitConnectionQuality').then((mod) => {
         mod.unregisterConnectionQualityRoom('live', streamId);
+      }).catch(() => {});
+      import('@/lib/livekitAutoAudioOnly').then((mod) => {
+        mod.unregisterAutoAudioOnlyRoom('live', streamId);
       }).catch(() => {});
     };
   }, [options.connectionQualityStreamId, isJoined]);
