@@ -320,6 +320,7 @@ const AdminPendingApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminPe
 const AdminAutoActions = lazy(lazyRetry(() => import("./pages/admin/AdminAutoActions")));
 const AdminLiveKitRooms = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitRooms")));
 const AdminLiveKitEgress = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitEgress")));
+const AdminLiveKitIngress = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitIngress")));
 const AdminLiveKitSip = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitSip")));
 const AdminCostMonitor = lazy(lazyRetry(() => import("./pages/admin/AdminCostMonitor")));
 const AdminModerationAudit = lazy(lazyRetry(() => import("./pages/admin/AdminModerationAudit")));
