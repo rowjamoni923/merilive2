@@ -491,6 +491,8 @@ export function useLiveKitCall(
         if (callId) registerRpcRoom('call', callId, room);
         // Pkg116: bind for realtime transcription / captions.
         if (callId) registerRoomForTranscription('call', callId, room);
+        // Pkg133: bind for floating emoji reactions.
+        if (callId) registerReactionRoom('call', callId, room);
 
 
         // Enable camera and microphone
