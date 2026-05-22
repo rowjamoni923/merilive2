@@ -11,6 +11,7 @@ import { SipDialDialog } from "@/components/livekit/SipDialDialog";
 import { RecordingDialog } from "@/components/livekit/RecordingDialog";
 import { SimulcastDialog } from "@/components/livekit/SimulcastDialog";
 import { AgentDispatchDialog } from "@/components/livekit/AgentDispatchDialog";
+import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { useLiveKitRpcHandlers } from "@/hooks/useLiveKitRpcHandlers";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
