@@ -19,6 +19,7 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { useSound } from "@/hooks/useSound";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
+import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 
 
 interface ActiveCallScreenProps {

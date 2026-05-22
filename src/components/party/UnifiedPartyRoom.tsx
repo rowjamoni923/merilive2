@@ -59,6 +59,7 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 import type { PartyEventDetail, ParticipantJoinedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
+import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 
 // Real-time viewer type for header display
 interface RealtimeViewer {
