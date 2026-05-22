@@ -22,7 +22,8 @@ export type LiveKitFeature =
   | 'game'
   | 'pk'
   | 'e2ee'
-  | 'ingress';
+  | 'ingress'
+  | 'sip';
 
 export interface SignalEnvelope<T = unknown> {
   /** Envelope version — bump when shape changes. */
