@@ -1498,6 +1498,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.roomMetadataStreamId, isJoined]);
+
+  // Pkg121: bind for text/byte stream transport (chunked chat / file send).
+  useEffect(() => {
+    const streamId = options.streamsStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitStreams');
+        if (cancelled) return;
+        mod.registerStreamRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg121] registerStreamRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitStreams').then((mod) => {
+        mod.unregisterStreamRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.streamsStreamId, isJoined]);
   // Pkg105: bind for track-subscription permissions (host hard-block).
   useEffect(() => {
     const streamId = options.trackPermissionStreamId;
