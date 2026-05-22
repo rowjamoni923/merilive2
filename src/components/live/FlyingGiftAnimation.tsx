@@ -205,6 +205,41 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     return () => { mountedRef.current = false; clearTimeout(timer); };
   }, [gift.comboKey, isSVGA, svgaError, handleAnimationComplete]);
 
+  // ============================================================
+  // FULLSCREEN SVGA SLOT ACQUISITION
+  // Only ONE SVGA fullscreen can render at a time. If another SVGA is
+  // already playing, this gift waits in FIFO queue. The SVGA player is
+  // NOT mounted until the slot is owned — so the native duration only
+  // starts counting at its actual play time (no silent pre-consumption).
+  // ============================================================
+  useEffect(() => {
+    if (!isSVGA || svgaError) {
+      // Non-SVGA gifts don't compete for the singleton slot.
+      setHasFullscreenSlot(true);
+      return;
+    }
+    let cancelled = false;
+    const claim = () => {
+      if (cancelled || !mountedRef.current) return;
+      if (tryAcquireFullscreen(gift.id)) {
+        setHasFullscreenSlot(true);
+        unsub?.();
+      }
+    };
+    let unsub: (() => void) | null = null;
+    if (tryAcquireFullscreen(gift.id)) {
+      setHasFullscreenSlot(true);
+    } else {
+      unsub = subscribeFullscreen(claim);
+    }
+    return () => {
+      cancelled = true;
+      unsub?.();
+      releaseFullscreen(gift.id);
+    };
+  }, [isSVGA, svgaError, gift.id]);
+
+
   // Get gift icon URL (prefer giftImageUrl over giftIcon)
   const giftIconSrc = gift.giftImageUrl || (gift.giftIcon?.startsWith('http') ? gift.giftIcon : null);
 
