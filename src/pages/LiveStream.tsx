@@ -946,6 +946,11 @@ const LiveStream = () => {
       const giftAmount = Number(data.receiverBeans ?? (data.giftCoins || 0) * (data.count || 1));
       if (data.giftKey) markOptimisticGiftCount(data.giftKey, giftAmount);
       setTotalBeans(prev => prev + giftAmount);
+      if (isHost && giftAmount > 0) {
+        window.dispatchEvent(new CustomEvent('own-beans-updated', {
+          detail: { userId: currentUserId, beansDelta: giftAmount },
+        }));
+      }
       if (isHost) trackTaskProgress('first_gift');
 
       const giftChatMessage = `[GIFT:${data.giftIconUrl || ''}] sent ${data.giftName} x${data.count || 1}`;
