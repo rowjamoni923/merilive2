@@ -10,8 +10,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, Mic, Volume2, CheckCircle2 } from 'lucide-react';
+import { Camera, Mic, Volume2, CheckCircle2, Wifi, Loader2, XCircle, Activity } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  runConnectionCheck,
+  CheckStatus,
+  type CheckInfo,
+  type CheckRunStatus,
+} from '@/lib/livekitConnectionCheck';
 import {
   enumerateMediaDevices,
   getDevicePreferences,
@@ -33,6 +39,9 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
   }>({ audioinput: [], videoinput: [], audiooutput: [] });
   const [prefs, setPrefs] = useState<DevicePreferences>({});
   const [micLevel, setMicLevel] = useState(0);
+  // Pkg190 — ConnectionCheck state (Item #2)
+  const [ccStatus, setCcStatus] = useState<CheckRunStatus>('idle');
+  const [ccChecks, setCcChecks] = useState<CheckInfo[]>([]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const previewStreamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -146,6 +155,21 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
     onSaved?.(prefs);
     toast.success('Devices saved');
     onOpenChange(false);
+  };
+
+  const handleRunCheck = async () => {
+    setCcStatus('running');
+    setCcChecks([]);
+    try {
+      await runConnectionCheck(({ checks, overall }) => {
+        setCcChecks([...checks]);
+        setCcStatus(overall);
+      });
+    } catch (err: any) {
+      console.warn('[ConnectionCheck] failed', err?.message);
+      setCcStatus('failed');
+      toast.error('Connection test failed to start');
+    }
   };
 
   return (
