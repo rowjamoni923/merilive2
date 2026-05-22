@@ -268,21 +268,17 @@ export default function AdminStreams() {
     void fetchActiveBans();
   });
 
-  const forceCloseStreamSession = useCallback(async (streamId: string, hostName: string) => {
+  const forceCloseStreamSession = useCallback(async (streamId: string, _hostName: string) => {
     const now = new Date().toISOString();
 
-    await Promise.allSettled([
-      supabase
-        .from("stream_viewers")
-        .update({ left_at: now } as any)
-        .eq("stream_id", streamId)
-        .is("left_at", null),
-      supabase.channel(`live-stream-close-${streamId}`).send({
-        type: "broadcast",
-        event: "stream_closed",
-        payload: { streamId, hostName },
-      }),
-    ]);
+    // Pkg78/Pkg89 audit: Supabase `live-stream-close-${streamId}` broadcast REMOVED.
+    // Listener was deleted in Pkg78 — sending here was a dead channel open ($1400-rule waste).
+    // Host detects admin force-close via its existing 30s stale-stream poll on `live_streams.is_active`.
+    await supabase
+      .from("stream_viewers")
+      .update({ left_at: now } as any)
+      .eq("stream_id", streamId)
+      .is("left_at", null);
   }, []);
 
   useEffect(() => {
