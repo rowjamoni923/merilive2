@@ -158,6 +158,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterRoomMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg121: drop text/byte stream registration.
     try { if (callIdRef.current) unregisterStreamRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg120: drop RPC registration.
+    try { if (callIdRef.current) unregisterRpcRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
