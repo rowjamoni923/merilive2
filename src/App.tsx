@@ -322,6 +322,7 @@ const AdminLiveKitRooms = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKi
 const AdminLiveKitEgress = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitEgress")));
 const AdminLiveKitIngress = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitIngress")));
 const AdminLiveKitSip = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitSip")));
+const AdminLiveKitWebhook = lazy(lazyRetry(() => import("./pages/admin/AdminLiveKitWebhook")));
 const AdminCostMonitor = lazy(lazyRetry(() => import("./pages/admin/AdminCostMonitor")));
 const AdminModerationAudit = lazy(lazyRetry(() => import("./pages/admin/AdminModerationAudit")));
 const AdminGmailSupport = lazy(lazyRetry(() => import("./pages/admin/AdminGmailSupport")));
