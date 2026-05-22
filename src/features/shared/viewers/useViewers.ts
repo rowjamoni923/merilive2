@@ -9,11 +9,10 @@ interface UseViewersOptions {
 }
 
 /**
- * INSTANT viewer list — single source of truth from realtime postgres_changes.
- * - Uses `profiles_public` view (profiles has no public SELECT policy).
- * - No polling — realtime + incremental delta merges keep it sub-second fresh.
- * - Initial fetch primes the list; INSERT/UPDATE/DELETE events mutate it directly
- *   so the UI updates the instant a viewer joins or leaves, without a refetch round-trip.
+ * Viewer list snapshot + LiveKit event patching.
+ * - Uses `profiles_public` view for the initial/late-join snapshot only.
+ * - NO Supabase Realtime channels / postgres_changes subscriptions.
+ * - Live updates come from existing LiveKit window events emitted by the room.
  */
 export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptions) => {
   const [viewers, setViewers] = useState<Viewer[]>([]);
@@ -25,7 +24,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     const map = new Map<string, any>();
     const { data, error } = await supabase
       .from("profiles_public" as any)
-      .select("id, app_uid, display_name, avatar_url, user_level, coins")
+      .select("id, app_uid, display_name, avatar_url, user_level")
       .in("id", ids);
     if (error) {
       console.warn("[useViewers] profiles_public fetch error:", error.message);
@@ -40,8 +39,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     display_name: profile?.display_name || "Anonymous",
     avatar_url: profile?.avatar_url || null,
     user_level: profile?.user_level || 1,
-    coins: profile?.coins || 0,
-    is_vip: (profile?.coins || 0) >= 10000,
+    is_vip: (profile?.user_level || 1) >= 5,
     joined_at,
   });
 
@@ -89,6 +87,11 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
   const removeViewer = useCallback((id: string) => {
     if (!id) return;
     setViewers((curr) => curr.filter((v) => v.id !== id));
+  }, []);
+
+  const upsertViewerFromPacket = useCallback((viewer: Viewer) => {
+    if (!viewer.id) return;
+    setViewers((curr) => [viewer, ...curr.filter((v) => v.id !== viewer.id)]);
   }, []);
 
   useEffect(() => {
