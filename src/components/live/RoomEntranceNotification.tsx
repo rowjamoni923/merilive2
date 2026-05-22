@@ -218,22 +218,42 @@ const CustomEntranceNotification = ({ user, animationUrl }: { user: EntranceUser
         <motion.div
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.3, type: 'spring', damping: 22, stiffness: 280 }}
           className="absolute bottom-20 left-1/2 -translate-x-1/2"
         >
-          <div className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-500/90 via-yellow-400/90 to-orange-500/90 rounded-2xl border border-yellow-300 shadow-2xl">
-            <Avatar className="w-12 h-12 border-2 border-yellow-300">
+          <div
+            className="relative overflow-hidden flex items-center gap-3 px-5 py-2.5 rounded-2xl border border-amber-200/60"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(251,191,36,0.95) 0%, rgba(250,204,21,0.95) 50%, rgba(249,115,22,0.95) 100%)',
+              boxShadow:
+                '0 18px 40px -12px rgba(245,158,11,0.65), 0 6px 18px -6px rgba(249,115,22,0.55), inset 0 1px 0 rgba(255,255,255,0.45)',
+            }}
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-2xl"
+              style={{
+                background:
+                  'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%)',
+                animation: 'giftSendShine 3.4s ease-in-out infinite',
+                mixBlendMode: 'overlay',
+              }}
+            />
+            <Avatar className="relative w-12 h-12 border-2 border-yellow-200 shadow-[0_0_18px_rgba(251,191,36,0.7)]">
               <AvatarImage src={user.avatarUrl} />
               <AvatarFallback className="bg-amber-400 text-white font-bold">
                 {user.displayName[0]}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
+            <div className="relative flex flex-col">
               <div className="flex items-center gap-2">
                 <LevelBadge level={user.level} size="sm" animated />
-                <span className="text-amber-900 font-black text-lg">{user.displayName}</span>
+                <span className="text-amber-950 font-black text-lg drop-shadow-[0_1px_1px_rgba(255,255,255,0.45)]">
+                  {user.displayName}
+                </span>
               </div>
-              <span className="text-amber-800 text-xs font-semibold">👑 VIP Entrance</span>
+              <span className="text-amber-900 text-xs font-semibold tracking-wide">👑 VIP Entrance</span>
             </div>
           </div>
         </motion.div>
