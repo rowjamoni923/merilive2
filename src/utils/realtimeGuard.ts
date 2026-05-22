@@ -118,7 +118,7 @@ export function installRealtimeGuard() {
     let allowedPostgresBindings = 0;
     let blockedPostgresBindings = 0;
     let hasNonPostgresBindings = false;
-    const initialAdminBypass = isAdminChannel(name) || isAdminRouteActive();
+    const initialAdminBypass = false;
 
     channel.on = (type: string, config: any, callback: any) => {
       // Guard only postgres_changes; broadcast/presence are always allowed
@@ -127,10 +127,12 @@ export function installRealtimeGuard() {
         return originalOn(type, config, callback);
       }
 
-      const bypassAdminGuards = initialAdminBypass || isAdminRouteActive();
+      const bypassAdminGuards = false;
       const table = config?.table as string | undefined;
 
-      // 🔓 Admin realtime must NEVER be blocked
+      // Server-called truth: supabase_realtime publication contains ONLY
+      // notifications/admin_broadcast/user_active_sessions. Admin screens must use
+      // admin_broadcast or REST/RPC, never direct postgres_changes on unpublished tables.
       if (bypassAdminGuards) {
         if (table) {
           allowedTables.add(table);
@@ -173,7 +175,7 @@ export function installRealtimeGuard() {
     };
 
     channel.subscribe = ((...args: any[]) => {
-      const bypassAdminGuards = initialAdminBypass || isAdminRouteActive();
+      const bypassAdminGuards = false;
       if (bypassAdminGuards) {
         return originalSubscribe(...args);
       }
