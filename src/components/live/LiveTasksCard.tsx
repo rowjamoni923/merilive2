@@ -361,7 +361,28 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
             transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
           />
 
-          <div className="px-3.5 py-3 flex items-center gap-3">
+          {/* Aurora overlay — Pkg174 */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              background:
+                'radial-gradient(120% 80% at 0% 0%, rgba(168,85,247,0.18), transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(236,72,153,0.16), transparent 55%)',
+            }}
+          />
+          {/* Shine sweep overlay — Pkg174 */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden"
+            style={{
+              background:
+                'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.10) 50%, transparent 70%)',
+              animation: 'giftSendShine 4.2s ease-in-out infinite',
+              mixBlendMode: 'overlay',
+            }}
+          />
+
+          <div className="relative px-3.5 py-3 flex items-center gap-3">
             {/* Premium 3D icon */}
             <motion.div
               animate={isCompleted ? { scale: [1, 1.15, 1], boxShadow: ['0 0 12px rgba(34,197,94,0.3)', '0 0 24px rgba(34,197,94,0.6)', '0 0 12px rgba(34,197,94,0.3)'] } : {}}
