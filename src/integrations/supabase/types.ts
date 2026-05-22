@@ -7314,6 +7314,42 @@ export type Database = {
         }
         Relationships: []
       }
+      livekit_room_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: number
+          participant_identity: string | null
+          participant_sid: string | null
+          payload: Json
+          room_name: string | null
+          room_sid: string | null
+          track_sid: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: number
+          participant_identity?: string | null
+          participant_sid?: string | null
+          payload?: Json
+          room_name?: string | null
+          room_sid?: string | null
+          track_sid?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: number
+          participant_identity?: string | null
+          participant_sid?: string | null
+          payload?: Json
+          room_name?: string | null
+          room_sid?: string | null
+          track_sid?: string | null
+        }
+        Relationships: []
+      }
       login_attempts: {
         Row: {
           created_at: string | null
@@ -16272,6 +16308,13 @@ export type Database = {
           _verification_type: string
         }
         Returns: Json
+      }
+      auto_close_room_from_livekit: {
+        Args: { _room_name: string }
+        Returns: {
+          closed_id: string
+          closed_kind: string
+        }[]
       }
       auto_distribute_leaderboard_rewards: { Args: never; Returns: string }
       auto_finalize_face_verification: {
