@@ -115,36 +115,53 @@ serve(async (req) => {
       throw new Error(result?.error || "Failed to credit diamonds");
     }
 
-    // Record transaction
-    await supabaseAdmin.from("recharge_transactions").insert({
+    // Record transaction (schema-aligned)
+    const usdAmount = (session.amount_total || 0) / 100;
+    const { error: txErr } = await supabaseAdmin.from("recharge_transactions").insert({
       user_id: user.id,
-      google_order_id: `stripe_${session_id}`,
-      product_id: `stripe_pkg_${packageId}`,
-      amount_usd: (session.amount_total || 0) / 100,
-      coins_credited: totalCoins,
-      purchase_token: session_id,
+      order_id: `stripe_${session_id}`,
+      transaction_id: typeof session.payment_intent === 'string' ? session.payment_intent : session_id,
+      payment_method: "stripe",
+      amount: usdAmount,
+      usd_amount: usdAmount,
+      currency: "USD",
+      coins_amount: totalCoins,
+      coins_received: totalCoins,
+      bonus_coins: bonusCoins,
       status: "completed",
-      verification_data: {
+      completed_at: new Date().toISOString(),
+      purchase_source: "stripe",
+      google_order_id: `stripe_${session_id}`,
+      notes: JSON.stringify({
         stripe_session_id: session_id,
         payment_intent: session.payment_intent,
         base_coins: baseCoins,
         bonus_coins: bonusCoins,
         is_first_recharge: isFirstRecharge,
-        payment_method: "stripe",
+        package_id: packageId,
         balance_before: result.balance_before,
         balance_after: result.balance_after,
-      },
+      }),
     });
+    if (txErr) console.error("[Stripe-Verify] recharge_transactions insert error:", txErr);
 
-    // First recharge claim
+    // First recharge claim (schema-aligned: bonus_id/original_amount/bonus_amount)
     if (isFirstRecharge && bonusCoins > 0) {
-      await supabaseAdmin.from("first_recharge_claims").insert({
-        user_id: user.id,
-        package_id: packageId,
-        original_coins: baseCoins,
-        bonus_coins: bonusCoins,
-        total_coins: totalCoins,
-      });
+      const { data: bonusRow } = await supabaseAdmin
+        .from("first_recharge_bonus")
+        .select("id")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      if (bonusRow?.id) {
+        const { error: claimErr } = await supabaseAdmin.from("first_recharge_claims").insert({
+          user_id: user.id,
+          bonus_id: bonusRow.id,
+          original_amount: baseCoins,
+          bonus_amount: bonusCoins,
+        });
+        if (claimErr) console.error("[Stripe-Verify] first_recharge_claims insert error:", claimErr);
+      }
     }
 
     // Notification

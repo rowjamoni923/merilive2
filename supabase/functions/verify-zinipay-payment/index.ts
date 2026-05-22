@@ -194,33 +194,51 @@ serve(async (req) => {
       })
       .eq("id", order_id);
 
-    // ═══ STEP 5: Record transaction ═══
-    await supabaseAdmin.from("recharge_transactions").insert({
+    // ═══ STEP 5: Record transaction (schema-aligned) ═══
+    const { error: txErr } = await supabaseAdmin.from("recharge_transactions").insert({
       user_id: user.id,
-      amount: order.amount_usd,
-      coins_added: coinsToCredit,
+      helper_id: order.helper_id,
+      order_id: order_id,
       payment_method: "zinipay",
       transaction_id: userTrxId || invoiceId || orderDetails?.txn_id,
+      amount: order.amount_usd,
+      usd_amount: order.amount_usd,
+      currency: "USD",
+      coins_amount: coinsToCredit,
+      coins_received: coinsToCredit,
+      bonus_coins: orderDetails?.bonus_coins || 0,
       status: "completed",
-      payment_details: {
+      completed_at: new Date().toISOString(),
+      purchase_source: "zinipay",
+      local_payment_provider: "zinipay",
+      notes: JSON.stringify({
         gateway: "zinipay",
         invoice_id: invoiceId,
         user_trx_id: userTrxId,
-        order_id: order_id,
-        helper_id: order.helper_id,
         verified_by_zinipay: true,
         balance_before: result.balance_before,
         balance_after: result.balance_after,
-      },
+      }),
     });
+    if (txErr) console.error("[Zinipay-Verify] recharge_transactions insert error:", txErr);
 
-    // ═══ STEP 6: First recharge bonus ═══
-    if (orderDetails?.is_first_recharge) {
-      await supabaseAdmin.from("first_recharge_claims").upsert({
-        user_id: user.id,
-        package_id: order.package_id,
-        bonus_coins: orderDetails.bonus_coins || 0,
-      }, { onConflict: "user_id", ignoreDuplicates: true });
+    // ═══ STEP 6: First recharge bonus (schema-aligned) ═══
+    if (orderDetails?.is_first_recharge && (orderDetails.bonus_coins || 0) > 0) {
+      const { data: bonusRow } = await supabaseAdmin
+        .from("first_recharge_bonus")
+        .select("id")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      if (bonusRow?.id) {
+        const { error: claimErr } = await supabaseAdmin.from("first_recharge_claims").insert({
+          user_id: user.id,
+          bonus_id: bonusRow.id,
+          original_amount: orderDetails.base_coins || (coinsToCredit - (orderDetails.bonus_coins || 0)),
+          bonus_amount: orderDetails.bonus_coins || 0,
+        });
+        if (claimErr) console.error("[Zinipay-Verify] first_recharge_claims insert error:", claimErr);
+      }
     }
 
     // ═══ STEP 7: Notification ═══
