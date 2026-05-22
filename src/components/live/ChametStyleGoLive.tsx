@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAutoRecordPreference, setAutoRecordPreference } from "@/lib/livekitAutoRecord";
+import { toast as sonner } from "sonner";
+import { Video } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -184,6 +187,39 @@ export const ChametSettingsPanel = ({
   onStickerClick,
   onBeautyClick,
 }: ChametSettingsPanelProps) => {
+  const [autoRecord, setAutoRecord] = useState(false);
+  const [autoRecordLoading, setAutoRecordLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    void getAutoRecordPreference().then((r) => {
+      if (!cancelled && r.success) setAutoRecord(!!r.enabled);
+    });
+    return () => { cancelled = true; };
+  }, [isOpen]);
+
+  const handleAutoRecordToggle = async (next: boolean) => {
+    if (autoRecordLoading) return;
+    setAutoRecordLoading(true);
+    const prev = autoRecord;
+    setAutoRecord(next); // optimistic
+    const r = await setAutoRecordPreference(next);
+    if (!r.success) {
+      setAutoRecord(prev);
+      if (r.error === 'auto_record_disabled') {
+        sonner.error('Auto-record is currently disabled by admin');
+      } else if (r.error === 'not_authenticated') {
+        sonner.error('Please sign in again');
+      } else {
+        sonner.error('Could not save preference');
+      }
+    } else {
+      sonner.success(next ? 'Auto-record enabled for your lives' : 'Auto-record disabled');
+    }
+    setAutoRecordLoading(false);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -276,6 +312,26 @@ export const ChametSettingsPanel = ({
               <span className="text-gray-800 font-medium">Microphone</span>
             </div>
             <Switch checked={isMicEnabled} onCheckedChange={onMicToggle} />
+          </div>
+
+          <div className="h-px bg-gray-100 mx-6" />
+
+          {/* Auto-record Live (Pkg129) */}
+          <div className="w-full px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-100 to-red-100 flex items-center justify-center">
+                <Video className="w-5 h-5 text-rose-500" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-gray-800 font-medium">Auto-record Live</span>
+                <span className="text-[11px] text-gray-500">Save an MP4 of every live you start</span>
+              </div>
+            </div>
+            <Switch
+              checked={autoRecord}
+              disabled={autoRecordLoading}
+              onCheckedChange={(v) => void handleAutoRecordToggle(v)}
+            />
           </div>
         </div>
       </motion.div>
