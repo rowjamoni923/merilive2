@@ -91,7 +91,12 @@ export async function triggerLegacyProfileSync(
       return null;
     }
     const { data, error } = await supabase.functions.invoke("sync-user-profile");
-    if (error) throw error;
+    if (error) {
+      // 401 / stale session — non-fatal; profile sync can be retried later.
+      const msg = (error as any)?.message || "";
+      if (/401|unauthor/i.test(msg)) return null;
+      throw error;
+    }
 
 
     const result = (data as LegacyProfileSyncResult | null) ?? null;
