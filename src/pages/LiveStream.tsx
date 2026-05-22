@@ -3,6 +3,7 @@ import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFi
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
+import { SipDialDialog } from "@/components/livekit/SipDialDialog";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
@@ -28,6 +29,7 @@ import {
   MonitorUp,
   ShieldCheck,
   Radio,
+  PhoneCall,
   Gamepad2,
   Swords,
   MessageCircle,
@@ -186,6 +188,7 @@ const LiveStream = () => {
   const [showVirtualBackground, setShowVirtualBackground] = useState(false);
   const [showNoiseCancellation, setShowNoiseCancellation] = useState(false);
   const [showIngress, setShowIngress] = useState(false);
+  const [showSipDial, setShowSipDial] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -2294,6 +2297,11 @@ const LiveStream = () => {
     { id: "ingress", name: "Stream Source", iconName: "Radio" as const, color: "from-rose-400 to-red-600", shadowColor: "shadow-rose-500/40", action: () => {
         setShowMoreOptions(false);
         setShowIngress(true);
+      } },
+    // Pkg110: SIP outbound dial — add phone caller (audio-only) into this room.
+    { id: "sipdial", name: "Dial Phone", iconName: "PhoneCall" as const, color: "from-emerald-400 to-green-600", shadowColor: "shadow-emerald-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowSipDial(true);
       } },
   ];
 
