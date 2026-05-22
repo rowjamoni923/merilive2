@@ -269,21 +269,39 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       {/* ======= BIGO/CHAMET STYLE GIFT BANNER ======= */}
       {/* Left-side banner: [Avatar] [Name / sent GiftName] [GiftIcon] [xCount] */}
       <motion.div
-        className="absolute left-0"
-        style={{ bottom: '22%' }}
-        initial={{ x: -320, opacity: 0 }}
+        className="absolute left-0 will-change-transform"
+        style={{ bottom: '22%', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
+        initial={{ x: -360, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        exit={{ x: -320, opacity: 0 }}
-        transition={{ type: "spring", damping: 20, stiffness: 250 }}
+        exit={{ x: -360, opacity: 0 }}
+        transition={{ type: "spring", damping: 22, stiffness: 340, mass: 0.7 }}
       >
         <div className={cn(
-          "flex items-center gap-0 rounded-r-full overflow-hidden",
+          "flex items-center gap-0 rounded-r-full overflow-hidden relative",
           "backdrop-blur-xl shadow-2xl",
-          "border border-white/20"
-        )}>
+          "border border-white/25"
+        )}
+          style={{ boxShadow: isPremium
+            ? '0 12px 32px rgba(251,191,36,0.45), 0 4px 12px rgba(0,0,0,0.4)'
+            : isLuxury
+            ? '0 12px 32px rgba(168,85,247,0.4), 0 4px 12px rgba(0,0,0,0.4)'
+            : '0 10px 28px rgba(99,102,241,0.35), 0 4px 12px rgba(0,0,0,0.4)' }}
+        >
+          {/* Aurora sweep overlay (premium/luxury only) */}
+          {(isPremium || isLuxury) && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)',
+                mixBlendMode: 'overlay',
+              }}
+              animate={{ x: ['-100%', '120%'] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: 'linear', repeatDelay: 0.4 }}
+            />
+          )}
           {/* Left section: avatar + text with colored bg */}
           <div className={cn(
-            "flex items-center gap-2 pl-2 pr-3 py-2",
+            "flex items-center gap-2 pl-2 pr-3 py-2 relative",
             bannerBg
           )}>
             {/* Sender Avatar */}
@@ -319,13 +337,13 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
           <div className="flex items-center gap-1 px-2 py-1 bg-black/40">
             {renderBannerGiftIcon()}
 
-            {/* Combo counter - LARGE bouncy number */}
+            {/* Combo counter - punchy bouncy number (Bigo-parity) */}
             <motion.div
               key={currentCount}
-              className="flex flex-col items-center ml-1"
-              initial={{ scale: 2, opacity: 0, y: -10 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              transition={{ type: "spring", damping: 10, stiffness: 300 }}
+              className="flex flex-col items-center ml-1 will-change-transform"
+              initial={{ scale: 2.2, opacity: 0, y: -14, rotate: -8 }}
+              animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
+              transition={{ type: "spring", damping: 8, stiffness: 420, mass: 0.5 }}
             >
               <span className={cn(
                 "font-black text-2xl leading-none",
@@ -372,15 +390,41 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
           </motion.div>
         )}
 
-        {/* Sparkle trail for premium */}
+        {/* Sparkle trail — premium (6 particles, varied tracks) */}
         {isPremium && (
-          <div className="absolute -right-2 top-1/2 -translate-y-1/2">
+          <div className="absolute -right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full"
+                style={{
+                  width: i % 2 === 0 ? 6 : 4,
+                  height: i % 2 === 0 ? 6 : 4,
+                  background: i % 3 === 0 ? '#fde047' : i % 3 === 1 ? '#fbbf24' : '#fed7aa',
+                  boxShadow: '0 0 8px rgba(251,191,36,0.8)',
+                  top: (i - 3) * 4,
+                }}
+                animate={{
+                  x: [0, 32 + i * 6],
+                  y: [0, (i % 2 === 0 ? -1 : 1) * (4 + i)],
+                  opacity: [1, 0],
+                  scale: [1, 0.2],
+                }}
+                transition={{ duration: 0.85, delay: i * 0.08, repeat: Infinity, repeatDelay: 0.6, ease: 'easeOut' }}
+              />
+            ))}
+          </div>
+        )}
+        {/* Luxury (non-premium) — pink/purple sparkle trail */}
+        {!isPremium && isLuxury && (
+          <div className="absolute -right-2 top-1/2 -translate-y-1/2 pointer-events-none">
             {[...Array(4)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1.5 h-1.5 rounded-full bg-amber-300"
-                animate={{ x: [0, 25 + i * 8], opacity: [1, 0], scale: [1, 0.3] }}
-                transition={{ duration: 0.7, delay: i * 0.1, repeat: Infinity, repeatDelay: 0.8 }}
+                className="absolute w-1.5 h-1.5 rounded-full"
+                style={{ background: i % 2 === 0 ? '#f0abfc' : '#e9d5ff', boxShadow: '0 0 6px rgba(236,72,153,0.7)' }}
+                animate={{ x: [0, 24 + i * 7], opacity: [1, 0], scale: [1, 0.25] }}
+                transition={{ duration: 0.8, delay: i * 0.1, repeat: Infinity, repeatDelay: 0.7 }}
               />
             ))}
           </div>

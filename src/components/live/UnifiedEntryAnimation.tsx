@@ -283,16 +283,19 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
         margin: 0, padding: 0,
       }}
     >
+      {/* Radial vignette — keeps video visible, focuses attention on the entry */}
       <motion.div
-        className="bg-black/30"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.1 }}
-        style={{ 
+        transition={{ duration: 0.18 }}
+        style={{
           position: 'fixed',
           top: 0, left: 0,
           width: '100vw', height: '100vh',
+          background: entry.animationType === 'vehicle'
+            ? 'radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(20,10,5,0.55) 100%)'
+            : 'radial-gradient(ellipse at center, rgba(0,0,0,0) 35%, rgba(15,5,30,0.5) 100%)',
         }}
       />
 
