@@ -408,62 +408,9 @@ export const useNotifications = () => {
 
     channels.push(regularChannel);
 
-    // Helper notifications channel (if user is a helper)
-    if (helperId) {
-      const helperChannel = supabase
-        .channel(`notifications-helper-${helperId}-${uniqueSuffix}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'helper_notifications',
-            filter: `helper_id=eq.${helperId}`
-          },
-          (payload) => {
-            console.log('New helper notification received:', payload);
-            const helperNotif = payload.new as any;
-            if (helperNotif.is_read) return;
-            const newNotification: Notification = {
-              id: helperNotif.id,
-              user_id: currentUserId,
-              type: helperNotif.type || 'helper_notification',
-              title: helperNotif.title,
-              message: helperNotif.message,
-              data: helperNotif.data || {},
-              is_read: helperNotif.is_read,
-              created_at: helperNotif.created_at,
-              source: 'helper' as const
-            };
-            setNotifications(prev => [newNotification, ...prev]);
-            setUnreadCount(prev => prev + 1);
-            emitGlobalUnreadRefresh();
-
-            if (hasInteractedRef.current) {
-              playNotificationSound(newNotification.type);
-            }
-
-            // Push/FCM handles user-facing notification delivery. No in-app toast banner here.
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'helper_notifications',
-            filter: `helper_id=eq.${helperId}`
-          },
-          () => {
-            fetchNotificationsRef.current();
-          }
-        )
-        .subscribe((status) => {
-          console.log('Helper notification subscription status:', status);
-        });
-
-      channels.push(helperChannel);
-    }
+    // Helper notifications are NOT in supabase_realtime publication. Pkg91
+    // emits a silent `app_sync` notification for helper_notifications, handled
+    // above by fetchNotificationsRef without opening a second WebSocket.
 
     // Admin notices are handled by OfficialNoticeList component separately
 
