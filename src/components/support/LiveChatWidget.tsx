@@ -121,36 +121,25 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
       .eq("is_read", false);
   };
 
-  // Realtime subscription
-  useEffect(() => {
-    if (!ticketId) return;
+  // Pkg91: support_messages/support_tickets are NOT in supabase_realtime publication.
+  // Listen to app_sync trigger fan-out via useAppSyncEvent + REST refetch on ticket status.
+  useAppSyncEvent(
+    ['support_messages', 'support_tickets'],
+    (detail) => {
+      const currentId = ticketIdRef.current;
+      if (!currentId) return;
+      const payload = (detail.payload || {}) as any;
+      if (detail.topic === 'support_messages') {
+        if (payload.ticket_id && payload.ticket_id !== currentId) return;
+        loadMessages(currentId);
+      } else if (detail.topic === 'support_tickets') {
+        if (detail.rowId && detail.rowId !== currentId) return;
+        if (payload.status) setTicketStatus(payload.status);
+      }
+    },
+    !!ticketId,
+  );
 
-    const channel = supabase
-      .channel(`live-chat-${ticketId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "support_messages", filter: `ticket_id=eq.${ticketId}` },
-        () => {
-          const currentId = ticketIdRef.current;
-          if (currentId) loadMessages(currentId);
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "support_tickets", filter: `id=eq.${ticketId}` },
-        (payload) => {
-          const updated = payload.new as any;
-          if (updated.status) {
-            setTicketStatus(updated.status);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [ticketId]);
 
   const handleSend = async () => {
     if (!input.trim() || !ticketId || !userId || sending) return;
