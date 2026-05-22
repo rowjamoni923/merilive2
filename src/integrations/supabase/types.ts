@@ -11087,6 +11087,132 @@ export type Database = {
         }
         Relationships: []
       }
+      sip_inbound_calls: {
+        Row: {
+          answered_at: string | null
+          callee_number: string | null
+          caller_number: string | null
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          error: string | null
+          host_id: string | null
+          id: string
+          participant_identity: string | null
+          room_name: string | null
+          route_id: string | null
+          sip_call_id: string | null
+          started_at: string
+          status: string
+          stream_id: string | null
+          trunk_id: string | null
+        }
+        Insert: {
+          answered_at?: string | null
+          callee_number?: string | null
+          caller_number?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          error?: string | null
+          host_id?: string | null
+          id?: string
+          participant_identity?: string | null
+          room_name?: string | null
+          route_id?: string | null
+          sip_call_id?: string | null
+          started_at?: string
+          status?: string
+          stream_id?: string | null
+          trunk_id?: string | null
+        }
+        Update: {
+          answered_at?: string | null
+          callee_number?: string | null
+          caller_number?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          error?: string | null
+          host_id?: string | null
+          id?: string
+          participant_identity?: string | null
+          room_name?: string | null
+          route_id?: string | null
+          sip_call_id?: string | null
+          started_at?: string
+          status?: string
+          stream_id?: string | null
+          trunk_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sip_inbound_calls_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "sip_inbound_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sip_inbound_calls_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "live_streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sip_inbound_routes: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          dispatch_rule_id: string | null
+          enabled: boolean
+          id: string
+          name: string
+          participant_identity_prefix: string
+          phone_numbers: string[]
+          room_name: string | null
+          room_prefix: string | null
+          rule_type: string
+          trunk_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          dispatch_rule_id?: string | null
+          enabled?: boolean
+          id?: string
+          name: string
+          participant_identity_prefix?: string
+          phone_numbers?: string[]
+          room_name?: string | null
+          room_prefix?: string | null
+          rule_type?: string
+          trunk_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          dispatch_rule_id?: string | null
+          enabled?: boolean
+          id?: string
+          name?: string
+          participant_identity_prefix?: string
+          phone_numbers?: string[]
+          room_name?: string | null
+          room_prefix?: string | null
+          rule_type?: string
+          trunk_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           content: string
