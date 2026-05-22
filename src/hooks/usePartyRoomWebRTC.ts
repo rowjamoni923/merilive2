@@ -67,6 +67,8 @@ export function usePartyRoomWebRTC(
   const [restartNonce, setRestartNonce] = useState(0);
 
   const roomRef = useRef<Room | null>(null);
+  // Pkg189: token refresh detach handle.
+  const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
   const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
