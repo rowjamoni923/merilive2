@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { updateCachedBalance } from "@/hooks/useUserBalance";
+import { getBalanceWithFetch, updateCachedBalance } from "@/hooks/useUserBalance";
 import { useGameToken } from "@/hooks/useGameToken";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -690,35 +690,12 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     fetchGames();
     fetchUserCoins();
     
-    // Set up real-time coin subscription
-    const setupRealtimeCoins = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const channel = supabase
-          .channel('coins-update')
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'profiles',
-              filter: `id=eq.${user.id}`
-            },
-            (payload: any) => {
-              if (payload.new?.coins !== undefined) {
-                setUserCoins(payload.new.coins);
-              }
-            }
-          )
-          .subscribe();
-        
-        return () => {
-          supabase.removeChannel(channel);
-        };
-      }
+    const refreshFromCache = () => {
+      getBalanceWithFetch().then((coins) => setUserCoins(coins)).catch(() => {});
     };
-    
-    setupRealtimeCoins();
+    const onOwnBeansUpdated = () => refreshFromCache();
+    window.addEventListener('own-beans-updated', onOwnBeansUpdated);
+    return () => window.removeEventListener('own-beans-updated', onOwnBeansUpdated);
   }, []);
 
   // Game loop

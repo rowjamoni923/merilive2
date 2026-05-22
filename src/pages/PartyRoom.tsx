@@ -798,6 +798,11 @@ const PartyRoom = () => {
       console.log('[PartyRoom] 🟣 ⚡ Pkg76 livekit-gift-sent received:', giftData.giftName);
       const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.giftCoins || 0) * (giftData.count || 1) * hostCommissionPercentRef.current / 100));
       const broadcastCoins = Number(giftData.totalCoins ?? (giftData.giftCoins || 0) * (giftData.count || 1));
+      if (giftData.receiverId === cuid && broadcastBeans > 0) {
+        window.dispatchEvent(new CustomEvent('own-beans-updated', {
+          detail: { userId: cuid, beansDelta: broadcastBeans },
+        }));
+      }
 
       addFlyingGift({
         senderName: giftData.senderName || 'Someone',

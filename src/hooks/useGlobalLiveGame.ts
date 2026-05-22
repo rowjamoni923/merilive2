@@ -59,10 +59,8 @@ export function useGlobalLiveGame({
   const [lastResult, setLastResult] = useState<any>(null);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const roundChannelRef = useRef<any>(null);
-  const betsChannelRef = useRef<any>(null);
-  const profileChannelRef = useRef<any>(null);
   const autoProcessRef = useRef<NodeJS.Timeout | null>(null);
+  const processingRoundRef = useRef(false);
 
   // Fetch current user balance with real-time subscription
   const fetchUserBalance = useCallback(async () => {
@@ -232,6 +230,8 @@ export function useGlobalLiveGame({
   // Auto-process when betting time ends
   const autoProcessRound = useCallback(async () => {
     if (!currentRound || currentRound.status !== 'betting') return;
+    if (processingRoundRef.current) return;
+    processingRoundRef.current = true;
 
     // Call edge function to process (it handles the result calculation)
     try {
@@ -245,6 +245,8 @@ export function useGlobalLiveGame({
       }
     } catch (e) {
       console.error('Auto process failed:', e);
+    } finally {
+      processingRoundRef.current = false;
     }
   }, [currentRound, fetchCurrentRound, fetchUserBalance]);
 
@@ -268,7 +270,7 @@ export function useGlobalLiveGame({
       };
 
       updateTimer();
-      timerRef.current = setInterval(updateTimer, 100);
+      timerRef.current = setInterval(updateTimer, 1000);
 
       return () => {
         if (timerRef.current) {
@@ -285,123 +287,12 @@ export function useGlobalLiveGame({
     }
   }, [currentRound, autoProcessRound, phase]);
 
-  // Subscribe to real-time round updates
-  useEffect(() => {
-    roundChannelRef.current = supabase
-      .channel(`global_game_${gameId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'live_game_rounds',
-          filter: `game_id=eq.${gameId}`
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newRound = payload.new as GlobalGameRound;
-            if (!newRound.room_id) {
-              setCurrentRound(newRound);
-              setTotalPlayers(newRound.total_players || 0);
-              setTotalPool(newRound.total_bet_amount || 0);
-              setMyBets([]);
-              setLastResult(null);
-              setPhase('betting');
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedRound = payload.new as GlobalGameRound;
-            if (!updatedRound.room_id) {
-              setCurrentRound(updatedRound);
-              setTotalPlayers(updatedRound.total_players || 0);
-              setTotalPool(updatedRound.total_bet_amount || 0);
-              
-              if (updatedRound.status === 'completed') {
-                setPhase('result');
-                setLastResult(updatedRound.result);
-                // Refetch balance after result
-                fetchUserBalance();
-              } else if (updatedRound.status === 'playing') {
-                setPhase('playing');
-              }
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      if (roundChannelRef.current) {
-        supabase.removeChannel(roundChannelRef.current);
-      }
-    };
-  }, [gameId, fetchUserBalance]);
-
-  // Subscribe to bet updates
+  // live_game_* tables are not in supabase_realtime publication; use bounded
+  // REST refreshes and RPC responses instead of postgres_changes channels.
   useEffect(() => {
     if (!currentRound) return;
-
-    betsChannelRef.current = supabase
-      .channel(`global_bets_${currentRound.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'live_game_bets',
-          filter: `round_id=eq.${currentRound.id}`
-        },
-        async (payload) => {
-          // Refresh bets
-          await fetchRecentBets(currentRound.id);
-          // Update round totals
-          await fetchCurrentRound();
-        }
-      )
-      .subscribe();
-
     fetchRecentBets(currentRound.id);
-
-    return () => {
-      if (betsChannelRef.current) {
-        supabase.removeChannel(betsChannelRef.current);
-      }
-    };
-  }, [currentRound?.id, fetchRecentBets, fetchCurrentRound]);
-
-  // Subscribe to user's coin balance updates
-  useEffect(() => {
-    const setupProfileSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      profileChannelRef.current = supabase
-        .channel(`user_balance_${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          (payload) => {
-            const newCoins = (payload.new as any).coins;
-            if (newCoins !== undefined) {
-              setUserBalance(newCoins);
-            }
-          }
-        )
-        .subscribe();
-    };
-
-    setupProfileSubscription();
-
-    return () => {
-      if (profileChannelRef.current) {
-        supabase.removeChannel(profileChannelRef.current);
-      }
-    };
-  }, []);
+  }, [currentRound?.id, fetchRecentBets]);
 
   // Initialize and ensure game is running
   useEffect(() => {
@@ -420,13 +311,13 @@ export function useGlobalLiveGame({
 
     init();
 
-    // Poll for auto-process every 5 seconds (backup for edge function)
+    // Safety-net refresh: no realtime subscription on live_game_* tables.
     autoProcessRef.current = setInterval(async () => {
       const round = await fetchCurrentRound();
       if (!round) {
         await createGlobalRound();
       }
-    }, 5000);
+    }, 10000);
 
     return () => {
       if (autoProcessRef.current) {

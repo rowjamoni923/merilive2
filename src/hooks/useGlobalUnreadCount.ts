@@ -44,7 +44,6 @@ let sharedFetchPromise: Promise<void> | null = null;
 let sharedRefreshTimer: number | null = null;
 let lastFetchAt = 0;
 let optimisticSuppressUntil = 0; // suppress realtime refetches after optimistic update
-let sharedChannel: ReturnType<typeof supabase.channel> | null = null;
 const listeners = new Set<CountsListener>();
 
 const emitCounts = () => {
@@ -208,31 +207,8 @@ const fetchSharedCounts = async (force = false) => {
   await sharedFetchPromise;
 };
 
-const realtimeRefresh = () => {
-  // Skip if we're in an optimistic suppress window (e.g. after mark-all-read)
-  if (optimisticSuppressUntil > Date.now()) return;
-  void fetchSharedCounts(true);
-};
-
-const ensureRealtimeSubscription = () => {
-  if (!sharedUserId || sharedChannel) return;
-
-  // Use a single broad binding per table to minimize realtime bindings (was 6, now 4)
-  // Filter participant1/participant2 unified into one binding via OR isn't supported,
-  // so we rely on a single conversations binding without filter and dedupe in handler.
-  sharedChannel = supabase
-    .channel(`global-unread-shared-${sharedUserId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${sharedUserId}` }, realtimeRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, realtimeRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, realtimeRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_notices' }, realtimeRefresh)
-    .subscribe();
-};
-
 const cleanupRealtimeSubscriptionIfUnused = () => {
-  if (listeners.size > 0 || !sharedChannel) return;
-  supabase.removeChannel(sharedChannel);
-  sharedChannel = null;
+  if (listeners.size > 0) return;
 
   if (sharedRefreshTimer && typeof window !== 'undefined') {
     window.clearTimeout(sharedRefreshTimer);
@@ -249,7 +225,6 @@ export const useGlobalUnreadCount = () => {
 
     const init = async () => {
       await fetchSharedCounts();
-      ensureRealtimeSubscription();
     };
 
     void init();

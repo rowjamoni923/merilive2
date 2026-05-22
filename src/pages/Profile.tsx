@@ -384,8 +384,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Only applies when viewing own profile (currentUser.id matches event userId).
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { beans?: number; userId?: string } | undefined;
+      const detail = (e as CustomEvent).detail as { beans?: number; beansDelta?: number; userId?: string } | undefined;
       if (!detail || detail.userId !== currentUser?.id) return;
+      if (detail.beansDelta !== undefined) {
+        const delta = Number(detail.beansDelta || 0);
+        if (delta > 0) setBeans((prev) => prev + delta);
+        return;
+      }
       const next = Number(detail.beans || 0);
       setBeans((prev) => (prev === next ? prev : next));
     };
