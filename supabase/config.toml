@@ -30,6 +30,9 @@ verify_jwt = false
 [functions.livekit-ingress]
 verify_jwt = true
 
+[functions.livekit-sip]
+verify_jwt = true
+
 
 
 
