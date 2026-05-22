@@ -70,14 +70,24 @@ export default function HelpersTabContent() {
 
   useEffect(() => {
     fetchHelpers();
-    const channel = supabase
-      .channel(`agency-helpers-tab-${crypto.randomUUID()}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "topup_helpers" }, () => {
-        fetchHelpers();
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    // Pkg93: replaced dead postgres_changes (topup_helpers NOT in supabase_realtime
+    // publication → silent no-op). Pkg37 admin_broadcast trigger now fires
+    // `admin-table-update` window event for topup_helpers row changes.
+    const onAdminUpdate = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail as { table?: string } | undefined;
+      if (detail?.table === 'topup_helpers') fetchHelpers();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchHelpers();
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('admin-table-update', onAdminUpdate);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
+
 
   const fetchHelpers = async () => {
     setLoading(true);
