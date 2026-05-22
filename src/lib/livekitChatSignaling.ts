@@ -34,6 +34,7 @@ import {
   isDuplicateEnvelope,
   isLiveKitEnabled,
 } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
 
 export type ChatScope = 'call' | 'live' | 'party';
 
@@ -66,6 +67,8 @@ interface Entry {
 
 // `${scope}:${id}` → Room + DataReceived handler
 const registry = new Map<string, Entry>();
+const nativeRegistry = new Set<string>();
+let nativeUnsubscribe: (() => void) | null = null;
 
 function keyFor(scope: ChatScope, id: string): string {
   return `${scope}:${id}`;
@@ -96,6 +99,23 @@ function makeHandler(scope: ChatScope, id: string) {
       );
     }
   };
+}
+
+function dispatchChatEnvelope(scope: ChatScope, id: string, payload: Uint8Array, participantIdentity?: string) {
+  if (typeof window === 'undefined') return;
+  const env = decodeEnvelope(payload);
+  if (!env || env.f !== 'chat') return;
+  if (isDuplicateEnvelope(env.id)) return;
+  if (env.t !== 'chat_message') return;
+
+  const p = (env.p ?? {}) as Partial<ChatMessagePayload>;
+  if (p.scope !== scope) return;
+  if (p.id && p.id !== id) return;
+  if (!p.message || !p.userId || !p.messageId) return;
+
+  window.dispatchEvent(new CustomEvent<ChatMessageDetail>('livekit-chat-message', {
+    detail: { ...(p as ChatMessagePayload), scope, id, sender: participantIdentity },
+  }));
 }
 
 /** Bind a (scope,id) tuple to its LiveKit Room. */
