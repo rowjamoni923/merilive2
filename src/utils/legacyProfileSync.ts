@@ -90,7 +90,17 @@ export async function triggerLegacyProfileSync(
     if (!session?.access_token || session.user?.id !== userId) {
       return null;
     }
-    const { data, error } = await supabase.functions.invoke("sync-user-profile");
+
+    const { data: userData, error: userError } = await supabase.auth.getUser(session.access_token);
+    if (userError || userData.user?.id !== userId) {
+      return null;
+    }
+
+    const { data, error } = await supabase.functions.invoke("sync-user-profile", {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
     if (error) {
       // Best-effort sync — never surface as runtime error.
       // Covers 401 (stale session), non-2xx wrappers, network blips, etc.
