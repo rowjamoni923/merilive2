@@ -167,6 +167,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       sip_ops: parsed.sip_ops === true, // Pkg138: explicit opt-in only
       agent_ops: parsed.agent_ops === true, // Pkg139: explicit opt-in only
       webhook_events_ops: parsed.webhook_events_ops === true, // Pkg140: explicit opt-in only
+      auto_audio_only: parsed.auto_audio_only !== false, // Pkg154: ON unless admin explicitly disables
     };
 
 
