@@ -7,8 +7,8 @@
     },
     {
       "file": "src/hooks/useGlobalLiveGame.ts",
-      "line": 271,
-      "ms": 100
+      "line": 273,
+      "ms": 1000
     },
     {
       "file": "src/hooks/useLiveFaceDetection.ts",
@@ -28,11 +28,6 @@
       "ms": 250
     },
     {
-      "file": "src/pages/GoLive.tsx",
-      "line": 364,
-      "ms": 1000
-    },
-    {
       "file": "src/pages/admin/AdminStreams.tsx",
       "line": 83,
       "ms": 1000
@@ -41,27 +36,27 @@
   "rls": [
     {
       "file": "src/App.tsx",
-      "line": 862,
+      "line": 833,
       "table": "profiles"
     },
     {
       "file": "src/App.tsx",
-      "line": 869,
+      "line": 840,
       "table": "agencies"
     },
     {
       "file": "src/App.tsx",
-      "line": 877,
+      "line": 848,
       "table": "agencies"
     },
     {
       "file": "src/App.tsx",
-      "line": 902,
+      "line": 873,
       "table": "profiles"
     },
     {
       "file": "src/App.tsx",
-      "line": 919,
+      "line": 890,
       "table": "profiles"
     },
     {
@@ -211,12 +206,7 @@
     },
     {
       "file": "src/components/games/GameFooterNew.tsx",
-      "line": 794,
-      "table": "profiles"
-    },
-    {
-      "file": "src/components/games/LiveGameBoard.tsx",
-      "line": 263,
+      "line": 771,
       "table": "profiles"
     },
     {
@@ -272,11 +262,6 @@
     {
       "file": "src/features/games/teen-patti/TeenPattiGame.tsx",
       "line": 109,
-      "table": "profiles"
-    },
-    {
-      "file": "src/features/shared/room/useRoomParticipants.ts",
-      "line": 89,
       "table": "profiles"
     },
     {
@@ -346,7 +331,7 @@
     },
     {
       "file": "src/hooks/useGlobalLiveGame.ts",
-      "line": 72,
+      "line": 70,
       "table": "profiles"
     },
     {
@@ -385,18 +370,8 @@
       "table": "profiles"
     },
     {
-      "file": "src/hooks/useRealtimeSubscription.ts",
-      "line": 253,
-      "table": "profiles"
-    },
-    {
       "file": "src/hooks/useRoomEntryEffects.ts",
       "line": 89,
-      "table": "profiles"
-    },
-    {
-      "file": "src/hooks/useUniversalRealtime.ts",
-      "line": 506,
       "table": "profiles"
     },
     {
@@ -411,7 +386,7 @@
     },
     {
       "file": "src/hooks/useUserPrivileges.ts",
-      "line": 307,
+      "line": 288,
       "table": "profiles"
     },
     {
@@ -431,12 +406,22 @@
     },
     {
       "file": "src/pages/AgencyCoinExchange.tsx",
-      "line": 228,
+      "line": 140,
       "table": "agencies"
     },
     {
       "file": "src/pages/AgencyCoinExchange.tsx",
-      "line": 233,
+      "line": 141,
+      "table": "profiles"
+    },
+    {
+      "file": "src/pages/AgencyCoinExchange.tsx",
+      "line": 177,
+      "table": "agencies"
+    },
+    {
+      "file": "src/pages/AgencyCoinExchange.tsx",
+      "line": 182,
       "table": "profiles"
     },
     {
@@ -510,13 +495,23 @@
       "table": "agencies"
     },
     {
+      "file": "src/pages/AgencyDashboard.tsx",
+      "line": 616,
+      "table": "agencies"
+    },
+    {
+      "file": "src/pages/AgencyDashboard.tsx",
+      "line": 621,
+      "table": "agencies"
+    },
+    {
       "file": "src/pages/AgencyDetails.tsx",
       "line": 102,
       "table": "profiles"
     },
     {
       "file": "src/pages/AgencyHostManagement.tsx",
-      "line": 115,
+      "line": 110,
       "table": "agencies"
     },
     {
@@ -553,11 +548,6 @@
       "file": "src/pages/AgencyWithdrawal.tsx",
       "line": 2264,
       "table": "agencies"
-    },
-    {
-      "file": "src/pages/AgentRank.tsx",
-      "line": 114,
-      "table": "profiles"
     },
     {
       "file": "src/pages/AgentWallet.tsx",
@@ -770,11 +760,6 @@
       "table": "profiles"
     },
     {
-      "file": "src/pages/GoLive.tsx",
-      "line": 1457,
-      "table": "profiles"
-    },
-    {
       "file": "src/pages/HelperDashboard.tsx",
       "line": 394,
       "table": "profiles"
@@ -816,17 +801,17 @@
     },
     {
       "file": "src/pages/HostDashboard.tsx",
-      "line": 147,
+      "line": 127,
       "table": "profiles"
     },
     {
       "file": "src/pages/HostDashboard.tsx",
-      "line": 308,
+      "line": 288,
       "table": "profiles"
     },
     {
       "file": "src/pages/Invitation.tsx",
-      "line": 191,
+      "line": 189,
       "table": "profiles"
     },
     {
@@ -871,57 +856,57 @@
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 432,
+      "line": 437,
       "table": "profiles"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 448,
+      "line": 453,
       "table": "profiles"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 479,
+      "line": 484,
       "table": "profiles"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 495,
+      "line": 500,
       "table": "profiles"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 580,
+      "line": 585,
       "table": "agencies"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 644,
+      "line": 649,
       "table": "agencies"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 1368,
+      "line": 1373,
       "table": "profiles"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 1654,
+      "line": 1659,
       "table": "profiles"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 1667,
+      "line": 1672,
       "table": "profiles"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 1983,
+      "line": 1988,
       "table": "agencies"
     },
     {
       "file": "src/pages/Profile.tsx",
-      "line": 3155,
+      "line": 3160,
       "table": "profiles"
     },
     {
@@ -1632,11 +1617,6 @@
   ],
   "channels": [
     {
-      "file": "src/pages/GoLive.tsx",
-      "line": 323,
-      "channel": "golive-ban-check"
-    },
-    {
       "file": "src/pages/SyncTest.tsx",
       "line": 52,
       "channel": "sync-test-"
@@ -1645,11 +1625,6 @@
       "file": "src/pages/admin/AdminSupportTickets.tsx",
       "line": 982,
       "channel": "support_realtime"
-    },
-    {
-      "file": "src/utils/secureLinkGuard.ts",
-      "line": 130,
-      "channel": "secure-link-guard"
     }
   ]
 }
