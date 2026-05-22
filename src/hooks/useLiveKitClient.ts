@@ -1058,8 +1058,22 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
   // Screen share
   const startScreenShare = useCallback(async () => {
+    if (isScreenSharing) return;
+
+    // Pkg102 native: route to Android MediaProjection when running on native LiveKit
+    if (usingNativeRef.current) {
+      try {
+        const ok = await nativeLiveKitController.startScreenShare();
+        if (ok) setIsScreenSharing(true);
+      } catch (err) {
+        setIsScreenSharing(false);
+        throw err;
+      }
+      return;
+    }
+
     const room = roomRef.current;
-    if (!room?.localParticipant || isScreenSharing) return;
+    if (!room?.localParticipant) return;
 
     try {
       await room.localParticipant.setScreenShareEnabled(true);
@@ -1079,6 +1093,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   }, [isScreenSharing]);
 
   const stopScreenShare = useCallback(async () => {
+    if (usingNativeRef.current) {
+      await nativeLiveKitController.stopScreenShare();
+      setIsScreenSharing(false);
+      setScreenTrack(null);
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
