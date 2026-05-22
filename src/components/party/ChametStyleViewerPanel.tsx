@@ -116,42 +116,39 @@ export const ChametStyleViewerPanel = ({
     setLoading(false);
   }, []);
 
-  // Real-time subscription for party room participants + polling fallback for native apps
+  // Pkg81 LiveKit-Purist audit: REMOVED `chamet-viewers-${roomId}` Supabase
+  // postgres_changes channel on `party_room_participants`. Viewer presence
+  // arrives via LiveKit `participant_joined` / `participant_left` DataPackets
+  // (Pkg80). We refetch the full list on those window events + a 20s safety
+  // REST poll. Satisfies $1400-rule (≥5s G1) and LiveKit-Purist policy.
   useEffect(() => {
     isMountedRef.current = true;
-    
     if (!isOpen || !roomId) return;
-    
+
     // Initial fetch
     fetchPartyViewers();
-    
-    // Real-time subscription
-    const channel = supabase
-      .channel(`chamet-viewers-${roomId}-${Date.now()}`) // Unique channel name
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "party_room_participants",
-          filter: `room_id=eq.${roomId}`,
-        },
-        (payload) => {
-          console.log('[ChametStyleViewerPanel] 📡 Real-time viewer update:', payload.eventType);
-          // Refetch all viewers to ensure accurate list
-          fetchPartyViewers();
-        }
-      )
-      .subscribe((status) => {
-        console.log('[ChametStyleViewerPanel] Subscription status:', status);
-      });
 
-    // Zero-refresh: realtime channel only; removed 3s polling to stop UI flicker
+    // LiveKit window-event refresh (joined / left / seat_action)
+    const onPartyEvent = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.roomId !== roomId) return;
+      fetchPartyViewers();
+    };
+    window.addEventListener('livekit-party-event', onPartyEvent);
+
+    // Safety net: REST snapshot every 20s in case a LiveKit packet is missed
+    // guard-ok: 20s ≥ 5s floor, single bounded poll, no realtime channel
+    const pollId = window.setInterval(() => {
+      if (isMountedRef.current) fetchPartyViewers();
+    }, 20000);
+
     return () => {
       isMountedRef.current = false;
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-party-event', onPartyEvent);
+      window.clearInterval(pollId);
     };
   }, [isOpen, roomId, fetchPartyViewers]);
+
 
   // Use real-time data if available, otherwise fall back to external viewers
   const viewers = realtimeViewers.length > 0 ? realtimeViewers : externalViewers;
