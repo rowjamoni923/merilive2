@@ -61,6 +61,8 @@ const GoLive = () => {
   const [title, setTitle] = useState("");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  // Pkg157: pre-join "Checking connection…" probe state.
+  const [isProbing, setIsProbing] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
   const [useLiveKit, setUseLiveKit] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
