@@ -88,6 +88,11 @@ interface UseLiveKitClientOptions {
    * `useActiveSpeakers('live', id)` to ring the speaking host avatar.
    * Zero new Supabase channels, zero polls. */
   activeSpeakerStreamId?: string | null;
+  /** Pkg101: When set, the underlying Room is registered with the
+   * connection-quality registry so `RoomEvent.ConnectionQualityChanged`
+   * dispatches a `livekit-connection-quality` window event. Consumers use
+   * `useConnectionQuality('live', id)` to render network bars. */
+  connectionQualityStreamId?: string | null;
 }
 
 
