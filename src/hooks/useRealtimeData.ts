@@ -13,15 +13,13 @@ export function useRealtimeProfile(userId: string | null) {
       return;
     }
 
-    let channel: RealtimeChannel;
-
     const fetchProfile = async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      
+
       if (!error && data) {
         setProfile(data);
       }
@@ -30,30 +28,22 @@ export function useRealtimeProfile(userId: string | null) {
 
     fetchProfile();
 
-    channel = supabase
-      .channel(`profile-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Profile updated:', payload.new);
-          setProfile(payload.new);
-        }
-      )
-      .subscribe();
-
+    // Pkg89 LiveKit-Purist: removed `profile-${userId}` postgres_changes subscription.
+    // `profiles` is NOT in supabase_realtime publication (would never fire), and this
+    // hook has ZERO consumers in the app. Use `useUserBalance` (own-row push via
+    // `user-balance-updates-${id}` channel) or rely on `app-sync` events instead.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchProfile();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(channel);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [userId]);
 
   return { profile, loading };
 }
+
 
 // Hook for real-time agency stats
 export function useRealtimeAgencyStats(agencyId: string | null) {
