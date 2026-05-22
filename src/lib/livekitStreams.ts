@@ -60,6 +60,14 @@ export function unregisterStreamRoom(scope: StreamScope, id: string) {
   registry.delete(k);
 }
 
+/**
+ * Internal — get the Room registered for a scope/id. Used by sibling modules
+ * (e.g. livekitParticipantAttributes) so they don't need their own registry.
+ * Returns null when no room is registered yet.
+ */
+export function _getRegisteredRoom(scope: StreamScope, id: string): Room | null {
+  return registry.get(key(scope, id))?.room ?? null;
+
 // ─── Text streams ─────────────────────────────────────────────────────────
 
 export interface TextStreamInfo {
