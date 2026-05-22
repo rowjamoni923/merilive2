@@ -1117,20 +1117,8 @@ const PartyRoom = () => {
     }
   }, []);
 
-  // NATIVE APP FALLBACK: Polling for participants & seat requests
-  // COST-OPTIMISED: 20s interval (was 3s → ~85% fewer DB reads). LiveKit is primary; this is a safety net for native packet loss.
-  useEffect(() => {
-    if (!roomId || !currentUser) return;
-    
-    const pollInterval = setInterval(() => {
-      fetchParticipants();
-      fetchSeatRequests();
-    }, 20000);
-    
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, [roomId, currentUser, fetchParticipants, fetchSeatRequests]);
+  // Pkg187: Removed 20s participants + seat_requests safety poll. LiveKit `participant_joined`/`left` + `seat_action` data events + Pkg186 optimistic deltas already deliver instant updates to all viewers. Zero functional loss, $1400-rule safe.
+
 
   const joinRoom = async () => {
     if (!roomId || !currentUser) return;
