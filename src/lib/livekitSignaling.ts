@@ -85,6 +85,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       game: parsed.game !== false,
       pk: parsed.pk !== false,
       e2ee: parsed.e2ee === true, // Pkg108: explicit opt-in only
+      ingress: parsed.ingress === true, // Pkg109: explicit opt-in only
     };
   } catch {
     return { ...DEFAULT_FLAGS };
