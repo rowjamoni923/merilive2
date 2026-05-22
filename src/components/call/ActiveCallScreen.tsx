@@ -591,18 +591,10 @@ export function ActiveCallScreen({
       />
 
       {/* Pkg145: Realtime captions (rides Pkg116 transcription kill-switch) */}
-      {callId && <CaptionOverlay scope="call" id={callId} />}
+      {callId && <CaptionOverlay scope="call" id={callId} hideToggle />}
 
-      {/* Pkg146: Picture-in-Picture toggle (web only; auto-hidden when unsupported) */}
-      {isLiveConnected && primaryHasVideo && (
-        <PictureInPictureButton pipId="call-primary" label="Picture in picture" />
-      )}
+      {/* Pkg189: Removed top utility buttons (PiP / Audio-only / Quality) per user request */}
 
-      {/* Pkg147: Audio-only data-saver toggle */}
-      {isLiveConnected && <AudioOnlyToggleButton label="Audio-only mode" />}
-
-      {/* Pkg149: Adaptive video quality picker */}
-      {isLiveConnected && primaryHasVideo && <VideoQualityButton label="Video quality" />}
 
 
 
