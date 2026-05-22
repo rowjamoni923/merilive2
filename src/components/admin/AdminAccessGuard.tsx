@@ -86,9 +86,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         return;
       }
 
-      // Fresh secret-link entry — show loader, NEVER BlogPage while validating.
+      // Fresh secret-link entry — OPTIMISTIC grant (Pkg191):
+      // Persist link token + tab flag immediately so user lands on AdminAuth
+      // instantly with NO loader/white flash. Background validation below will
+      // revoke the flag if the token is actually invalid.
       if (accessToken) {
-        setIsAuthorized(null);
+        setAdminLinkToken(accessToken);
+        grantAdminAccess(false);
+        setHasValidToken(true);
+        setIsAuthorized(true);
         return;
       }
 
