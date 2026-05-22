@@ -88,6 +88,11 @@ interface UseLiveKitClientOptions {
    * `useActiveSpeakers('live', id)` to ring the speaking host avatar.
    * Zero new Supabase channels, zero polls. */
   activeSpeakerStreamId?: string | null;
+  /** Pkg101: When set, the underlying Room is registered with the
+   * connection-quality registry so `RoomEvent.ConnectionQualityChanged`
+   * dispatches a `livekit-connection-quality` window event. Consumers use
+   * `useConnectionQuality('live', id)` to render network bars. */
+  connectionQualityStreamId?: string | null;
 }
 
 
@@ -1341,6 +1346,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.activeSpeakerStreamId, isJoined]);
+
+  // Pkg101: bind for connection-quality bars.
+  useEffect(() => {
+    const streamId = options.connectionQualityStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitConnectionQuality');
+        if (cancelled) return;
+        mod.registerConnectionQualityRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg101] registerConnectionQualityRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitConnectionQuality').then((mod) => {
+        mod.unregisterConnectionQualityRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.connectionQualityStreamId, isJoined]);
 
 
 

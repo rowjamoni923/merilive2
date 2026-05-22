@@ -25,6 +25,7 @@ import { registerCallRoom, registerNativeCallRoom, unregisterCallRoom, unregiste
 import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
+import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -145,6 +146,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterNativeGiftRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg98: drop active-speaker registration.
     try { if (callIdRef.current) unregisterActiveSpeakerRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg101: drop connection-quality registration.
+    try { if (callIdRef.current) unregisterConnectionQualityRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -434,6 +437,8 @@ export function useLiveKitCall(
         if (callId) registerGiftRoom('call', callId, room);
         // Pkg98: bind for active-speaker detection (ring the speaking peer).
         if (callId) registerActiveSpeakerRoom('call', callId, room);
+        // Pkg101: bind for connection-quality indicator on call tile.
+        if (callId) registerConnectionQualityRoom('call', callId, room);
 
 
         // Enable camera and microphone
