@@ -528,7 +528,7 @@ const Level5HelperDashboard = () => {
 
       // Load agency diamond_balance — combined with wallet_balance = total Trader Wallet
       const { data: agencyData } = await supabase
-        .from('agencies')
+        .from('agencies') // guard-ok: owner-only agency balance read filtered by auth user id
         .select('id, diamond_balance')
         .eq('owner_id', user.id)
         .maybeSingle();
