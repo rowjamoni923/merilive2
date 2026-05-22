@@ -3,25 +3,30 @@
  *
  * Mirrors Pkg73 (private call) and Pkg74 (live stream) for party rooms.
  * The host publishes a `room_closed` packet to every participant in the
- * LiveKit room with sub-50ms latency. Supabase Realtime broadcast on
- * `party-room-close-${roomId}` + the postgres_changes fallback on
- * party_rooms.is_active are RETAINED — all paths converge into the same
- * RoomEndedModal in PartyRoom.tsx via an idempotent guard.
+ * LiveKit room with sub-50ms latency.
  *
- * Money/audit path is UNCHANGED:
- *   1. party_rooms UPDATE (is_active=false, ended_at) runs first.
- *   2. party_room_participants left_at update runs second.
- *   3. THEN this module mirrors the truth to viewers without a Supabase
- *      Realtime round-trip.
+ * LiveKit-Purist update (Pkg78 / Pkg81b / Pkg87):
+ *   - `party-room-close-${roomId}` Supabase broadcast — REMOVED.
+ *   - `party_rooms` postgres_changes subscription — REMOVED.
+ *   - Sole durable safety nets for viewers:
+ *       1. LiveKit `RoomEvent.ParticipantDisconnected` (host leaves Room).
+ *       2. 20s `party_rooms.is_active` REST poll in PartyRoom.tsx.
+ *
+ * Host leave flow (PartyRoom.tsx leaveRoom):
+ *   1. AWAIT publishPartyClosed (so viewers learn within ~50ms while the
+ *      host LiveKit Room is still `connected`).
+ *   2. party_rooms UPDATE (is_active=false, ended_at).
+ *   3. party_room_participants left_at update.
+ *   4. cleanupWebRTC disconnects the Room.
  *
  * Cost guards ($1400 protection):
  *  - NO new Supabase Realtime channels (uses the LiveKit Room that
  *    usePartyRoomWebRTC already maintains for audio/video).
- *  - NO setInterval / polling.
+ *  - NO setInterval / polling inside this module.
  *  - NO cross-user profile reads.
  *  - Per-feature kill-switch: `app_settings.livekit_signaling_enabled.party`.
- *    When OFF, `publishPartyClosed` returns false instantly → host
- *    silently degrades to Supabase broadcast.
+ *    When OFF, `publishPartyClosed` returns false instantly → viewers fall
+ *    back to LiveKit `ParticipantDisconnected` + 20s status poll.
  */
 import { Room, RoomEvent, type RemoteParticipant } from 'livekit-client';
 import {
