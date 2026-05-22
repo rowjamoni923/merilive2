@@ -164,10 +164,21 @@ Deno.serve(async (req) => {
         permission: p.permission ?? null,
         isPublisher: !!p.isPublisher,
         numTracks: Array.isArray(p.tracks) ? p.tracks.length : 0,
+        tracks: Array.isArray(p.tracks)
+          ? p.tracks.map((t: any) => ({
+              sid: t.sid,
+              type: t.type, // 0=audio, 1=video
+              source: t.source, // 0=unknown,1=camera,2=microphone,3=screen_share,4=screen_share_audio
+              name: t.name ?? "",
+              muted: !!t.muted,
+              mimeType: t.mimeType ?? "",
+            }))
+          : [],
       }));
       await audit(adminClient, { role, action, roomName, resultCount: out.length });
       return json(200, { roomName, participants: out });
     }
+
 
     // get_room → 1 room + its participants
     const rooms = await svc.listRooms([roomName]).catch(() => [] as any[]);
