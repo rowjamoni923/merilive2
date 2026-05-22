@@ -2680,7 +2680,7 @@ const Recharge = () => {
                                 <>
                                   {helper.whatsappNumber && (
                                     <a
-                                      href={`https://wa.me/${helper.whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(userAppUid ? `Hi, I want to buy coins. My UID: ${userAppUid}` : 'Hi, I want to buy coins.')}`}
+                                      href={`https://wa.me/${helper.whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(userAppUid ? `Hi, I want to buy diamonds. My UID: ${userAppUid}` : 'Hi, I want to buy diamonds.')}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
  className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-on-dark rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
@@ -2693,7 +2693,7 @@ const Recharge = () => {
                                   )}
                                   <button
                                     onClick={() => {
-                                      const autoMsg = userAppUid ? `Hi, I want to buy coins. My UID: ${userAppUid}` : `Hi, I want to buy coins.`;
+                                      const autoMsg = userAppUid ? `Hi, I want to buy diamonds. My UID: ${userAppUid}` : `Hi, I want to buy diamonds.`;
                                       navigate(`/chat?user=${helper.id}&autoMessage=${encodeURIComponent(autoMsg)}`);
                                     }}
  className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-display rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"

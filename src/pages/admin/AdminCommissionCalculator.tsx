@@ -271,7 +271,7 @@ const AdminCommissionCalculator = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Gift Amount (Coins)</Label>
+                  <Label>Gift Amount (Diamonds)</Label>
                   <Input 
                     type="number"
                     value={giftAmount}
@@ -380,7 +380,7 @@ const AdminCommissionCalculator = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Rate Per Minute (Coins)</Label>
+                  <Label>Rate Per Minute (Diamonds)</Label>
                   <Input 
                     type="number"
                     value={callPerMinuteRate}

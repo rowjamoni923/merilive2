@@ -314,7 +314,7 @@ const AgencyCoinTrader = () => {
             note: `Agency bought ${Math.floor(amount)} coins from user`
           });
 
-        toast({ title: "Coins purchased successfully" });
+        toast({ title: "Diamonds purchased successfully" });
 
       } else {
         // Agency sells coins to user - ATOMIC two-tier deduction
@@ -355,7 +355,7 @@ const AgencyCoinTrader = () => {
             note: `Agency sold ${Math.floor(amount)} coins to user`
           });
 
-        toast({ title: "Coins sold successfully" });
+        toast({ title: "Diamonds sold successfully" });
       }
 
       // Reset and refresh
@@ -688,14 +688,14 @@ const AgencyCoinTrader = () => {
                             <span className="font-bold">${(parseFloat(buyCoinsAmount) / tradeSettings.buy_rate).toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Coins you'll get:</span>
+                            <span className="text-muted-foreground">Diamonds you'll get:</span>
                             <span className="font-bold text-warning-600">{parseFloat(buyCoinsAmount).toLocaleString()}</span>
                           </div>
                         </div>
                         
                         <div className="mt-4 p-3 bg-white/50 rounded-lg border border-dashed">
                           <p className="text-xs text-center text-muted-foreground">
-                            After payment, your order will be processed manually. Coins are usually added within 1-2 hours.
+                            After payment, your order will be processed manually. Diamonds are usually added within 1-2 hours.
                           </p>
                         </div>
                       </CardContent>
@@ -821,7 +821,7 @@ const AgencyCoinTrader = () => {
                   {tradeAmount && (
                     <div className="bg-success-50 rounded-lg p-3">
                       <div className="flex justify-between text-sm">
-                        <span>Coins:</span>
+                        <span>Diamonds:</span>
                         <span className="font-bold">{parseFloat(tradeAmount).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-sm mt-1">
@@ -847,7 +847,7 @@ const AgencyCoinTrader = () => {
                   disabled={!tradeAmount || parseFloat(tradeAmount) < tradeSettings.min_trade_amount || parseFloat(tradeAmount) > ((agency?.diamond_balance || 0) + (helperData?.wallet_balance || 0))}
                 >
                   <Banknote className="w-4 h-4 mr-2" />
-                  Sell Coins
+                  Sell Diamonds
                 </Button>
               )}
             </TabsContent>
@@ -1005,7 +1005,7 @@ const AgencyCoinTrader = () => {
             <ul className="list-disc list-inside space-y-1 text-xs">
               <li>Send the exact amount to the payment ID</li>
               <li>Wait after making the payment</li>
-              <li>Coins are usually added within 1-2 hours</li>
+              <li>Diamonds are usually added within 1-2 hours</li>
             </ul>
           </div>
 

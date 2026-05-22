@@ -593,7 +593,7 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "💰 Coin & Finance",
+    title: "💰 Diamond & Finance",
     hubKey: "finance-hub",
     items: [
       {
@@ -2580,7 +2580,7 @@ export default function AdminLayout() {
     "🏢 Agency System": { border: "border-indigo-500/20", glow: "shadow-indigo-500/10", text: "text-indigo-400", dot: "bg-indigo-500", iconActive: "from-indigo-500 via-blue-500 to-indigo-600" },
     "👑 Level & VIP": { border: "border-amber-500/20", glow: "shadow-amber-500/10", text: "text-amber-400", dot: "bg-amber-500", iconActive: "from-amber-500 via-yellow-500 to-amber-600" },
     "🎨 Visual Assets": { border: "border-pink-500/20", glow: "shadow-pink-500/10", text: "text-pink-400", dot: "bg-pink-500", iconActive: "from-pink-500 via-rose-500 to-fuchsia-600" },
-    "💰 Coin & Finance": { border: "border-emerald-500/20", glow: "shadow-emerald-500/10", text: "text-emerald-400", dot: "bg-emerald-500", iconActive: "from-emerald-500 via-green-500 to-teal-600" },
+    "💰 Diamond & Finance": { border: "border-emerald-500/20", glow: "shadow-emerald-500/10", text: "text-emerald-400", dot: "bg-emerald-500", iconActive: "from-emerald-500 via-green-500 to-teal-600" },
     "🤝 Helpers": { border: "border-orange-500/20", glow: "shadow-orange-500/10", text: "text-orange-400", dot: "bg-orange-500", iconActive: "from-orange-500 via-amber-500 to-orange-600" },
     "🎮 Game System": { border: "border-red-500/20", glow: "shadow-red-500/10", text: "text-red-400", dot: "bg-red-500", iconActive: "from-red-500 via-rose-500 to-red-600" },
     "📺 Content": { border: "border-cyan-500/20", glow: "shadow-cyan-500/10", text: "text-cyan-400", dot: "bg-cyan-500", iconActive: "from-cyan-500 via-teal-500 to-cyan-600" },

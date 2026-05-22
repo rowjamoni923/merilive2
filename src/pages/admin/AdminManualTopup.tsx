@@ -249,7 +249,7 @@ const AdminManualTopup = () => {
               <Diamond className="w-6 h-6 text-white" />
             </div>
             <div>
-               <p className="text-white/80 text-sm">Admin Coin Management</p>
+               <p className="text-white/80 text-sm">Admin Diamond Management</p>
                <p className="text-white font-bold">Search user & add coins</p>
             </div>
           </div>

@@ -371,7 +371,7 @@ const PKCompetitionManager = () => {
                     className="text-xs bg-white/5 border-white/10 text-white h-8" />
                 </div>
                 <div>
-                  <Label className="text-white/50 text-[10px]">Coins 💰</Label>
+                  <Label className="text-white/50 text-[10px]">Diamonds 💰</Label>
                   <Input type="number" min={0} value={reward.reward_coins}
                     onChange={(e) => updateReward(reward.id, "reward_coins", Number(e.target.value))}
                     className="text-xs bg-white/5 border-white/10 text-white h-8" />

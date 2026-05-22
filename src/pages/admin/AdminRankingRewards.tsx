@@ -418,7 +418,7 @@ const AdminRankingRewards = () => {
             )}
 
             <div className="space-y-2">
-              <Label>Reward Coins (Diamonds)</Label>
+              <Label>Reward Diamonds</Label>
               <Input
                 type="number"
                 value={formData.reward_coins}

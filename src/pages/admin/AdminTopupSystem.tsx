@@ -853,7 +853,7 @@ const AdminTopupSystem = () => {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <Coins className="w-5 h-5 text-amber-500" />
-                  Add Coins to User
+                  Add Diamonds to User
                 </CardTitle>
                 <CardDescription>Search for any user and add coins directly</CardDescription>
               </CardHeader>

@@ -684,11 +684,11 @@ export default function AdminAgencyDetail() {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white/5 rounded-lg p-3">
                 <p className="text-white/50 text-sm mb-1">Total Host Earnings</p>
-                <p className="text-green-400 font-bold text-xl">{totalEarnings.toLocaleString()} Coins</p>
+                <p className="text-green-400 font-bold text-xl">{totalEarnings.toLocaleString()} Diamonds</p>
               </div>
               <div className="bg-white/5 rounded-lg p-3">
                 <p className="text-white/50 text-sm mb-1">Total Transfers</p>
-                <p className="text-yellow-400 font-bold text-xl">{totalTransferred.toLocaleString()} Coins</p>
+                <p className="text-yellow-400 font-bold text-xl">{totalTransferred.toLocaleString()} Diamonds</p>
               </div>
             </div>
           </CardContent>
@@ -888,7 +888,7 @@ export default function AdminAgencyDetail() {
         <TabsContent value="transactions" className="mt-4">
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white">Coin Transfer History</CardTitle>
+              <CardTitle className="text-white">Diamond Transfer History</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[400px]">
@@ -975,11 +975,11 @@ export default function AdminAgencyDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Coins Dialog */}
+      {/* Add Diamonds Dialog */}
       <Dialog open={showAddCoinsDialog} onOpenChange={setShowAddCoinsDialog}>
         <DialogContent className="bg-slate-900 border-white/10 text-white">
           <DialogHeader>
-            <DialogTitle>Add Coins</DialogTitle>
+            <DialogTitle>Add Diamonds</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input

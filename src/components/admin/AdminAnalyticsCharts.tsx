@@ -160,7 +160,7 @@ export const AdminAnalyticsCharts = memo(() => {
 
   const chartGiftRevenue = data?.gift_revenue?.map(d => ({
     date: formatDate(d.date),
-    Coins: d.coins,
+    Diamonds: d.coins,
   })) || [];
 
   const chartCallActivity = data?.call_activity?.map(d => ({
@@ -211,7 +211,7 @@ export const AdminAnalyticsCharts = memo(() => {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <SummaryCard icon={DollarSign} label="Revenue" value={formatNumber(summary.total_revenue_period)} color={COLORS.revenue} />
-          <SummaryCard icon={Gift} label="Gifts (Coins)" value={formatNumber(summary.total_gifts_period)} color={COLORS.coins} />
+          <SummaryCard icon={Gift} label="Gifts (Diamonds)" value={formatNumber(summary.total_gifts_period)} color={COLORS.coins} />
           <SummaryCard icon={Phone} label="Calls" value={formatNumber(summary.total_calls_period)} color={COLORS.calls} />
           <SummaryCard icon={Users} label="New Users" value={formatNumber(summary.total_new_users_period)} color={COLORS.users} />
           <SummaryCard icon={Zap} label="New Hosts" value={formatNumber(summary.total_new_hosts_period)} color={COLORS.hosts} />
@@ -294,13 +294,13 @@ export const AdminAnalyticsCharts = memo(() => {
               <CardHeader className="pb-2 border-b border-slate-700/30">
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <Gift className="w-4 h-4 text-amber-400" />
-                  Gift Volume (Coins)
+                  Gift Volume (Diamonds)
                   {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-amber-600/20 text-amber-300 border-amber-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                {chartGiftRevenue.some(d => d.Coins > 0) ? (
+                {chartGiftRevenue.some(d => d.Diamonds > 0) ? (
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={chartGiftRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                       <defs>
@@ -313,7 +313,7 @@ export const AdminAnalyticsCharts = memo(() => {
                       <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="Coins" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Diamonds" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : <ChartEmpty label="gifts sent" />}

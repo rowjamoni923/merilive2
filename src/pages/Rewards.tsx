@@ -222,7 +222,7 @@ const Rewards = () => {
                 disabled={loginReward.claiming}
                 className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
               >
-                {loginReward.claiming ? "Claiming..." : `🎁 Claim Day ${currentDay} (+${loginReward.todayReward.reward_coins} Coins)`}
+                {loginReward.claiming ? "Claiming..." : `🎁 Claim Day ${currentDay} (+${loginReward.todayReward.reward_coins} Diamonds)`}
               </Button>
             )}
 

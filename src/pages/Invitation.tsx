@@ -135,7 +135,7 @@ const Invitation = () => {
       const coinsAwarded = Number(result?.coins ?? 0);
       const beansAwarded = Number(result?.beans ?? 0);
       const parts: string[] = [];
-      if (coinsAwarded > 0) parts.push(`+${coinsAwarded.toLocaleString()} 🪙 Coins`);
+      if (coinsAwarded > 0) parts.push(`+${coinsAwarded.toLocaleString()} 💎 Diamonds`);
       if (beansAwarded > 0) parts.push(`+${beansAwarded.toLocaleString()} 🌱 Beans`);
 
       toast.success(`🎉 ${tier.tier_name} Reward Claimed! ${parts.join(' & ')}`);
@@ -500,7 +500,7 @@ const Invitation = () => {
                               +{(tier.reward_beans ?? 0).toLocaleString('en-US')} Beans
                             </span>
                             <span className="text-[10px] font-semibold bg-violet-100 text-violet-700 border border-violet-300 px-2 py-0.5 rounded-md text-center">
-                              +{(tier.reward_coins ?? 0).toLocaleString('en-US')} Coins
+                              +{(tier.reward_coins ?? 0).toLocaleString('en-US')} Diamonds
                             </span>
                           </div>
                         )}

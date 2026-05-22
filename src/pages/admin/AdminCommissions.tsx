@@ -746,7 +746,7 @@ export default function AdminCommissions() {
               {/* Entry Requirements */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-white/60">Default Entry Fee (Coins)</Label>
+                  <Label className="text-white/60">Default Entry Fee (Diamonds)</Label>
                   <Input
                     type="number"
                     min={0}

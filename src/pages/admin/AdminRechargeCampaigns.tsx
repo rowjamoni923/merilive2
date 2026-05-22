@@ -594,7 +594,7 @@ export default function AdminRechargeCampaigns() {
                 </div>
               </div>
 
-              {/* Dollar Pricing — Coin Packages */}
+              {/* Dollar Pricing — Diamond Packageage */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
                   <DollarSign className="w-4 h-4" /> Select Package (Price & Diamonds)

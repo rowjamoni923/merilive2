@@ -365,7 +365,7 @@ const AgentWallet = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         {/* Balance Cards */}
         <div className="mx-4 mt-4 space-y-3">
-        {/* Coins Balance */}
+        {/* Diamonds Balance */}
         <div className="bg-gradient-to-br from-success-500 to-success-600 rounded-2xl p-5 text-on-dark shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Wallet className="w-5 h-5" />
@@ -384,7 +384,7 @@ const AgentWallet = () => {
               className="h-11 bg-white/20 hover:bg-white/30 active:bg-white/25 backdrop-blur-sm"
             >
               <Send className="w-4 h-4 mr-2" />
-              Send Coins
+              Send Diamonds
             </Button>
             <Button 
               variant="outline"
@@ -416,7 +416,7 @@ const AgentWallet = () => {
             className="w-full h-11 mt-4 bg-white/20 hover:bg-white/30 active:bg-white/25 backdrop-blur-sm"
           >
             <ArrowRightLeft className="w-4 h-4 mr-2" />
-            Exchange to Coins
+            Exchange to Diamonds
           </Button>
         </div>
       </div>
@@ -486,7 +486,7 @@ const AgentWallet = () => {
             <div>
               <h4 className="font-medium text-info-800">Exchange Info</h4>
               <ul className="text-sm text-info-700 mt-1 space-y-1">
-                <li>• 1 Bean = 1 Coin (1:1 ratio)</li>
+                <li>• 1 Bean = 1 Diamond (1:1 ratio)</li>
                 <li>• Minimum exchange: 10,000 beans</li>
                 <li>• Beans come from host commissions</li>
               </ul>
@@ -561,13 +561,13 @@ const AgentWallet = () => {
       <Drawer open={showTransfer} onOpenChange={setShowTransfer}>
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader className="border-b pb-4">
-            <DrawerTitle>Send Coins to User</DrawerTitle>
+            <DrawerTitle>Send Diamonds to User</DrawerTitle>
           </DrawerHeader>
 
           <div className="p-4 space-y-4 overflow-y-auto">
             {/* Current Balance */}
             <div className="bg-gray-50 rounded-xl p-3">
-              <p className="text-sm text-body">Available Coins</p>
+              <p className="text-sm text-body">Available Diamonds</p>
               <div className="flex items-center gap-1 mt-1">
                 <span className="text-warning-500">🪙</span>
                 <span className="font-bold text-lg">{diamondBalance.toLocaleString()}</span>
@@ -687,7 +687,7 @@ const AgentWallet = () => {
             <div className="flex items-start gap-2 p-3 bg-warning-50 rounded-xl">
               <AlertCircle className="w-5 h-5 text-warning-600 shrink-0 mt-0.5" />
               <p className="text-sm text-warning-800">
-                Please verify the user ID before transferring. Coins sent to wrong ID cannot be recovered.
+                Please verify the user ID before transferring. Diamonds sent to wrong ID cannot be recovered.
               </p>
             </div>
 
@@ -705,7 +705,7 @@ const AgentWallet = () => {
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Send Coins
+                  Send Diamonds
                 </>
               )}
             </Button>
@@ -717,7 +717,7 @@ const AgentWallet = () => {
       <Drawer open={showExchange} onOpenChange={setShowExchange}>
         <DrawerContent className="max-h-[85vh]">
           <DrawerHeader className="border-b pb-4">
-            <DrawerTitle>Exchange Beans to Coins</DrawerTitle>
+            <DrawerTitle>Exchange Beans to Diamonds</DrawerTitle>
           </DrawerHeader>
 
           <div className="p-4 space-y-4">
@@ -746,7 +746,7 @@ const AgentWallet = () => {
                   <span className="text-sm text-body">You will receive:</span>
                   <span className="text-warning-500">🪙</span>
                   <span className="font-bold text-success-600">
-                    {parseInt(exchangeAmount).toLocaleString()} Coins
+                    {parseInt(exchangeAmount).toLocaleString()} Diamonds
                   </span>
                 </div>
               )}
@@ -773,7 +773,7 @@ const AgentWallet = () => {
               <Info className="w-5 h-5 text-info-500 shrink-0 mt-0.5" />
               <div className="text-sm text-info-700">
                 <p className="font-medium">Exchange Rate: 1:1</p>
-                <p>1 Bean = 1 Coin</p>
+                <p>1 Bean = 1 Diamond</p>
               </div>
             </div>
 
@@ -791,7 +791,7 @@ const AgentWallet = () => {
               ) : (
                 <>
                   <ArrowRightLeft className="w-4 h-4 mr-2" />
-                  Exchange to Coins
+                  Exchange to Diamonds
                 </>
               )}
             </Button>
