@@ -155,6 +155,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg122: drop room-metadata registration.
     try { if (callIdRef.current) unregisterRoomMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg121: drop text/byte stream registration.
+    try { if (callIdRef.current) unregisterStreamRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
