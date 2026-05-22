@@ -7725,6 +7725,36 @@ export type Database = {
         }
         Relationships: []
       }
+      livekit_sip_ops_log: {
+        Row: {
+          action: string
+          actor_admin_role: string
+          created_at: string
+          error: string | null
+          id: string
+          result_count: number | null
+          target_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_admin_role: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          result_count?: number | null
+          target_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_admin_role?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          result_count?: number | null
+          target_id?: string | null
+        }
+        Relationships: []
+      }
       login_attempts: {
         Row: {
           created_at: string | null
