@@ -2754,6 +2754,24 @@ export type Database = {
         }
         Relationships: []
       }
+      call_e2ee_keys: {
+        Row: {
+          call_id: string
+          created_at: string
+          passphrase: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          passphrase: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          passphrase?: string
+        }
+        Relationships: []
+      }
       call_events: {
         Row: {
           call_id: string | null
@@ -17109,6 +17127,7 @@ export type Database = {
         Args: { _call_id: string; _end_reason?: string }
         Returns: boolean
       }
+      ensure_call_e2ee_key: { Args: { _call_id: string }; Returns: string }
       ensure_profile_row_from_auth: {
         Args: { _email?: string; _raw_user_meta_data?: Json; _user_id: string }
         Returns: {
