@@ -3644,6 +3644,11 @@ const LiveStream = () => {
             onClose={() => setShowSipDial(false)}
             streamId={id}
           />
+          <RecordingDialog
+            open={showRecording}
+            onClose={() => setShowRecording(false)}
+            streamId={id}
+          />
 
         </>
       )}
