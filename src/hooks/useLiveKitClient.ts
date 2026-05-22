@@ -413,16 +413,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       const isViewer = config.role === 'audience';
       // Pkg152: host-selected publish tier (portrait 9:16 enforced inside preset).
       // Viewers ignore this — they only subscribe.
-      const layerCfg = (() => {
-        try {
-          // Lazy require to keep tree-shake friendly; relative path avoids circular.
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const mod = require('@/lib/livekitPublishLayers');
-          return mod.getPublishLayerConfig() as ReturnType<typeof import('@/lib/livekitPublishLayers').getPublishLayerConfig>;
-        } catch {
-          return null;
-        }
-      })();
+      const layerCfg = !isViewer
+        ? (() => {
+            try {
+              return getPublishLayerConfig();
+            } catch {
+              return null;
+            }
+          })()
+        : null;
       const captureRes = layerCfg
         ? { width: layerCfg.resolution.width, height: layerCfg.resolution.height, frameRate: layerCfg.resolution.frameRate }
         : VideoPresets.h1080.resolution;
