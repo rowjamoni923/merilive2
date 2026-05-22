@@ -164,6 +164,9 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterRpcRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg116: drop transcription registration.
     try { if (callIdRef.current) unregisterRoomForTranscription('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg133: drop reactions registration.
+    try { if (callIdRef.current) unregisterReactionRoom('call', callIdRef.current); } catch { /* ignore */ }
+    try { if (callIdRef.current) unregisterNativeReactionRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
