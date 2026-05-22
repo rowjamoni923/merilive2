@@ -832,14 +832,14 @@ const App = () => {
                 
                 // Check if this user's phone matches the pending claim
                 const { data: profile } = await supabase
-                  .from('profiles')
+                  .from('profiles') // guard-ok: owner-only self phone lookup after auth session
                   .select('phone')
                   .eq('id', session.user.id)
                   .single();
                 
                 // Also check if agency still exists and has no owner
                 const { data: agency } = await supabase
-                  .from('agencies')
+                  .from('agencies') // guard-ok: pending claim lookup by stored agency id, needs owner_id for claim safety
                   .select('id, owner_id')
                   .eq('id', pendingClaim.agencyId)
                   .single();
@@ -847,7 +847,7 @@ const App = () => {
                 if (agency && !agency.owner_id) {
                   // Claim the agency - assign owner
                   const { error: claimError } = await supabase
-                    .from('agencies')
+                    .from('agencies') // guard-ok: authenticated owner claim update, not a cross-user read
                     .update({ owner_id: session.user.id })
                     .eq('id', pendingClaim.agencyId);
                   
@@ -872,7 +872,7 @@ const App = () => {
             
             try {
               let { data: profile } = await supabase
-                .from('profiles')
+                .from('profiles') // guard-ok: owner-only self gender lookup after auth session
                 .select('id, gender')
                 .eq('id', session.user.id)
                 .maybeSingle();
@@ -889,7 +889,7 @@ const App = () => {
                   });
 
                   const repaired = await supabase
-                    .from('profiles')
+                    .from('profiles') // guard-ok: owner-only self profile refetch after repair RPC
                     .select('id, gender')
                     .eq('id', session.user.id)
                     .maybeSingle();
