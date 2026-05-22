@@ -186,7 +186,7 @@ export function VirtualBackgroundDialog({ open, onClose, localVideoTrack, isNati
         <div className="flex gap-2">
           <ModeButton value="none" icon={CircleSlash} label="None" />
           <ModeButton value="blur" icon={Sparkles} label="Blur" />
-          <ModeButton value="image" icon={ImageIcon} label="Image" />
+          {!isNative && <ModeButton value="image" icon={ImageIcon} label="Image" />}
         </div>
 
         {mode === "blur" && (
