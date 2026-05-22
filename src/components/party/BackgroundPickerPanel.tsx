@@ -177,95 +177,177 @@ export function BackgroundPickerPanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+            className="fixed inset-0 bg-black/65 backdrop-blur-md z-50"
             onClick={onClose}
           />
 
-          {/* Panel */}
+          {/* Panel — Pkg164-parity dark glass sheet */}
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl overflow-hidden max-h-[80vh]"
+            transition={{ type: "spring", damping: 28, stiffness: 320 }}
+            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[28px] overflow-hidden max-h-[82vh] border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
+            style={{
+              background: 'linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+            }}
           >
+            {/* Aurora overlay */}
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.35]"
+              style={{
+                background:
+                  'radial-gradient(60% 40% at 15% 0%, rgba(34,211,238,0.20), transparent 70%), radial-gradient(50% 35% at 90% 10%, rgba(168,85,247,0.18), transparent 70%)',
+              }}
+            />
+
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
+            <div className="relative flex items-center justify-between px-5 pt-3 pb-3 border-b border-white/10">
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 h-1 w-10 rounded-full bg-white/25" />
+              <div className="flex items-center gap-3 mt-2">
+                <div
+                  className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)',
+                    boxShadow: '0 6px 18px -4px rgba(59,130,246,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
+                  }}
+                >
+                  <Sparkles className="w-5 h-5 text-white relative z-10" />
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.45) 50%, transparent 60%)',
+                      animation: 'giftSendShine 3.2s ease-in-out infinite',
+                    }}
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Room Background</h3>
-                  <p className="text-xs text-gray-500">Choose a background theme</p>
+                  <h3
+                    className="text-lg font-bold leading-tight"
+                    style={{
+                      background: 'linear-gradient(90deg, #ffffff, #cffafe 60%, #67e8f9)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
+                  >
+                    Room Background
+                  </h3>
+                  <p className="text-[11px] text-white/55 mt-0.5">Choose a background theme</p>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-                <X className="w-5 h-5 text-gray-500" />
+              <button
+                onClick={onClose}
+                className="w-8 h-8 mt-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center"
+              >
+                <X className="w-4 h-4 text-white" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="overflow-y-auto max-h-[65vh] p-4 pb-safe">
+            <div
+              className="overflow-y-auto max-h-[68vh] p-4 pb-safe relative"
+              style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
+            >
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                  <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
                 </div>
               ) : (
                 <>
                   {/* Free Backgrounds */}
                   <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Free Backgrounds</h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      {freeBackgrounds.map((bg) => (
-                        <motion.button
-                          key={bg.id}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleSelect(bg)}
-                          disabled={updating || !isHost}
-                          className={cn(
-                            "relative aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all",
-                            selectedId === bg.id
-                              ? "border-purple-500 ring-2 ring-purple-500/30 shadow-lg"
-                              : "border-transparent hover:border-gray-300",
-                            !isHost && "opacity-60"
-                          )}
-                        >
-                          {/* Background Preview */}
-                          {bg.image_url ? (
-                            <img
-                              src={getProxiedUrl(bg.image_url)}
-                              alt={bg.name}
-                              className="absolute inset-0 w-full h-full object-cover"
+                    <div className="flex items-center gap-2 mb-3">
+                      <h4 className="text-xs font-semibold text-white/75 uppercase tracking-wider">Free Backgrounds</h4>
+                      <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {freeBackgrounds.map((bg, idx) => {
+                        const selected = selectedId === bg.id;
+                        return (
+                          <motion.button
+                            key={bg.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ type: 'spring', damping: 24, stiffness: 360, delay: Math.min(idx * 0.025, 0.18) }}
+                            whileTap={{ scale: 0.96 }}
+                            onClick={() => handleSelect(bg)}
+                            disabled={updating || !isHost}
+                            className={cn(
+                              "relative aspect-[4/3] rounded-2xl overflow-hidden transition-all",
+                              !isHost && "opacity-60"
+                            )}
+                            style={{
+                              border: selected
+                                ? '2px solid rgba(168,85,247,0.85)'
+                                : '1px solid rgba(255,255,255,0.08)',
+                              boxShadow: selected
+                                ? '0 6px 22px -6px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.10)'
+                                : 'inset 0 1px 0 rgba(255,255,255,0.06)',
+                            }}
+                          >
+                            {/* Background Preview */}
+                            {bg.image_url ? (
+                              <img
+                                src={getProxiedUrl(bg.image_url)}
+                                alt={bg.name}
+                                className="absolute inset-0 w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className={cn("absolute inset-0", bg.gradient_css)} />
+                            )}
+
+                            {/* Edge vignette */}
+                            <div
+                              className="pointer-events-none absolute inset-0"
+                              style={{
+                                background:
+                                  'radial-gradient(120% 90% at 50% 50%, transparent 58%, rgba(0,0,0,0.35) 100%)',
+                              }}
                             />
-                          ) : (
-                            <div className={cn("absolute inset-0", bg.gradient_css)} />
-                          )}
 
-                          {/* Level lock overlay */}
-                          {(bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0) && (
-                            <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1">
-                              <Lock className="w-4 h-4 text-white" />
-                              <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
+                            {/* Level lock overlay */}
+                            {(bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0) && (
+                              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1">
+                                <Lock className="w-4 h-4 text-white" />
+                                <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
+                              </div>
+                            )}
+
+                            {selected && (
+                              <>
+                                <div
+                                  className="absolute inset-0 pointer-events-none"
+                                  style={{
+                                    background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.18) 50%, transparent 58%)',
+                                    animation: 'giftSendShine 2.6s ease-in-out infinite',
+                                  }}
+                                />
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ type: 'spring', damping: 18, stiffness: 420 }}
+                                  className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+                                    boxShadow: '0 4px 12px -2px rgba(168,85,247,0.65), inset 0 1px 0 rgba(255,255,255,0.4)',
+                                  }}
+                                >
+                                  <Check className="w-3 h-3 text-white" />
+                                </motion.div>
+                              </>
+                            )}
+
+                            {/* Label */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5">
+                              <span className="text-white text-[10px] font-medium">{bg.name}</span>
                             </div>
-                          )}
-
-                          {selectedId === bg.id && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute top-1.5 right-1.5 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center shadow-lg"
-                            >
-                              <Check className="w-3 h-3 text-white" />
-                            </motion.div>
-                          )}
-
-                          {/* Label */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
-                            <span className="text-white text-[10px] font-medium">{bg.name}</span>
-                          </div>
-                        </motion.button>
-                      ))}
+                          </motion.button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -273,26 +355,45 @@ export function BackgroundPickerPanel({
                   {premiumBackgrounds.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <h4 className="text-sm font-semibold text-gray-700">Premium Backgrounds</h4>
-                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <h4 className="text-xs font-semibold uppercase tracking-wider"
+                          style={{
+                            background: 'linear-gradient(90deg, #fde68a, #fbbf24)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                          }}
+                        >
+                          Premium Backgrounds
+                        </h4>
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <div className="flex-1 h-px bg-gradient-to-r from-amber-400/30 to-transparent" />
                       </div>
-                      <div className="grid grid-cols-3 gap-3">
-                        {premiumBackgrounds.map((bg) => {
+                      <div className="grid grid-cols-3 gap-2.5">
+                        {premiumBackgrounds.map((bg, idx) => {
                           const isPurchased = purchasedBgs.includes(bg.id);
-                          
+                          const selected = selectedId === bg.id;
+
                           return (
                             <motion.button
                               key={bg.id}
-                              whileTap={{ scale: 0.95 }}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ type: 'spring', damping: 24, stiffness: 360, delay: Math.min(idx * 0.025, 0.18) }}
+                              whileTap={{ scale: 0.96 }}
                               onClick={() => handleSelect(bg)}
                               disabled={updating || !isHost}
                               className={cn(
-                                "relative aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all",
-                                selectedId === bg.id
-                                  ? "border-amber-500 ring-2 ring-amber-500/30 shadow-lg"
-                                  : "border-transparent hover:border-gray-300",
+                                "relative aspect-[4/3] rounded-2xl overflow-hidden transition-all",
                                 !isHost && "opacity-60"
                               )}
+                              style={{
+                                border: selected
+                                  ? '2px solid rgba(251,191,36,0.85)'
+                                  : '1px solid rgba(251,191,36,0.18)',
+                                boxShadow: selected
+                                  ? '0 6px 22px -6px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.10)'
+                                  : 'inset 0 1px 0 rgba(255,255,255,0.06)',
+                              }}
                             >
                               {/* Background Preview */}
                               {bg.image_url ? (
@@ -305,9 +406,18 @@ export function BackgroundPickerPanel({
                                 <div className={cn("absolute inset-0", bg.gradient_css)} />
                               )}
 
+                              {/* Edge vignette */}
+                              <div
+                                className="pointer-events-none absolute inset-0"
+                                style={{
+                                  background:
+                                    'radial-gradient(120% 90% at 50% 50%, transparent 58%, rgba(0,0,0,0.35) 100%)',
+                                }}
+                              />
+
                               {/* Level lock overlay */}
                               {(bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0) && (
-                                <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1 z-10">
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1 z-10">
                                   <Lock className="w-4 h-4 text-white" />
                                   <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
                                 </div>
@@ -315,34 +425,53 @@ export function BackgroundPickerPanel({
 
                               {/* Premium Overlay */}
                               {!isPurchased && (
-                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                  <div className="flex items-center gap-1 px-2 py-1 bg-black/50 rounded-full">
-                                    <Diamond className="w-3 h-3 text-cyan-400" />
-                                    <span className="text-white text-[10px] font-bold">
+                                <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
+                                  <div
+                                    className="flex items-center gap-1 px-2 py-1 rounded-full border border-amber-400/40"
+                                    style={{
+                                      background: 'linear-gradient(135deg, rgba(0,0,0,0.65), rgba(0,0,0,0.5))',
+                                      boxShadow: '0 4px 12px -2px rgba(251,191,36,0.35), inset 0 1px 0 rgba(255,255,255,0.10)',
+                                    }}
+                                  >
+                                    <Diamond className="w-3 h-3 text-cyan-300" />
+                                    <span className="text-white text-[10px] font-bold tabular-nums">
                                       {bg.price_diamonds}
                                     </span>
                                   </div>
                                 </div>
                               )}
 
-                              {/* Selected check */}
-                              {selectedId === bg.id && (
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  className="absolute top-1.5 right-1.5 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center shadow-lg"
-                                >
-                                  <Check className="w-3 h-3 text-white" />
-                                </motion.div>
+                              {selected && (
+                                <>
+                                  <div
+                                    className="absolute inset-0 pointer-events-none"
+                                    style={{
+                                      background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.22) 50%, transparent 58%)',
+                                      animation: 'giftSendShine 2.6s ease-in-out infinite',
+                                    }}
+                                  />
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: 'spring', damping: 18, stiffness: 420 }}
+                                    className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center"
+                                    style={{
+                                      background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                                      boxShadow: '0 4px 12px -2px rgba(251,191,36,0.65), inset 0 1px 0 rgba(255,255,255,0.45)',
+                                    }}
+                                  >
+                                    <Check className="w-3 h-3 text-white" />
+                                  </motion.div>
+                                </>
                               )}
 
                               {/* Premium badge */}
                               <div className="absolute top-1.5 left-1.5">
-                                <Sparkles className="w-4 h-4 text-amber-400 drop-shadow-lg" />
+                                <Sparkles className="w-4 h-4 text-amber-300 drop-shadow-[0_2px_6px_rgba(251,191,36,0.6)]" />
                               </div>
 
                               {/* Label */}
-                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5">
                                 <span className="text-white text-[10px] font-medium">{bg.name}</span>
                               </div>
                             </motion.button>
