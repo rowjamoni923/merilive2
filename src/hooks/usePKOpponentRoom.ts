@@ -169,6 +169,21 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
           return;
         }
 
+        // Pkg189: silent token refresh before TTL expiry.
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+        }
+        const roomNameForRefresh = roomName;
+        tokenRefreshDetachRef.current = attachLiveKitTokenRefresh(
+          room,
+          async () => {
+            const fresh = await getLiveKitToken(roomNameForRefresh, 'viewer_stream', undefined, false);
+            return { token: fresh.token, url: fresh.url, ttl: fresh.ttl };
+          },
+          tokenData.ttl ?? 60 * 60 * 6,
+          { label: 'lk-pk-opp' }
+        );
+
         // Initial scan after connect
         updateHostTracks();
       } catch (err) {
