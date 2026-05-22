@@ -411,6 +411,18 @@ const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string
 const RouteSuspenseFallback = memo(() => null);
 RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 
+// Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
+// users see when entering /admin?access=<token> on a cold cache.
+const AdminChunkLoader = memo(() => (
+  <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center">
+    <div className="text-center">
+      <div className="h-8 w-8 mx-auto mb-3 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
+      <p className="text-slate-400 text-sm">Verifying access...</p>
+    </div>
+  </div>
+));
+AdminChunkLoader.displayName = "AdminChunkLoader";
+
 // =============================================
 // MAIN APP COMPONENT
 // =============================================
