@@ -46,9 +46,9 @@ const INITIAL_CALL_STATE: CallState = {
   callerRemainingCoins: 0,
 };
 
-// Fast fallback for instant ringing reliability (broadcast/realtime remains primary)
-// COST-CRITICAL: Fallback poll for incoming calls. Realtime broadcast + postgres_changes are primary delivery.
-// Was 800ms (catastrophic: 10k users × 75 reads/min = $$$$). Now 30s safety net only. Visibility-change + native-resume listeners give instant catch-up on focus.
+// COST-CRITICAL: Incoming-call instant delivery is FCM notifications; this is only
+// a 30s safety-net REST poll for foreground/resume recovery. No Supabase Realtime.
+// Was 800ms (catastrophic: 10k users × 75 reads/min = $$$$).
 const FALLBACK_PENDING_CALL_POLL_MS = 30000;
 
 export function usePrivateCall(userId: string | null) {
