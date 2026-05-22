@@ -33,6 +33,10 @@ verify_jwt = true
 [functions.livekit-sip]
 verify_jwt = true
 
+[functions.livekit-egress]
+verify_jwt = true
+
+
 
 
 
