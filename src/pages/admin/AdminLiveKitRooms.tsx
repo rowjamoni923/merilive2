@@ -23,8 +23,11 @@ import {
   Users,
   Eye,
   Mic,
+  Video,
   Clock,
   X,
+  Circle,
+  Square,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +46,10 @@ import {
   listLiveKitRoomParticipants,
   type LiveKitRoomSummary,
   type LiveKitParticipantSummary,
+  type LiveKitParticipantTrack,
 } from "@/lib/livekitRoomOps";
+import { startTrackEgress, stopTrackEgress } from "@/lib/livekitTrackEgress";
+
 
 function scopeOfRoom(name: string): "live" | "party" | "call" | "other" {
   if (name.startsWith("live_")) return "live";
