@@ -86,6 +86,22 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
             timestamp: new Date()
           });
 
+          if (event === 'INSERT' && table === 'notifications' && payload?.type === 'app_sync') {
+            const data = payload?.data || {};
+            const topic = data.topic;
+            if (typeof topic === 'string' && topic.length > 0) {
+              window.dispatchEvent(new CustomEvent('app-sync', {
+                detail: {
+                  topic,
+                  eventType: data.eventType || data.event_type || payload?.data?.event,
+                  rowId: data.row_id || null,
+                  payload: data,
+                },
+              }));
+            }
+            return;
+          }
+
           if (event === 'INSERT' && table === 'topup_requests' && payload?.status === 'pending') {
             toast({
               title: "New Recharge Request",
