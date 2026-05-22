@@ -458,6 +458,49 @@ const LiveStream = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHost, isHostVerified, id, showLiveEndSummary, streamStartTime]);
 
+  // ========== Pkg105: HOST HARD-BLOCK (LiveKit track-subscription permissions) ==========
+  // Host-only. Fetches `blocked_users` (where blocker_id = host) on mount + when
+  // admin or another tab pushes `blocked_users` via Pkg37 `admin-table-update`.
+  // No new Supabase channels, no polls. Self-only RLS read.
+  useEffect(() => {
+    if (!isHost || !isHostVerified || !id || !currentUserId) return;
+    let cancelled = false;
+
+    const refresh = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('blocked_users')
+          .select('blocked_id')
+          .eq('blocker_id', currentUserId);
+        if (error || cancelled) return;
+        const set = new Set<string>((data ?? []).map((r: any) => r.blocked_id).filter(Boolean));
+        const mod = await import('@/lib/livekitTrackPermissions');
+        if (cancelled) return;
+        mod.setHostBlocklist('live', id, set);
+      } catch (e) {
+        console.warn('[Pkg105] refresh blocklist failed:', e);
+      }
+    };
+
+    refresh();
+
+    const onAdminUpdate = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail || {};
+      if (detail?.table === 'blocked_users') refresh();
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    const onVis = () => { if (document.visibilityState === 'visible') refresh(); };
+    document.addEventListener('visibilitychange', onVis);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [isHost, isHostVerified, id, currentUserId]);
+
+
+
   // Room protection - blocks back button, auto-closes on network loss
   useRoomProtection({
     roomType: 'live',
