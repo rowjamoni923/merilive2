@@ -950,6 +950,14 @@ class LiveKitPlugin : Plugin() {
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-unsubscribed", data)
                     }
+                    is RoomEvent.DataReceived -> {
+                        val data = JSObject()
+                        data.put("payloadBase64", Base64.encodeToString(event.data, Base64.NO_WRAP))
+                        data.put("participantSid", event.participant?.sid?.value ?: "")
+                        data.put("participantIdentity", event.participant?.identity?.value ?: "")
+                        data.put("topic", event.topic ?: "")
+                        notifyListeners("data-received", data)
+                    }
                     is RoomEvent.Disconnected -> {
                         val data = JSObject()
                         data.put("reason", event.reason.name)
