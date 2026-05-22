@@ -10,6 +10,8 @@ import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
 import { RecordingDialog } from "@/components/livekit/RecordingDialog";
 import { SimulcastDialog } from "@/components/livekit/SimulcastDialog";
+import { AgentDispatchDialog } from "@/components/livekit/AgentDispatchDialog";
+import { useLiveKitRpcHandlers } from "@/hooks/useLiveKitRpcHandlers";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
@@ -51,6 +53,7 @@ import {
   Mic,
   MicOff,
   Hand,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -201,6 +204,7 @@ const LiveStream = () => {
   const [showSipDial, setShowSipDial] = useState(false);
   const [showRecording, setShowRecording] = useState(false);
   const [showSimulcast, setShowSimulcast] = useState(false);
+  const [showAgentDispatch, setShowAgentDispatch] = useState(false);
   const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
@@ -2265,6 +2269,7 @@ const LiveStream = () => {
 
   // Pkg131: raise-hand queue (live) — used for viewer toggle label + host count badge.
   const raisedHands = useRaisedHands('live', id);
+  useLiveKitRpcHandlers('live', id);
   const iHaveRaised = !!(currentUserId && raisedHands.some(h => h.identity === currentUserId));
 
   const handleToggleRaiseHand = async () => {
@@ -2360,6 +2365,11 @@ const LiveStream = () => {
     { id: "simulcast", name: "Simulcast", iconName: "Cast" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => {
         setShowMoreOptions(false);
         setShowSimulcast(true);
+      } },
+    // Pkg117: Dispatch AI Agent into this room.
+    { id: "agent", name: "Agent", iconName: "Bot" as const, color: "from-violet-400 to-purple-600", shadowColor: "shadow-violet-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowAgentDispatch(true);
       } },
     // Pkg131: Raised-Hands queue panel (host only). Badge shows queue length.
     { id: "raisedhands", name: raisedHands.length > 0 ? `Raised Hands (${raisedHands.length})` : "Raised Hands", iconName: "Hand" as const, color: "from-amber-400 to-yellow-500", shadowColor: "shadow-amber-500/40", action: () => {
@@ -3723,6 +3733,12 @@ const LiveStream = () => {
             open={showSimulcast}
             onClose={() => setShowSimulcast(false)}
             streamId={id}
+          />
+          <AgentDispatchDialog
+            open={showAgentDispatch}
+            onClose={() => setShowAgentDispatch(false)}
+            roomName={id ? `live_${id}` : ""}
+            scope="live"
           />
           <RaiseHandQueueSheet
             open={showRaiseHandQueue}

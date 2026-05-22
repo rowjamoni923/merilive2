@@ -28,6 +28,7 @@ import {
   X,
   Circle,
   Square,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,7 @@ import {
   type LiveKitParticipantTrack,
 } from "@/lib/livekitRoomOps";
 import { startTrackEgress, stopTrackEgress } from "@/lib/livekitTrackEgress";
+import { AgentDispatchDialog } from "@/components/livekit/AgentDispatchDialog";
 
 
 function scopeOfRoom(name: string): "live" | "party" | "call" | "other" {
@@ -81,6 +83,7 @@ export default function AdminLiveKitRooms() {
   // trackSid → egressId for in-flight track recordings (this session only).
   const [trackEgress, setTrackEgress] = useState<Record<string, string>>({});
   const [trackBusy, setTrackBusy] = useState<Record<string, boolean>>({});
+  const [showAgentDispatch, setShowAgentDispatch] = useState(false);
 
   const handleStartTrack = useCallback(
     async (
@@ -422,6 +425,15 @@ export default function AdminLiveKitRooms() {
               <Radio className="w-5 h-5 text-indigo-400" />
               <span className="font-mono">{detailRoom?.name}</span>
               {detailRoom && scopeBadge(detailRoom.name)}
+              <Button
+                size="sm"
+                variant="outline"
+                className="ml-auto border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/20 h-7 text-xs"
+                onClick={() => setShowAgentDispatch(true)}
+              >
+                <Bot className="w-3.5 h-3.5 mr-1" />
+                Agent
+              </Button>
             </DialogTitle>
           </DialogHeader>
           {detailRoom && (
@@ -613,6 +625,13 @@ export default function AdminLiveKitRooms() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AgentDispatchDialog
+        open={showAgentDispatch}
+        onClose={() => setShowAgentDispatch(false)}
+        roomName={detailRoom?.name || ""}
+        scope={(detailRoom ? scopeOfRoom(detailRoom.name) : "live") as "live" | "party" | "call"}
+      />
     </div>
   );
 }
