@@ -1,45 +1,26 @@
 /**
  * 🔄 Admin Global Realtime Subscriber
  * =====================================================
- * Single source of truth for admin-side postgres_changes.
+ * Admin global realtime lifecycle shim.
  *
- * - Subscribes ONCE to all GLOBALLY_MONITORED_TABLES via chunked channels
- *   (Supabase has a per-channel binding limit, so we split into chunks of 8).
- * - Dispatches ADMIN_REALTIME_EVENT on the window for every change.
- * - Per-event dedupe: ignores duplicate INSERT/UPDATE deliveries arriving
- *   within DEDUPE_WINDOW_MS of each other.
- * - Exponential reconnect on channel errors / disconnects.
- * - Auto-reconnect on tab visibility resume after >30s away.
+ * Pkg93 audit: direct admin postgres_changes channels are forbidden because
+ * the server publication contains only admin_broadcast/notifications/session.
+ * Admin pages now consume the global `admin-table-update` event emitted by
+ * useAdminBroadcastSync's single admin_broadcast subscription.
  *
  * Lifecycle: started by AdminLayout once admin session is verified, stopped
  * on admin logout. Multiple start() calls are idempotent.
  */
-import { adminSupabase } from "@/integrations/supabase/adminClient";
 import {
   ADMIN_REALTIME_EVENT,
   GLOBALLY_MONITORED_TABLES,
-  dispatchAdminTableUpdate,
   type AdminTableUpdateEvent,
 } from "@/hooks/useAdminRealtime";
 
-const CHUNK_SIZE = 8;
 const DEDUPE_WINDOW_MS = 800;
-const RECONNECT_BASE_MS = 1500;
-const RECONNECT_MAX_MS = 30_000;
 const VISIBILITY_RESUME_THRESHOLD_MS = 30_000;
 
-type ManagedChannel = ReturnType<typeof adminSupabase.channel>;
-
-interface ChunkState {
-  index: number;
-  tables: string[];
-  channel: ManagedChannel | null;
-  retryAttempt: number;
-  retryTimer: ReturnType<typeof setTimeout> | null;
-}
-
 let started = false;
-const chunks: ChunkState[] = [];
 const recentEvents = new Map<string, number>();
 let lastVisibilityHidden = 0;
 let visibilityHandler: (() => void) | null = null;
@@ -69,89 +50,8 @@ function pruneDedupeMap() {
   }
 }
 
-function buildChunk(state: ChunkState) {
-  const channelName = `admin-rt-chunk-${state.index}-${Date.now()}`;
-  let channel = adminSupabase.channel(channelName);
-
-  for (const table of state.tables) {
-    channel = channel.on(
-      "postgres_changes" as any,
-      { event: "*", schema: "public", table },
-      (payload: any) => {
-        const eventType = (payload.eventType || payload.type || "")
-          .toString()
-          .toUpperCase() as AdminTableUpdateEvent["eventType"];
-        const row =
-          eventType === "DELETE"
-            ? payload.old ?? payload.oldRecord ?? null
-            : payload.new ?? payload.newRecord ?? null;
-        const detail: AdminTableUpdateEvent = {
-          table,
-          eventType,
-          payload: row,
-        };
-        if (!shouldDispatch(detail)) return;
-        dispatchAdminTableUpdate(detail);
-      }
-    );
-  }
-
-  channel.subscribe((status: string) => {
-    if (status === "SUBSCRIBED") {
-      state.retryAttempt = 0;
-      console.log(
-        `[AdminGlobalRT] ✅ chunk ${state.index} subscribed (${state.tables.length} tables)`
-      );
-    } else if (
-      status === "CHANNEL_ERROR" ||
-      status === "TIMED_OUT" ||
-      status === "CLOSED"
-    ) {
-      console.warn(
-        `[AdminGlobalRT] ⚠️ chunk ${state.index} status=${status}, scheduling reconnect`
-      );
-      scheduleReconnect(state);
-    }
-  });
-
-  state.channel = channel;
-}
-
-function scheduleReconnect(state: ChunkState) {
-  if (state.retryTimer) return;
-  const delay = Math.min(
-    RECONNECT_BASE_MS * Math.pow(2, state.retryAttempt),
-    RECONNECT_MAX_MS
-  );
-  state.retryAttempt += 1;
-  state.retryTimer = setTimeout(() => {
-    state.retryTimer = null;
-    teardownChunk(state);
-    if (started) buildChunk(state);
-  }, delay);
-}
-
-function teardownChunk(state: ChunkState) {
-  if (state.channel) {
-    try {
-      adminSupabase.removeChannel(state.channel);
-    } catch {
-      /* noop */
-    }
-    state.channel = null;
-  }
-  if (state.retryTimer) {
-    clearTimeout(state.retryTimer);
-    state.retryTimer = null;
-  }
-}
-
 function reconnectAll() {
-  for (const c of chunks) {
-    teardownChunk(c);
-    c.retryAttempt = 0;
-    if (started) buildChunk(c);
-  }
+  window.dispatchEvent(new Event("visibilitychange"));
 }
 
 function setupVisibilityHandler() {
@@ -184,33 +84,19 @@ export function startAdminGlobalRealtime() {
   started = true;
   const tables = Array.from(GLOBALLY_MONITORED_TABLES);
 
-  for (let i = 0; i < tables.length; i += CHUNK_SIZE) {
-    const state: ChunkState = {
-      index: chunks.length,
-      tables: tables.slice(i, i + CHUNK_SIZE),
-      channel: null,
-      retryAttempt: 0,
-      retryTimer: null,
-    };
-    chunks.push(state);
-    buildChunk(state);
-  }
-
   setupVisibilityHandler();
   if (!cleanupInterval) {
     cleanupInterval = setInterval(pruneDedupeMap, 5_000);
   }
 
   console.log(
-    `[AdminGlobalRT] 🚀 Started with ${chunks.length} chunks covering ${tables.length} tables`
+    `[AdminGlobalRT] 🚀 Started using admin_broadcast bridge covering ${tables.length} tables`
   );
 }
 
 export function stopAdminGlobalRealtime() {
   if (!started) return;
   started = false;
-  for (const c of chunks) teardownChunk(c);
-  chunks.length = 0;
   recentEvents.clear();
   teardownVisibilityHandler();
   if (cleanupInterval) {

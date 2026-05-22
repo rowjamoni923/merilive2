@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { saveAdminSession, clearAdminSession, getAdminSession, setAdminSessionToken } from "@/utils/adminSession";
+import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
 import { grantAdminAccess, revokeAdminAccess } from "@/utils/adminAccessStorage";
 import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
@@ -79,29 +80,15 @@ export default function AdminAuth() {
     // Immediate one-shot check; realtime subscription below handles instant updates.
     checkStatus();
 
-    // Realtime subscription for instant approval
-    const channel = adminSupabase
-      .channel(`device-approval-${pendingAdminId}-${crypto.randomUUID()}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'admin_allowed_devices',
-        filter: `admin_user_id=eq.${pendingAdminId}`,
-      }, (payload: any) => {
-        if (payload.new?.device_fingerprint === pendingFingerprint) {
-          if (payload.new.status === 'approved') {
-            completeLoginAfterApproval();
-          } else if (payload.new.status === 'rejected') {
-            setRejectionReason(payload.new.rejection_reason || 'Device access rejected');
-            setFlow('rejected');
-          }
-        }
-      })
-      .subscribe();
+    const handleDeviceApprovalSync = (event: Event) => {
+      const detail = (event as CustomEvent<AdminTableUpdateEvent>).detail;
+      if (detail?.table === 'admin_allowed_devices') void checkStatus();
+    };
+    window.addEventListener(ADMIN_REALTIME_EVENT, handleDeviceApprovalSync);
 
     return () => {
       cancelled = true;
-      adminSupabase.removeChannel(channel);
+      window.removeEventListener(ADMIN_REALTIME_EVENT, handleDeviceApprovalSync);
     };
   }, [flow, pendingAdminId, pendingFingerprint]);
 

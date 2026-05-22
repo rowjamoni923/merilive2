@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { adminSupabase as supabase } from '@/integrations/supabase/adminClient';
+import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from '@/hooks/useAdminRealtime';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -49,7 +50,7 @@ export function AdminAlertBell() {
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
-      .from('profiles')
+      .from('profiles_public')
       .select('display_name, avatar_url, app_uid')
       .eq('id', userId)
       .single();
@@ -70,19 +71,18 @@ export function AdminAlertBell() {
     refreshUnreadCount();
   }, []);
 
-  // Realtime subscription
+  // Realtime alert bridge via safe admin_broadcast singleton
   useEffect(() => {
-    const channel = supabase.channel(`admin-phone-alerts-realtime-${crypto.randomUUID()}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_moderation_logs' }, (payload) => {
-        if (payload.new && (payload.new as any).violation_type !== 'user_report') {
-          setUnreadCount(prev => prev + 1);
-          try { const audio = new Audio('/sounds/alert.mp3'); audio.volume = 0.5; audio.play().catch(() => {}); } catch {}
-          toast.error('⚠️ New phone number sharing detected!', { duration: 4000 });
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+    const handleModerationSync = (event: Event) => {
+      const detail = (event as CustomEvent<AdminTableUpdateEvent>).detail;
+      if (detail?.table !== 'chat_moderation_logs' || detail.eventType !== 'INSERT') return;
+      refreshUnreadCount();
+      try { const audio = new Audio('/sounds/alert.mp3'); audio.volume = 0.5; audio.play().catch(() => {}); } catch {}
+      toast.error('⚠️ New phone number sharing detected!', { duration: 4000 });
+    };
+    window.addEventListener(ADMIN_REALTIME_EVENT, handleModerationSync);
+    return () => { window.removeEventListener(ADMIN_REALTIME_EVENT, handleModerationSync); };
+  }, [refreshUnreadCount]);
 
   // Load alerts when opened
   useEffect(() => {
