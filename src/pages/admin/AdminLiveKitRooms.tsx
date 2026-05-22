@@ -625,6 +625,13 @@ export default function AdminLiveKitRooms() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AgentDispatchDialog
+        open={showAgentDispatch}
+        onClose={() => setShowAgentDispatch(false)}
+        roomName={detailRoom?.name || ""}
+        scope={detailRoom ? scopeOfRoom(detailRoom.name) : "live"}
+      />
     </div>
   );
 }
