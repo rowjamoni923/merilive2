@@ -918,9 +918,15 @@ const LiveStream = () => {
               // `join_broadcast_${id}` broadcast). Fires after `stream_viewers`
               // INSERT has happened, so receivers can patch UI in <50ms while
               // late-joiners pick up state from the durable row.
+              //
+              // 🔁 RETRY-UNTIL-CONNECTED: the viewer's LiveKit Room is often
+              // not yet `connected` at this point (subscribe latency 1-3s),
+              // which causes publishLiveEvent to silently return false and the
+              // host never sees the entrance. We retry every 400ms for up to
+              // 12s until the publish actually succeeds.
               try {
                 const { publishViewerJoined } = await import('@/lib/livekitLiveEventsSignaling');
-                await publishViewerJoined(id!, {
+                const payload = {
                   userId: currentUserId,
                   appUid: selfProfile.app_uid || null,
                   userName,
@@ -930,11 +936,23 @@ const LiveStream = () => {
                   entranceSoundUrl: entranceSoundUrl || null,
                   entryNameBarUrl: entryNameBarUrl || null,
                   vehicleAnimationUrl: vehicleAnimationUrl || null,
-                });
-                console.log('[LiveStream] ⚡ Pkg82a viewer_joined published for:', userName);
+                };
+                let published = false;
+                for (let i = 0; i < 30 && !published && mountedRef.current; i++) {
+                  published = await publishViewerJoined(id!, payload);
+                  if (published) {
+                    console.log('[LiveStream] ⚡ Pkg82a viewer_joined published for:', userName, 'attempt', i + 1);
+                    break;
+                  }
+                  await new Promise((r) => setTimeout(r, 400));
+                }
+                if (!published) {
+                  console.warn('[LiveStream] Pkg82a viewer_joined never published (room never connected) for:', userName);
+                }
               } catch (e) {
                 console.warn('[LiveStream] Pkg82a publishViewerJoined failed:', e);
               }
+
             }, 500);
           }
         }
