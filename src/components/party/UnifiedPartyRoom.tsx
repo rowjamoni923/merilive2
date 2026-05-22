@@ -171,6 +171,7 @@ interface UnifiedPartyRoomProps {
   topViewers?: { id?: string; avatarUrl?: string; level: number; displayName?: string; frameId?: string | null }[];
   onInviteViewer?: (userId: string) => void;
   onKickViewer?: (userId: string) => void;
+  onModerateViewer?: (userId: string, displayName: string) => void;
   
   // Waiting Status
   isWaitingForApproval?: boolean;
