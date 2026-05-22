@@ -21,7 +21,7 @@ import {
   VideoQuality,
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
-import { registerCallRoom, unregisterCallRoom } from '@/lib/livekitCallSignaling';
+import { registerCallRoom, registerNativeCallRoom, unregisterCallRoom, unregisterNativeCallRoom } from '@/lib/livekitCallSignaling';
 import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
 import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
 
@@ -135,6 +135,7 @@ export function useLiveKitCall(
 
     // Pkg73: drop call-signaling registration before tearing the room down.
     try { if (callIdRef.current) unregisterCallRoom(callIdRef.current); } catch { /* ignore */ }
+    try { if (callIdRef.current) unregisterNativeCallRoom(callIdRef.current); } catch { /* ignore */ }
     // Pkg79: drop chat-signaling registration as well.
     try { if (callIdRef.current) unregisterChatRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg83: drop gift-signaling registration for call scope.
@@ -251,6 +252,7 @@ export function useLiveKitCall(
             if (lastNErr) throw lastNErr;
 
             usingNativeRef.current = true;
+            if (callId) registerNativeCallRoom(callId);
             setNativeActive(true);
             setState(p => ({
               ...p,
