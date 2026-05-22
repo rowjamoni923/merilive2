@@ -729,7 +729,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
             {/* Insufficient Balance Warning */}
             {!hasBalance && (
               <p className="text-red-400 text-[10px] text-center mt-1.5">
-                Insufficient coins. Please recharge!
+                Insufficient Diamonds. Please recharge!
               </p>
             )}
             </>
