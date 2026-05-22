@@ -2102,8 +2102,8 @@ const Chat = () => {
                 ? myProfile?.avatar_url
                 : (isGroup ? msg.sender?.avatar_url : selectedConversation?.other_user?.avatar_url);
               const senderLevel = isMine
-                ? (myProfile?.user_level || 1)
-                : (isGroup ? (msg.sender?.user_level || 1) : selectedConversation?.other_user?.user_level || 1);
+                ? pickDisplayLevel(myProfile as any)
+                : pickDisplayLevel((isGroup ? msg.sender : selectedConversation?.other_user) as any);
               const senderUserId = isMine ? currentUserId : otherUserId;
               
               return (
