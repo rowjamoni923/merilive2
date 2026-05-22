@@ -115,6 +115,10 @@ interface UseLiveKitClientOptions {
    * registry so consumers can call `registerRpcMethod`/`performRpc` with
    * scope='live'. */
   rpcStreamId?: string | null;
+  /** Pkg116: When set, the underlying Room is registered with the
+   * transcription registry so `RoomEvent.TranscriptionReceived` dispatches a
+   * `livekit-transcription` window event for caption / moderation UI. */
+  transcriptionStreamId?: string | null;
 }
 
 
