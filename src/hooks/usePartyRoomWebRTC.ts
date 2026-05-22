@@ -490,6 +490,12 @@ export function usePartyRoomWebRTC(
         } catch (err) {
           console.warn('[Pkg101] registerConnectionQualityRoom(party) failed:', err);
         }
+        // Pkg107: participant metadata sync (AFK/mod flags/theme).
+        try {
+          registerMetadataRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg107] registerMetadataRoom(party) failed:', err);
+        }
 
         setState(prev => ({
           ...prev,
