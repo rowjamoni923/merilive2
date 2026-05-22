@@ -34,7 +34,8 @@ export type LiveKitFeature =
   | 'rpc'
   | 'streams'
   | 'room_metadata'
-  | 'noise_cancellation';
+  | 'noise_cancellation'
+  | 'hls_egress';
 
 
 
