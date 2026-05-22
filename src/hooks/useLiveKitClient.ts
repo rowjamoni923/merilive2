@@ -1347,6 +1347,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     };
   }, [options.activeSpeakerStreamId, isJoined]);
 
+  // Pkg101: bind for connection-quality bars.
+  useEffect(() => {
+    const streamId = options.connectionQualityStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitConnectionQuality');
+        if (cancelled) return;
+        mod.registerConnectionQualityRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg101] registerConnectionQualityRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitConnectionQuality').then((mod) => {
+        mod.unregisterConnectionQualityRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.connectionQualityStreamId, isJoined]);
+
 
 
 
