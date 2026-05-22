@@ -54,6 +54,10 @@ verify_jwt = true
 [functions.livekit-forward-participant]
 verify_jwt = true
 
+[functions.livekit-auto-record]
+verify_jwt = false
+
+
 
 
 

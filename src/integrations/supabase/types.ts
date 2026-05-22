@@ -9503,6 +9503,7 @@ export type Database = {
           age: number | null
           agency_id: string | null
           app_uid: string | null
+          auto_record_live: boolean
           avatar_url: string | null
           beans: number | null
           beans_balance: number | null
@@ -9619,6 +9620,7 @@ export type Database = {
           age?: number | null
           agency_id?: string | null
           app_uid?: string | null
+          auto_record_live?: boolean
           avatar_url?: string | null
           beans?: number | null
           beans_balance?: number | null
@@ -9735,6 +9737,7 @@ export type Database = {
           age?: number | null
           agency_id?: string | null
           app_uid?: string | null
+          auto_record_live?: boolean
           avatar_url?: string | null
           beans?: number | null
           beans_balance?: number | null
@@ -11509,6 +11512,7 @@ export type Database = {
       }
       stream_recordings: {
         Row: {
+          auto_started: boolean
           channel_name: string | null
           created_at: string | null
           duration_seconds: number | null
@@ -11541,6 +11545,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          auto_started?: boolean
           channel_name?: string | null
           created_at?: string | null
           duration_seconds?: number | null
@@ -11573,6 +11578,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          auto_started?: boolean
           channel_name?: string | null
           created_at?: string | null
           duration_seconds?: number | null
@@ -16059,6 +16065,7 @@ export type Database = {
       admin_list_recordings: {
         Args: { _admin_id: string; _limit?: number }
         Returns: {
+          auto_started: boolean
           channel_name: string | null
           created_at: string | null
           duration_seconds: number | null
@@ -17240,6 +17247,7 @@ export type Database = {
           age: number | null
           agency_id: string | null
           app_uid: string | null
+          auto_record_live: boolean
           avatar_url: string | null
           beans: number | null
           beans_balance: number | null
