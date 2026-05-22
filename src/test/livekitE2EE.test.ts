@@ -9,15 +9,9 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('./livekitSignaling', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/livekitSignaling')>(
-    '@/lib/livekitSignaling',
-  );
-  return {
-    ...actual,
-    isLiveKitEnabled: vi.fn(),
-  };
-});
+vi.mock('@/lib/livekitSignaling', () => ({
+  isLiveKitEnabled: vi.fn(),
+}));
 
 import { supabase } from '@/integrations/supabase/client';
 import { isLiveKitEnabled } from '@/lib/livekitSignaling';
