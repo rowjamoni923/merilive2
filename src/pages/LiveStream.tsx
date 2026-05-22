@@ -567,6 +567,15 @@ const LiveStream = () => {
     },
   });
 
+  // Pkg100: PK Cross-room Audio Bridge — secondary subscribe-only connection
+  // to the opponent's stream room so both hosts + all audiences hear each other.
+  const opponentStreamId = pkBattleState.isActive
+    ? pkBattleState.isChallenger
+      ? pkBattleState.opponentInfo?.streamId || null
+      : pkBattleState.challengerInfo?.streamId || null
+    : null;
+  const opponentRoom = usePKOpponentRoom(opponentStreamId);
+
   // ========== FACE DETECTION FOR HOST ==========
   const faceDetection = useLiveFaceDetection({
     localVideoTrack,
