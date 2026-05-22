@@ -48,20 +48,16 @@ export const HelperAcceptedMethodsCard = ({ helperId, helperCountryCode }: Helpe
     if (helperId) loadAccepted();
   }, [helperId, loadAccepted]);
 
-  // Realtime sync
+  // Admin-broadcast sync: helper_accepted_payment_methods is not in
+  // supabase_realtime publication, so direct postgres_changes cannot emit.
   useEffect(() => {
     if (!helperId) return;
-    const channel = supabase
-      .channel(`helper-accepted-${helperId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "helper_accepted_payment_methods", filter: `helper_id=eq.${helperId}` },
-        () => loadAccepted()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
+    const onAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'helper_accepted_payment_methods') void loadAccepted();
     };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
   }, [helperId, loadAccepted]);
 
   const acceptedSet = useMemo(

@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
  interface RechargeOrder {
   id: string;
@@ -44,34 +45,9 @@ const RechargeHistory = () => {
     init();
   }, [navigate]);
 
-  // Real-time subscription for instant updates
-  useEffect(() => {
-    if (!currentUserId) return;
-
-    const channel = supabase
-      .channel(`recharge-history-${currentUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-           table: 'helper_orders',
-          filter: `user_id=eq.${currentUserId}`
-        },
-        (payload) => {
-           console.log('Helper order update:', payload);
-           // Refetch to ensure data consistency
-           fetchRechargeOrders(currentUserId);
-        }
-      )
-      .subscribe((status) => {
-        console.log('Recharge history subscription:', status);
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentUserId]);
+  useAppSyncEvent(['helper_orders'], () => {
+    if (currentUserId) void fetchRechargeOrders(currentUserId);
+  }, Boolean(currentUserId));
 
   const fetchRechargeOrders = async (userId: string) => {
     try {
@@ -113,7 +89,7 @@ const RechargeHistory = () => {
 
         if (helpers && helpers.length > 0) {
           const { data: helperProfiles } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('id, display_name')
             .in('id', helpers.map(h => h.user_id));
 

@@ -401,110 +401,19 @@ const Level5HelperDashboard = () => {
     };
   }, [selectedAgencyWithdrawal?.id, helperData?.id, showAgencyWithdrawalDialog]);
 
-  // Real-time subscription - ALL helpers receive ALL withdrawal updates
+  // Instant sync is handled above by app_sync notifications and Pkg37
+  // admin_broadcast. Direct postgres_changes here was dead because these
+  // helper/agency tables are not in supabase_realtime publication.
   useEffect(() => {
     if (!helperData?.id) return;
-
-    const channel = supabase
-      .channel(`level5-helper-${helperData.id}`)
-      // CRITICAL: Subscribe to topup_helpers for wallet_balance updates
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'topup_helpers', filter: `id=eq.${helperData.id}` },
-        (payload) => {
-          console.log('[Level5Helper] Helper data updated (wallet_balance etc):', payload.new);
-          const newData = payload.new as any;
-          if (newData && newData.is_active === false) {
-            toast({ title: "Account Deactivated", description: "Your helper account has been deactivated by admin", variant: "destructive" });
-            navigate('/profile');
-            return;
-          }
-          setHelperData(newData);
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_withdrawal_requests', filter: `helper_id=eq.${helperData.id}` },
-        () => loadWithdrawals()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_notifications', filter: `helper_id=eq.${helperData.id}` },
-        () => loadNotifications()
-      )
-      // CRITICAL: Subscribe to helper_orders for this helper - so new orders appear instantly
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_orders', filter: `helper_id=eq.${helperData.id}` },
-        (payload) => {
-          console.log('[Level5Helper] Helper order updated:', payload.eventType, payload.new);
-          loadHelperOrders();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_payment_methods' },
-        () => {
-          console.log('[Level5Helper] Payment methods updated');
-          loadAvailablePaymentMethods();
-        }
-      )
-      // CRITICAL: Subscribe to all agency withdrawal changes.
-      // Server-side trigger creates helper notifications instantly,
-      // and this keeps the dashboard list in sync across all helpers.
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agency_withdrawals' },
-        () => {
-          loadAgencyWithdrawals();
-          loadCompletedHistory();
-          loadNotifications();
-        }
-      )
-      // ⚡ REALTIME: Admin messages - instant delivery, zero refresh
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_admin_messages', filter: `helper_id=eq.${helperData.id}` },
-        (payload) => {
-          console.log('[Level5Helper] Admin message update:', payload.eventType);
-          loadAdminMessages();
-        }
-      )
-      // ⚡ REALTIME: Message replies - instant delivery, zero refresh
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_message_replies' },
-        (payload) => {
-          console.log('[Level5Helper] Message reply update:', payload.eventType);
-          // Refresh replies if viewing a message
-          if (selectedMessage) {
-            loadMessageReplies(selectedMessage.id);
-          }
-          loadAdminMessages();
-        }
-      )
-      .subscribe();
-
-    // Subscribe to agency diamond_balance updates for combined wallet display
-    let agencyChannel: any = null;
-    if (agencyId) {
-      agencyChannel = supabase
-        .channel(`level5-agency-${agencyId}`)
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'agencies', filter: `id=eq.${agencyId}` },
-          (payload) => {
-            setAgencyDiamondBalance((payload.new as any).diamond_balance || 0);
-          }
-        )
-        .subscribe();
-    }
-
-    return () => { 
-      supabase.removeChannel(channel); 
-      if (agencyChannel) supabase.removeChannel(agencyChannel);
+    const onAdminTableUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'topup_payment_methods') void loadAvailablePaymentMethods();
     };
-  }, [helperData?.id, agencyId]);
+
+    window.addEventListener('admin-table-update', onAdminTableUpdate as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdminTableUpdate as EventListener);
+  }, [helperData?.id]);
 
   const loadData = async () => {
     try {

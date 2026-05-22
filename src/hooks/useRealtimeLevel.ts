@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { clearUserFrameCache, clearFrameCache, clearLevelFrameCache } from "@/components/common/AvatarWithFrame";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 interface LevelData {
   user_level: number;
@@ -62,7 +63,6 @@ export const useRealtimeLevel = (userId: string | null) => {
   const [level, setLevel] = useState<number>(cached?.level ?? 1);
   const [levelData, setLevelData] = useState<LevelData | null>(cached?.levelData ?? null);
   const [loading, setLoading] = useState(!cached);
-  const channelInstanceIdRef = useRef(`rt-${Math.random().toString(36).slice(2, 10)}`);
   
   // Track previous level to detect level-up and trigger frame refresh
   const previousLevelRef = useRef<number | null>(cached?.level ?? null);
@@ -150,86 +150,35 @@ export const useRealtimeLevel = (userId: string | null) => {
     fetchLevel();
   }, [fetchLevel]);
 
-  // Set up real-time subscription for level changes
+  // Instant sync: profile/balance changes arrive through app_sync notifications;
+  // profiles is intentionally NOT in supabase_realtime publication.
+  useAppSyncEvent(['profiles'], () => {
+    void fetchLevel();
+  }, Boolean(userId));
+
+  // Admin profile edits arrive through the singleton admin_broadcast channel.
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel(`level-updates-${userId}-${channelInstanceIdRef.current}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${userId}`,
-        },
-        async (payload) => {
-          if (payload.new) {
-            await fetchLevel();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const onAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'profiles') void fetchLevel();
     };
+
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
   }, [userId, fetchLevel]);
 
-  // Also listen for gift transactions that might affect level
+  // Transaction tables are not used as realtime fanout. Profile app_sync above
+  // is emitted by the server after the transaction updates the user's balance.
   useEffect(() => {
     if (!userId) return;
-
-    const channel = supabase
-      .channel(`level-transaction-updates-${userId}-${channelInstanceIdRef.current}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "gift_transactions",
-        },
-        (payload) => {
-          const transaction = payload.new as any;
-          if (transaction?.receiver_id === userId) {
-            fetchLevel();
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "coin_transactions",
-        },
-        (payload) => {
-          const transaction = payload.new as any;
-          if (transaction?.user_id === userId) {
-            fetchLevel();
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "payment_transactions",
-        },
-        (payload) => {
-          const transaction = payload.new as any;
-          if (transaction?.user_id === userId) {
-            fetchLevel();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const onOwnBeans = (event: Event) => {
+      const detail = (event as CustomEvent<{ userId?: string }>).detail;
+      if (!detail?.userId || detail.userId === userId) void fetchLevel();
     };
+    window.addEventListener('own-beans-updated', onOwnBeans as EventListener);
+    return () => window.removeEventListener('own-beans-updated', onOwnBeans as EventListener);
   }, [userId, fetchLevel]);
 
   return {
@@ -252,7 +201,6 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
   const [currentXP, setCurrentXP] = useState(0);
   const [nextLevelXP, setNextLevelXP] = useState(0);
   const [nextLevelNumber, setNextLevelNumber] = useState(1);
-  const tierChannelInstanceIdRef = useRef(`rt-tier-${Math.random().toString(36).slice(2, 10)}`);
   
   // CORRECT LOGIC: Only female hosts use host_level (resets weekly)
   // Everyone else (male hosts, regular users) use user_level (permanent)
@@ -278,27 +226,15 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
     fetchTiers();
   }, [fetchTiers]);
 
-  // Real-time subscription for level tier changes
+  // Admin-driven tier changes arrive through Pkg37 admin_broadcast.
   useEffect(() => {
-    const channel = supabase
-      .channel(`user-level-tiers-realtime-${tierChannelInstanceIdRef.current}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_level_tiers',
-        },
-        (payload) => {
-          console.log('[useRealtimeLevel] Level tiers updated:', payload.eventType);
-          fetchTiers();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const onAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'user_level_tiers') void fetchTiers();
     };
+
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
   }, [fetchTiers]);
 
   // Calculate progress whenever level data or tiers change

@@ -81,17 +81,17 @@ export const useCountryPaymentGateways = (countryCode?: string | null) => {
 
   useEffect(() => { load(); }, [load]);
 
-  // Realtime: refresh on any change
+  // Admin-driven instant sync: payment_gateways is NOT in supabase_realtime;
+  // Pkg37 admin_broadcast is the single allowed realtime path.
   useEffect(() => {
-    const channel = supabase
-      .channel(`payment-gateways-${countryCode || 'all'}-${Date.now()}`)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'payment_gateways' },
-        () => load()
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [load, countryCode]);
+    const onAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'payment_gateways') void load();
+    };
+
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
+  }, [load]);
 
   return { gateways, loading, reload: load };
 };

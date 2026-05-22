@@ -233,9 +233,13 @@ const HelperDashboard = () => {
     }
   }, [realtimeHelperData]);
 
-  useAppSyncEvent(['topup_helpers'], (detail) => {
+  useAppSyncEvent(['topup_helpers', 'helper_upgrade_requests', 'agencies'], (detail) => {
     const payload = detail.payload || {};
     if (payload.helper_id && payload.helper_id !== helperId) return;
+    if (detail.topic === 'helper_upgrade_requests' && helperData?.id) {
+      fetchPendingRequests(helperData.id);
+      return;
+    }
     loadData();
   }, Boolean(helperId));
 
@@ -272,110 +276,21 @@ const HelperDashboard = () => {
     }
   };
 
-  // Real-time subscription for instant updates
+  // Instant sync via app_sync/admin_broadcast only. These tables are not in
+  // supabase_realtime publication, so direct postgres_changes channels were dead.
   useEffect(() => {
     if (!helperData?.id) return;
 
-    const channel = supabase
-      .channel(`helper-dashboard-${helperData.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'topup_helpers',
-          filter: `id=eq.${helperData.id}`
-        },
-        (payload) => {
-          console.log('[HelperDashboard] Helper data updated:', payload.new);
-          const newData = payload.new as any;
-          if (newData && newData.is_active === false) {
-            toast({ title: "Account Deactivated", description: "Your helper account has been deactivated by admin", variant: "destructive" });
-            navigate('/profile');
-            return;
-          }
-          setHelperData(newData);
-          
-          // Instantly update level when trader_level changes (e.g., after recharge/upgrade)
-          if (newData?.trader_level) {
-            setTraderLevels(prevLevels => {
-              const current = prevLevels.find(l => l.level_number === newData.trader_level);
-              const next = prevLevels.find(l => l.level_number === newData.trader_level + 1);
-              setCurrentLevel(current || null);
-              setNextLevel(next || null);
-              return prevLevels;
-            });
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'agencies',
-          filter: `owner_id=eq.${helperData.user_id}`
-        },
-        (payload) => {
-          const newAgency = payload.new as any;
-          setAgencyDiamondBalance(Number(newAgency?.diamond_balance || 0));
-        }
-      )
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'helper_upgrade_requests',
-          filter: `helper_id=eq.${helperData.id}`
-        },
-        (payload) => {
-          console.log('[HelperDashboard] Upgrade request changed:', payload);
-          fetchPendingRequests(helperData.id);
-        }
-      )
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'trader_level_tiers'
-        },
-        (payload) => {
-          console.log('[HelperDashboard] Trader level tiers updated:', payload.eventType);
-          refetchTraderLevels();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'topup_payment_methods'
-        },
-        async (payload) => {
-          console.log('[HelperDashboard] Payment methods updated:', payload.eventType);
-          const { data: methods } = await supabase
-            .from('topup_payment_methods' as any)
-            .select('*')
-            .eq('is_active', true)
-            .order('display_order', { ascending: true });
-          
-          if (methods) {
-            const normalized = (methods as any[]).map(normalizePaymentMethod);
-            const cc = (helperData as any)?.country_code || null;
-            const filtered = filterMethodsByCountry(normalized, cc);
-            setPaymentMethods(filtered);
-            console.log('[HelperDashboard] Payment methods refreshed:', filtered.length, 'country:', cc);
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('[HelperDashboard] Realtime subscription:', status);
-      });
+    const onAdminTableUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'trader_level_tiers') void refetchTraderLevels();
+      if (table === 'topup_payment_methods') void loadData();
+    };
+
+    window.addEventListener('admin-table-update', onAdminTableUpdate as EventListener);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', onAdminTableUpdate as EventListener);
     };
   }, [helperData?.id, helperData?.country_code]);
 
