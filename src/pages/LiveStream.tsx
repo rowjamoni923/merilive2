@@ -2633,6 +2633,29 @@ const LiveStream = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none" />
       </div>
 
+      {/* Pkg102: Screen Share overlay (host preview OR viewer remote screen). */}
+      {(() => {
+        const remoteScreen = remoteScreenTracks && remoteScreenTracks.size > 0
+          ? Array.from(remoteScreenTracks.values())[0]
+          : null;
+        const activeScreen = isHost ? screenTrack : remoteScreen;
+        if (!activeScreen) return null;
+        return (
+          <div className="absolute top-20 right-3 z-40 w-44 sm:w-56 aspect-video rounded-xl overflow-hidden border-2 border-indigo-400/70 shadow-[0_8px_30px_rgba(79,70,229,0.45)] bg-black">
+            <LiveKitVideoPlayer
+              videoTrack={activeScreen}
+              mirror={false}
+              fit="contain"
+              className="absolute inset-0 w-full h-full"
+            />
+            <div className="absolute top-1 left-1 bg-indigo-500/85 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1">
+              <MonitorUp className="w-3 h-3 text-white" strokeWidth={2.2} />
+              <span className="text-white text-[10px] font-semibold tracking-wide">SCREEN</span>
+            </div>
+          </div>
+        );
+      })()}
+
 
       {/* ⚡ INSTANT ENGAGEMENT: No loading spinners - stream loads instantly */}
 
