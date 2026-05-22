@@ -105,13 +105,21 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Normalize all historical RPC payload shapes. The current DB function returns
+    // total_cost / beans_received / new_sender_balance, while older clients expect
+    // coinsSpent / hostReceived. Missing normalization made Pkg85 read zeros.
+    const coinsSpent = Number(result.coins_spent ?? result.total_cost ?? 0)
+    const hostReceived = Number(result.beans_earned ?? result.beans_received ?? 0)
+    const newBalance = result.new_balance ?? result.new_sender_balance ?? null
+
     return new Response(
       JSON.stringify({
         success: true,
         transactionId: result.transaction_id,
-        coinsSpent: result.coins_spent,
-        hostReceived: result.beans_earned,
+        coinsSpent,
+        hostReceived,
         hostPercent: result.host_percent,
+        newBalance,
       }),
       {
         status: 200,
