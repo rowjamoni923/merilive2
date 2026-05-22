@@ -341,6 +341,9 @@ export function useLiveKitCall(
             },
             degradationPreference: 'maintain-resolution',
             simulcast: false,
+            // Pkg156: VP9 primary + VP8 backup. Chamet/Bigo private-call parity.
+            videoCodec: 'vp9',
+            backupCodec: { codec: 'vp8' },
           },
           // Pkg108: undefined when disabled — Room treats as plain.
           e2ee: e2eeOption,
