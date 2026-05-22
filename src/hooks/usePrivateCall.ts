@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
-import { publishCallEnded, type CallEndedDetail } from '@/lib/livekitCallSignaling';
+import { publishCallEnded, publishCallAccepted, type CallEndedDetail, type CallAcceptedDetail } from '@/lib/livekitCallSignaling';
 
 interface CallState {
   callId: string | null;
@@ -748,9 +748,10 @@ export function usePrivateCall(userId: string | null) {
       }
 
       // Fetch caller profile in background - non-blocking
+      // 🔒 Pkg86 audit fix: cross-user read → profiles_public (RLS-safe, no coins leak)
       const callerProfilePromise = callData?.caller_id
         ? supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('display_name, avatar_url, user_level')
             .eq('id', callData.caller_id)
             .single()
@@ -767,8 +768,15 @@ export function usePrivateCall(userId: string | null) {
         }
       }).catch(() => {});
 
-      // ⚡ Notify caller instantly so they switch to connected UI without waiting for DB propagation
+      // ⚡ Notify caller instantly so they switch to connected UI without waiting for DB propagation.
+      // Pkg86 audit: dual-path (LiveKit primary + Supabase fallback) — caller may not yet have
+      // joined the LiveKit Room when host accepts, so Supabase broadcast remains as safety net
+      // until LiveKit Room is established. publishCallAccepted retries up to 5s waiting for Room.
       if (callData?.caller_id) {
+        // Primary: LiveKit DataPacket (sub-50ms once Room is up, retries 20×250ms)
+        void publishCallAccepted(callId, { acceptedBy: userId });
+
+        // Fallback: Supabase broadcast (works pre-Room)
         const callerChannel = supabase.channel(`call-end-listener-${callData.caller_id}`);
         Promise.resolve(new Promise<void>((resolve) => {
           const timeout = setTimeout(() => resolve(), 1500);
@@ -793,6 +801,7 @@ export function usePrivateCall(userId: string | null) {
           Promise.resolve(supabase.removeChannel(callerChannel)).catch(() => {});
         });
       }
+
 
       // Host billing display fetch every 10s (billing changes every 60s — display only)
       billingFetchIntervalRef.current = setInterval(async () => {
@@ -1236,8 +1245,34 @@ export function usePrivateCall(userId: string | null) {
       softEndCallRef.current?.();
     };
 
+    // 🔥 Pkg86 audit: LiveKit `call_accepted` listener (mirrors Supabase broadcast above).
+    // Primary path once caller's LiveKit Room is connected; Supabase remains as pre-Room fallback.
+    const handleLiveKitCallAccepted = (ev: Event) => {
+      if (isCleanedUp) return;
+      const detail = (ev as CustomEvent<CallAcceptedDetail>).detail;
+      if (!detail?.callId) return;
+
+      const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
+      if (trackedCallId && trackedCallId !== detail.callId) return;
+      if (!trackedCallId) {
+        currentCallIdRef.current = detail.callId;
+        setCallState(prev => (
+          prev.status === 'calling' || prev.status === 'ringing'
+            ? { ...prev, callId: detail.callId }
+            : prev
+        ));
+      }
+
+      if (endedCallIdsRef.current.has(detail.callId) || callEndedRef.current) return;
+      if (detail.acceptedBy === userId) return;
+
+      console.log('[Pkg86] ⚡ LiveKit call-accepted received for:', detail.callId);
+      activateCallerConnectedState(detail.callId);
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('livekit-call-ended', handleLiveKitCallEnded);
+      window.addEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
     }
 
     return () => {
@@ -1245,9 +1280,11 @@ export function usePrivateCall(userId: string | null) {
       supabase.removeChannel(endChannel);
       if (typeof window !== 'undefined') {
         window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
+        window.removeEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
       }
     };
   }, [userId]);
+
 
   // 🔵 METHOD 2: Universal realtime listener (no extra filtered channels)
   // Handles call status updates for both caller and host
@@ -1286,12 +1323,13 @@ export function usePrivateCall(userId: string | null) {
            if (callData.status !== 'pending' && callData.status !== 'ringing') return;
 
           // ⚡ Fetch caller profile WITHOUT re-verifying call status
-          // Broadcast already validated - skip the freshCall DB roundtrip
+          // Pkg86 audit: cross-user read → profiles_public (RLS-safe, no coins leak)
           const { data: callerProfile } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('display_name, avatar_url, user_level')
             .eq('id', callData.caller_id)
             .single();
+
 
           if (isCleanedUp) return;
           if (endedCallIdsRef.current.has(callData.id)) return;
