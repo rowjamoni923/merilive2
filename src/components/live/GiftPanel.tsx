@@ -577,20 +577,20 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 </div>
                 <div>
                   <p className="text-white font-semibold text-xs">{selectedGift.name}</p>
-                  <p className="text-cyan-400 text-[10px] flex items-center gap-0.5 font-medium">
+                  <div className="text-cyan-400 text-[10px] flex items-center gap-0.5 font-medium">
                     <Diamond3DIcon size={12} />
                     {formatCoinValue(selectedGift.coins)} each
-                  </p>
+                  </div>
                 </div>
               </div>
               
               {/* Total Cost */}
               <div className="text-right bg-gradient-to-r from-cyan-500/15 to-purple-500/15 px-3 py-2 rounded-xl border border-cyan-400/20">
                 <p className="text-white/70 text-[9px] font-medium">Total Cost</p>
-                <p className="font-bold text-sm flex items-center gap-1 justify-end bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
+                <div className="font-bold text-sm flex items-center gap-1 justify-end bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
                   <Diamond3DIcon size={16} />
                   {formatCoinValue(selectedGift.coins * count)}
-                </p>
+                </div>
               </div>
             </div>
 
