@@ -3581,6 +3581,11 @@ const LiveStream = () => {
             activeSticker={deepAR.activeSticker}
             onStickerChange={(name) => { setActiveSticker(name); deepAR.handleStickerChange(name); }}
           />
+          <VirtualBackgroundDialog
+            open={showVirtualBackground}
+            onClose={() => setShowVirtualBackground(false)}
+            localVideoTrack={localVideoTrack}
+          />
         </>
       )}
     </div>
