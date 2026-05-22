@@ -21,6 +21,7 @@ import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignal
 import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
 import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/livekitPartyEventsSignaling';
 import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
+import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -87,6 +88,7 @@ export function usePartyRoomWebRTC(
     try { unregisterGiftRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterPartyEventsRoom(roomId); } catch { /* ignore */ }
     try { unregisterChatRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterActiveSpeakerRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -462,6 +464,16 @@ export function usePartyRoomWebRTC(
           registerChatRoom('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg81c] registerChatRoom(party) failed:', err);
+        }
+
+        // Pkg98: bind for active-speaker detection. LiveKit server-side
+        // speech detection fires ActiveSpeakersChanged ~200ms after voice
+        // activity — used by useActiveSpeakers('party', roomId) to ring
+        // the speaking seat avatar.
+        try {
+          registerActiveSpeakerRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg98] registerActiveSpeakerRoom(party) failed:', err);
         }
 
         setState(prev => ({

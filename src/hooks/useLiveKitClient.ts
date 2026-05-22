@@ -82,6 +82,12 @@ interface UseLiveKitClientOptions {
   /** Live stream filter/beauty sync. Replaces legacy Supabase broadcast
    * `stream_filters_${id}` with LiveKit DataPackets on the same Room. */
   filterSignalingStreamId?: string | null;
+  /** Pkg98: When set, the underlying Room is registered with the
+   * active-speaker registry so `RoomEvent.ActiveSpeakersChanged` dispatches
+   * a `livekit-active-speakers` window event. Consumers use
+   * `useActiveSpeakers('live', id)` to ring the speaking host avatar.
+   * Zero new Supabase channels, zero polls. */
+  activeSpeakerStreamId?: string | null;
 }
 
 
@@ -1309,6 +1315,34 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.filterSignalingStreamId, isJoined]);
+
+  // Pkg98: Bind streamId → Room for LiveKit ActiveSpeakersChanged events.
+  // Reuses the SAME Room as Pkg74/76/77/79/82a. Server-side speaker detection
+  // is built into LiveKit Cloud — no extra cost, no new channels.
+  useEffect(() => {
+    const streamId = options.activeSpeakerStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitActiveSpeaker');
+        if (cancelled) return;
+        mod.registerActiveSpeakerRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg98] registerActiveSpeakerRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitActiveSpeaker').then((mod) => {
+        mod.unregisterActiveSpeakerRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.activeSpeakerStreamId, isJoined]);
+
+
 
 
 

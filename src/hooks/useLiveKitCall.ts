@@ -24,6 +24,7 @@ import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { registerCallRoom, registerNativeCallRoom, unregisterCallRoom, unregisterNativeCallRoom } from '@/lib/livekitCallSignaling';
 import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -142,6 +143,8 @@ export function useLiveKitCall(
     // Pkg83: drop gift-signaling registration for call scope.
     try { if (callIdRef.current) unregisterGiftRoom('call', callIdRef.current); } catch { /* ignore */ }
     try { if (callIdRef.current) unregisterNativeGiftRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg98: drop active-speaker registration.
+    try { if (callIdRef.current) unregisterActiveSpeakerRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -429,6 +432,8 @@ export function useLiveKitCall(
         if (callId) registerChatRoom('call', callId, room);
         // Pkg83: bind same Room to gift signaling registry for ActiveCallScreen
         if (callId) registerGiftRoom('call', callId, room);
+        // Pkg98: bind for active-speaker detection (ring the speaking peer).
+        if (callId) registerActiveSpeakerRoom('call', callId, room);
 
 
         // Enable camera and microphone
