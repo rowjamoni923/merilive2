@@ -33,6 +33,7 @@ import {
   Radio,
   PhoneCall,
   Video,
+  Cast,
   Gamepad2,
   Swords,
   MessageCircle,
