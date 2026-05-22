@@ -149,6 +149,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterActiveSpeakerRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg101: drop connection-quality registration.
     try { if (callIdRef.current) unregisterConnectionQualityRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg107: drop participant-metadata registration.
+    try { if (callIdRef.current) unregisterMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
