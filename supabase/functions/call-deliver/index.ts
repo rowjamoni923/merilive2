@@ -308,6 +308,7 @@ serve(async (req: Request): Promise<Response> => {
         callee_id: calleeId,
         caller_name: callerName,
         caller_avatar: callerAvatar,
+        caller_level: String(callerLevel),
         call_type: callType,
         ring_timeout_seconds: String(ringTimeoutSec),
       };
