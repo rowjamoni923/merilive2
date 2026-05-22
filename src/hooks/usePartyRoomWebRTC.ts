@@ -522,6 +522,12 @@ export function usePartyRoomWebRTC(
         } catch (err) {
           console.warn('[Pkg120] registerRpcRoom(party) failed:', err);
         }
+        // Pkg116: bind for realtime transcription / captions.
+        try {
+          registerRoomForTranscription('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg116] registerRoomForTranscription(party) failed:', err);
+        }
 
 
         setState(prev => ({
