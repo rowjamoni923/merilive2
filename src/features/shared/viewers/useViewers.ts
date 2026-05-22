@@ -9,11 +9,10 @@ interface UseViewersOptions {
 }
 
 /**
- * INSTANT viewer list — single source of truth from realtime postgres_changes.
- * - Uses `profiles_public` view (profiles has no public SELECT policy).
- * - No polling — realtime + incremental delta merges keep it sub-second fresh.
- * - Initial fetch primes the list; INSERT/UPDATE/DELETE events mutate it directly
- *   so the UI updates the instant a viewer joins or leaves, without a refetch round-trip.
+ * Viewer list snapshot + LiveKit event patching.
+ * - Uses `profiles_public` view for the initial/late-join snapshot only.
+ * - NO Supabase Realtime channels / postgres_changes subscriptions.
+ * - Live updates come from existing LiveKit window events emitted by the room.
  */
 export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptions) => {
   const [viewers, setViewers] = useState<Viewer[]>([]);
@@ -25,7 +24,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     const map = new Map<string, any>();
     const { data, error } = await supabase
       .from("profiles_public" as any)
-      .select("id, app_uid, display_name, avatar_url, user_level, coins")
+      .select("id, app_uid, display_name, avatar_url, user_level")
       .in("id", ids);
     if (error) {
       console.warn("[useViewers] profiles_public fetch error:", error.message);
@@ -40,8 +39,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     display_name: profile?.display_name || "Anonymous",
     avatar_url: profile?.avatar_url || null,
     user_level: profile?.user_level || 1,
-    coins: profile?.coins || 0,
-    is_vip: (profile?.coins || 0) >= 10000,
+    is_vip: (profile?.user_level || 1) >= 5,
     joined_at,
   });
 
@@ -91,6 +89,11 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     setViewers((curr) => curr.filter((v) => v.id !== id));
   }, []);
 
+  const upsertViewerFromPacket = useCallback((viewer: Viewer) => {
+    if (!viewer.id) return;
+    setViewers((curr) => [viewer, ...curr.filter((v) => v.id !== viewer.id)]);
+  }, []);
+
   useEffect(() => {
     mountedRef.current = true;
 
@@ -101,48 +104,64 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
 
     const isStream = !!streamId;
     const id = (streamId || roomId) as string;
-    const table = isStream ? "stream_viewers" : "party_room_participants";
-    const idCol = isStream ? "stream_id" : "room_id";
-    const userCol = isStream ? "viewer_id" : "user_id";
 
     setLoading(true);
     (isStream ? fetchStreamViewers(id) : fetchPartyViewers(id)).finally(() => {
       if (mountedRef.current) setLoading(false);
     });
 
-    const channel = supabase
-      .channel(`viewers:${table}:${id}`)
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table, filter: `${idCol}=eq.${id}` },
-        (payload: any) => {
-          const row = payload.new;
-          if (!row || row.left_at) return;
-          void insertViewer(row[userCol], row.joined_at);
-        }
-      )
-      .on("postgres_changes",
-        { event: "UPDATE", schema: "public", table, filter: `${idCol}=eq.${id}` },
-        (payload: any) => {
-          const row = payload.new;
-          if (!row) return;
-          if (row.left_at) removeViewer(row[userCol]);
-          else void insertViewer(row[userCol], row.joined_at);
-        }
-      )
-      .on("postgres_changes",
-        { event: "DELETE", schema: "public", table, filter: `${idCol}=eq.${id}` },
-        (payload: any) => {
-          const row = payload.old;
-          if (row) removeViewer(row[userCol]);
-        }
-      )
-      .subscribe();
+    const handleLiveEvent = (evt: Event) => {
+      if (!isStream) return;
+      const detail = (evt as CustomEvent).detail;
+      const payload = detail?.payload;
+      if (!payload || payload.streamId !== id) return;
+      if (payload.type === 'viewer_left') {
+        removeViewer(payload.userId);
+        return;
+      }
+      if (payload.type === 'viewer_joined') {
+        upsertViewerFromPacket({
+          id: payload.userId,
+          app_uid: payload.appUid || null,
+          display_name: payload.userName || 'User',
+          avatar_url: payload.userAvatar || null,
+          user_level: payload.userLevel || 1,
+          is_vip: (payload.userLevel || 1) >= 5,
+          joined_at: new Date(payload.timestamp || Date.now()).toISOString(),
+        });
+      }
+    };
+
+    const handlePartyEvent = (evt: Event) => {
+      if (isStream) return;
+      const detail = (evt as CustomEvent).detail;
+      const payload = detail?.payload;
+      if (!payload || payload.roomId !== id) return;
+      if (payload.type === 'participant_left') {
+        removeViewer(payload.userId);
+        return;
+      }
+      if (payload.type === 'participant_joined') {
+        upsertViewerFromPacket({
+          id: payload.userId,
+          display_name: payload.userName || 'User',
+          avatar_url: payload.userAvatar || null,
+          user_level: payload.userLevel || 1,
+          is_vip: (payload.userLevel || 1) >= 5,
+          joined_at: new Date(payload.timestamp || Date.now()).toISOString(),
+        });
+      }
+    };
+
+    window.addEventListener('livekit-live-event', handleLiveEvent);
+    window.addEventListener('livekit-party-event', handlePartyEvent);
 
     return () => {
       mountedRef.current = false;
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-live-event', handleLiveEvent);
+      window.removeEventListener('livekit-party-event', handlePartyEvent);
     };
-  }, [streamId, roomId, enabled, fetchStreamViewers, fetchPartyViewers, insertViewer, removeViewer]);
+  }, [streamId, roomId, enabled, fetchStreamViewers, fetchPartyViewers, removeViewer, upsertViewerFromPacket]);
 
   const refetch = useCallback(() => {
     if (streamId) return fetchStreamViewers(streamId);
