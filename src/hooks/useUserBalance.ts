@@ -110,6 +110,10 @@ export function getCachedBalance(): number {
   return balanceCache.balance;
 }
 
+export function isBalanceCacheInitialized(): boolean {
+  return balanceCache.initialized;
+}
+
 /**
  * Get balance with fetch if needed
  */
@@ -207,12 +211,14 @@ export function useUserBalancePrefetch(): void {
 export function useUserBalance() {
   const [balance, setBalance] = useState(getCachedBalance());
   const [loading, setLoading] = useState(!balanceCache.initialized);
+  const [initialized, setInitialized] = useState(balanceCache.initialized);
 
   useEffect(() => {
     // Subscribe to balance updates
     const unsubscribe = subscribeToBalance((newBalance) => {
       setBalance(newBalance);
       setLoading(false);
+      setInitialized(true);
     });
 
     // Fetch if not cached
@@ -220,9 +226,11 @@ export function useUserBalance() {
       getBalanceWithFetch().then((b) => {
         setBalance(b);
         setLoading(false);
+        setInitialized(true);
       });
     } else {
       setLoading(false);
+      setInitialized(true);
     }
 
     return unsubscribe;
@@ -233,12 +241,14 @@ export function useUserBalance() {
     const newBalance = await fetchBalance();
     setBalance(newBalance);
     setLoading(false);
+    setInitialized(true);
     return newBalance;
   }, []);
 
   return {
     balance,
     loading,
+    initialized,
     refetch,
   };
 }
