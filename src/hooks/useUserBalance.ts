@@ -168,10 +168,35 @@ export function useUserBalancePrefetch(): void {
     }, 300);
 
     // `profiles` is deliberately NOT in supabase_realtime publication.
-    // Balance updates are optimistic after RPC success + REST refresh on demand.
+    // Server-side balance changes arrive through app_sync rows on the approved
+    // notifications channel, keeping My Diamond/My Beans instant without adding
+    // a costly profiles realtime subscription.
+    const handleAppSync = async (event: Event) => {
+      const detail = (event as CustomEvent<{ topic?: string; payload?: Record<string, any> }>).detail;
+      if (detail?.topic !== 'profiles') return;
+
+      const payload = detail.payload || {};
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId || (payload.profile_id && payload.profile_id !== userId)) return;
+
+      const coins = payload.coins;
+      const diamonds = payload.diamonds;
+      if (coins !== undefined || diamonds !== undefined) {
+        updateCachedBalance(Math.max(Number(coins || 0), Number(diamonds || 0)));
+      }
+
+      if (payload.beans !== undefined && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('own-beans-updated', {
+          detail: { userId, beans: Number(payload.beans || 0) },
+        }));
+      }
+    };
+    window.addEventListener('app-sync', handleAppSync as EventListener);
 
     return () => {
       clearTimeout(timer);
+      window.removeEventListener('app-sync', handleAppSync as EventListener);
     };
   }, []);
 }
