@@ -25,6 +25,12 @@ import {
   applyAudioOnlyToRoom,
   isAudioOnlyEnabled,
 } from '@/lib/livekitAudioOnlyMode';
+import {
+  VIDEO_QUALITY_CHANGED_EVENT,
+  applyVideoQualityToRoom,
+  getVideoQualityChoice,
+  resolveVideoQuality,
+} from '@/lib/livekitVideoQuality';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -187,7 +193,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
-  const preferredVideoQualityRef = useRef<VideoQuality>(VideoQuality.HIGH);
+  const preferredVideoQualityRef = useRef<VideoQuality>(resolveVideoQuality(getVideoQualityChoice()));
   // True when this session was published via the native Android LiveKit
   // plugin (Capacitor) instead of the browser livekit-client. Drives the
   // native branch in joinChannel/leaveChannel/toggle*/switchCamera.
@@ -1294,6 +1300,20 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const onChange = () => apply();
     window.addEventListener(AUDIO_ONLY_CHANGED_EVENT, onChange as EventListener);
     return () => window.removeEventListener(AUDIO_ONLY_CHANGED_EVENT, onChange as EventListener);
+  }, [isJoined]);
+
+  // Pkg149: Adaptive video quality — sync ref + re-apply across every remote video pub.
+  useEffect(() => {
+    if (!isJoined) return;
+    const apply = () => {
+      const choice = getVideoQualityChoice();
+      preferredVideoQualityRef.current = resolveVideoQuality(choice);
+      applyVideoQualityToRoom(roomRef.current, choice);
+    };
+    apply();
+    const onChange = () => apply();
+    window.addEventListener(VIDEO_QUALITY_CHANGED_EVENT, onChange as EventListener);
+    return () => window.removeEventListener(VIDEO_QUALITY_CHANGED_EVENT, onChange as EventListener);
   }, [isJoined]);
 
   // Pkg74: Bind streamId → Room for LiveKit-based stream_ended signaling.
