@@ -110,12 +110,14 @@ interface PKBattleState {
     avatar: string;
     level: number;
     id: string;
+    streamId: string;
   } | null;
   opponentInfo: {
     name: string;
     avatar: string;
     level: number;
     id: string;
+    streamId: string;
   } | null;
 }
 
