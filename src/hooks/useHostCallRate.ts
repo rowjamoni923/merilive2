@@ -70,39 +70,19 @@ export function useHostCallRate(hostId: string | null | undefined): UseHostCallR
   useEffect(() => {
     if (!hostId) return;
 
-    const channelName = `host-call-rate-${hostId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${hostId}`,
-        },
-        () => {
-          void fetchCallRate();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'app_settings',
-          filter: 'setting_key=eq.call_rates',
-        },
-        () => {
-          void fetchCallRate();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    // Pkg83: NO cross-user profiles postgres_changes (RLS would silently filter
+    // anyway) and NO direct app_settings subscription. Admin call_rates changes
+    // arrive via Pkg37 admin_broadcast 'admin-table-update' window event;
+    // host-level/custom-rate changes are rare and picked up on next mount/refetch.
+    const onAdminUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { table?: string } | undefined;
+      if (!detail?.table) return;
+      if (detail.table === 'app_settings') void fetchCallRate();
     };
+    window.addEventListener('admin-table-update', onAdminUpdate);
+    return () => window.removeEventListener('admin-table-update', onAdminUpdate);
   }, [hostId, fetchCallRate]);
+
 
   return {
     callRate,
