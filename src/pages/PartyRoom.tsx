@@ -2050,6 +2050,18 @@ const PartyRoom = () => {
         }}
       />
 
+      {moderateTarget && room?.id && (
+        <HostModerationSheet
+          open={!!moderateTarget}
+          onOpenChange={(o) => { if (!o) setModerateTarget(null); }}
+          scope="party"
+          scopeId={room.id}
+          roomName={`party_${room.id}`}
+          targetIdentity={moderateTarget.id}
+          targetDisplayName={moderateTarget.name}
+        />
+      )}
+
       {/* Gift Panel */}
       <AnimatePresence>
         {showGiftPanel && (
