@@ -87,6 +87,15 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
             timestamp: new Date()
           });
 
+          if (event === 'INSERT' && table === 'notifications' && payload?.type === 'incoming_call') {
+            try {
+              window.dispatchEvent(new CustomEvent('incoming-call-notification', { detail: payload }));
+            } catch {
+              // noop — CallProvider safety poll/native push still cover recovery
+            }
+            return;
+          }
+
           if (event === 'INSERT' && table === 'notifications' && payload?.type === 'app_sync') {
             const data = payload?.data || {};
             const topic = data.topic;
