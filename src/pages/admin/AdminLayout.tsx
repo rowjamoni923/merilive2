@@ -675,7 +675,7 @@ const navGroups: NavGroup[] = [
         icon: CreditCard,
         path: "/admin/payment-gateways",
         hubKey: "finance-hub",
-        description: "Enable/disable payment providers (Stripe, ZiniPay, Google Play) and edit their credentials.",
+        description: "Enable/disable payment providers (MeriCash crypto, Google Play, local gateways) and edit their credentials.",
       },
       {
         label: "Topup Methods",
