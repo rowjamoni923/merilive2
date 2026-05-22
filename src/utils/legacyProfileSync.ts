@@ -84,8 +84,15 @@ export async function triggerLegacyProfileSync(
   }
 
   const request = (async () => {
+    // Guard: only call edge function when we have a valid user session token.
+    // Without it the function returns 401 and surfaces as a runtime error.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token || session.user?.id !== userId) {
+      return null;
+    }
     const { data, error } = await supabase.functions.invoke("sync-user-profile");
     if (error) throw error;
+
 
     const result = (data as LegacyProfileSyncResult | null) ?? null;
 
