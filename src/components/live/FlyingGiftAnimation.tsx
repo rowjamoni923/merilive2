@@ -150,13 +150,17 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     audio.play().catch(() => {});
   }, [isSVGA, gift.soundUrl]);
 
+  const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
+
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
     setShowFullScreen(false);
     setAnimationEnded(true);
+    releaseFullscreen(gift.id);
     onComplete();
-  }, [onComplete]);
+  }, [onComplete, gift.id]);
+
 
   const handleSvgaError = useCallback((error: Error) => {
     console.warn('[GiftAnim] SVGA error:', gift.giftName, error);
