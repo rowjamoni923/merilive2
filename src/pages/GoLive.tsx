@@ -811,7 +811,7 @@ const GoLive = () => {
 
 
   const handleGoLive = async () => {
-    if (isStarting || livekitLoading) return;
+    if (isStarting || isProbing || livekitLoading) return;
 
     const effectiveProfile = await refreshUserProfile();
     const resolvedProfile = effectiveProfile || userProfile;
