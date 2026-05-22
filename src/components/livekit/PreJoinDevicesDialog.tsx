@@ -295,8 +295,8 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
             </div>
             {ccChecks.length > 0 && (
               <ul className="space-y-1">
-                {ccChecks.map((c) => (
-                  <li key={c.id} className="flex items-center justify-between gap-2 text-xs">
+                {ccChecks.map((c, idx) => (
+                  <li key={`${c.name}-${idx}`} className="flex items-center justify-between gap-2 text-xs">
                     <span className="truncate text-foreground/90">{c.name}</span>
                     <span className="flex items-center gap-1">
                       {c.status === CheckStatus.RUNNING && (
