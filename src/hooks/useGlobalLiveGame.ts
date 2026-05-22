@@ -60,6 +60,7 @@ export function useGlobalLiveGame({
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const autoProcessRef = useRef<NodeJS.Timeout | null>(null);
+  const processingRoundRef = useRef(false);
 
   // Fetch current user balance with real-time subscription
   const fetchUserBalance = useCallback(async () => {
@@ -229,6 +230,8 @@ export function useGlobalLiveGame({
   // Auto-process when betting time ends
   const autoProcessRound = useCallback(async () => {
     if (!currentRound || currentRound.status !== 'betting') return;
+    if (processingRoundRef.current) return;
+    processingRoundRef.current = true;
 
     // Call edge function to process (it handles the result calculation)
     try {
@@ -242,6 +245,8 @@ export function useGlobalLiveGame({
       }
     } catch (e) {
       console.error('Auto process failed:', e);
+    } finally {
+      processingRoundRef.current = false;
     }
   }, [currentRound, fetchCurrentRound, fetchUserBalance]);
 
@@ -265,7 +270,7 @@ export function useGlobalLiveGame({
       };
 
       updateTimer();
-      timerRef.current = setInterval(updateTimer, 100);
+      timerRef.current = setInterval(updateTimer, 1000);
 
       return () => {
         if (timerRef.current) {
@@ -306,13 +311,13 @@ export function useGlobalLiveGame({
 
     init();
 
-    // Poll for auto-process every 5 seconds (backup for edge function)
+    // Safety-net refresh: no realtime subscription on live_game_* tables.
     autoProcessRef.current = setInterval(async () => {
       const round = await fetchCurrentRound();
       if (!round) {
         await createGlobalRound();
       }
-    }, 5000);
+    }, 10000);
 
     return () => {
       if (autoProcessRef.current) {
