@@ -382,6 +382,7 @@ import { AndroidBackButtonHandler } from "@/components/common/AndroidBackButtonH
 import { MandatoryPermissionsGate } from "@/components/common/MandatoryPermissionsGate";
 const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScreen")));
 import ScrollToTop from "@/components/common/ScrollToTop";
+import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 
 
 
@@ -1072,7 +1073,7 @@ const App = () => {
                 <Route path="/" element={<ProtectedRoute session={session}><Index /></ProtectedRoute>} />
                 <Route path="/discover" element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
                 <Route path="/live" element={<ProtectedRoute session={session}><Live /></ProtectedRoute>} />
-                <Route path="/live/:id" element={<ProtectedRoute session={session}><LiveStreamKeyWrapper /></ProtectedRoute>} />
+                <Route path="/live/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamKeyWrapper /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/chat" element={<ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute session={session}><ErrorBoundary componentName="Profile"><Profile /></ErrorBoundary></ProtectedRoute>} />
                 <Route path="/recharge" element={<ProtectedRoute session={session}><Recharge /></ProtectedRoute>} />
@@ -1136,8 +1137,8 @@ const App = () => {
                 <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
                 <Route path="/payroll-helper-guide" element={<PayrollHelperGuide />} />
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
-                <Route path="/party/:roomId" element={<ProtectedRoute session={session}><PartyRoom /></ProtectedRoute>} />
-                <Route path="/go-live" element={<ProtectedRoute session={session}><GoLive /></ProtectedRoute>} />
+                <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><PartyRoom /></RequireNativeAndroidGate></ProtectedRoute>} />
+                <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><GoLive /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/reels" element={<ProtectedRoute session={session}><Reels /></ProtectedRoute>} />
                 <Route path="/create-party" element={<ProtectedRoute session={session}><CreateParty /></ProtectedRoute>} />
                 <Route path="/profile/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />

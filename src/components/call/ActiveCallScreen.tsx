@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { createPortal } from "react-dom";
+import { isNativeAndroidApp } from "@/utils/nativeUtils";
+import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -561,6 +563,14 @@ export function ActiveCallScreen({
   };
 
   if (!isOpen || typeof document === 'undefined') return null;
+
+  // Pkg153: Private Call uses original Android camera (Camera2/CameraX). Web is blocked.
+  if (!isNativeAndroidApp()) {
+    return createPortal(
+      <RequireNativeAndroidGate feature="call"><div /></RequireNativeAndroidGate>,
+      document.body,
+    );
+  }
 
   const callUi = (
     <div
