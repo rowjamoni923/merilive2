@@ -78,6 +78,67 @@ export default function AdminLiveKitRooms() {
     [],
   );
   const [loadingParts, setLoadingParts] = useState(false);
+  // trackSid → egressId for in-flight track recordings (this session only).
+  const [trackEgress, setTrackEgress] = useState<Record<string, string>>({});
+  const [trackBusy, setTrackBusy] = useState<Record<string, boolean>>({});
+
+  const handleStartTrack = useCallback(
+    async (
+      roomName: string,
+      identity: string,
+      track: LiveKitParticipantTrack,
+    ) => {
+      setTrackBusy((m) => ({ ...m, [track.sid]: true }));
+      try {
+        const kind: "audio" | "video" = track.type === 1 ? "video" : "audio";
+        const res = await startTrackEgress({
+          roomName,
+          identity,
+          trackSid: track.sid,
+          kind,
+          reason: "admin_track_recording",
+        });
+        if (!res?.egressId) {
+          toast.error(
+            "Failed to start track recording. Check 'track_egress' kill-switch.",
+          );
+          return;
+        }
+        setTrackEgress((m) => ({ ...m, [track.sid]: res.egressId }));
+        toast.success(`Recording ${kind} track`);
+      } catch (e: any) {
+        toast.error(`Start failed: ${e?.message || "unknown"}`);
+      } finally {
+        setTrackBusy((m) => ({ ...m, [track.sid]: false }));
+      }
+    },
+    [],
+  );
+
+  const handleStopTrack = useCallback(
+    async (trackSid: string) => {
+      const egressId = trackEgress[trackSid];
+      if (!egressId) return;
+      setTrackBusy((m) => ({ ...m, [trackSid]: true }));
+      try {
+        const ok = await stopTrackEgress(egressId);
+        if (!ok) {
+          toast.error("Stop failed.");
+          return;
+        }
+        setTrackEgress((m) => {
+          const n = { ...m };
+          delete n[trackSid];
+          return n;
+        });
+        toast.success("Track recording stopped");
+      } finally {
+        setTrackBusy((m) => ({ ...m, [trackSid]: false }));
+      }
+    },
+    [trackEgress],
+  );
+
 
   const fetchRooms = useCallback(async () => {
     setLoading(true);
