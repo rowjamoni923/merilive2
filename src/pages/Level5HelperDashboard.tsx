@@ -2676,7 +2676,7 @@ const Level5HelperDashboard = () => {
             )}
 
             {/* Merchant Number Section - hide for auto gateways */}
-            {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
+            {!['sslcommerz', 'aamarpay'].includes(paymentType) && (
             <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-50 text-slate-900">
               <div className="flex items-center gap-2 mb-2">
                 <input
@@ -2965,7 +2965,7 @@ const Level5HelperDashboard = () => {
             </div>
 
 
-            {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
+            {!['sslcommerz', 'aamarpay'].includes(paymentType) && (
               <div>
                 <Label className="text-slate-500">Account Holder Name *</Label>
                 <Input
@@ -2977,7 +2977,7 @@ const Level5HelperDashboard = () => {
               </div>
             )}
 
-            {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
+            {!['sslcommerz', 'aamarpay'].includes(paymentType) && (
               <div>
                 <Label className="text-slate-500">Account Number / Wallet *</Label>
                 <Input
@@ -3001,72 +3001,14 @@ const Level5HelperDashboard = () => {
               </div>
             )}
 
-            {/* ═══ ZiniPay Gateway (Personal Account Auto Pay) ═══ */}
-            {paymentType === 'zinipay' && (
-              <div className="border border-emerald-200/30 rounded-xl p-3 bg-emerald-50 text-slate-900 space-y-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">⚡</span>
-                  <p className="text-emerald-600 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
-                </div>
-                <p className="text-xs text-emerald-600/70 mb-2">
-                  🎯 Auto payment using personal bKash/Nagad number. No merchant account needed!
-                </p>
-
-                {/* Display As */}
-                <div>
-                  <Label className="text-slate-500 text-xs">Display As (visible to users) *</Label>
-                  <Select value={gatewayDisplayMethod} onValueChange={setGatewayDisplayMethod}>
- <SelectTrigger className="bg-slate-50 border-emerald-200/30 text-slate-900 mt-1">
-                      <SelectValue placeholder="Select method..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-50 border-slate-200">
- <SelectItem value="bkash" className="text-slate-900">📱 bKash</SelectItem>
- <SelectItem value="nagad" className="text-slate-900">💳 Nagad</SelectItem>
- <SelectItem value="rocket" className="text-slate-900">🚀 Rocket</SelectItem>
- <SelectItem value="upay" className="text-slate-900">📲 Upay</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Personal Number */}
-                <div>
-                  <Label className="text-slate-500 text-xs">Personal Number (visible to users) *</Label>
-                  <Input
-                    value={gatewayDisplayNumber}
-                    onChange={(e) => setGatewayDisplayNumber(e.target.value)}
-                    placeholder="e.g., 01700000000"
- className="bg-slate-50 border-emerald-200/30 text-slate-900 mt-1"
-                  />
-                </div>
-
-                {/* ZiniPay API Key */}
-                <div className="border-t border-emerald-200/20 pt-2 mt-2">
-                  <p className="text-[10px] text-emerald-600/50 mb-2">🔒 ZiniPay Credentials (hidden from users)</p>
-                </div>
-                <div>
-                  <Label className="text-slate-500 text-xs">ZiniPay API Key *</Label>
-                  <Input
-                    value={accountName}
-                    onChange={(e) => setAccountName(e.target.value)}
-                    placeholder="zp_api_xxxxx"
- className="bg-slate-50 border-emerald-200/30 text-slate-900 mt-1"
-                    type="password"
-                  />
-                </div>
-                <div className="bg-amber-50 text-slate-900 border border-amber-200/30 rounded-lg p-2">
-                  <p className="text-[10px] text-amber-600">
-                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brands → copy the Brand Key/API Key. Add this number to your ZiniPay dashboard too!
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* ZiniPay gateway form removed. */}
 
             {/* ✨ Generic Gateway Form — for ALL country-specific integrated gateways
                 (PhonePe IN, GCash PH, MoMo VN, eSewa NP, JazzCash PK, M-Pesa KE, etc.)
                 Excludes the 3 legacy BD gateways which have their own dedicated forms above */}
             {(() => {
               const matched = countryGateways.find(g => g.is_integrated && g.gateway_type === paymentType);
-              const isLegacy = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+              const isLegacy = ['sslcommerz', 'aamarpay'].includes(paymentType);
               if (!matched || isLegacy) return null;
               return (
                 <div className="border border-violet-200/30 rounded-xl p-3 bg-violet-50 text-slate-900 space-y-3">
@@ -3249,7 +3191,7 @@ const Level5HelperDashboard = () => {
             </div>
 
             {/* Merchant Number Section - hide for auto gateways */}
-            {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
+            {!['sslcommerz', 'aamarpay'].includes(paymentType) && (
             <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-50 text-slate-900">
               <div className="flex items-center gap-2 mb-2">
                 <input
@@ -3287,7 +3229,7 @@ const Level5HelperDashboard = () => {
             </Button>
             <Button 
               onClick={handleAddCountryPaymentMethod}
-              disabled={processing || !selectedCountry || !accountName.trim() || (paymentType !== 'zinipay' && !accountNumber.trim())}
+              disabled={processing || !selectedCountry || !accountName.trim() || !accountNumber.trim()}
               className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/30"
             >
               {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
