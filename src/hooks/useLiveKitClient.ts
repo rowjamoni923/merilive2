@@ -184,6 +184,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const [isRemoteAudioMuted, setIsRemoteAudioMuted] = useState(false); // Auto-play sound when entering stream
 
   const roomRef = useRef<Room | null>(null);
+  // Pkg189: token auto-refresh detach handle (replaces JWT before expiry so
+  // long live/party sessions survive past the 6h TTL without disconnect).
+  const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const isJoiningRef = useRef(false);
   const isLeavingRef = useRef(false);
   const channelRef = useRef<string>('');
