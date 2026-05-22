@@ -534,12 +534,14 @@ export const useAgencyRealtimeUniversal = (
   useEffect(() => {
     if (!agencyId) return;
 
-    const subscriberId = `agency-${agencyId}`;
+    const handleAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent).detail?.table;
+      if (table === 'agencies' || table === 'agency_withdrawals') onUpdate();
+    };
 
-    const unsubscribe = subscribeToTables(subscriberId, [], () => onUpdate());
-
-    return unsubscribe;
-  }, [agencyId]);
+    window.addEventListener('admin-table-update', handleAdminUpdate);
+    return () => window.removeEventListener('admin-table-update', handleAdminUpdate);
+  }, [agencyId, onUpdate]);
 };
 
 /**
