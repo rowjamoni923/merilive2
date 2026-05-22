@@ -65,6 +65,7 @@ import { useEntryAnimations } from "@/hooks/useEntryAnimations";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
 import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom";
+import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
 import { GameFooterNew } from "@/components/games/GameFooterNew";
@@ -191,6 +192,7 @@ const PartyRoom = () => {
   const [loading, setLoading] = useState(true);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showRoomControls, setShowRoomControls] = useState(false);
   const [showSeatRequests, setShowSeatRequests] = useState(false);
@@ -2047,6 +2049,16 @@ const PartyRoom = () => {
           });
         }}
       />
+
+      {moderateTarget && room?.id && (
+        <HostModerationSheet
+          open={!!moderateTarget}
+          onClose={() => setModerateTarget(null)}
+          roomName={`party_${room.id}`}
+          identity={moderateTarget.id}
+          displayName={moderateTarget.name}
+        />
+      )}
 
       {/* Gift Panel */}
       <AnimatePresence>
