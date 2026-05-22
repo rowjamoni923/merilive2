@@ -4,6 +4,7 @@ import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundD
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
+import { RecordingDialog } from "@/components/livekit/RecordingDialog";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
@@ -30,6 +31,7 @@ import {
   ShieldCheck,
   Radio,
   PhoneCall,
+  Video,
   Gamepad2,
   Swords,
   MessageCircle,
@@ -189,6 +191,7 @@ const LiveStream = () => {
   const [showNoiseCancellation, setShowNoiseCancellation] = useState(false);
   const [showIngress, setShowIngress] = useState(false);
   const [showSipDial, setShowSipDial] = useState(false);
+  const [showRecording, setShowRecording] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -2303,6 +2306,11 @@ const LiveStream = () => {
         setShowMoreOptions(false);
         setShowSipDial(true);
       } },
+    // Pkg111 + Pkg126: Record stream (MP4 archive or HLS replay).
+    { id: "record", name: "Record", iconName: "Video" as const, color: "from-fuchsia-400 to-purple-600", shadowColor: "shadow-fuchsia-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowRecording(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
@@ -3153,6 +3161,7 @@ const LiveStream = () => {
                       ShieldCheck: <ShieldCheck className="w-6 h-6" strokeWidth={1.8} />,
                       Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
+                      Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
                     
@@ -3633,6 +3642,11 @@ const LiveStream = () => {
           <SipDialDialog
             open={showSipDial}
             onClose={() => setShowSipDial(false)}
+            streamId={id}
+          />
+          <RecordingDialog
+            open={showRecording}
+            onClose={() => setShowRecording(false)}
             streamId={id}
           />
 
