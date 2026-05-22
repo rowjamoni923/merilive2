@@ -12,6 +12,7 @@ import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { pickDisplayLevel } from "@/utils/displayLevel";
 
 import {
   Sheet,
