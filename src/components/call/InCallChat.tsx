@@ -8,11 +8,6 @@ import {
   publishChatMessage,
   type ChatMessageDetail,
 } from "@/lib/livekitChatSignaling";
-import { ChatAttachmentButtons } from "@/components/chat/ChatAttachmentButtons";
-import { ChatAttachmentBubble } from "@/components/chat/ChatAttachmentBubble";
-import { useChatAttachmentHandlers } from "@/lib/livekitChatAttachments";
-
-type AttachmentKind = "image" | "voice" | "file";
 
 interface ChatMessage {
   id: string;
@@ -20,12 +15,6 @@ interface ChatMessage {
   senderName: string;
   message: string;
   timestamp: number;
-  attachment?: {
-    kind: AttachmentKind;
-    bytes: Uint8Array | Blob;
-    mimeType?: string;
-    name?: string;
-  };
 }
 
 interface InCallChatProps {
@@ -76,7 +65,6 @@ export const InCallChat = memo(({
       const detail = (event as CustomEvent<ChatMessageDetail>).detail;
       if (!detail) return;
       if (detail.scope !== 'call' || detail.id !== callId) return;
-      // Don't duplicate own messages (we already added them optimistically).
       if (detail.userId === userId) return;
       const msg: ChatMessage = {
         id: detail.messageId,
@@ -96,76 +84,10 @@ export const InCallChat = memo(({
     };
   }, [callId, isOpen, userId]);
 
-  // Pkg144: incoming attachments (image / voice / file) via Pkg142 topics.
-  useChatAttachmentHandlers(isOpen ? "call" : null, callId, {
-    onImage: (m) => {
-      if (m.senderIdentity === userId) return;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: m.id,
-          senderId: m.senderIdentity,
-          senderName: remoteUserName,
-          message: "",
-          timestamp: m.timestamp || Date.now(),
-          attachment: { kind: "image", bytes: m.bytes, mimeType: m.mimeType, name: m.name },
-        },
-      ]);
-    },
-    onVoice: (m) => {
-      if (m.senderIdentity === userId) return;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: m.id,
-          senderId: m.senderIdentity,
-          senderName: remoteUserName,
-          message: "",
-          timestamp: m.timestamp || Date.now(),
-          attachment: { kind: "voice", bytes: m.bytes, mimeType: m.mimeType, name: m.name },
-        },
-      ]);
-    },
-    onFile: (m) => {
-      if (m.senderIdentity === userId) return;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: m.id,
-          senderId: m.senderIdentity,
-          senderName: remoteUserName,
-          message: "",
-          timestamp: m.timestamp || Date.now(),
-          attachment: { kind: "file", bytes: m.bytes, mimeType: m.mimeType, name: m.name },
-        },
-      ]);
-    },
-  });
-
-  const handleLocalAttachment = (
-    kind: AttachmentKind,
-    file: Blob,
-    name?: string,
-  ) => {
-    if (!userId) return;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}-${userId}-${kind}`,
-        senderId: userId,
-        senderName: userName,
-        message: "",
-        timestamp: Date.now(),
-        attachment: { kind, bytes: file, mimeType: (file as File).type, name },
-      },
-    ]);
-  };
-
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || !callId || !userId) return;
 
-    // Fetch actual display name if userName is default
     let actualName = userName;
     if (userName === "You") {
       const { data } = await supabase
@@ -187,11 +109,9 @@ export const InCallChat = memo(({
       timestamp: Date.now(),
     };
 
-    // Add locally immediately
     setMessages((prev) => [...prev, msg]);
     setInput("");
 
-    // Pkg79: publish over LiveKit DataPacket — sub-50ms peer delivery.
     void publishChatMessage('call', callId, {
       messageId: msgId,
       userId,
@@ -235,19 +155,6 @@ export const InCallChat = memo(({
             )}
             {messages.map((msg) => {
               const isMe = msg.senderId === userId;
-              if (msg.attachment) {
-                return (
-                  <div key={msg.id} className={cn("w-full flex", isMe && "justify-end")}>
-                    <ChatAttachmentBubble
-                      kind={msg.attachment.kind}
-                      bytes={msg.attachment.bytes}
-                      mimeType={msg.attachment.mimeType}
-                      name={msg.attachment.name}
-                      isMe={isMe}
-                    />
-                  </div>
-                );
-              }
               return (
                 <div key={msg.id} className={cn("w-full", isMe && "text-right")}>
                   <RoomChatBubble
@@ -263,14 +170,7 @@ export const InCallChat = memo(({
           </div>
 
           {/* Input */}
-          <div className="flex items-center gap-1 px-2 py-2 border-t border-white/10">
-            {callId && (
-              <ChatAttachmentButtons
-                scope="call"
-                id={callId}
-                onLocalSent={handleLocalAttachment}
-              />
-            )}
+          <div className="flex items-center gap-2 px-3 py-2 border-t border-white/10">
             <input
               ref={inputRef}
               type="text"
