@@ -44,6 +44,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
+import { usePKOpponentRoom } from "@/hooks/usePKOpponentRoom";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
 
@@ -110,12 +111,14 @@ interface PKBattleState {
     avatar: string;
     level: number;
     id: string;
+    streamId: string;
   } | null;
   opponentInfo: {
     name: string;
     avatar: string;
     level: number;
     id: string;
+    streamId: string;
   } | null;
 }
 
@@ -564,6 +567,15 @@ const LiveStream = () => {
     },
   });
 
+  // Pkg100: PK Cross-room Audio Bridge — secondary subscribe-only connection
+  // to the opponent's stream room so both hosts + all audiences hear each other.
+  const opponentStreamId = pkBattleState.isActive
+    ? pkBattleState.isChallenger
+      ? pkBattleState.opponentInfo?.streamId || null
+      : pkBattleState.challengerInfo?.streamId || null
+    : null;
+  const opponentRoom = usePKOpponentRoom(opponentStreamId);
+
   // ========== FACE DETECTION FOR HOST ==========
   const faceDetection = useLiveFaceDetection({
     localVideoTrack,
@@ -664,6 +676,57 @@ const LiveStream = () => {
             level: hostProfile.user_level || 1,
             id: hostProfile.id,
             isVerifiedHost: hostProfile.is_host === true,
+          });
+        }
+
+        // Pkg100: Detect active PK battle on mount (viewer or host refresh).
+        // If this stream is part of an accepted PK battle, set up state + opponent room.
+        const { data: activeBattle } = await supabase
+          .from("pk_battles")
+          .select("id, challenger_id, opponent_id, challenger_stream_id, opponent_stream_id, challenger_score, opponent_score, status")
+          .or(`challenger_stream_id.eq.${id},opponent_stream_id.eq.${id}`)
+          .eq("status", "accepted")
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (activeBattle && mountedRef.current) {
+          const isChallengerSide = activeBattle.challenger_stream_id === id;
+          const isOpponentSide = activeBattle.opponent_stream_id === id;
+          if (!isChallengerSide && !isOpponentSide) return;
+
+          // Resolve challenger and opponent profiles
+          const challengerProfileRes = await supabase
+            .from("profiles_public")
+            .select("id, display_name, avatar_url, user_level")
+            .eq("id", activeBattle.challenger_id)
+            .maybeSingle();
+          const opponentProfileRes = await supabase
+            .from("profiles_public")
+            .select("id, display_name, avatar_url, user_level")
+            .eq("id", activeBattle.opponent_id)
+            .maybeSingle();
+          const cp = challengerProfileRes.data;
+          const op = opponentProfileRes.data;
+
+          setPKBattleState({
+            isActive: true,
+            battleId: activeBattle.id,
+            isChallenger: isChallengerSide,
+            challengerInfo: {
+              name: cp?.display_name || "Host",
+              avatar: cp?.avatar_url || "",
+              level: cp?.user_level || 1,
+              id: activeBattle.challenger_id || "",
+              streamId: activeBattle.challenger_stream_id || "",
+            },
+            opponentInfo: {
+              name: op?.display_name || "Host",
+              avatar: op?.avatar_url || "",
+              level: op?.user_level || 1,
+              id: activeBattle.opponent_id || "",
+              streamId: activeBattle.opponent_stream_id || "",
+            },
           });
         }
         
@@ -1912,12 +1975,14 @@ const LiveStream = () => {
         avatar: hostInfo.avatar,
         level: hostInfo.level,
         id: currentUserId || "",
+        streamId: id || "",
       },
       opponentInfo: {
         name: opponentInfo.display_name,
         avatar: opponentInfo.avatar_url,
         level: opponentInfo.user_level,
         id: opponentInfo.id,
+        streamId: opponentInfo.stream_id || "",
       },
     });
   };
@@ -1934,8 +1999,6 @@ const LiveStream = () => {
       .eq("id", incomingPKRequest.battleId);
 
     // Pkg82d: notify challenger via FCM (replaces `pk_battle_${battleId}` channel).
-    // challengerId is threaded from the original pk_invite notification —
-    // no extra SELECT needed (avoids RLS edge cases + 1 round-trip).
     try {
       await supabase.functions.invoke("pk-invite-deliver", {
         body: {
@@ -1952,6 +2015,16 @@ const LiveStream = () => {
       console.warn("[LiveStream] pk-invite-deliver accept failed:", err);
     }
 
+    // Fetch battle row for stream IDs (needed for PK cross-room audio bridge).
+    const { data: battle } = await supabase
+      .from("pk_battles")
+      .select("challenger_stream_id, opponent_stream_id, challenger_id, opponent_id")
+      .eq("id", incomingPKRequest.battleId)
+      .maybeSingle();
+
+    const challengerStreamId = battle?.challenger_stream_id || "";
+    const opponentStreamId = battle?.opponent_stream_id || "";
+
     setPKBattleState({
       isActive: true,
       battleId: incomingPKRequest.battleId,
@@ -1961,12 +2034,14 @@ const LiveStream = () => {
         avatar: incomingPKRequest.challengerAvatar,
         level: incomingPKRequest.challengerLevel,
         id: incomingPKRequest.challengerId,
+        streamId: challengerStreamId,
       },
       opponentInfo: {
         name: hostInfo.name,
         avatar: hostInfo.avatar,
         level: hostInfo.level,
         id: currentUserId || "",
+        streamId: opponentStreamId,
       },
     });
   };
@@ -2027,7 +2102,7 @@ const LiveStream = () => {
     setTimeout(async () => {
       const { data: battle } = await supabase
         .from("pk_battles")
-        .select("*")
+        .select("id, challenger_stream_id, opponent_stream_id, challenger_id, opponent_id")
         .or(
           `and(challenger_id.eq.${randomPKRequest.challengerId},opponent_id.eq.${currentUserId}),and(challenger_id.eq.${currentUserId},opponent_id.eq.${randomPKRequest.challengerId})`
         )
@@ -2046,12 +2121,14 @@ const LiveStream = () => {
             avatar: randomPKRequest.challengerAvatar,
             level: randomPKRequest.challengerLevel,
             id: randomPKRequest.challengerId,
+            streamId: battle.challenger_stream_id || "",
           },
           opponentInfo: {
             name: hostInfo.name,
             avatar: hostInfo.avatar,
             level: hostInfo.level,
             id: currentUserId,
+            streamId: battle.opponent_stream_id || "",
           },
         });
       }
@@ -2406,7 +2483,55 @@ const LiveStream = () => {
             />
           </div>
         )}
-        {isHost && localVideoTrack ? (
+        {/* Pkg100: PK split-screen — both hosts visible during active battle */}
+        {pkBattleState.isActive && opponentRoom.videoTrack ? (
+          <div className="flex w-full h-full">
+            {/* Left: current stream */}
+            <div className="w-1/2 h-full relative border-r border-white/10">
+              {isHost && localVideoTrack ? (
+                <div className="w-full h-full relative" style={{ filter: combinedFilterCSS || undefined }}>
+                  <LiveKitVideoPlayer
+                    videoTrack={localVideoTrack}
+                    mirror={true}
+                    fit="cover"
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
+              ) : remoteVideoTrack ? (
+                <div className="w-full h-full relative" style={{ filter: combinedFilterCSS || undefined }}>
+                  <LiveKitVideoPlayer
+                    videoTrack={remoteVideoTrack}
+                    mirror={false}
+                    fit="cover"
+                    onVideoStalled={() => retrySubscription()}
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
+              ) : null}
+              {/* Host label */}
+              <div className="absolute bottom-2 left-2 z-10 bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
+                <span className="text-white/90 text-[10px] font-medium">
+                  {pkBattleState.isChallenger ? pkBattleState.challengerInfo?.name : pkBattleState.opponentInfo?.name}
+                </span>
+              </div>
+            </div>
+            {/* Right: opponent stream (cross-room bridge) */}
+            <div className="w-1/2 h-full relative">
+              <LiveKitVideoPlayer
+                videoTrack={opponentRoom.videoTrack}
+                mirror={false}
+                fit="cover"
+                className="absolute inset-0 w-full h-full"
+              />
+              {/* Opponent label */}
+              <div className="absolute bottom-2 right-2 z-10 bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
+                <span className="text-white/90 text-[10px] font-medium">
+                  {pkBattleState.isChallenger ? pkBattleState.opponentInfo?.name : pkBattleState.challengerInfo?.name}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : isHost && localVideoTrack ? (
           <div 
             className="w-full h-full relative flex items-center justify-center"
             style={{ filter: combinedFilterCSS || undefined }}
