@@ -330,12 +330,21 @@ export const ChametStyleChatPanel = ({
             <div
               className="px-3 py-3 pb-safe"
               style={{
-                background: "rgba(255,255,255,0.04)",
+                background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06))",
                 borderTop: "1px solid rgba(255,255,255,0.06)",
               }}
             >
               <div className="flex items-center gap-2">
-                <div className="flex-1 relative">
+                <div
+                  className={cn(
+                    "flex-1 relative rounded-full transition-all duration-200",
+                    "focus-within:[box-shadow:0_0_0_2px_rgba(168,85,247,0.55),0_0_18px_rgba(168,85,247,0.35)]"
+                  )}
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06))",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                  }}
+                >
                   <input
                     ref={inputRef}
                     type="text"
@@ -344,25 +353,38 @@ export const ChametStyleChatPanel = ({
                     onKeyPress={handleKeyPress}
                     placeholder="Say something nice…"
                     maxLength={200}
-                    className="w-full rounded-full pl-5 pr-11 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-purple-500/60 text-white placeholder:text-white/40"
-                    style={{
-                      background: "rgba(255,255,255,0.08)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                    }}
+                    className="w-full bg-transparent rounded-full pl-5 pr-14 py-3 text-[14px] focus:outline-none text-white placeholder:text-white/45"
                   />
-                  <Smile className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 pointer-events-none" />
+                  {inputValue.length > 160 && (
+                    <span className={cn(
+                      "absolute right-11 top-1/2 -translate-y-1/2 text-[10px] font-bold tabular-nums pointer-events-none",
+                      inputValue.length >= 200 ? "text-rose-400" : "text-amber-300/80"
+                    )}>
+                      {200 - inputValue.length}
+                    </span>
+                  )}
+                  <Smile className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/45 pointer-events-none" />
                 </div>
                 <motion.button
                   whileTap={{ scale: 0.88 }}
                   onClick={handleSend}
                   disabled={!inputValue.trim()}
-                  className="w-12 h-12 rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed relative overflow-hidden"
+                  className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed relative overflow-hidden transition-transform",
+                    inputValue.trim() && "animate-[giftSendBreathe_2.4s_ease-in-out_infinite]"
+                  )}
                   style={{
                     background: "linear-gradient(135deg, #ec4899, #a855f7, #7c3aed)",
-                    boxShadow: inputValue.trim() ? "0 8px 22px rgba(168,85,247,0.45)" : "none",
                   }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/18 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
+                  {inputValue.trim() && (
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-y-0 left-0 w-1/2 animate-[giftSendShine_2.4s_ease-in-out_infinite]"
+                      style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)" }}
+                    />
+                  )}
                   <Send className="w-5 h-5 text-white relative z-10 -ml-0.5" />
                 </motion.button>
               </div>
