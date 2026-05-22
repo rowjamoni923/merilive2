@@ -131,6 +131,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       room_metadata: parsed.room_metadata === true, // Pkg122: explicit opt-in only
       noise_cancellation: parsed.noise_cancellation === true, // Pkg123: explicit opt-in only
       hls_egress: parsed.hls_egress === true, // Pkg126: explicit opt-in only
+      moderation: parsed.moderation !== false, // Pkg127: ON unless admin explicitly disables
     };
 
 
