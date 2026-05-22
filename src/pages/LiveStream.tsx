@@ -2365,6 +2365,11 @@ const LiveStream = () => {
         setShowMoreOptions(false);
         setShowSimulcast(true);
       } },
+    // Pkg117: Dispatch AI Agent into this room.
+    { id: "agent", name: "Agent", iconName: "Bot" as const, color: "from-violet-400 to-purple-600", shadowColor: "shadow-violet-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowAgentDispatch(true);
+      } },
     // Pkg131: Raised-Hands queue panel (host only). Badge shows queue length.
     { id: "raisedhands", name: raisedHands.length > 0 ? `Raised Hands (${raisedHands.length})` : "Raised Hands", iconName: "Hand" as const, color: "from-amber-400 to-yellow-500", shadowColor: "shadow-amber-500/40", action: () => {
         setShowMoreOptions(false);
