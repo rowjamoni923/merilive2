@@ -3658,6 +3658,11 @@ const LiveStream = () => {
             onClose={() => setShowRecording(false)}
             streamId={id}
           />
+          <SimulcastDialog
+            open={showSimulcast}
+            onClose={() => setShowSimulcast(false)}
+            streamId={id}
+          />
 
         </>
       )}
