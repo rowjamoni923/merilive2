@@ -83,8 +83,9 @@ async function loadKrisp() {
 
 /**
  * Build a Krisp processor. Returns null on unsupported / disabled.
+ * Pkg148: pass `useBVC: true` for Background Voice Cancellation mode.
  */
-async function buildProcessor() {
+async function buildProcessor(mode: NoiseCancellationMode = 'standard') {
   const enabled = await isLiveKitEnabled('noise_cancellation');
   if (!enabled) return null;
   if (!isNoiseCancellationSupported()) return null;
@@ -92,15 +93,15 @@ async function buildProcessor() {
   const mod: any = await loadKrisp();
   if (!mod) return null;
 
-  // The package exposes `KrispNoiseFilter()` (factory). Older builds export
-  // it as `KrispNoiseFilterFactory` — accept both.
+  // The package exposes `KrispNoiseFilter(options?)` (factory). Older builds
+  // export it as `KrispNoiseFilterFactory` — accept both. BVC = useBVC:true.
   const factory = mod.KrispNoiseFilter ?? mod.KrispNoiseFilterFactory ?? mod.default;
   if (typeof factory !== 'function') {
     console.warn('[Pkg123] KrispNoiseFilter factory not found in module');
     return null;
   }
   try {
-    return factory();
+    return factory({ useBVC: mode === 'bvc' });
   } catch (err) {
     console.warn('[Pkg123] KrispNoiseFilter factory threw', err);
     return null;
