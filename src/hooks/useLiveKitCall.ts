@@ -447,6 +447,8 @@ export function useLiveKitCall(
         // Enable camera and microphone
         await room.localParticipant.enableCameraAndMicrophone();
         console.log('[LiveKitCall] ✅ Camera and mic enabled');
+        // Pkg103: apply Krisp noise filter to published mic
+        import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
         // Apply Tencent Beauty to camera track (Web only, graceful fallback)
         try {
