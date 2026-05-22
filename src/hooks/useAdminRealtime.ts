@@ -104,8 +104,6 @@ export const useAdminRealtime = (
 
   const isOnAdminRoute = isAdminRoute();
   const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
-  const enableRealtimeRefresh = !isOnAdminRoute && (options.enableRealtimeRefresh ?? false);
-  const enableAdminDirectRealtime = isOnAdminRoute && options.enableRealtimeRefresh === true;
   const enableVisibilityRefresh = !isOnAdminRoute && (options.enableVisibilityRefresh ?? false);
   const enableStaleFallback = !isOnAdminRoute && (options.enableStaleFallback ?? false);
   const staleRefreshMs = options.staleRefreshMs ?? DEFAULT_STALE_REFRESH_MS;
