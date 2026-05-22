@@ -3583,3 +3583,20 @@ input:focus-visible, textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   [class*="giftShine"], [class*="giftPageIn"], [class*="giftSendBreathe"], [class*="giftSendShine"], [class*="giftComboPulse"] { animation: none !important; }
 }
+
+/* Pkg167 Host video tile polish */
+@keyframes tileShimmer {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+@keyframes tileLivePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.55), inset 0 0 0 2px rgba(244, 63, 94, 0.9); }
+  50%      { box-shadow: 0 0 0 8px rgba(244, 63, 94, 0), inset 0 0 0 2px rgba(244, 63, 94, 0.9); }
+}
+@keyframes hostRingSweep {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="tileShimmer"], [class*="tileLivePulse"], [class*="hostRingSweep"] { animation: none !important; }
+}
