@@ -590,6 +590,9 @@ export function ActiveCallScreen({
       {/* Pkg147: Audio-only data-saver toggle */}
       {isLiveConnected && <AudioOnlyToggleButton label="Audio-only mode" />}
 
+      {/* Pkg149: Adaptive video quality picker */}
+      {isLiveConnected && primaryHasVideo && <VideoQualityButton label="Video quality" />}
+
 
 
 

@@ -3057,6 +3057,9 @@ const LiveStream = () => {
       {/* Pkg147: Audio-only data-saver toggle for viewers */}
       {!isHost && <AudioOnlyToggleButton label="Audio-only mode" />}
 
+      {/* Pkg149: Adaptive video quality picker for viewers */}
+      {!isHost && remoteVideoTrack && <VideoQualityButton label="Video quality" />}
+
 
 
       {/* Bottom Section - Input Bar & Action Buttons */}
