@@ -122,37 +122,115 @@ export const PKBattleActive = ({
   const challengerWinning = challengerScore > opponentScore;
   const opponentWinning = opponentScore > challengerScore;
 
+  const timeUrgent = timeLeft <= 30;
+
   return (
     <motion.div
       className="absolute top-24 left-0 right-0 z-30 px-3"
-      initial={{ y: -50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ type: "spring", damping: 20 }}
+      initial={{ y: -50, opacity: 0, scale: 0.96 }}
+      animate={{ y: 0, opacity: 1, scale: 1 }}
+      transition={{ type: "spring", damping: 24, stiffness: 320 }}
     >
-      <div className="bg-gradient-to-r from-purple-900/90 via-pink-900/90 to-purple-900/90 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden shadow-2xl">
+      <div
+        className="relative rounded-2xl overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(76,29,149,0.92) 0%, rgba(131,24,67,0.92) 50%, rgba(76,29,149,0.92) 100%)",
+          backdropFilter: "blur(20px) saturate(140%)",
+          WebkitBackdropFilter: "blur(20px) saturate(140%)",
+          border: "1px solid rgba(255,255,255,0.14)",
+          boxShadow:
+            "0 18px 40px -12px rgba(236,72,153,0.45), 0 6px 20px -8px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.16)",
+        }}
+      >
+        {/* Battle aurora overlay */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 80% at 0% 0%, rgba(236,72,153,0.22) 0%, transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(168,85,247,0.22) 0%, transparent 55%)",
+          }}
+        />
+        {/* Shine sweep */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.12) 50%, transparent 65%)",
+            mixBlendMode: "overlay",
+            animation: "giftSendShine 4.2s ease-in-out infinite",
+          }}
+        />
+
         {/* Timer and Title */}
-        <div className="flex items-center justify-center gap-2 py-2 bg-gradient-to-r from-pink-500/20 to-purple-500/20">
-          <Swords className="w-4 h-4 text-amber-400" />
-          <span className="text-white font-bold text-sm">PK BATTLE</span>
-          <div className="flex items-center gap-1 bg-black/30 rounded-full px-2 py-0.5">
-            <Timer className="w-3 h-3 text-amber-400" />
-            <span className="text-amber-400 font-mono text-sm">{formatTime(timeLeft)}</span>
-          </div>
-          <Swords className="w-4 h-4 text-amber-400 transform scale-x-[-1]" />
+        <div
+          className="relative flex items-center justify-center gap-2 py-2"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(236,72,153,0.22) 0%, rgba(168,85,247,0.22) 100%)",
+            borderBottom: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <motion.div
+            animate={{ rotate: [0, -8, 0, 8, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.7))" }}
+          >
+            <Swords className="w-4 h-4 text-amber-400" />
+          </motion.div>
+          <span
+            className="font-extrabold text-sm tracking-wide"
+            style={{
+              background: "linear-gradient(90deg, #fff 0%, #fde68a 50%, #fff 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              textShadow: "0 0 12px rgba(251,191,36,0.3)",
+            }}
+          >
+            PK BATTLE
+          </span>
+          <motion.div
+            className="flex items-center gap-1 rounded-full px-2 py-0.5"
+            style={{
+              background: timeUrgent
+                ? "linear-gradient(135deg, rgba(239,68,68,0.5), rgba(220,38,38,0.4))"
+                : "rgba(0,0,0,0.35)",
+              border: timeUrgent ? "1px solid rgba(252,165,165,0.5)" : "1px solid rgba(255,255,255,0.08)",
+              boxShadow: timeUrgent ? "0 0 14px rgba(239,68,68,0.5)" : "none",
+            }}
+            animate={timeUrgent ? { scale: [1, 1.06, 1] } : {}}
+            transition={{ duration: 1, repeat: Infinity }}
+          >
+            <Timer className={`w-3 h-3 ${timeUrgent ? "text-rose-200" : "text-amber-400"}`} />
+            <span className={`font-mono text-sm tabular-nums font-bold ${timeUrgent ? "text-rose-100" : "text-amber-300"}`}>
+              {formatTime(timeLeft)}
+            </span>
+          </motion.div>
+          <motion.div
+            animate={{ rotate: [0, 8, 0, -8, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.7))" }}
+          >
+            <Swords className="w-4 h-4 text-amber-400 transform scale-x-[-1]" />
+          </motion.div>
         </div>
 
         {/* VS Section */}
-        <div className="p-3">
+        <div className="relative p-3">
           <div className="flex items-center justify-between gap-2">
             {/* Challenger */}
             <div className="flex-1 flex items-center gap-2">
               <div className="relative">
                 <motion.div
-                  className={`w-12 h-12 rounded-full overflow-hidden border-2 ${
-                    challengerWinning ? "border-amber-400 ring-2 ring-amber-400/50" : "border-pink-500"
-                  }`}
-                  animate={challengerWinning ? { scale: [1, 1.05, 1] } : {}}
-                  transition={{ duration: 0.5, repeat: Infinity }}
+                  className="w-12 h-12 rounded-full overflow-hidden"
+                  style={{
+                    border: challengerWinning ? "2px solid #fbbf24" : "2px solid #ec4899",
+                    boxShadow: challengerWinning
+                      ? "0 0 0 3px rgba(251,191,36,0.35), 0 0 18px rgba(251,191,36,0.6), inset 0 1px 0 rgba(255,255,255,0.2)"
+                      : "0 0 0 2px rgba(236,72,153,0.35), 0 0 14px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  }}
+                  animate={challengerWinning ? { scale: [1, 1.06, 1] } : {}}
+                  transition={{ duration: 0.7, repeat: Infinity }}
                 >
                   <img
                     src={challengerAvatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"}
@@ -161,16 +239,40 @@ export const PKBattleActive = ({
                   />
                 </motion.div>
                 {challengerWinning && (
-                  <Crown className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-amber-400" />
+                  <motion.div
+                    className="absolute -top-2.5 left-1/2 -translate-x-1/2"
+                    initial={{ y: 4, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.9))" }}
+                  >
+                    <Crown className="w-4 h-4 text-amber-400" />
+                  </motion.div>
                 )}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-1 py-0.5 rounded text-[6px] font-bold text-black">
+                <div
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1 py-0.5 rounded text-[6px] font-extrabold text-black"
+                  style={{
+                    background: "linear-gradient(135deg, #fbbf24, #d97706)",
+                    boxShadow: "0 0 8px rgba(251,191,36,0.5), inset 0 1px 0 rgba(255,255,255,0.4)",
+                  }}
+                >
                   Lv{challengerLevel}
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-xs font-medium truncate">{challengerName}</p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <span className="text-amber-400 text-lg font-bold">{challengerScore}</span>
+                <p className="text-white text-xs font-semibold truncate" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
+                  {challengerName}
+                </p>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <motion.span
+                    key={challengerScore}
+                    initial={{ scale: 1.25, color: "#fff" }}
+                    animate={{ scale: 1, color: "#fbbf24" }}
+                    transition={{ duration: 0.4 }}
+                    className="text-amber-400 text-lg font-extrabold tabular-nums"
+                    style={{ textShadow: "0 0 10px rgba(251,191,36,0.5)" }}
+                  >
+                    {challengerScore}
+                  </motion.span>
                   <span className="text-white/70 text-[10px]">diamonds</span>
                 </div>
               </div>
@@ -178,22 +280,36 @@ export const PKBattleActive = ({
 
             {/* VS Badge */}
             <motion.div
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center shrink-0"
+              className="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #ec4899, #a855f7)",
+                boxShadow:
+                  "0 0 0 2px rgba(255,255,255,0.18), 0 0 18px rgba(236,72,153,0.6), inset 0 1px 0 rgba(255,255,255,0.3)",
+              }}
               animate={{ rotate: [0, 360] }}
               transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
             >
-              <span className="text-white font-bold text-xs">VS</span>
+              <span
+                className="text-white font-extrabold text-xs"
+                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}
+              >
+                VS
+              </span>
             </motion.div>
 
             {/* Opponent */}
             <div className="flex-1 flex items-center gap-2 flex-row-reverse">
               <div className="relative">
                 <motion.div
-                  className={`w-12 h-12 rounded-full overflow-hidden border-2 ${
-                    opponentWinning ? "border-amber-400 ring-2 ring-amber-400/50" : "border-purple-500"
-                  }`}
-                  animate={opponentWinning ? { scale: [1, 1.05, 1] } : {}}
-                  transition={{ duration: 0.5, repeat: Infinity }}
+                  className="w-12 h-12 rounded-full overflow-hidden"
+                  style={{
+                    border: opponentWinning ? "2px solid #fbbf24" : "2px solid #a855f7",
+                    boxShadow: opponentWinning
+                      ? "0 0 0 3px rgba(251,191,36,0.35), 0 0 18px rgba(251,191,36,0.6), inset 0 1px 0 rgba(255,255,255,0.2)"
+                      : "0 0 0 2px rgba(168,85,247,0.35), 0 0 14px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  }}
+                  animate={opponentWinning ? { scale: [1, 1.06, 1] } : {}}
+                  transition={{ duration: 0.7, repeat: Infinity }}
                 >
                   <img
                     src={opponentAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150"}
@@ -202,35 +318,101 @@ export const PKBattleActive = ({
                   />
                 </motion.div>
                 {opponentWinning && (
-                  <Crown className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 text-amber-400" />
+                  <motion.div
+                    className="absolute -top-2.5 left-1/2 -translate-x-1/2"
+                    initial={{ y: 4, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    style={{ filter: "drop-shadow(0 0 6px rgba(251,191,36,0.9))" }}
+                  >
+                    <Crown className="w-4 h-4 text-amber-400" />
+                  </motion.div>
                 )}
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-1 py-0.5 rounded text-[6px] font-bold text-black">
+                <div
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1 py-0.5 rounded text-[6px] font-extrabold text-black"
+                  style={{
+                    background: "linear-gradient(135deg, #fbbf24, #d97706)",
+                    boxShadow: "0 0 8px rgba(251,191,36,0.5), inset 0 1px 0 rgba(255,255,255,0.4)",
+                  }}
+                >
                   Lv{opponentLevel}
                 </div>
               </div>
               <div className="flex-1 min-w-0 text-right">
-                <p className="text-white text-xs font-medium truncate">{opponentName}</p>
-                <div className="flex items-center gap-1 mt-0.5 justify-end">
+                <p className="text-white text-xs font-semibold truncate" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
+                  {opponentName}
+                </p>
+                <div className="flex items-baseline gap-1 mt-0.5 justify-end">
                   <span className="text-white/70 text-[10px]">diamonds</span>
-                  <span className="text-purple-400 text-lg font-bold">{opponentScore}</span>
+                  <motion.span
+                    key={opponentScore}
+                    initial={{ scale: 1.25, color: "#fff" }}
+                    animate={{ scale: 1, color: "#c084fc" }}
+                    transition={{ duration: 0.4 }}
+                    className="text-purple-400 text-lg font-extrabold tabular-nums"
+                    style={{ textShadow: "0 0 10px rgba(168,85,247,0.55)" }}
+                  >
+                    {opponentScore}
+                  </motion.span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="mt-3 h-2 rounded-full bg-black/30 overflow-hidden flex">
+          <div
+            className="relative mt-3 h-2.5 rounded-full overflow-hidden flex"
+            style={{
+              background: "rgba(0,0,0,0.4)",
+              boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.06)",
+            }}
+          >
             <motion.div
-              className="h-full bg-gradient-to-r from-pink-500 to-pink-400"
+              className="h-full relative"
+              style={{
+                background: "linear-gradient(90deg, #f472b6 0%, #ec4899 100%)",
+                boxShadow: "0 0 10px rgba(236,72,153,0.7)",
+              }}
               initial={{ width: "50%" }}
               animate={{ width: `${challengerPercent}%` }}
-              transition={{ type: "spring", damping: 15 }}
-            />
+              transition={{ type: "spring", damping: 18, stiffness: 140 }}
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
+                  animation: "giftSendShine 2.6s ease-in-out infinite",
+                }}
+              />
+            </motion.div>
             <motion.div
-              className="h-full bg-gradient-to-r from-purple-400 to-purple-500"
+              className="h-full relative"
+              style={{
+                background: "linear-gradient(90deg, #a855f7 0%, #c084fc 100%)",
+                boxShadow: "0 0 10px rgba(168,85,247,0.7)",
+              }}
               initial={{ width: "50%" }}
               animate={{ width: `${opponentPercent}%` }}
-              transition={{ type: "spring", damping: 15 }}
+              transition={{ type: "spring", damping: 18, stiffness: 140 }}
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%)",
+                  animation: "giftSendShine 2.6s ease-in-out infinite 0.4s",
+                }}
+              />
+            </motion.div>
+            {/* Center divider glow */}
+            <div
+              className="pointer-events-none absolute top-0 bottom-0 w-px"
+              style={{
+                left: `${challengerPercent}%`,
+                background: "rgba(255,255,255,0.8)",
+                boxShadow: "0 0 6px rgba(255,255,255,0.9)",
+                transform: "translateX(-0.5px)",
+              }}
             />
           </div>
         </div>
