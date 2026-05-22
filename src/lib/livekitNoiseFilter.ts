@@ -11,7 +11,7 @@
  * - Zero new Supabase channels, zero polls.
  */
 
-import { isLiveKitFeatureEnabled } from './livekitSignaling';
+import { isLiveKitEnabled } from './livekitSignaling';
 import type { LocalAudioTrack } from 'livekit-client';
 
 const appliedTracks = new WeakSet<object>();
