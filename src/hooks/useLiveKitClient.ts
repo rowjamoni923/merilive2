@@ -1554,6 +1554,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.rpcStreamId, isJoined]);
+
+  // Pkg116: bind for realtime transcription / captions.
+  useEffect(() => {
+    const streamId = options.transcriptionStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitTranscription');
+        if (cancelled) return;
+        mod.registerRoomForTranscription('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg116] registerRoomForTranscription(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitTranscription').then((mod) => {
+        mod.unregisterRoomForTranscription('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.transcriptionStreamId, isJoined]);
   // Pkg105: bind for track-subscription permissions (host hard-block).
   useEffect(() => {
     const streamId = options.trackPermissionStreamId;
