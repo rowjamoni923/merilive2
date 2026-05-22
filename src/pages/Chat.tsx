@@ -2387,7 +2387,7 @@ const Chat = () => {
                     userId={selectedConversation?.other_user?.id || ''}
                     src={selectedConversation?.other_user?.avatar_url || undefined}
                     name={selectedConversation?.other_user?.display_name || '?'}
-                    level={selectedConversation?.other_user?.user_level || 1}
+                    level={pickDisplayLevel(selectedConversation?.other_user as any)}
                     size="xs"
                     showAnimation={false}
                   />
