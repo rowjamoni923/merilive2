@@ -514,6 +514,12 @@ export function usePartyRoomWebRTC(
         } catch (err) {
           console.warn('[Pkg121] registerStreamRoom(party) failed:', err);
         }
+        // Pkg120: bind for participant RPC (moderator commands, seat-ack).
+        try {
+          registerRpcRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg120] registerRpcRoom(party) failed:', err);
+        }
 
 
         setState(prev => ({
