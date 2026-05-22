@@ -27,6 +27,7 @@ import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetad
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
+import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -99,6 +100,7 @@ export function usePartyRoomWebRTC(
     try { unregisterRoomMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterStreamRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRpcRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterRoomForTranscription('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -519,6 +521,12 @@ export function usePartyRoomWebRTC(
           registerRpcRoom('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg120] registerRpcRoom(party) failed:', err);
+        }
+        // Pkg116: bind for realtime transcription / captions.
+        try {
+          registerRoomForTranscription('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg116] registerRoomForTranscription(party) failed:', err);
         }
 
 

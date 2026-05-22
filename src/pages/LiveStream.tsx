@@ -603,6 +603,7 @@ const LiveStream = () => {
    roomMetadataStreamId: id,
    streamsStreamId: id,
    rpcStreamId: id,
+   transcriptionStreamId: id,
     // Pkg105: host-only — registers Room for SFU-level viewer block enforcement.
     trackPermissionStreamId: isHost && isHostVerified ? id : null,
 

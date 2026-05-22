@@ -30,6 +30,7 @@ import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetad
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
+import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -160,6 +161,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterStreamRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg120: drop RPC registration.
     try { if (callIdRef.current) unregisterRpcRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg116: drop transcription registration.
+    try { if (callIdRef.current) unregisterRoomForTranscription('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -482,6 +485,8 @@ export function useLiveKitCall(
         if (callId) registerStreamRoom('call', callId, room);
         // Pkg120: bind for participant RPC (moderator commands, seat-ack, raise-hand).
         if (callId) registerRpcRoom('call', callId, room);
+        // Pkg116: bind for realtime transcription / captions.
+        if (callId) registerRoomForTranscription('call', callId, room);
 
 
         // Enable camera and microphone
