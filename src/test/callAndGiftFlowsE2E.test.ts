@@ -24,6 +24,8 @@ interface PrivateCall {
   status: 'ringing' | 'accepted' | 'ended';
   started_at: number;
   ended_at?: number;
+  last_billing_at?: number;
+  duration_seconds?: number;
   coins_per_minute: number;
   total_charge?: number;
   host_earning?: number;
@@ -98,6 +100,30 @@ class FakeSupabase {
     c.started_at = Date.now();
     this.broadcast(`call:${c.caller_id}`, 'accepted', { callId });
     return { ok: true };
+  }
+
+  /* ── RPC: deduct_call_coins_per_minute (server anti-double-charge gate) ── */
+  async deduct_call_coins_per_minute(callId: string, nowMs = Date.now()) {
+    const c = this.calls.get(callId);
+    if (!c) return { ok: false, reason: 'not_found' };
+    if (c.status !== 'accepted') return { ok: false, reason: 'not_connected' };
+    if (c.last_billing_at && nowMs - c.last_billing_at < 59_000) {
+      return { ok: true, duplicateIgnored: true, coinsDeducted: 0, hostEarn: 0 };
+    }
+
+    const caller = this.profiles.get(c.caller_id)!;
+    const host = this.profiles.get(c.host_id)!;
+    if (caller.coins < c.coins_per_minute) return { ok: false, reason: 'insufficient_balance' };
+
+    const hostPct = host.host_percent ?? this.appSettings.host_percent_default;
+    const hostEarn = Math.floor(c.coins_per_minute * hostPct / 100);
+    caller.coins -= c.coins_per_minute;
+    host.beans += hostEarn;
+    c.last_billing_at = nowMs;
+    c.duration_seconds = (c.duration_seconds || 0) + 60;
+    c.total_charge = (c.total_charge || 0) + c.coins_per_minute;
+    c.host_earning = (c.host_earning || 0) + hostEarn;
+    return { ok: true, coinsDeducted: c.coins_per_minute, hostEarn };
   }
 
   /* ── RPC: settle_private_call (Pkg23 21-second rule) ─────────────── */
@@ -295,6 +321,35 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       expect(settled.charge).toBe(150);
       expect(settled.hostEarn).toBe(90);
       expect(sb.profiles.get(host.id)!.beans).toBe(90);
+    });
+
+    it('per-minute billing ignores duplicate RPC calls inside the same minute', async () => {
+      const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
+      });
+      const modal = new IncomingCallModal(sb, host.id);
+      await modal.accept();
+
+      const first = await sb.deduct_call_coins_per_minute(start.callId!, 1_000_000);
+      const duplicate = await sb.deduct_call_coins_per_minute(start.callId!, 1_000_500);
+      expect(first).toMatchObject({ ok: true, coinsDeducted: 100, hostEarn: 60 });
+      expect(duplicate).toMatchObject({ ok: true, duplicateIgnored: true, coinsDeducted: 0, hostEarn: 0 });
+      expect(sb.profiles.get(caller.id)!.coins).toBe(4_900);
+      expect(sb.profiles.get(host.id)!.beans).toBe(60);
+    });
+
+    it('per-minute billing charges the next minute once and credits admin percentage only', async () => {
+      host.host_percent = 45; sb.seedProfile(host);
+      const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 200, isNative: true,
+      });
+      const modal = new IncomingCallModal(sb, host.id);
+      await modal.accept();
+
+      await sb.deduct_call_coins_per_minute(start.callId!, 1_000_000);
+      await sb.deduct_call_coins_per_minute(start.callId!, 1_060_000);
+      expect(sb.profiles.get(caller.id)!.coins).toBe(4_600);
+      expect(sb.profiles.get(host.id)!.beans).toBe(180);
     });
   });
 
