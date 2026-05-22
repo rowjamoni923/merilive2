@@ -1670,10 +1670,10 @@ const GoLive = () => {
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleGoLive}
-            disabled={isStarting || livekitLoading}
+            disabled={isStarting || isProbing || livekitLoading}
             className={cn(
               "w-full relative overflow-hidden rounded-full touch-manipulation py-4",
-              (isStarting || livekitLoading) && "opacity-70"
+              (isStarting || isProbing || livekitLoading) && "opacity-70"
             )}
             style={{
               background: 'linear-gradient(to right, #f472b6, #ec4899, #f97316)'
@@ -1685,7 +1685,7 @@ const GoLive = () => {
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12"
             />
             <span className="relative text-white text-lg font-bold tracking-wide">
-              {isStarting ? "Starting..." : livekitLoading ? "Starting..." : "Go Live"}
+              {isProbing ? "Checking connection..." : (isStarting || livekitLoading) ? "Starting..." : "Go Live"}
             </span>
           </motion.button>
         </div>
