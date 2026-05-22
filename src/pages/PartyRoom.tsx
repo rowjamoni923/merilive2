@@ -65,6 +65,7 @@ import { useEntryAnimations } from "@/hooks/useEntryAnimations";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
 import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom";
+import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
 import { GameFooterNew } from "@/components/games/GameFooterNew";
