@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { getAdminRealtimeLockRemaining } from "@/utils/adminRealtimeMutationGuard";
 
@@ -9,8 +8,8 @@ import { getAdminRealtimeLockRemaining } from "@/utils/adminRealtimeMutationGuar
  * 
  * ARCHITECTURE:
  * ┌─────────────────────────────────────────────────┐
- * │  AdminLayout (ONE global subscription)          │
- * │  └── 2 chunked channels → postgres_changes      │
+ * │  useAdminBroadcastSync (ONE global channel)     │
+ * │  └── admin_broadcast → window events            │
  * │      └── dispatchAdminTableUpdate() → window     │
  * ├─────────────────────────────────────────────────┤
  * │  Every admin page:                              │
@@ -19,8 +18,7 @@ import { getAdminRealtimeLockRemaining } from "@/utils/adminRealtimeMutationGuar
  * │      └── Zero extra DB channels!                │
  * └─────────────────────────────────────────────────┘
  * 
- * Non-admin pages: Creates direct postgres_changes channels
- * only for tables NOT in global monitoring.
+ * Direct postgres_changes channels are intentionally forbidden here.
  */
 
 // ============= GLOBAL EVENT DISPATCHER =============
