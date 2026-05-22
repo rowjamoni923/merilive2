@@ -146,7 +146,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
       const table = (event as CustomEvent<{ table?: string }>).detail?.table;
       if (table !== 'profiles') return;
       const { data } = await supabase
-        .from('profiles')
+        .from('profiles') // guard-ok: owner-only ban status recheck after admin_broadcast profile topic
         .select('is_blocked, blocked_reason')
         .eq('id', userId)
         .maybeSingle();
