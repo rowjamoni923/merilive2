@@ -1883,7 +1883,7 @@ const Chat = () => {
     const chatName = isGroup ? selectedGroup?.name : selectedConversation?.other_user?.display_name || 'User';
     const chatAvatar = isGroup ? selectedGroup?.avatar_url : selectedConversation?.other_user?.avatar_url;
     const currentMessages = isGroup ? groupMessages : messages;
-    const userLevel = selectedConversation?.other_user?.user_level || 1;
+    const userLevel = pickDisplayLevel(selectedConversation?.other_user as any);
     const countryFlag = selectedConversation?.other_user?.country_flag || "🌍";
 
     return (
