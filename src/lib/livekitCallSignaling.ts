@@ -109,6 +109,7 @@ function makeHandler(callId: string) {
 }
 
 function dispatchCallEnvelope(callId: string, payload: Uint8Array, participantIdentity?: string) {
+  if (typeof window === 'undefined') return;
   const env = decodeEnvelope(payload);
   if (!env || env.f !== 'call') return;
   if (isDuplicateEnvelope(env.id)) return;
@@ -169,6 +170,25 @@ export function unregisterCallRoom(callId: string | null | undefined) {
   registry.delete(callId);
 }
 
+/** Bind native Android LiveKit plugin DataPackets to the same call signaling events. */
+export function registerNativeCallRoom(callId: string | null | undefined) {
+  if (!callId || typeof window === 'undefined') return;
+  nativeRegistry.add(callId);
+  if (nativeUnsubscribe) return;
+  nativeUnsubscribe = nativeLiveKitController.onDataReceived((payload, participantIdentity) => {
+    for (const id of nativeRegistry) dispatchCallEnvelope(id, payload, participantIdentity);
+  });
+}
+
+export function unregisterNativeCallRoom(callId: string | null | undefined) {
+  if (!callId) return;
+  nativeRegistry.delete(callId);
+  if (nativeRegistry.size === 0 && nativeUnsubscribe) {
+    nativeUnsubscribe();
+    nativeUnsubscribe = null;
+  }
+}
+
 async function tryPublish(
   room: Room,
   family: 'call',
@@ -202,11 +222,17 @@ export async function publishCallEnded(
 ): Promise<boolean> {
   if (!callId) return false;
   const entry = registry.get(callId);
-  if (!entry) return false;
 
   let allowed = false;
   try { allowed = await isLiveKitEnabled('call'); } catch { allowed = false; }
   if (!allowed) return false;
+
+  if (!entry && nativeRegistry.has(callId)) {
+    const env = buildEnvelope('call', 'call_ended', { callId, ...payload }, payload.endedBy);
+    return nativeLiveKitController.sendData(encodeEnvelope(env), { reliable: true, topic: 'call' });
+  }
+
+  if (!entry) return false;
 
   return tryPublish(entry.room, 'call', 'call_ended', { callId, ...payload });
 }
@@ -239,6 +265,15 @@ export async function publishCallAccepted(
         at: Date.now(),
         ...payload,
       });
+      if (ok) return true;
+    }
+    if (!entry && nativeRegistry.has(callId)) {
+      const env = buildEnvelope('call', 'call_accepted', {
+        callId,
+        at: Date.now(),
+        ...payload,
+      }, payload.acceptedBy);
+      const ok = await nativeLiveKitController.sendData(encodeEnvelope(env), { reliable: true, topic: 'call' });
       if (ok) return true;
     }
     await new Promise((r) => setTimeout(r, gapMs));
