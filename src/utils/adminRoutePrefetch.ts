@@ -147,6 +147,7 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/livekit-egress': () => import('@/pages/admin/AdminLiveKitEgress'),
   '/admin/livekit-ingress': () => import('@/pages/admin/AdminLiveKitIngress'),
   '/admin/livekit-sip': () => import('@/pages/admin/AdminLiveKitSip'),
+  '/admin/livekit-webhook': () => import('@/pages/admin/AdminLiveKitWebhook'),
   '/admin/cost-monitor': () => import('@/pages/admin/AdminCostMonitor'),
   '/admin/moderation-audit': () => import('@/pages/admin/AdminModerationAudit'),
   '/admin/sub-admins': () => import('@/pages/admin/AdminSubAdmins'),
