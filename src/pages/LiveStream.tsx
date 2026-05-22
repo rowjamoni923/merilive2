@@ -1480,25 +1480,14 @@ const LiveStream = () => {
       }
     };
 
+    // Pkg188: One-shot initial fetch only. Steady-state viewer count + avatar
+    // list now driven 100% by LiveKit events:
+    //   • viewer_joined → in-memory add (handler above, lines 1167-1183)
+    //   • viewer_left   → in-memory delete (handler above, lines 1159-1164)
+    // The 15s safety-net poll has been removed (Pkg184/Pkg187 parity — pure
+    // LiveKit delta, $1400-rule safe, ~80% additional DB read reduction on
+    // top of the previous 3s→15s cost-optimisation).
     fetchRecentViewers();
-
-    // Poll fallback ensures count/avatar sync even when realtime packets are dropped
-    // ⚡ COST-OPTIMISED: 15s interval instead of 3s (saves ~80% DB reads)
-    const pollInterval = setInterval(() => {
-      void fetchRecentViewers();
-    }, 15000);
-
-    // Pkg82a: REMOVED Supabase `stream_viewers_realtime_${id}` postgres_changes
-    // subscription (INSERT/UPDATE/DELETE on `stream_viewers`). Viewer joins are
-    // now signaled via LiveKit `livekit-live-event` (viewer_joined) handled in
-    // the unified effect above; viewer leaves arrive via LiveKit
-    // `RoomEvent.ParticipantDisconnected` translated into the same envelope.
-    // The 15s poll above remains as the durable-state safety net (covers the
-    // rare case of a viewer closing the tab while LiveKit packet drop coincides).
-
-    return () => {
-      clearInterval(pollInterval);
-    };
   }, [id, currentUserId]);
 
 
