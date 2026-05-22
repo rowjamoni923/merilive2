@@ -24,6 +24,7 @@ import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
+import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -93,6 +94,7 @@ export function usePartyRoomWebRTC(
     try { unregisterActiveSpeakerRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterConnectionQualityRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterMetadataRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterRoomMetadataRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -495,6 +497,12 @@ export function usePartyRoomWebRTC(
           registerMetadataRoom('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg107] registerMetadataRoom(party) failed:', err);
+        }
+        // Pkg122: room-wide metadata sync (current song, poll, theme, pinned).
+        try {
+          registerRoomMetadataRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg122] registerRoomMetadataRoom(party) failed:', err);
         }
 
         setState(prev => ({
