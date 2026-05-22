@@ -32,7 +32,8 @@ export type LiveKitFeature =
   | 'agent'
   | 'virtual_background'
   | 'rpc'
-  | 'streams';
+  | 'streams'
+  | 'room_metadata';
 
 
 
