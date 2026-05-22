@@ -1914,12 +1914,14 @@ const LiveStream = () => {
         avatar: hostInfo.avatar,
         level: hostInfo.level,
         id: currentUserId || "",
+        streamId: id || "",
       },
       opponentInfo: {
         name: opponentInfo.display_name,
         avatar: opponentInfo.avatar_url,
         level: opponentInfo.user_level,
         id: opponentInfo.id,
+        streamId: opponentInfo.stream_id || "",
       },
     });
   };
