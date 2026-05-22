@@ -2356,6 +2356,11 @@ const LiveStream = () => {
         setShowMoreOptions(false);
         setShowSimulcast(true);
       } },
+    // Pkg131: Raised-Hands queue panel (host only). Badge shows queue length.
+    { id: "raisedhands", name: raisedHands.length > 0 ? `Raised Hands (${raisedHands.length})` : "Raised Hands", iconName: "Hand" as const, color: "from-amber-400 to-yellow-500", shadowColor: "shadow-amber-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowRaiseHandQueue(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
