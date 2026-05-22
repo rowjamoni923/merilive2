@@ -35,6 +35,9 @@ interface RankingData {
   country_flag: string | null;
   host_level: number | null;
   user_level: number | null;
+  max_user_level?: number | null;
+  gender?: string | null;
+  is_host?: boolean | null;
   stat_value: number;
   frame_id?: string | null;
 }
