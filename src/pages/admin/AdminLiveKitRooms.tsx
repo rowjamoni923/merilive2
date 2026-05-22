@@ -49,6 +49,7 @@ import {
   type LiveKitParticipantTrack,
 } from "@/lib/livekitRoomOps";
 import { startTrackEgress, stopTrackEgress } from "@/lib/livekitTrackEgress";
+import { AgentDispatchDialog } from "@/components/livekit/AgentDispatchDialog";
 
 
 function scopeOfRoom(name: string): "live" | "party" | "call" | "other" {
