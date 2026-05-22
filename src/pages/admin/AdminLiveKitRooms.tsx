@@ -630,7 +630,7 @@ export default function AdminLiveKitRooms() {
         open={showAgentDispatch}
         onClose={() => setShowAgentDispatch(false)}
         roomName={detailRoom?.name || ""}
-        scope={detailRoom ? scopeOfRoom(detailRoom.name) : "live"}
+        scope={(detailRoom ? scopeOfRoom(detailRoom.name) : "live") as "live" | "party" | "call"}
       />
     </div>
   );
