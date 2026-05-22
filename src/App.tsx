@@ -1138,7 +1138,7 @@ const App = () => {
                 <Route path="/payroll-helper-guide" element={<PayrollHelperGuide />} />
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
                 <Route path="/party/:roomId" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="party"><PartyRoom /></RequireNativeAndroidGate></ProtectedRoute>} />
-                <Route path="/go-live" element={<ProtectedRoute session={session}><GoLive /></ProtectedRoute>} />
+                <Route path="/go-live" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><GoLive /></RequireNativeAndroidGate></ProtectedRoute>} />
                 <Route path="/reels" element={<ProtectedRoute session={session}><Reels /></ProtectedRoute>} />
                 <Route path="/create-party" element={<ProtectedRoute session={session}><CreateParty /></ProtectedRoute>} />
                 <Route path="/profile/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
