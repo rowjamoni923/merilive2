@@ -7,6 +7,7 @@ export interface GiftServicePayload {
   streamId?: string | null;
   partyRoomId?: string | null;
   callId?: string | null;
+  reelId?: string | null;
 }
 
 export interface GiftServiceResponse {
