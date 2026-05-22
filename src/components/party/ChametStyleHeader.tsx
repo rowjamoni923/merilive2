@@ -80,22 +80,33 @@ export const ChametStyleHeader = ({
           <motion.div
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 relative overflow-hidden"
+            transition={{ type: "spring", stiffness: 320, damping: 26, mass: 0.7 }}
+            className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 relative overflow-hidden will-change-transform"
             style={{
               background: "linear-gradient(135deg, rgba(10,10,20,0.88), rgba(25,15,45,0.85))",
               backdropFilter: "blur(20px)",
               border: "1px solid rgba(168,85,247,0.12)",
               boxShadow: "0 6px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)",
+              transform: "translateZ(0)",
             }}
           >
-            {/* Shimmer */}
+            {/* Top shimmer */}
             <motion.div
               className="absolute top-0 left-0 right-0 h-px"
               style={{ background: "linear-gradient(90deg, transparent, rgba(168,85,247,0.35), transparent)" }}
               animate={{ opacity: [0.3, 0.7, 0.3] }}
               transition={{ duration: 3, repeat: Infinity }}
             />
+            {/* Specular shine sweep — premium glass feel */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.10) 50%, transparent 65%)",
+              }}
+              animate={{ x: ["-110%", "120%"] }}
+              transition={{ duration: 4.5, repeat: Infinity, ease: "linear", repeatDelay: 2.2 }}
+            />
+
 
             {/* Avatar */}
             <div onClick={() => hostId && navigate(`/profile/${hostId}`)} className="cursor-pointer relative">
