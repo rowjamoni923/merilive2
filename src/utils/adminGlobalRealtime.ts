@@ -88,17 +88,13 @@ export function startAdminGlobalRealtime() {
   started = true;
   const tables = Array.from(GLOBALLY_MONITORED_TABLES);
 
-  for (let i = 0; i < tables.length; i += CHUNK_SIZE) {
-    const state: ChunkState = {
-      index: chunks.length,
-      tables: tables.slice(i, i + CHUNK_SIZE),
-      channel: null,
-      retryAttempt: 0,
-      retryTimer: null,
-    };
-    chunks.push(state);
-    buildChunk(state);
-  }
+  adminBroadcastHandler = (event: Event) => {
+    const detail = (event as CustomEvent<AdminTableUpdateEvent>).detail;
+    if (!detail?.table || !tables.includes(detail.table)) return;
+    if (!shouldDispatch(detail)) return;
+    window.dispatchEvent(new CustomEvent(ADMIN_REALTIME_EVENT, { detail }));
+  };
+  window.addEventListener(ADMIN_REALTIME_EVENT, adminBroadcastHandler);
 
   setupVisibilityHandler();
   if (!cleanupInterval) {
@@ -106,15 +102,17 @@ export function startAdminGlobalRealtime() {
   }
 
   console.log(
-    `[AdminGlobalRT] 🚀 Started with ${chunks.length} chunks covering ${tables.length} tables`
+    `[AdminGlobalRT] 🚀 Started using admin_broadcast bridge covering ${tables.length} tables`
   );
 }
 
 export function stopAdminGlobalRealtime() {
   if (!started) return;
   started = false;
-  for (const c of chunks) teardownChunk(c);
-  chunks.length = 0;
+  if (adminBroadcastHandler) {
+    window.removeEventListener(ADMIN_REALTIME_EVENT, adminBroadcastHandler);
+    adminBroadcastHandler = null;
+  }
   recentEvents.clear();
   teardownVisibilityHandler();
   if (cleanupInterval) {
