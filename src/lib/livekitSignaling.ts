@@ -97,6 +97,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       sip: parsed.sip === true, // Pkg110: explicit opt-in only
       egress: parsed.egress === true, // Pkg111: explicit opt-in only
       track_egress: parsed.track_egress === true, // Pkg113: explicit opt-in only
+      stream_egress: parsed.stream_egress === true, // Pkg114: explicit opt-in only
     };
   } catch {
     return { ...DEFAULT_FLAGS };
