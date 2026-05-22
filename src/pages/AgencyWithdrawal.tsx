@@ -2089,21 +2089,18 @@ const AgencyWithdrawal = () => {
     console.log('[Withdrawal] Country', selectedCountry, 'has helpers:', hasHelpers);
   }, [selectedCountry, countriesWithHelpers]);
 
-  // Country-strict payment method rules (Pkg41):
-  //   • BD / IN / PK with a Level-5 payroll helper → LOCAL methods ONLY (no auto gateway).
-  //   • BD / IN / PK with NO Level-5 helper       → AUTO gateway ONLY (fallback so withdrawal isn't blocked).
-  //   • All other countries with a Level-5 helper → LOCAL + AUTO (user picks).
-  //   • All other countries with NO Level-5 helper → AUTO ONLY.
-  // Each country only ever sees its own payment methods — no cross-country leakage.
-  const AUTO_PAY_EXCLUDED_COUNTRIES = ['BD', 'IN', 'PK'];
+  // Country payment method rules (Pkg190 — crypto worldwide):
+  //   • Every country (incl. BD / IN / PK) can ALWAYS pick the MeriCash USDT auto crypto gateway.
+  //   • If a Level-5 payroll helper exists in the country → user sees LOCAL methods + crypto auto.
+  //   • If no Level-5 helper → crypto auto only (fallback so withdrawal isn't blocked).
+  //   • Crypto carries a higher admin-configured auto withdrawal fee (flat USD + percent).
+  // Each country only ever sees its own local methods — no cross-country leakage.
   const OFFICIAL_AUTO_METHODS = [
-    { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit)" },
+    { value: "crypto_auto", label: "💎 MeriCash (USDT Auto-Credit) — higher fee" },
   ];
 
   const getAvailablePaymentMethods = () => {
     if (!selectedCountry) return [];
-
-    const isExcluded = AUTO_PAY_EXCLUDED_COUNTRIES.includes(selectedCountry);
 
     // STRICT: source local methods from THIS country only — never from the BD display-fallback.
     const strictCountryCfg = COUNTRY_CONFIGS[selectedCountry];
@@ -2119,19 +2116,17 @@ const AgencyWithdrawal = () => {
     }
 
     if (hasLocalPayrollHelpers === null) {
-      // Helper-availability still loading: show local only (don't promote auto prematurely)
-      return localMethods;
+      // Helper-availability still loading: still expose crypto auto so user always has a path.
+      return localMethods.length > 0 ? [...localMethods, ...OFFICIAL_AUTO_METHODS] : [...OFFICIAL_AUTO_METHODS];
     }
 
     if (hasLocalPayrollHelpers) {
-      // Has Level-5 helper in this country:
-      //   excluded (BD/IN/PK) → local only; others → local + auto (user choice).
-      //   If admin-configured list filtered everything out, fall back to auto so user isn't stuck.
+      // Has Level-5 helper: offer LOCAL + CRYPTO AUTO worldwide (BD/IN/PK included).
       if (localMethods.length === 0) return [...OFFICIAL_AUTO_METHODS];
-      return isExcluded ? localMethods : [...localMethods, ...OFFICIAL_AUTO_METHODS];
+      return [...localMethods, ...OFFICIAL_AUTO_METHODS];
     }
 
-    // No Level-5 helper in this country → auto gateway only (every country, incl. BD/IN/PK)
+    // No Level-5 helper in this country → crypto auto only (every country, incl. BD/IN/PK)
     return [...OFFICIAL_AUTO_METHODS];
   };
 
