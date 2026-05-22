@@ -44,7 +44,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
-import { publishGiftSent, type GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
 
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
