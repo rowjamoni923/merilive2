@@ -55,7 +55,7 @@ describe('Pkg105 livekitTrackPermissions', () => {
     expect(calls.length).toBe(2); // initial empty + setHostBlocklist
     room.emit('participantConnected');
     expect(calls.length).toBe(3);
-    expect(calls[3][1][0].participantIdentity).toBe('evilUser');
+    expect(calls[2][1][0].participantIdentity).toBe('evilUser');
   });
 
   it('add/remove update the SFU call', () => {
