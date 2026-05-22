@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.livekit-ingress-ops]
 verify_jwt = false
+
+[functions.livekit-sip-ops]
+verify_jwt = false
