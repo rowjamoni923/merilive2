@@ -1087,7 +1087,7 @@ const Chat = () => {
       
       // Parallel fetch - coins + conversations + groups at once
       const [profileResult] = await Promise.all([
-        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, is_host').eq('id', user.id).single(),
+        supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', user.id).single(),
         fetchConversations(user.id),
         fetchGroups()
       ]);
@@ -1098,6 +1098,9 @@ const Chat = () => {
           display_name: profileResult.data.display_name,
           avatar_url: profileResult.data.avatar_url,
           user_level: profileResult.data.user_level || 1,
+          host_level: (profileResult.data as any).host_level || 0,
+          max_user_level: (profileResult.data as any).max_user_level || 0,
+          gender: (profileResult.data as any).gender || null,
           is_host: profileResult.data.is_host === true,
         });
       }
