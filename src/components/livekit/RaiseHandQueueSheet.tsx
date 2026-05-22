@@ -146,7 +146,7 @@ export const RaiseHandQueueSheet = ({ open, onClose, scope, id, roomName }: Prop
                       size="sm"
                       onClick={() => handlePromote(h.identity)}
                       disabled={isBusy || busy !== null}
-                      className="gap-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+                      className="gap-1 bg-emerald-500 hover:bg-emerald-600 text-white" // dark-ok: emerald button
                     >
                       {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowUpCircle className="w-3.5 h-3.5" />}
                       Promote
