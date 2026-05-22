@@ -784,6 +784,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             }
           }
 
+          // Pkg103: apply Krisp noise filter to whichever mic we just published
+          import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
+
           // Apply Tencent Beauty to the published camera track (Web only)
           // This handles the enableCameraAndMicrophone / setCameraEnabled path
           if (!hasPreloadedVideo) {
@@ -998,6 +1001,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const room = roomRef.current;
     if (!room?.localParticipant) return;
     await room.localParticipant.setMicrophoneEnabled(enabled);
+    if (enabled) {
+      import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
+    }
   }, []);
 
   // Toggle video

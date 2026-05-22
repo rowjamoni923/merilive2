@@ -117,6 +117,9 @@ export function usePartyRoomWebRTC(
 
     const newEnabled = !state.isAudioEnabled;
     room.localParticipant.setMicrophoneEnabled(newEnabled);
+    if (newEnabled) {
+      import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
+    }
     setState(prev => ({ ...prev, isAudioEnabled: newEnabled }));
   }, [state.isAudioEnabled]);
 
@@ -231,6 +234,8 @@ export function usePartyRoomWebRTC(
 
               await new Promise((resolve) => setTimeout(resolve, 250));
               rebuildLocalStream();
+              // Pkg103: apply Krisp noise filter to published mic
+              import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
               const hasVideo = Array.from(room.localParticipant.trackPublications.values())
                 .some((pub) => pub.kind === Track.Kind.Video && pub.track?.mediaStreamTrack?.readyState === 'live');
