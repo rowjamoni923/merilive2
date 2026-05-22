@@ -19,7 +19,16 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+
+/** Lightweight haptic ping — silently no-ops on devices without Vibration API (iOS Safari etc.). */
+const haptic = (pattern: number | number[] = 8) => {
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(pattern);
+    }
+  } catch { /* silent */ }
+};
 
 interface ChametStyleBottomBarProps {
   onChatClick?: () => void;
