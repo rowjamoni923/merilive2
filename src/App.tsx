@@ -749,37 +749,8 @@ const App = () => {
     
     initSession();
 
-    // Global forced app re-entry (admin emergency reset)
-    const appReentryChannel = supabase
-      .channel('global-app-reentry')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'app_settings',
-          filter: 'setting_key=eq.global_app_reentry',
-        },
-        (payload) => {
-          const nextValue = (payload.new as any)?.setting_value;
-          const nonce = nextValue && typeof nextValue === 'object' ? nextValue.nonce : null;
-          if (!nonce) return;
-
-          const nonceStr = String(nonce);
-          const lastNonce = localStorage.getItem('meri_last_global_reentry_nonce');
-          if (lastNonce === nonceStr) return;
-
-          localStorage.setItem('meri_last_global_reentry_nonce', nonceStr);
-
-          if (window.location.pathname.startsWith('/admin')) {
-            console.warn('[App] 🚨 Global app re-entry signal ignored on admin route.');
-            return;
-          }
-
-          console.warn('[App] 🚨 Global app re-entry signal received. Route refresh blocked by zero-refresh policy.');
-        }
-      )
-      .subscribe();
+    // `app_settings` is deliberately NOT in supabase_realtime publication.
+    // Admin-triggered app sync must use the guarded admin_broadcast path.
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -944,7 +915,6 @@ const App = () => {
     return () => {
       mounted = false;
       subscription.unsubscribe();
-      supabase.removeChannel(appReentryChannel);
       cleanupLinkGuard?.();
       if (Capacitor.isNativePlatform()) {
         void appUrlOpenListenerPromise?.then((listener) => listener.remove()).catch(() => {});
