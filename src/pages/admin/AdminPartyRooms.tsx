@@ -157,21 +157,11 @@ export default function AdminPartyRooms() {
     
     setActionLoading(true);
     try {
-      // STEP 1: Broadcast room_closed to ALL participants INSTANTLY
-      const closeChannel = supabase.channel(`party-room-close-${selectedRoom.id}`);
-      await closeChannel.subscribe();
-      await closeChannel.send({
-        type: 'broadcast',
-        event: 'room_closed',
-        payload: { 
-          roomId: selectedRoom.id, 
-          closedBy: 'admin',
-          closedAt: new Date().toISOString()
-        }
-      });
-      console.log('[Admin] ✅ Broadcast room_closed sent to all participants');
-      
-      // STEP 2: Update database
+      // Pkg78/Pkg81b/Pkg89 audit: Supabase `party-room-close-${roomId}` broadcast REMOVED.
+      // Listener was deleted in Pkg81b — sending here was a dead channel open ($1400-rule waste).
+      // Host + viewers detect admin force-close via their existing 20s `party_rooms.is_active` poll.
+
+      // STEP 1: Update database
       const { error } = await supabase
         .from("party_rooms")
         .update({ 
@@ -182,15 +172,12 @@ export default function AdminPartyRooms() {
 
       if (error) throw error;
       
-      // STEP 3: Mark all participants as left
+      // STEP 2: Mark all participants as left
       await supabase
         .from('party_room_participants')
         .update({ left_at: new Date().toISOString(), position: null })
         .eq('room_id', selectedRoom.id)
         .is('left_at', null);
-      
-      // Cleanup
-      supabase.removeChannel(closeChannel);
       
       toast.success("Party room closed");
       setShowEndDialog(false);
