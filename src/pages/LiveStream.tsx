@@ -196,6 +196,7 @@ const LiveStream = () => {
   const [showSipDial, setShowSipDial] = useState(false);
   const [showRecording, setShowRecording] = useState(false);
   const [showSimulcast, setShowSimulcast] = useState(false);
+  const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
