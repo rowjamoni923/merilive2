@@ -278,7 +278,92 @@ export async function sendFile(
   return info ? { id: (info as any).id } : null;
 }
 
+// ─── Pkg191 — Streaming writers (Datastream API, Item #3) ─────────────────
+//
+// `sendText` / `sendFile` are one-shot buffered helpers. For unbounded /
+// incremental payloads (LLM token-by-token transcripts, large file uploads
+// with backpressure, live captions, partial AI replies) use the writer-based
+// `streamText` / `streamBytes` APIs. They return a Writer with `.write(chunk)`
+// and `.close()` so the caller controls pacing.
+//
+// Both honor the same kill-switch and registry checks as the buffered helpers.
+
+export interface StreamTextWriterOptions {
+  topic: string;
+  destinationIdentities?: string[];
+  attributes?: Record<string, string>;
+  /** Optional pre-known total size in characters (informational only). */
+  totalSize?: number;
+}
+
+export interface StreamBytesWriterOptions {
+  topic: string;
+  destinationIdentities?: string[];
+  mimeType?: string;
+  name?: string;
+  attributes?: Record<string, string>;
+  /** Optional pre-known total size in bytes (informational only). */
+  totalSize?: number;
+}
+
+/**
+ * Open an incremental text stream. Returns a writer with:
+ *   - `write(chunk: string)` — push a partial chunk (await for backpressure)
+ *   - `close()` — finalize the stream
+ *   - `info.id` — stream id (for correlating with receiver)
+ *
+ * Receivers register with `registerTextStreamHandler` exactly as for
+ * `sendText`; the handler is invoked once after the stream closes with the
+ * fully-drained text.
+ */
+export async function streamText(
+  scope: StreamScope,
+  id: string,
+  opts: StreamTextWriterOptions,
+) {
+  const enabled = await isLiveKitEnabled('streams');
+  if (!enabled) throw new Error('streams_disabled');
+  const entry = registry.get(key(scope, id));
+  if (!entry) throw new Error('room_not_registered');
+  const writer = await entry.room.localParticipant.streamText({
+    topic: opts.topic,
+    destinationIdentities: opts.destinationIdentities,
+    attributes: opts.attributes,
+    totalSize: opts.totalSize,
+  } as any);
+  return writer;
+}
+
+/**
+ * Open an incremental byte stream. Returns a writer with:
+ *   - `write(chunk: Uint8Array)` — push a partial chunk (await for backpressure)
+ *   - `close()` — finalize the stream
+ *
+ * Use for chunked uploads with progress, partial binary payloads, or any
+ * payload too large to buffer into a single Blob/File.
+ */
+export async function streamBytes(
+  scope: StreamScope,
+  id: string,
+  opts: StreamBytesWriterOptions,
+) {
+  const enabled = await isLiveKitEnabled('streams');
+  if (!enabled) throw new Error('streams_disabled');
+  const entry = registry.get(key(scope, id));
+  if (!entry) throw new Error('room_not_registered');
+  const writer = await entry.room.localParticipant.streamBytes({
+    topic: opts.topic,
+    destinationIdentities: opts.destinationIdentities,
+    mimeType: opts.mimeType,
+    name: opts.name,
+    attributes: opts.attributes,
+    totalSize: opts.totalSize,
+  } as any);
+  return writer;
+}
+
 // ─── helpers ──────────────────────────────────────────────────────────────
+
 
 async function drainAsyncIterableText(reader: AsyncIterable<string>): Promise<string> {
   let out = '';

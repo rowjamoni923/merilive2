@@ -29,6 +29,8 @@ import {
   registerByteStreamHandler,
   sendText,
   sendFile,
+  streamText,
+  streamBytes,
   type StreamScope,
   type TextStreamHandlerContext,
   type ByteStreamHandlerContext,
@@ -251,3 +253,55 @@ export const sendChatFile = (
   file: File | Blob,
   opts: SendChatFileOptions = {},
 ) => sendBytes(CHAT_TOPIC.file, scope, id, file, opts);
+
+// ─── Pkg191 — Incremental streaming senders (Item #3) ─────────────────────
+//
+// Use when the payload is generated incrementally (LLM token-by-token reply,
+// live caption stream, large file chunked upload with backpressure). Receivers
+// register the same handler as the buffered variant; the handler fires once
+// after the stream closes with the fully-drained payload.
+
+export interface OpenChatTextStreamOptions {
+  destinationIdentities?: string[];
+  attributes?: Record<string, string>;
+  totalSize?: number;
+}
+
+/** Open a long-running text stream — e.g. AI reply token-by-token. */
+export function openChatTextStream(
+  scope: StreamScope,
+  id: string,
+  opts: OpenChatTextStreamOptions = {},
+) {
+  return streamText(scope, id, {
+    topic: CHAT_TOPIC.text,
+    destinationIdentities: opts.destinationIdentities,
+    attributes: opts.attributes,
+    totalSize: opts.totalSize,
+  });
+}
+
+export interface OpenChatBytesStreamOptions {
+  destinationIdentities?: string[];
+  mimeType?: string;
+  name?: string;
+  attributes?: Record<string, string>;
+  totalSize?: number;
+}
+
+/** Open a long-running byte stream for chunked uploads / partial binary data. */
+export function openChatBytesStream(
+  scope: StreamScope,
+  id: string,
+  topic: typeof CHAT_TOPIC.image | typeof CHAT_TOPIC.voice | typeof CHAT_TOPIC.file,
+  opts: OpenChatBytesStreamOptions = {},
+) {
+  return streamBytes(scope, id, {
+    topic,
+    destinationIdentities: opts.destinationIdentities,
+    mimeType: opts.mimeType,
+    name: opts.name,
+    attributes: opts.attributes,
+    totalSize: opts.totalSize,
+  });
+}
