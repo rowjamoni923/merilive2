@@ -69,6 +69,7 @@ import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
 import { ReactionPickerSheet } from "@/components/livekit/ReactionPickerSheet";
 import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
+import { PartyRaiseHandUI } from "@/components/livekit/PartyRaiseHandUI";
 import { raiseHand, lowerHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 
 
