@@ -1,7 +1,7 @@
 /**
  * Pkg36/37 — Live Sync Latency Tester
  *
- * Public route: /sync-test (no auth required)
+ * Admin-only route: /sync-test
  *
  * Open this page on:
  *   - your phone (Play Store app or browser)
@@ -41,36 +41,60 @@ const deviceLabel = () => {
 };
 
 export default function SyncTest() {
-  const [status, setStatus] = useState<'connecting' | 'subscribed' | 'error'>('connecting');
+  const [status, setStatus] = useState<'checking' | 'unauthorized' | 'connecting' | 'subscribed' | 'error'>('checking');
   const [events, setEvents] = useState<Event[]>([]);
   const [bumping, setBumping] = useState(false);
   const [me] = useState(deviceLabel);
   const channelRef = useRef<any>(null);
 
   useEffect(() => {
-    const ch = supabase
-      .channel('sync-test-' + Math.random().toString(36).slice(2, 8))
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'admin_broadcast', filter: 'topic=eq.__sync_test' },
-        (payload) => {
-          const row: any = payload.new ?? payload.old;
-          if (!row) return;
-          const serverTime = row.updated_at as string;
-          const receivedAt = Date.now();
-          const latencyMs = receivedAt - new Date(serverTime).getTime();
-          setEvents((prev) =>
-            [{ receivedAt, serverTime, version: row.version, latencyMs }, ...prev].slice(0, 30),
-          );
-        },
-      )
-      .subscribe((s) => {
-        if (s === 'SUBSCRIBED') setStatus('subscribed');
-        else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT' || s === 'CLOSED') setStatus('error');
-      });
-    channelRef.current = ch;
+    let cancelled = false;
+
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        if (!cancelled) setStatus('unauthorized');
+        return;
+      }
+
+      const { data: isAdmin, error } = await supabase.rpc('is_admin');
+      if (error || isAdmin !== true) {
+        if (!cancelled) setStatus('unauthorized');
+        return;
+      }
+
+      if (cancelled) return;
+      setStatus('connecting');
+
+      const ch = supabase
+        .channel(`sync-test-${session.user.id}-${Math.random().toString(36).slice(2, 8)}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'admin_broadcast', filter: 'topic=eq.__sync_test' },
+          (payload) => {
+            const row: any = payload.new ?? payload.old;
+            if (!row) return;
+            const serverTime = row.updated_at as string;
+            const receivedAt = Date.now();
+            const latencyMs = receivedAt - new Date(serverTime).getTime();
+            setEvents((prev) =>
+              [{ receivedAt, serverTime, version: row.version, latencyMs }, ...prev].slice(0, 30),
+            );
+          },
+        )
+        .subscribe((s) => {
+          if (s === 'SUBSCRIBED') setStatus('subscribed');
+          else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT' || s === 'CLOSED') setStatus('error');
+        });
+      channelRef.current = ch;
+    })();
+
     return () => {
-      try { supabase.removeChannel(ch); } catch {}
+      cancelled = true;
+      if (channelRef.current) {
+        try { supabase.removeChannel(channelRef.current); } catch {}
+        channelRef.current = null;
+      }
     };
   }, []);
 
@@ -104,6 +128,8 @@ export default function SyncTest() {
               status === 'subscribed'
                 ? 'text-green-500 font-semibold'
                 : status === 'error'
+                ? 'text-destructive font-semibold'
+                : status === 'unauthorized'
                 ? 'text-destructive font-semibold'
                 : 'text-yellow-500'
             }
