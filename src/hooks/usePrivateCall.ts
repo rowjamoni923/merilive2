@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { updateCachedBalance } from '@/hooks/useUserBalance';
-import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
@@ -47,9 +46,9 @@ const INITIAL_CALL_STATE: CallState = {
   callerRemainingCoins: 0,
 };
 
-// Fast fallback for instant ringing reliability (broadcast/realtime remains primary)
-// COST-CRITICAL: Fallback poll for incoming calls. Realtime broadcast + postgres_changes are primary delivery.
-// Was 800ms (catastrophic: 10k users × 75 reads/min = $$$$). Now 30s safety net only. Visibility-change + native-resume listeners give instant catch-up on focus.
+// COST-CRITICAL: Incoming-call instant delivery is FCM notifications; this is only
+// a 30s safety-net REST poll for foreground/resume recovery. No Supabase Realtime.
+// Was 800ms (catastrophic: 10k users × 75 reads/min = $$$$).
 const FALLBACK_PENDING_CALL_POLL_MS = 30000;
 
 export function usePrivateCall(userId: string | null) {
@@ -431,7 +430,6 @@ export function usePrivateCall(userId: string | null) {
         callerRemainingCoins: userProfile?.coins || 0,
       }));
 
-      // ⚡ CRITICAL FIX: Send broadcast to host BEFORE the RPC call
       // Pkg84: FCM-only incoming-call delivery (Chamet/WhatsApp/Imo standard).
       // No more client-side Supabase broadcast on `incoming-call-${hostId}` —
       // `call-deliver` edge function (invoked below after RPC success) is the
@@ -522,10 +520,9 @@ export function usePrivateCall(userId: string | null) {
       // Reliable native call delivery in background (closed/background app).
       // 3-attempt retry with exponential backoff (1s, 2.5s) — aborts as soon
       // as the call is no longer ringing, and treats any non-2xx / network
-      // failure as retryable. The edge function itself runs an additional
-      // FCM retry loop + server-side realtime broadcast fallback, so the
-      // call has 3 independent delivery paths (FCM, server broadcast,
-      // client broadcast) each retried multiple times.
+      // failure as retryable. The edge function inserts a notification row
+      // for foreground in-app delivery and sends high-priority data-only FCM
+      // for background/killed-app delivery. No Supabase Realtime fallback.
       void (async () => {
         const deliveryBody = {
           callId: resolvedCallId,
@@ -554,11 +551,11 @@ export function usePrivateCall(userId: string | null) {
             });
             if (error) throw error;
             const fcmOk = !!(data && (data as any).fcmDelivered);
-            const broadcastOk = !!(data && (data as any).broadcastDelivered);
+            const notificationOk = !!(data && (data as any).notifInsertOk);
             console.log(
-              `[Call] call-deliver attempt ${i + 1} → fcm=${fcmOk} broadcast=${broadcastOk}`,
+              `[Call] call-deliver attempt ${i + 1} → fcm=${fcmOk} notification=${notificationOk}`,
             );
-            if (fcmOk || broadcastOk) return;
+            if (fcmOk || notificationOk) return;
           } catch (pushError) {
             console.warn(
               `[Call] call-deliver attempt ${i + 1} failed, will retry:`,
@@ -596,7 +593,8 @@ export function usePrivateCall(userId: string | null) {
         }
       }, timeoutSeconds * 1000);
 
-      // FALLBACK POLLING: Prevent stuck calling screen if realtime signal is missed
+      // Caller fallback polling: LiveKit call_accepted is primary; bounded 5s REST check
+      // prevents a stuck calling screen if the DataPacket is missed. No Supabase Realtime.
       outgoingStatusPollRef.current = setInterval(async () => {
         if (callEndedRef.current || currentCallIdRef.current !== callIdForTimeout) {
           if (outgoingStatusPollRef.current) {
@@ -662,7 +660,7 @@ export function usePrivateCall(userId: string | null) {
         } catch (err) {
           console.warn('[Call] Poll fallback error:', err);
         }
-      }, 1000);
+      }, 5000);
 
       return data;
     } catch (error: any) {
@@ -884,8 +882,8 @@ export function usePrivateCall(userId: string | null) {
         if (error) console.error('[Call] RPC error:', error);
       });
 
-      // Pkg73: also publish via LiveKit DataPacket — sub-50ms peer notify.
-      // Fire-and-forget; Supabase broadcast above is the always-on fallback.
+      // Pkg73: publish via LiveKit DataPacket — sub-50ms peer notify.
+      // Fire-and-forget; server RPC persists the durable end state.
       const livekitPromise = publishCallEnded(callIdToEnd, {
         endedBy: userId!,
         reason,
@@ -960,7 +958,7 @@ export function usePrivateCall(userId: string | null) {
   // 3) explicit timeout/missed flow for unanswered calls
 
   // ============ CHECK FOR PENDING CALLS ON MOUNT/FOCUS ============
-  // Fallback only: instant delivery is handled by broadcast + realtime listeners below.
+  // Fallback only: instant delivery is handled by FCM notification bridge below.
   useEffect(() => {
     if (!userId) return;
 
@@ -1002,7 +1000,7 @@ export function usePrivateCall(userId: string | null) {
         const callAge = Date.now() - new Date(call.created_at).getTime();
         if (callAge >= 30000) return;
 
-        // ⚡ Fetch caller profile WITHOUT re-verifying call status (broadcast already validated)
+        // ⚡ Fetch caller profile without re-verifying call status; DB query above validated freshness.
         const { data: callerProfile } = await supabase
           .from('profiles_public')
           .select('display_name, avatar_url, user_level')
@@ -1187,8 +1185,8 @@ export function usePrivateCall(userId: string | null) {
       softEndCallRef.current?.();
     };
 
-    // 🔥 Pkg86 audit: LiveKit `call_accepted` listener (mirrors Supabase broadcast above).
-    // Primary path once caller's LiveKit Room is connected; Supabase remains as pre-Room fallback.
+    // 🔥 Pkg86 audit: LiveKit `call_accepted` listener is the instant path.
+    // Worst-case pre-Room miss is covered by the bounded 5s REST status poll.
     const handleLiveKitCallAccepted = (ev: Event) => {
       if (isCleanedUp) return;
       const detail = (ev as CustomEvent<CallAcceptedDetail>).detail;
@@ -1224,147 +1222,6 @@ export function usePrivateCall(userId: string | null) {
         window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
         window.removeEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
       }
-    };
-  }, [userId]);
-
-
-  // 🔵 METHOD 2: Universal realtime listener (no extra filtered channels)
-  // Handles call status updates for both caller and host
-  useEffect(() => {
-    if (!userId) {
-      console.log('[Realtime] No userId, skipping subscription');
-      return;
-    }
-
-    console.log('[Realtime] Setting up universal call subscription for user:', userId);
-    let isCleanedUp = false;
-
-    const subscriberId = `calls-${userId}-${Date.now()}`;
-
-    const unsubscribe = subscribeToTables(
-      subscriberId,
-      ['private_calls'],
-      async (_table, event, rawPayload) => {
-        if (isCleanedUp) return;
-
-        const callData = rawPayload as any;
-        const callId = callData?.id;
-        if (!callId) return;
-
-        if (event === 'INSERT') {
-          if (callData.host_id !== userId) return;
-
-           // NEVER show a call we already ended
-           if (endedCallIdsRef.current.has(callData.id)) return;
-
-           // Only skip if we're GENUINELY in another active call
-           const activeId = currentCallIdRef.current;
-           const activeStatus = callStateRef.current.status;
-           if (activeId && activeId !== callData.id && (activeStatus === 'connected' || activeStatus === 'calling' || activeStatus === 'ringing')) return;
-
-           if (callData.status !== 'pending' && callData.status !== 'ringing') return;
-
-          // ⚡ Fetch caller profile WITHOUT re-verifying call status
-          // Pkg86 audit: cross-user read → profiles_public (RLS-safe, no coins leak)
-          const { data: callerProfile } = await supabase
-            .from('profiles_public')
-            .select('display_name, avatar_url, user_level')
-            .eq('id', callData.caller_id)
-            .single();
-
-
-          if (isCleanedUp) return;
-          if (endedCallIdsRef.current.has(callData.id)) return;
-
-          // ⚡ Pre-warm LiveKit token for faster accept
-          import('@/services/livekitService').then(({ warmLiveKitToken }) => {
-            warmLiveKitToken(`call_${callData.id}`, 'call').catch(() => {});
-          });
-
-          // ✅ CRITICAL: Force-reset callEndedRef for realtime-delivered calls
-          callEndedRef.current = false;
-
-          setIncomingCall({
-            callId: callData.id,
-            callerId: callData.caller_id,
-            callerName: callerProfile?.display_name || 'User',
-            callerAvatar: callerProfile?.avatar_url || null,
-            callerLevel: callerProfile?.user_level || 1,
-          });
-
-          // 📳 NATIVE: Vibrate phone for incoming call
-          if (typeof (window as any).Capacitor !== 'undefined') {
-            import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
-              Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
-              setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 300);
-              setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 600);
-            }).catch(() => {});
-          }
-
-          toastRef.current({
-            title: 'Incoming Call',
-            description: `${callerProfile?.display_name || 'User'} is calling you`,
-          });
-
-          return;
-        }
-
-        if (event !== 'UPDATE') return;
-
-        const newStatus = callData.status;
-
-        // Caller-side updates
-        if (callData.caller_id === userId) {
-          const trackedCallerCallId = currentCallIdRef.current || callStateRef.current.callId;
-          const isTerminalStatus = newStatus === 'declined' || newStatus === 'ended' || newStatus === 'missed';
-
-          // Ignore stale terminal updates from older calls (prevents auto-close race)
-          if (isTerminalStatus && (!trackedCallerCallId || trackedCallerCallId !== callId)) {
-            return;
-          }
-
-          if (endedCallIdsRef.current.has(callId)) return;
-          if (callEndedRef.current) return;
-          if (trackedCallerCallId && trackedCallerCallId !== callId) return;
-
-          if (newStatus === 'pending' || newStatus === 'ringing') {
-            // Caller can now see that host side is ringing
-            setCallState(prev => (
-              prev.callId === callId && (prev.status === 'calling' || prev.status === 'ringing')
-                ? { ...prev, status: 'ringing' }
-                : prev
-            ));
-          } else if (newStatus === 'connected') {
-            activateCallerConnectedState(callId);
-          } else if (newStatus === 'declined' || newStatus === 'ended' || newStatus === 'missed') {
-            // ✅ Soft-end: keep data for CallEndedModal
-            softEndCallRef.current?.();
-          }
-        }
-
-        // Host-side updates
-        if (callData.host_id === userId) {
-          const trackedHostCallId = currentCallIdRef.current || callStateRef.current.callId;
-          const isTerminalStatus = newStatus === 'ended' || newStatus === 'declined' || newStatus === 'missed';
-
-          // Ignore unrelated terminal updates to avoid closing current/next call accidentally
-          if (isTerminalStatus && trackedHostCallId && trackedHostCallId !== callId) return;
-
-          if (endedCallIdsRef.current.has(callId)) return;
-          if (callEndedRef.current) return;
-
-          if (newStatus === 'ended' || newStatus === 'declined' || newStatus === 'missed') {
-            // ✅ Soft-end: keep data for CallEndedModal
-            softEndCallRef.current?.();
-          }
-        }
-      }
-    );
-
-    return () => {
-      isCleanedUp = true;
-      unsubscribe();
-      clearAllTimersRef.current?.();
     };
   }, [userId]);
 
