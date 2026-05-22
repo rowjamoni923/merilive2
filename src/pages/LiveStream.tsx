@@ -3137,6 +3137,7 @@ const LiveStream = () => {
                       Music: <Music className="w-6 h-6" strokeWidth={1.8} />,
                       LogOut: <LogOut className="w-6 h-6" strokeWidth={1.8} />,
                       MonitorUp: <MonitorUp className="w-6 h-6" strokeWidth={1.8} />,
+                      ShieldCheck: <ShieldCheck className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
                     
