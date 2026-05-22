@@ -3,21 +3,26 @@
  *
  * Mirrors Pkg73 (private call) for live streams. The host publishes
  * a `stream_ended` packet to every viewer in the LiveKit room with
- * sub-50ms latency. Supabase Realtime broadcast on
- * `live-stream-close-${id}` + the postgres_changes fallback are
- * RETAINED — both paths converge into the same modal in LiveStream.tsx.
+ * sub-50ms latency.
  *
- * Money/audit path is UNCHANGED: live_streams UPDATE (is_active=false,
- * ended_at, total_coins_earned) runs first; this module just mirrors
- * the truth to viewers without a Supabase Realtime round-trip.
+ * LiveKit-Purist (Pkg78+): the Supabase Realtime `live-stream-close-${id}`
+ * broadcast + `live_streams` postgres_changes subscription have been
+ * REMOVED. This LiveKit DataPacket is now the SOLE instant path. The
+ * only durable fallback is the 30s viewer-side stale-stream poll
+ * (`cleanup_stale_live_streams` RPC + `live_streams.is_active` check)
+ * which covers host-crash / network-drop edge cases.
+ *
+ * Money/audit path is UNCHANGED: `live_streams` UPDATE
+ * (is_active=false, ended_at, total_coins_earned) runs FIRST; this
+ * module mirrors the truth to viewers without a Supabase round-trip.
  *
  * Cost guards:
  *  - NO Supabase Realtime channels.
  *  - NO setInterval / polling.
  *  - NO cross-user profile reads.
  *  - Per-feature kill-switch: `app_settings.livekit_signaling_enabled.live`.
- *    When OFF, `publishStreamEnded` returns false instantly → host
- *    silently degrades to Supabase broadcast.
+ *    When OFF, `publishStreamEnded` returns false instantly. Viewers
+ *    then learn via the 30s stale-stream safety poll instead.
  */
 import { Room, RoomEvent, type RemoteParticipant } from 'livekit-client';
 import {
