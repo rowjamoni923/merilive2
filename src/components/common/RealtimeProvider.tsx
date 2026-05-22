@@ -74,7 +74,8 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
     if (isAdminRoute()) return;
     if (!notifyOnImportantUpdates) return;
 
-    // Defer subscription by 5 seconds to prioritize initial render
+    // Keep the single approved notifications channel hot so app_sync invalidations
+    // land instantly without tab-switch/manual refresh.
     const timer = setTimeout(() => {
       const unsub = subscribeToTables(
         'global-notifications',
@@ -111,7 +112,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
         }
       );
       cleanupRef.current = unsub;
-    }, 5000);
+    }, 0);
 
     const cleanupRef = { current: () => {} };
     return () => {
