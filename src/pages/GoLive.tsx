@@ -1891,6 +1891,29 @@ const GoLive = () => {
 
       {/* Face-tracked Sticker Overlay */}
       <StickerOverlay stickerName={activeSticker} onDismiss={() => handleStickerChange(null)} />
+
+      {/* Pkg157: Pre-join connection warmup overlay (Chamet/Bigo parity) */}
+      <AnimatePresence>
+        {(isProbing || isStarting) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 backdrop-blur-[2px] pointer-events-none"
+          >
+            <div className="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl bg-black/60 border border-white/10 shadow-2xl">
+              <div className="relative h-10 w-10">
+                <div className="absolute inset-0 rounded-full border-2 border-white/15" />
+                <div className="absolute inset-0 rounded-full border-2 border-t-primary border-r-primary/60 border-b-transparent border-l-transparent animate-spin" />
+              </div>
+              <div className="text-white text-sm font-medium tracking-wide">
+                {isProbing ? 'Checking connection…' : 'Going live…'}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
