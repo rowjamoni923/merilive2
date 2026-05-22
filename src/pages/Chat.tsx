@@ -69,6 +69,7 @@ import { LevelBadge } from "@/components/common/LevelBadge";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { pickDisplayLevel } from "@/utils/displayLevel";
 
 interface Conversation {
   id: string;
