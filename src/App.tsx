@@ -1275,6 +1275,7 @@ const App = () => {
                   <Route path="auto-actions" element={<AdminRouteGuard routeSegment="auto-actions"><AdminAutoActions /></AdminRouteGuard>} />
                   <Route path="livekit-rooms" element={<AdminRouteGuard routeSegment="livekit-rooms"><AdminLiveKitRooms /></AdminRouteGuard>} />
                   <Route path="livekit-egress" element={<AdminRouteGuard routeSegment="livekit-egress"><AdminLiveKitEgress /></AdminRouteGuard>} />
+                  <Route path="livekit-ingress" element={<AdminRouteGuard routeSegment="livekit-ingress"><AdminLiveKitIngress /></AdminRouteGuard>} />
                   <Route path="livekit-sip" element={<AdminRouteGuard routeSegment="livekit-sip"><AdminLiveKitSip /></AdminRouteGuard>} />
 
                   <Route path="cost-monitor" element={<AdminRouteGuard routeSegment="cost-monitor"><AdminCostMonitor /></AdminRouteGuard>} />
