@@ -17,6 +17,8 @@ import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOver
 import { useSound } from "@/hooks/useSound";
 import { Capacitor } from "@capacitor/core";
 import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } from "@/components/live/ChametStyleGoLive";
+import PreJoinDevicesDialog from "@/components/livekit/PreJoinDevicesDialog";
+import { Sliders } from "lucide-react";
 import BeansIcon from "@/components/common/BeansIcon";
 import { BeautyFilterPanel, BeautySettings, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
@@ -81,6 +83,7 @@ const GoLive = () => {
   // Chamet-style UI states
   const [showChametFaceVerification, setShowChametFaceVerification] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [showPreJoinDevices, setShowPreJoinDevices] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [mirrorMode, setMirrorMode] = useState(true);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
@@ -1633,6 +1636,18 @@ const GoLive = () => {
             </div>
             <span className="text-[11px] text-white/50 font-semibold">More</span>
           </motion.button>
+
+          {/* Pkg144: Devices (pre-join camera/mic/speaker picker) */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowPreJoinDevices(true)}
+            className="flex flex-col items-center gap-1 touch-manipulation"
+          >
+            <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center">
+              <Sliders className="w-6 h-6 text-white/70" />
+            </div>
+            <span className="text-[11px] text-white/50 font-semibold">Devices</span>
+          </motion.button>
         </div>
 
         {/* Go Live Button - Chamet Style */}
@@ -1700,6 +1715,11 @@ const GoLive = () => {
           />
         )}
       </AnimatePresence>
+
+      {/* Pkg144: Pre-join device picker */}
+      <PreJoinDevicesDialog open={showPreJoinDevices} onOpenChange={setShowPreJoinDevices} />
+
+
 
       {/* Chamet More Menu */}
       <AnimatePresence>

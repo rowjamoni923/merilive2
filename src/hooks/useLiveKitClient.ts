@@ -817,6 +817,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           // Pkg103: apply Krisp noise filter to whichever mic we just published
           import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
+          // Pkg144: apply saved pre-join device preferences (camera/mic/speaker)
+          import('@/lib/livekitDevicePreferences').then(({ getDevicePreferences }) => {
+            const prefs = getDevicePreferences();
+            if (prefs.audioinput) room.switchActiveDevice('audioinput', prefs.audioinput).catch(() => {});
+            if (prefs.videoinput) room.switchActiveDevice('videoinput', prefs.videoinput).catch(() => {});
+            if (prefs.audiooutput) room.switchActiveDevice('audiooutput', prefs.audiooutput).catch(() => {});
+          }).catch(() => {});
+
           // Apply Tencent Beauty to the published camera track (Web only)
           // This handles the enableCameraAndMicrophone / setCameraEnabled path
           if (!hasPreloadedVideo) {
