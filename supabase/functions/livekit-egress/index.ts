@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
       const v = setting?.setting_value ? JSON.parse(setting.setting_value) : {};
       egressEnabled = v?.egress === true;
     } catch { egressEnabled = false; }
-    if (!egressEnabled) return json(403, { error: "egress_disabled" });
+    if (!egressEnabled) return json(200, { success: false, skipped: true, reason: "egress_disabled" });
 
     const body = await req.json().catch(() => ({}));
     const action = body?.action as string | undefined;
