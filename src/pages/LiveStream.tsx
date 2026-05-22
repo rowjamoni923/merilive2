@@ -11,6 +11,7 @@ import { SipDialDialog } from "@/components/livekit/SipDialDialog";
 import { RecordingDialog } from "@/components/livekit/RecordingDialog";
 import { SimulcastDialog } from "@/components/livekit/SimulcastDialog";
 import { AgentDispatchDialog } from "@/components/livekit/AgentDispatchDialog";
+import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { useLiveKitRpcHandlers } from "@/hooks/useLiveKitRpcHandlers";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
@@ -3039,6 +3040,10 @@ const LiveStream = () => {
           />
         </div>
       </motion.div>
+
+      {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
+      {id && <CaptionOverlay scope="live" id={id} />}
+
 
       {/* Bottom Section - Input Bar & Action Buttons */}
       <motion.div 

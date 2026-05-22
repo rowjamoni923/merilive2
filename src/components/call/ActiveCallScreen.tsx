@@ -19,6 +19,7 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { useSound } from "@/hooks/useSound";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
+import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 
 
 interface ActiveCallScreenProps {
@@ -575,6 +576,10 @@ export function ActiveCallScreen({
         className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]"
         style={{ opacity: showNativeCallingSurface ? 0 : 1 }}
       />
+
+      {/* Pkg145: Realtime captions (rides Pkg116 transcription kill-switch) */}
+      {callId && <CaptionOverlay scope="call" id={callId} />}
+
 
       {/* Privacy Warning Overlay */}
       <AnimatePresence>

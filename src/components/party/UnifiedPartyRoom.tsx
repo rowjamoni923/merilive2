@@ -59,6 +59,7 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 import type { PartyEventDetail, ParticipantJoinedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
+import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 
 // Real-time viewer type for header display
 interface RealtimeViewer {
@@ -1508,6 +1509,10 @@ export function UnifiedPartyRoom({
             />
           </div>
         </div>
+
+        {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
+        {roomId && <CaptionOverlay scope="party" id={roomId} />}
+
 
         {/* Game Board - Works for ALL room types (video, audio, game) */}
         {/* MUST be AFTER messages in DOM so it renders ON TOP of messages */}
