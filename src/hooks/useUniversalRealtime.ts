@@ -139,6 +139,11 @@ const ensureExternalSyncBridge = () => {
     const detail = (event as CustomEvent<any>).detail || {};
     notifySubscribers('profiles', 'UPDATE', detail);
   });
+
+  window.addEventListener('notifications:change', (event: Event) => {
+    const detail = (event as CustomEvent<any>).detail || {};
+    notifySubscribers('notifications', normalizeEventType(detail.eventType), detail.notification || detail.payload || detail);
+  });
 };
 
 // ============= Channel Management =============
