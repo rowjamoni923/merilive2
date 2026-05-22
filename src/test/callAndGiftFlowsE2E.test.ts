@@ -322,6 +322,35 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       expect(settled.hostEarn).toBe(90);
       expect(sb.profiles.get(host.id)!.beans).toBe(90);
     });
+
+    it('per-minute billing ignores duplicate RPC calls inside the same minute', async () => {
+      const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
+      });
+      const modal = new IncomingCallModal(sb, host.id);
+      await modal.accept();
+
+      const first = await sb.deduct_call_coins_per_minute(start.callId!, 1_000_000);
+      const duplicate = await sb.deduct_call_coins_per_minute(start.callId!, 1_000_500);
+      expect(first).toMatchObject({ ok: true, coinsDeducted: 100, hostEarn: 60 });
+      expect(duplicate).toMatchObject({ ok: true, duplicateIgnored: true, coinsDeducted: 0, hostEarn: 0 });
+      expect(sb.profiles.get(caller.id)!.coins).toBe(4_900);
+      expect(sb.profiles.get(host.id)!.beans).toBe(60);
+    });
+
+    it('per-minute billing charges the next minute once and credits admin percentage only', async () => {
+      host.host_percent = 45; sb.seedProfile(host);
+      const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 200, isNative: true,
+      });
+      const modal = new IncomingCallModal(sb, host.id);
+      await modal.accept();
+
+      await sb.deduct_call_coins_per_minute(start.callId!, 1_000_000);
+      await sb.deduct_call_coins_per_minute(start.callId!, 1_060_000);
+      expect(sb.profiles.get(caller.id)!.coins).toBe(4_600);
+      expect(sb.profiles.get(host.id)!.beans).toBe(180);
+    });
   });
 
   /* ── 2. Incoming call modal ──────────────────────────────────────── */
