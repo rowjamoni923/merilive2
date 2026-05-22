@@ -1036,7 +1036,12 @@ const GoLive = () => {
             className="relative flex-shrink-0"
             whileTap={{ scale: 0.95 }}
           >
-            <div className="w-20 h-24 rounded-xl overflow-hidden ring-2 ring-pink-500/60 shadow-lg">
+            <div
+              className="w-20 h-24 rounded-2xl overflow-hidden relative"
+              style={{
+                boxShadow: '0 0 0 2px rgba(236,72,153,0.65), 0 8px 22px -6px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.15)',
+              }}
+            >
               {userProfile?.avatar_url ? (
                 <img 
                   src={userProfile.avatar_url} 
@@ -1048,16 +1053,33 @@ const GoLive = () => {
                   <Camera className="w-8 h-8 text-white" />
                 </div>
               )}
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.22) 50%, transparent 58%)',
+                  animation: 'giftSendShine 3.6s ease-in-out infinite',
+                }}
+              />
             </div>
             {/* Verified Badge at Bottom */}
             {userProfile?.is_face_verified ? (
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-md px-2 py-0.5 flex items-center gap-1">
+              <div
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 flex items-center gap-1"
+                style={{
+                  background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)',
+                  boxShadow: '0 4px 12px -2px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
+                }}
+              >
                 <Check className="w-3 h-3 text-white" />
               </div>
             ) : (
               <motion.button
                 onClick={() => setShowChametFaceVerification(true)}
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-orange-500 rounded-md px-2 py-0.5 flex items-center gap-1"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 flex items-center gap-1"
+                style={{
+                  background: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
+                  boxShadow: '0 4px 12px -2px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.30)',
+                }}
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ repeat: Infinity, duration: 1.5 }}
               >
@@ -1101,8 +1123,14 @@ const GoLive = () => {
           {/* Close Button */}
           <motion.button
             onClick={handleBack}
-            whileTap={{ scale: 0.9 }}
-            className="absolute right-4 top-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center"
+            whileTap={{ scale: 0.88 }}
+            className="absolute right-4 top-4 w-10 h-10 rounded-full flex items-center justify-center border border-white/15"
+            style={{
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+            }}
           >
             <X className="w-5 h-5 text-white" />
           </motion.button>
@@ -1110,25 +1138,41 @@ const GoLive = () => {
         
         {/* Host Info Badge Row */}
         <div className="px-4 mt-2">
-          <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5">
+          <div
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-white/10"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+            }}
+          >
             <span className="text-white text-sm font-semibold">
               {userProfile?.display_name || "Your Name"} {userLocation?.flag || "🌍"}
             </span>
-            <span className="text-yellow-400 text-xs">
+            <span className="text-amber-300 text-xs">
               ??? ⭐
             </span>
           </div>
-          <div className="flex items-center gap-1 mt-1">
+          <div className="flex items-center gap-1 mt-1.5">
             <BeansIcon size={16} />
-            <span className="text-amber-300 text-sm">0</span>
+            <span className="text-amber-300 text-sm font-semibold tabular-nums">0</span>
           </div>
         </div>
         
         {/* Viewer Count Badge */}
         <div className="absolute left-4 top-36">
-          <div className="flex items-center gap-1 bg-pink-500/80 backdrop-blur-sm rounded-full px-2 py-0.5">
+          <div
+            className="flex items-center gap-1 rounded-full px-2 py-0.5 border border-white/15"
+            style={{
+              background: 'linear-gradient(135deg, rgba(236,72,153,0.85) 0%, rgba(168,85,247,0.85) 100%)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 12px -2px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.20)',
+            }}
+          >
             <Users className="w-3 h-3 text-white" />
-            <span className="text-white text-xs font-medium">0/1</span>
+            <span className="text-white text-xs font-semibold tabular-nums">0/1</span>
           </div>
         </div>
       </motion.div>
@@ -1612,15 +1656,36 @@ const GoLive = () => {
             }}
             className="flex flex-col items-center gap-1 touch-manipulation"
           >
-            <div className={cn(
-              "w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all",
-              beautyEnabled 
-                ? "bg-gradient-to-br from-pink-500/40 to-purple-500/40 border-pink-400/60 shadow-lg shadow-pink-500/30"
-                : "bg-white/10 border-white/20"
-            )}>
-              <Sparkles className={cn("w-6 h-6", beautyEnabled ? "text-pink-300" : "text-white/70")} />
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all relative overflow-hidden"
+              style={
+                beautyEnabled
+                  ? {
+                      background: 'linear-gradient(135deg, rgba(236,72,153,0.45) 0%, rgba(168,85,247,0.40) 100%)',
+                      borderColor: 'rgba(244,114,182,0.65)',
+                      boxShadow: '0 6px 18px -4px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.20)',
+                    }
+                  : {
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                      borderColor: 'rgba(255,255,255,0.20)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+                    }
+              }
+            >
+              <Sparkles className={cn("w-6 h-6 relative z-10", beautyEnabled ? "text-pink-200" : "text-white/75")} />
+              {beautyEnabled && (
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.25) 50%, transparent 58%)',
+                    animation: 'giftSendShine 2.8s ease-in-out infinite',
+                  }}
+                />
+              )}
             </div>
-            <span className={cn("text-[11px] font-semibold", beautyEnabled ? "text-pink-300" : "text-white/50")}>Beauty</span>
+            <span className={cn("text-[11px] font-semibold", beautyEnabled ? "text-pink-200" : "text-white/55")}>Beauty</span>
           </motion.button>
 
           {/* Sticker — Opens Beauty Panel Stickers Tab */}
@@ -1629,15 +1694,36 @@ const GoLive = () => {
             onClick={openStickerPanel}
             className="flex flex-col items-center gap-1 touch-manipulation"
           >
-            <div className={cn(
-              "w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all",
-              stickerActive
-                ? "bg-gradient-to-br from-amber-500/40 to-orange-500/40 border-amber-400/60 shadow-lg shadow-amber-500/30"
-                : "bg-white/10 border-white/20"
-            )}>
-              <Smile className={cn("w-6 h-6", stickerActive ? "text-amber-300" : "text-white/70")} />
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center border-2 transition-all relative overflow-hidden"
+              style={
+                stickerActive
+                  ? {
+                      background: 'linear-gradient(135deg, rgba(245,158,11,0.45) 0%, rgba(249,115,22,0.40) 100%)',
+                      borderColor: 'rgba(251,191,36,0.65)',
+                      boxShadow: '0 6px 18px -4px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.20)',
+                    }
+                  : {
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                      borderColor: 'rgba(255,255,255,0.20)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+                    }
+              }
+            >
+              <Smile className={cn("w-6 h-6 relative z-10", stickerActive ? "text-amber-200" : "text-white/75")} />
+              {stickerActive && (
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.25) 50%, transparent 58%)',
+                    animation: 'giftSendShine 2.8s ease-in-out infinite',
+                  }}
+                />
+              )}
             </div>
-            <span className={cn("text-[11px] font-semibold", stickerActive ? "text-amber-300" : "text-white/50")}>Sticker</span>
+            <span className={cn("text-[11px] font-semibold", stickerActive ? "text-amber-200" : "text-white/55")}>Sticker</span>
           </motion.button>
 
           {/* Settings (small) */}
@@ -1646,10 +1732,18 @@ const GoLive = () => {
             onClick={() => setShowSettingsPanel(true)}
             className="flex flex-col items-center gap-1 touch-manipulation"
           >
-            <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center">
-              <Settings className="w-6 h-6 text-white/70" />
+            <div
+              className="w-14 h-14 rounded-full border-2 border-white/20 flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+              }}
+            >
+              <Settings className="w-6 h-6 text-white/75" />
             </div>
-            <span className="text-[11px] text-white/50 font-semibold">More</span>
+            <span className="text-[11px] text-white/55 font-semibold">More</span>
           </motion.button>
 
           {/* Pkg144: Devices (pre-join camera/mic/speaker picker) */}
@@ -1658,10 +1752,18 @@ const GoLive = () => {
             onClick={() => setShowPreJoinDevices(true)}
             className="flex flex-col items-center gap-1 touch-manipulation"
           >
-            <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center">
-              <Sliders className="w-6 h-6 text-white/70" />
+            <div
+              className="w-14 h-14 rounded-full border-2 border-white/20 flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+              }}
+            >
+              <Sliders className="w-6 h-6 text-white/75" />
             </div>
-            <span className="text-[11px] text-white/50 font-semibold">Devices</span>
+            <span className="text-[11px] text-white/55 font-semibold">Devices</span>
           </motion.button>
         </div>
 
@@ -1676,15 +1778,17 @@ const GoLive = () => {
               (isStarting || isProbing || livekitLoading) && "opacity-70"
             )}
             style={{
-              background: 'linear-gradient(to right, #f472b6, #ec4899, #f97316)'
+              background: 'linear-gradient(95deg, #f472b6 0%, #ec4899 50%, #f97316 100%)',
+              boxShadow: '0 10px 28px -8px rgba(236,72,153,0.65), 0 4px 12px -2px rgba(249,115,22,0.45), inset 0 1px 0 rgba(255,255,255,0.30)',
+              animation: 'giftSendBreathe 2.4s ease-in-out infinite',
             }}
           >
             <motion.div
               animate={{ x: ["-100%", "200%"] }}
               transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12"
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
             />
-            <span className="relative text-white text-lg font-bold tracking-wide">
+            <span className="relative text-white text-lg font-bold tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
               {isProbing ? "Checking connection..." : (isStarting || livekitLoading) ? "Starting..." : "Go Live"}
             </span>
           </motion.button>

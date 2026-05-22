@@ -227,112 +227,186 @@ export const ChametSettingsPanel = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[59]"
+      transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+      className="fixed inset-0 z-[59] bg-black/65 backdrop-blur-md"
       onClick={onClose}
     >
       <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl pb-safe"
+        transition={{ type: "spring", damping: 28, stiffness: 320 }}
+        className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-[28px] pb-safe overflow-hidden border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
+        style={{
+          background: 'linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="py-4">
-          {/* Sticker Option */}
-          <button
-            onClick={() => {
-              onStickerClick();
-              onClose();
-            }}
-            className="w-full px-6 py-4 flex items-center justify-between active:bg-gray-50"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-100 to-orange-100 flex items-center justify-center">
-                <Smile className="w-5 h-5 text-orange-500" />
-              </div>
-              <span className="text-gray-800 font-medium">Sticker</span>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
+        {/* Aurora overlay */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          style={{
+            background:
+              'radial-gradient(60% 40% at 15% 0%, rgba(168,85,247,0.22), transparent 70%), radial-gradient(50% 35% at 90% 10%, rgba(244,114,182,0.18), transparent 70%)',
+          }}
+        />
 
-          <div className="h-px bg-gray-100 mx-6" />
+        {/* Drag handle */}
+        <div className="relative mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-white/25" />
 
-          {/* Beauty Option */}
-          <button
-            onClick={() => {
-              onBeautyClick();
-              onClose();
-            }}
-            className="w-full px-6 py-4 flex items-center justify-between active:bg-gray-50"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-purple-500" />
-              </div>
-              <span className="text-gray-800 font-medium">Beauty</span>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
+        <div className="relative py-2">
+          {(() => {
+            const rows: Array<{
+              kind: 'link' | 'toggle';
+              key: string;
+              label: string;
+              sub?: string;
+              icon: any;
+              iconGrad: string;
+              iconShadow: string;
+              onClick?: () => void;
+              checked?: boolean;
+              disabled?: boolean;
+              onChange?: (v: boolean) => void;
+            }> = [
+              {
+                kind: 'link',
+                key: 'sticker',
+                label: 'Sticker',
+                icon: Smile,
+                iconGrad: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
+                iconShadow: '0 6px 18px -4px rgba(245,158,11,0.55)',
+                onClick: () => { onStickerClick(); onClose(); },
+              },
+              {
+                kind: 'link',
+                key: 'beauty',
+                label: 'Beauty',
+                icon: Sparkles,
+                iconGrad: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)',
+                iconShadow: '0 6px 18px -4px rgba(168,85,247,0.55)',
+                onClick: () => { onBeautyClick(); onClose(); },
+              },
+              {
+                kind: 'toggle',
+                key: 'mirror',
+                label: 'Mirror Mode',
+                icon: RefreshCcw,
+                iconGrad: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)',
+                iconShadow: '0 6px 18px -4px rgba(59,130,246,0.55)',
+                checked: mirrorMode,
+                onChange: onMirrorToggle,
+              },
+              {
+                kind: 'toggle',
+                key: 'cam',
+                label: 'Switch the Camera',
+                icon: Camera,
+                iconGrad: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
+                iconShadow: '0 6px 18px -4px rgba(16,185,129,0.55)',
+                checked: !isFrontCamera,
+                onChange: onCameraSwitch,
+              },
+              {
+                kind: 'toggle',
+                key: 'mic',
+                label: 'Microphone',
+                icon: Mic,
+                iconGrad: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)',
+                iconShadow: '0 6px 18px -4px rgba(139,92,246,0.55)',
+                checked: isMicEnabled,
+                onChange: onMicToggle,
+              },
+              {
+                kind: 'toggle',
+                key: 'rec',
+                label: 'Auto-record Live',
+                sub: 'Save an MP4 of every live you start',
+                icon: Video,
+                iconGrad: 'linear-gradient(135deg, #fb7185 0%, #ef4444 100%)',
+                iconShadow: '0 6px 18px -4px rgba(239,68,68,0.55)',
+                checked: autoRecord,
+                disabled: autoRecordLoading,
+                onChange: (v: boolean) => void handleAutoRecordToggle(v),
+              },
+            ];
 
-          <div className="h-px bg-gray-100 mx-6" />
+            return rows.map((r, idx) => {
+              const Icon = r.icon;
+              const inner = (
+                <div className="flex items-center gap-3 w-full">
+                  <div
+                    className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
+                    style={{
+                      background: r.iconGrad,
+                      boxShadow: `${r.iconShadow}, inset 0 1px 0 rgba(255,255,255,0.30)`,
+                    }}
+                  >
+                    <Icon className="w-5 h-5 text-white relative z-10" />
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%)',
+                        animation: 'giftSendShine 3.2s ease-in-out infinite',
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="text-white font-medium text-[15px]">{r.label}</div>
+                    {r.sub && <div className="text-[11px] text-white/55 mt-0.5">{r.sub}</div>}
+                  </div>
+                  {r.kind === 'link' ? (
+                    <ChevronRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+                  ) : (
+                    <Switch
+                      checked={!!r.checked}
+                      disabled={r.disabled}
+                      onCheckedChange={r.onChange}
+                      className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-pink-500 data-[state=checked]:to-purple-500"
+                    />
+                  )}
+                </div>
+              );
 
-          {/* Mirror Mode */}
-          <div className="w-full px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
-                <RefreshCcw className="w-5 h-5 text-blue-500" />
-              </div>
-              <span className="text-gray-800 font-medium">Mirror Mode</span>
-            </div>
-            <Switch checked={mirrorMode} onCheckedChange={onMirrorToggle} />
-          </div>
-
-          <div className="h-px bg-gray-100 mx-6" />
-
-          {/* Switch Camera */}
-          <div className="w-full px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
-                <Camera className="w-5 h-5 text-green-500" />
-              </div>
-              <span className="text-gray-800 font-medium">Switch the Camera</span>
-            </div>
-            <Switch checked={!isFrontCamera} onCheckedChange={onCameraSwitch} />
-          </div>
-
-          <div className="h-px bg-gray-100 mx-6" />
-
-          {/* Microphone */}
-          <div className="w-full px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
-                <Mic className="w-5 h-5 text-violet-500" />
-              </div>
-              <span className="text-gray-800 font-medium">Microphone</span>
-            </div>
-            <Switch checked={isMicEnabled} onCheckedChange={onMicToggle} />
-          </div>
-
-          <div className="h-px bg-gray-100 mx-6" />
-
-          {/* Auto-record Live (Pkg129) */}
-          <div className="w-full px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-100 to-red-100 flex items-center justify-center">
-                <Video className="w-5 h-5 text-rose-500" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-gray-800 font-medium">Auto-record Live</span>
-                <span className="text-[11px] text-gray-500">Save an MP4 of every live you start</span>
-              </div>
-            </div>
-            <Switch
-              checked={autoRecord}
-              disabled={autoRecordLoading}
-              onCheckedChange={(v) => void handleAutoRecordToggle(v)}
-            />
-          </div>
+              return (
+                <motion.div
+                  key={r.key}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', damping: 24, stiffness: 360, delay: Math.min(idx * 0.03, 0.18) }}
+                  className="px-4 py-1.5"
+                >
+                  {r.kind === 'link' ? (
+                    <motion.button
+                      whileTap={{ scale: 0.985 }}
+                      onClick={r.onClick}
+                      className="w-full px-3 py-3 rounded-2xl border border-white/06 text-left"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+                        borderColor: 'rgba(255,255,255,0.06)',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                      }}
+                    >
+                      {inner}
+                    </motion.button>
+                  ) : (
+                    <div
+                      className="w-full px-3 py-3 rounded-2xl border"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+                        borderColor: 'rgba(255,255,255,0.06)',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                      }}
+                    >
+                      {inner}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            });
+          })()}
         </div>
       </motion.div>
     </motion.div>
