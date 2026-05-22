@@ -37,7 +37,8 @@ export type LiveKitFeature =
   | 'noise_cancellation'
   | 'hls_egress'
   | 'moderation'
-  | 'forward_participant';
+  | 'forward_participant'
+  | 'auto_record';
 
 
 
@@ -89,6 +90,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   hls_egress: false, // Pkg126: OFF by default — HLS (.m3u8) recording (admin opts in)
   moderation: true, // Pkg127: ON by default — host mute-all/kick (admin can flip OFF instantly)
   forward_participant: false, // Pkg128: OFF by default — move participant between rooms (admin opts in)
+  auto_record: false, // Pkg129: OFF by default — auto-record on live stream INSERT (admin opts in)
 };
 
 
@@ -135,6 +137,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       hls_egress: parsed.hls_egress === true, // Pkg126: explicit opt-in only
       moderation: parsed.moderation !== false, // Pkg127: ON unless admin explicitly disables
       forward_participant: parsed.forward_participant === true, // Pkg128: explicit opt-in only
+      auto_record: parsed.auto_record === true, // Pkg129: explicit opt-in only
     };
 
 
