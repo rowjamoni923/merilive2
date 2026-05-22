@@ -1003,55 +1003,8 @@ const PartyRoom = () => {
     }, [roomId, markOptimisticPartyGiftCount]);
 
 
-  // ============= POLLING FALLBACK FOR ROOM CLOSE DETECTION =============
-  // In case realtime subscription fails, poll every 5 seconds to check room status
-  useEffect(() => {
-    if (!roomId || !currentUser) return;
-    
-    const pollRoomStatus = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('party_rooms')
-          .select('is_active, host_id')
-          .eq('id', roomId)
-          .single();
-        
-        if (error || !data) {
-          console.log('[PartyRoom] 🔍 Poll: Room not found');
-          return;
-        }
-        
-        if (data.is_active === false && isMountedRef.current) {
-          console.log('[PartyRoom] 🔍 Poll detected room closed!');
-          
-          const isHostNow = data.host_id === currentUserRef.current?.id;
-          
-          if (!isHostNow && !showRoomClosedModal) {
-            console.log('[PartyRoom] 🎬 Poll: Showing RoomEndedModal to visitor');
-            setShowRoomClosedModal(true);
-            cleanupWebRTC();
-            
-            // Auto-redirect after 3 seconds
-            setTimeout(() => {
-              if (isMountedRef.current) {
-                navigate('/');
-              }
-            }, 3000);
-          }
-        }
-      } catch (err) {
-        console.error('[PartyRoom] Poll error:', err);
-        recordClientError({ label: "PartyRoom.isHostNow", message: err instanceof Error ? err.message : String(err) });
-      }
-    };
-    
-    // COST-OPTIMISED: 20s fallback poll (was 3s → ~85% fewer DB reads). LiveKit handles primary instant updates; this is purely a safety net.
-    const pollInterval = setInterval(pollRoomStatus, 20000);
-    
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, [roomId, currentUser, showRoomClosedModal, cleanupWebRTC, navigate]);
+  // Pkg187: Removed 20s room-status safety poll. LiveKit `room_state_changed` + `livekit-party-closed` events already deliver instant room-close to all viewers. Zero functional loss, $1400-rule safe.
+
 
   // Note: fetchCurrentUser and fetchRoom functions are now inlined in the useEffect above for parallel execution
 
@@ -1164,20 +1117,8 @@ const PartyRoom = () => {
     }
   }, []);
 
-  // NATIVE APP FALLBACK: Polling for participants & seat requests
-  // COST-OPTIMISED: 20s interval (was 3s → ~85% fewer DB reads). LiveKit is primary; this is a safety net for native packet loss.
-  useEffect(() => {
-    if (!roomId || !currentUser) return;
-    
-    const pollInterval = setInterval(() => {
-      fetchParticipants();
-      fetchSeatRequests();
-    }, 20000);
-    
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, [roomId, currentUser, fetchParticipants, fetchSeatRequests]);
+  // Pkg187: Removed 20s participants + seat_requests safety poll. LiveKit `participant_joined`/`left` + `seat_action` data events + Pkg186 optimistic deltas already deliver instant updates to all viewers. Zero functional loss, $1400-rule safe.
+
 
   const joinRoom = async () => {
     if (!roomId || !currentUser) return;
