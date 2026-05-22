@@ -2088,6 +2088,11 @@ const PartyRoom = () => {
         </>
       )}
 
+      {/* Pkg131: Raise-Hand — audience CTA + host queue panel */}
+      {room?.id && <PartyRaiseHandUI roomId={room.id} isHost={isHost} hasSeat={myPosition !== null} showQueue={showRaiseHandQueue} onCloseQueue={() => setShowRaiseHandQueue(false)} onOpenQueue={() => setShowRaiseHandQueue(true)} currentUserId={currentUser?.id} />}
+
+
+
 
       {/* Gift Panel */}
       <AnimatePresence>
