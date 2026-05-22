@@ -12,6 +12,7 @@ import {
   RemoteTrackPublication,
   RemoteParticipant,
   VideoPresets,
+  AudioPresets,
   VideoQuality,
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
@@ -183,6 +184,14 @@ export function usePartyRoomWebRTC(
             resolution: VideoPresets.h1080.resolution,
             facingMode: 'user',
           },
+          // Pkg163: pro-grade voice (AEC+NS+AGC + 48kHz mono) for party rooms.
+          audioCaptureDefaults: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+            sampleRate: 48000,
+          },
           publishDefaults: {
             videoEncoding: {
               maxBitrate: 6_500_000,
@@ -193,6 +202,10 @@ export function usePartyRoomWebRTC(
             // Pkg156: VP9 primary + VP8 backup. Chamet/Bigo party-room parity.
             videoCodec: 'vp9',
             backupCodec: { codec: 'vp8' },
+            // Pkg163: high-quality voice opus + RED packet-loss resilience.
+            audioPreset: AudioPresets.musicHighQuality,
+            dtx: false,
+            red: true,
           },
         });
         roomRef.current = room;

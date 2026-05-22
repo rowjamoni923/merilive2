@@ -37,10 +37,16 @@ export async function applyKrispNoiseFilter(track: LocalAudioTrack | null | unde
       return false;
     }
 
-    // Pkg148: honor user's BVC preference from localStorage (set by Pkg123 dialog).
-    let useBVC = false;
+    // Pkg163: Krisp BVC (Background Voice Cancellation) ON by default — Chamet/Bigo
+    // parity for live broadcast. Removes other voices + background noise. User can
+    // opt OUT via NoiseCancellationDialog (Pkg123) — stored as 'krisp' (BVC off).
+    let useBVC = true; // default ON
     try {
-      useBVC = typeof localStorage !== 'undefined' && localStorage.getItem('merilive_noisecancel_v1') === 'bvc';
+      if (typeof localStorage !== 'undefined') {
+        const v = localStorage.getItem('merilive_noisecancel_v1');
+        if (v === 'krisp') useBVC = false; // user opted to plain Krisp (no BVC)
+        // 'bvc' or null/unset → default useBVC=true
+      }
     } catch { /* ignore */ }
 
     const processor = mod.KrispNoiseFilter({ useBVC });

@@ -18,6 +18,7 @@ import {
   RemoteParticipant,
   LocalParticipant,
   VideoPresets,
+  AudioPresets,
   VideoQuality,
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
@@ -334,6 +335,14 @@ export function useLiveKitCall(
             resolution: VideoPresets.h1080.resolution,
             facingMode: 'user',
           },
+          // Pkg163: pro-grade voice (AEC+NS+AGC + 48kHz mono) for 1:1 calls.
+          audioCaptureDefaults: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+            sampleRate: 48000,
+          },
           publishDefaults: {
             videoEncoding: {
               maxBitrate: 6_500_000,
@@ -344,6 +353,10 @@ export function useLiveKitCall(
             // Pkg156: VP9 primary + VP8 backup. Chamet/Bigo private-call parity.
             videoCodec: 'vp9',
             backupCodec: { codec: 'vp8' },
+            // Pkg163: high-quality voice opus + RED packet-loss resilience.
+            audioPreset: AudioPresets.musicHighQuality,
+            dtx: false,
+            red: true,
           },
           // Pkg108: undefined when disabled — Room treats as plain.
           e2ee: e2eeOption,
