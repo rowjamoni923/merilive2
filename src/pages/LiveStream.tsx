@@ -2041,7 +2041,7 @@ const LiveStream = () => {
     setTimeout(async () => {
       const { data: battle } = await supabase
         .from("pk_battles")
-        .select("*")
+        .select("id, challenger_stream_id, opponent_stream_id, challenger_id, opponent_id")
         .or(
           `and(challenger_id.eq.${randomPKRequest.challengerId},opponent_id.eq.${currentUserId}),and(challenger_id.eq.${currentUserId},opponent_id.eq.${randomPKRequest.challengerId})`
         )
@@ -2060,12 +2060,14 @@ const LiveStream = () => {
             avatar: randomPKRequest.challengerAvatar,
             level: randomPKRequest.challengerLevel,
             id: randomPKRequest.challengerId,
+            streamId: battle.challenger_stream_id || "",
           },
           opponentInfo: {
             name: hostInfo.name,
             avatar: hostInfo.avatar,
             level: hostInfo.level,
             id: currentUserId,
+            streamId: battle.opponent_stream_id || "",
           },
         });
       }
