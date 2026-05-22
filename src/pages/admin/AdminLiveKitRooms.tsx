@@ -424,6 +424,15 @@ export default function AdminLiveKitRooms() {
               <Radio className="w-5 h-5 text-indigo-400" />
               <span className="font-mono">{detailRoom?.name}</span>
               {detailRoom && scopeBadge(detailRoom.name)}
+              <Button
+                size="sm"
+                variant="outline"
+                className="ml-auto border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/20 h-7 text-xs"
+                onClick={() => setShowAgentDispatch(true)}
+              >
+                <Bot className="w-3.5 h-3.5 mr-1" />
+                Agent
+              </Button>
             </DialogTitle>
           </DialogHeader>
           {detailRoom && (
