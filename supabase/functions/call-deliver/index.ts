@@ -140,13 +140,26 @@ serve(async (req: Request): Promise<Response> => {
     const gapMs = parseInt(await loadSetting(admin, "call_delivery_retry_gap_ms", "2000"), 10) || 2000;
     const ringTimeoutSec = parseInt(await loadSetting(admin, "call_ring_timeout_seconds", "30"), 10) || 30;
 
-    let callerName = body.callerName?.trim() || "Caller";
+    let callerName = body.callerName?.trim() || "";
     let callerAvatar = body.callerAvatar?.trim() || "";
-    if (!callerName || callerName === "Caller") {
-      const { data: prof } = await admin.from("profiles").select("display_name,avatar_url").eq("id", callerId).maybeSingle();
-      if (prof?.display_name) callerName = String(prof.display_name);
-      if (prof?.avatar_url) callerAvatar = String(prof.avatar_url ?? "");
+    let callerLevel = 1;
+    // Pkg84-audit: always fetch caller profile (service-role bypasses RLS) so we
+    // get the real user_level for the IncomingCallModal badge/styling. Use
+    // client-supplied name/avatar when present, else fall back to profile row.
+    {
+      const { data: prof } = await admin
+        .from("profiles")
+        .select("display_name,avatar_url,user_level")
+        .eq("id", callerId)
+        .maybeSingle();
+      if (prof) {
+        if (!callerName && prof.display_name) callerName = String(prof.display_name);
+        if (!callerAvatar && prof.avatar_url) callerAvatar = String(prof.avatar_url ?? "");
+        const lvl = Number((prof as { user_level?: unknown }).user_level);
+        if (Number.isFinite(lvl) && lvl > 0) callerLevel = Math.floor(lvl);
+      }
     }
+    if (!callerName) callerName = "Caller";
 
     const callType = (body.callType || "video").toLowerCase();
 
@@ -182,19 +195,16 @@ serve(async (req: Request): Promise<Response> => {
     let anyFcmOk = false;
 
     // ── Pkg84: foreground in-app delivery via `notifications` row.
-    // The Pkg37 master FCM trigger on `notifications` is SKIPPED for
-    // type='incoming_call' (see trigger_push_on_notification) so this
-    // does NOT cause a duplicate generic push — call-deliver's own
-    // high-priority data-only FCM below remains the SOLE push path.
-    // useNotifications short-circuits incoming_call → window event
-    // → IncomingCallModal renders <1s with zero Supabase Realtime
-    // channels open in usePrivateCall (Pkg84 LiveKit-Purist).
+    // Pkg37 master FCM trigger skips type='incoming_call' (see
+    // trigger_push_on_notification) so this insert never duplicates the
+    // high-priority data FCM dispatched below. useNotifications bridges
+    // the row → window 'incoming-call-notification' → IncomingCallModal.
     const notifPayload = {
       callId,
       callerId,
       callerName,
       callerAvatar,
-      callerLevel: 1,
+      callerLevel,
       callType,
       ts: Date.now(),
     };
@@ -298,6 +308,7 @@ serve(async (req: Request): Promise<Response> => {
         callee_id: calleeId,
         caller_name: callerName,
         caller_avatar: callerAvatar,
+        caller_level: String(callerLevel),
         call_type: callType,
         ring_timeout_seconds: String(ringTimeoutSec),
       };
