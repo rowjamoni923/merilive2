@@ -83,6 +83,7 @@ const GoLive = () => {
   // Chamet-style UI states
   const [showChametFaceVerification, setShowChametFaceVerification] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [showPreJoinDevices, setShowPreJoinDevices] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [mirrorMode, setMirrorMode] = useState(true);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
