@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
+import { PublishLayersDialog } from "@/components/livekit/PublishLayersDialog";
 import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
 import { ReactionsQuickBar } from "@/components/livekit/ReactionsQuickBar";
