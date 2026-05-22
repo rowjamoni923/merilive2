@@ -119,35 +119,23 @@ const AgentWallet = () => {
 
     fetchData();
 
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel("agency-wallet-updates")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "agencies" },
-        async () => {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await refreshBalances(user.id);
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "coin_transfers" },
-        async () => {
-          const { data: historyData } = await supabase
-            .rpc("get_agency_transfer_history", { _limit: 10 });
-          if (historyData) {
-            setTransfers(historyData as TransferRecord[]);
-          }
-        }
-      )
-      .subscribe();
+    // Pkg83-ext: removed static `agency-wallet-updates` channel (agencies +
+    // coin_transfers not in supabase_realtime publication). Visibility refetch
+    // covers tab-return; mutations refresh balances inline.
+    const onVisible = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await refreshBalances(user.id);
+      const { data: historyData } = await supabase
+        .rpc("get_agency_transfer_history", { _limit: 10 });
+      if (historyData) setTransfers(historyData as TransferRecord[]);
+    };
+    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
-      supabase.removeChannel(channel);
+      document.removeEventListener('visibilitychange', onVisible);
     };
+
   }, [navigate]);
 
   const handleSearchUser = async () => {

@@ -606,32 +606,30 @@ const AgencyDashboard = () => {
       });
     };
 
-    // Real-time subscriptions for instant updates
-    const channel = supabase
-      .channel('agency-dashboard-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agencies' },
-        (payload) => {
-          if (payload.new && (payload.new as any).id === agencyIdRef.current) {
-            setAgency(payload.new as Agency);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agency_withdrawals' },
-        (payload) => {
-          const next = payload.new as WithdrawalHistory & { agency_id?: string };
-          if (next?.agency_id === agencyIdRef.current) upsertWithdrawal(next);
-        }
-      )
-      .subscribe();
+    // Pkg83-ext: removed static `agency-dashboard-realtime` channel
+    // (agencies + agency_withdrawals not in supabase_realtime publication).
+    // Pkg52 admin_broadcast covers agency_withdrawals admin updates; visibility
+    // refetch handles own-agency snapshot on tab return.
+    const onAdmin = async (e: Event) => {
+      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
+      if (table !== 'agency_withdrawals' && table !== 'agencies') return;
+      const { data } = await supabase.from('agencies').select('*').eq('id', agencyIdRef.current).maybeSingle();
+      if (data) setAgency(data as Agency);
+    };
+    const onVisible = async () => {
+      if (document.visibilityState !== 'visible' || !agencyIdRef.current) return;
+      const { data } = await supabase.from('agencies').select('*').eq('id', agencyIdRef.current).maybeSingle();
+      if (data) setAgency(data as Agency);
+    };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', onAdmin as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
     };
+
   }, [navigate]);
 
   // ===== Approve/Reject Host Handlers =====

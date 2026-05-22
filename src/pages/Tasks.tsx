@@ -158,13 +158,12 @@ const Tasks = () => {
       }
     );
 
-    // Also subscribe to task-specific tables via direct channel for user_task_progress
-    const tasksChannel = supabase
-      .channel('tasks-progress-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_task_progress' }, () => {
-        fetchTasks();
-      })
-      .subscribe();
+    // Pkg83-ext: removed static `tasks-progress-sync` channel
+    // (user_task_progress not in publication). Mutations refresh inline;
+    // visibility refetch covers tab return.
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchTasks(); };
+    document.addEventListener('visibilitychange', onVisible);
+
 
     // Auto-refresh at 12:30 AM local time when tasks reset
     const msUntilReset = getMsUntilNextReset();
@@ -176,9 +175,10 @@ const Tasks = () => {
 
     return () => {
       unsubscribe();
-      supabase.removeChannel(tasksChannel);
+      document.removeEventListener('visibilitychange', onVisible);
       clearTimeout(resetTimer);
     };
+
   }, []);
 
   const fetchNewHostBonus = async (): Promise<boolean> => {

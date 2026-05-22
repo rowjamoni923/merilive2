@@ -82,19 +82,14 @@ const AgencyHostManagement = () => {
     }
     fetchAgencyData();
 
-    // Set up realtime subscription
-    const channel = supabase
-      .channel('agency-hosts-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agency_hosts' },
-        () => fetchAgencyData()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    // Pkg83-ext: removed static `agency-hosts-changes` channel
+    // (agency_hosts not in supabase_realtime publication). Visibility refetch.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchAgencyData();
     };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+
   }, [searchParams]);
 
   const fetchAgencyData = async () => {

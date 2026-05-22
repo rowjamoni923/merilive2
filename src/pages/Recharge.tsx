@@ -1332,98 +1332,40 @@ const Recharge = () => {
     }
   }, [isBangladesh, selectedPaymentMethod]);
 
-  // Real-time subscription for helper payment methods (BOTH tables)
+  // Pkg83-ext: removed static `recharge-helper-methods-realtime` channel
+  // (helper_payment_methods/helper_country_payment_methods/topup_payment_methods
+  // are admin-managed → Pkg37 admin_broadcast push; agencies/profiles/
+  // coin_transfers/agency_diamond_transactions/topup_helpers/helper_orders
+  // are not in publication → visibility refetch covers tab return).
   useEffect(() => {
-    const channel = supabase
-      .channel('recharge-helper-methods-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_payment_methods' },
-        () => {
-          console.log('[Recharge] Helper payment methods updated (from helper_payment_methods)');
-          fetchLevel5HelperPaymentMethods();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_country_payment_methods' },
-        () => {
-          console.log('[Recharge] Helper payment methods updated (from helper_country_payment_methods)');
-          fetchLevel5HelperPaymentMethods();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_helpers' },
-        () => {
-          console.log('[Recharge] Helper data updated - checking eligibility (both Level 5 + Level 1-4)');
-          fetchLevel5HelperPaymentMethods();
-          fetchTopUpHelpers(); // Also refresh Level 1-4 traders when balance changes
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agencies' },
-        () => {
-          console.log('[Recharge] Agency data changed - rechecking helper eligibility');
-          fetchLevel5HelperPaymentMethods();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agency_diamond_transactions' },
-        () => {
-          console.log('[Recharge] Agency diamond transaction detected - rechecking helper eligibility');
-          fetchLevel5HelperPaymentMethods();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'helper_orders' },
-        () => {
-          console.log('[Recharge] New helper_order - refreshing daily top-up counts');
-          fetchTopUpHelpers();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'helper_orders' },
-        () => {
-          console.log('[Recharge] helper_order status changed - refreshing daily top-up counts');
-          fetchTopUpHelpers();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'coin_transfers' },
-        () => {
-          console.log('[Recharge] Coin transfer detected - rechecking helper eligibility');
-          fetchLevel5HelperPaymentMethods();
-          fetchTopUpHelpers();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles' },
-        () => {
-          console.log('[Recharge] Profile updated - checking online status');
-          fetchLevel5HelperPaymentMethods();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_payment_methods' },
-        () => {
-          console.log('[Recharge] Admin payment methods updated');
-          fetchAdminPaymentMethods();
-        }
-      )
-      .subscribe();
-
+    const ADMIN_TABLES = new Set([
+      'helper_payment_methods',
+      'helper_country_payment_methods',
+      'topup_payment_methods',
+    ]);
+    const onAdmin = (e: Event) => {
+      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
+      if (!table) return;
+      if (table === 'topup_payment_methods') {
+        fetchAdminPaymentMethods();
+        return;
+      }
+      if (ADMIN_TABLES.has(table)) fetchLevel5HelperPaymentMethods();
+    };
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      fetchLevel5HelperPaymentMethods();
+      fetchTopUpHelpers();
+      fetchAdminPaymentMethods();
+    };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', onAdmin as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [fetchLevel5HelperPaymentMethods, fetchAdminPaymentMethods, fetchTopUpHelpers]);
+
 
   // REMOVED: Modal rotation is disabled - number stays FIXED once modal opens
   // New helper is only selected when modal opens fresh (selection advances to next helper on package click)
@@ -1469,58 +1411,18 @@ const Recharge = () => {
 
   // Keep helper cards static; do not auto-rotate pages
 
-  // REALTIME: Re-fetch helpers when profiles (online status) changes
+  // Pkg83-ext: removed static `helpers-online-status-realtime` channel
+  // (profiles/topup_helpers/coin_transfers/helper_accepted_payment_methods not
+  // in publication — was silent no-op). Visibility refetch on tab return.
   useEffect(() => {
     if (selectedTab !== "helper") return;
-
-    const channel = supabase
-      .channel('helpers-online-status-realtime')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: 'is_online=eq.true' },
-        () => {
-          console.log('[Recharge] Helper online status changed - refreshing');
-          fetchTopUpHelpers();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: 'is_online=eq.false' },
-        () => {
-          console.log('[Recharge] Helper went offline - refreshing');
-          fetchTopUpHelpers();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'topup_helpers' },
-        () => {
-          console.log('[Recharge] Helper data changed - refreshing');
-          fetchTopUpHelpers();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'coin_transfers' },
-        () => {
-          console.log('[Recharge] Coin transfer in helper tab - refreshing');
-          fetchTopUpHelpers();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_accepted_payment_methods' },
-        () => {
-          console.log('[Recharge] Helper accepted methods changed - refreshing');
-          fetchTopUpHelpers();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchTopUpHelpers();
     };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [selectedTab, fetchTopUpHelpers]);
+
 
   const fetchUserData = async () => {
     try {
