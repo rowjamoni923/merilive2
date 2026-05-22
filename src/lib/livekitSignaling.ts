@@ -45,7 +45,8 @@ export type LiveKitFeature =
   | 'room_ops'
   | 'egress_ops'
   | 'ingress_ops'
-  | 'sip_ops';
+  | 'sip_ops'
+  | 'agent_ops';
 
 
 
@@ -105,6 +106,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   egress_ops: false, // Pkg136: OFF by default — admin LiveKit egress inspection + layout swap (admin opts in)
   ingress_ops: false, // Pkg137: OFF by default — admin LiveKit ingress inspection + delete (admin opts in)
   sip_ops: false, // Pkg138: OFF by default — admin LiveKit SIP trunk/rule inspection + delete (admin opts in)
+  agent_ops: false, // Pkg139: OFF by default — admin LiveKit Agent dispatch inspection + cancel (admin opts in)
 };
 
 
@@ -159,6 +161,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       egress_ops: parsed.egress_ops === true, // Pkg136: explicit opt-in only
       ingress_ops: parsed.ingress_ops === true, // Pkg137: explicit opt-in only
       sip_ops: parsed.sip_ops === true, // Pkg138: explicit opt-in only
+      agent_ops: parsed.agent_ops === true, // Pkg139: explicit opt-in only
     };
 
 

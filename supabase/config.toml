@@ -92,3 +92,6 @@ verify_jwt = false
 
 [functions.livekit-sip-ops]
 verify_jwt = false
+
+[functions.livekit-agent-ops]
+verify_jwt = false
