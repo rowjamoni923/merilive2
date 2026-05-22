@@ -104,48 +104,64 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
 
     const isStream = !!streamId;
     const id = (streamId || roomId) as string;
-    const table = isStream ? "stream_viewers" : "party_room_participants";
-    const idCol = isStream ? "stream_id" : "room_id";
-    const userCol = isStream ? "viewer_id" : "user_id";
 
     setLoading(true);
     (isStream ? fetchStreamViewers(id) : fetchPartyViewers(id)).finally(() => {
       if (mountedRef.current) setLoading(false);
     });
 
-    const channel = supabase
-      .channel(`viewers:${table}:${id}`)
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table, filter: `${idCol}=eq.${id}` },
-        (payload: any) => {
-          const row = payload.new;
-          if (!row || row.left_at) return;
-          void insertViewer(row[userCol], row.joined_at);
-        }
-      )
-      .on("postgres_changes",
-        { event: "UPDATE", schema: "public", table, filter: `${idCol}=eq.${id}` },
-        (payload: any) => {
-          const row = payload.new;
-          if (!row) return;
-          if (row.left_at) removeViewer(row[userCol]);
-          else void insertViewer(row[userCol], row.joined_at);
-        }
-      )
-      .on("postgres_changes",
-        { event: "DELETE", schema: "public", table, filter: `${idCol}=eq.${id}` },
-        (payload: any) => {
-          const row = payload.old;
-          if (row) removeViewer(row[userCol]);
-        }
-      )
-      .subscribe();
+    const handleLiveEvent = (evt: Event) => {
+      if (!isStream) return;
+      const detail = (evt as CustomEvent).detail;
+      const payload = detail?.payload;
+      if (!payload || payload.streamId !== id) return;
+      if (payload.type === 'viewer_left') {
+        removeViewer(payload.userId);
+        return;
+      }
+      if (payload.type === 'viewer_joined') {
+        upsertViewerFromPacket({
+          id: payload.userId,
+          app_uid: payload.appUid || null,
+          display_name: payload.userName || 'User',
+          avatar_url: payload.userAvatar || null,
+          user_level: payload.userLevel || 1,
+          is_vip: (payload.userLevel || 1) >= 5,
+          joined_at: new Date(payload.timestamp || Date.now()).toISOString(),
+        });
+      }
+    };
+
+    const handlePartyEvent = (evt: Event) => {
+      if (isStream) return;
+      const detail = (evt as CustomEvent).detail;
+      const payload = detail?.payload;
+      if (!payload || payload.roomId !== id) return;
+      if (payload.type === 'participant_left') {
+        removeViewer(payload.userId);
+        return;
+      }
+      if (payload.type === 'participant_joined') {
+        upsertViewerFromPacket({
+          id: payload.userId,
+          display_name: payload.userName || 'User',
+          avatar_url: payload.userAvatar || null,
+          user_level: payload.userLevel || 1,
+          is_vip: (payload.userLevel || 1) >= 5,
+          joined_at: new Date(payload.timestamp || Date.now()).toISOString(),
+        });
+      }
+    };
+
+    window.addEventListener('livekit-live-event', handleLiveEvent);
+    window.addEventListener('livekit-party-event', handlePartyEvent);
 
     return () => {
       mountedRef.current = false;
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-live-event', handleLiveEvent);
+      window.removeEventListener('livekit-party-event', handlePartyEvent);
     };
-  }, [streamId, roomId, enabled, fetchStreamViewers, fetchPartyViewers, insertViewer, removeViewer]);
+  }, [streamId, roomId, enabled, fetchStreamViewers, fetchPartyViewers, removeViewer, upsertViewerFromPacket]);
 
   const refetch = useCallback(() => {
     if (streamId) return fetchStreamViewers(streamId);
