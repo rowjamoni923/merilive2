@@ -68,7 +68,7 @@ import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom"
 import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
 import { ReactionPickerSheet } from "@/components/livekit/ReactionPickerSheet";
-import { Smile } from "lucide-react";
+
 
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
 import { GameFooterNew } from "@/components/games/GameFooterNew";
