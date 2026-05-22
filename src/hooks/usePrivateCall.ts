@@ -127,29 +127,17 @@ export function usePrivateCall(userId: string | null) {
     setCallState(INITIAL_CALL_STATE);
     setIncomingCall(null);
     
-    // SAFETY: Reset is_in_call in DB for BOTH parties
+    // SAFETY: Reset own is_in_call in DB. The peer's row is updated
+    // server-side inside `end_private_call` (settle + UPDATE on both ids).
+    // Pkg86 audit: removed client-side cross-user UPDATE — it was silently
+    // RLS-filtered for the other party (dead code) and not needed since the
+    // RPC at line 132 + server `end_private_call` already cover both parties.
     if (userId) {
       Promise.resolve(supabase.rpc('reset_my_call_status')).then(() => {
         console.log('[Call] DB is_in_call reset for current user');
       }).catch(err => console.warn('[Call] Failed to reset DB call status:', err));
-      
-      if (callIdToReset) {
-        supabase
-          .from('private_calls')
-          .select('caller_id, host_id')
-          .eq('id', callIdToReset)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data) {
-              supabase
-                .from('profiles')
-                .update({ is_in_call: false, current_call_id: null, updated_at: new Date().toISOString() })
-                .in('id', [data.caller_id, data.host_id])
-                .then(() => console.log('[Call] ✅ Both parties is_in_call reset'));
-            }
-          });
-      }
     }
+
     
     // ☠️ DEAD FOREVER POLICY: Once a call ends, it NEVER comes back
     // Like WhatsApp/IMO - ended call = dead forever. New call = fresh start.
@@ -769,38 +757,16 @@ export function usePrivateCall(userId: string | null) {
       }).catch(() => {});
 
       // ⚡ Notify caller instantly so they switch to connected UI without waiting for DB propagation.
-      // Pkg86 audit: dual-path (LiveKit primary + Supabase fallback) — caller may not yet have
-      // joined the LiveKit Room when host accepts, so Supabase broadcast remains as safety net
-      // until LiveKit Room is established. publishCallAccepted retries up to 5s waiting for Room.
+      // Pkg86 audit (LiveKit-Purist policy): Supabase fallback REMOVED.
+      // Caller's ActiveCallScreen mounts on status='calling' → useLiveKitCall connects
+      // & registers Room BEFORE host accepts (Room state warmed during ringing).
+      // publishCallAccepted retries 20×250ms (=5s ceiling) waiting for Room.
+      // Worst-case (caller LiveKit fetch slow / fails): the 5s `outgoingStatusPollRef`
+      // REST poll on `private_calls.status` catches the accept within one tick.
       if (callData?.caller_id) {
-        // Primary: LiveKit DataPacket (sub-50ms once Room is up, retries 20×250ms)
         void publishCallAccepted(callId, { acceptedBy: userId });
-
-        // Fallback: Supabase broadcast (works pre-Room)
-        const callerChannel = supabase.channel(`call-end-listener-${callData.caller_id}`);
-        Promise.resolve(new Promise<void>((resolve) => {
-          const timeout = setTimeout(() => resolve(), 1500);
-          callerChannel.subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-              callerChannel
-                .send({
-                  type: 'broadcast',
-                  event: 'call_accepted',
-                  payload: { callId, acceptedBy: userId, at: Date.now() }
-                })
-                .finally(() => {
-                  clearTimeout(timeout);
-                  resolve();
-                });
-            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-              clearTimeout(timeout);
-              resolve();
-            }
-          });
-        })).finally(() => {
-          Promise.resolve(supabase.removeChannel(callerChannel)).catch(() => {});
-        });
       }
+
 
 
       // Host billing display fetch every 10s (billing changes every 60s — display only)
@@ -1187,49 +1153,18 @@ export function usePrivateCall(userId: string | null) {
   }, [userId]);
 
 
-  // 🔴 CALL-END BROADCAST LISTENER: Instant call termination for BOTH parties
-  // When either side ends the call, the other side gets notified in <100ms via broadcast
-  // This is MUCH faster than waiting for DB realtime (which can take 1-3 seconds)
+  // 🔴 PEER NOTIFICATION LISTENERS — instant call_ended + call_accepted via LiveKit DataPacket
+  // Pkg86 audit (LiveKit-Purist): Supabase `call-end-listener-${userId}` channel FULLY REMOVED.
+  // call_ended → LiveKit `livekit-call-ended` window event (Pkg73, was already pure LiveKit since Pkg78)
+  // call_accepted → LiveKit `livekit-call-accepted` window event (Pkg86, just promoted to sole path).
+  // Worst-case caller-side miss → 5s outgoingStatusPollRef on `private_calls.status` catches it.
   useEffect(() => {
     if (!userId) return;
     let isCleanedUp = false;
 
-    // Listen for call-end broadcasts for ANY call we're part of
-    // We subscribe to our own channel so the other party can notify us
-    const endChannel = supabase
-      .channel(`call-end-listener-${userId}`)
-      .on('broadcast', { event: 'call_accepted' }, (payload) => {
-        if (isCleanedUp) return;
-        const data = payload.payload as any;
-        if (!data?.callId) return;
-
-        const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
-
-        // Ignore events from a different active call; if callId isn't set yet, bind now
-        if (trackedCallId && trackedCallId !== data.callId) return;
-        if (!trackedCallId) {
-          currentCallIdRef.current = data.callId;
-          setCallState(prev => (
-            prev.status === 'calling' || prev.status === 'ringing'
-              ? { ...prev, callId: data.callId }
-              : prev
-          ));
-        }
-
-        if (endedCallIdsRef.current.has(data.callId) || callEndedRef.current) return;
-
-        console.log('[Broadcast] ⚡ INSTANT call-accepted received for:', data.callId);
-        activateCallerConnectedState(data.callId);
-      })
-      // Pkg78: Supabase `call_ended` listener REMOVED — Pkg73 LiveKit
-      // DataPacket (livekit-call-ended window event handler below) is the
-      // sole peer-hangup receiver. `call_accepted` broadcast is retained
-      // because it's outside Pkg73 scope (caller-side accept signaling).
-      .subscribe();
-
     // 🔥 Pkg73: LiveKit DataPacket peer notification (sub-50ms, no DB round-trip).
-    // Mirrors the Supabase 'call_ended' handler above; both paths converge on
-    // softEndCallRef + endedCallIdsRef so the same call is processed exactly once.
+    // Single sole receiver for call_ended — Supabase removed in Pkg78 + Pkg86.
+
     const handleLiveKitCallEnded = (ev: Event) => {
       if (isCleanedUp) return;
       const detail = (ev as CustomEvent<CallEndedDetail>).detail;
@@ -1277,7 +1212,7 @@ export function usePrivateCall(userId: string | null) {
 
     return () => {
       isCleanedUp = true;
-      supabase.removeChannel(endChannel);
+
       if (typeof window !== 'undefined') {
         window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
         window.removeEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
