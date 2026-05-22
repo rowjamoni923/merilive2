@@ -117,6 +117,9 @@ export function usePartyRoomWebRTC(
 
     const newEnabled = !state.isAudioEnabled;
     room.localParticipant.setMicrophoneEnabled(newEnabled);
+    if (newEnabled) {
+      import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
+    }
     setState(prev => ({ ...prev, isAudioEnabled: newEnabled }));
   }, [state.isAudioEnabled]);
 
