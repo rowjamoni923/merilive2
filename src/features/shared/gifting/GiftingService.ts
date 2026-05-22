@@ -125,6 +125,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       streamId: context === 'live' ? streamId : null,
       partyRoomId: context === 'party' ? roomId : null,
       callId: context === 'call' ? callId : null,
+      reelId: context === 'reel' ? reelId : null,
     });
 
     if (!result.success) {
@@ -139,9 +140,15 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       host_percent: result.hostPercent
     });
 
-    // Pkg85: Instant optimistic My Diamond deduction for sender.
-    // Own-row postgres_changes will reconcile within ~1s; this hides the lag.
-    if (result.coinsSpent && result.coinsSpent > 0) {
+    // Pkg85: Instant My Diamond update for sender.
+    // Prefer the server-returned post-transaction balance when present; otherwise
+    // deduct the normalized coinsSpent value. This prevents zero/missing cache updates
+    // when RPC response shapes differ across migrations.
+    if (typeof result.newBalance === 'number' && Number.isFinite(result.newBalance)) {
+      try {
+        updateCachedBalance(Math.max(0, result.newBalance));
+      } catch {}
+    } else if (result.coinsSpent && result.coinsSpent > 0) {
       try {
         updateCachedBalance(Math.max(0, getCachedBalance() - result.coinsSpent));
       } catch {}

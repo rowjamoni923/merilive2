@@ -14,7 +14,7 @@ import { secureStorage } from '@/utils/encryptedStorage';
 import { saveSessionToNative, clearNativeSession, getSessionFromNative } from '@/utils/nativeSessionStorage';
 import { prewarmSVGA } from '@/utils/svgaPrewarm';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
-import { clearBalanceCache } from '@/hooks/useUserBalance';
+import { clearBalanceCache, useUserBalancePrefetch } from '@/hooks/useUserBalance';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
@@ -423,6 +423,8 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
   const isPublicPage = ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/google-library-order-rules', '/join-agency', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
 
+  useUserBalancePrefetch();
+
   return (
     <>
       {!isAdminRoute && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
@@ -830,14 +832,14 @@ const App = () => {
                 
                 // Check if this user's phone matches the pending claim
                 const { data: profile } = await supabase
-                  .from('profiles')
+                  .from('profiles') // guard-ok: owner-only self phone lookup after auth session
                   .select('phone')
                   .eq('id', session.user.id)
                   .single();
                 
                 // Also check if agency still exists and has no owner
                 const { data: agency } = await supabase
-                  .from('agencies')
+                  .from('agencies') // guard-ok: pending claim lookup by stored agency id, needs owner_id for claim safety
                   .select('id, owner_id')
                   .eq('id', pendingClaim.agencyId)
                   .single();
@@ -845,7 +847,7 @@ const App = () => {
                 if (agency && !agency.owner_id) {
                   // Claim the agency - assign owner
                   const { error: claimError } = await supabase
-                    .from('agencies')
+                    .from('agencies') // guard-ok: authenticated owner claim update, not a cross-user read
                     .update({ owner_id: session.user.id })
                     .eq('id', pendingClaim.agencyId);
                   
@@ -870,7 +872,7 @@ const App = () => {
             
             try {
               let { data: profile } = await supabase
-                .from('profiles')
+                .from('profiles') // guard-ok: owner-only self gender lookup after auth session
                 .select('id, gender')
                 .eq('id', session.user.id)
                 .maybeSingle();
@@ -887,7 +889,7 @@ const App = () => {
                   });
 
                   const repaired = await supabase
-                    .from('profiles')
+                    .from('profiles') // guard-ok: owner-only self profile refetch after repair RPC
                     .select('id, gender')
                     .eq('id', session.user.id)
                     .maybeSingle();

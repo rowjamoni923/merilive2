@@ -110,6 +110,10 @@ export function getCachedBalance(): number {
   return balanceCache.balance;
 }
 
+export function isBalanceCacheInitialized(): boolean {
+  return balanceCache.initialized;
+}
+
 /**
  * Get balance with fetch if needed
  */
@@ -168,10 +172,43 @@ export function useUserBalancePrefetch(): void {
     }, 300);
 
     // `profiles` is deliberately NOT in supabase_realtime publication.
-    // Balance updates are optimistic after RPC success + REST refresh on demand.
+    // Server-side balance changes arrive through app_sync rows on the approved
+    // notifications channel, keeping My Diamond/My Beans instant without adding
+    // a costly profiles realtime subscription.
+    const handleAppSync = async (event: Event) => {
+      const detail = (event as CustomEvent<{ topic?: string; payload?: Record<string, any> }>).detail;
+      if (detail?.topic !== 'profiles') return;
+
+      const payload = detail.payload || {};
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId || (payload.profile_id && payload.profile_id !== userId)) return;
+
+      const coins = payload.coins;
+      const diamonds = payload.diamonds;
+      if (coins !== undefined || diamonds !== undefined) {
+        balanceCache.userId = userId;
+        updateCachedBalance(Math.max(Number(coins || 0), Number(diamonds || 0)));
+      }
+
+      if (payload.beans !== undefined && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('own-beans-updated', {
+          detail: { userId, beans: Number(payload.beans || 0) },
+        }));
+      }
+    };
+    window.addEventListener('app-sync', handleAppSync as EventListener);
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        setTimeout(() => void fetchBalance(), 0);
+      }
+    });
 
     return () => {
       clearTimeout(timer);
+      window.removeEventListener('app-sync', handleAppSync as EventListener);
+      authListener.subscription.unsubscribe();
     };
   }, []);
 }
@@ -182,12 +219,14 @@ export function useUserBalancePrefetch(): void {
 export function useUserBalance() {
   const [balance, setBalance] = useState(getCachedBalance());
   const [loading, setLoading] = useState(!balanceCache.initialized);
+  const [initialized, setInitialized] = useState(balanceCache.initialized);
 
   useEffect(() => {
     // Subscribe to balance updates
     const unsubscribe = subscribeToBalance((newBalance) => {
       setBalance(newBalance);
       setLoading(false);
+      setInitialized(true);
     });
 
     // Fetch if not cached
@@ -195,9 +234,11 @@ export function useUserBalance() {
       getBalanceWithFetch().then((b) => {
         setBalance(b);
         setLoading(false);
+        setInitialized(true);
       });
     } else {
       setLoading(false);
+      setInitialized(true);
     }
 
     return unsubscribe;
@@ -208,12 +249,14 @@ export function useUserBalance() {
     const newBalance = await fetchBalance();
     setBalance(newBalance);
     setLoading(false);
+    setInitialized(true);
     return newBalance;
   }, []);
 
   return {
     balance,
     loading,
+    initialized,
     refetch,
   };
 }

@@ -94,7 +94,7 @@ const Profile = () => {
   const { startCall } = useCall();
    
    // Use global cached balance for instant updates
-   const { balance: cachedBalance, refetch: refetchBalance } = useUserBalance();
+   const { balance: cachedBalance, initialized: balanceInitialized, refetch: refetchBalance } = useUserBalance();
    
   const [currentUser, setCurrentUser] = useState<any>(null);
   const profileCreationAttemptedRef = useRef(false);
@@ -185,8 +185,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   const resolvedDiamondBalance = useMemo(() => {
     const profileBalance = Math.max(Number(profile?.coins ?? 0), Number((profile as any)?.diamonds ?? 0));
-    return cachedBalance > 0 ? cachedBalance : profileBalance;
-  }, [cachedBalance, profile?.coins, (profile as any)?.diamonds]);
+    return balanceInitialized ? cachedBalance : profileBalance;
+  }, [balanceInitialized, cachedBalance, profile?.coins, (profile as any)?.diamonds]);
 
   const getPersonalBeans = (profileData: any) => Math.max(0, Number(profileData?.beans || 0));
 
