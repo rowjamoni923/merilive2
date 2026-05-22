@@ -16,17 +16,12 @@ interface SubscriptionConfig {
 }
 
 // ============= PUBLICATION GUARD =============
-// CRITICAL: Only these tables are in supabase_realtime publication.
-// Subscribing to other tables creates DB connections that do NOTHING
-// and cause server overload. Non-publication tables use polling fallback.
+// CRITICAL: Only these app-facing tables may use Supabase Realtime.
+// Room/call/live/gift/chat fanout is LiveKit/FCM + REST snapshots only.
 const PUBLICATION_TABLES = new Set([
-  'messages', 'conversations', 'live_streams', 'party_rooms',
-  'party_room_participants', 'notifications', 'profiles',
-  'gift_transactions', 'private_calls', 'app_settings',
-  'agencies', 'agency_withdrawals', 'support_tickets',
-  'support_messages', 'stream_chat', 'stream_viewers',
-  'rating_reward_claims', 'face_verification_submissions',
-  'followers', 'topup_helpers', 'shop_items',
+  'admin_broadcast',
+  'notifications',
+  'user_active_sessions',
 ]);
 
 const isInPublication = (table: string) => PUBLICATION_TABLES.has(table);
