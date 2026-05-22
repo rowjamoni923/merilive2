@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import ReactMarkdown from "react-markdown";
 import { Capacitor } from "@capacitor/core";
 import { useToast } from "@/hooks/use-toast";
