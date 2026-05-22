@@ -96,6 +96,71 @@ export const InCallChat = memo(({
     };
   }, [callId, isOpen, userId]);
 
+  // Pkg144: incoming attachments (image / voice / file) via Pkg142 topics.
+  useChatAttachmentHandlers(isOpen ? "call" : null, callId, {
+    onImage: (m) => {
+      if (m.senderIdentity === userId) return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: m.id,
+          senderId: m.senderIdentity,
+          senderName: remoteUserName,
+          message: "",
+          timestamp: m.timestamp || Date.now(),
+          attachment: { kind: "image", bytes: m.bytes, mimeType: m.mimeType, name: m.name },
+        },
+      ]);
+    },
+    onVoice: (m) => {
+      if (m.senderIdentity === userId) return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: m.id,
+          senderId: m.senderIdentity,
+          senderName: remoteUserName,
+          message: "",
+          timestamp: m.timestamp || Date.now(),
+          attachment: { kind: "voice", bytes: m.bytes, mimeType: m.mimeType, name: m.name },
+        },
+      ]);
+    },
+    onFile: (m) => {
+      if (m.senderIdentity === userId) return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: m.id,
+          senderId: m.senderIdentity,
+          senderName: remoteUserName,
+          message: "",
+          timestamp: m.timestamp || Date.now(),
+          attachment: { kind: "file", bytes: m.bytes, mimeType: m.mimeType, name: m.name },
+        },
+      ]);
+    },
+  });
+
+  const handleLocalAttachment = (
+    kind: AttachmentKind,
+    file: Blob,
+    name?: string,
+  ) => {
+    if (!userId) return;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `${Date.now()}-${userId}-${kind}`,
+        senderId: userId,
+        senderName: userName,
+        message: "",
+        timestamp: Date.now(),
+        attachment: { kind, bytes: file, mimeType: (file as File).type, name },
+      },
+    ]);
+  };
+
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || !callId || !userId) return;
