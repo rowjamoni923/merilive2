@@ -93,6 +93,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import Premium3DFrame from "@/components/common/Premium3DFrame";
 import BeansIcon from "@/components/common/BeansIcon";
 import { PremiumViewerProfileCard, ViewerProfile } from "@/components/live/PremiumViewerProfileCard";
+import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 import { useSound } from "@/hooks/useSound";
 import { useLiveStreamLifecycle } from "@/hooks/useLiveStreamLifecycle";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
