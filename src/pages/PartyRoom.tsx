@@ -53,7 +53,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
-import { publishGiftSent, type GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload, type RoomStateChangedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
@@ -2093,27 +2093,16 @@ const PartyRoom = () => {
               addFlyingGift(giftAnimationData);
               
               // Pkg78: Supabase gift broadcast REMOVED — LiveKit DataPacket
-              // (publishGiftSent below) is the sole instant fanout path.
+              // is the sole instant fanout path.
+              //
+              // Pkg76 audit (Pkg90) fix: direct `publishGiftSent('party', roomId, …)`
+              // REMOVED here. `GiftingService.sendGift` (called below) publishes
+              // the same envelope after the RPC succeeds. Calling both produced
+              // TWO envelopes with different `env.id` → 400ms dedupe missed them
+              // → every other participant saw the flying-gift twice and the
+              // room/sender bean counters incremented twice. GiftingService
+              // publish carries real `coinsSpent`/`hostReceived` from the RPC.
 
-              // Pkg76: parallel LiveKit DataPacket fanout (sub-50ms).
-              if (roomId) {
-                publishGiftSent('party', roomId, {
-                  senderId: currentUser.id,
-                  senderName: currentUser?.profile?.display_name || 'Someone',
-                  receiverId: room.host?.id,
-                  giftId: gift.id,
-                  giftKey,
-                  giftName: gift.name,
-                  giftIcon: gift.emoji,
-                  giftIconUrl: gift.icon_url || undefined,
-                  giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
-                  giftSoundUrl: gift.sound_url || undefined,
-                  giftCoins: gift.coins,
-                  count,
-                  totalCoins: totalCost,
-                  receiverBeans: optimisticReceiverBeans,
-                }).catch((err) => console.warn('[Pkg76] publishGiftSent(party):', err));
-              }
               markOptimisticPartyGiftCount(giftKey, optimisticReceiverBeans, totalCost);
               setTotalRoomBeans(prev => prev + optimisticReceiverBeans);
               setParticipantBeans(prev => ({
