@@ -78,6 +78,7 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/settings': () => import('@/pages/admin/AdminSettings'),
   '/admin/reels': () => import('@/pages/admin/AdminReels'),
   '/admin/recordings': () => import('@/pages/admin/AdminRecordings'),
+  '/admin/track-recordings': () => import('@/pages/admin/AdminTrackRecordings'),
   '/admin/reward-claims-history': () => import('@/pages/admin/AdminRewardClaimsHistory'),
   '/admin/host-search': () => import('@/pages/admin/AdminHostSearch'),
   '/admin/rating-rewards': () => import('@/pages/admin/AdminRatingRewards'),
