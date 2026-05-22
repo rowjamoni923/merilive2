@@ -193,10 +193,10 @@ const initializeUniversalChannel = async () => {
       return;
     }
 
-    let channel = supabase.channel('universal-realtime-v3', {
+    let channel = supabase.channel(`universal-realtime-v3-${session.user.id}`, {
       config: {
         broadcast: { self: false },
-        presence: { key: 'universal' }
+        presence: { key: `universal-${session.user.id}` }
       }
     });
 
