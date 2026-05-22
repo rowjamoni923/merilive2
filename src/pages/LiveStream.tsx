@@ -678,6 +678,57 @@ const LiveStream = () => {
             isVerifiedHost: hostProfile.is_host === true,
           });
         }
+
+        // Pkg100: Detect active PK battle on mount (viewer or host refresh).
+        // If this stream is part of an accepted PK battle, set up state + opponent room.
+        const { data: activeBattle } = await supabase
+          .from("pk_battles")
+          .select("id, challenger_id, opponent_id, challenger_stream_id, opponent_stream_id, challenger_score, opponent_score, status")
+          .or(`challenger_stream_id.eq.${id},opponent_stream_id.eq.${id}`)
+          .eq("status", "accepted")
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (activeBattle && mountedRef.current) {
+          const isChallengerSide = activeBattle.challenger_stream_id === id;
+          const isOpponentSide = activeBattle.opponent_stream_id === id;
+          if (!isChallengerSide && !isOpponentSide) return;
+
+          // Resolve challenger and opponent profiles
+          const challengerProfileRes = await supabase
+            .from("profiles_public")
+            .select("id, display_name, avatar_url, user_level")
+            .eq("id", activeBattle.challenger_id)
+            .maybeSingle();
+          const opponentProfileRes = await supabase
+            .from("profiles_public")
+            .select("id, display_name, avatar_url, user_level")
+            .eq("id", activeBattle.opponent_id)
+            .maybeSingle();
+          const cp = challengerProfileRes.data;
+          const op = opponentProfileRes.data;
+
+          setPKBattleState({
+            isActive: true,
+            battleId: activeBattle.id,
+            isChallenger: isChallengerSide,
+            challengerInfo: {
+              name: cp?.display_name || "Host",
+              avatar: cp?.avatar_url || "",
+              level: cp?.user_level || 1,
+              id: activeBattle.challenger_id || "",
+              streamId: activeBattle.challenger_stream_id || "",
+            },
+            opponentInfo: {
+              name: op?.display_name || "Host",
+              avatar: op?.avatar_url || "",
+              level: op?.user_level || 1,
+              id: activeBattle.opponent_id || "",
+              streamId: activeBattle.opponent_stream_id || "",
+            },
+          });
+        }
         
         // If viewer, add to stream_viewers and show join notification
         if (!isActualHost && currentUserId) {
