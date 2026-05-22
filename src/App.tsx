@@ -411,6 +411,18 @@ const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string
 const RouteSuspenseFallback = memo(() => null);
 RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
 
+// Pkg191: Dedicated dark loader for admin chunks — prevents the white flash
+// users see when entering /admin?access=<token> on a cold cache.
+const AdminChunkLoader = memo(() => (
+  <div className="min-h-screen w-full bg-slate-950 flex items-center justify-center">
+    <div className="text-center">
+      <div className="h-8 w-8 mx-auto mb-3 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
+      <p className="text-slate-400 text-sm">Verifying access...</p>
+    </div>
+  </div>
+));
+AdminChunkLoader.displayName = "AdminChunkLoader";
+
 // =============================================
 // MAIN APP COMPONENT
 // =============================================
@@ -1153,9 +1165,9 @@ const App = () => {
                 
                 {/* Admin Panel - Protected by AdminAccessGuard */}
                 {/* Shows blog page to unauthorized users, admin panel to authorized */}
-                <Route path="/admin/auth" element={<AdminAccessGuard><AdminAuth /></AdminAccessGuard>} />
-                <Route path="/admin/login" element={<AdminAccessGuard><AdminAuth /></AdminAccessGuard>} />
-                <Route path="/admin" element={<AdminAccessGuard><AdminLayout /></AdminAccessGuard>}>
+                <Route path="/admin/auth" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminAuth /></AdminAccessGuard></Suspense>} />
+                <Route path="/admin/login" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminAuth /></AdminAccessGuard></Suspense>} />
+                <Route path="/admin" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminLayout /></AdminAccessGuard></Suspense>}>
                   <Route index element={<SubAdminDashboardGuard><AdminDashboard /></SubAdminDashboardGuard>} />
                   <Route path="agencies" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencies /></AdminRouteGuard>} />
                   <Route path="agencies/:agencyId" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencyDetail /></AdminRouteGuard>} />
