@@ -29,6 +29,7 @@ import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
+import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
