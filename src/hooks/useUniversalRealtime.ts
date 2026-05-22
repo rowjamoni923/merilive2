@@ -550,22 +550,9 @@ export const useLiveStreamRealtime = (
   onUpdate: (stream: any) => void
 ) => {
   useEffect(() => {
-    if (!streamId) return;
-
-    const subscriberId = `stream-${streamId}`;
-
-    const unsubscribe = subscribeToTables(
-      subscriberId,
-      ['live_streams', 'gift_transactions'],
-      (table, event, payload) => {
-        if (table === 'live_streams' && payload?.id === streamId) {
-          onUpdate(payload);
-        }
-      }
-    );
-
-    return unsubscribe;
-  }, [streamId]);
+    // Live stream realtime state is LiveKit/FCM + REST snapshots only.
+    return;
+  }, [streamId, onUpdate]);
 };
 
 /**
@@ -576,27 +563,9 @@ export const usePartyRoomRealtime = (
   onUpdate: () => void
 ) => {
   useEffect(() => {
-    if (!roomId) return;
-
-    const subscriberId = `party-${roomId}`;
-
-    const unsubscribe = subscribeToTables(
-      subscriberId,
-      ['party_rooms', 'party_room_participants', 'gift_transactions'],
-      (table, event, payload) => {
-        const isRelevant = 
-          (table === 'party_rooms' && payload?.id === roomId) ||
-          (table === 'party_room_participants' && payload?.room_id === roomId) ||
-          (table === 'gift_transactions' && payload?.room_id === roomId);
-
-        if (isRelevant) {
-          onUpdate();
-        }
-      }
-    );
-
-    return unsubscribe;
-  }, [roomId]);
+    // Party room realtime state is LiveKit/FCM + REST snapshots only.
+    return;
+  }, [roomId, onUpdate]);
 };
 
 // ============= Lazy Initialization =============
