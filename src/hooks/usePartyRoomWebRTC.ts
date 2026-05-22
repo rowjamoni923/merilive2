@@ -28,6 +28,11 @@ import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/live
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
+import {
+  SELECTIVE_SUB_CHANGED_EVENT,
+  applySelectiveSubscriptions,
+  getSelectiveSubConfig,
+} from '@/lib/livekitSelectiveSubscription';
 import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
 import { toast } from 'sonner';
 
@@ -635,6 +640,68 @@ export function usePartyRoomWebRTC(
       cleanup();
     };
   }, [roomId, userId, roomType, partyCanPublish, restartNonce]);
+
+  // Pkg150: Selective video subscription — cap concurrent remote video subs to
+  // top-N by recent active speakers. Audio is never touched. Pure client SFU
+  // control: zero Supabase channels, zero polls, zero cross-user reads.
+  useEffect(() => {
+    if (!state.isConnected || !roomId) return;
+    const recentRef: string[] = [];
+
+    const apply = () => {
+      const cfg = getSelectiveSubConfig();
+      if (!cfg.enabled) {
+        // When disabled, re-enable subs across the board so users see all videos.
+        const room = roomRef.current;
+        if (!room) return;
+        try {
+          room.remoteParticipants.forEach((p) => {
+            p.trackPublications.forEach((pub) => {
+              if (pub.kind === 'video' && !pub.isSubscribed) {
+                try { pub.setSubscribed(true); } catch { /* ignore */ }
+              }
+            });
+          });
+        } catch {
+          // ignore
+        }
+        return;
+      }
+      applySelectiveSubscriptions(roomRef.current, cfg, { recentSpeakers: recentRef.slice() });
+    };
+
+    const onSpeakers = (e: Event) => {
+      const detail = (e as CustomEvent<{ scope: string; id: string; identities: string[] }>).detail;
+      if (!detail || detail.scope !== 'party' || detail.id !== roomId) return;
+      // LRU buffer of recent speakers, newest first, cap 16.
+      for (const id of detail.identities) {
+        const ix = recentRef.indexOf(id);
+        if (ix !== -1) recentRef.splice(ix, 1);
+        recentRef.unshift(id);
+      }
+      if (recentRef.length > 16) recentRef.length = 16;
+      apply();
+    };
+
+    const onCfg = () => apply();
+
+    // Initial apply + subscribe to drivers.
+    apply();
+    window.addEventListener('livekit-active-speakers', onSpeakers as EventListener);
+    window.addEventListener(SELECTIVE_SUB_CHANGED_EVENT, onCfg as EventListener);
+    // Run a couple of catch-up applies after late TrackPublished events.
+    const t1 = setTimeout(apply, 1000);
+    const t2 = setTimeout(apply, 3000);
+
+    return () => {
+      window.removeEventListener('livekit-active-speakers', onSpeakers as EventListener);
+      window.removeEventListener(SELECTIVE_SUB_CHANGED_EVENT, onCfg as EventListener);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [state.isConnected, roomId]);
+
+
 
   return {
     ...state,
