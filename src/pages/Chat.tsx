@@ -3209,7 +3209,7 @@ const Chat = () => {
                     {conv.other_user?.country_flag && (
                       <span className="text-xs">{conv.other_user.country_flag}</span>
                     )}
-                    <LevelBadge level={conv.other_user?.user_level || 1} size="xs" />
+                    <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />}
                     <span className="text-[10px] text-slate-600 shrink-0 ml-auto font-medium">
                       {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
                     </span>
