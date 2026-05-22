@@ -28,6 +28,7 @@ import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/li
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
+import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -154,6 +155,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg122: drop room-metadata registration.
     try { if (callIdRef.current) unregisterRoomMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg121: drop text/byte stream registration.
+    try { if (callIdRef.current) unregisterStreamRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -472,6 +475,8 @@ export function useLiveKitCall(
         if (callId) registerMetadataRoom('call', callId, room);
         // Pkg122: bind for room-wide metadata (shared room state).
         if (callId) registerRoomMetadataRoom('call', callId, room);
+        // Pkg121: bind for text/byte streams (chunked chat, file attachments).
+        if (callId) registerStreamRoom('call', callId, room);
 
 
         // Enable camera and microphone

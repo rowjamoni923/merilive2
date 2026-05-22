@@ -25,6 +25,7 @@ import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/li
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
+import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -95,6 +96,7 @@ export function usePartyRoomWebRTC(
     try { unregisterConnectionQualityRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRoomMetadataRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterStreamRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -504,6 +506,13 @@ export function usePartyRoomWebRTC(
         } catch (err) {
           console.warn('[Pkg122] registerRoomMetadataRoom(party) failed:', err);
         }
+        // Pkg121: bind for text/byte streams (chunked chat, file attachments).
+        try {
+          registerStreamRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg121] registerStreamRoom(party) failed:', err);
+        }
+
 
         setState(prev => ({
           ...prev,
