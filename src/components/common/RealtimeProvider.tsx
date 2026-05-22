@@ -69,67 +69,17 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
     return () => clearInterval(interval);
   }, [showConnectionStatus]);
 
-  // Subscribe to important tables for notifications - DEFERRED to reduce channel pressure
-  useEffect(() => {
-    if (isAdminRoute()) return;
-    if (!notifyOnImportantUpdates) return;
+  // Pkg86 audit ($1400-rule fix): REMOVED the global `notifications`/`topup_requests`
+  // subscription entirely. It was UNFILTERED (no user_id filter) → every notification
+  // row inserted system-wide fanned out to every logged-in client = exactly the
+  // catastrophic Realtime cost pattern. AND it was 100% redundant with
+  // `useNotifications` which already runs a per-user-filtered subscription and
+  // dispatches both `incoming-call-notification` (Pkg84) and `app-sync` (Pkg85)
+  // window events. `topup_requests` table is not even referenced anywhere else in
+  // the user app. Net: -1 system-wide channel, -1 unfiltered table, zero behavior
+  // change for users (incoming-call modal + app-sync invalidations still instant
+  // via the existing user-filtered notifications subscription).
 
-    // Keep the single approved notifications channel hot so app_sync invalidations
-    // land instantly without tab-switch/manual refresh.
-    const timer = setTimeout(() => {
-      const unsub = subscribeToTables(
-        'global-notifications',
-        ['notifications', 'topup_requests'],
-        (table, event, payload) => {
-          setLastEvent({
-            table,
-            event,
-            timestamp: new Date()
-          });
-
-          if (event === 'INSERT' && table === 'notifications' && payload?.type === 'incoming_call') {
-            try {
-              window.dispatchEvent(new CustomEvent('incoming-call-notification', { detail: payload }));
-            } catch {
-              // noop — CallProvider safety poll/native push still cover recovery
-            }
-            return;
-          }
-
-          if (event === 'INSERT' && table === 'notifications' && payload?.type === 'app_sync') {
-            const data = payload?.data || {};
-            const topic = data.topic;
-            if (typeof topic === 'string' && topic.length > 0) {
-              window.dispatchEvent(new CustomEvent('app-sync', {
-                detail: {
-                  topic,
-                  eventType: data.eventType || data.event_type || payload?.data?.event,
-                  rowId: data.row_id || null,
-                  payload: data,
-                },
-              }));
-              document.dispatchEvent(new Event('visibilitychange'));
-            }
-            return;
-          }
-
-          if (event === 'INSERT' && table === 'topup_requests' && payload?.status === 'pending') {
-            toast({
-              title: "New Recharge Request",
-              description: "A new recharge request has arrived",
-            });
-          }
-        }
-      );
-      cleanupRef.current = unsub;
-    }, 0);
-
-    const cleanupRef = { current: () => {} };
-    return () => {
-      clearTimeout(timer);
-      cleanupRef.current();
-    };
-  }, [notifyOnImportantUpdates, toast]);
 
   // Force reconnect without page reload
   const forceReconnect = useCallback(() => {

@@ -329,9 +329,13 @@ export const useNotifications = () => {
               window.dispatchEvent(new CustomEvent('app-sync', {
                 detail: { topic: data.topic, eventType: data.eventType || data.event_type, rowId: data.row_id || null, payload: data },
               }));
+              // Pkg86 audit: also fire visibilitychange so react-query stale watchers
+              // refetch immediately (parity with the now-removed RealtimeProvider path).
+              try { document.dispatchEvent(new Event('visibilitychange')); } catch {}
             }
             return;
           }
+
           // Skip admin-only notification types in the user app
           if (ADMIN_ONLY_TYPES.includes(newNotification.type) || newNotification.is_read) return;
 
