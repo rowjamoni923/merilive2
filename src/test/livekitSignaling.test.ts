@@ -43,11 +43,14 @@ describe('Pkg72 livekitSignaling foundation', () => {
     expect(isDuplicateEnvelope(id + '-other')).toBe(false);
   });
 
-  it('default flags include all 8 features set ON', () => {
-    const keys = Object.keys(__test.DEFAULT_FLAGS);
-    expect(keys.sort()).toEqual(
-      ['call', 'chat', 'game', 'gift', 'live', 'party', 'pk', 'presence'],
-    );
-    for (const v of Object.values(__test.DEFAULT_FLAGS)) expect(v).toBe(true);
+  it('default flags include 8 core features ON and opt-in features OFF', () => {
+    const flags = __test.DEFAULT_FLAGS;
+    for (const k of ['call', 'chat', 'game', 'gift', 'live', 'party', 'pk', 'presence']) {
+      expect(flags[k as keyof typeof flags]).toBe(true);
+    }
+    for (const k of ['e2ee', 'ingress', 'sip', 'egress', 'track_egress', 'stream_egress', 'sip_inbound', 'transcription', 'agent']) {
+      expect(flags[k as keyof typeof flags]).toBe(false);
+    }
   });
+
 });
