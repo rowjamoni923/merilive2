@@ -161,6 +161,20 @@ Deno.serve(async (req) => {
         if (isTerminal) streamUpdate.egress_id = null;
         await admin.from("live_streams").update(streamUpdate).eq("id", recRow.stream_id);
       }
+
+      // Pkg113: same payload may belong to a track_recordings row instead.
+      // No-op when egress_id matches no row in this table.
+      try {
+        const { error: trErr } = await admin
+          .from("track_recordings")
+          .update(recUpdate)
+          .eq("egress_id", egress.egressId);
+        if (trErr) {
+          console.error("[livekit-webhook] track_recordings update error:", trErr.message);
+        }
+      } catch (e) {
+        console.error("[livekit-webhook] track_recordings finalize throw:", (e as Error)?.message);
+      }
     } catch (e) {
       console.error("[livekit-webhook] egress finalize throw:", (e as Error)?.message);
     }
