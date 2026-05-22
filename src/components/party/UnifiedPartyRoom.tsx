@@ -1511,7 +1511,7 @@ export function UnifiedPartyRoom({
         </div>
 
         {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
-        {roomId && <CaptionOverlay scope="party" id={roomId} />}
+        {roomId && <CaptionOverlay scope="party" id={roomId} hideToggle />}
 
 
         {/* Game Board - Works for ALL room types (video, audio, game) */}
