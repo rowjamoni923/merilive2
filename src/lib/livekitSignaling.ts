@@ -39,7 +39,8 @@ export type LiveKitFeature =
   | 'moderation'
   | 'forward_participant'
   | 'auto_record'
-  | 'update_permission';
+  | 'update_permission'
+  | 'reactions';
 
 
 
