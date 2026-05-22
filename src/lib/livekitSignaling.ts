@@ -26,7 +26,8 @@ export type LiveKitFeature =
   | 'sip'
   | 'egress'
   | 'track_egress'
-  | 'stream_egress';
+  | 'stream_egress'
+  | 'sip_inbound';
 
 export interface SignalEnvelope<T = unknown> {
   /** Envelope version — bump when shape changes. */
@@ -65,6 +66,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   egress: false, // Pkg111: OFF by default; admin opts in via app_settings
   track_egress: false, // Pkg113: OFF by default; admin opts in via app_settings
   stream_egress: false, // Pkg114: OFF by default; admin opts in via app_settings
+  sip_inbound: false, // Pkg115: OFF by default; admin opts in via app_settings
 };
 
 let cachedFlags: Record<LiveKitFeature, boolean> | null = null;
@@ -98,6 +100,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       egress: parsed.egress === true, // Pkg111: explicit opt-in only
       track_egress: parsed.track_egress === true, // Pkg113: explicit opt-in only
       stream_egress: parsed.stream_egress === true, // Pkg114: explicit opt-in only
+      sip_inbound: parsed.sip_inbound === true, // Pkg115: explicit opt-in only
     };
   } catch {
     return { ...DEFAULT_FLAGS };
