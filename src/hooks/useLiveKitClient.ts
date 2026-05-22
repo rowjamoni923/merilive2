@@ -1582,6 +1582,29 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.transcriptionStreamId, isJoined]);
+  // Pkg133: bind for floating emoji reactions on live streams.
+  useEffect(() => {
+    const streamId = options.reactionsStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitReactions');
+        if (cancelled) return;
+        mod.registerReactionRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg133] registerReactionRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitReactions').then((mod) => {
+        mod.unregisterReactionRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.reactionsStreamId, isJoined]);
   // Pkg105: bind for track-subscription permissions (host hard-block).
   useEffect(() => {
     const streamId = options.trackPermissionStreamId;
