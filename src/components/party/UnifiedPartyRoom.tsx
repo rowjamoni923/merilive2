@@ -600,6 +600,7 @@ export function UnifiedPartyRoom({
   topViewers = [],
   onInviteViewer,
   onKickViewer,
+  onModerateViewer,
   isWaitingForApproval = false,
   joinMessages = [],
   activeGame,
