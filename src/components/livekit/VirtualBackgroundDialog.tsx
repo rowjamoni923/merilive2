@@ -99,17 +99,26 @@ export function VirtualBackgroundDialog({ open, onClose, localVideoTrack, isNati
       toast.error("Please paste an image URL first");
       return;
     }
-    if (!localVideoTrack) {
+    if (isNative && choice.mode === "image") {
+      toast.info("Image background not supported on Android yet — use Blur");
+      return;
+    }
+    if (!isNative && !localVideoTrack) {
       toast.error("Camera not active yet");
       return;
     }
     setApplying(true);
     try {
-      const ok = await applyVirtualBackground(localVideoTrack, {
-        mode: choice.mode,
-        blurRadius: choice.blurRadius,
-        imageUrl: choice.imageUrl,
-      });
+      const ok = isNative
+        ? await applyVirtualBackgroundNative({
+            mode: choice.mode,
+            blurRadius: choice.blurRadius,
+          })
+        : await applyVirtualBackground(localVideoTrack, {
+            mode: choice.mode,
+            blurRadius: choice.blurRadius,
+            imageUrl: choice.imageUrl,
+          });
       savePersisted(choice);
       if (choice.mode === "none") {
         toast.success("Background cleared");
