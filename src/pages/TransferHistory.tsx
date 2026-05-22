@@ -55,31 +55,20 @@ const TransferHistory = () => {
 
     fetchTransfers();
 
-    // Realtime subscription
-    const channel = supabase
-      .channel("transfer-history")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "coin_transfers"
-        },
-        async () => {
-          const { data } = await supabase
-            .rpc("get_agency_transfer_history", { _limit: 100 });
-          if (data) {
-            const typedData = data as TransferRecord[];
-            setTransfers(typedData);
-            setTotalTransferred(typedData.reduce((sum, t) => sum + t.amount, 0));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    // Pkg83-ext: removed static `transfer-history` channel (coin_transfers
+    // not in publication). Visibility refetch.
+    const refetch = async () => {
+      const { data } = await supabase.rpc("get_agency_transfer_history", { _limit: 100 });
+      if (data) {
+        const typed = data as TransferRecord[];
+        setTransfers(typed);
+        setTotalTransferred(typed.reduce((sum, t) => sum + t.amount, 0));
+      }
     };
+    const onVisible = () => { if (document.visibilityState === 'visible') refetch(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+
   }, [navigate]);
 
   const formatDate = (dateStr: string) => {

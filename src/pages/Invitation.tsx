@@ -67,24 +67,22 @@ const Invitation = () => {
     fetchBanner();
     fetchClaimedTiers();
     
-    const inviteChannel = supabase
-      .channel('invitation-realtime-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_invitations' }, () => {
-        fetchData();
-      })
-      .subscribe();
-
-    const tiersChannel = supabase
-      .channel('invitation-tiers-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'invitation_reward_tiers' }, () => {
-        fetchTiers();
-      })
-      .subscribe();
+    // Pkg83-ext: removed static `invitation-realtime-sync` +
+    // `invitation-tiers-realtime` channels. Pkg37 admin_broadcast pushes tier
+    // edits; own invitations refresh on visibility.
+    const onAdmin = (e: Event) => {
+      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'invitation_reward_tiers') fetchTiers();
+    };
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchData(); };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
-      supabase.removeChannel(inviteChannel);
-      supabase.removeChannel(tiersChannel);
+      window.removeEventListener('admin-table-update', onAdmin as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
     };
+
   }, []);
 
   const fetchClaimedTiers = async () => {

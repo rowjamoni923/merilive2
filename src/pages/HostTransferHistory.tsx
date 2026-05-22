@@ -42,25 +42,12 @@ const HostTransferHistory = () => {
   useEffect(() => {
     fetchEarnings();
     
-    // Real-time subscription
-    const channel = supabase
-      .channel('host-earnings')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'agency_earnings_transfers'
-        },
-        () => {
-          fetchEarnings();
-        }
-      )
-      .subscribe();
+    // Pkg83-ext: removed static `host-earnings` channel
+    // (agency_earnings_transfers not in publication). Visibility refetch.
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchEarnings(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const fetchEarnings = async () => {

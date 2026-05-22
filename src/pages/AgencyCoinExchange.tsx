@@ -129,88 +129,37 @@ const AgencyCoinExchange = () => {
     fetchData();
   }, []);
 
-  // Real-time subscription for agency diamond updates and gift transactions
+  // Pkg83-ext: removed agency/profile/exchange-settings postgres_changes
+  // channels (agencies/profiles/app_settings not in publication). Pkg37
+  // admin_broadcast pushes coin_exchange edits; own balances refresh on
+  // visibility + after mutations.
   useEffect(() => {
     if (!agency?.id || !ownerId) return;
-
-    // Channel 1: Agency balance (diamonds, wallet) — does NOT update My Beans
-    const agencyChannel = supabase
-      .channel(`agency-exchange-realtime-${agency.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'agencies',
-          filter: `id=eq.${agency.id}`
-        },
-        (payload) => {
-          console.log('Agency balance updated:', payload);
-          const newData = payload.new as any;
-          setAgency(prev => prev ? {
-            ...prev,
-            beans_balance: newData.beans_balance || 0,
-            diamond_balance: newData.diamond_balance || 0,
-            wallet_balance: newData.wallet_balance || 0
-          } : null);
-          // DO NOT update ownerBeans here — that's My Beans from profiles.beans
-        }
-      )
-      .subscribe();
-
-    // Channel 2: Personal profile beans (My Beans) — separate from agency
-    const profileChannel = supabase
-      .channel(`my-beans-realtime-${ownerId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${ownerId}`
-        },
-        (payload) => {
-          const newData = payload.new as any;
-          const newBeans = Math.max(0, Number(newData?.beans || 0));
-          console.log('My Beans updated (profiles.beans):', newBeans);
-          setOwnerBeans(newBeans);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(agencyChannel);
-      supabase.removeChannel(profileChannel);
+    const refreshOwn = async () => {
+      const [{ data: a }, { data: p }] = await Promise.all([
+        supabase.from('agencies').select('beans_balance, diamond_balance, wallet_balance').eq('id', agency.id).maybeSingle(),
+        supabase.from('profiles').select('beans').eq('id', ownerId).maybeSingle(),
+      ]);
+      if (a) setAgency(prev => prev ? { ...prev, beans_balance: a.beans_balance || 0, diamond_balance: a.diamond_balance || 0, wallet_balance: a.wallet_balance || 0 } : null);
+      if (p) setOwnerBeans(Math.max(0, Number((p as any).beans || 0)));
     };
+    const onVisible = () => { if (document.visibilityState === 'visible') refreshOwn(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [agency?.id, ownerId]);
 
-  // Real-time subscription for exchange settings updates from admin panel
+  // Exchange settings — Pkg37 admin_broadcast push
   useEffect(() => {
-    const settingsChannel = supabase
-      .channel('exchange-settings-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'app_settings',
-          filter: `setting_key=eq.coin_exchange`
-        },
-        (payload) => {
-          console.log('Exchange settings updated:', payload);
-          const newSettings = payload.new as any;
-          if (newSettings?.setting_value) {
-            const settings = newSettings.setting_value as Record<string, unknown>;
-            setExchangeSettings(normalizeExchangeSettings(settings));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(settingsChannel);
+    const onAdmin = async (e: Event) => {
+      const detail = (e as CustomEvent<{ table?: string }>).detail;
+      if (detail?.table !== 'app_settings') return;
+      const { data } = await supabase.from('app_settings').select('setting_value').eq('setting_key', 'coin_exchange').maybeSingle();
+      if (data?.setting_value) setExchangeSettings(normalizeExchangeSettings(data.setting_value as Record<string, unknown>));
     };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdmin as EventListener);
   }, []);
+
 
   const fetchData = async () => {
     try {

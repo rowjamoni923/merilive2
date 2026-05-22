@@ -72,22 +72,20 @@ export function useParcels(userId: string | undefined) {
     },
   });
 
-  // Realtime subscription
+  // Pkg83-ext: removed static `parcels-realtime` channel (user_parcels not in
+  // publication). Mutation invalidates inline; visibility refetch covers
+  // server-side rewards.
   useEffect(() => {
     if (!userId) return;
-    const channel = supabase
-      .channel('parcels-realtime')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'user_parcels',
-        filter: `user_id=eq.${userId}`,
-      }, () => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
         queryClient.invalidateQueries({ queryKey: ['user-parcels'] });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [userId, queryClient]);
+
 
   return {
     parcels: parcels || [],

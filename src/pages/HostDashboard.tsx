@@ -84,55 +84,35 @@ const HostDashboard = () => {
   useEffect(() => {
     fetchDashboardData();
     
-    const dashboardChannel = supabase
-      .channel('host-dashboard-realtime')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'private_calls' 
-      }, () => {
-        console.log('[HostDashboard] Calls updated - refetching');
-        fetchDashboardData();
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'gift_transactions' 
-      }, () => {
-        console.log('[HostDashboard] Gifts updated - refetching');
-        fetchDashboardData();
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'profiles' 
-      }, () => {
-        console.log('[HostDashboard] Profile updated - refetching');
-        fetchDashboardData();
-      })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'app_settings',
-        filter: 'setting_key=eq.call_rates'
-      }, (payload) => {
-        const nextSettings = parseCallRateSettings((payload.new as any)?.setting_value);
-        if (nextSettings) {
-          setCommissionPercent(nextSettings.host_commission_percent ?? 50);
-          setMinRate(nextSettings.min_rate ?? 1000);
-          setMaxRate(nextSettings.max_rate ?? 10000);
-          setCallRate(resolveEffectiveCallRate({
-            settings: nextSettings,
-            hostLevel: profile?.host_level,
-            customRate: profile?.call_rate_per_minute,
-          }) || 0);
-        }
-      })
-      .subscribe();
+    // Pkg83-ext: removed static `host-dashboard-realtime` channel
+    // (private_calls/gift_transactions/profiles/app_settings not in publication
+    // — was silent no-op). Pkg37 admin_broadcast pushes call_rates edits;
+    // visibility refetch handles dashboard snapshot on tab return.
+    const onAdmin = async (e: Event) => {
+      const detail = (e as CustomEvent<{ table?: string }>).detail;
+      if (detail?.table !== 'app_settings') return;
+      const { data } = await supabase.from('app_settings').select('setting_value').eq('setting_key', 'call_rates').maybeSingle();
+      const nextSettings = parseCallRateSettings(data?.setting_value);
+      if (nextSettings) {
+        setCommissionPercent(nextSettings.host_commission_percent ?? 50);
+        setMinRate(nextSettings.min_rate ?? 1000);
+        setMaxRate(nextSettings.max_rate ?? 10000);
+        setCallRate(resolveEffectiveCallRate({
+          settings: nextSettings,
+          hostLevel: profile?.host_level,
+          customRate: profile?.call_rate_per_minute,
+        }) || 0);
+      }
+    };
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchDashboardData(); };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
-      supabase.removeChannel(dashboardChannel);
+      window.removeEventListener('admin-table-update', onAdmin as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
     };
+
   }, [profile?.call_rate_per_minute]);
 
   const fetchDashboardData = async () => {

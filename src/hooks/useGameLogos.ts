@@ -103,27 +103,21 @@ export const useGameLogos = () => {
     
     init();
     
-    // Real-time subscription for updates
-    const channel = supabase
-      .channel('game-logos-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'game_settings',
-        },
-        async () => {
-          isInitialized = false;
-          await initializeGameLogos();
-          setLogos(new Map(globalGameLogos));
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
+    // Pkg83-ext: removed static `game-logos-realtime` channel.
+    // Pkg37 admin_broadcast pushes game_settings edits.
+    const onAdmin = async (e: Event) => {
+      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
+      if (table !== 'game_settings') return;
+      isInitialized = false;
+      await initializeGameLogos();
+      setLogos(new Map(globalGameLogos));
     };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+
+    return () => {
+      window.removeEventListener('admin-table-update', onAdmin as EventListener);
+    };
+
   }, []);
 
   const getLogo = useCallback((gameKey: string): GameLogo | null => {

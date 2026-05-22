@@ -42,41 +42,13 @@ const FollowingList = () => {
   useEffect(() => {
     fetchData();
     
-    // Zero-refresh: keep online status live via realtime; follow/unfollow is
-    // updated optimistically by the action handlers on this screen.
-    const profileChannel = supabase
-      .channel('following-profiles-sync')
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'profiles' 
-      }, (payload) => {
-        const updatedId = (payload.new as any)?.id;
-        const isOnline = (payload.new as any)?.is_online;
-        
-        if (updatedId) {
-          setFollowing(prev => prev.map(f => 
-            f.profile.id === updatedId 
-              ? { ...f, profile: { ...f.profile, is_online: isOnline } }
-              : f
-          ));
-          setFollowers(prev => prev.map(f => 
-            f.profile.id === updatedId 
-              ? { ...f, profile: { ...f.profile, is_online: isOnline } }
-              : f
-          ));
-          setFriends(prev => prev.map(f => 
-            f.profile.id === updatedId 
-              ? { ...f, profile: { ...f.profile, is_online: isOnline } }
-              : f
-          ));
-        }
-      })
-      .subscribe();
+    // Pkg83-ext: removed static `following-profiles-sync` channel (profiles
+    // is NOT in supabase_realtime publication — was silent no-op anyway).
+    // Online-status updates now refresh on tab visibility.
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchData(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
 
-    return () => {
-      supabase.removeChannel(profileChannel);
-    };
   }, []);
 
   const fetchData = async () => {

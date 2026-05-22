@@ -196,45 +196,26 @@ export const useUserPrivileges = (userId: string | null) => {
     }
   };
 
+  // Pkg83-ext: removed static `level-privileges-realtime` channel + per-user
+  // postgres_changes on user_purchases (table not in supabase_realtime
+  // publication). Admin level_privileges edits push via Pkg37 admin_broadcast;
+  // own purchases refresh via visibility + after mutations.
   const subscribeToChanges = () => {
-    const purchaseChannel = supabase
-      .channel(`purchases_${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_purchases',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          fetchPrivileges();
-        }
-      )
-      .subscribe();
-
-    // Also subscribe to level_privileges for admin updates
-    const privilegesChannel = supabase
-      .channel('level-privileges-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'level_privileges',
-        },
-        () => {
-          console.log('[useUserPrivileges] Level privileges updated by admin');
-          fetchPrivileges();
-        }
-      )
-      .subscribe();
-
+    const onAdmin = (e: Event) => {
+      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'level_privileges') fetchPrivileges();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchPrivileges();
+    };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(purchaseChannel);
-      supabase.removeChannel(privilegesChannel);
+      window.removeEventListener('admin-table-update', onAdmin as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   };
+
 
   const equipPrivilege = async (privilegeId: string, category: string) => {
     if (!userId) return false;

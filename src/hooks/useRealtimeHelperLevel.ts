@@ -57,45 +57,26 @@ export const useRealtimeHelperLevel = (helperId: string | null) => {
     fetchHelperData();
   }, [fetchHelperData]);
 
-  // Real-time subscription for level changes
+  // Pkg83-ext: removed static helper-level-updates channel (topup_helpers not
+  // in supabase_realtime publication — was silent no-op). Replaced with
+  // visibility refetch + admin-table-update for admin-driven changes.
   useEffect(() => {
     if (!helperId) return;
-
-    const channel = supabase
-      .channel(`helper-level-updates-${helperId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "topup_helpers",
-          filter: `id=eq.${helperId}`,
-        },
-        (payload) => {
-          const newData = payload.new as any;
-          if (newData) {
-            console.log('[useRealtimeHelperLevel] Level updated:', newData.trader_level);
-            setTraderLevel(newData.trader_level || 1);
-            setHelperData({
-              id: newData.id,
-              user_id: newData.user_id,
-              trader_level: newData.trader_level || 1,
-              wallet_balance: newData.wallet_balance || 0,
-              total_level_upgrade_cost: newData.total_level_upgrade_cost || 0,
-              is_active: newData.is_active || false,
-              is_verified: newData.is_verified || false,
-              payroll_enabled: newData.payroll_enabled || false,
-              created_at: newData.created_at,
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const onAdmin = (e: Event) => {
+      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'topup_helpers') fetchHelperData();
     };
-  }, [helperId]);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchHelperData();
+    };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('admin-table-update', onAdmin as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [helperId, fetchHelperData]);
+
 
   return {
     traderLevel,
@@ -133,28 +114,17 @@ export const useRealtimeHelperLevelProgress = (helperId: string | null) => {
     fetchTiers();
   }, [fetchTiers]);
 
-  // Real-time subscription for trader level tier changes
+  // Pkg83-ext: removed static trader-level-tiers-realtime channel.
+  // Pkg37 admin_broadcast pushes trader_level_tiers edits.
   useEffect(() => {
-    const channel = supabase
-      .channel('trader-level-tiers-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'trader_level_tiers',
-        },
-        (payload) => {
-          console.log('[useRealtimeHelperLevel] Trader level tiers updated:', payload.eventType);
-          fetchTiers();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const onAdmin = (e: Event) => {
+      const table = (e as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'trader_level_tiers') fetchTiers();
     };
+    window.addEventListener('admin-table-update', onAdmin as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdmin as EventListener);
   }, [fetchTiers]);
+
 
   // Calculate progress whenever helper data or tiers change
   useEffect(() => {
