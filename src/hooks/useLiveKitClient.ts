@@ -31,6 +31,7 @@ import {
   getVideoQualityChoice,
   resolveVideoQuality,
 } from '@/lib/livekitVideoQuality';
+import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
