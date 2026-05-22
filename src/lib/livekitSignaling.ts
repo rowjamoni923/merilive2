@@ -43,7 +43,8 @@ export type LiveKitFeature =
   | 'reactions'
   | 'move_participant'
   | 'room_ops'
-  | 'egress_ops';
+  | 'egress_ops'
+  | 'ingress_ops';
 
 
 
@@ -101,6 +102,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   move_participant: false, // Pkg134: OFF by default — atomic move participant between rooms (admin opts in)
   room_ops: false, // Pkg135: OFF by default — admin LiveKit room inspection (admin opts in)
   egress_ops: false, // Pkg136: OFF by default — admin LiveKit egress inspection + layout swap (admin opts in)
+  ingress_ops: false, // Pkg137: OFF by default — admin LiveKit ingress inspection + delete (admin opts in)
 };
 
 
@@ -153,6 +155,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       move_participant: parsed.move_participant === true, // Pkg134: explicit opt-in only
       room_ops: parsed.room_ops === true, // Pkg135: explicit opt-in only
       egress_ops: parsed.egress_ops === true, // Pkg136: explicit opt-in only
+      ingress_ops: parsed.ingress_ops === true, // Pkg137: explicit opt-in only
     };
 
 
