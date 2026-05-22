@@ -269,6 +269,23 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
   return (
     <div className={cn('w-full h-full overflow-hidden relative camera-locked', className)}>
+      {/* Pkg167: loading shimmer (sits behind video; covered when video reveals opacity:1) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(135deg, #1a1024 0%, #0c0818 100%)',
+          zIndex: 0,
+        }}
+      >
+        <div
+          className="absolute inset-y-0 w-1/3 animate-[tileShimmer_1.8s_ease-in-out_infinite]"
+          style={{
+            background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.18), transparent)',
+            filter: 'blur(8px)',
+          }}
+        />
+      </div>
       <video
         ref={videoRef}
         autoPlay
@@ -281,7 +298,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         poster=""
         {...(pipId ? { 'data-pip-id': pipId } : {})}
         {...nativeInlineVideoProps}
-        className="w-full h-full pointer-events-none select-none"
+        className="w-full h-full pointer-events-none select-none relative"
         style={{
           objectFit: fit,
           objectPosition: 'center center',
@@ -293,13 +310,25 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           WebkitUserSelect: 'none',
           WebkitTouchCallout: 'none',
           WebkitAppearance: 'none',
+          WebkitAppearance: 'none',
           willChange: 'transform',
           backfaceVisibility: 'hidden',
           backgroundColor: 'transparent',
           opacity: 0,
-          transition: 'opacity 120ms linear',
+          transition: 'opacity 160ms linear',
+          zIndex: 1,
         } as CSSProperties}
 
+      />
+      {/* Pkg167: subtle edge vignette overlay (cinematic depth) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(120% 90% at 50% 50%, transparent 60%, rgba(0,0,0,0.35) 100%)',
+          zIndex: 2,
+          mixBlendMode: 'multiply',
+        }}
       />
     </div>
   );
