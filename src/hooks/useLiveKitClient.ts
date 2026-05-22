@@ -114,6 +114,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const [screenTrack, setScreenTrack] = useState<any>(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState<Map<number, any>>(new Map());
+  // Pkg102: remote screen-share tracks (keyed by participant identity), kept
+  // separate from camera userWrapper so screen share never overwrites face cam.
+  const [remoteScreenTracks, setRemoteScreenTracks] = useState<Map<string, any>>(new Map());
   const [coHosts, setCoHosts] = useState<Set<number>>(new Set());
   const [coHostRequests, setCoHostRequests] = useState<CoHostRequest[]>([]);
   const [error, setError] = useState<string | null>(null);
