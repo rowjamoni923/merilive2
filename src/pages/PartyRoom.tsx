@@ -638,11 +638,12 @@ const PartyRoom = () => {
             const user = session?.user;
             if (user) {
               const { data: profile } = await supabase
-                .from('profiles')
+                .from('profiles') // guard-ok: owner-only self profile fetch (eq id user.id)
                 .select('*')
                 .eq('id', user.id)
                 .single();
               return { ...user, profile };
+
             }
             return null;
           })(),
