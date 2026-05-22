@@ -52,9 +52,9 @@ describe('Pkg105 livekitTrackPermissions', () => {
     const { room, calls } = makeFakeRoom();
     registerTrackPermissionRoom('live', 'stream-3', room as any);
     setHostBlocklist('live', 'stream-3', new Set(['evilUser']));
-    expect(calls.length).toBe(3); // initial + setHostBlocklist
+    expect(calls.length).toBe(2); // initial empty + setHostBlocklist
     room.emit('participantConnected');
-    expect(calls.length).toBe(4);
+    expect(calls.length).toBe(3);
     expect(calls[3][1][0].participantIdentity).toBe('evilUser');
   });
 
