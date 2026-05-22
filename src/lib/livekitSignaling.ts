@@ -41,7 +41,8 @@ export type LiveKitFeature =
   | 'auto_record'
   | 'update_permission'
   | 'reactions'
-  | 'move_participant';
+  | 'move_participant'
+  | 'room_ops';
 
 
 
@@ -97,6 +98,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   update_permission: false, // Pkg130: OFF by default — promote/demote participants (admin opts in)
   reactions: true, // Pkg132: ON by default — floating emoji reactions (admin can flip OFF)
   move_participant: false, // Pkg134: OFF by default — atomic move participant between rooms (admin opts in)
+  room_ops: false, // Pkg135: OFF by default — admin LiveKit room inspection (admin opts in)
 };
 
 
@@ -147,6 +149,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       update_permission: parsed.update_permission === true, // Pkg130: explicit opt-in only
       reactions: parsed.reactions !== false, // Pkg132: ON unless admin explicitly disables
       move_participant: parsed.move_participant === true, // Pkg134: explicit opt-in only
+      room_ops: parsed.room_ops === true, // Pkg135: explicit opt-in only
     };
 
 
