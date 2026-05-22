@@ -2281,6 +2281,15 @@ const LiveStream = () => {
         }
         setShowVirtualBackground(true);
       } },
+    // Pkg123: Noise Cancellation toggle (Krisp — web hosts; native uses WebRTC NS)
+    { id: "noisecancel", name: "Noise Cut", iconName: "ShieldCheck" as const, color: "from-sky-400 to-indigo-600", shadowColor: "shadow-sky-500/40", action: () => {
+        setShowMoreOptions(false);
+        if (deepAR.isNativeAndroid) {
+          toast.info("Native mic uses built-in noise suppression.");
+          return;
+        }
+        setShowNoiseCancellation(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
