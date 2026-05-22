@@ -56,6 +56,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   game: true,
   pk: true,
   e2ee: false, // Pkg108: OFF by default; admin opts in via app_settings
+  ingress: false, // Pkg109: OFF by default; admin opts in via app_settings
 };
 
 let cachedFlags: Record<LiveKitFeature, boolean> | null = null;
