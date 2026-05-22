@@ -241,6 +241,7 @@ const Chat = () => {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingChannelRef = useRef<any>(null);
   const directMessageChannelRef = useRef<any>(null);
+  const receiptChannelRef = useRef<any>(null);
   const recentGiftAnimationsRef = useRef<Map<string, number>>(new Map());
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -894,13 +895,17 @@ const Chat = () => {
   useEffect(() => {
     if (!selectedConversation?.id || !currentUserId) return;
     
+    // Pkg94: single shared receipt channel per conversation (reused by sender
+    // for `read`/`delivered` .send() calls below — previously each send opened
+    // a fresh leaked channel, which is exactly the Realtime-cost regression
+    // pattern the $1400-rule forbids).
     const receiptChannel = supabase.channel(`receipts-${selectedConversation.id}`);
-    
+    receiptChannelRef.current = receiptChannel;
+
     receiptChannel
       .on('broadcast', { event: 'delivered' }, (payload: any) => {
         if (payload.payload?.userId !== currentUserId) {
-          // Other user received our messages - update status to delivered
-          setMessages(prev => prev.map(m => 
+          setMessages(prev => prev.map(m =>
             m.sender_id === currentUserId && (m.status === 'sent' || m.status === 'sending')
               ? { ...m, status: 'delivered' as const }
               : m
@@ -909,8 +914,7 @@ const Chat = () => {
       })
       .on('broadcast', { event: 'read' }, (payload: any) => {
         if (payload.payload?.userId !== currentUserId) {
-          // Other user read our messages - update status to read
-          setMessages(prev => prev.map(m => 
+          setMessages(prev => prev.map(m =>
             m.sender_id === currentUserId && m.status !== 'read'
               ? { ...m, status: 'read' as const, is_read: true }
               : m
@@ -918,8 +922,11 @@ const Chat = () => {
         }
       })
       .subscribe();
-    
+
     return () => {
+      if (receiptChannelRef.current === receiptChannel) {
+        receiptChannelRef.current = null;
+      }
       supabase.removeChannel(receiptChannel);
     };
   }, [selectedConversation?.id, currentUserId]);
@@ -1306,8 +1313,9 @@ const Chat = () => {
 
     void markMessageAsRead(newMessage.id);
 
-    if (selectedConversation?.id) {
-      supabase.channel(`receipts-${selectedConversation.id}`).send({
+    if (selectedConversation?.id && receiptChannelRef.current) {
+      // Pkg94: reuse subscribed channel — never open ad-hoc channels per send
+      receiptChannelRef.current.send({
         type: 'broadcast',
         event: 'read',
         payload: { userId: currentUserId, conversationId: selectedConversation.id }
@@ -1369,9 +1377,9 @@ const Chat = () => {
         p_conversation_id: conversationId,
         p_recipient_id: currentUserId
       }).then(({ data: count }) => {
-        if (count && count > 0) {
-          // Broadcast delivery receipt to sender
-          supabase.channel(`receipts-${conversationId}`).send({
+        if (count && count > 0 && receiptChannelRef.current) {
+          // Pkg94: reuse the subscribed receipts channel (no per-call leaks)
+          receiptChannelRef.current.send({
             type: 'broadcast',
             event: 'delivered',
             payload: { userId: currentUserId, conversationId }
