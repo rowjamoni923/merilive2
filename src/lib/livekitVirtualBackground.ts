@@ -19,7 +19,7 @@
  *          existing LocalVideoTrack — no track re-publish needed.
  */
 import type { LocalVideoTrack } from 'livekit-client';
-import { isLiveKitFeatureEnabled } from './livekitSignaling';
+import { isLiveKitEnabled } from './livekitSignaling';
 
 export type VirtualBackgroundMode = 'none' | 'blur' | 'image';
 
@@ -62,7 +62,7 @@ async function loadProcessors() {
  */
 async function buildProcessor(opts: VirtualBackgroundOptions) {
   if (opts.mode === 'none') return null;
-  const enabled = await isLiveKitFeatureEnabled('virtual_background');
+  const enabled = await isLiveKitEnabled('virtual_background');
   if (!enabled) return null;
   if (!isVirtualBackgroundSupported()) return null;
 
@@ -95,7 +95,7 @@ export async function applyVirtualBackground(
 
   // Always strip first so switching modes is clean.
   try {
-    // @ts-expect-error - stopProcessor is on LocalVideoTrack at runtime
+    // @ts-ignore - stopProcessor is on LocalVideoTrack at runtime
     if (typeof track.stopProcessor === 'function') await track.stopProcessor();
   } catch {
     /* ignore */
@@ -105,7 +105,7 @@ export async function applyVirtualBackground(
   if (!processor) return false;
 
   try {
-    // @ts-expect-error - setProcessor is on LocalVideoTrack at runtime
+    // @ts-ignore - setProcessor is on LocalVideoTrack at runtime
     await track.setProcessor(processor);
     return true;
   } catch (err) {

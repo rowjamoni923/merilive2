@@ -6,7 +6,7 @@ import {
 } from '@/lib/livekitVirtualBackground';
 
 vi.mock('@/lib/livekitSignaling', () => ({
-  isLiveKitFeatureEnabled: vi.fn(async () => true),
+  isLiveKitEnabled: vi.fn(async () => true),
 }));
 
 vi.mock('@livekit/track-processors', () => ({
@@ -77,7 +77,7 @@ describe('Pkg119 Virtual Background', () => {
 
   it('respects kill-switch (disabled → no processor attached)', async () => {
     const sig = await import('@/lib/livekitSignaling');
-    (sig.isLiveKitFeatureEnabled as any).mockResolvedValueOnce(false);
+    (sig.isLiveKitEnabled as any).mockResolvedValueOnce(false);
     const setProcessor = vi.fn();
     const track: any = { setProcessor, stopProcessor: vi.fn() };
     expect(await applyVirtualBackground(track, { mode: 'blur' })).toBe(false);
