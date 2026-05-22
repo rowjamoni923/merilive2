@@ -430,7 +430,6 @@ export function usePrivateCall(userId: string | null) {
         callerRemainingCoins: userProfile?.coins || 0,
       }));
 
-      // ⚡ CRITICAL FIX: Send broadcast to host BEFORE the RPC call
       // Pkg84: FCM-only incoming-call delivery (Chamet/WhatsApp/Imo standard).
       // No more client-side Supabase broadcast on `incoming-call-${hostId}` —
       // `call-deliver` edge function (invoked below after RPC success) is the
@@ -521,10 +520,9 @@ export function usePrivateCall(userId: string | null) {
       // Reliable native call delivery in background (closed/background app).
       // 3-attempt retry with exponential backoff (1s, 2.5s) — aborts as soon
       // as the call is no longer ringing, and treats any non-2xx / network
-      // failure as retryable. The edge function itself runs an additional
-      // FCM retry loop + server-side realtime broadcast fallback, so the
-      // call has 3 independent delivery paths (FCM, server broadcast,
-      // client broadcast) each retried multiple times.
+      // failure as retryable. The edge function inserts a notification row
+      // for foreground in-app delivery and sends high-priority data-only FCM
+      // for background/killed-app delivery. No Supabase Realtime fallback.
       void (async () => {
         const deliveryBody = {
           callId: resolvedCallId,
@@ -553,11 +551,11 @@ export function usePrivateCall(userId: string | null) {
             });
             if (error) throw error;
             const fcmOk = !!(data && (data as any).fcmDelivered);
-            const broadcastOk = !!(data && (data as any).broadcastDelivered);
+            const notificationOk = !!(data && (data as any).notifInsertOk);
             console.log(
-              `[Call] call-deliver attempt ${i + 1} → fcm=${fcmOk} broadcast=${broadcastOk}`,
+              `[Call] call-deliver attempt ${i + 1} → fcm=${fcmOk} notification=${notificationOk}`,
             );
-            if (fcmOk || broadcastOk) return;
+            if (fcmOk || notificationOk) return;
           } catch (pushError) {
             console.warn(
               `[Call] call-deliver attempt ${i + 1} failed, will retry:`,
@@ -884,8 +882,8 @@ export function usePrivateCall(userId: string | null) {
         if (error) console.error('[Call] RPC error:', error);
       });
 
-      // Pkg73: also publish via LiveKit DataPacket — sub-50ms peer notify.
-      // Fire-and-forget; Supabase broadcast above is the always-on fallback.
+      // Pkg73: publish via LiveKit DataPacket — sub-50ms peer notify.
+      // Fire-and-forget; server RPC persists the durable end state.
       const livekitPromise = publishCallEnded(callIdToEnd, {
         endedBy: userId!,
         reason,
@@ -960,7 +958,7 @@ export function usePrivateCall(userId: string | null) {
   // 3) explicit timeout/missed flow for unanswered calls
 
   // ============ CHECK FOR PENDING CALLS ON MOUNT/FOCUS ============
-  // Fallback only: instant delivery is handled by broadcast + realtime listeners below.
+  // Fallback only: instant delivery is handled by FCM notification bridge below.
   useEffect(() => {
     if (!userId) return;
 
@@ -1002,7 +1000,7 @@ export function usePrivateCall(userId: string | null) {
         const callAge = Date.now() - new Date(call.created_at).getTime();
         if (callAge >= 30000) return;
 
-        // ⚡ Fetch caller profile WITHOUT re-verifying call status (broadcast already validated)
+        // ⚡ Fetch caller profile without re-verifying call status; DB query above validated freshness.
         const { data: callerProfile } = await supabase
           .from('profiles_public')
           .select('display_name, avatar_url, user_level')
@@ -1187,8 +1185,8 @@ export function usePrivateCall(userId: string | null) {
       softEndCallRef.current?.();
     };
 
-    // 🔥 Pkg86 audit: LiveKit `call_accepted` listener (mirrors Supabase broadcast above).
-    // Primary path once caller's LiveKit Room is connected; Supabase remains as pre-Room fallback.
+    // 🔥 Pkg86 audit: LiveKit `call_accepted` listener is the instant path.
+    // Worst-case pre-Room miss is covered by the bounded 5s REST status poll.
     const handleLiveKitCallAccepted = (ev: Event) => {
       if (isCleanedUp) return;
       const detail = (ev as CustomEvent<CallAcceptedDetail>).detail;
