@@ -998,6 +998,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     const room = roomRef.current;
     if (!room?.localParticipant) return;
     await room.localParticipant.setMicrophoneEnabled(enabled);
+    if (enabled) {
+      import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
+    }
   }, []);
 
   // Toggle video
