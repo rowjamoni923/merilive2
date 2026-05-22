@@ -89,102 +89,130 @@ export function DynamicPartyBanners({ roomType, onBannerClick, onOpenGames }: Dy
   if (banners.length === 0) return null;
 
   return (
-    <div className="absolute right-3 bottom-32 flex flex-col gap-2 z-30">
-      {banners.map((banner, index) => (
-        <motion.button
-          key={banner.id}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => handleBannerClick(banner)}
-          className="relative overflow-hidden rounded-xl shadow-2xl"
-        >
-          {/* Gradient Border */}
-          <div 
-            className="p-[2px] rounded-xl"
+    <div className="absolute right-3 bottom-32 flex flex-col gap-2.5 z-30">
+      {banners.map((banner, index) => {
+        const isPulseType =
+          banner.banner_type === 'city_pk' || banner.banner_type === 'daily_star';
+        return (
+          <motion.button
+            key={banner.id}
+            initial={{ opacity: 0, x: 60, scale: 0.92 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{
+              type: 'spring',
+              damping: 24,
+              stiffness: 320,
+              delay: Math.min(index * 0.08, 0.24),
+            }}
+            whileHover={{ scale: 1.06, y: -1 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={() => handleBannerClick(banner)}
+            className="relative overflow-hidden rounded-2xl"
             style={{
-              background: `linear-gradient(to right, ${banner.gradient_from}, ${banner.gradient_to})`
+              boxShadow: `0 10px 28px -10px ${banner.gradient_from}99, 0 4px 14px -6px ${banner.gradient_to}80, inset 0 1px 0 rgba(255,255,255,0.18)`,
+              animation: isPulseType ? 'giftSendBreathe 2.4s ease-in-out infinite' : undefined,
             }}
           >
-            {/* Inner Content */}
-            <div 
-              className="backdrop-blur-sm rounded-xl px-3 py-2"
+            {/* Gradient Border */}
+            <div
+              className="p-[1.5px] rounded-2xl"
               style={{
-                background: `linear-gradient(to right, ${banner.gradient_from}E6, ${banner.gradient_to}E6)`
+                background: `linear-gradient(135deg, ${banner.gradient_from}, ${banner.gradient_to})`,
               }}
             >
-              {/* Sparkle Animation for Big Win type */}
-              {banner.banner_type === 'big_win' && (
-                <motion.div
-                  animate={{ 
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.1, 1]
+              {/* Inner Content */}
+              <div
+                className="relative rounded-[14px] px-3 py-2 overflow-hidden"
+                style={{
+                  background: `linear-gradient(135deg, ${banner.gradient_from}EE 0%, ${banner.gradient_to}EE 100%)`,
+                  backdropFilter: 'blur(10px) saturate(140%)',
+                  WebkitBackdropFilter: 'blur(10px) saturate(140%)',
+                }}
+              >
+                {/* Aurora overlay */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 rounded-[14px]"
+                  style={{
+                    background:
+                      'radial-gradient(120% 80% at 0% 0%, rgba(255,255,255,0.22), transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(0,0,0,0.18), transparent 55%)',
                   }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute top-1 right-1"
-                >
-                  <Sparkles className="w-4 h-4 text-yellow-300" />
-                </motion.div>
-              )}
+                />
+                {/* Shine sweep */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 rounded-[14px]"
+                  style={{
+                    background:
+                      'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.32) 50%, transparent 70%)',
+                    animation: `giftSendShine ${2.8 + (index % 3) * 0.4}s ease-in-out infinite`,
+                    mixBlendMode: 'overlay',
+                  }}
+                />
 
-              {/* Trophy Animation for PK type */}
-              {banner.banner_type === 'city_pk' && (
-                <motion.div
-                  animate={{ y: [0, -2, 0] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  className="absolute top-1 left-1"
-                >
-                  <Trophy className="w-4 h-4 text-amber-400" />
-                </motion.div>
-              )}
-
-              {/* Star Animation for Daily Star type */}
-              {banner.banner_type === 'daily_star' && (
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-1 left-1"
-                >
-                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                </motion.div>
-              )}
-
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-bold text-white/90 tracking-wider">
-                  {banner.title}
-                </span>
-                {banner.amount > 0 && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm">{banner.icon_emoji}</span>
-                    <span className="text-sm font-bold text-white">
-                      {formatAmount(banner.amount)}
-                    </span>
-                  </div>
+                {/* Sparkle Animation for Big Win type */}
+                {banner.banner_type === 'big_win' && (
+                  <motion.div
+                    animate={{ rotate: [0, 12, -12, 0], scale: [1, 1.15, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="absolute top-1 right-1 z-10 drop-shadow-[0_0_6px_rgba(253,224,71,0.85)]"
+                  >
+                    <Sparkles className="w-4 h-4 text-yellow-300" />
+                  </motion.div>
                 )}
+
+                {/* Trophy Animation for PK type */}
+                {banner.banner_type === 'city_pk' && (
+                  <motion.div
+                    animate={{ y: [0, -2.5, 0], rotate: [-4, 4, -4] }}
+                    transition={{ duration: 1.2, repeat: Infinity }}
+                    className="absolute top-1 left-1 z-10 drop-shadow-[0_0_6px_rgba(251,191,36,0.85)]"
+                  >
+                    <Trophy className="w-4 h-4 text-amber-300" />
+                  </motion.div>
+                )}
+
+                {/* Star Animation for Daily Star type */}
+                {banner.banner_type === 'daily_star' && (
+                  <motion.div
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                    className="absolute top-1 left-1 z-10 drop-shadow-[0_0_6px_rgba(250,204,21,0.85)]"
+                  >
+                    <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
+                  </motion.div>
+                )}
+
+                <div className="relative z-10 flex flex-col items-center">
+                  <span className="text-[10px] font-bold text-white/95 tracking-wider drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+                    {banner.title}
+                  </span>
+                  {banner.amount > 0 && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
+                        {banner.icon_emoji}
+                      </span>
+                      <span className="text-sm font-extrabold text-white tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]">
+                        {formatAmount(banner.amount)}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Shimmer Effect */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            animate={{ x: ['-100%', '200%'] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-          />
-
-          {/* Pulse Border for Active Events */}
-          {(banner.banner_type === 'city_pk' || banner.banner_type === 'daily_star') && (
-            <motion.div
-              className="absolute inset-0 border-2 rounded-xl pointer-events-none"
-              style={{ borderColor: `${banner.gradient_from}80` }}
-              animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.02, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-          )}
-        </motion.button>
-      ))}
+            {/* Pulse Border for Active Events */}
+            {isPulseType && (
+              <motion.div
+                className="absolute inset-0 border-2 rounded-2xl pointer-events-none"
+                style={{ borderColor: `${banner.gradient_from}99` }}
+                animate={{ opacity: [0.45, 1, 0.45], scale: [1, 1.025, 1] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
+              />
+            )}
+          </motion.button>
+        );
+      })}
     </div>
   );
 }
