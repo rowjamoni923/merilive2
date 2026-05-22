@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 interface HelperData {
   id: string;
@@ -56,6 +57,12 @@ export const useRealtimeHelperLevel = (helperId: string | null) => {
   useEffect(() => {
     fetchHelperData();
   }, [fetchHelperData]);
+
+  useAppSyncEvent(['topup_helpers'], (detail) => {
+    const payload = detail.payload || {};
+    if (payload.helper_id && payload.helper_id !== helperId) return;
+    fetchHelperData();
+  }, Boolean(helperId));
 
   // Pkg83-ext: removed static helper-level-updates channel (topup_helpers not
   // in supabase_realtime publication — was silent no-op). Replaced with

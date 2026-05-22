@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
 import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -232,6 +233,12 @@ const HelperDashboard = () => {
     }
   }, [realtimeHelperData]);
 
+  useAppSyncEvent(['topup_helpers'], (detail) => {
+    const payload = detail.payload || {};
+    if (payload.helper_id && payload.helper_id !== helperId) return;
+    loadData();
+  }, Boolean(helperId));
+
   // Function to refetch trader levels
   const refetchTraderLevels = async () => {
     console.log('[HelperDashboard] Refetching trader levels...');
@@ -391,7 +398,7 @@ const HelperDashboard = () => {
 
       // Check user's face verification status
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('profiles') // guard-ok: owner-only face verification read filtered by auth user id
         .select('is_face_verified')
         .eq('id', user.id)
         .single();
@@ -483,7 +490,7 @@ const HelperDashboard = () => {
 
       // Load agency diamond balance for combined trader wallet
       const { data: agencyData } = await supabase
-        .from('agencies')
+        .from('agencies') // guard-ok: owner-only agency balance read filtered by auth user id
         .select('diamond_balance')
         .eq('owner_id', user.id)
         .eq('is_active', true)
@@ -527,7 +534,7 @@ const HelperDashboard = () => {
         let usersMap: Record<string, any> = {};
         if (userReceiverIds.length > 0) {
           const { data: users } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('id, display_name, avatar_url, app_uid')
             .in('id', userReceiverIds);
           
@@ -538,7 +545,7 @@ const HelperDashboard = () => {
         let agenciesMap: Record<string, any> = {};
         if (agencyReceiverIds.length > 0) {
           const { data: agencies } = await supabase
-            .from('agencies')
+            .from('agencies_public')
             .select('id, name, agency_code')
             .in('id', agencyReceiverIds);
           
@@ -917,7 +924,7 @@ const HelperDashboard = () => {
       // Refresh helper data + agency balance
       const [{ data: refreshed }, { data: refreshedAgency }] = await Promise.all([
         supabase.from('topup_helpers').select('wallet_balance').eq('id', helperData.id).single(),
-        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(),
+        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(), // guard-ok: owner-only agency balance read
       ]);
       if (refreshed) {
         setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
@@ -977,7 +984,7 @@ const HelperDashboard = () => {
       // Refresh helper data + agency balance
       const [{ data: refreshed }, { data: refreshedAgency }] = await Promise.all([
         supabase.from('topup_helpers').select('wallet_balance').eq('id', helperData.id).single(),
-        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(),
+        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(), // guard-ok: owner-only agency balance read
       ]);
       if (refreshed) {
         setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));

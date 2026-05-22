@@ -329,6 +329,10 @@ export const useNotifications = () => {
               window.dispatchEvent(new CustomEvent('app-sync', {
                 detail: { topic: data.topic, eventType: data.eventType || data.event_type, rowId: data.row_id || null, payload: data },
               }));
+              if (data.topic === 'helper_notifications') {
+                fetchNotificationsRef.current();
+                emitGlobalUnreadRefresh();
+              }
               // Pkg86 audit: also fire visibilitychange so react-query stale watchers
               // refetch immediately (parity with the now-removed RealtimeProvider path).
               try { document.dispatchEvent(new Event('visibilitychange')); } catch {}
@@ -369,11 +373,13 @@ export const useNotifications = () => {
           if (ROOM_GIFT_NOTIFICATION_TYPES.has(newNotification.type)) {
             setNotifications(prev => [newNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
+            emitGlobalUnreadRefresh();
             return;
           }
           console.log('New notification received:', payload);
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
+          emitGlobalUnreadRefresh();
 
           // Play notification sound if user has interacted
           if (hasInteractedRef.current) {
@@ -431,6 +437,7 @@ export const useNotifications = () => {
             };
             setNotifications(prev => [newNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
+            emitGlobalUnreadRefresh();
 
             if (hasInteractedRef.current) {
               playNotificationSound(newNotification.type);

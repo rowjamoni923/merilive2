@@ -29,6 +29,7 @@ import { format } from "date-fns";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { recordClientError } from "@/utils/clientErrorLog";
 import HelperListingToggle from "@/components/helper/HelperListingToggle";
 import HelperPaymentMethodsCard from "@/components/helper/HelperPaymentMethodsCard";
@@ -325,6 +326,61 @@ const Level5HelperDashboard = () => {
     loadData();
   }, []);
 
+  useAppSyncEvent([
+    'topup_helpers',
+    'helper_orders',
+    'helper_notifications',
+    'helper_withdrawal_requests',
+    'helper_admin_messages',
+    'helper_message_replies',
+    'agency_withdrawals',
+    'agencies',
+  ], (detail) => {
+    const payload = detail.payload || {};
+    if (payload.helper_id && payload.helper_id !== helperData?.id) return;
+
+    switch (detail.topic) {
+      case 'topup_helpers':
+        loadData();
+        break;
+      case 'helper_orders':
+        loadHelperOrders();
+        loadCompletedHistory();
+        break;
+      case 'helper_notifications':
+        loadNotifications();
+        loadAgencyWithdrawals();
+        break;
+      case 'helper_withdrawal_requests':
+        loadWithdrawals();
+        break;
+      case 'helper_admin_messages':
+        loadAdminMessages();
+        break;
+      case 'helper_message_replies':
+        if (selectedMessage?.id) loadMessageReplies(selectedMessage.id);
+        loadAdminMessages();
+        break;
+      case 'agency_withdrawals':
+        loadAgencyWithdrawals();
+        loadCompletedHistory();
+        loadNotifications();
+        break;
+      case 'agencies':
+        loadData();
+        break;
+    }
+  }, Boolean(helperData?.id));
+
+  useEffect(() => {
+    const onAdminTableUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'topup_payment_methods') loadAvailablePaymentMethods();
+    };
+    window.addEventListener('admin-table-update', onAdminTableUpdate as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdminTableUpdate as EventListener);
+  }, [helperData?.id]);
+
   useEffect(() => {
     if (!selectedAgencyWithdrawal?.id || !helperData?.id || !showAgencyWithdrawalDialog) return;
 
@@ -472,7 +528,7 @@ const Level5HelperDashboard = () => {
 
       // Load agency diamond_balance — combined with wallet_balance = total Trader Wallet
       const { data: agencyData } = await supabase
-        .from('agencies')
+        .from('agencies') // guard-ok: owner-only agency balance read filtered by auth user id
         .select('id, diamond_balance')
         .eq('owner_id', user.id)
         .maybeSingle();
