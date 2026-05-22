@@ -25,6 +25,7 @@ import {
   Sparkles,
   RotateCcw,
   MonitorUp,
+  ShieldCheck,
   Gamepad2,
   Swords,
   MessageCircle,
