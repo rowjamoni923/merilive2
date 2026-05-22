@@ -1212,7 +1212,7 @@ export function usePrivateCall(userId: string | null) {
 
     return () => {
       isCleanedUp = true;
-      supabase.removeChannel(endChannel);
+
       if (typeof window !== 'undefined') {
         window.removeEventListener('livekit-call-ended', handleLiveKitCallEnded);
         window.removeEventListener('livekit-call-accepted', handleLiveKitCallAccepted);
