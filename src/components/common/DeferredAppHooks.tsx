@@ -58,8 +58,5 @@ DeferredAppHooks.displayName = 'DeferredAppHooks';
 export default DeferredAppHooks;
 
 
-DeferredAppHooks.displayName = 'DeferredAppHooks';
-
-export default DeferredAppHooks;
 
 
