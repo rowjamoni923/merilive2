@@ -53,16 +53,21 @@ export function useCallBilling(
         return;
       }
 
+      // RPC returns `caller_balance` (post-deduction). Older code read `caller_remaining` which was always undefined.
+      const remaining = (typeof result.caller_balance === 'number')
+        ? result.caller_balance
+        : (typeof result.caller_remaining === 'number' ? result.caller_remaining : undefined);
+
       setBillingState(prev => ({
         totalDeducted: prev.totalDeducted + (result.coins_deducted || 0),
         hostEarned: prev.hostEarned + (result.host_earned || 0),
-        callerRemaining: result.caller_remaining || 0,
+        callerRemaining: typeof remaining === 'number' ? remaining : prev.callerRemaining,
         minutesCharged: prev.minutesCharged + 1,
       }));
 
       // CRITICAL: Update global cached balance so Profile reflects instantly
-      if (result.caller_remaining !== undefined) {
-        updateCachedBalance(result.caller_remaining);
+      if (typeof remaining === 'number') {
+        updateCachedBalance(remaining);
       }
 
       console.log('[Billing] Minute charged:', result);
