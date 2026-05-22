@@ -92,10 +92,15 @@ export async function triggerLegacyProfileSync(
     }
     const { data, error } = await supabase.functions.invoke("sync-user-profile");
     if (error) {
-      // 401 / stale session — non-fatal; profile sync can be retried later.
+      // Best-effort sync — never surface as runtime error.
+      // Covers 401 (stale session), non-2xx wrappers, network blips, etc.
+      const status = (error as any)?.context?.status ?? (error as any)?.status;
       const msg = (error as any)?.message || "";
-      if (/401|unauthor/i.test(msg)) return null;
-      throw error;
+      if (status === 401 || status === 403 || /401|403|unauthor|non-2xx/i.test(msg)) {
+        return null;
+      }
+      console.warn("[legacyProfileSync] non-fatal error:", msg);
+      return null;
     }
 
 
