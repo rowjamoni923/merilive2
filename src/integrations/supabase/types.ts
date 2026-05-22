@@ -7416,6 +7416,8 @@ export type Database = {
       livekit_moderation_log: {
         Row: {
           action: string
+          actor_type: string
+          actor_user_id: string | null
           admin_token_role: string | null
           created_at: string
           error_message: string | null
@@ -7429,6 +7431,8 @@ export type Database = {
         }
         Insert: {
           action: string
+          actor_type?: string
+          actor_user_id?: string | null
           admin_token_role?: string | null
           created_at?: string
           error_message?: string | null
@@ -7442,6 +7446,8 @@ export type Database = {
         }
         Update: {
           action?: string
+          actor_type?: string
+          actor_user_id?: string | null
           admin_token_role?: string | null
           created_at?: string
           error_message?: string | null
