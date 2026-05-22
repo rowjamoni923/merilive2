@@ -779,7 +779,10 @@ export function ActiveCallScreen({
                   mirror={primaryMirror}
                   fit="cover"
                   className="w-full h-full"
+                  enablePictureInPicture
+                  pipId="call-primary"
                 />
+
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-black">
                   <AvatarWithFrame
