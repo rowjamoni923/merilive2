@@ -1184,6 +1184,7 @@ const App = () => {
                   <Route path="helper-management" element={<AdminRouteGuard routeSegment="helper-management"><AdminHelperManagement /></AdminRouteGuard>} />
                   <Route path="streams" element={<AdminRouteGuard routeSegment="streams"><AdminStreams /></AdminRouteGuard>} />
                   <Route path="recordings" element={<AdminRouteGuard routeSegment="recordings"><AdminRecordings /></AdminRouteGuard>} />
+                  <Route path="track-recordings" element={<AdminRouteGuard routeSegment="track-recordings"><AdminTrackRecordings /></AdminRouteGuard>} />
                   <Route path="party-rooms" element={<AdminRouteGuard routeSegment="party-rooms"><AdminPartyRooms /></AdminRouteGuard>} />
                   <Route path="gifts" element={<AdminRouteGuard routeSegment="gifts"><AdminGifts /></AdminRouteGuard>} />
                   <Route path="gift-transactions" element={<AdminRouteGuard routeSegment="gift-transactions"><AdminGiftTransactions /></AdminRouteGuard>} />
