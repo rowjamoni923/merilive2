@@ -37,7 +37,13 @@ export async function applyKrispNoiseFilter(track: LocalAudioTrack | null | unde
       return false;
     }
 
-    const processor = mod.KrispNoiseFilter();
+    // Pkg148: honor user's BVC preference from localStorage (set by Pkg123 dialog).
+    let useBVC = false;
+    try {
+      useBVC = typeof localStorage !== 'undefined' && localStorage.getItem('merilive_noisecancel_v1') === 'bvc';
+    } catch { /* ignore */ }
+
+    const processor = mod.KrispNoiseFilter({ useBVC });
     // setProcessor exists on LocalAudioTrack in livekit-client v2
     await (track as any).setProcessor(processor);
     appliedTracks.add(track as any);
