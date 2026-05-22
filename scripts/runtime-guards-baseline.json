@@ -226,7 +226,7 @@
     },
     {
       "file": "src/components/support/AISupportChat.tsx",
-      "line": 103,
+      "line": 104,
       "table": "profiles"
     },
     {
@@ -307,11 +307,6 @@
     {
       "file": "src/hooks/useGlobalLiveGame.ts",
       "line": 70,
-      "table": "profiles"
-    },
-    {
-      "file": "src/hooks/useLevelPrivilegeAutoEquip.ts",
-      "line": 35,
       "table": "profiles"
     },
     {
@@ -711,53 +706,23 @@
     },
     {
       "file": "src/pages/FaceVerification.tsx",
-      "line": 372,
+      "line": 373,
       "table": "profiles"
     },
     {
       "file": "src/pages/FaceVerification.tsx",
-      "line": 1511,
+      "line": 1501,
       "table": "profiles"
     },
     {
       "file": "src/pages/FaceVerification.tsx",
-      "line": 1732,
+      "line": 1722,
       "table": "profiles"
     },
     {
       "file": "src/pages/GoLive.tsx",
       "line": 267,
       "table": "profiles"
-    },
-    {
-      "file": "src/pages/HelperDashboard.tsx",
-      "line": 394,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/HelperDashboard.tsx",
-      "line": 486,
-      "table": "agencies"
-    },
-    {
-      "file": "src/pages/HelperDashboard.tsx",
-      "line": 530,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/HelperDashboard.tsx",
-      "line": 541,
-      "table": "agencies"
-    },
-    {
-      "file": "src/pages/HelperDashboard.tsx",
-      "line": 920,
-      "table": "agencies"
-    },
-    {
-      "file": "src/pages/HelperDashboard.tsx",
-      "line": 980,
-      "table": "agencies"
     },
     {
       "file": "src/pages/HostApplication.tsx",
@@ -803,11 +768,6 @@
       "file": "src/pages/Level.tsx",
       "line": 305,
       "table": "profiles"
-    },
-    {
-      "file": "src/pages/Level5HelperDashboard.tsx",
-      "line": 475,
-      "table": "agencies"
     },
     {
       "file": "src/pages/PKLeaderboard.tsx",
@@ -882,11 +842,6 @@
     {
       "file": "src/pages/ProfileDetail.tsx",
       "line": 232,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/RechargeHistory.tsx",
-      "line": 116,
       "table": "profiles"
     },
     {
