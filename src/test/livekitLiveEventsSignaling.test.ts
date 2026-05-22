@@ -179,7 +179,7 @@ describe('Pkg82a livekitLiveEventsSignaling', () => {
     expect(ok).toBe(true);
     expect(room.__publishData).toHaveBeenCalledTimes(1);
     const [, opts] = room.__publishData.mock.calls[0];
-    expect(opts).toEqual({ reliable: true });
+    expect(opts).toEqual({ reliable: false });
   });
 
   it('ignores envelopes from a different family (party)', () => {
