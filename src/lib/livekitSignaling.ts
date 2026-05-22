@@ -33,7 +33,8 @@ export type LiveKitFeature =
   | 'virtual_background'
   | 'rpc'
   | 'streams'
-  | 'room_metadata';
+  | 'room_metadata'
+  | 'noise_cancellation';
 
 
 
@@ -81,6 +82,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   rpc: true, // Pkg120: ON by default — peer-to-peer LiveKit RPC wrapper (admin can flip OFF)
   streams: true, // Pkg121: ON by default — text/file streams wrapper (admin can flip OFF)
   room_metadata: false, // Pkg122: OFF by default — server mutates SFU room state (admin opts in)
+  noise_cancellation: false, // Pkg123: OFF by default — Krisp noise filter (admin opts in)
 };
 
 
@@ -123,6 +125,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       rpc: parsed.rpc !== false, // Pkg120: ON unless admin explicitly disables
       streams: parsed.streams !== false, // Pkg121: ON unless admin explicitly disables
       room_metadata: parsed.room_metadata === true, // Pkg122: explicit opt-in only
+      noise_cancellation: parsed.noise_cancellation === true, // Pkg123: explicit opt-in only
     };
 
 
