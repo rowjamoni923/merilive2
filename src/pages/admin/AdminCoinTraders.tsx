@@ -232,7 +232,7 @@ const AdminCoinTraders = () => {
           coin_amount: amount,
           usd_amount: 0,
           status: 'completed',
-          notes: transferNote || `Admin manual transfer: ${amount} coins`,
+          notes: transferNote || `Admin manual transfer: ${amount} Diamonds`,
           processed_by: user?.id,
           processed_at: new Date().toISOString()
         });
