@@ -100,6 +100,73 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Pkg112: Finalize stream_recordings rows on egress lifecycle events.
+  // LiveKit EgressInfo status enum (string in webhook payload):
+  //   EGRESS_STARTING / EGRESS_ACTIVE / EGRESS_ENDING / EGRESS_COMPLETE / EGRESS_FAILED / EGRESS_ABORTED / EGRESS_LIMIT_REACHED
+  if (egress && egress.egressId &&
+      (eventType === "egress_started" || eventType === "egress_updated" || eventType === "egress_ended")) {
+    try {
+      const rawStatus: string = (egress.status ?? "").toString();
+      const statusMap: Record<string, string> = {
+        EGRESS_STARTING: "starting",
+        EGRESS_ACTIVE: "active",
+        EGRESS_ENDING: "ending",
+        EGRESS_COMPLETE: "completed",
+        EGRESS_FAILED: "failed",
+        EGRESS_ABORTED: "aborted",
+        EGRESS_LIMIT_REACHED: "limit_reached",
+      };
+      const mappedStatus = statusMap[rawStatus] ?? rawStatus.toLowerCase().replace(/^egress_/, "") ?? "unknown";
+      const isTerminal = ["completed", "failed", "aborted", "limit_reached"].includes(mappedStatus);
+
+      // Pull first file result (room composite uses single MP4 file output).
+      const file = Array.isArray(egress.fileResults) && egress.fileResults.length > 0
+        ? egress.fileResults[0]
+        : (egress.file ?? null);
+
+      // Duration is nanoseconds (string in proto JSON). Size is bytes (string).
+      let durationSeconds: number | null = null;
+      if (file?.duration != null) {
+        const dn = Number(file.duration);
+        if (Number.isFinite(dn) && dn > 0) durationSeconds = Math.round(dn / 1_000_000_000);
+      }
+      let sizeBytes: number | null = null;
+      if (file?.size != null) {
+        const sn = Number(file.size);
+        if (Number.isFinite(sn) && sn >= 0) sizeBytes = sn;
+      }
+      const fileUrl: string | null = file?.location ?? file?.filename ?? null;
+
+      const recUpdate: Record<string, unknown> = { status: mappedStatus };
+      if (fileUrl) recUpdate.file_url = fileUrl;
+      if (durationSeconds != null) recUpdate.duration_seconds = durationSeconds;
+      if (sizeBytes != null) recUpdate.size_bytes = sizeBytes;
+      if (egress.error) recUpdate.error = String(egress.error);
+      if (isTerminal) recUpdate.ended_at = new Date().toISOString();
+
+      const { data: recRow, error: recErr } = await admin
+        .from("stream_recordings")
+        .update(recUpdate)
+        .eq("egress_id", egress.egressId)
+        .select("id, stream_id")
+        .maybeSingle();
+      if (recErr) {
+        console.error("[livekit-webhook] stream_recordings update error:", recErr.message);
+      }
+
+      if (recRow?.stream_id) {
+        const streamUpdate: Record<string, unknown> = { recording_status: mappedStatus };
+        if (fileUrl) streamUpdate.recording_url = fileUrl;
+        // Clear egress_id only on terminal state so host can re-record later.
+        if (isTerminal) streamUpdate.egress_id = null;
+        await admin.from("live_streams").update(streamUpdate).eq("id", recRow.stream_id);
+      }
+    } catch (e) {
+      console.error("[livekit-webhook] egress finalize throw:", (e as Error)?.message);
+    }
+  }
+
+
   return new Response(JSON.stringify({ ok: true, event: eventType }), {
     status: 200,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
