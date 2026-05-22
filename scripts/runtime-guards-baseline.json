@@ -365,21 +365,6 @@
       "table": "profiles"
     },
     {
-      "file": "src/hooks/usePrivateCall.ts",
-      "line": 145,
-      "table": "profiles"
-    },
-    {
-      "file": "src/hooks/usePrivateCall.ts",
-      "line": 753,
-      "table": "profiles"
-    },
-    {
-      "file": "src/hooks/usePrivateCall.ts",
-      "line": 1291,
-      "table": "profiles"
-    },
-    {
       "file": "src/hooks/useRealtimeData.ts",
       "line": 20,
       "table": "profiles"
@@ -676,12 +661,12 @@
     },
     {
       "file": "src/pages/CallHistory.tsx",
-      "line": 77,
+      "line": 80,
       "table": "profiles"
     },
     {
       "file": "src/pages/CallHistory.tsx",
-      "line": 131,
+      "line": 134,
       "table": "profiles"
     },
     {
@@ -872,21 +857,6 @@
     {
       "file": "src/pages/PKLeaderboard.tsx",
       "line": 90,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/PartyRoom.tsx",
-      "line": 665,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/PartyRoom.tsx",
-      "line": 1225,
-      "table": "profiles"
-    },
-    {
-      "file": "src/pages/PartyRoom.tsx",
-      "line": 2163,
       "table": "profiles"
     },
     {
