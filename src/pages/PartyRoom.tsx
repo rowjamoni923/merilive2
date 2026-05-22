@@ -68,6 +68,8 @@ import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom"
 import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
 import { ReactionPickerSheet } from "@/components/livekit/ReactionPickerSheet";
+import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
+import { raiseHand, lowerHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 
 
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
