@@ -72,6 +72,44 @@ const FULLSCREEN_GIFT_STAGE_STYLE: CSSProperties = {
 };
 
 // ============================================================
+// FULLSCREEN SVGA SERIALIZER (module-level singleton)
+// Guarantees only ONE fullscreen SVGA plays at any moment across the
+// entire app. Prevents "duplicate" / overlapping plays when multiple
+// gifts arrive close together (combo, multi-sender bursts). Each SVGA
+// plays for its EXACT native duration (driven by the player's own
+// onComplete), then the slot is released and the next queued gift
+// promotes. NEVER trims an SVGA early — never extends it either.
+// ============================================================
+let activeFullscreenOwner: string | null = null;
+const fullscreenWaiters = new Set<() => void>();
+
+const tryAcquireFullscreen = (id: string): boolean => {
+  if (activeFullscreenOwner === null || activeFullscreenOwner === id) {
+    activeFullscreenOwner = id;
+    return true;
+  }
+  return false;
+};
+
+const releaseFullscreen = (id: string) => {
+  if (activeFullscreenOwner !== id) return;
+  activeFullscreenOwner = null;
+  const iter = fullscreenWaiters.values().next();
+  if (!iter.done) {
+    const next = iter.value;
+    fullscreenWaiters.delete(next);
+    try { next(); } catch {}
+  }
+};
+
+const subscribeFullscreen = (cb: () => void): (() => void) => {
+  fullscreenWaiters.add(cb);
+  return () => { fullscreenWaiters.delete(cb); };
+};
+
+
+
+// ============================================================
 // BIGO LIVE / CHAMET STYLE GIFT BANNER
 // Professional 2-row layout with gift icon + combo counter
 // ============================================================
@@ -112,13 +150,17 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     audio.play().catch(() => {});
   }, [isSVGA, gift.soundUrl]);
 
+  const [hasFullscreenSlot, setHasFullscreenSlot] = useState(false);
+
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
     completedRef.current = true;
     setShowFullScreen(false);
     setAnimationEnded(true);
+    releaseFullscreen(gift.id);
     onComplete();
-  }, [onComplete]);
+  }, [onComplete, gift.id]);
+
 
   const handleSvgaError = useCallback((error: Error) => {
     console.warn('[GiftAnim] SVGA error:', gift.giftName, error);
@@ -163,6 +205,41 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     return () => { mountedRef.current = false; clearTimeout(timer); };
   }, [gift.comboKey, isSVGA, svgaError, handleAnimationComplete]);
 
+  // ============================================================
+  // FULLSCREEN SVGA SLOT ACQUISITION
+  // Only ONE SVGA fullscreen can render at a time. If another SVGA is
+  // already playing, this gift waits in FIFO queue. The SVGA player is
+  // NOT mounted until the slot is owned — so the native duration only
+  // starts counting at its actual play time (no silent pre-consumption).
+  // ============================================================
+  useEffect(() => {
+    if (!isSVGA || svgaError) {
+      // Non-SVGA gifts don't compete for the singleton slot.
+      setHasFullscreenSlot(true);
+      return;
+    }
+    let cancelled = false;
+    const claim = () => {
+      if (cancelled || !mountedRef.current) return;
+      if (tryAcquireFullscreen(gift.id)) {
+        setHasFullscreenSlot(true);
+        unsub?.();
+      }
+    };
+    let unsub: (() => void) | null = null;
+    if (tryAcquireFullscreen(gift.id)) {
+      setHasFullscreenSlot(true);
+    } else {
+      unsub = subscribeFullscreen(claim);
+    }
+    return () => {
+      cancelled = true;
+      unsub?.();
+      releaseFullscreen(gift.id);
+    };
+  }, [isSVGA, svgaError, gift.id]);
+
+
   // Get gift icon URL (prefer giftImageUrl over giftIcon)
   const giftIconSrc = gift.giftImageUrl || (gift.giftIcon?.startsWith('http') ? gift.giftIcon : null);
 
@@ -198,6 +275,9 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // Full-screen gift animation — every gift occupies the complete app viewport.
   const renderFullScreen = () => {
     if (!showFullScreen || animationEnded) return null;
+    // SVGA gifts wait their turn — only render when this instance owns the slot.
+    if (isSVGA && !hasFullscreenSlot) return null;
+
 
     if (displayAnimationUrl) {
       return (
