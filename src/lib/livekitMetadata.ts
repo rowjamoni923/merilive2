@@ -156,6 +156,26 @@ export function readParticipantMetadata(
 }
 
 /**
+ * Read the local participant's current metadata (sync). Returns `{}` if
+ * the room isn't registered or has no metadata yet. Useful for safely
+ * merging new keys without clobbering existing ones.
+ */
+export function readLocalMetadata(
+  scope: MetadataScope,
+  id: string,
+): Record<string, unknown> {
+  const entry = registry.get(key(scope, id));
+  if (!entry?.room?.localParticipant) return {};
+  return safeParse(entry.room.localParticipant.metadata) ?? {};
+}
+
+/** Get the local participant's identity in a bound Room (or null). */
+export function getLocalIdentity(scope: MetadataScope, id: string): string | null {
+  const entry = registry.get(key(scope, id));
+  return entry?.room?.localParticipant?.identity ?? null;
+}
+
+/**
  * React hook: live-subscribe to a participant's metadata.
  */
 export function useParticipantMetadata(
