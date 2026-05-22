@@ -80,6 +80,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   virtual_background: false, // Pkg119: OFF by default; admin opts in via app_settings
   rpc: true, // Pkg120: ON by default — peer-to-peer LiveKit RPC wrapper (admin can flip OFF)
   streams: true, // Pkg121: ON by default — text/file streams wrapper (admin can flip OFF)
+  room_metadata: false, // Pkg122: OFF by default — server mutates SFU room state (admin opts in)
 };
 
 
