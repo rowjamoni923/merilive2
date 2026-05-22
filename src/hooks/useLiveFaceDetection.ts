@@ -144,7 +144,7 @@ export function useLiveFaceDetection({
   }, [onAutoClose]);
 
   // ──────────────────────────────────────────────
-  // Realtime subscription to live_moderation_settings
+  // Settings sync via Pkg37 admin_broadcast. No direct Supabase Realtime here.
   // ──────────────────────────────────────────────
 
   useEffect(() => {
@@ -187,42 +187,14 @@ export function useLiveFaceDetection({
 
     fetchSettings();
 
-    const channel = supabase
-      .channel('face-detection-settings')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'live_moderation_settings',
-      }, (payload) => {
-        const row = payload.new as any;
-        const val = row.setting_value;
-        console.log(`[FaceDetection] 🔄 Setting changed: ${row.setting_key}`, val);
-
-        switch (row.setting_key) {
-          case 'face_detection_enabled':
-            settingsRef.current.faceDetectionEnabled = val?.enabled ?? true;
-            if (!val?.enabled) {
-              stopCountdown();
-              setState(prev => ({ ...prev, isFaceVisible: true }));
-            }
-            break;
-          case 'face_absence_timeout': {
-            const normalizedTimeout = normalizeFaceAbsenceTimeout(val?.seconds);
-            settingsRef.current.faceAbsenceTimeout = normalizedTimeout;
-            break;
-          }
-          case 'max_warnings_before_ban':
-            settingsRef.current.maxWarningsBeforeBan = val?.count ?? 2;
-            break;
-          case 'auto_ban_duration_hours':
-            settingsRef.current.autoBanDurationHours = val?.hours ?? 2;
-            break;
-        }
-      })
-      .subscribe();
+    const handleAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (!table || table === 'live_moderation_settings') void fetchSettings();
+    };
+    window.addEventListener('admin-table-update', handleAdminUpdate as EventListener);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', handleAdminUpdate as EventListener);
     };
   }, [isHost, isStreaming]);
 
