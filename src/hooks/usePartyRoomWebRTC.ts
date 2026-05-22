@@ -28,6 +28,7 @@ import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/live
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
+import { registerReactionRoom, unregisterReactionRoom } from '@/lib/livekitReactions';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -101,6 +102,8 @@ export function usePartyRoomWebRTC(
     try { unregisterStreamRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRpcRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRoomForTranscription('party', roomId); } catch { /* ignore */ }
+    // Pkg133: drop reactions registration.
+    try { unregisterReactionRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -527,6 +530,12 @@ export function usePartyRoomWebRTC(
           registerRoomForTranscription('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg116] registerRoomForTranscription(party) failed:', err);
+        }
+        // Pkg133: bind for floating emoji reactions.
+        try {
+          registerReactionRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg133] registerReactionRoom(party) failed:', err);
         }
 
 

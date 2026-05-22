@@ -31,6 +31,7 @@ import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/live
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
+import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -163,6 +164,9 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterRpcRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg116: drop transcription registration.
     try { if (callIdRef.current) unregisterRoomForTranscription('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg133: drop reactions registration.
+    try { if (callIdRef.current) unregisterReactionRoom('call', callIdRef.current); } catch { /* ignore */ }
+    try { if (callIdRef.current) unregisterNativeReactionRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -487,6 +491,8 @@ export function useLiveKitCall(
         if (callId) registerRpcRoom('call', callId, room);
         // Pkg116: bind for realtime transcription / captions.
         if (callId) registerRoomForTranscription('call', callId, room);
+        // Pkg133: bind for floating emoji reactions.
+        if (callId) registerReactionRoom('call', callId, room);
 
 
         // Enable camera and microphone
