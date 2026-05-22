@@ -502,7 +502,7 @@ export const useUserRealtime = (
 
     const unsubscribe = subscribeToTables(
       subscriberId,
-      ['profiles', 'notifications', 'gift_transactions'], // coin_transfers NOT in publication
+      ['notifications'],
       (table, event, payload) => {
         // Profile updates
         if (table === 'profiles' && payload?.id === userId) {
@@ -517,20 +517,6 @@ export const useUserRealtime = (
           if (onNotification) onNotification(payload);
         }
 
-        // Gift received - refetch balance
-        if (table === 'gift_transactions' && payload?.receiver_id === userId) {
-          // Trigger balance refetch
-          supabase
-            .from('profiles')
-            .select('coins')
-            .eq('id', userId)
-            .single()
-            .then(({ data }) => {
-              if (data && onBalanceUpdate) {
-                onBalanceUpdate(data.coins || 0);
-              }
-            });
-        }
       }
     );
 
@@ -550,21 +536,7 @@ export const useAgencyRealtimeUniversal = (
 
     const subscriberId = `agency-${agencyId}`;
 
-    const unsubscribe = subscribeToTables(
-      subscriberId,
-      ['agencies', 'agency_withdrawals'], // agency_hosts & agency_earnings_transfers NOT in publication
-      (table, event, payload) => {
-        // Check if update is for this agency
-        const isRelevant = 
-          (table === 'agencies' && payload?.id === agencyId) ||
-          (table !== 'agencies' && payload?.agency_id === agencyId);
-
-        if (isRelevant) {
-          console.log(`[AgencyRealtime] ${table} updated for agency ${agencyId}`);
-          onUpdate();
-        }
-      }
-    );
+    const unsubscribe = subscribeToTables(subscriberId, [], () => onUpdate());
 
     return unsubscribe;
   }, [agencyId]);
