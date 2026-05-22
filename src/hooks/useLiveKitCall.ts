@@ -485,6 +485,8 @@ export function useLiveKitCall(
         if (callId) registerStreamRoom('call', callId, room);
         // Pkg120: bind for participant RPC (moderator commands, seat-ack, raise-hand).
         if (callId) registerRpcRoom('call', callId, room);
+        // Pkg116: bind for realtime transcription / captions.
+        if (callId) registerRoomForTranscription('call', callId, room);
 
 
         // Enable camera and microphone
