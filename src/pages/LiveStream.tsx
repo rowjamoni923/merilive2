@@ -70,6 +70,7 @@ import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
 
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
+import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
 import { PKBattleActive } from "@/components/live/PKBattleActive";
