@@ -10695,27 +10695,33 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          requester_id: string | null
           responded_at: string | null
           room_id: string
           seat_number: number
+          seat_position: number | null
           status: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          requester_id?: string | null
           responded_at?: string | null
           room_id: string
           seat_number: number
+          seat_position?: number | null
           status?: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          requester_id?: string | null
           responded_at?: string | null
           room_id?: string
           seat_number?: number
+          seat_position?: number | null
           status?: string
           user_id?: string
         }

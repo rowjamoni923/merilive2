@@ -131,7 +131,8 @@ export const ChametStyleViewerPanel = ({
     // LiveKit window-event refresh (joined / left / seat_action)
     const onPartyEvent = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      if (!detail || detail.roomId !== roomId) return;
+      const payload = detail?.payload;
+      if (!payload || payload.roomId !== roomId) return;
       fetchPartyViewers();
     };
     window.addEventListener('livekit-party-event', onPartyEvent);
