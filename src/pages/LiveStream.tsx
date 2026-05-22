@@ -72,6 +72,7 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
+import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
 import { PKBattleActive } from "@/components/live/PKBattleActive";
