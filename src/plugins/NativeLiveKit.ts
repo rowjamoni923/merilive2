@@ -43,6 +43,13 @@ export interface TrackEvent {
   kind: 'video' | 'audio' | string;
 }
 
+export interface DataReceivedEvent {
+  payloadBase64: string;
+  participantSid?: string;
+  participantIdentity?: string;
+  topic?: string;
+}
+
 export interface DisconnectedEvent { reason: string }
 export interface QualityEvent { sid: string; quality: string }
 
@@ -207,6 +214,7 @@ export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
   disconnect(): Promise<void>;
+  sendData(opts: { payloadBase64: string; reliable?: boolean; topic?: string }): Promise<{ sent: boolean }>;
   setMicrophoneEnabled(opts: { enabled: boolean }): Promise<void>;
   setCameraEnabled(opts: { enabled: boolean }): Promise<void>;
   switchCamera(): Promise<void>;
@@ -558,6 +566,7 @@ export interface NativeLiveKitPlugin {
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-unsubscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'data-received', cb: (e: DataReceivedEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'disconnected', cb: (e: DisconnectedEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'connection-quality', cb: (e: QualityEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'audio-device-changed', cb: (e: AudioDeviceChangedEvent) => void): Promise<PluginListenerHandle>;
