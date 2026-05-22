@@ -39,11 +39,37 @@ export interface VirtualBackgroundOptions {
  * lacks OffscreenCanvas, so we skip gracefully.
  */
 export function isVirtualBackgroundSupported(): boolean {
+  // Native Android: MediaPipe runs in the Kotlin VirtualBackgroundProcessor.
+  if (isNativeLiveKitAvailable()) return true;
   if (typeof window === 'undefined') return false;
   if (!window.isSecureContext) return false;
   if (typeof Worker === 'undefined') return false;
   if (typeof OffscreenCanvas === 'undefined') return false;
   return true;
+}
+
+/**
+ * Native counterpart for hosts running the Capacitor LiveKit publisher.
+ * Routes to the Kotlin VirtualBackgroundProcessor via nativeLiveKitController.
+ * Image mode requires a local file `imagePath` — pass `null`/`undefined` to
+ * skip image and use blur/none. Returns false on unsupported/disabled.
+ */
+export async function applyVirtualBackgroundNative(
+  opts: VirtualBackgroundOptions & { imagePath?: string },
+): Promise<boolean> {
+  if (!isNativeLiveKitAvailable()) return false;
+  if (opts.mode !== 'none') {
+    const enabled = await isLiveKitEnabled('virtual_background');
+    if (!enabled) return false;
+  }
+  const r = await nativeLiveKitController.setVirtualBackground({
+    mode: opts.mode,
+    blurRadius: opts.blurRadius,
+    imagePath: opts.imagePath,
+  });
+  if (!r.ok) return false;
+  if (opts.mode === 'none') return true;
+  return r.segmenterReady && (opts.mode !== 'image' || r.imageApplied);
 }
 
 /**
