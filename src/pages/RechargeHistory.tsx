@@ -89,7 +89,7 @@ const RechargeHistory = () => {
 
         if (helpers && helpers.length > 0) {
           const { data: helperProfiles } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('id, display_name')
             .in('id', helpers.map(h => h.user_id));
 
