@@ -600,7 +600,8 @@ const LiveStream = () => {
     activeSpeakerStreamId: id,
     connectionQualityStreamId: id,
     // Pkg122: room-wide metadata sync (current song/poll/theme/pinned chat).
-    roomMetadataStreamId: id,
+   roomMetadataStreamId: id,
+   streamsStreamId: id,
     // Pkg105: host-only — registers Room for SFU-level viewer block enforcement.
     trackPermissionStreamId: isHost && isHostVerified ? id : null,
 
