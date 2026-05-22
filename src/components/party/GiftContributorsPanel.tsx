@@ -142,13 +142,36 @@ export function GiftContributorsPanel({
 
     fetchContributors();
 
-    // Pkg83 LiveKit-Purist: refetch on Pkg76 `livekit-gift-sent` window event
-    // (party scope, this roomId only). REPLACES `gift-contributors-${roomId}`
-    // postgres_changes channel — LiveKit DataPacket is sole instant signal.
+    // Pkg183 LiveKit-Purist: pure optimistic in-memory delta on Pkg76
+    // `livekit-gift-sent` DataPacket — NO refetch. Sender packs all metadata
+    // (senderId/name/avatar/level/totalCoins) so we apply commission and
+    // increment locally → 0ms leaderboard update for all viewers.
     const onLiveKitGift = (e: Event) => {
-      const detail = (e as CustomEvent<{ scope?: string; id?: string }>).detail;
-      if (!detail || detail.scope !== 'party' || detail.id !== roomId) return;
-      fetchContributors();
+      const d = (e as CustomEvent<any>).detail;
+      if (!d || d.scope !== 'party' || d.id !== roomId) return;
+      const senderId = d.senderId;
+      const coins = Number(d.totalCoins ?? ((d.giftCoins ?? 0) * (d.count ?? 1))) || 0;
+      if (!senderId || coins <= 0) return;
+      const hostBeans = Math.floor(coins * hostCommissionPercent / 100);
+      setContributors((prev) => {
+        const map = new Map(prev.map((c) => [c.userId, { ...c }]));
+        const existing = map.get(senderId);
+        if (existing) {
+          existing.totalBeans += hostBeans;
+          existing.giftCount += 1;
+        } else {
+          map.set(senderId, {
+            userId: senderId,
+            displayName: d.senderName || 'User',
+            avatarUrl: d.senderAvatar,
+            level: d.senderLevel || 1,
+            totalBeans: hostBeans,
+            giftCount: 1,
+            frameId: undefined,
+          });
+        }
+        return Array.from(map.values()).sort((a, b) => b.totalBeans - a.totalBeans);
+      });
     };
     window.addEventListener('livekit-gift-sent', onLiveKitGift as EventListener);
     return () => {
