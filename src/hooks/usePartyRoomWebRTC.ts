@@ -530,6 +530,7 @@ export function usePartyRoomWebRTC(
           registerRoomForTranscription('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg116] registerRoomForTranscription(party) failed:', err);
+        }
         // Pkg133: bind for floating emoji reactions.
         try {
           registerReactionRoom('party', roomId, room);
