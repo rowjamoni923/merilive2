@@ -15,6 +15,7 @@ export interface GiftServiceResponse {
   coinsSpent?: number;
   hostReceived?: number;
   hostPercent?: number;
+  newBalance?: number | null;
   error?: string;
 }
 
