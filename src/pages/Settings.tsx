@@ -50,6 +50,8 @@ import {
   requestMicrophonePermission as requestNativeMicrophonePermission,
   requestNotificationPermission as requestNativeNotificationPermission,
 } from "@/utils/nativePermissions";
+import { AutoRecordSettingsRow } from "@/components/livekit/AutoRecordSettingsRow";
+
 
 // World languages - English names only (no native scripts)
 const worldLanguages = [
