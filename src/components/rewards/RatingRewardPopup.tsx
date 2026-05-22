@@ -83,20 +83,14 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
     void checkClaim();
   }, [refreshLatestClaim]);
 
-  // Pkg63 — realtime: admin approve/reject reflects in user UI within 1s.
-  useEffect(() => {
-    if (!userId) return;
-    const ch = supabase
-      .channel(`rating-claim-status-${userId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'rating_reward_claims',
-        filter: `user_id=eq.${userId}`,
-      }, () => { void refreshLatestClaim(userId); })
-      .subscribe();
-    return () => { void supabase.removeChannel(ch); };
-  }, [userId, refreshLatestClaim]);
+  // Pkg91: rating_reward_claims not in supabase_realtime publication.
+  // Use app_sync trigger (tg_app_sync_rating_reward_claims) via useAppSyncEvent.
+  useAppSyncEvent(
+    ['rating_reward_claims'],
+    () => { if (userId) void refreshLatestClaim(userId); },
+    !!userId,
+  );
+
 
 
   const openProofDialog = useCallback(() => {
