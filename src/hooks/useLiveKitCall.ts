@@ -445,6 +445,8 @@ export function useLiveKitCall(
         if (callId) registerActiveSpeakerRoom('call', callId, room);
         // Pkg101: bind for connection-quality indicator on call tile.
         if (callId) registerConnectionQualityRoom('call', callId, room);
+        // Pkg107: bind for participant metadata sync (AFK/role/mod flags).
+        if (callId) registerMetadataRoom('call', callId, room);
 
 
         // Enable camera and microphone
