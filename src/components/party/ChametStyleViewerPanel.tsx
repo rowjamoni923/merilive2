@@ -36,6 +36,7 @@ interface ChametStyleViewerPanelProps {
   onRejectApplicant?: (userId: string) => void;
   onInviteViewer?: (userId: string) => void;
   onKickViewer?: (userId: string) => void;
+  onModerateViewer?: (userId: string, displayName: string) => void;
   isHost: boolean;
   roomId?: string; // CRITICAL: Add roomId for real-time sync
 }
