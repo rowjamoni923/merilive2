@@ -207,32 +207,50 @@ const LiveTasksCard = ({ hostId }: LiveTasksCardProps) => {
 
   if (!isEligible || tasks.length === 0) return null;
 
-  // All tasks claimed
+  // All tasks claimed — Pkg174 polish
   if (!currentTask) {
     return (
       <motion.div
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="w-full rounded-2xl overflow-hidden p-3"
+        initial={{ y: 10, opacity: 0, scale: 0.96 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', damping: 24, stiffness: 320 }}
+        className="relative w-full rounded-2xl overflow-hidden p-3"
         style={{
-          background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(34,197,94,0.08))',
-          border: '1px solid rgba(34,197,94,0.25)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
+          background:
+            'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(34,197,94,0.12) 50%, rgba(20,83,45,0.18) 100%)',
+          border: '1px solid rgba(34,197,94,0.32)',
+          backdropFilter: 'blur(20px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+          boxShadow:
+            '0 10px 28px -10px rgba(34,197,94,0.45), inset 0 1px 0 rgba(255,255,255,0.12)',
         }}
       >
-        <div className="flex items-center gap-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-2xl"
+          style={{
+            background:
+              'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%)',
+            animation: 'giftSendShine 3.6s ease-in-out infinite',
+            mixBlendMode: 'overlay',
+          }}
+        />
+        <div className="relative flex items-center gap-2.5">
           <motion.div
             animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', boxShadow: '0 0 16px rgba(34,197,94,0.4)' }}
+            className="w-9 h-9 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(145deg, #22c55e, #10b981)',
+              boxShadow:
+                '0 0 18px rgba(34,197,94,0.55), 0 4px 10px -3px rgba(16,185,129,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
+            }}
           >
-            <Check className="w-4 h-4 text-white" />
+            <Check className="w-4 h-4 text-white" strokeWidth={3} />
           </motion.div>
           <div>
-            <span className="text-green-300 text-[11px] font-bold">All Tasks Complete! 🎉</span>
-            <p className="text-green-400/50 text-[9px]">{tasks.length}/{tasks.length} done</p>
+            <span className="text-emerald-200 text-[12px] font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">All Tasks Complete! 🎉</span>
+            <p className="text-emerald-300/60 text-[10px] font-medium">{tasks.length}/{tasks.length} done</p>
           </div>
         </div>
       </motion.div>
