@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { publishLiveFilterUpdate } from '@/lib/livekitLiveFilterSignaling';
 
 export interface LiveFilterState {
   beautyEnabled: boolean;
@@ -47,29 +47,22 @@ export const useLiveStreamFilters = (streamId: string | undefined, isHost: boole
   const [filterState, setFilterState] = useState<LiveFilterState>(defaultFilterState);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Subscribe to real-time filter changes
+  // LiveKit-only filter sync: no Supabase Realtime channel.
   useEffect(() => {
     if (!streamId) return;
 
-    const channelName = `stream_filters_${streamId}`;
-    
-    const channel = supabase
-      .channel(channelName)
-      .on('broadcast', { event: 'filter_update' }, (payload) => {
-        console.log('🎨 Received filter update:', payload);
-        if (payload.payload) {
-          setFilterState(payload.payload as LiveFilterState);
-        }
-      })
-      .subscribe((status) => {
-        console.log('🔌 Filter channel status:', status);
-        if (status === 'SUBSCRIBED') {
-          setIsLoading(false);
-        }
-      });
+    setIsLoading(false);
+
+    const handleFilterUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ payload?: { streamId?: string; state?: LiveFilterState } }>).detail;
+      if (detail?.payload?.streamId !== streamId || !detail.payload.state) return;
+      setFilterState(detail.payload.state);
+    };
+
+    window.addEventListener('livekit-live-filter', handleFilterUpdate as EventListener);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('livekit-live-filter', handleFilterUpdate as EventListener);
     };
   }, [streamId]);
 
@@ -77,13 +70,7 @@ export const useLiveStreamFilters = (streamId: string | undefined, isHost: boole
   const broadcastFilterUpdate = useCallback(async (newState: LiveFilterState) => {
     if (!streamId || !isHost) return;
 
-    const channelName = `stream_filters_${streamId}`;
-    
-    await supabase.channel(channelName).send({
-      type: 'broadcast',
-      event: 'filter_update',
-      payload: newState,
-    });
+    await publishLiveFilterUpdate(streamId, newState);
   }, [streamId, isHost]);
 
   // Update beauty enabled
