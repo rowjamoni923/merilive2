@@ -367,6 +367,18 @@ export const useNotifications = () => {
             return;
           }
 
+          // Pkg92: bridge new-message notifications to a window event so
+          // Chat.tsx can refresh the conversation list WITHOUT opening its own
+          // dead `conv-refresh-*` Supabase channel (messages/conversations are
+          // not in supabase_realtime publication — cost-safe + correct).
+          if (newNotification.type === 'message') {
+            try {
+              window.dispatchEvent(new CustomEvent('chat:new-message', { detail: newNotification }));
+            } catch {/* noop */}
+          }
+
+
+
 
           // Live/party/chat gifts are rendered by the room/chat gift feed and animation system.
           // Do not show the global top toast, otherwise one gift appears as a repeating notification banner.
