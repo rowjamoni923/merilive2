@@ -63,7 +63,6 @@ export const useRealtimeLevel = (userId: string | null) => {
   const [level, setLevel] = useState<number>(cached?.level ?? 1);
   const [levelData, setLevelData] = useState<LevelData | null>(cached?.levelData ?? null);
   const [loading, setLoading] = useState(!cached);
-  const channelInstanceIdRef = useRef(`rt-${Math.random().toString(36).slice(2, 10)}`);
   
   // Track previous level to detect level-up and trigger frame refresh
   const previousLevelRef = useRef<number | null>(cached?.level ?? null);
@@ -202,7 +201,6 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
   const [currentXP, setCurrentXP] = useState(0);
   const [nextLevelXP, setNextLevelXP] = useState(0);
   const [nextLevelNumber, setNextLevelNumber] = useState(1);
-  const tierChannelInstanceIdRef = useRef(`rt-tier-${Math.random().toString(36).slice(2, 10)}`);
   
   // CORRECT LOGIC: Only female hosts use host_level (resets weekly)
   // Everyone else (male hosts, regular users) use user_level (permanent)
