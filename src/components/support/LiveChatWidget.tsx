@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { isLiveChatOnline, getSupportHoursLocal } from "@/components/support/AISupportChat";
 import { Capacitor } from "@capacitor/core";
 
