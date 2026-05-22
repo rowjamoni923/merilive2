@@ -940,7 +940,7 @@ const Level5HelperDashboard = () => {
       g => g.is_integrated && g.gateway_type === paymentType
     );
     const isGatewayType = !!matchedIntegratedGateway
-      || ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+      || ['sslcommerz', 'aamarpay'].includes(paymentType);
 
     if (!selectedCountry) {
       toast({ title: "Error", description: "Please select a country", variant: "destructive" });
@@ -975,7 +975,7 @@ const Level5HelperDashboard = () => {
       }
 
       const isGateway = isGatewayType;
-      const isLegacyGateway = ['sslcommerz', 'aamarpay', 'zinipay'].includes(paymentType);
+      const isLegacyGateway = ['sslcommerz', 'aamarpay'].includes(paymentType);
 
       const gatewayDisplayMethodValue = gatewayDisplayMethod.trim();
       const gatewayDisplayNumberValue = gatewayDisplayNumber.trim();
@@ -993,7 +993,7 @@ const Level5HelperDashboard = () => {
         setProcessing(false);
         return;
       }
-      if (isGateway && paymentType !== 'zinipay' && !gatewaySecretCredential) {
+      if (isGateway && !gatewaySecretCredential) {
         toast({ title: "Error", description: "Please enter gateway secret", variant: "destructive" });
         setProcessing(false);
         return;
@@ -1010,7 +1010,7 @@ const Level5HelperDashboard = () => {
           payment_method_name: methodName,
           method_name: methodName,
           method_type: isGateway ? 'auto_gateway' : paymentType,
-          account_name: isGateway ? (paymentType === 'zinipay' ? gatewayDisplayMethodValue : gatewayPrimaryCredential) : accountName,
+          account_name: isGateway ? gatewayPrimaryCredential : accountName,
           account_number: isGateway ? gatewayDisplayNumberValue : accountNumber,
           bank_name: bankName || null,
           instructions: methodInstructions || null,
@@ -1021,7 +1021,7 @@ const Level5HelperDashboard = () => {
             // Legacy specific shapes (kept for backward compatibility with existing edge functions)
             ...(paymentType === 'sslcommerz' ? { store_id: gatewayPrimaryCredential, store_password: gatewaySecretCredential, is_sandbox: false } : {}),
             ...(paymentType === 'aamarpay' ? { store_id: gatewayPrimaryCredential, signature_key: gatewaySecretCredential, is_sandbox: false } : {}),
-            ...(paymentType === 'zinipay' ? { zinipay_api_key: gatewayPrimaryCredential } : {}),
+            // ZiniPay removed.
             // Generic credential shape for ALL other integrated gateways (PhonePe, GCash, MoMo, etc.)
             ...(!isLegacyGateway ? {
               api_key: gatewayPrimaryCredential,
