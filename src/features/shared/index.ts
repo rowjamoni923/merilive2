@@ -64,9 +64,9 @@ export { default as PresenceProvider } from '@/components/common/PresenceProvide
 
 // ========== SHARED HOOKS ==========
 export { useSound } from '@/hooks/useSound';
-export { usePresence } from '@/hooks/usePresence';
 export { useNetworkStatus } from '@/hooks/useNetworkStatus';
 // useRealtimeSubscription removed in Pkg95 (dead code, zero callers, latent $1400-rule footguns).
+// usePresence removed in Pkg96 audit (dead code, duplicate presence channel + profile writes; PresenceProvider is canonical).
 export { useUniversalRealtime } from '@/hooks/useUniversalRealtime';
 export { useFeatureLevelCheck } from '@/hooks/useFeatureLevelCheck';
 export { useUserPrivileges } from '@/hooks/useUserPrivileges';
