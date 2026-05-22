@@ -2138,10 +2138,11 @@ const PartyRoom = () => {
                   
                   // Refresh actual balance from server (in case of discrepancy)
                   const { data: updatedProfile } = await supabase
-                    .from("profiles")
+                    .from("profiles") // guard-ok: owner-only self balance refresh after gift send
                     .select("coins")
                     .eq("id", currentUser.id)
                     .single();
+
                   
                   if (updatedProfile) {
                     setUserCoins(updatedProfile.coins || 0);
