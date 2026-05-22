@@ -62,37 +62,18 @@ export const useFeatureLevelCheck = () => {
     refetchOnReconnect: false,
   });
 
-  // Real-time subscription for instant updates from admin panel
+  // Admin-driven instant sync: feature_level_requirements is NOT in
+  // supabase_realtime; Pkg37 admin_broadcast is the single allowed path.
   useEffect(() => {
-    const channelName = `feature-level-realtime-${Math.random().toString(36).slice(2, 8)}`;
-    const channel = supabase
-      .channel(channelName)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'feature_level_requirements' },
-        (payload) => {
-          console.log("[useFeatureLevelCheck] Real-time update received", payload.eventType);
-          queryClient.setQueryData<FeatureRequirement[]>(["feature-level-requirements"], (current = []) => {
-            if (payload.eventType === 'DELETE') {
-              return current.filter((item) => item.id !== (payload.old as FeatureRequirement | null)?.id);
-            }
-
-            const next = normalizeRequirement(payload.new as FeatureRequirement);
-            if (next.is_active === false) {
-              return current.filter((item) => item.id !== next.id);
-            }
-
-            const exists = current.some((item) => item.id === next.id);
-            return exists
-              ? current.map((item) => item.id === next.id ? next : item)
-              : [...current, next];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const onAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'feature_level_requirements') {
+        void queryClient.invalidateQueries({ queryKey: ["feature-level-requirements"], refetchType: 'active' });
+      }
     };
+
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
   }, [queryClient]);
 
   const checkFeatureAccess = (
