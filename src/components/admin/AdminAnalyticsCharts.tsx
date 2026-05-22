@@ -160,7 +160,7 @@ export const AdminAnalyticsCharts = memo(() => {
 
   const chartGiftRevenue = data?.gift_revenue?.map(d => ({
     date: formatDate(d.date),
-    Coins: d.coins,
+    Diamonds: d.coins,
   })) || [];
 
   const chartCallActivity = data?.call_activity?.map(d => ({
