@@ -93,7 +93,8 @@ export async function buildE2EEOptions(
 
   try {
     const keyProvider = new ExternalE2EEKeyProvider();
-    await keyProvider.setKey(keyBytes);
+    // SDK accepts string | ArrayBuffer — pass the underlying buffer slice.
+    await keyProvider.setKey(keyBytes.buffer.slice(keyBytes.byteOffset, keyBytes.byteOffset + keyBytes.byteLength) as ArrayBuffer);
 
     // Vite bundles this as a module worker at build time.
     const worker = new Worker(
