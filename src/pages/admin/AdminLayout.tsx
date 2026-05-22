@@ -934,6 +934,13 @@ const navGroups: NavGroup[] = [
         description: "Pkg138 — inspect inbound/outbound SIP trunks and dispatch rules. Safe delete with confirmation.",
       },
       {
+        label: "LiveKit Webhooks",
+        icon: Antenna,
+        path: "/admin/livekit-webhook",
+        hubKey: "content-hub",
+        description: "Pkg97 — raw LiveKit Cloud webhook event log (room/participant/track/egress/ingress) with full payload inspector.",
+      },
+      {
         label: "Reels",
         icon: Video,
         path: "/admin/reels",
