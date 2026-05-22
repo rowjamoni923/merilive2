@@ -120,6 +120,7 @@ class FakeSupabase {
       hostEarn = Math.floor(charge * hostPct / 100);
     }
     if (caller.coins < charge) charge = caller.coins; // cap at balance
+    if (durationSec >= 21) hostEarn = Math.floor(charge * hostPct / 100);
     caller.coins -= charge;
     host.beans  += hostEarn;
     c.status = 'ended';
@@ -281,6 +282,19 @@ describe('Pkg61 E2E — Call connect + Incoming modal + Gift flows', () => {
       await sb.settle_private_call(start.callId!, 60);
       const second = await sb.settle_private_call(start.callId!, 60);
       expect(second).toEqual({ ok: false, reason: 'already_settled' });
+    });
+
+    it('caps host beans to actually charged diamonds when caller balance is short at settle', async () => {
+      caller.coins = 150; sb.seedProfile(caller);
+      const start = await sb.start_private_call({
+        callerId: caller.id, hostId: host.id, coinsPerMinute: 100, isNative: true,
+      });
+      const modal = new IncomingCallModal(sb, host.id);
+      await modal.accept();
+      const settled = await sb.settle_private_call(start.callId!, 120);
+      expect(settled.charge).toBe(150);
+      expect(settled.hostEarn).toBe(90);
+      expect(sb.profiles.get(host.id)!.beans).toBe(90);
     });
   });
 
