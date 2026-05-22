@@ -191,6 +191,7 @@ const PartyRoom = () => {
   const [loading, setLoading] = useState(true);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showRoomControls, setShowRoomControls] = useState(false);
   const [showSeatRequests, setShowSeatRequests] = useState(false);
