@@ -107,6 +107,10 @@ interface UseLiveKitClientOptions {
    * `livekit-room-metadata` window event. Consumers use
    * `useRoomMetadata('live', id)` to read shared room state. */
   roomMetadataStreamId?: string | null;
+  /** Pkg121: When set, the underlying Room is registered with the text/byte
+   * stream registry so consumers can call `registerTextStreamHandler` /
+   * `registerByteStreamHandler` / `sendText` / `sendFile` with scope='live'. */
+  streamsStreamId?: string | null;
 }
 
 
