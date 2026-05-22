@@ -436,7 +436,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                 )}
                 <div>
                   <p className="text-white font-medium text-sm">{selectedGift.name}</p>
-                  <p className="text-amber-400 text-xs">{formatCoins(selectedGift.coins * sendCount)} coins</p>
+                  <p className="text-amber-400 text-xs">{formatCoins(selectedGift.coins * sendCount)} Diamonds</p>
                 </div>
               </div>
 
@@ -475,7 +475,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
               </div>
             </div>
             {userCoins < selectedGift.coins * sendCount && (
-              <p className="text-xs text-red-400 text-center mt-1">Insufficient coins</p>
+              <p className="text-xs text-red-400 text-center mt-1">Insufficient Diamonds</p>
             )}
           </motion.div>
         )}
