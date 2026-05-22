@@ -275,7 +275,11 @@ export const GiftSwipeableGrid = memo(({
         onMouseLeave={handleMouseLeave}
       >
         <div className="px-3 py-1">
-          <div className="grid grid-cols-4 gap-2">
+          <div
+            key={currentPage}
+            className="grid grid-cols-4 gap-2 animate-[giftPageIn_220ms_cubic-bezier(0.32,0.72,0,1)]"
+            style={{ willChange: 'transform, opacity' }}
+          >
             {currentPageGifts.map((gift) => (
               <GiftItem
                 key={gift.id}
@@ -290,21 +294,23 @@ export const GiftSwipeableGrid = memo(({
         </div>
       </div>
 
-      {/* Compact professional page bars */}
+      {/* Compact professional page bars — gradient active */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-0.5 py-1">
+        <div className="flex justify-center items-center gap-1 py-1.5">
           {Array.from({ length: totalPages }).map((_, index) => (
             <button
               key={index}
               onClick={() => handlePageClick(index)}
-              className="group grid h-3 w-4 place-items-center"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
+              className="group grid h-3 place-items-center"
+              style={{ WebkitTapHighlightColor: 'transparent', width: currentPage === index ? 16 : 8 }}
               aria-label={`Page ${index + 1}`}
             >
               <span
                 className={cn(
-                  "block h-0.5 rounded-[1px] transition-all duration-200",
-                  currentPage === index ? "w-3 bg-white" : "w-1.5 bg-white/45 group-hover:bg-white/75"
+                  "block h-[3px] rounded-full transition-all duration-300",
+                  currentPage === index
+                    ? "w-4 bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 shadow-[0_0_8px_rgba(236,72,153,0.5)]"
+                    : "w-1.5 bg-white/35 group-hover:bg-white/65"
                 )}
               />
             </button>
