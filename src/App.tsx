@@ -230,6 +230,7 @@ const AdminHelperOrders = lazy(lazyRetry(() => import("./pages/admin/AdminHelper
 const AdminPayrollOrders = lazy(lazyRetry(() => import("./pages/admin/AdminPayrollOrders")));
 const AdminStreams = lazy(lazyRetry(() => import("./pages/admin/AdminStreams")));
 const AdminRecordings = lazy(lazyRetry(() => import("./pages/admin/AdminRecordings")));
+const AdminTrackRecordings = lazy(lazyRetry(() => import("./pages/admin/AdminTrackRecordings")));
 const AdminPartyRooms = lazy(lazyRetry(() => import("./pages/admin/AdminPartyRooms")));
 const AdminGifts = lazy(lazyRetry(() => import("./pages/admin/AdminGifts")));
 const AdminGiftTransactions = lazy(lazyRetry(() => import("./pages/admin/AdminGiftTransactions")));
@@ -1183,6 +1184,7 @@ const App = () => {
                   <Route path="helper-management" element={<AdminRouteGuard routeSegment="helper-management"><AdminHelperManagement /></AdminRouteGuard>} />
                   <Route path="streams" element={<AdminRouteGuard routeSegment="streams"><AdminStreams /></AdminRouteGuard>} />
                   <Route path="recordings" element={<AdminRouteGuard routeSegment="recordings"><AdminRecordings /></AdminRouteGuard>} />
+                  <Route path="track-recordings" element={<AdminRouteGuard routeSegment="track-recordings"><AdminTrackRecordings /></AdminRouteGuard>} />
                   <Route path="party-rooms" element={<AdminRouteGuard routeSegment="party-rooms"><AdminPartyRooms /></AdminRouteGuard>} />
                   <Route path="gifts" element={<AdminRouteGuard routeSegment="gifts"><AdminGifts /></AdminRouteGuard>} />
                   <Route path="gift-transactions" element={<AdminRouteGuard routeSegment="gift-transactions"><AdminGiftTransactions /></AdminRouteGuard>} />

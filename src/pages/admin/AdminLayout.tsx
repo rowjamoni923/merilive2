@@ -47,6 +47,7 @@ import {
   ArrowUpCircle,
   Gamepad2,
   Play,
+  Film,
   ShoppingBag,
   UserCog,
   Smartphone,
@@ -886,6 +887,13 @@ const navGroups: NavGroup[] = [
         path: "/admin/recordings",
         hubKey: "content-hub",
         description: "Recorded stream replays storage — review for compliance, delete or feature.",
+      },
+      {
+        label: "Track Recordings",
+        icon: Film,
+        path: "/admin/track-recordings",
+        hubKey: "content-hub",
+        description: "Pkg113 per-participant moderation evidence — admin-only audio/video track recordings.",
       },
       {
         label: "Reels",
