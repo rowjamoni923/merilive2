@@ -4,7 +4,7 @@ import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundD
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
-import { ReactionPickerSheet } from "@/components/livekit/ReactionPickerSheet";
+import { ReactionsQuickBar } from "@/components/livekit/ReactionsQuickBar";
 import { raiseHand, lowerHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
@@ -3731,11 +3731,13 @@ const LiveStream = () => {
             id={id}
             roomName={id ? `live_${id}` : null}
           />
-          <ReactionPickerSheet
+          <ReactionsQuickBar
             open={showReactionPicker}
             onClose={() => setShowReactionPicker(false)}
             scope="live"
             id={id}
+            bottomOffset={100}
+            leftOffset={16}
           />
           <FloatingReactionsOverlay scope="live" id={id} bottomOffset={120} />
 
