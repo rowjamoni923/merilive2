@@ -111,6 +111,10 @@ interface UseLiveKitClientOptions {
    * stream registry so consumers can call `registerTextStreamHandler` /
    * `registerByteStreamHandler` / `sendText` / `sendFile` with scope='live'. */
   streamsStreamId?: string | null;
+  /** Pkg120: When set, the underlying Room is registered with the RPC
+   * registry so consumers can call `registerRpcMethod`/`performRpc` with
+   * scope='live'. */
+  rpcStreamId?: string | null;
 }
 
 
