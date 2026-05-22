@@ -143,6 +143,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       forward_participant: parsed.forward_participant === true, // Pkg128: explicit opt-in only
       auto_record: parsed.auto_record === true, // Pkg129: explicit opt-in only
       update_permission: parsed.update_permission === true, // Pkg130: explicit opt-in only
+      reactions: parsed.reactions !== false, // Pkg132: ON unless admin explicitly disables
     };
 
 
