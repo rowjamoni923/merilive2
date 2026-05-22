@@ -746,7 +746,7 @@ const AgentWallet = () => {
                   <span className="text-sm text-body">You will receive:</span>
                   <span className="text-warning-500">🪙</span>
                   <span className="font-bold text-success-600">
-                    {parseInt(exchangeAmount).toLocaleString()} Coins
+                    {parseInt(exchangeAmount).toLocaleString()} Diamonds
                   </span>
                 </div>
               )}
