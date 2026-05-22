@@ -937,19 +937,32 @@ const PartyRoom = () => {
         return;
       }
 
-      // --- room_state_changed (Pkg81) ---
+      // --- room_state_changed (Pkg81 + Pkg185) ---
       if (payload.type === 'room_state_changed') {
         const data = payload as RoomStateChangedPayload;
-        console.log('[PartyRoom] 🟣 ⚡ Pkg81 livekit room_state_changed:', data);
+        console.log('[PartyRoom] 🟣 ⚡ Pkg81/185 livekit room_state_changed:', data);
         if (typeof data.active_seats === 'number') {
           setRoom(prev => prev ? { ...prev, active_seats: data.active_seats! } : prev);
         }
+        // Pkg185: full background apply — supports BOTH cases:
+        //   a) background row (image_url + gradient_css) → currentBackground
+        //   b) free preset (background_url only, no row) → reset currentBackground
+        //      and patch room.background_url so the fallback chain at line 1871
+        //      (`currentBackground?.image_url || room.background_url`) resolves
+        //      correctly without any REST refetch. Instant viewer update.
         if (data.background) {
           setCurrentBackground({
             id: data.background.id,
             image_url: data.background.image_url ?? null,
             gradient_css: data.background.gradient_css ?? null,
           } as any);
+          if (typeof data.background_url !== 'undefined') {
+            setRoom(prev => prev ? { ...prev, background_url: data.background_url ?? null, background_id: data.background!.id } : prev);
+          }
+        } else if (typeof data.background_url !== 'undefined') {
+          // Free preset: clear stale background row, set room.background_url
+          setCurrentBackground(null as any);
+          setRoom(prev => prev ? { ...prev, background_url: data.background_url ?? null, background_id: null } : prev);
         }
         if (data.is_active === false) {
           const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
