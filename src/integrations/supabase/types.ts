@@ -11045,6 +11045,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sip_call_log: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          error: string | null
+          id: string
+          initiator_id: string
+          phone_number: string
+          room_name: string
+          sip_call_id: string | null
+          sip_participant_id: string | null
+          status: string
+          stream_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          error?: string | null
+          id?: string
+          initiator_id: string
+          phone_number: string
+          room_name: string
+          sip_call_id?: string | null
+          sip_participant_id?: string | null
+          status?: string
+          stream_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          error?: string | null
+          id?: string
+          initiator_id?: string
+          phone_number?: string
+          room_name?: string
+          sip_call_id?: string | null
+          sip_participant_id?: string | null
+          status?: string
+          stream_id?: string | null
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           content: string
