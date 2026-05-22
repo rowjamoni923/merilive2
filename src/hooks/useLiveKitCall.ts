@@ -146,6 +146,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterNativeGiftRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg98: drop active-speaker registration.
     try { if (callIdRef.current) unregisterActiveSpeakerRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg101: drop connection-quality registration.
+    try { if (callIdRef.current) unregisterConnectionQualityRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
