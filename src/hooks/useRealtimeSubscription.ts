@@ -245,7 +245,7 @@ export const useWalletRealtime = (
         async () => {
           // Refetch balance when receiving gifts
           const { data } = await supabase
-            .from('profiles')
+            .from('profiles') // guard-ok: owner-only self balance refresh, not a cross-user profile read
             .select('coins')
             .eq('id', userId)
             .single();
