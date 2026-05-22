@@ -1421,6 +1421,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.connectionQualityStreamId, isJoined]);
+
+  // Pkg107: bind for participant metadata sync (host AFK / theme / mod flags).
+  useEffect(() => {
+    const streamId = options.metadataStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitMetadata');
+        if (cancelled) return;
+        mod.registerMetadataRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg107] registerMetadataRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitMetadata').then((mod) => {
+        mod.unregisterMetadataRoom('live', streamId);
+      }).catch(() => {});
+    };
+  }, [options.metadataStreamId, isJoined]);
   // Pkg105: bind for track-subscription permissions (host hard-block).
   useEffect(() => {
     const streamId = options.trackPermissionStreamId;
