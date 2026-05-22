@@ -851,6 +851,18 @@ const GoLive = () => {
       }
     }
 
+    // Pkg157: brief pre-join connection probe (1.5s budget) — Chamet/Bigo parity.
+    // Shows "Checking connection…" overlay so the tap feels responsive while
+    // we measure RTT; warns on poor network but never blocks Go Live.
+    setIsProbing(true);
+    try {
+      const probe = await runPreflightProbe();
+      if (probe.quality === 'poor') {
+        toast.warning('Weak network detected — video may start in low quality.');
+      }
+    } catch { /* probe never throws, just in case */ }
+    setIsProbing(false);
+
     setIsStarting(true);
 
     try {
