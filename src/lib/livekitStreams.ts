@@ -104,7 +104,7 @@ export function registerTextStreamHandler(
   }
   try {
     entry.room.registerTextStreamHandler(topic, async (reader: any, participantInfo: any) => {
-      const enabled = await isLiveKitEnabled('streams' as any);
+      const enabled = await isLiveKitEnabled('streams');
       if (!enabled) return;
       try {
         const text: string = typeof reader.readAll === 'function'
@@ -153,7 +153,7 @@ export async function sendText(
   text: string,
   opts: SendTextOptions,
 ): Promise<{ id: string } | null> {
-  const enabled = await isLiveKitEnabled('streams' as any);
+  const enabled = await isLiveKitEnabled('streams');
   if (!enabled) throw new Error('streams_disabled');
   const entry = registry.get(key(scope, id));
   if (!entry) throw new Error('room_not_registered');
@@ -197,7 +197,7 @@ export function registerByteStreamHandler(
   }
   try {
     entry.room.registerByteStreamHandler(topic, async (reader: any, participantInfo: any) => {
-      const enabled = await isLiveKitEnabled('streams' as any);
+      const enabled = await isLiveKitEnabled('streams');
       if (!enabled) return;
       try {
         const chunks: Uint8Array[] = [];
@@ -263,7 +263,7 @@ export async function sendFile(
   file: File | Blob,
   opts: SendFileOptions,
 ): Promise<{ id: string } | null> {
-  const enabled = await isLiveKitEnabled('streams' as any);
+  const enabled = await isLiveKitEnabled('streams');
   if (!enabled) throw new Error('streams_disabled');
   const entry = registry.get(key(scope, id));
   if (!entry) throw new Error('room_not_registered');
