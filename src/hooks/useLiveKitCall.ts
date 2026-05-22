@@ -22,8 +22,8 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { registerCallRoom, registerNativeCallRoom, unregisterCallRoom, unregisterNativeCallRoom } from '@/lib/livekitCallSignaling';
-import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
-import { registerGiftRoom, unregisterGiftRoom } from '@/lib/livekitGiftSignaling';
+import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
+import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -138,8 +138,10 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterNativeCallRoom(callIdRef.current); } catch { /* ignore */ }
     // Pkg79: drop chat-signaling registration as well.
     try { if (callIdRef.current) unregisterChatRoom('call', callIdRef.current); } catch { /* ignore */ }
+    try { if (callIdRef.current) unregisterNativeChatRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg83: drop gift-signaling registration for call scope.
     try { if (callIdRef.current) unregisterGiftRoom('call', callIdRef.current); } catch { /* ignore */ }
+    try { if (callIdRef.current) unregisterNativeGiftRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -252,7 +254,11 @@ export function useLiveKitCall(
             if (lastNErr) throw lastNErr;
 
             usingNativeRef.current = true;
-            if (callId) registerNativeCallRoom(callId);
+            if (callId) {
+              registerNativeCallRoom(callId);
+              registerNativeChatRoom('call', callId);
+              registerNativeGiftRoom('call', callId);
+            }
             setNativeActive(true);
             setState(p => ({
               ...p,
