@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
 import SwiftPayDepositModal from "@/components/recharge/SwiftPayDepositModal";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -231,6 +232,12 @@ const HelperDashboard = () => {
       setHelperData((prev: any) => ({ ...prev, ...realtimeHelperData }));
     }
   }, [realtimeHelperData]);
+
+  useAppSyncEvent(['topup_helpers'], (detail) => {
+    const payload = detail.payload || {};
+    if (payload.helper_id && payload.helper_id !== helperId) return;
+    loadData();
+  }, Boolean(helperId));
 
   // Function to refetch trader levels
   const refetchTraderLevels = async () => {
