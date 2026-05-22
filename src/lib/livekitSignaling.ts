@@ -21,7 +21,8 @@ export type LiveKitFeature =
   | 'presence'
   | 'game'
   | 'pk'
-  | 'e2ee';
+  | 'e2ee'
+  | 'ingress';
 
 export interface SignalEnvelope<T = unknown> {
   /** Envelope version — bump when shape changes. */
@@ -55,6 +56,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   game: true,
   pk: true,
   e2ee: false, // Pkg108: OFF by default; admin opts in via app_settings
+  ingress: false, // Pkg109: OFF by default; admin opts in via app_settings
 };
 
 let cachedFlags: Record<LiveKitFeature, boolean> | null = null;
@@ -83,6 +85,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       game: parsed.game !== false,
       pk: parsed.pk !== false,
       e2ee: parsed.e2ee === true, // Pkg108: explicit opt-in only
+      ingress: parsed.ingress === true, // Pkg109: explicit opt-in only
     };
   } catch {
     return { ...DEFAULT_FLAGS };

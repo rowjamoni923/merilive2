@@ -7182,6 +7182,8 @@ export type Database = {
           ended_at: string | null
           host_id: string
           id: string
+          ingress_id: string | null
+          ingress_type: string | null
           is_active: boolean | null
           last_heartbeat: string | null
           live_password_hash: string | null
@@ -7189,8 +7191,10 @@ export type Database = {
           music_playing: boolean | null
           music_started_at: string | null
           room_id: string | null
+          rtmp_url: string | null
           started_at: string | null
           status: string | null
+          stream_key: string | null
           stream_type: string | null
           thumbnail_url: string | null
           title: string | null
@@ -7207,6 +7211,8 @@ export type Database = {
           ended_at?: string | null
           host_id: string
           id?: string
+          ingress_id?: string | null
+          ingress_type?: string | null
           is_active?: boolean | null
           last_heartbeat?: string | null
           live_password_hash?: string | null
@@ -7214,8 +7220,10 @@ export type Database = {
           music_playing?: boolean | null
           music_started_at?: string | null
           room_id?: string | null
+          rtmp_url?: string | null
           started_at?: string | null
           status?: string | null
+          stream_key?: string | null
           stream_type?: string | null
           thumbnail_url?: string | null
           title?: string | null
@@ -7232,6 +7240,8 @@ export type Database = {
           ended_at?: string | null
           host_id?: string
           id?: string
+          ingress_id?: string | null
+          ingress_type?: string | null
           is_active?: boolean | null
           last_heartbeat?: string | null
           live_password_hash?: string | null
@@ -7239,8 +7249,10 @@ export type Database = {
           music_playing?: boolean | null
           music_started_at?: string | null
           room_id?: string | null
+          rtmp_url?: string | null
           started_at?: string | null
           status?: string | null
+          stream_key?: string | null
           stream_type?: string | null
           thumbnail_url?: string | null
           title?: string | null
@@ -15723,6 +15735,8 @@ export type Database = {
           ended_at: string | null
           host_id: string
           id: string
+          ingress_id: string | null
+          ingress_type: string | null
           is_active: boolean | null
           last_heartbeat: string | null
           live_password_hash: string | null
@@ -15730,8 +15744,10 @@ export type Database = {
           music_playing: boolean | null
           music_started_at: string | null
           room_id: string | null
+          rtmp_url: string | null
           started_at: string | null
           status: string | null
+          stream_key: string | null
           stream_type: string | null
           thumbnail_url: string | null
           title: string | null
@@ -17106,6 +17122,15 @@ export type Database = {
           rank: number
           stat_value: number
           user_id: string
+        }[]
+      }
+      get_live_stream_ingress: {
+        Args: { _stream_id: string }
+        Returns: {
+          ingress_id: string
+          ingress_type: string
+          rtmp_url: string
+          stream_key: string
         }[]
       }
       get_my_host_bonus_ledger: {
