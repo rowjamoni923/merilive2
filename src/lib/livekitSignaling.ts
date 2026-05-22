@@ -119,6 +119,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       agent: parsed.agent === true, // Pkg117: explicit opt-in only
       virtual_background: parsed.virtual_background === true, // Pkg119: explicit opt-in only
       rpc: parsed.rpc !== false, // Pkg120: ON unless admin explicitly disables
+      streams: parsed.streams !== false, // Pkg121: ON unless admin explicitly disables
     };
 
 
