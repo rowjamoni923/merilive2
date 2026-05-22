@@ -22,45 +22,21 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // ============= THE ONLY SOURCE OF TRUTH =============
-// These are the ONLY tables in the supabase_realtime publication.
-// Subscribing to anything else wastes DB connections.
+// These are the ONLY app-facing tables allowed in the supabase_realtime publication.
+// Room/call/live/gift/chat fanout is LiveKit/FCM + REST snapshots only.
 const PUBLICATION_TABLES = new Set([
-  'app_settings',
-  'conversations',
-  'messages',
   'notifications',
-  'private_calls',
-  'live_streams',
-  'party_rooms',
-  'stream_chat',
-  'stream_viewers',
-  'gift_transactions',
-  'support_tickets',
-  'support_messages',
-  'face_verification_submissions',
-  'agencies',
-  'agency_withdrawals',
   // Pkg37: single broadcast table fans out admin saves; cost-guarded server-side
   'admin_broadcast',
+  // Pkg44: single-device instant kick mirror. Never add profiles to publication.
+  'user_active_sessions',
 ]);
 
 // During DB pressure we preserve only mission-critical realtime tables.
 const ESSENTIAL_TABLES = new Set([
-  'messages',
-  'conversations',
-  'private_calls',
-  'live_streams',
-  'party_rooms',
   'notifications',
-  'gift_transactions',
-  'app_settings',
-  'stream_chat',
-  'stream_viewers',
-  'profiles', // CRITICAL: Required for instant diamond balance updates
-  'agencies', // CRITICAL: Agency dashboard real-time sync
-  'agency_withdrawals', // CRITICAL: Agency withdrawal status updates
-  'support_messages', // CRITICAL: Live chat admin replies must reach users instantly
-  'support_tickets', // CRITICAL: Live chat ticket status updates
+  'admin_broadcast',
+  'user_active_sessions',
 ]);
 
 const MANUAL_ONLY_CHANNELS = new Set(['admin-users-realtime', 'admin-hosts-realtime']);
