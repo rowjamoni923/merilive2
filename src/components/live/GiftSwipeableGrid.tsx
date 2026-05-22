@@ -54,31 +54,62 @@ const GiftItem = memo(({
 }) => {
   const { url, isSvga } = useMemo(() => getDisplayInfo(gift), [gift]);
 
+  const isLegendary = gift.animationType === 'legendary';
+  const isLuxury = gift.animationType === 'luxury';
+
   return (
     <button
       onClick={onTap}
       className={cn(
-        "flex flex-col items-center p-2 rounded-2xl relative border",
+        "flex flex-col items-center p-2 rounded-2xl relative border overflow-hidden",
         getAnimationTypeColor(gift.animationType),
         isSelected
-          ? "bg-gradient-to-br from-pink-500/25 via-purple-500/20 to-indigo-500/25 ring-2 ring-pink-400/60"
-          : "bg-gradient-to-br from-white/5 to-white/[0.02]"
+          ? "bg-gradient-to-br from-pink-500/30 via-purple-500/25 to-indigo-500/30 ring-2 ring-pink-400/70"
+          : "bg-gradient-to-br from-white/[0.06] to-white/[0.02] hover:from-white/[0.10] hover:to-white/[0.04]"
       )}
-      style={{ 
-        boxShadow: isSelected ? '0 4px 20px rgba(236, 72, 153, 0.3)' : 'none',
+      style={{
+        boxShadow: isSelected
+          ? '0 6px 24px rgba(236, 72, 153, 0.4), inset 0 1px 0 rgba(255,255,255,0.12)'
+          : isLegendary
+          ? '0 0 14px rgba(251,191,36,0.18), inset 0 1px 0 rgba(255,255,255,0.06)'
+          : 'inset 0 1px 0 rgba(255,255,255,0.04)',
         WebkitTapHighlightColor: 'transparent',
-        transform: isSelected ? 'scale(1.03)' : 'scale(1)',
-        transition: 'transform 80ms ease-out, box-shadow 80ms ease-out',
+        transform: isSelected ? 'scale(1.04) translateZ(0)' : 'scale(1) translateZ(0)',
+        transition: 'transform 100ms ease-out, box-shadow 120ms ease-out, background 150ms ease-out',
         willChange: 'transform',
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden'
       }}
     >
+      {/* Selected shine sweep */}
+      {isSelected && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden"
+        >
+          <span
+            className="absolute -inset-y-2 -left-1/2 w-1/2 rotate-12 animate-[giftShine_1.8s_ease-in-out_infinite]"
+            style={{ background: 'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%)' }}
+          />
+        </span>
+      )}
+      {/* Legendary aurora glow */}
+      {isLegendary && !isSelected && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-2xl opacity-60"
+          style={{ background: 'radial-gradient(60% 80% at 50% 0%, rgba(251,191,36,0.22), transparent 70%)' }}
+        />
+      )}
+
       {getAnimationTypeBadge(gift.animationType)}
       
       {/* Gift Icon Container */}
       <div 
-        className="w-12 h-12 flex items-center justify-center rounded-xl overflow-hidden bg-gradient-to-br from-black/40 to-black/20 border border-white/5"
+        className={cn(
+          "w-12 h-12 flex items-center justify-center rounded-xl overflow-hidden bg-gradient-to-br from-black/40 to-black/20 border border-white/5 relative z-[1]",
+          isLegendary && "ring-1 ring-amber-400/40"
+        )}
         style={{ contain: 'layout style' }}
       >
         {url && isSvga ? (
@@ -104,12 +135,12 @@ const GiftItem = memo(({
       </div>
 
       {/* Gift Name */}
-      <span className="text-white/90 text-[10px] mt-1.5 truncate w-full text-center font-semibold leading-tight">
+      <span className="text-white/90 text-[10px] mt-1.5 truncate w-full text-center font-semibold leading-tight relative z-[1]">
         {gift.name}
       </span>
       
       {/* Price Badge */}
-      <div className="flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-500/15 to-purple-500/15 border border-cyan-400/20">
+      <div className="flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-400/25 relative z-[1]">
         <Diamond3DIcon size={10} />
         <span className="text-[9px] font-bold bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent">
           {formatCoinValue(gift.coins)}
