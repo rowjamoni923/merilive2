@@ -982,7 +982,7 @@ const AdminSupportTickets = () => {
       // guard-ok: intentional shared admin broadcast channel — server publishes once,
       // all admin tabs receive; per-tab suffix would force N server publishes. Broadcast-only
       // (not postgres_changes), tables not in publication, $1400-rule safe.
-      .channel(`support_realtime`, { config: { broadcast: { self: false } } })
+      .channel(`support_realtime`, { config: { broadcast: { self: false } } }) // channel-singleton-ok: shared admin broadcast, server publishes once
       .on('broadcast', { event: 'support_event' }, ({ payload }) => {
         const op = payload?.op as string | undefined;
         const table = payload?.table as string | undefined;
