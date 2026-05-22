@@ -15,6 +15,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Star, ChevronRight, Clock, CheckCircle2, XCircle, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
