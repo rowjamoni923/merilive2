@@ -294,39 +294,20 @@ export function useRealtimeEarnings(userId: string | null) {
 
     fetchEarnings();
 
-    // Subscribe to new gifts
-    const channel = supabase
-      .channel(`earnings-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'gift_transactions',
-          filter: `receiver_id=eq.${userId}`
-        },
-        async (payload) => {
-          console.log('[Realtime] New earning:', payload.new);
-          const amount = (payload.new as any).coin_amount;
-          
-          setTodayEarnings(prev => prev + amount);
-          setWeekEarnings(prev => prev + amount);
-          setMonthEarnings(prev => prev + amount);
-          setTotalEarnings(prev => prev + amount);
-          setRecentGifts(prev => [payload.new, ...prev.slice(0, 19)]);
-          setLastUpdate(new Date());
-        }
-      )
-      .subscribe();
-
-    // No polling - realtime subscription handles updates
-    const interval: ReturnType<typeof setInterval> | null = null;
-
+    // Pkg89 LiveKit-Purist: removed `earnings-${userId}` postgres_changes
+    // subscription on `gift_transactions`. Table NOT in supabase_realtime publication;
+    // this hook has ZERO consumers. Gift earnings push instantly via Pkg76
+    // `livekit-gift-sent` window event (for active room views) and Pkg85
+    // `own-beans-updated` (for global My Beans). Visibility refresh covers other surfaces.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchEarnings();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(channel);
-      if (interval) clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [userId]);
+
 
   return { todayEarnings, weekEarnings, monthEarnings, totalEarnings, recentGifts, loading, lastUpdate };
 }
