@@ -31,7 +31,8 @@ export type LiveKitFeature =
   | 'transcription'
   | 'agent'
   | 'virtual_background'
-  | 'rpc';
+  | 'rpc'
+  | 'streams';
 
 
 
