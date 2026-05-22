@@ -93,6 +93,10 @@ interface UseLiveKitClientOptions {
    * dispatches a `livekit-connection-quality` window event. Consumers use
    * `useConnectionQuality('live', id)` to render network bars. */
   connectionQualityStreamId?: string | null;
+  /** Pkg105: When set (host side only), the underlying Room is registered
+   * with the track-subscription-permission registry so hosts can hard-block
+   * specific viewer identities at the SFU level via `setHostBlocklist`. */
+  trackPermissionStreamId?: string | null;
 }
 
 
@@ -1412,6 +1416,31 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.connectionQualityStreamId, isJoined]);
+  // Pkg105: bind for track-subscription permissions (host hard-block).
+  useEffect(() => {
+    const streamId = options.trackPermissionStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    let off: (() => void) | undefined;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitTrackPermissions');
+        if (cancelled) return;
+        off = mod.registerTrackPermissionRoom('live', streamId, room);
+      } catch (e) {
+        console.warn('[Pkg105] registerTrackPermissionRoom(live) failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      try { off?.(); } catch { /* noop */ }
+    };
+  }, [options.trackPermissionStreamId, isJoined]);
+
+
+
 
 
 
