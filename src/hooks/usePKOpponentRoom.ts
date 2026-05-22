@@ -24,6 +24,7 @@ import {
   type RemoteTrackPublication,
 } from 'livekit-client';
 import { getLiveKitToken } from '@/services/livekitService';
+import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 
 export interface OpponentRoomTracks {
   /** Opponent's video track (for split-screen rendering) */
