@@ -3,6 +3,8 @@ import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFi
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
+import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
+import { ReactionPickerSheet } from "@/components/livekit/ReactionPickerSheet";
 import { raiseHand, lowerHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
