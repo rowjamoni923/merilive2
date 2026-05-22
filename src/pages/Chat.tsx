@@ -1208,7 +1208,7 @@ const Chat = () => {
     if (existing) {
       const { data: profile } = await supabase
         .from('profiles_public')
-        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute, user_level, country_flag, country_name, city, last_seen_at')
+        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute, user_level, host_level, max_user_level, country_flag, country_name, city, last_seen_at')
         .eq('id', otherUserId)
         .maybeSingle();
 
