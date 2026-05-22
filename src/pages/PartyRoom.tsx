@@ -416,47 +416,23 @@ const PartyRoom = () => {
     
     fetchSettings();
     
-    // ✅ UNIFIED REAL-TIME SUBSCRIPTION for ALL app_settings changes
-    const settingsChannel = supabase
-      .channel('party-room-settings-realtime')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'app_settings'
-      }, (payload: any) => {
-        const settingKey = payload.new?.setting_key;
-        const settingValue = payload.new?.setting_value;
-        
-        if (!settingKey || !settingValue) return;
-        
-        // Handle gift_commission updates
-        if (settingKey === 'gift_commission') {
-          console.log('[PartyRoom] ⚡ Gift commission updated in real-time:', settingValue);
-          let rate = 55;
-          if (settingValue.host_percent !== undefined) {
-            rate = settingValue.host_percent;
-          } else if (settingValue.company_percent !== undefined) {
-            rate = 100 - settingValue.company_percent;
-          }
-          setHostCommissionPercent(rate);
-        }
-        
-        // Handle party_room_limits updates
-        if (settingKey === 'party_room_limits') {
-          console.log('[PartyRoom] ⚡ Party limits updated in real-time:', settingValue);
-          setAdminPartyLimits({
-            max_video_participants: settingValue.max_video_participants || 4,
-            max_audio_participants: settingValue.max_audio_participants || 12,
-            max_game_participants: settingValue.max_game_participants || 6
-          });
-        }
-      })
-      .subscribe();
-    
+    // Pkg87 LiveKit-Purist: admin gift_commission + party_room_limits sync via
+    // Pkg37 `admin-table-update` window event (dispatched by singleton
+    // useAdminBroadcastSync — kill-switch + 50k/hr cap apply). REPLACES the
+    // `party-room-settings-realtime` Supabase postgres_changes channel on
+    // app_settings (1 channel per party-room mount → was $1400-rule risk).
+    const onAdminUpdate = (e: Event) => {
+      const detail = (e as CustomEvent<{ table?: string }>).detail;
+      if (detail?.table === 'app_settings') {
+        fetchSettings();
+      }
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
     return () => {
-      supabase.removeChannel(settingsChannel);
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
     };
   }, []);
+
   
   // ✅ BACKGROUND SYNC - Fetch background on room load and subscribe to changes
   useEffect(() => {
