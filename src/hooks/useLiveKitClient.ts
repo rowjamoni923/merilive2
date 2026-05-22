@@ -97,6 +97,11 @@ interface UseLiveKitClientOptions {
    * with the track-subscription-permission registry so hosts can hard-block
    * specific viewer identities at the SFU level via `setHostBlocklist`. */
   trackPermissionStreamId?: string | null;
+  /** Pkg107: When set, the underlying Room is registered with the
+   * participant-metadata registry so `RoomEvent.ParticipantMetadataChanged`
+   * dispatches a `livekit-participant-metadata` window event. Consumers use
+   * `useParticipantMetadata('live', id, identity)` to read live state. */
+  metadataStreamId?: string | null;
 }
 
 
