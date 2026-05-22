@@ -27,6 +27,7 @@ import {
   isDuplicateEnvelope,
   isLiveKitEnabled,
 } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
 
 export interface CallEndedPayload {
   callId: string;
@@ -59,6 +60,8 @@ interface Entry {
 
 // callId → Room + DataReceived handler
 const registry = new Map<string, Entry>();
+const nativeRegistry = new Set<string>();
+let nativeUnsubscribe: (() => void) | null = null;
 
 function makeHandler(callId: string) {
   return (payload: Uint8Array, participant?: RemoteParticipant) => {
@@ -103,6 +106,40 @@ function makeHandler(callId: string) {
       return;
     }
   };
+}
+
+function dispatchCallEnvelope(callId: string, payload: Uint8Array, participantIdentity?: string) {
+  const env = decodeEnvelope(payload);
+  if (!env || env.f !== 'call') return;
+  if (isDuplicateEnvelope(env.id)) return;
+
+  if (env.t === 'call_ended') {
+    const p = (env.p ?? {}) as Partial<CallEndedPayload>;
+    if (p.callId && p.callId !== callId) return;
+    window.dispatchEvent(new CustomEvent<CallEndedDetail>('livekit-call-ended', {
+      detail: {
+        callId,
+        endedBy: p.endedBy || env.s || 'unknown',
+        reason: p.reason,
+        duration: p.duration,
+        sender: participantIdentity,
+      },
+    }));
+    return;
+  }
+
+  if (env.t === 'call_accepted') {
+    const p = (env.p ?? {}) as Partial<CallAcceptedPayload>;
+    if (p.callId && p.callId !== callId) return;
+    window.dispatchEvent(new CustomEvent<CallAcceptedDetail>('livekit-call-accepted', {
+      detail: {
+        callId,
+        acceptedBy: p.acceptedBy || env.s || 'unknown',
+        at: p.at,
+        sender: participantIdentity,
+      },
+    }));
+  }
 }
 
 /** Bind a callId to its LiveKit Room so we can publish/receive Pkg73/84 packets. */
