@@ -37,6 +37,7 @@ import {
   RotateCcw,
   MonitorUp,
   ShieldCheck,
+  Layers,
   Radio,
   PhoneCall,
   Video,
