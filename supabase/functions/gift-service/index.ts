@@ -54,6 +54,7 @@ Deno.serve(async (req) => {
     const streamId = body?.streamId as string | undefined
     const partyRoomId = body?.partyRoomId as string | undefined
     const callId = body?.callId as string | undefined
+    const reelId = body?.reelId as string | undefined
     const quantity = Math.max(1, Number(body?.quantity || 1))
 
     if (!receiverId || !giftId) {
@@ -88,6 +89,7 @@ Deno.serve(async (req) => {
       p_stream_id: streamId ?? null,
       p_party_room_id: partyRoomId ?? null,
       p_call_id: callId ?? null,
+      p_reel_id: reelId ?? null,
     })
 
     if (error) {
