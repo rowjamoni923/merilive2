@@ -183,7 +183,7 @@ function getStoredFetchTime(): number {
 let settingsCache: GlobalSettings = loadFromStorage();
 let lastFetchTime = getStoredFetchTime();
 let settingsFetchPromise: Promise<GlobalSettings> | null = null;
-let settingsRealtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+let settingsAdminListenerAttached = false;
 const settingsSubscribers = new Set<(next: GlobalSettings) => void>();
 
 // ============= Fetch Functions =============
@@ -302,18 +302,23 @@ export async function refreshGlobalSettingsCache(): Promise<GlobalSettings> {
   return getSettings(true);
 }
 
-function ensureSettingsRealtimeSubscription() {
-  if (settingsRealtimeChannel) return;
+function ensureSettingsAdminBroadcastListener() {
+  if (settingsAdminListenerAttached || typeof window === 'undefined') return;
+  settingsAdminListenerAttached = true;
 
-  settingsRealtimeChannel = supabase
-    .channel('global-settings-realtime')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, () => void getSettings(true))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_level_tiers' }, () => void getSettings(true))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'helper_level_config' }, () => void getSettings(true))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'trader_level_tiers' }, () => void getSettings(true))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'vip_tiers' }, () => void getSettings(true))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'user_level_tiers' }, () => void getSettings(true))
-    .subscribe();
+  const watchedTables = new Set([
+    'app_settings',
+    'agency_level_tiers',
+    'helper_level_config',
+    'trader_level_tiers',
+    'vip_tiers',
+    'user_level_tiers',
+  ]);
+
+  window.addEventListener('admin-table-update', (event) => {
+    const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+    if (!table || watchedTables.has(table)) void getSettings(true);
+  });
 }
 
 // ============= Main Hook =============
@@ -338,7 +343,7 @@ export function useGlobalSettings() {
     updateSettings(settingsCache);
 
     void getSettings(false).then(updateSettings);
-    ensureSettingsRealtimeSubscription();
+    ensureSettingsAdminBroadcastListener();
 
     return () => {
       mounted = false;

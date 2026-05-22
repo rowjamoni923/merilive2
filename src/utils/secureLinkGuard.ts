@@ -2,6 +2,7 @@
  * 🔒 SECURE LINK GUARD
  * Controls which external links are allowed inside the native app.
  * Fetches whitelist from admin-managed `allowed_external_links` table.
+ * Admin-side changes arrive through the singleton admin_broadcast listener.
  * Blocks all unauthorized external URLs to prevent phishing & data leaks.
  */
 
@@ -125,14 +126,14 @@ export const initSecureLinkGuard = (): (() => void) => {
   // Fetch rules immediately
   fetchAllowedLinks();
 
-  // Subscribe to real-time changes
-  const channel = supabase
-    .channel('secure-link-guard')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'allowed_external_links' }, () => {
+  const handleAdminUpdate = (event: Event) => {
+    const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+    if (!table || table === 'allowed_external_links') {
       console.log('[SecureLinkGuard] Rules updated, refreshing...');
       fetchAllowedLinks();
-    })
-    .subscribe();
+    }
+  };
+  window.addEventListener('admin-table-update', handleAdminUpdate as EventListener);
 
   const handleClick = (e: MouseEvent) => {
     const target = (e.target as HTMLElement)?.closest('a');
@@ -174,6 +175,6 @@ export const initSecureLinkGuard = (): (() => void) => {
   return () => {
     document.removeEventListener('click', handleClick, true);
     window.open = originalWindowOpen;
-    supabase.removeChannel(channel);
+    window.removeEventListener('admin-table-update', handleAdminUpdate as EventListener);
   };
 };

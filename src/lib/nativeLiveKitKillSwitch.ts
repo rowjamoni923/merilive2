@@ -1,5 +1,5 @@
 /**
- * nativeLiveKitKillSwitch — module-level cache + realtime subscription
+ * nativeLiveKitKillSwitch — module-level cache + admin-broadcast sync
  * for the admin-controlled `app_settings.native_livekit_enabled` flag.
  *
  * Default = ENABLED. Admin can flip the flag in app_settings to instantly
@@ -8,7 +8,7 @@
  * gate short-circuits first).
  *
  * Lazy initialization: first call to `getNativeLiveKitKillSwitch()` kicks
- * off a one-shot fetch + realtime subscription. Until the fetch resolves
+ * off a one-shot fetch + Pkg37 admin-broadcast listener. Until the fetch resolves
  * we return `true` (fail-open) so we never block native sessions on
  * settings load latency.
  */
@@ -51,21 +51,11 @@ async function fetchOnce(): Promise<void> {
 }
 
 function subscribe(): void {
-  try {
-    supabase
-      .channel('native-livekit-killswitch')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'app_settings', filter: `setting_key=eq.${SETTING_KEY}` },
-        (payload) => {
-          const row = (payload.new ?? payload.old) as { setting_value?: unknown } | null;
-          if (row && 'setting_value' in row) cachedEnabled = parseSettingValue(row.setting_value);
-        }
-      )
-      .subscribe();
-  } catch {
-    // ignore — cache stays at last fetched value
-  }
+  if (typeof window === 'undefined') return;
+  window.addEventListener('admin-table-update', (event) => {
+    const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+    if (!table || table === 'app_settings') void fetchOnce();
+  });
 }
 
 function ensureInit(): void {

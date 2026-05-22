@@ -79,6 +79,9 @@ interface UseLiveKitClientOptions {
    * ParticipantDisconnected) reach window event listeners. The
    * `stream_viewers` rows remain the source of truth for durable state. */
   liveEventsStreamId?: string | null;
+  /** Live stream filter/beauty sync. Replaces legacy Supabase broadcast
+   * `stream_filters_${id}` with LiveKit DataPackets on the same Room. */
+  filterSignalingStreamId?: string | null;
 }
 
 
@@ -1282,6 +1285,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }).catch(() => {});
     };
   }, [options.liveEventsStreamId, isJoined]);
+
+  // Bind streamId → Room for LiveKit-based filter_update signaling.
+  useEffect(() => {
+    const streamId = options.filterSignalingStreamId;
+    if (!streamId || !isJoined) return;
+    const room = roomRef.current;
+    if (!room) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('@/lib/livekitLiveFilterSignaling');
+        if (cancelled) return;
+        mod.registerLiveFilterRoom(streamId, room);
+      } catch (e) {
+        console.warn('[LiveFilter] registerLiveFilterRoom failed:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      import('@/lib/livekitLiveFilterSignaling').then((mod) => {
+        mod.unregisterLiveFilterRoom(streamId);
+      }).catch(() => {});
+    };
+  }, [options.filterSignalingStreamId, isJoined]);
 
 
 
