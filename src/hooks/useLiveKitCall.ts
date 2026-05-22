@@ -437,6 +437,8 @@ export function useLiveKitCall(
         if (callId) registerGiftRoom('call', callId, room);
         // Pkg98: bind for active-speaker detection (ring the speaking peer).
         if (callId) registerActiveSpeakerRoom('call', callId, room);
+        // Pkg101: bind for connection-quality indicator on call tile.
+        if (callId) registerConnectionQualityRoom('call', callId, room);
 
 
         // Enable camera and microphone
