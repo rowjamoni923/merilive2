@@ -39,6 +39,10 @@ verify_jwt = true
 [functions.livekit-track-egress]
 verify_jwt = true
 
+[functions.livekit-stream-egress]
+verify_jwt = true
+
+
 
 
 

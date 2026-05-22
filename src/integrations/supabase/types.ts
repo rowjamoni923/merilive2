@@ -11336,6 +11336,62 @@ export type Database = {
           },
         ]
       }
+      stream_simulcasts: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          egress_id: string
+          ended_at: string | null
+          error: string | null
+          host_id: string
+          id: string
+          providers: string[]
+          room_name: string
+          rtmp_urls_masked: string[]
+          started_at: string
+          status: string
+          stream_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          egress_id: string
+          ended_at?: string | null
+          error?: string | null
+          host_id: string
+          id?: string
+          providers?: string[]
+          room_name: string
+          rtmp_urls_masked?: string[]
+          started_at?: string
+          status?: string
+          stream_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          egress_id?: string
+          ended_at?: string | null
+          error?: string | null
+          host_id?: string
+          id?: string
+          providers?: string[]
+          room_name?: string
+          rtmp_urls_masked?: string[]
+          started_at?: string
+          status?: string
+          stream_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_simulcasts_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "live_streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stream_viewers: {
         Row: {
           id: string
