@@ -12603,6 +12603,51 @@ export type Database = {
         }
         Relationships: []
       }
+      transcription_segments: {
+        Row: {
+          created_at: string
+          end_time: number | null
+          id: string
+          is_final: boolean
+          language: string | null
+          participant_identity: string | null
+          room_name: string
+          scope: string
+          scope_id: string
+          segment_id: string | null
+          start_time: number | null
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: number | null
+          id?: string
+          is_final?: boolean
+          language?: string | null
+          participant_identity?: string | null
+          room_name: string
+          scope: string
+          scope_id: string
+          segment_id?: string | null
+          start_time?: number | null
+          text: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: number | null
+          id?: string
+          is_final?: boolean
+          language?: string | null
+          participant_identity?: string | null
+          room_name?: string
+          scope?: string
+          scope_id?: string
+          segment_id?: string | null
+          start_time?: number | null
+          text?: string
+        }
+        Relationships: []
+      }
       user_active_sessions: {
         Row: {
           device_info: Json | null
