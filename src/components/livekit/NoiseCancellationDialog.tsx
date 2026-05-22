@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   applyNoiseCancellation,
+  applyNoiseCancellationNative,
   clearNoiseCancellation,
   isNoiseCancellationSupported,
 } from "@/lib/livekitNoiseCancellation";
@@ -50,11 +51,13 @@ function savePersisted(enabled: boolean) {
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Live LocalAudioTrack from LiveKit (`useLiveKitClient.localAudioTrack`). */
-  localAudioTrack: any;
+  /** Live LocalAudioTrack from LiveKit. Not needed on native. */
+  localAudioTrack?: any;
+  /** When true, routes through nativeLiveKitController instead of Krisp. */
+  isNative?: boolean;
 }
 
-export function NoiseCancellationDialog({ open, onClose, localAudioTrack }: Props) {
+export function NoiseCancellationDialog({ open, onClose, localAudioTrack, isNative = false }: Props) {
   const [enabled, setEnabled] = useState<boolean>(loadPersisted());
   const [applying, setApplying] = useState(false);
   const supported = isNoiseCancellationSupported();
@@ -65,15 +68,22 @@ export function NoiseCancellationDialog({ open, onClose, localAudioTrack }: Prop
   }, [open]);
 
   const apply = async (next: boolean) => {
-    if (!localAudioTrack) {
+    if (!isNative && !localAudioTrack) {
       toast.error("Microphone not active yet");
       return;
     }
     setApplying(true);
     try {
-      const ok = next
-        ? await applyNoiseCancellation(localAudioTrack, { enabled: true })
-        : !!(await clearNoiseCancellation(localAudioTrack)) || true;
+      let ok = false;
+      if (isNative) {
+        ok = await applyNoiseCancellationNative({ enabled: next });
+        // Native "off" always succeeds even if module missing.
+        if (!next) ok = true;
+      } else {
+        ok = next
+          ? await applyNoiseCancellation(localAudioTrack, { enabled: true })
+          : !!(await clearNoiseCancellation(localAudioTrack)) || true;
+      }
       savePersisted(next);
       setEnabled(next);
       if (!next) {
@@ -90,6 +100,7 @@ export function NoiseCancellationDialog({ open, onClose, localAudioTrack }: Prop
       setApplying(false);
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
