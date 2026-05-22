@@ -5,12 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface RoomWelcomeMessage {
   id: string;
-  room_type: string;
-  title: string;
-  message: string;
-  icon_emoji: string;
-  background_color: string;
-  text_color: string;
+  message_text: string;
 }
 
 interface RoomWelcomeBannerProps {
@@ -33,19 +28,16 @@ export const RoomWelcomeBanner = memo(({
     try {
       const { data, error } = await supabase
         .from('room_welcome_messages')
-        .select('*')
-        .eq('room_type', roomType)
+        .select('id, message_text, is_active, created_at')
         .eq('is_active', true)
-        .single();
+        .order('created_at', { ascending: true })
+        .limit(4);
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          setWelcomeMessage(null);
-        } else {
-          console.error('Error fetching welcome message:', error);
-        }
+        console.error('Error fetching welcome message:', error);
       } else {
-        setWelcomeMessage(data as RoomWelcomeMessage);
+        const roomTypeOrder: RoomWelcomeBannerProps['roomType'][] = ['live', 'party_audio', 'party_video', 'party_game'];
+        setWelcomeMessage((data?.[roomTypeOrder.indexOf(roomType)] ?? data?.[0] ?? null) as RoomWelcomeMessage | null);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -81,7 +73,7 @@ export const RoomWelcomeBanner = memo(({
       
       {/* Full text - Premium styling */}
       <span className="text-[10px] text-white/95 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] leading-relaxed">
-        {welcomeMessage.message}
+        {welcomeMessage.message_text}
       </span>
     </motion.div>
   );
