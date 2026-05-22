@@ -70,6 +70,7 @@ import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
 
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
+import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
 import { PKBattleActive } from "@/components/live/PKBattleActive";
@@ -2788,7 +2789,10 @@ const LiveStream = () => {
                 retrySubscription();
               }}
               className="absolute inset-0 w-full h-full"
+              enablePictureInPicture
+              pipId="live-host"
             />
+
           </div>
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none" />
@@ -3043,6 +3047,12 @@ const LiveStream = () => {
 
       {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
       {id && <CaptionOverlay scope="live" id={id} />}
+
+      {/* Pkg146: Picture-in-Picture toggle for viewers (auto-hidden if unsupported) */}
+      {!isHost && remoteVideoTrack && (
+        <PictureInPictureButton pipId="live-host" label="Picture in picture" />
+      )}
+
 
 
       {/* Bottom Section - Input Bar & Action Buttons */}

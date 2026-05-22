@@ -11,6 +11,7 @@ import StickerOverlay from "@/components/live/StickerOverlay";
 
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
+import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
 import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
@@ -580,6 +581,13 @@ export function ActiveCallScreen({
       {/* Pkg145: Realtime captions (rides Pkg116 transcription kill-switch) */}
       {callId && <CaptionOverlay scope="call" id={callId} />}
 
+      {/* Pkg146: Picture-in-Picture toggle (web only; auto-hidden when unsupported) */}
+      {isLiveConnected && primaryHasVideo && (
+        <PictureInPictureButton pipId="call-primary" label="Picture in picture" />
+      )}
+
+
+
 
       {/* Privacy Warning Overlay */}
       <AnimatePresence>
@@ -779,7 +787,10 @@ export function ActiveCallScreen({
                   mirror={primaryMirror}
                   fit="cover"
                   className="w-full h-full"
+                  enablePictureInPicture
+                  pipId="call-primary"
                 />
+
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-black">
                   <AvatarWithFrame
