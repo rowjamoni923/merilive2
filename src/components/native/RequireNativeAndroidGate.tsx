@@ -37,36 +37,11 @@ const FEATURE_COPY: Record<RequireNativeAndroidGateProps["feature"], { title: st
   },
 };
 
-export function RequireNativeAndroidGate({ feature, children }: RequireNativeAndroidGateProps) {
-  if (isNativeAndroidApp()) return <>{children}</>;
-
-  const navigate = useNavigate();
-  const copy = FEATURE_COPY[feature];
-
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background px-6 text-center">
-      <div className="mb-6 rounded-full bg-primary/10 p-6">
-        <Smartphone className="h-16 w-16 text-primary" />
-      </div>
-      <h1 className="mb-3 text-2xl font-bold text-foreground">{copy.title}</h1>
-      <p className="mb-8 max-w-sm text-sm text-muted-foreground">{copy.body}</p>
-      <div className="flex w-full max-w-xs flex-col gap-3">
-        <Button
-          variant="luxury"
-          className="w-full"
-          onClick={() => {
-            window.location.href = "https://play.google.com/store/apps/details?id=app.lovable.1c59f8d275bb4fc1a0743c08560dd44b";
-          }}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Get the Android App
-        </Button>
-        <Button variant="outline" className="w-full" onClick={() => navigate("/")}>
-          Back to Home
-        </Button>
-      </div>
-    </div>
-  );
+export function RequireNativeAndroidGate({ children }: RequireNativeAndroidGateProps) {
+  // Browser live streaming enabled — gate is now a pass-through.
+  // Native Android still works via existing isNativeAndroid branches downstream;
+  // web browsers now use getUserMedia + LiveKit web SDK.
+  return <>{children}</>;
 }
 
 export default RequireNativeAndroidGate;
