@@ -161,6 +161,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterStreamRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg120: drop RPC registration.
     try { if (callIdRef.current) unregisterRpcRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg116: drop transcription registration.
+    try { if (callIdRef.current) unregisterRoomForTranscription('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
