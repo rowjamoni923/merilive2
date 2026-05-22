@@ -124,20 +124,9 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   user_reports: [['user-reports']],
 };
 
-// Keep the global bridge scoped to approved non-room realtime tables.
-// Live/call/party/stream/gift money-room tables are intentionally excluded:
-// room signaling uses LiveKit/FCM + REST snapshots, never Supabase Realtime.
-const REALTIME_PUBLICATION_TABLES = new Set([
-  'app_settings',
-  'conversations',
-  'messages',
-  'notifications',
-  'support_tickets',
-  'support_messages',
-  'face_verification_submissions',
-  'agencies',
-  'agency_withdrawals',
-]);
+// Register every table we can invalidate. `subscribeToTables` itself binds
+// Supabase Realtime ONLY for publication-safe tables, while non-publication
+// tables arrive through Pkg37 `admin-table-update` or Pkg91 `app-sync` events.
 
 // Table-specific debounce tuning for near-instant cache sync
 const TABLE_DEBOUNCE_MS: Record<string, number> = {
@@ -179,10 +168,11 @@ const PROFILE_HOME_QUERY_KEYS: string[][] = [['index-hosts-v4'], ['host-countrie
 // and necessary for is_online / host_availability toggles to appear without refresh.
 const shouldInvalidateHomeForProfileChange = (_payload: any) => true;
 
-// All tables we want to sync — MUST match publication
+// All tables we want to sync. Do NOT publication-filter here: that caused
+// admin/app-sync events for most tables to be silently ignored by this bridge.
 const SYNCED_TABLES = Array.from(
   new Set([...Object.keys(TABLE_TO_QUERY_KEYS), 'profiles'])
-).filter((table) => REALTIME_PUBLICATION_TABLES.has(table));
+);
 
 export const useRealtimeQuerySync = () => {
   const queryClient = useQueryClient();
