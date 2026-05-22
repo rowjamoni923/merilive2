@@ -94,6 +94,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   forward_participant: false, // Pkg128: OFF by default — move participant between rooms (admin opts in)
   auto_record: false, // Pkg129: OFF by default — auto-record on live stream INSERT (admin opts in)
   update_permission: false, // Pkg130: OFF by default — promote/demote participants (admin opts in)
+  reactions: true, // Pkg132: ON by default — floating emoji reactions (admin can flip OFF)
 };
 
 
