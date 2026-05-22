@@ -157,14 +157,29 @@ const AgentRank = () => {
   useEffect(() => {
     fetchRankings();
     fetchRewards();
-    const channel = supabase
-      .channel(`agent-rank-realtime-${periodType}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_performance' }, () => fetchRankings())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'agencies' }, () => fetchRankings())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ranking_rewards' }, () => fetchRewards())
-      .subscribe();
-    // Zero-refresh: realtime channel only, no polling
-    return () => { supabase.removeChannel(channel); };
+    // Pkg90: removed unfiltered cross-user postgres_changes on agency_performance/
+    // agencies/ranking_rewards (none are in supabase_realtime publication → silent
+    // no-op + $1400-rule risk if they ever were). Sync via:
+    //  1. Pkg37 admin-table-update for admin-managed `agencies`/`ranking_rewards`
+    //  2. visibilitychange refetch (industry-standard for leaderboards: Bigo/Tango)
+    const onAdminUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { table?: string } | undefined;
+      if (!detail?.table) return;
+      if (detail.table === 'agencies') fetchRankings();
+      else if (detail.table === 'ranking_rewards') fetchRewards();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        fetchRankings();
+        fetchRewards();
+      }
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [fetchRankings, fetchRewards]);
 
   useEffect(() => {
