@@ -2305,6 +2305,11 @@ const LiveStream = () => {
         setShowMoreOptions(false);
         setShowSipDial(true);
       } },
+    // Pkg111 + Pkg126: Record stream (MP4 archive or HLS replay).
+    { id: "record", name: "Record", iconName: "Video" as const, color: "from-fuchsia-400 to-purple-600", shadowColor: "shadow-fuchsia-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowRecording(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
