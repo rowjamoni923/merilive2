@@ -2352,6 +2352,11 @@ const LiveStream = () => {
         }
         setShowNoiseCancellation(true);
       } },
+    // Pkg152: Publish quality (simulcast layers) — host-only, portrait 9:16 enforced.
+    { id: "publishlayers", name: "Publish Quality", iconName: "Layers" as const, color: "from-violet-400 to-purple-600", shadowColor: "shadow-violet-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowPublishLayers(true);
+      } },
     // Pkg109: RTMP/WHIP Ingress — broadcast from OBS / external encoder into this room.
     { id: "ingress", name: "Stream Source", iconName: "Radio" as const, color: "from-rose-400 to-red-600", shadowColor: "shadow-rose-500/40", action: () => {
         setShowMoreOptions(false);
