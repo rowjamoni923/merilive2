@@ -153,31 +153,10 @@ export const useProfileRealtime = (
   onProfileUpdate: (profile: any) => void
 ) => {
   useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`profile-realtime-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`
-        },
-        async (payload) => {
-          console.log('[Realtime] Profile updated:', payload.new);
-          onProfileUpdate(payload.new);
-        }
-      )
-      .subscribe((status) => {
-        console.log('[Realtime] Profile subscription:', status);
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId]);
+    // `profiles` is deliberately NOT in supabase_realtime publication.
+    // Use useUserBalance/own-row sync, admin-broadcast, or REST refresh instead.
+    return;
+  }, [userId, onProfileUpdate]);
 };
 
 /**
@@ -188,24 +167,10 @@ export const useAgencyRealtime = (
   onAgencyUpdate: (agency: any) => void
 ) => {
   useEffect(() => {
-    if (!agencyId) return;
-
-    // Only subscribe to 'agencies' (in publication). 'agency_hosts' is NOT in publication.
-    const channel = supabase
-      .channel(`agency-realtime-${agencyId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'agencies', filter: `id=eq.${agencyId}` },
-        (payload) => {
-          if (payload.eventType !== 'DELETE') {
-            onAgencyUpdate(payload.new);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [agencyId]);
+    // `agencies` is deliberately NOT in supabase_realtime publication.
+    // Agency/admin updates should flow through admin_broadcast or REST refresh.
+    return;
+  }, [agencyId, onAgencyUpdate]);
 };
 
 /**
@@ -216,48 +181,8 @@ export const useWalletRealtime = (
   onBalanceUpdate: (coins: number) => void
 ) => {
   useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`wallet-realtime-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`
-        },
-        (payload: any) => {
-          if (payload.new?.coins !== undefined) {
-            onBalanceUpdate(payload.new.coins);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'gift_transactions',
-          filter: `receiver_id=eq.${userId}`
-        },
-        async () => {
-          // Refetch balance when receiving gifts
-          const { data } = await supabase
-            .from('profiles') // guard-ok: owner-only self balance refresh, not a cross-user profile read
-            .select('coins')
-            .eq('id', userId)
-            .single();
-          if (data) {
-            onBalanceUpdate(data.coins || 0);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId]);
+    // Legacy wallet realtime disabled: profiles/gift_transactions are not in
+    // publication. Active wallet sync lives in useUserBalance + optimistic updates.
+    return;
+  }, [userId, onBalanceUpdate]);
 };
