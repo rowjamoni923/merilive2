@@ -147,7 +147,12 @@ const requestFreshToken = async (
     throw new Error('Invalid token response');
   }
 
-  return { token: data.token, url: data.url };
+  return {
+    token: data.token,
+    url: data.url,
+    ...(typeof data.ttl === 'number' ? { ttl: data.ttl } : {}),
+    ...(typeof data.expiresAt === 'number' ? { expiresAt: data.expiresAt } : {}),
+  };
 };
 
 export async function getLiveKitToken(
