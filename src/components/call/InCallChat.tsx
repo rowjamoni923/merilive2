@@ -8,6 +8,11 @@ import {
   publishChatMessage,
   type ChatMessageDetail,
 } from "@/lib/livekitChatSignaling";
+import { ChatAttachmentButtons } from "@/components/chat/ChatAttachmentButtons";
+import { ChatAttachmentBubble } from "@/components/chat/ChatAttachmentBubble";
+import { useChatAttachmentHandlers } from "@/lib/livekitChatAttachments";
+
+type AttachmentKind = "image" | "voice" | "file";
 
 interface ChatMessage {
   id: string;
@@ -15,6 +20,12 @@ interface ChatMessage {
   senderName: string;
   message: string;
   timestamp: number;
+  attachment?: {
+    kind: AttachmentKind;
+    bytes: Uint8Array | Blob;
+    mimeType?: string;
+    name?: string;
+  };
 }
 
 interface InCallChatProps {
