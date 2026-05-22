@@ -83,3 +83,6 @@ verify_jwt = true
 
 [functions.livekit-room-ops]
 verify_jwt = false
+
+[functions.livekit-egress-ops]
+verify_jwt = false
