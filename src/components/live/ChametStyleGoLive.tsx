@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAutoRecordPreference, setAutoRecordPreference } from "@/lib/livekitAutoRecord";
+import { toast as sonner } from "sonner";
+import { Video } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
