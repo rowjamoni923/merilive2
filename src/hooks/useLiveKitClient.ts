@@ -1081,6 +1081,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       clearViewerHardReconnectTimer();
       clearHostVideoRecoveryTimer();
       destroyBeautyProcessor();
+      if (tokenRefreshDetachRef.current) {
+        try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+        tokenRefreshDetachRef.current = null;
+      }
       remoteAudioElementsRef.current.forEach(els => {
         els.forEach(el => el.remove());
       });
