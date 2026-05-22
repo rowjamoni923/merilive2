@@ -65,27 +65,49 @@ const PartyRoomBottomBar = ({
       <AnimatePresence>
         {showMessageInput && (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.98 }}
+            transition={{ type: "spring", damping: 26, stiffness: 360 }}
             className="relative px-4 pb-2"
           >
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20">
+            <div
+              className="flex items-center gap-2 rounded-full pl-4 pr-1.5 py-1.5 transition-all duration-200 focus-within:[box-shadow:0_0_0_2px_rgba(168,85,247,0.55),0_0_18px_rgba(168,85,247,0.35)]"
+              style={{
+                background: "linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                border: "1px solid rgba(255,255,255,0.18)",
+              }}
+            >
               <Input
                 value={message}
                 onChange={(e) => onMessageChange(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-1 bg-transparent border-0 text-white placeholder:text-white/50 focus-visible:ring-0 p-0 h-auto text-sm"
+                className="flex-1 bg-transparent border-0 text-white placeholder:text-white/55 focus-visible:ring-0 p-0 h-auto text-sm"
                 onKeyDown={(e) => e.key === 'Enter' && onSendMessage()}
                 autoFocus
               />
               <Button
                 size="icon"
                 variant="ghost"
-                className="w-8 h-8 rounded-full hover:bg-white/20 text-white"
+                disabled={!message.trim()}
+                className={cn(
+                  "w-9 h-9 rounded-full text-white relative overflow-hidden disabled:opacity-40",
+                  message.trim()
+                    ? "bg-gradient-to-br from-pink-500 via-fuchsia-500 to-purple-600 hover:opacity-90 animate-[giftSendBreathe_2.4s_ease-in-out_infinite]"
+                    : "hover:bg-white/20"
+                )}
                 onClick={onSendMessage}
               >
-                <Send className="w-4 h-4" />
+                {message.trim() && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 left-0 w-1/2 animate-[giftSendShine_2.4s_ease-in-out_infinite]"
+                    style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)" }}
+                  />
+                )}
+                <Send className="w-4 h-4 relative z-10" />
               </Button>
             </div>
           </motion.div>
