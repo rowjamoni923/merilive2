@@ -286,7 +286,7 @@ export const getEquippedPrivilegesForUser = async (userId: string): Promise<Equi
   try {
     // Fetch user level
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('profiles_public')
       .select('user_level')
       .eq('id', userId)
       .single();
