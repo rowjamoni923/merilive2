@@ -184,7 +184,11 @@ export async function publishLiveEvent(
       room.localParticipant?.identity,
     );
     const bytes = encodeEnvelope(env);
-    await room.localParticipant.publishData(bytes, { reliable: true });
+    // Pkg106: viewer_joined entrance banner is ephemeral high-frequency UI on big streams.
+    // Loss is acceptable — Pkg77 ParticipantConnected event keeps viewer count accurate.
+    // Lossy mode saves bandwidth (no SFU retransmit) and reduces head-of-line blocking
+    // for chat/gift reliable packets during viewer-join floods.
+    await room.localParticipant.publishData(bytes, { reliable: false });
     return true;
   } catch (err) {
     console.warn('[Pkg82a] publishLiveEvent failed:', err);
