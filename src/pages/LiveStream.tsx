@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
+import { PublishLayersDialog } from "@/components/livekit/PublishLayersDialog";
 import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
 import { ReactionsQuickBar } from "@/components/livekit/ReactionsQuickBar";
@@ -37,6 +38,7 @@ import {
   RotateCcw,
   MonitorUp,
   ShieldCheck,
+  Layers,
   Radio,
   PhoneCall,
   Video,
@@ -208,6 +210,8 @@ const LiveStream = () => {
   const [showSipDial, setShowSipDial] = useState(false);
   const [showRecording, setShowRecording] = useState(false);
   const [showSimulcast, setShowSimulcast] = useState(false);
+  // Pkg152: Publish-layer (simulcast tier) picker — host only, portrait 9:16 enforced.
+  const [showPublishLayers, setShowPublishLayers] = useState(false);
   const [showAgentDispatch, setShowAgentDispatch] = useState(false);
   const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -2350,6 +2354,11 @@ const LiveStream = () => {
         }
         setShowNoiseCancellation(true);
       } },
+    // Pkg152: Publish quality (simulcast layers) — host-only, portrait 9:16 enforced.
+    { id: "publishlayers", name: "Publish Quality", iconName: "Layers" as const, color: "from-violet-400 to-purple-600", shadowColor: "shadow-violet-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowPublishLayers(true);
+      } },
     // Pkg109: RTMP/WHIP Ingress — broadcast from OBS / external encoder into this room.
     { id: "ingress", name: "Stream Source", iconName: "Radio" as const, color: "from-rose-400 to-red-600", shadowColor: "shadow-rose-500/40", action: () => {
         setShowMoreOptions(false);
@@ -3247,6 +3256,7 @@ const LiveStream = () => {
                       LogOut: <LogOut className="w-6 h-6" strokeWidth={1.8} />,
                       MonitorUp: <MonitorUp className="w-6 h-6" strokeWidth={1.8} />,
                       ShieldCheck: <ShieldCheck className="w-6 h-6" strokeWidth={1.8} />,
+                      Layers: <Layers className="w-6 h-6" strokeWidth={1.8} />,
                       Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
                       Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
@@ -3756,6 +3766,10 @@ const LiveStream = () => {
             open={showSimulcast}
             onClose={() => setShowSimulcast(false)}
             streamId={id}
+          />
+          <PublishLayersDialog
+            open={showPublishLayers}
+            onClose={() => setShowPublishLayers(false)}
           />
           <AgentDispatchDialog
             open={showAgentDispatch}
