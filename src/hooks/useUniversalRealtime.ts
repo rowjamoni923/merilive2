@@ -47,20 +47,37 @@ let authStateUnsubscribe: (() => void) | null = null;
 // Debounce time for batch updates (ms)
 const DEBOUNCE_MS = 80;
 
-// Messages and gift_transactions: ZERO debounce for instant delivery
+// Notifications: ZERO debounce for instant delivery.
+// Room/call/live/gift/chat fanout is LiveKit/FCM + REST snapshots only.
 // Other high-frequency tables get a slight debounce to prevent render thrash
-const INSTANT_TABLES = new Set(['messages', 'gift_transactions', 'notifications']);
+const INSTANT_TABLES = new Set(['notifications']);
 const HIGH_FREQ_DEBOUNCE_MS = 120;
-const HIGH_FREQUENCY_TABLES = new Set(['stream_viewers', 'stream_chat']);
+const HIGH_FREQUENCY_TABLES = new Set<string>();
 
 // ⚡ COST-OPTIMISED: Only tables that MUST be monitored globally
 // All other tables subscribe on-demand via subscribeToTables()
 // Each postgres_changes subscription generates realtime messages that cost $2.50/million
 const BASE_MONITORED_TABLES: TableSubscription[] = [
-  // Only truly global needs — chat & notifications
-  { table: 'messages' },
+  // Only approved user-facing realtime table. Admin sync uses admin_broadcast elsewhere.
   { table: 'notifications' },
 ];
+
+const FORBIDDEN_ROOM_REALTIME_TABLES = new Set([
+  'profiles',
+  'agencies',
+  'agency_withdrawals',
+  'app_settings',
+  'conversations',
+  'messages',
+  'gift_transactions',
+  'live_streams',
+  'party_rooms',
+  'party_room_participants',
+  'party_room_messages',
+  'private_calls',
+  'stream_chat',
+  'stream_viewers',
+]);
 
 const getActiveMonitoredTables = (): TableSubscription[] => {
   const tables = new Set<string>(BASE_MONITORED_TABLES.map((t) => t.table));
@@ -68,6 +85,7 @@ const getActiveMonitoredTables = (): TableSubscription[] => {
   subscribers.forEach((subscriber) => {
     subscriber.tables.forEach((table) => {
       if (!table || table === '*') return;
+      if (FORBIDDEN_ROOM_REALTIME_TABLES.has(table)) return;
       tables.add(table);
     });
   });
