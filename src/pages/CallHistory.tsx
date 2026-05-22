@@ -43,22 +43,25 @@ const CallHistory = () => {
 
   useEffect(() => {
     fetchCallHistory();
-    
-    // Real-time subscription for call history
-    const callChannel = supabase
-      .channel('call-history-realtime')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'private_calls' 
-      }, () => {
-        console.log('[CallHistory] Calls updated - refetching');
-        fetchCallHistory();
-      })
-      .subscribe();
 
+    // ============= Pkg90 audit: CRITICAL $1400-rule fix =============
+    // REMOVED: `call-history-realtime` Supabase channel that subscribed to
+    // postgres_changes on `private_calls` with `event:'*'` and NO filter.
+    // This meant EVERY call INSERT/UPDATE/DELETE system-wide triggered a
+    // refetch on every mounted CallHistory page across all users —
+    // exactly the $1400-bill amplification pattern. Also violated:
+    //   • LiveKit-Purist Policy (postgres_changes on private_calls forbidden)
+    //   • Pkg62 G3 (static channel name without ${userId} suffix)
+    // CallHistory is a history page — refetching on tab focus is plenty.
+    // Manual pull-to-refresh / route revisit covers in-session updates.
+    const onFocus = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchCallHistory();
+      }
+    };
+    document.addEventListener('visibilitychange', onFocus);
     return () => {
-      supabase.removeChannel(callChannel);
+      document.removeEventListener('visibilitychange', onFocus);
     };
   }, []);
 
