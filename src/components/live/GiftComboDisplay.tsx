@@ -323,15 +323,35 @@ export const MiniGiftNotification = ({
   count: number;
 }) => (
   <motion.div
-    initial={{ x: 100, opacity: 0 }}
-    animate={{ x: 0, opacity: 1 }}
-    exit={{ x: 100, opacity: 0 }}
-    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/60 backdrop-blur-sm border border-white/10"
+    initial={{ x: 100, opacity: 0, scale: 0.94 }}
+    animate={{ x: 0, opacity: 1, scale: 1 }}
+    exit={{ x: 100, opacity: 0, scale: 0.94 }}
+    transition={{ type: "spring", damping: 22, stiffness: 360 }}
+    className="relative flex items-center gap-2 px-3 py-2 rounded-xl overflow-hidden"
+    style={{
+      background: "linear-gradient(135deg, rgba(15,23,42,0.7) 0%, rgba(30,27,75,0.7) 100%)",
+      backdropFilter: "blur(12px) saturate(140%)",
+      WebkitBackdropFilter: "blur(12px) saturate(140%)",
+      border: "1px solid rgba(255,255,255,0.12)",
+      boxShadow: "0 6px 18px -6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
+    }}
   >
-    <span className="text-white/80 text-xs truncate max-w-[80px]">{senderName}</span>
-    <span className="text-lg">{giftEmoji}</span>
+    <span
+      className="text-white/85 text-xs font-medium truncate max-w-[80px]"
+      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+    >
+      {senderName}
+    </span>
+    <span className="text-lg" style={{ filter: "drop-shadow(0 2px 4px rgba(251,191,36,0.5))" }}>
+      {giftEmoji}
+    </span>
     {count > 1 && (
-      <span className="text-amber-400 font-bold text-sm">x{count}</span>
+      <span
+        className="text-amber-300 font-extrabold text-sm tabular-nums"
+        style={{ textShadow: "0 0 8px rgba(251,191,36,0.5)" }}
+      >
+        x{count}
+      </span>
     )}
   </motion.div>
 );
