@@ -512,6 +512,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
       // Subscribe immediately as soon as remote track is published to reduce first-frame delay
       room.on(RoomEvent.TrackPublished, (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        // Pkg147: in audio-only viewer mode, only subscribe audio.
+        const audioOnly = isAudioOnlyEnabled();
+        if (audioOnly && publication.kind === Track.Kind.Video) {
+          try { publication.setSubscribed(false); } catch { /* ignore */ }
+          return;
+        }
         try {
           publication.setSubscribed(true);
         } catch {
