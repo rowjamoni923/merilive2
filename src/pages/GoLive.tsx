@@ -17,6 +17,8 @@ import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOver
 import { useSound } from "@/hooks/useSound";
 import { Capacitor } from "@capacitor/core";
 import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } from "@/components/live/ChametStyleGoLive";
+import PreJoinDevicesDialog from "@/components/livekit/PreJoinDevicesDialog";
+import { Sliders } from "lucide-react";
 import BeansIcon from "@/components/common/BeansIcon";
 import { BeautyFilterPanel, BeautySettings, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
