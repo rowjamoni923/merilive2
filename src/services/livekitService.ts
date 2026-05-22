@@ -9,6 +9,10 @@ import { getAdminLinkToken } from '@/utils/adminAccessStorage';
 interface LiveKitTokenResponse {
   token: string;
   url: string;
+  /** Pkg189: token TTL in seconds (from edge fn). Optional for backward-compat. */
+  ttl?: number;
+  /** Pkg189: unix-seconds expiry (from edge fn). Optional. */
+  expiresAt?: number;
 }
 
 interface LiveKitTokenRequest {
