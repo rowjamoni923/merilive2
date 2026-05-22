@@ -411,6 +411,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // Disconnect existing room if any
       if (roomRef.current) {
         clearHostVideoRecoveryTimer();
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+          tokenRefreshDetachRef.current = null;
+        }
         roomRef.current.disconnect(true);
         roomRef.current = null;
       }
