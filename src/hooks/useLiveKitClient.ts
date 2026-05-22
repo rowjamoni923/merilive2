@@ -12,6 +12,7 @@ import {
   RemoteTrackPublication,
   RemoteParticipant,
   VideoPresets,
+  AudioPresets,
   VideoQuality,
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
@@ -449,6 +450,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           resolution: captureRes,
           facingMode: 'user',
         },
+        // Pkg163: Chamet/Bigo-parity professional voice — full WebRTC voice processing
+        // chain ON (AEC+NS+AGC) at 48kHz mono. Krisp BVC layer applied on top (livekitNoiseFilter).
+        audioCaptureDefaults: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+          sampleRate: 48000,
+        },
         publishDefaults: {
           videoEncoding: videoEnc,
           degradationPreference: 'maintain-resolution',
@@ -459,6 +469,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           // VP8 for receivers lacking VP9 decode (older Safari/Android).
           videoCodec: 'vp9',
           backupCodec: { codec: 'vp8' },
+          // Pkg163: high-quality voice opus encoder + RED (packet loss resilience).
+          // dtx:false → continuous audio (no silence-detection clipping during pauses).
+          audioPreset: AudioPresets.musicHighQuality,
+          dtx: false,
+          red: true,
         },
         ...(isViewer ? {
           autoSubscribe: true,
