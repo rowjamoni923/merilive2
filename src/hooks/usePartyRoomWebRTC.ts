@@ -92,6 +92,7 @@ export function usePartyRoomWebRTC(
     try { unregisterChatRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterActiveSpeakerRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterConnectionQualityRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterMetadataRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
