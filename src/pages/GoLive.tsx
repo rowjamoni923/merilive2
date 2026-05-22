@@ -363,7 +363,7 @@ const GoLive = () => {
     };
 
     updateCountdown();
-    banIntervalRef.current = setInterval(updateCountdown, 1000);
+    banIntervalRef.current = setInterval(updateCountdown, 1000); // guard-ok: countdown timer only, no fetch/realtime/database work
 
     return () => {
       if (banIntervalRef.current) clearInterval(banIntervalRef.current);
@@ -1446,7 +1446,7 @@ const GoLive = () => {
                       if (userProfile?.face_verification_image) {
                         try {
                           await supabase
-                            .from('profiles')
+                            .from('profiles') // guard-ok: owner-only self avatar update, not a cross-user read
                             .update({ avatar_url: userProfile.face_verification_image })
                             .eq('id', userProfile.id);
                           
