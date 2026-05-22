@@ -168,9 +168,11 @@ export function usePartyRoomWebRTC(
         console.log('[PartyLiveKit] Initializing for room:', roomId);
 
         const room = new Room({
-          // CRYSTAL CLEAR: No adaptive downgrade
-          adaptiveStream: false,
-          dynacast: false,
+          // Pkg155: Chamet/Bigo-parity — adaptive stream + dynacast ON
+          // Viewer auto-receives only the simulcast layer matching visible video size + bandwidth.
+          // Saves uplink/downlink bandwidth, prevents "host crisp, viewers blurry" stalls.
+          adaptiveStream: true,
+          dynacast: true,
           reconnectPolicy: {
             nextRetryDelayInMs: (context: any) => {
               if (context.retryCount > 15) return null;

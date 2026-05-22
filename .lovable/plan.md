@@ -1,114 +1,63 @@
-# LiveKit Self-Hosted Migration Plan (Contabo VPS, Singapore)
+়## Chamet/Olamet-Level Professional Polish Plan
 
-**VPS confirmed:** Contabo VPS S — 4 vCPU / 8 GB RAM / 32 TB BW / Singapore / IP `194.233.66.70` / root user.
-**Scope:** Private Call + Live Streaming + Party Room — full, zero-risk migration.
-**Approach:** Run **in parallel** with current Supabase Realtime WebRTC for 2 weeks. Feature-flag per user. Only flip 100% after stability proven. Rollback in 1 click.
-
-> **Memory rule reminder:** Realtime → LiveKit migration is DEFERRED until Native Android app is 100% Play Store ready. This plan **prepares** server + edge function + flag now, but the **client cutover** waits for Native Android sign-off. We'll go as far as "server live + token API ready + admin flag built" in this round.
+User wants Live + Party + Private Call to match Chamet/Olamet quality across 4 axes: **video smoothness, UI/UX polish, gift/entry animations, audio quality/echo**. Below is a sequenced, ship-one-at-a-time plan. Each step is independent, $1400-rule safe, and verifiable.
 
 ---
 
-## Phase 0 — Pre-flight (what YOU give me, screenshots only)
+### Phase A — Video Smoothness (Pkg155–157)
 
-I will tell you exactly which buttons to click. You only paste screenshots back.
+**Pkg155 — Adaptive Stream + Dynacast hard-enable**
+Force LiveKit `adaptiveStream:true` + `dynacast:true` in every Room (call/live/party) on web + native bridge. Viewer auto-receives only the simulcast layer that fits visible video element size + connection quality. Stops Chamet-style "host crisp, viewers blurry" lag.
 
-1. **Contabo panel → Server Control → Reset Password** → screenshot new root password page → paste to me in chat (I'll guide you to a private note after).
-2. **Contabo panel → Server name / OS** → if not already Ubuntu 22.04, click "Reinstall" → choose **Ubuntu 22.04** → confirm. (VPS S default is fine.)
-3. **Domain:** I'll ask you to add **one Cloudflare DNS record** — `livekit.merilive.top` → A → `194.233.66.70` (DNS only, gray cloud, NOT proxied). Screenshot when added.
+**Pkg156 — VP9/AV1 codec preference + smart fallback**
+Default `videoCodec:'vp9'` (Chamet uses VP9). Native Android plugin already supports it. Fallback chain VP9 → VP8 → H264. ~30% better quality at same bitrate.
 
-That's all you do for setup. Everything else I do via SSH commands you paste one-by-one.
-
----
-
-## Phase 1 — Server install (I give commands, you paste in SSH, send screenshot)
-
-Block-by-block, each is one copy-paste:
-
-1. **Connect & update** — `ssh root@194.233.66.70` then `apt update && apt -y upgrade`
-2. **Firewall** — open 22 (SSH), 443 (HTTPS), 7881/tcp, 50000-60000/udp (LiveKit media)
-3. **Docker + docker-compose** — single install script
-4. **LiveKit config** — I generate `livekit.yaml` with:
-   - API key + secret (auto-generated, stored in Supabase secrets)
-   - Singapore region tag
-   - TURN/STUN built-in
-   - Recording disabled (saves CPU)
-   - Max 200 concurrent participants (VPS S safe limit)
-5. **Caddy reverse-proxy** — auto-HTTPS via Let's Encrypt for `livekit.merilive.top`
-6. **Start** — `docker compose up -d` → I verify with `curl https://livekit.merilive.top` (should return LiveKit health)
-
-Expected time: ~20 min of copy-pasting.
+**Pkg157 — Pre-join camera warmup**
+Capture camera + run 2s "checking connection…" with Pkg101 quality probe BEFORE LiveKit connect. Lets ultra-tier 1080p commit only when bandwidth allows; otherwise auto-tier-down. Matches Chamet's smooth join.
 
 ---
 
-## Phase 2 — Backend integration (Supabase, I build, zero action from you)
+### Phase B — UI/UX Polish (Pkg158–160) — design-directions flow
 
-1. **Secrets** (I'll request via `add_secret`):
-   - `LIVEKIT_API_KEY`
-   - `LIVEKIT_API_SECRET`
-   - `LIVEKIT_URL` = `wss://livekit.merilive.top`
-2. **Edge function** `livekit-token` — issues short-lived JWT (1 hr) per user per room with proper grants (publish for host, subscribe for viewer, audio-only for party seats).
-3. **Edge function** `livekit-webhook` — receives participant joined/left/disconnected events from LiveKit, syncs to existing `live_streams` / `private_calls` / `party_rooms` tables (no schema change needed).
-4. **Admin flag** `app_settings.livekit_enabled` (default **false**) + per-user A/B rollout flag `livekit_rollout_percent` (default **0**).
+**Pkg158 — Live page bottom action bar redesign**
+Chamet-style: gradient pill, glass-morphism, haptic-feel scale on tap, icon+label hierarchy, gift button centered & enlarged. Will use `design--create_directions` with current Live screen screenshot → user picks → implement.
 
----
+**Pkg159 — Top-bar redesign (host info + viewers + close)**
+Single-line glass strip: avatar + name + follow + viewer count + close (X). Currently scattered.
 
-## Phase 3 — Client integration (deferred until Native Android ready)
-
-When you approve cutover:
-1. Install `@livekit/client` (web) + `io.livekit:livekit-android` (native).
-2. New `useLiveKitRoom` hook — **runs alongside** existing WebRTC hook.
-3. `LiveStreamBroadcaster`, `PrivateCallProvider`, `UnifiedPartyRoom` get a feature-flag branch:
-   - `if (livekit_enabled && user_in_rollout) → LiveKit path`
-   - `else → existing Supabase Realtime path` (untouched)
-4. Gift animations, PK battle data, chat → LiveKit data channel (faster than current broadcast).
-5. **Rollout schedule:** 5% → 25% → 50% → 100% over 2 weeks, watching `livekit-webhook` error rate.
+**Pkg160 — In-room chat overlay polish**
+Bubble depth, soft drop-shadow, smooth enter animation, faster scroll-to-bottom, name color by level (Chamet/Bigo standard).
 
 ---
 
-## Phase 4 — Cost & capacity (what you get)
+### Phase C — Gift / Entry Animations (Pkg161–162)
 
-| Item | Current (Supabase Realtime) | After LiveKit (VPS S) |
-|---|---|---|
-| Monthly cost | ~$200-1400 (spikes) | **$7 flat** |
-| Concurrent live viewers | ~100 safe | **~500-800** |
-| Concurrent private calls | ~50 | **~200** |
-| Concurrent party rooms (8 seats) | ~10 | **~25-30** |
-| Bandwidth | counted per MB | **32 TB free**, then $0.01/GB |
-| Audio/video quality | 480p best | **1080p stable** |
-| Latency (BD users) | 200-400ms | **80-120ms** |
-| Gift animation sync | 300-800ms | **<100ms** |
+**Pkg161 — Gift animation queue smoothing**
+Already SVGA — gaps: (1) animations stack/overlap on rapid send → queue with 80ms stagger, (2) full-screen gifts (T4/T5) preempt smaller, (3) pre-warm SVGA decoder on Room join to kill first-gift lag.
 
-**Hard ceiling on VPS S:** ~800 concurrent video subscribers across ALL rooms. When you cross 600, I upgrade you to VPS M ($11) in 1 click — zero downtime.
+**Pkg162 — Entry banner polish**
+Vehicle SVGA + name-bar already wired (Pkg82a envelope). Polish: smoother slide-in curve, parallax depth, fade-out instead of cut. Honor user's noble/VIP tier with reserved lane.
 
 ---
 
-## Phase 5 — Safety nets (zero-risk guarantees)
+### Phase D — Audio Quality / Echo (Pkg163–164)
 
-1. **Kill switch:** `app_settings.livekit_enabled = false` → instant rollback to Supabase Realtime for everyone (already the default).
-2. **Health monitor:** edge cron every 5 min pings LiveKit `/health` → if down, auto-flips kill switch + FCM alert to admin.
-3. **Cost guard (Pkg53 extension):** webhook counts events/hr; >100k → kill switch.
-4. **No Supabase Realtime changes:** current architecture stays 100% intact. LiveKit is purely additive.
-5. **Native Android gate:** client cutover code merges but stays behind `livekit_enabled=false` flag until you say go.
+**Pkg163 — Force Krisp ON by default + AEC3**
+Pkg123 noise-cancellation default is OFF. Flip kill-switch ON globally (`app_settings.livekit_signaling_enabled.noise_cancellation = true`). Native Android: confirm WebRTC AEC3 + AGC enabled in plugin.
 
----
-
-## What stays on Supabase (NOT migrated)
-- All chat messages (text), notifications, balances, gifts persistence, profiles, levels, leaderboard, recharge, withdrawal, admin panel, FCM push, auth, single-device session, missions.
-- Only **realtime media bytes + presence + signaling** move to LiveKit.
+**Pkg164 — Audio bitrate + Opus DTX**
+Stereo 64kbps → mono 32kbps + DTX (silence suppression). Chamet/Bigo standard for voice. Halves audio bandwidth, sharper voice (less echo room for stale packets).
 
 ---
 
-## Deliverables this round (what I finish before stopping)
-- [x] Server install commands (Phase 1)
-- [x] `livekit-token` + `livekit-webhook` edge functions deployed (Phase 2)
-- [x] `app_settings.livekit_enabled` flag + admin toggle UI in `/admin/pricing-hub → Infrastructure` tab
-- [x] Health monitor cron
-- [ ] Client integration — **DEFERRED** until you confirm Native Android Play Store ready
+### Suggested Order
+
+A1 (Pkg155) → A2 (Pkg156) → D1 (Pkg163) → C1 (Pkg161) → B1 (Pkg158) → … one at a time, test on real device, then memory update.
 
 ---
 
-## After you approve this plan
+### Recommendation
 
-I'll immediately start with **Phase 0 step 1** — tell you exactly: "Go to https://my.contabo.com → Your Services → click your VPS → Server Control → Reset Password → screenshot the result page and paste in chat." One step at a time, no overwhelm.
+Start with **Pkg155 (Adaptive Stream + Dynacast)** — biggest visible win for "video lag" complaint, zero UI risk, 10-min ship. Then Pkg163 (Krisp ON) for echo, then we move to UI polish via design-directions.
 
-**Cost during this whole setup: $0 extra.** You already pay $7/mo for the VPS. No new Supabase usage.
+Confirm and I'll ship Pkg155 immediately.
