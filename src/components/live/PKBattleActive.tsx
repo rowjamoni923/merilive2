@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Crown, Swords, Timer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 
 interface PKBattleActiveProps {
   battleId: string;
@@ -10,9 +11,11 @@ interface PKBattleActiveProps {
   challengerName: string;
   challengerAvatar: string;
   challengerLevel: number;
+  challengerId?: string;
   opponentName: string;
   opponentAvatar: string;
   opponentLevel: number;
+  opponentId?: string;
   onBattleEnd: (winnerId: string | null) => void;
 }
 
@@ -22,9 +25,11 @@ export const PKBattleActive = ({
   challengerName,
   challengerAvatar,
   challengerLevel,
+  challengerId,
   opponentName,
   opponentAvatar,
   opponentLevel,
+  opponentId,
   onBattleEnd,
 }: PKBattleActiveProps) => {
   const [challengerScore, setChallengerScore] = useState(0);
@@ -32,42 +37,83 @@ export const PKBattleActive = ({
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
   const [battleEnded, setBattleEnded] = useState(false);
 
-  // Pkg82e: LiveKit-purist policy — PK score sync via bounded REST poll (battle ≤180s,
-  // dual hosts in SEPARATE LiveKit rooms so DataPackets can't cross-broadcast).
-  // Industry pattern (Bigo/Tango/Chamet): poll pk_battles row at 5s interval during
-  // active battle. Replaces 2 Supabase Realtime channels (pk_battle_live_${id} +
-  // pk_gifts_${id}). Bounded duration = $1400-bill safe; Pkg62 G1 floor = 5000ms.
+  // Pkg181: INSTANT score sync — 0ms perceived latency, NO polling.
+  //   1. Initial DB seed once (mid-battle rejoin safety).
+  //   2. Own-room gifts → LiveKit `livekit-gift-sent` event → optimistic bump (0ms).
+  //   3. Cross-room (opponent's room) gifts → Supabase Realtime UPDATE on the
+  //      single pk_battles row (bounded ≤180s, 1 channel per viewer, auto-cleanup
+  //      at battleEnd). PK battle is cross-room (challenger/opponent in separate
+  //      LiveKit rooms) so DataPackets can't cross — this single bounded row is
+  //      the correct source of truth and matches the "LiveKit + Supabase parallel"
+  //      rule (LiveKit where it can cover, Supabase Realtime where it can't).
+  // Replaces Pkg82e 5000ms setInterval poll completely. No setInterval anywhere.
   useEffect(() => {
     if (battleEnded) return;
     let cancelled = false;
 
-    const fetchBattle = async () => {
+    // 1. Seed once from DB
+    const seedBattle = async () => {
       const { data } = await supabase
         .from("pk_battles")
         .select("challenger_score, opponent_score, status, winner_id")
         .eq("id", battleId)
         .maybeSingle();
-
       if (cancelled || !data) return;
       setChallengerScore(data.challenger_score || 0);
       setOpponentScore(data.opponent_score || 0);
-
       if (data.status === "completed") {
         setBattleEnded(true);
         onBattleEnd(data.winner_id);
       }
     };
+    seedBattle();
 
-    // Immediate fetch + bounded 5s poll for the rest of the battle.
-    // guard-ok: pk-battle score sync, bounded ≤180s, no Supabase Realtime fallback
-    fetchBattle();
-    const pollId = setInterval(fetchBattle, 5000);
+    // 2. Cross-room source of truth: Supabase Realtime on single bounded row.
+    // guard-ok: pk-battle row sync, single row filter, bounded ≤180s, auto-cleanup
+    const channel = supabase
+      .channel(`pk_battle_row_${battleId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "pk_battles", filter: `id=eq.${battleId}` },
+        (payload) => {
+          if (cancelled) return;
+          const row = payload.new as {
+            challenger_score?: number;
+            opponent_score?: number;
+            status?: string;
+            winner_id?: string | null;
+          };
+          if (typeof row.challenger_score === "number") setChallengerScore(row.challenger_score);
+          if (typeof row.opponent_score === "number") setOpponentScore(row.opponent_score);
+          if (row.status === "completed") {
+            setBattleEnded(true);
+            onBattleEnd(row.winner_id ?? null);
+          }
+        },
+      )
+      .subscribe();
+
+    // 3. Own-room LiveKit gift event → 0ms optimistic bump.
+    //    Supabase Realtime UPDATE reconciles shortly after DB write completes.
+    const onLiveKitGift = (event: Event) => {
+      const detail = (event as CustomEvent<GiftSentDetail>).detail;
+      if (!detail) return;
+      const coins = detail.totalCoins || (detail.giftCoins || 0) * (detail.count || 1);
+      if (!coins) return;
+      if (challengerId && detail.receiverId === challengerId) {
+        setChallengerScore((s) => s + coins);
+      } else if (opponentId && detail.receiverId === opponentId) {
+        setOpponentScore((s) => s + coins);
+      }
+    };
+    window.addEventListener("livekit-gift-sent", onLiveKitGift as EventListener);
 
     return () => {
       cancelled = true;
-      clearInterval(pollId);
+      supabase.removeChannel(channel);
+      window.removeEventListener("livekit-gift-sent", onLiveKitGift as EventListener);
     };
-  }, [battleId, battleEnded, onBattleEnd]);
+  }, [battleId, battleEnded, challengerId, opponentId, onBattleEnd]);
 
 
   // Countdown timer
