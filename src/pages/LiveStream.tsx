@@ -360,6 +360,8 @@ const LiveStream = () => {
   // Profile card states
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<ViewerProfile | null>(null);
+  // Pkg130 — host moderation sheet
+  const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Live stream lifecycle - auto end stream when host leaves app
   const handleStreamEndCallback = async () => {
