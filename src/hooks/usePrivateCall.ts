@@ -127,29 +127,17 @@ export function usePrivateCall(userId: string | null) {
     setCallState(INITIAL_CALL_STATE);
     setIncomingCall(null);
     
-    // SAFETY: Reset is_in_call in DB for BOTH parties
+    // SAFETY: Reset own is_in_call in DB. The peer's row is updated
+    // server-side inside `end_private_call` (settle + UPDATE on both ids).
+    // Pkg86 audit: removed client-side cross-user UPDATE — it was silently
+    // RLS-filtered for the other party (dead code) and not needed since the
+    // RPC at line 132 + server `end_private_call` already cover both parties.
     if (userId) {
       Promise.resolve(supabase.rpc('reset_my_call_status')).then(() => {
         console.log('[Call] DB is_in_call reset for current user');
       }).catch(err => console.warn('[Call] Failed to reset DB call status:', err));
-      
-      if (callIdToReset) {
-        supabase
-          .from('private_calls')
-          .select('caller_id, host_id')
-          .eq('id', callIdToReset)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data) {
-              supabase
-                .from('profiles')
-                .update({ is_in_call: false, current_call_id: null, updated_at: new Date().toISOString() })
-                .in('id', [data.caller_id, data.host_id])
-                .then(() => console.log('[Call] ✅ Both parties is_in_call reset'));
-            }
-          });
-      }
     }
+
     
     // ☠️ DEAD FOREVER POLICY: Once a call ends, it NEVER comes back
     // Like WhatsApp/IMO - ended call = dead forever. New call = fresh start.
