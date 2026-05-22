@@ -23,6 +23,7 @@ import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/liveki
 import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
+import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
