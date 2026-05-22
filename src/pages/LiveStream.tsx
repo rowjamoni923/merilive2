@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
+import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
+import { raiseHand, lowerHand, hasRaisedHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
 import { RecordingDialog } from "@/components/livekit/RecordingDialog";
