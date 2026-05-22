@@ -107,7 +107,7 @@ const en = {
     deleteAccountConfirm: "Are you sure you want to delete your account?",
     deleteWarning1: "Your account will be scheduled for deletion",
     deleteWarning2: "After 15 days, it will be permanently removed",
-    deleteWarning3: "All your data, coins, and earnings will be lost",
+    deleteWarning3: "All your data, Diamonds, and earnings will be lost",
     deleteWarning4: "You can cancel deletion within 15 days",
     cancelDeletion: "Cancel Deletion",
     cancelling: "Cancelling...",
