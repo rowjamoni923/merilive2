@@ -102,6 +102,8 @@ export function usePartyRoomWebRTC(
     try { unregisterStreamRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRpcRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRoomForTranscription('party', roomId); } catch { /* ignore */ }
+    // Pkg133: drop reactions registration.
+    try { unregisterReactionRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
