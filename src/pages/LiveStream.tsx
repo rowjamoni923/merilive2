@@ -2483,7 +2483,55 @@ const LiveStream = () => {
             />
           </div>
         )}
-        {isHost && localVideoTrack ? (
+        {/* Pkg100: PK split-screen — both hosts visible during active battle */}
+        {pkBattleState.isActive && opponentRoom.videoTrack ? (
+          <div className="flex w-full h-full">
+            {/* Left: current stream */}
+            <div className="w-1/2 h-full relative border-r border-white/10">
+              {isHost && localVideoTrack ? (
+                <div className="w-full h-full relative" style={{ filter: combinedFilterCSS || undefined }}>
+                  <LiveKitVideoPlayer
+                    videoTrack={localVideoTrack}
+                    mirror={true}
+                    fit="cover"
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
+              ) : remoteVideoTrack ? (
+                <div className="w-full h-full relative" style={{ filter: combinedFilterCSS || undefined }}>
+                  <LiveKitVideoPlayer
+                    videoTrack={remoteVideoTrack}
+                    mirror={false}
+                    fit="cover"
+                    onVideoStalled={() => retrySubscription()}
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
+              ) : null}
+              {/* Host label */}
+              <div className="absolute bottom-2 left-2 z-10 bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
+                <span className="text-white/90 text-[10px] font-medium">
+                  {pkBattleState.isChallenger ? pkBattleState.challengerInfo?.name : pkBattleState.opponentInfo?.name}
+                </span>
+              </div>
+            </div>
+            {/* Right: opponent stream (cross-room bridge) */}
+            <div className="w-1/2 h-full relative">
+              <LiveKitVideoPlayer
+                videoTrack={opponentRoom.videoTrack}
+                mirror={false}
+                fit="cover"
+                className="absolute inset-0 w-full h-full"
+              />
+              {/* Opponent label */}
+              <div className="absolute bottom-2 right-2 z-10 bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
+                <span className="text-white/90 text-[10px] font-medium">
+                  {pkBattleState.isChallenger ? pkBattleState.opponentInfo?.name : pkBattleState.challengerInfo?.name}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : isHost && localVideoTrack ? (
           <div 
             className="w-full h-full relative flex items-center justify-center"
             style={{ filter: combinedFilterCSS || undefined }}
