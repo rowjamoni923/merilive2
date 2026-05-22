@@ -19,7 +19,16 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+
+/** Lightweight haptic ping — silently no-ops on devices without Vibration API (iOS Safari etc.). */
+const haptic = (pattern: number | number[] = 8) => {
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(pattern);
+    }
+  } catch { /* silent */ }
+};
 
 interface ChametStyleBottomBarProps {
   onChatClick?: () => void;
@@ -231,32 +240,51 @@ export const ChametStyleBottomBar = ({
               shadow="rgba(249,115,22,0.35)"
             />
 
-            {/* Gift — Hero button */}
+            {/* Gift — Hero button (premium breathing glow + haptic) */}
             <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={onGiftClick}
-              className="flex flex-col items-center gap-0.5 -mt-4"
+              whileTap={{ scale: 0.88, rotate: -4 }}
+              transition={{ type: "spring", damping: 12, stiffness: 500 }}
+              onClick={() => { haptic(12); onGiftClick?.(); }}
+              className="flex flex-col items-center gap-0.5 -mt-4 will-change-transform"
+              style={{ transform: "translateZ(0)" }}
             >
               <div className="relative">
-                <div
+                <motion.div
                   className="w-[62px] h-[62px] rounded-[20px] flex items-center justify-center relative overflow-hidden"
                   style={{
                     background: "linear-gradient(135deg, #ec4899, #a855f7, #7c3aed)",
                     boxShadow: "0 10px 28px rgba(168,85,247,0.45), 0 0 0 2px rgba(255,255,255,0.08), inset 0 2px 0 rgba(255,255,255,0.12)",
                   }}
+                  animate={{ y: [0, -1.5, 0] }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-white/18 to-transparent" />
-                  <Gift className="w-7 h-7 text-white relative z-10 drop-shadow-lg" />
-                </div>
+                  {/* Diagonal shine sweep */}
+                  <motion.div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: "linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.32) 50%, transparent 62%)" }}
+                    animate={{ x: ["-110%", "120%"] }}
+                    transition={{ duration: 3.2, repeat: Infinity, ease: "linear", repeatDelay: 1.8 }}
+                  />
+                  <motion.div
+                    animate={{ rotate: [-4, 4, -4] }}
+                    transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                    className="relative z-10"
+                  >
+                    <Gift className="w-7 h-7 text-white drop-shadow-lg" />
+                  </motion.div>
+                </motion.div>
+                {/* Breathing aura glow */}
                 <motion.div
-                  animate={{ scale: [1, 1.2, 1], opacity: [0.35, 0.12, 0.35] }}
-                  transition={{ duration: 2.5, repeat: Infinity }}
+                  animate={{ scale: [1, 1.28, 1], opacity: [0.45, 0.15, 0.45] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                   className="absolute inset-0 rounded-[20px] -z-10"
-                  style={{ background: "linear-gradient(135deg, #ec4899, #a855f7)", filter: "blur(14px)" }}
+                  style={{ background: "linear-gradient(135deg, #ec4899, #a855f7)", filter: "blur(16px)" }}
                 />
               </div>
-              <span className="text-white/75 text-[9px] font-semibold">Gift</span>
+              <span className="text-white/85 text-[9px] font-semibold mt-0.5">Gift</span>
             </motion.button>
+
 
             {/* Host: Seat Mgmt  |  Visitor: Join */}
             {isHost ? (
@@ -271,7 +299,8 @@ export const ChametStyleBottomBar = ({
             ) : (
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                onClick={!isWaitingToJoin ? onJoinRequest : undefined}
+                transition={{ type: "spring", damping: 14, stiffness: 480 }}
+                onClick={!isWaitingToJoin ? () => { haptic(10); onJoinRequest?.(); } : undefined}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl relative overflow-hidden"
                 style={{
                   background: isWaitingToJoin
@@ -339,13 +368,21 @@ function BarButton({
   badge?: number;
   border?: string;
 }) {
+  const handlePress = useCallback(() => {
+    haptic(8);
+    onClick?.();
+  }, [onClick]);
   return (
     <motion.button
-      whileTap={{ scale: 0.9 }}
-      onClick={onClick}
-      className="flex flex-col items-center gap-0.5 px-1.5 py-0.5"
+      whileTap={{ scale: 0.88 }}
+      transition={{ type: "spring", damping: 14, stiffness: 480 }}
+      onClick={handlePress}
+      className="flex flex-col items-center gap-0.5 px-1.5 py-0.5 will-change-transform"
+      style={{ transform: "translateZ(0)" }}
     >
-      <div
+      <motion.div
+        whileTap={{ rotate: -6 }}
+        transition={{ type: "spring", damping: 10, stiffness: 600 }}
         className="relative w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden"
         style={{
           background: bg,
@@ -354,17 +391,20 @@ function BarButton({
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent" />
-        <Icon className="w-5 h-5 text-white relative z-10" />
+        <Icon className="w-5 h-5 text-white relative z-10 drop-shadow-sm" />
         {badge && badge > 0 && (
-          <div
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", damping: 10, stiffness: 400 }}
             className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full flex items-center justify-center ring-2 ring-[#0c0820]"
             style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)", boxShadow: "0 3px 6px rgba(239,68,68,0.4)" }}
           >
-            <span className="text-white text-[8px] font-bold">{badge}</span>
-          </div>
+            <span className="text-white text-[8px] font-bold tabular-nums">{badge > 99 ? "99+" : badge}</span>
+          </motion.div>
         )}
-      </div>
-      <span className="text-white/60 text-[9px] font-medium">{label}</span>
+      </motion.div>
+      <span className="text-white/65 text-[9px] font-medium">{label}</span>
     </motion.button>
   );
 }
