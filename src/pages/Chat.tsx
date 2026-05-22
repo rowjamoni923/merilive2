@@ -871,31 +871,9 @@ const Chat = () => {
           playGiftAnimationFromContent(payload.payload.content, payload.payload.senderId, true);
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${selectedConversation.id}`,
-        },
-        (payload) => {
-          upsertLiveMessage(payload.new);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${selectedConversation.id}`,
-        },
-        (payload) => {
-          const updated = castMessage(payload.new);
-          setMessages(prev => prev.map(m => m.id === updated.id ? { ...m, ...updated } : m));
-        }
-      )
+      // Pkg92: removed dead postgres_changes on `messages` (NOT in supabase_realtime
+      // publication — silently no-op). Live delivery flows via the broadcast 'message'
+      // event above; status updates use the receipts broadcast channel.
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           directMessageChannelRef.current = channel;
