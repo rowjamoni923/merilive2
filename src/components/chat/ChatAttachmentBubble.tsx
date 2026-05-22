@@ -22,7 +22,12 @@ export const ChatAttachmentBubble = memo(function ChatAttachmentBubble({
   isMe,
 }: ChatAttachmentBubbleProps) {
   const url = useMemo(() => {
-    const blob = bytes instanceof Blob ? bytes : new Blob([bytes], { type: mimeType || "application/octet-stream" });
+    const blob =
+      bytes instanceof Blob
+        ? bytes
+        : new Blob([new Uint8Array(bytes).buffer as ArrayBuffer], {
+            type: mimeType || "application/octet-stream",
+          });
     return URL.createObjectURL(blob);
   }, [bytes, mimeType]);
 
