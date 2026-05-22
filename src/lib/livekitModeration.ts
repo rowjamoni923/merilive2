@@ -36,7 +36,7 @@ export interface ModerationResult {
   result?: unknown;
 }
 
-async function invoke(action: HostModerationAction, body: Record<string, unknown>): Promise<ModerationResult> {
+async function invoke(action: HostModerationAction, body: Record<string, any>): Promise<ModerationResult> {
   if (!(await isLiveKitEnabled('moderation'))) {
     return { success: false, error: 'moderation_disabled' };
   }
