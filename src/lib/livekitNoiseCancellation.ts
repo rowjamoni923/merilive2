@@ -132,7 +132,7 @@ export async function applyNoiseCancellation(
 
   if (!opts.enabled) return false;
 
-  const processor = await buildProcessor();
+  const processor = await buildProcessor(opts.mode ?? 'standard');
   if (!processor) return false;
 
   try {
