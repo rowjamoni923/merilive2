@@ -2005,6 +2005,7 @@ const PartyRoom = () => {
         onKickViewer={(userId) => {
           kickUser(userId);
         }}
+        onModerateViewer={isHost ? (userId, displayName) => setModerateTarget({ id: userId, name: displayName }) : undefined}
         isWaitingForApproval={myPendingRequest !== null}
         joinMessages={joinMessages}
         activeGame={room.room_type === 'game' && room.game_mode ? {
