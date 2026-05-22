@@ -71,6 +71,7 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
+import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
 import { PKBattleActive } from "@/components/live/PKBattleActive";
@@ -3052,6 +3053,9 @@ const LiveStream = () => {
       {!isHost && remoteVideoTrack && (
         <PictureInPictureButton pipId="live-host" label="Picture in picture" />
       )}
+
+      {/* Pkg147: Audio-only data-saver toggle for viewers */}
+      {!isHost && <AudioOnlyToggleButton label="Audio-only mode" />}
 
 
 

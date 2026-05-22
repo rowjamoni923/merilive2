@@ -20,6 +20,11 @@ import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
+import {
+  AUDIO_ONLY_CHANGED_EVENT,
+  applyAudioOnlyToRoom,
+  isAudioOnlyEnabled,
+} from '@/lib/livekitAudioOnlyMode';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
@@ -459,6 +464,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
 
         if (track.kind === Track.Kind.Video) {
+          // Pkg147: viewer audio-only data-saver — drop video sub immediately.
+          if (isAudioOnlyEnabled()) {
+            try { publication.setSubscribed(false); } catch { /* ignore */ }
+            return;
+          }
           try {
             publication.setVideoQuality?.(preferredVideoQualityRef.current);
           } catch {
@@ -502,6 +512,12 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
       // Subscribe immediately as soon as remote track is published to reduce first-frame delay
       room.on(RoomEvent.TrackPublished, (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        // Pkg147: in audio-only viewer mode, only subscribe audio.
+        const audioOnly = isAudioOnlyEnabled();
+        if (audioOnly && publication.kind === Track.Kind.Video) {
+          try { publication.setSubscribed(false); } catch { /* ignore */ }
+          return;
+        }
         try {
           publication.setSubscribed(true);
         } catch {
@@ -1269,6 +1285,16 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       });
     });
   }, [ensureParticipantSubscribed]);
+
+  // Pkg147: Audio-only viewer mode — apply on join + on every preference change.
+  useEffect(() => {
+    if (!isJoined) return;
+    const apply = () => applyAudioOnlyToRoom(roomRef.current, isAudioOnlyEnabled());
+    apply();
+    const onChange = () => apply();
+    window.addEventListener(AUDIO_ONLY_CHANGED_EVENT, onChange as EventListener);
+    return () => window.removeEventListener(AUDIO_ONLY_CHANGED_EVENT, onChange as EventListener);
+  }, [isJoined]);
 
   // Pkg74: Bind streamId → Room for LiveKit-based stream_ended signaling.
   // Re-runs whenever the join state flips or the streamId changes.
