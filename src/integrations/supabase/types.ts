@@ -7413,6 +7413,42 @@ export type Database = {
         }
         Relationships: []
       }
+      livekit_agent_ops_log: {
+        Row: {
+          action: string
+          actor_admin_role: string | null
+          agent_name: string | null
+          created_at: string
+          dispatch_id: string | null
+          error: string | null
+          id: string
+          result_count: number | null
+          room_name: string | null
+        }
+        Insert: {
+          action: string
+          actor_admin_role?: string | null
+          agent_name?: string | null
+          created_at?: string
+          dispatch_id?: string | null
+          error?: string | null
+          id?: string
+          result_count?: number | null
+          room_name?: string | null
+        }
+        Update: {
+          action?: string
+          actor_admin_role?: string | null
+          agent_name?: string | null
+          created_at?: string
+          dispatch_id?: string | null
+          error?: string | null
+          id?: string
+          result_count?: number | null
+          room_name?: string | null
+        }
+        Relationships: []
+      }
       livekit_egress_ops_log: {
         Row: {
           action: string
