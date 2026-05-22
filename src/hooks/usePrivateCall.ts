@@ -1323,12 +1323,13 @@ export function usePrivateCall(userId: string | null) {
            if (callData.status !== 'pending' && callData.status !== 'ringing') return;
 
           // ⚡ Fetch caller profile WITHOUT re-verifying call status
-          // Broadcast already validated - skip the freshCall DB roundtrip
+          // Pkg86 audit: cross-user read → profiles_public (RLS-safe, no coins leak)
           const { data: callerProfile } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('display_name, avatar_url, user_level')
             .eq('id', callData.caller_id)
             .single();
+
 
           if (isCleanedUp) return;
           if (endedCallIdsRef.current.has(callData.id)) return;
