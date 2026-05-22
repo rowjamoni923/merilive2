@@ -3152,6 +3152,7 @@ const LiveStream = () => {
                       MonitorUp: <MonitorUp className="w-6 h-6" strokeWidth={1.8} />,
                       ShieldCheck: <ShieldCheck className="w-6 h-6" strokeWidth={1.8} />,
                       Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
+                      PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
                     
@@ -3627,6 +3628,11 @@ const LiveStream = () => {
           <IngressDialog
             open={showIngress}
             onClose={() => setShowIngress(false)}
+            streamId={id}
+          />
+          <SipDialDialog
+            open={showSipDial}
+            onClose={() => setShowSipDial(false)}
             streamId={id}
           />
 
