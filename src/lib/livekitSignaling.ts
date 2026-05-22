@@ -84,6 +84,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   streams: true, // Pkg121: ON by default — text/file streams wrapper (admin can flip OFF)
   room_metadata: false, // Pkg122: OFF by default — server mutates SFU room state (admin opts in)
   noise_cancellation: false, // Pkg123: OFF by default — Krisp noise filter (admin opts in)
+  hls_egress: false, // Pkg126: OFF by default — HLS (.m3u8) recording (admin opts in)
 };
 
 
