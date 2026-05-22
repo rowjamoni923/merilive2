@@ -16600,6 +16600,16 @@ export type Database = {
         Args: { p_competition_id: string }
         Returns: number
       }
+      emit_app_sync_notification: {
+        Args: {
+          _event?: string
+          _extra?: Json
+          _row_id?: string
+          _topic: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       end_live_stream: { Args: { p_stream_id: string }; Returns: Json }
       end_party_room: { Args: { p_room_id: string }; Returns: Json }
       end_private_call: {

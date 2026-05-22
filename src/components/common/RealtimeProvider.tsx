@@ -74,7 +74,8 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
     if (isAdminRoute()) return;
     if (!notifyOnImportantUpdates) return;
 
-    // Defer subscription by 5 seconds to prioritize initial render
+    // Keep the single approved notifications channel hot so app_sync invalidations
+    // land instantly without tab-switch/manual refresh.
     const timer = setTimeout(() => {
       const unsub = subscribeToTables(
         'global-notifications',
@@ -86,6 +87,23 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
             timestamp: new Date()
           });
 
+          if (event === 'INSERT' && table === 'notifications' && payload?.type === 'app_sync') {
+            const data = payload?.data || {};
+            const topic = data.topic;
+            if (typeof topic === 'string' && topic.length > 0) {
+              window.dispatchEvent(new CustomEvent('app-sync', {
+                detail: {
+                  topic,
+                  eventType: data.eventType || data.event_type || payload?.data?.event,
+                  rowId: data.row_id || null,
+                  payload: data,
+                },
+              }));
+              document.dispatchEvent(new Event('visibilitychange'));
+            }
+            return;
+          }
+
           if (event === 'INSERT' && table === 'topup_requests' && payload?.status === 'pending') {
             toast({
               title: "New Recharge Request",
@@ -95,7 +113,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
         }
       );
       cleanupRef.current = unsub;
-    }, 5000);
+    }, 0);
 
     const cleanupRef = { current: () => {} };
     return () => {

@@ -199,20 +199,21 @@ export const useUserPrivileges = (userId: string | null) => {
   // Pkg83-ext: removed static `level-privileges-realtime` channel + per-user
   // postgres_changes on user_purchases (table not in supabase_realtime
   // publication). Admin level_privileges edits push via Pkg37 admin_broadcast;
-  // own purchases refresh via visibility + after mutations.
+  // own purchases refresh via invisible app_sync notifications + after mutations.
   const subscribeToChanges = () => {
     const onAdmin = (e: Event) => {
       const table = (e as CustomEvent<{ table?: string }>).detail?.table;
       if (table === 'level_privileges') fetchPrivileges();
     };
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchPrivileges();
+    const onAppSync = (e: Event) => {
+      const topic = (e as CustomEvent<{ topic?: string }>).detail?.topic;
+      if (topic === 'user_purchases') fetchPrivileges();
     };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('app-sync', onAppSync as EventListener);
     return () => {
       window.removeEventListener('admin-table-update', onAdmin as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('app-sync', onAppSync as EventListener);
     };
   };
 

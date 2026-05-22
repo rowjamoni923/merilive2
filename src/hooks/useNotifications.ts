@@ -216,6 +216,7 @@ export const useNotifications = () => {
       .from('notifications')
       .select('*')
       .eq('user_id', currentUserId)
+      .neq('type', 'app_sync')
       .not('type', 'in', `(${ADMIN_ONLY_TYPES.join(',')})`)
       .order('created_at', { ascending: false })
       .limit(100);
@@ -322,6 +323,15 @@ export const useNotifications = () => {
         },
         (payload) => {
           const newNotification = { ...payload.new as Notification, source: 'regular' as const };
+          if (newNotification.type === 'app_sync') {
+            const data = (newNotification.data || {}) as Record<string, any>;
+            if (typeof data.topic === 'string') {
+              window.dispatchEvent(new CustomEvent('app-sync', {
+                detail: { topic: data.topic, eventType: data.eventType || data.event_type, rowId: data.row_id || null, payload: data },
+              }));
+            }
+            return;
+          }
           // Skip admin-only notification types in the user app
           if (ADMIN_ONLY_TYPES.includes(newNotification.type) || newNotification.is_read) return;
 
