@@ -12,6 +12,7 @@ import StickerOverlay from "@/components/live/StickerOverlay";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
+import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
 import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
