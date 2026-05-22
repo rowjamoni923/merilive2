@@ -322,7 +322,10 @@ const HostDashboard = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-xl font-bold">Host Dashboard</h1>
+          <h1 className="text-xl font-bold flex-1">Host Dashboard</h1>
+          <Button variant="outline" size="sm" onClick={() => navigate('/my-recordings')}>
+            Recordings
+          </Button>
         </div>
       </header>
 
