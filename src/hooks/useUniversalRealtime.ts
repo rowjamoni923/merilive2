@@ -43,6 +43,7 @@ const pendingUpdates = new Map<string, NodeJS.Timeout>();
 let lastForcedReconnectAt = 0;
 let channelRebuildTimer: NodeJS.Timeout | null = null;
 let authStateUnsubscribe: (() => void) | null = null;
+let externalSyncBridgeAttached = false;
 
 // Debounce time for batch updates (ms)
 const DEBOUNCE_MS = 80;
@@ -116,6 +117,35 @@ const notifySubscribers = (table: string, event: EventType, payload: any) => {
   }, delay);
 
   pendingUpdates.set(table, timeout);
+};
+
+const normalizeEventType = (value: unknown): EventType => {
+  const type = String(value || 'UPDATE').toUpperCase();
+  return type === 'INSERT' || type === 'UPDATE' || type === 'DELETE' ? type : '*';
+};
+
+const ensureExternalSyncBridge = () => {
+  if (externalSyncBridgeAttached || typeof window === 'undefined') return;
+  externalSyncBridgeAttached = true;
+
+  window.addEventListener('admin-table-update', (event: Event) => {
+    const detail = (event as CustomEvent<any>).detail || {};
+    const table = typeof detail.table === 'string' ? detail.table : null;
+    if (!table) return;
+    notifySubscribers(table, normalizeEventType(detail.eventType), detail.payload || detail);
+  });
+
+  window.addEventListener('app-sync', (event: Event) => {
+    const detail = (event as CustomEvent<any>).detail || {};
+    const table = typeof detail.topic === 'string' ? detail.topic : null;
+    if (!table) return;
+    notifySubscribers(table, normalizeEventType(detail.eventType), detail.payload || detail);
+  });
+
+  window.addEventListener('own-beans-updated', (event: Event) => {
+    const detail = (event as CustomEvent<any>).detail || {};
+    notifySubscribers('profiles', 'UPDATE', detail);
+  });
 };
 
 // ============= Channel Management =============
@@ -328,6 +358,7 @@ export const subscribeToTables = (
   callback: (table: string, event: EventType, payload: any) => void
 ): (() => void) => {
   ensureAuthStateListener();
+  ensureExternalSyncBridge();
 
   const previousTables = getActiveMonitoredTables().map((item) => item.table).sort().join('|');
 
