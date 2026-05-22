@@ -156,13 +156,19 @@ export const ChametStyleViewerPanel = ({
   // Use real-time data if available, otherwise fall back to external viewers
   const viewers = realtimeViewers.length > 0 ? realtimeViewers : externalViewers;
 
-  const getLevelGradient = (level: number) => {
-    if (level >= 50) return 'from-purple-500 to-pink-500';
-    if (level >= 40) return 'from-cyan-400 to-blue-500';
-    if (level >= 30) return 'from-yellow-400 to-orange-500';
-    if (level >= 20) return 'from-green-400 to-emerald-500';
-    return 'from-blue-400 to-indigo-500';
+  // Pkg164: 5-tier palette parity with Pkg162 join stack
+  const getTier = (level: number) => {
+    if (level >= 50) return { grad: 'from-amber-400 via-yellow-300 to-orange-500', ring: 'rgba(251,191,36,0.9)', glow: 'rgba(251,191,36,0.55)', icon: '👑', label: 'VIP' };
+    if (level >= 30) return { grad: 'from-fuchsia-500 via-purple-500 to-indigo-500', ring: 'rgba(217,70,239,0.85)', glow: 'rgba(217,70,239,0.5)', icon: '💎', label: 'Elite' };
+    if (level >= 20) return { grad: 'from-cyan-400 to-sky-500', ring: 'rgba(56,189,248,0.85)', glow: 'rgba(56,189,248,0.45)', icon: '⭐', label: 'Pro' };
+    if (level >= 10) return { grad: 'from-emerald-400 to-teal-500', ring: 'rgba(52,211,153,0.85)', glow: 'rgba(52,211,153,0.45)', icon: '✨', label: 'Active' };
+    return { grad: 'from-slate-400 to-slate-500', ring: 'rgba(148,163,184,0.7)', glow: 'rgba(148,163,184,0.3)', icon: '', label: 'New' };
   };
+
+  // Top-3 podium (highest level)
+  const podium = [...viewers].sort((a, b) => (b.level || 0) - (a.level || 0)).slice(0, 3);
+  const rest = viewers.length > 3 ? viewers.slice(0).sort((a, b) => (b.level || 0) - (a.level || 0)).slice(3) : viewers;
+  const podiumOrder = [1, 0, 2]; // 2nd, 1st, 3rd visual order
 
   return (
     <AnimatePresence>
@@ -171,209 +177,308 @@ export const ChametStyleViewerPanel = ({
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          transition={{ type: "spring", damping: 28, stiffness: 320, mass: 0.7 }}
           className="fixed inset-x-0 bottom-0 z-50"
-          style={{ height: "70vh" }}
+          style={{ height: "72vh", willChange: 'transform', transform: 'translateZ(0)' }}
         >
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 -z-10"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm -z-10"
             onClick={onClose}
           />
 
-          {/* Panel Container */}
-          <div className="flex flex-col h-full bg-white rounded-t-3xl overflow-hidden">
+          {/* Panel Container — premium glass dark sheet */}
+          <div
+            className="flex flex-col h-full rounded-t-[28px] overflow-hidden relative"
+            style={{
+              background: 'linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)',
+              boxShadow: '0 -20px 60px -10px rgba(168,85,247,0.25), inset 0 1px 0 rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(24px)',
+            }}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-2.5 pb-1">
+              <div className="w-10 h-1 rounded-full bg-white/25" />
+            </div>
+
             {/* Tabs Header */}
-            <div className="flex border-b border-gray-200">
+            <div className="flex px-3 pt-1 pb-2 gap-2 border-b border-white/5">
               <button
                 onClick={() => setActiveTab('audience')}
                 className={cn(
-                  "flex-1 py-4 text-center font-semibold text-lg transition-colors relative",
-                  activeTab === 'audience' ? "text-gray-900" : "text-gray-400"
+                  "flex-1 py-2.5 text-center font-semibold text-[15px] transition-colors relative rounded-xl",
+                  activeTab === 'audience' ? "text-white" : "text-white/45"
                 )}
               >
-                Audience ({viewers.length})
                 {activeTab === 'audience' && (
-                  <motion.div 
-                    layoutId="tabIndicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600"
+                  <motion.div
+                    layoutId="cvpTabPill"
+                    className="absolute inset-0 rounded-xl"
+                    style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.25), rgba(236,72,153,0.18))', boxShadow: '0 0 18px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.12)' }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 380 }}
                   />
                 )}
+                <span className="relative">Audience <span className="text-white/55 text-xs ml-0.5">({viewers.length})</span></span>
               </button>
               <button
                 onClick={() => setActiveTab('applicant')}
                 className={cn(
-                  "flex-1 py-4 text-center font-semibold text-lg transition-colors relative",
-                  activeTab === 'applicant' ? "text-gray-900" : "text-gray-400"
+                  "flex-1 py-2.5 text-center font-semibold text-[15px] transition-colors relative rounded-xl",
+                  activeTab === 'applicant' ? "text-white" : "text-white/45"
                 )}
               >
-                Seat Requests
-                {applicants.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
-                    {applicants.length}
-                  </span>
-                )}
                 {activeTab === 'applicant' && (
-                  <motion.div 
-                    layoutId="tabIndicator"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600"
+                  <motion.div
+                    layoutId="cvpTabPill"
+                    className="absolute inset-0 rounded-xl"
+                    style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.25), rgba(236,72,153,0.18))', boxShadow: '0 0 18px rgba(168,85,247,0.35), inset 0 1px 0 rgba(255,255,255,0.12)' }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 380 }}
                   />
                 )}
+                <span className="relative inline-flex items-center gap-1.5">
+                  Seat Requests
+                  {applicants.length > 0 && (
+                    <motion.span
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 1.4, repeat: Infinity }}
+                      className="px-1.5 py-0.5 bg-gradient-to-r from-rose-500 to-red-500 text-white text-[10px] rounded-full font-bold shadow-[0_0_10px_rgba(244,63,94,0.6)]"
+                    >
+                      {applicants.length}
+                    </motion.span>
+                  )}
+                </span>
               </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto">
+            <div
+              className="flex-1 overflow-y-auto overscroll-contain"
+              style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
+            >
               {activeTab === 'audience' ? (
-                <div className="p-4">
+                <div className="p-3">
                   {viewers.length > 0 ? (
-                    <div className="space-y-3">
-                      {viewers.map((viewer) => (
-                        <motion.div
-                          key={viewer.id}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl"
+                    <>
+                      {/* Top-3 podium */}
+                      {podium.length >= 1 && (
+                        <div className="flex items-end justify-around mb-3 px-2 pt-2 pb-3 rounded-2xl"
+                          style={{ background: 'linear-gradient(180deg, rgba(168,85,247,0.10), rgba(236,72,153,0.04))', border: '1px solid rgba(255,255,255,0.06)' }}
                         >
-                          <div className="flex items-center gap-3">
-                            <AvatarWithFrame
-                              userId={viewer.id}
-                              src={viewer.avatarUrl}
-                              name={viewer.displayName}
-                              level={viewer.level}
-                              size="sm"
-                              showFrame={true}
-                              frameId={viewer.frameId}
-                            />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-gray-900">{viewer.displayName}</span>
-                                {viewer.countryFlag && <span>{viewer.countryFlag}</span>}
-                              </div>
-                              <Badge className={cn(
-                                "bg-gradient-to-r text-white text-[9px] px-1.5 h-4 border-0 mt-1",
-                                getLevelGradient(viewer.level)
-                              )}>
-                                ✦ Level {viewer.level}
-                              </Badge>
-                            </div>
-                          </div>
-                          {isHost && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => onInviteViewer?.(viewer.id)}
-                                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-3"
+                          {podiumOrder.map((idx) => {
+                            const v = podium[idx];
+                            if (!v) return <div key={idx} className="w-16" />;
+                            const tier = getTier(v.level);
+                            const rank = idx + 1;
+                            const isFirst = rank === 1;
+                            return (
+                              <motion.div
+                                key={v.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.06, type: 'spring', damping: 22, stiffness: 360 }}
+                                className="flex flex-col items-center"
+                                style={{ width: isFirst ? 84 : 72 }}
                               >
-                                <UserPlus className="w-4 h-4 mr-1" />
-                                Invite
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => onKickViewer?.(viewer.id)}
-                                className="rounded-full px-3"
-                              >
-                                <UserX className="w-4 h-4" />
-                              </Button>
-                              {onModerateViewer && (
-                                <Button
-                                  size="sm"
-                                  onClick={() => onModerateViewer(viewer.id, viewer.displayName)}
-                                  className="bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-full px-3"
+                                <div className="relative">
+                                  {isFirst && (
+                                    <motion.div
+                                      animate={{ rotate: 360 }}
+                                      transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                                      className="absolute -inset-1.5 rounded-full"
+                                      style={{ background: 'conic-gradient(from 0deg, #fde047, #f97316, #fbbf24, #fde047)' }}
+                                    />
+                                  )}
+                                  <div
+                                    className="relative rounded-full p-[2px]"
+                                    style={{ background: tier.ring, boxShadow: `0 0 14px ${tier.glow}` }}
+                                  >
+                                    <AvatarWithFrame
+                                      userId={v.id}
+                                      src={v.avatarUrl}
+                                      name={v.displayName}
+                                      level={v.level}
+                                      size={isFirst ? 'md' : 'sm'}
+                                      showFrame={true}
+                                      frameId={v.frameId}
+                                    />
+                                  </div>
+                                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                                    style={{ background: rank === 1 ? 'linear-gradient(135deg,#fde047,#f59e0b)' : rank === 2 ? 'linear-gradient(135deg,#e2e8f0,#94a3b8)' : 'linear-gradient(135deg,#fdba74,#c2410c)', color: '#0a0a0a', boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
+                                    {rank}
+                                  </div>
+                                </div>
+                                <span className="mt-2 text-[11px] text-white/90 font-medium truncate max-w-full">{v.displayName}</span>
+                                <span className="text-[9px] text-white/50">Lv {v.level}</span>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        {rest.map((viewer, i) => {
+                          const tier = getTier(viewer.level);
+                          return (
+                            <motion.div
+                              key={viewer.id}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: Math.min(i * 0.02, 0.2) }}
+                              className="flex items-center justify-between p-2.5 rounded-2xl"
+                              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div
+                                  className="rounded-full p-[1.5px] shrink-0"
+                                  style={{ background: tier.ring, boxShadow: `0 0 8px ${tier.glow}` }}
                                 >
-                                  <Shield className="w-4 h-4" />
-                                </Button>
+                                  <AvatarWithFrame
+                                    userId={viewer.id}
+                                    src={viewer.avatarUrl}
+                                    name={viewer.displayName}
+                                    level={viewer.level}
+                                    size="sm"
+                                    showFrame={true}
+                                    frameId={viewer.frameId}
+                                  />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-semibold text-white text-sm truncate">{viewer.displayName}</span>
+                                    {viewer.countryFlag && <span className="text-xs">{viewer.countryFlag}</span>}
+                                  </div>
+                                  <Badge className={cn(
+                                    "bg-gradient-to-r text-white text-[9px] px-1.5 h-4 border-0 mt-1",
+                                    tier.grad
+                                  )}>
+                                    {tier.icon && <span className="mr-0.5">{tier.icon}</span>}Lv {viewer.level}
+                                  </Badge>
+                                </div>
+                              </div>
+                              {isHost && (
+                                <div className="flex gap-1.5 shrink-0">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => onInviteViewer?.(viewer.id)}
+                                    className="h-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-3 text-xs shadow-[0_4px_14px_rgba(168,85,247,0.4)]"
+                                  >
+                                    <UserPlus className="w-3.5 h-3.5 mr-1" />
+                                    Invite
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => onKickViewer?.(viewer.id)}
+                                    className="h-8 rounded-full px-2.5"
+                                  >
+                                    <UserX className="w-3.5 h-3.5" />
+                                  </Button>
+                                  {onModerateViewer && (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => onModerateViewer(viewer.id, viewer.displayName)}
+                                      className="h-8 bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-full px-2.5"
+                                    >
+                                      <Shield className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
+                                </div>
                               )}
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
-                    </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </>
                   ) : (
                     <EmptyState type="audience" />
                   )}
                 </div>
               ) : (
-                <div className="p-4">
+                <div className="p-3">
                   {applicants.length > 0 ? (
-                    <div className="space-y-3">
-                      {applicants.map((applicant) => (
-                        <motion.div
-                          key={applicant.id}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <AvatarWithFrame
-                                userId={applicant.id}
-                                src={applicant.avatarUrl}
-                                name={applicant.displayName || "U"}
-                                level={applicant.level || 1}
-                                size="sm"
-                                showFrame={true}
-                              />
-                              <motion.div
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ duration: 1.5, repeat: Infinity }}
-                                className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center"
-                              >
-                                <span className="text-[8px] text-white">🖐️</span>
-                              </motion.div>
-                            </div>
-                            <div>
-                              <span className="font-semibold text-gray-900">{applicant.displayName}</span>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge className={cn(
-                                  "bg-gradient-to-r text-white text-[9px] px-1.5 h-4 border-0",
-                                  getLevelGradient(applicant.level)
-                                )}>
-                                  ✦ Level {applicant.level}
-                                </Badge>
-                                <span className="text-[10px] text-amber-600">
-                                  Requesting seat...
-                                </span>
+                    <div className="space-y-2">
+                      {applicants.map((applicant, i) => {
+                        const tier = getTier(applicant.level);
+                        return (
+                          <motion.div
+                            key={applicant.id}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: Math.min(i * 0.03, 0.18) }}
+                            className="flex items-center justify-between p-2.5 rounded-2xl"
+                            style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(249,115,22,0.08))', border: '1px solid rgba(251,191,36,0.25)' }}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="relative shrink-0">
+                                <div
+                                  className="rounded-full p-[1.5px]"
+                                  style={{ background: tier.ring, boxShadow: `0 0 8px ${tier.glow}` }}
+                                >
+                                  <AvatarWithFrame
+                                    userId={applicant.id}
+                                    src={applicant.avatarUrl}
+                                    name={applicant.displayName || "U"}
+                                    level={applicant.level || 1}
+                                    size="sm"
+                                    showFrame={true}
+                                  />
+                                </div>
+                                <motion.div
+                                  animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                  className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(251,191,36,0.7)]"
+                                >
+                                  <span className="text-[8px]">🖐️</span>
+                                </motion.div>
+                              </div>
+                              <div className="min-w-0">
+                                <span className="font-semibold text-white text-sm truncate block">{applicant.displayName}</span>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <Badge className={cn(
+                                    "bg-gradient-to-r text-white text-[9px] px-1.5 h-4 border-0",
+                                    tier.grad
+                                  )}>
+                                    {tier.icon && <span className="mr-0.5">{tier.icon}</span>}Lv {applicant.level}
+                                  </Badge>
+                                  <span className="text-[10px] text-amber-300/90">Requesting seat…</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          {isHost && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  // Use user_id for callback, fallback to id
-                                  const userId = applicant.user_id || applicant.id;
-                                  console.log('[ChametStyleViewerPanel] Reject clicked for userId:', userId);
-                                  onRejectApplicant?.(userId);
-                                }}
-                                className="rounded-full border-red-300 text-red-600 hover:bg-red-50"
-                              >
-                                <XCircle className="w-4 h-4 mr-1" />
-                                Reject
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  // Use user_id for callback, fallback to id
-                                  const userId = applicant.user_id || applicant.id;
-                                  console.log('[ChametStyleViewerPanel] Accept clicked for userId:', userId);
-                                  onAcceptApplicant?.(userId);
-                                }}
-                                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full"
-                              >
-                                <Check className="w-4 h-4 mr-1" />
-                                Accept
-                              </Button>
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
+                            {isHost && (
+                              <div className="flex gap-1.5 shrink-0">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const userId = applicant.user_id || applicant.id;
+                                    console.log('[ChametStyleViewerPanel] Reject clicked for userId:', userId);
+                                    onRejectApplicant?.(userId);
+                                  }}
+                                  className="h-8 rounded-full border-rose-400/50 text-rose-300 hover:bg-rose-500/15 bg-transparent text-xs px-2.5"
+                                >
+                                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                                  Reject
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    const userId = applicant.user_id || applicant.id;
+                                    console.log('[ChametStyleViewerPanel] Accept clicked for userId:', userId);
+                                    onAcceptApplicant?.(userId);
+                                  }}
+                                  className="h-8 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-full text-xs px-3 shadow-[0_4px_14px_rgba(16,185,129,0.5)]"
+                                >
+                                  <Check className="w-3.5 h-3.5 mr-1" />
+                                  Accept
+                                </Button>
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   ) : (
                     <EmptyState type="applicant" />
@@ -381,6 +486,15 @@ export const ChametStyleViewerPanel = ({
                 </div>
               )}
             </div>
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/8 hover:bg-white/15 text-white/70 flex items-center justify-center transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </motion.div>
       )}
