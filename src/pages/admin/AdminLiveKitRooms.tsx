@@ -478,35 +478,124 @@ export default function AdminLiveKitRooms() {
                     No participants currently in this room.
                   </p>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {participants.map((p) => (
                       <div
                         key={p.sid}
-                        className="bg-slate-800 rounded p-2 flex flex-wrap items-center gap-2 text-xs"
+                        className="bg-slate-800 rounded p-2 space-y-2 text-xs"
                       >
-                        <span className="font-mono text-white truncate flex-1 min-w-0">
-                          {p.identity || "—"}
-                        </span>
-                        {p.isPublisher && (
-                          <Badge className="bg-emerald-600 text-white text-[10px]">
-                            <Mic className="w-2.5 h-2.5 mr-1" />
-                            publishing
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-white truncate flex-1 min-w-0">
+                            {p.identity || "—"}
+                          </span>
+                          {p.isPublisher && (
+                            <Badge className="bg-emerald-600 text-white text-[10px]">
+                              <Mic className="w-2.5 h-2.5 mr-1" />
+                              publishing
+                            </Badge>
+                          )}
+                          <Badge className="bg-slate-600 text-white text-[10px]">
+                            tracks {p.numTracks}
                           </Badge>
+                          <span className="text-slate-500 text-[10px]">
+                            {p.joinedAt
+                              ? format(new Date(p.joinedAt * 1000), "HH:mm:ss")
+                              : "—"}
+                          </span>
+                          <span className="text-slate-500 text-[10px] font-mono">
+                            {String(p.sid).slice(0, 10)}…
+                          </span>
+                        </div>
+                        {p.tracks && p.tracks.length > 0 && detailRoom && (
+                          <div className="border-t border-slate-700/60 pt-1.5 space-y-1">
+                            {p.tracks.map((t) => {
+                              const isVideo = t.type === 1;
+                              const recordingEgressId =
+                                trackEgress[t.sid];
+                              const busy = !!trackBusy[t.sid];
+                              const sourceLabel =
+                                t.source === 1
+                                  ? "camera"
+                                  : t.source === 2
+                                    ? "microphone"
+                                    : t.source === 3
+                                      ? "screen"
+                                      : t.source === 4
+                                        ? "screen_audio"
+                                        : isVideo
+                                          ? "video"
+                                          : "audio";
+                              return (
+                                <div
+                                  key={t.sid}
+                                  className="flex flex-wrap items-center gap-2"
+                                >
+                                  {isVideo ? (
+                                    <Video className="w-3 h-3 text-sky-400 shrink-0" />
+                                  ) : (
+                                    <Mic className="w-3 h-3 text-emerald-400 shrink-0" />
+                                  )}
+                                  <span className="text-slate-300 text-[10px]">
+                                    {sourceLabel}
+                                  </span>
+                                  {t.muted && (
+                                    <Badge className="bg-slate-600 text-white text-[10px]">
+                                      muted
+                                    </Badge>
+                                  )}
+                                  <span className="text-slate-500 text-[10px] font-mono flex-1 truncate">
+                                    {t.sid.slice(0, 14)}…
+                                  </span>
+                                  {recordingEgressId ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={busy}
+                                      onClick={() => handleStopTrack(t.sid)}
+                                      className="h-6 px-2 border-red-500/60 text-red-300 hover:bg-red-500/20 text-[10px]"
+                                    >
+                                      {busy ? (
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <Square className="w-2.5 h-2.5 mr-1 fill-current" />
+                                          Stop
+                                        </>
+                                      )}
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={busy}
+                                      onClick={() =>
+                                        handleStartTrack(
+                                          detailRoom.name,
+                                          p.identity,
+                                          t,
+                                        )
+                                      }
+                                      className="h-6 px-2 border-slate-600 text-slate-200 hover:bg-slate-700 text-[10px]"
+                                    >
+                                      {busy ? (
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <Circle className="w-2.5 h-2.5 mr-1 fill-red-500 text-red-500" />
+                                          Record
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         )}
-                        <Badge className="bg-slate-600 text-white text-[10px]">
-                          tracks {p.numTracks}
-                        </Badge>
-                        <span className="text-slate-500 text-[10px]">
-                          {p.joinedAt
-                            ? format(new Date(p.joinedAt * 1000), "HH:mm:ss")
-                            : "—"}
-                        </span>
-                        <span className="text-slate-500 text-[10px] font-mono">
-                          {String(p.sid).slice(0, 10)}…
-                        </span>
                       </div>
                     ))}
                   </div>
+
                 )}
               </div>
 
