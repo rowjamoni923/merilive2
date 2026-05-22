@@ -181,6 +181,7 @@ const LiveStream = () => {
   const [showStickerPanel, setShowStickerPanel] = useState(false);
   // Pkg125: Virtual Background dialog (web hosts only)
   const [showVirtualBackground, setShowVirtualBackground] = useState(false);
+  const [showNoiseCancellation, setShowNoiseCancellation] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
