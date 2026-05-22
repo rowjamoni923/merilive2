@@ -2064,6 +2064,28 @@ const PartyRoom = () => {
         />
       )}
 
+      {/* Pkg132: Floating reactions overlay + picker (all participants) */}
+      {room?.id && (
+        <>
+          <FloatingReactionsOverlay scope="party" id={room.id} bottomOffset={140} />
+          <ReactionPickerSheet
+            open={showReactionPicker}
+            onClose={() => setShowReactionPicker(false)}
+            scope="party"
+            id={room.id}
+          />
+          <button
+            type="button"
+            onClick={() => setShowReactionPicker(true)}
+            className="fixed left-4 bottom-28 z-[55] w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg shadow-orange-500/40 flex items-center justify-center active:scale-95 transition"
+            aria-label="Send reaction"
+          >
+            <Smile className="w-6 h-6 text-white" strokeWidth={2} />
+          </button>
+        </>
+      )}
+
+
       {/* Gift Panel */}
       <AnimatePresence>
         {showGiftPanel && (
