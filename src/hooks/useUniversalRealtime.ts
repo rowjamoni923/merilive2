@@ -54,29 +54,18 @@ const INSTANT_TABLES = new Set(['notifications']);
 const HIGH_FREQ_DEBOUNCE_MS = 120;
 const HIGH_FREQUENCY_TABLES = new Set<string>();
 
-// ⚡ COST-OPTIMISED: Only tables that MUST be monitored globally
-// All other tables subscribe on-demand via subscribeToTables()
-// Each postgres_changes subscription generates realtime messages that cost $2.50/million
+// ⚡ COST-OPTIMISED: Only tables in the Supabase Realtime publication may bind.
+// Room/call/live/party/PK/gift/chat fanout is LiveKit/FCM + REST snapshots only.
+// Each postgres_changes subscription generates realtime messages that cost $2.50/million.
 const BASE_MONITORED_TABLES: TableSubscription[] = [
   // Only approved user-facing realtime table. Admin sync uses admin_broadcast elsewhere.
   { table: 'notifications' },
 ];
 
-const FORBIDDEN_ROOM_REALTIME_TABLES = new Set([
-  'profiles',
-  'agencies',
-  'agency_withdrawals',
-  'app_settings',
-  'conversations',
-  'messages',
-  'gift_transactions',
-  'live_streams',
-  'party_rooms',
-  'party_room_participants',
-  'party_room_messages',
-  'private_calls',
-  'stream_chat',
-  'stream_viewers',
+const REALTIME_PUBLICATION_TABLES = new Set([
+  'admin_broadcast',
+  'notifications',
+  'user_active_sessions',
 ]);
 
 const getActiveMonitoredTables = (): TableSubscription[] => {
@@ -85,7 +74,7 @@ const getActiveMonitoredTables = (): TableSubscription[] => {
   subscribers.forEach((subscriber) => {
     subscriber.tables.forEach((table) => {
       if (!table || table === '*') return;
-      if (FORBIDDEN_ROOM_REALTIME_TABLES.has(table)) return;
+      if (!REALTIME_PUBLICATION_TABLES.has(table)) return;
       tables.add(table);
     });
   });
