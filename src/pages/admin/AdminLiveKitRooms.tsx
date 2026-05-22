@@ -82,6 +82,7 @@ export default function AdminLiveKitRooms() {
   // trackSid → egressId for in-flight track recordings (this session only).
   const [trackEgress, setTrackEgress] = useState<Record<string, string>>({});
   const [trackBusy, setTrackBusy] = useState<Record<string, boolean>>({});
+  const [showAgentDispatch, setShowAgentDispatch] = useState(false);
 
   const handleStartTrack = useCallback(
     async (
