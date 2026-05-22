@@ -23,6 +23,7 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import {
   applyVirtualBackground,
+  applyVirtualBackgroundNative,
   isVirtualBackgroundSupported,
   type VirtualBackgroundMode,
 } from "@/lib/livekitVirtualBackground";
