@@ -973,10 +973,10 @@ function CampaignFloatingButton() {
 
                       {/* Auto payment gateways — Recharge Campaign intentionally
                           shows ONLY MeriCash (Diamond auto-credit) alongside
-                          Google Play. All other auto gateways (Wise, ZiniPay,
-                          bKash, Nagad, SSLCommerz, Rocket, AamarPay, Stripe…)
-                          are hidden here even though they exist in the topup
-                          page. Do NOT widen this filter without product sign-off. */}
+                          Google Play. All other auto gateways (Wise, bKash,
+                          Nagad, SSLCommerz, Rocket, AamarPay…) are hidden here
+                          even though they exist in the topup page. Do NOT widen
+                          this filter without product sign-off. */}
                       {gateways.filter((gw) => gw.id === 'mericash').map((gw) => {
                         const isSelected = selectedPaymentTab === gw.id;
                         return (
@@ -1205,7 +1205,7 @@ function CampaignFloatingButton() {
                             </div>
                             <div>
                               <p className="text-sm font-bold text-white">{currentMethod.method_name}</p>
-                              <p className="text-[10px] text-white/50">{currentMethod.additional_info?.gateway_type === 'zinipay' ? 'Merchant' : (currentMethod.account_name || currentMethod.method_name)}</p>
+                              <p className="text-[10px] text-white/50">{currentMethod.account_name || currentMethod.method_name}</p>
                             </div>
                           </div>
                           {currentMethod.additional_info?.gateway_type && (
