@@ -208,6 +208,8 @@ const LiveStream = () => {
   const [showSipDial, setShowSipDial] = useState(false);
   const [showRecording, setShowRecording] = useState(false);
   const [showSimulcast, setShowSimulcast] = useState(false);
+  // Pkg152: Publish-layer (simulcast tier) picker — host only, portrait 9:16 enforced.
+  const [showPublishLayers, setShowPublishLayers] = useState(false);
   const [showAgentDispatch, setShowAgentDispatch] = useState(false);
   const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
