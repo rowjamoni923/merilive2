@@ -1103,8 +1103,10 @@ export function usePrivateCall(userId: string | null) {
       if (isCleanedUp) return;
       const detail = (evt as CustomEvent).detail;
       const data = detail?.data || detail;
-      const callId = typeof data?.callId === 'string' ? data.callId.trim() : '';
+      const rawCallId = data?.callId ?? data?.call_id;
+      const callId = typeof rawCallId === 'string' ? rawCallId.trim() : '';
       if (!callId) return;
+      if (incomingCallIdRef.current === callId) return;
       console.log('[Pkg84] ⚡ Incoming call via FCM-bridge:', callId);
 
       if (endedCallIdsRef.current.has(callId)) {
@@ -1120,13 +1122,19 @@ export function usePrivateCall(userId: string | null) {
       }
 
       callEndedRef.current = false;
+      incomingCallIdRef.current = callId;
+
+      const callerId = data.callerId || data.caller_id;
+      const callerName = data.callerName || data.caller_name || 'User';
+      const callerAvatar = data.callerAvatar || data.caller_avatar || null;
+      const callerLevel = Number(data.callerLevel ?? data.caller_level ?? 1) || 1;
 
       setIncomingCall({
         callId,
-        callerId: data.callerId,
-        callerName: data.callerName || 'User',
-        callerAvatar: data.callerAvatar || null,
-        callerLevel: data.callerLevel || 1,
+        callerId,
+        callerName,
+        callerAvatar,
+        callerLevel,
       });
 
       // ⚡ Pre-warm LiveKit token
@@ -1145,7 +1153,7 @@ export function usePrivateCall(userId: string | null) {
 
       toastRef.current({
         title: "Incoming Call",
-        description: `${data.callerName || 'User'} is calling you`,
+        description: `${callerName} is calling you`,
       });
     };
 
