@@ -125,6 +125,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       streamId: context === 'live' ? streamId : null,
       partyRoomId: context === 'party' ? roomId : null,
       callId: context === 'call' ? callId : null,
+      reelId: context === 'reel' ? reelId : null,
     });
 
     if (!result.success) {
