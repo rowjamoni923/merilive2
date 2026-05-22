@@ -5,6 +5,11 @@
 // Pure REST — zero Supabase Realtime channels, zero polling.
 import { supabase } from '@/integrations/supabase/client';
 import { isLiveKitEnabled } from './livekitSignaling';
+import {
+  type EgressLayout,
+  getEgressLayoutChoice,
+  isEgressLayout,
+} from './livekitEgressLayouts';
 
 export interface EgressStartResult {
   egressId: string;
@@ -15,13 +20,18 @@ export interface EgressStartResult {
 
 export async function startStreamRecording(
   streamId: string,
-  opts?: { layout?: 'speaker' | 'grid' | 'single-speaker'; audioOnly?: boolean },
+  opts?: { layout?: EgressLayout; audioOnly?: boolean },
 ): Promise<EgressStartResult | null> {
   if (!streamId) return null;
   if (!(await isLiveKitEnabled('egress'))) return null;
 
+  // Pkg151: fall back to the user's persisted layout choice if caller didn't
+  // pass one explicitly. Server re-validates against the same whitelist.
+  const layout: EgressLayout =
+    opts?.layout && isEgressLayout(opts.layout) ? opts.layout : getEgressLayoutChoice();
+
   const { data, error } = await supabase.functions.invoke('livekit-egress', {
-    body: { action: 'start', streamId, layout: opts?.layout, audioOnly: opts?.audioOnly },
+    body: { action: 'start', streamId, layout, audioOnly: opts?.audioOnly },
   });
   if (error) {
     console.warn('[Pkg111] startStreamRecording error', error);

@@ -39,6 +39,16 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 
 const httpUrl = LIVEKIT_URL.replace(/^wss:\/\//, "https://").replace(/^ws:\/\//, "http://");
 
+// Pkg151: layout whitelist mirrors livekit-egress-ops (Pkg136).
+const ALLOWED_LAYOUTS = new Set([
+  "speaker", "speaker-dark", "speaker-light",
+  "grid", "grid-dark", "grid-light",
+  "single-speaker", "single-speaker-dark", "single-speaker-light",
+]);
+function sanitizeLayout(v: unknown): string {
+  return typeof v === "string" && ALLOWED_LAYOUTS.has(v) ? v : "speaker";
+}
+
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
     status,
@@ -125,7 +135,7 @@ Deno.serve(async (req) => {
           roomName,
           { file: fileOutput as never },
           {
-            layout: layout ?? "speaker",
+            layout: sanitizeLayout(layout),
             audioOnly: !!audioOnly,
           },
         );
