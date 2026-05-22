@@ -3717,6 +3717,13 @@ const LiveStream = () => {
             onClose={() => setShowSimulcast(false)}
             streamId={id}
           />
+          <RaiseHandQueueSheet
+            open={showRaiseHandQueue}
+            onClose={() => setShowRaiseHandQueue(false)}
+            scope="live"
+            id={id}
+            roomName={id ? `live_${id}` : null}
+          />
 
         </>
       )}
