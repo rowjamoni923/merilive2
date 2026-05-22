@@ -553,6 +553,8 @@ const LiveStream = () => {
     filterSignalingStreamId: id,
     activeSpeakerStreamId: id,
     connectionQualityStreamId: id,
+    // Pkg105: host-only — registers Room for SFU-level viewer block enforcement.
+    trackPermissionStreamId: isHost && isHostVerified ? id : null,
 
     onUserJoined: (uid) => {
       console.log('👤 Viewer joined (LiveKit):', uid);
