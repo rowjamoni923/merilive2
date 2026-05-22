@@ -9,7 +9,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { callGiftService } from '@/utils/giftServiceClient';
-import { broadcastGiftSent } from '@/features/shared/room/roomBroadcast';
+// Pkg88: broadcastGiftSent import removed — Supabase channel was opening per gift
+// with zero live consumers (LiveKit-Purist policy + $1400-rule).
+
 import { publishGiftSent } from '@/lib/livekitGiftSignaling';
 import { getCachedBalance, updateCachedBalance } from '@/hooks/useUserBalance';
 
