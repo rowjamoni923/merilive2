@@ -410,6 +410,26 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }
 
       const isViewer = config.role === 'audience';
+      // Pkg152: host-selected publish tier (portrait 9:16 enforced inside preset).
+      // Viewers ignore this — they only subscribe.
+      const layerCfg = (() => {
+        try {
+          // Lazy require to keep tree-shake friendly; relative path avoids circular.
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const mod = require('@/lib/livekitPublishLayers');
+          return mod.getPublishLayerConfig() as ReturnType<typeof import('@/lib/livekitPublishLayers').getPublishLayerConfig>;
+        } catch {
+          return null;
+        }
+      })();
+      const captureRes = layerCfg
+        ? { width: layerCfg.resolution.width, height: layerCfg.resolution.height, frameRate: layerCfg.resolution.frameRate }
+        : VideoPresets.h1080.resolution;
+      const videoEnc = layerCfg
+        ? { maxBitrate: layerCfg.videoEncoding.maxBitrate, maxFramerate: layerCfg.videoEncoding.maxFramerate }
+        : { maxBitrate: 6_500_000, maxFramerate: 30 };
+      const simulcastLayers = layerCfg?.simulcastLayers ?? [];
+      const useSimulcast = simulcastLayers.length > 0;
       const room = new Room({
         // CRYSTAL CLEAR: Disable adaptive stream to prevent auto quality reduction
         adaptiveStream: false,
@@ -422,16 +442,14 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           },
         },
         videoCaptureDefaults: {
-          resolution: VideoPresets.h1080.resolution,
+          resolution: captureRes,
           facingMode: 'user',
         },
         publishDefaults: {
-          videoEncoding: {
-            maxBitrate: 6_500_000,
-            maxFramerate: 30,
-          },
+          videoEncoding: videoEnc,
           degradationPreference: 'maintain-resolution',
-          simulcast: false,
+          simulcast: useSimulcast,
+          ...(useSimulcast ? { videoSimulcastLayers: simulcastLayers } : {}),
         },
         ...(isViewer ? {
           autoSubscribe: true,
