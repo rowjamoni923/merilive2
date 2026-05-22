@@ -138,32 +138,53 @@ export const RoomEntranceNotification = ({
     return <VIPEntranceNotification user={currentUser} />;
   }
 
-  // Standard entrance notification
+  // Standard entrance notification — premium glass pill (Pkg173)
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ x: -200, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: 200, opacity: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        initial={{ x: -220, opacity: 0, scale: 0.94 }}
+        animate={{ x: 0, opacity: 1, scale: 1 }}
+        exit={{ x: 220, opacity: 0, scale: 0.94 }}
+        transition={{ type: 'spring', damping: 24, stiffness: 280 }}
         className={`
-          flex items-center gap-2 px-3 py-2 rounded-full 
-          bg-gradient-to-r from-purple-600/80 via-fuchsia-600/80 to-pink-600/80 
-          backdrop-blur-md border border-white/20 shadow-lg
+          relative overflow-hidden flex items-center gap-2 pl-2 pr-3.5 py-1.5 rounded-full
+          border border-white/15
           ${position === 'center' ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50' : ''}
         `}
+        style={{
+          background:
+            'linear-gradient(135deg, rgba(168,85,247,0.78) 0%, rgba(217,70,239,0.78) 50%, rgba(236,72,153,0.78) 100%)',
+          backdropFilter: 'blur(14px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+          boxShadow:
+            '0 10px 28px -10px rgba(236,72,153,0.55), 0 4px 14px -6px rgba(168,85,247,0.5), inset 0 1px 0 rgba(255,255,255,0.22)',
+        }}
       >
-        <InlineLevelBadge level={currentUser.level} />
-        <motion.span 
-          className="text-white font-bold text-sm truncate max-w-[120px]"
-          animate={{ 
-            textShadow: ["0 0 5px rgba(255,255,255,0)", "0 0 10px rgba(255,255,255,0.5)", "0 0 5px rgba(255,255,255,0)"]
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-full"
+          style={{
+            background:
+              'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)',
+            animation: 'giftSendShine 3s ease-in-out infinite',
+            mixBlendMode: 'overlay',
           }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+        />
+        <InlineLevelBadge level={currentUser.level} />
+        <motion.span
+          className="relative text-white font-bold text-sm truncate max-w-[140px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+          animate={{
+            textShadow: [
+              '0 0 6px rgba(255,255,255,0)',
+              '0 0 12px rgba(255,255,255,0.6)',
+              '0 0 6px rgba(255,255,255,0)',
+            ],
+          }}
+          transition={{ duration: 1.6, repeat: Infinity }}
         >
           {currentUser.displayName}
         </motion.span>
-        <span className="text-white/80 text-sm">enter the live room</span>
+        <span className="relative text-white/85 text-xs font-medium">entered the room</span>
       </motion.div>
     </AnimatePresence>
   );
