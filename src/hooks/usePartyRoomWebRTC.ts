@@ -96,6 +96,7 @@ export function usePartyRoomWebRTC(
     try { unregisterConnectionQualityRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterMetadataRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterRoomMetadataRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterStreamRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
