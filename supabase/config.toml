@@ -45,6 +45,10 @@ verify_jwt = true
 [functions.livekit-sip-inbound]
 verify_jwt = true
 
+[functions.livekit-agent]
+verify_jwt = true
+
+
 
 
 

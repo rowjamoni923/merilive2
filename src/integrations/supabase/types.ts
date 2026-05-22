@@ -1767,6 +1767,57 @@ export type Database = {
           },
         ]
       }
+      agent_dispatches: {
+        Row: {
+          agent_name: string
+          created_at: string
+          dispatch_id: string | null
+          ended_at: string | null
+          error: string | null
+          id: string
+          initiator_id: string | null
+          initiator_role: string
+          metadata: Json | null
+          room_name: string
+          scope: string
+          scope_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_name: string
+          created_at?: string
+          dispatch_id?: string | null
+          ended_at?: string | null
+          error?: string | null
+          id?: string
+          initiator_id?: string | null
+          initiator_role?: string
+          metadata?: Json | null
+          room_name: string
+          scope: string
+          scope_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_name?: string
+          created_at?: string
+          dispatch_id?: string | null
+          ended_at?: string | null
+          error?: string | null
+          id?: string
+          initiator_id?: string | null
+          initiator_role?: string
+          metadata?: Json | null
+          room_name?: string
+          scope?: string
+          scope_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       allowed_external_links: {
         Row: {
           category: string | null
