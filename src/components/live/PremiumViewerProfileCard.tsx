@@ -17,7 +17,8 @@ import {
   Zap,
   Flame,
   Check,
-  UserCheck
+  UserCheck,
+  Shield
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,8 @@ interface PremiumViewerProfileCardProps {
   onBlock?: (viewerId: string) => void;
   onReport?: (viewerId: string) => void;
   onViewProfile?: (viewerId: string) => void;
+  /** Pkg130 — host-only: open LiveKit moderation sheet for this viewer. */
+  onModerate?: (viewerId: string) => void;
 }
 
 // Floating particles for background effect
@@ -131,6 +134,7 @@ export const PremiumViewerProfileCard = ({
   onBlock,
   onReport,
   onViewProfile,
+  onModerate,
 }: PremiumViewerProfileCardProps) => {
   const [isFollowing, setIsFollowing] = useState(viewer?.isFollowing || false);
   const [showMoreActions, setShowMoreActions] = useState(false);
@@ -601,6 +605,21 @@ export const PremiumViewerProfileCard = ({
                             </Button>
                           </motion.div>
                         </div>
+                        {onModerate && (
+                          <motion.div className="pt-2" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                onModerate(viewer.id);
+                                onClose();
+                              }}
+                              className="w-full rounded-xl h-10 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500"
+                            >
+                              <Shield className="w-4 h-4 mr-2" />
+                              Moderate (Promote / Demote / Mute / Kick)
+                            </Button>
+                          </motion.div>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>

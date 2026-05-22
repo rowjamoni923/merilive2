@@ -93,6 +93,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import Premium3DFrame from "@/components/common/Premium3DFrame";
 import BeansIcon from "@/components/common/BeansIcon";
 import { PremiumViewerProfileCard, ViewerProfile } from "@/components/live/PremiumViewerProfileCard";
+import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 import { useSound } from "@/hooks/useSound";
 import { useLiveStreamLifecycle } from "@/hooks/useLiveStreamLifecycle";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
@@ -360,6 +361,8 @@ const LiveStream = () => {
   // Profile card states
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<ViewerProfile | null>(null);
+  // Pkg130 — host moderation sheet
+  const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Live stream lifecycle - auto end stream when host leaves app
   const handleStreamEndCallback = async () => {
@@ -3605,7 +3608,18 @@ const LiveStream = () => {
           setShowProfileCard(false);
           navigate(`/profile/${viewerId}`);
         }}
+        onModerate={isHost && isHostVerified
+          ? (viewerId) => setModerateTarget({ id: viewerId, name: selectedProfile?.name || "" })
+          : undefined}
       />
+      <HostModerationSheet
+        open={!!moderateTarget}
+        onClose={() => setModerateTarget(null)}
+        roomName={id ? `live_${id}` : null}
+        identity={moderateTarget?.id}
+        displayName={moderateTarget?.name}
+      />
+
       <NumberSharingWarningDialog
         open={numberWarning.warningState.open}
         onClose={numberWarning.closeWarning}

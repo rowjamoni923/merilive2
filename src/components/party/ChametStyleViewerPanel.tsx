@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, UserPlus, UserX, Trash2, Check, XCircle } from "lucide-react";
+import { X, UserPlus, UserX, Trash2, Check, XCircle, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,6 +36,7 @@ interface ChametStyleViewerPanelProps {
   onRejectApplicant?: (userId: string) => void;
   onInviteViewer?: (userId: string) => void;
   onKickViewer?: (userId: string) => void;
+  onModerateViewer?: (userId: string, displayName: string) => void;
   isHost: boolean;
   roomId?: string; // CRITICAL: Add roomId for real-time sync
 }
@@ -49,6 +50,7 @@ export const ChametStyleViewerPanel = ({
   onRejectApplicant,
   onInviteViewer,
   onKickViewer,
+  onModerateViewer,
   isHost,
   roomId
 }: ChametStyleViewerPanelProps) => {
@@ -277,6 +279,15 @@ export const ChametStyleViewerPanel = ({
                               >
                                 <UserX className="w-4 h-4" />
                               </Button>
+                              {onModerateViewer && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => onModerateViewer(viewer.id, viewer.displayName)}
+                                  className="bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-full px-3"
+                                >
+                                  <Shield className="w-4 h-4" />
+                                </Button>
+                              )}
                             </div>
                           )}
                         </motion.div>
