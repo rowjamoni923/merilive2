@@ -310,7 +310,6 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           WebkitUserSelect: 'none',
           WebkitTouchCallout: 'none',
           WebkitAppearance: 'none',
-          WebkitAppearance: 'none',
           willChange: 'transform',
           backfaceVisibility: 'hidden',
           backgroundColor: 'transparent',
