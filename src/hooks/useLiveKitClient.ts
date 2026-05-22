@@ -464,6 +464,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
 
         if (track.kind === Track.Kind.Video) {
+          // Pkg147: viewer audio-only data-saver — drop video sub immediately.
+          if (isAudioOnlyEnabled()) {
+            try { publication.setSubscribed(false); } catch { /* ignore */ }
+            return;
+          }
           try {
             publication.setVideoQuality?.(preferredVideoQualityRef.current);
           } catch {
