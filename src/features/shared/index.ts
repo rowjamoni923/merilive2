@@ -66,7 +66,7 @@ export { default as PresenceProvider } from '@/components/common/PresenceProvide
 export { useSound } from '@/hooks/useSound';
 export { usePresence } from '@/hooks/usePresence';
 export { useNetworkStatus } from '@/hooks/useNetworkStatus';
-export { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+// useRealtimeSubscription removed in Pkg95 (dead code, zero callers, latent $1400-rule footguns).
 export { useUniversalRealtime } from '@/hooks/useUniversalRealtime';
 export { useFeatureLevelCheck } from '@/hooks/useFeatureLevelCheck';
 export { useUserPrivileges } from '@/hooks/useUserPrivileges';

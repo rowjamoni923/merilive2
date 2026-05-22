@@ -1545,11 +1545,6 @@
       "file": "src/pages/SyncTest.tsx",
       "line": 52,
       "channel": "sync-test-"
-    },
-    {
-      "file": "src/pages/admin/AdminSupportTickets.tsx",
-      "line": 982,
-      "channel": "support_realtime"
     }
   ]
 }

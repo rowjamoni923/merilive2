@@ -979,6 +979,9 @@ const AdminSupportTickets = () => {
     // Realtime via BROADCAST channel (RLS-free) — postgres_changes does not work
     // for the admin client because it auths with anon JWT (no x-admin-token in WS handshake).
     const channel = supabase
+      // guard-ok: intentional shared admin broadcast channel — server publishes once,
+      // all admin tabs receive; per-tab suffix would force N server publishes. Broadcast-only
+      // (not postgres_changes), tables not in publication, $1400-rule safe.
       .channel(`support_realtime`, { config: { broadcast: { self: false } } })
       .on('broadcast', { event: 'support_event' }, ({ payload }) => {
         const op = payload?.op as string | undefined;
