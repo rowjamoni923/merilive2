@@ -47,20 +47,37 @@ let authStateUnsubscribe: (() => void) | null = null;
 // Debounce time for batch updates (ms)
 const DEBOUNCE_MS = 80;
 
-// Messages and gift_transactions: ZERO debounce for instant delivery
+// Notifications: ZERO debounce for instant delivery.
+// Room/call/live/gift/chat fanout is LiveKit/FCM + REST snapshots only.
 // Other high-frequency tables get a slight debounce to prevent render thrash
-const INSTANT_TABLES = new Set(['messages', 'gift_transactions', 'notifications']);
+const INSTANT_TABLES = new Set(['notifications']);
 const HIGH_FREQ_DEBOUNCE_MS = 120;
-const HIGH_FREQUENCY_TABLES = new Set(['stream_viewers', 'stream_chat']);
+const HIGH_FREQUENCY_TABLES = new Set<string>();
 
 // ⚡ COST-OPTIMISED: Only tables that MUST be monitored globally
 // All other tables subscribe on-demand via subscribeToTables()
 // Each postgres_changes subscription generates realtime messages that cost $2.50/million
 const BASE_MONITORED_TABLES: TableSubscription[] = [
-  // Only truly global needs — chat & notifications
-  { table: 'messages' },
+  // Only approved user-facing realtime table. Admin sync uses admin_broadcast elsewhere.
   { table: 'notifications' },
 ];
+
+const FORBIDDEN_ROOM_REALTIME_TABLES = new Set([
+  'profiles',
+  'agencies',
+  'agency_withdrawals',
+  'app_settings',
+  'conversations',
+  'messages',
+  'gift_transactions',
+  'live_streams',
+  'party_rooms',
+  'party_room_participants',
+  'party_room_messages',
+  'private_calls',
+  'stream_chat',
+  'stream_viewers',
+]);
 
 const getActiveMonitoredTables = (): TableSubscription[] => {
   const tables = new Set<string>(BASE_MONITORED_TABLES.map((t) => t.table));
@@ -68,6 +85,7 @@ const getActiveMonitoredTables = (): TableSubscription[] => {
   subscribers.forEach((subscriber) => {
     subscriber.tables.forEach((table) => {
       if (!table || table === '*') return;
+      if (FORBIDDEN_ROOM_REALTIME_TABLES.has(table)) return;
       tables.add(table);
     });
   });
@@ -484,7 +502,7 @@ export const useUserRealtime = (
 
     const unsubscribe = subscribeToTables(
       subscriberId,
-      ['profiles', 'notifications', 'gift_transactions'], // coin_transfers NOT in publication
+      ['notifications'],
       (table, event, payload) => {
         // Profile updates
         if (table === 'profiles' && payload?.id === userId) {
@@ -499,20 +517,6 @@ export const useUserRealtime = (
           if (onNotification) onNotification(payload);
         }
 
-        // Gift received - refetch balance
-        if (table === 'gift_transactions' && payload?.receiver_id === userId) {
-          // Trigger balance refetch
-          supabase
-            .from('profiles')
-            .select('coins')
-            .eq('id', userId)
-            .single()
-            .then(({ data }) => {
-              if (data && onBalanceUpdate) {
-                onBalanceUpdate(data.coins || 0);
-              }
-            });
-        }
       }
     );
 
@@ -530,26 +534,14 @@ export const useAgencyRealtimeUniversal = (
   useEffect(() => {
     if (!agencyId) return;
 
-    const subscriberId = `agency-${agencyId}`;
+    const handleAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent).detail?.table;
+      if (table === 'agencies' || table === 'agency_withdrawals') onUpdate();
+    };
 
-    const unsubscribe = subscribeToTables(
-      subscriberId,
-      ['agencies', 'agency_withdrawals'], // agency_hosts & agency_earnings_transfers NOT in publication
-      (table, event, payload) => {
-        // Check if update is for this agency
-        const isRelevant = 
-          (table === 'agencies' && payload?.id === agencyId) ||
-          (table !== 'agencies' && payload?.agency_id === agencyId);
-
-        if (isRelevant) {
-          console.log(`[AgencyRealtime] ${table} updated for agency ${agencyId}`);
-          onUpdate();
-        }
-      }
-    );
-
-    return unsubscribe;
-  }, [agencyId]);
+    window.addEventListener('admin-table-update', handleAdminUpdate);
+    return () => window.removeEventListener('admin-table-update', handleAdminUpdate);
+  }, [agencyId, onUpdate]);
 };
 
 /**
@@ -560,22 +552,9 @@ export const useLiveStreamRealtime = (
   onUpdate: (stream: any) => void
 ) => {
   useEffect(() => {
-    if (!streamId) return;
-
-    const subscriberId = `stream-${streamId}`;
-
-    const unsubscribe = subscribeToTables(
-      subscriberId,
-      ['live_streams', 'gift_transactions'],
-      (table, event, payload) => {
-        if (table === 'live_streams' && payload?.id === streamId) {
-          onUpdate(payload);
-        }
-      }
-    );
-
-    return unsubscribe;
-  }, [streamId]);
+    // Live stream realtime state is LiveKit/FCM + REST snapshots only.
+    return;
+  }, [streamId, onUpdate]);
 };
 
 /**
@@ -586,27 +565,9 @@ export const usePartyRoomRealtime = (
   onUpdate: () => void
 ) => {
   useEffect(() => {
-    if (!roomId) return;
-
-    const subscriberId = `party-${roomId}`;
-
-    const unsubscribe = subscribeToTables(
-      subscriberId,
-      ['party_rooms', 'party_room_participants', 'gift_transactions'],
-      (table, event, payload) => {
-        const isRelevant = 
-          (table === 'party_rooms' && payload?.id === roomId) ||
-          (table === 'party_room_participants' && payload?.room_id === roomId) ||
-          (table === 'gift_transactions' && payload?.room_id === roomId);
-
-        if (isRelevant) {
-          onUpdate();
-        }
-      }
-    );
-
-    return unsubscribe;
-  }, [roomId]);
+    // Party room realtime state is LiveKit/FCM + REST snapshots only.
+    return;
+  }, [roomId, onUpdate]);
 };
 
 // ============= Lazy Initialization =============

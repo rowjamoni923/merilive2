@@ -52,14 +52,4 @@ export {
   useRoomParticipants 
 } from './useRoomParticipants';
 
-// Instant Broadcast System (sub-100ms delivery)
-export {
-  broadcastViewerJoin,
-  broadcastGiftSent,
-  subscribeToRoomBroadcasts,
-} from './roomBroadcast';
-
-export type {
-  BroadcastJoinPayload,
-  BroadcastGiftPayload,
-} from './roomBroadcast';
+// Supabase room broadcasts are retired. Room fanout uses LiveKit DataPackets.

@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { adminSupabase } from '@/integrations/supabase/adminClient';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 import { parseSettingValue } from '@/utils/adminSettingsStorage';
 
 /**
@@ -183,24 +182,6 @@ const guardedRefresh = async (scope: string, refresh: () => Promise<void>) => {
   }
 };
 
-const subscribeTableChange = (
-  channel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel>,
-  table: string,
-  refresh?: () => Promise<void> | void
-) => {
-  return channel.on(
-    'postgres_changes',
-    { event: '*', schema: 'public', table },
-    async (payload) => {
-      console.log(`[AdminRealtime] ${table} updated:`, payload.eventType);
-      if (refresh) {
-        await refresh();
-      }
-      notifySubscribers();
-    }
-  );
-};
-
 const initializeRealtimeSubscription = () => {
   const adminMode = isAdminRoute();
   const nextMode = adminMode ? 'admin' : 'public';
@@ -251,15 +232,6 @@ const initializeRealtimeSubscription = () => {
     return;
   }
 
-  // ⚡ COST-OPTIMISED: Only subscribe to tables in supabase_realtime publication.
-  // banners, gifts, coin_packages, currency_rates, branding_settings,
-  // game_settings, topup_payment_methods are NOT in publication — subscribing
-  // to them creates dead WebSocket bindings that generate realtime messages
-  // costing $2.50/million. Poll these instead.
-  const PUBLICATION_TABLES_SET = new Set([
-    'app_settings', // Only this settings table is in supabase_realtime publication
-  ]);
-
   // Initial fetch for ALL settings (both realtime and polled)
   const fetchAllSettings = async () => {
     await initializeData();
@@ -293,31 +265,9 @@ const initializeRealtimeSubscription = () => {
     window.removeEventListener('admin-table-update', handleAdminMutationEvent);
   };
 
-  // Only subscribe to app_settings (the only publication table)
-  const createPublicChannel = () => {
-    if (realtimeChannel && typeof (realtimeChannel as any).unsubscribe === 'function') {
-        try { getSettingsClient().removeChannel(realtimeChannel as RealtimeChannel); } catch {}
-    }
-
-    const client = getSettingsClient();
-    let channel = client.channel(`public-settings-rt-${crypto.randomUUID()}`);
-    channel = subscribeTableChange(channel, 'app_settings', refreshAppSettings);
-
-    realtimeChannel = channel.subscribe((status) => {
-      realtimeMode = 'public';
-      console.log('[AdminRealtime] Public settings subscription:', status);
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        console.warn('[AdminRealtime] ⚠️ Realtime unavailable; cached REST data remains active.');
-        try { getSettingsClient().removeChannel(channel as RealtimeChannel); } catch {}
-        if (realtimeChannel === channel) {
-          realtimeChannel = null;
-          realtimeMode = null;
-        }
-      }
-    });
-  };
-
-  createPublicChannel();
+  realtimeChannel = {} as any;
+  realtimeMode = 'public';
+  console.log('[AdminRealtime] Public mode: admin-broadcast event sync + REST snapshot only');
 };
 
 // Refresh functions

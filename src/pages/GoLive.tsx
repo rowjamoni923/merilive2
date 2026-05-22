@@ -318,19 +318,21 @@ const GoLive = () => {
 
     checkBanStatus();
 
-    // Listen for live_bans changes in real-time
-    const channel = supabase
-      .channel('golive-ban-check')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'live_bans',
-      }, () => {
-        checkBanStatus();
-      })
-      .subscribe();
+    const syncBanStatus = (event?: Event) => {
+      const table = (event as CustomEvent | undefined)?.detail?.table;
+      if (!table || table === 'live_bans') void checkBanStatus();
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void checkBanStatus();
+    };
 
-    return () => { supabase.removeChannel(channel); };
+    window.addEventListener('admin-table-update', syncBanStatus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('admin-table-update', syncBanStatus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [userProfile?.id]);
 
   // Live countdown timer - updates every second
@@ -361,7 +363,7 @@ const GoLive = () => {
     };
 
     updateCountdown();
-    banIntervalRef.current = setInterval(updateCountdown, 1000);
+    banIntervalRef.current = setInterval(updateCountdown, 1000); // guard-ok: countdown timer only, no fetch/realtime/database work
 
     return () => {
       if (banIntervalRef.current) clearInterval(banIntervalRef.current);
@@ -483,30 +485,20 @@ const GoLive = () => {
       void refreshUserProfile(currentUserId);
     };
 
-    const channel = supabase
-      .channel(`go-live-verification-${currentUserId}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `id=eq.${currentUserId}`,
-      }, syncVerificationState)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'face_verification_submissions',
-        filter: `user_id=eq.${currentUserId}`,
-      }, syncVerificationState)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'host_applications',
-        filter: `user_id=eq.${currentUserId}`,
-      }, syncVerificationState)
-      .subscribe();
+    const handleAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent).detail?.table;
+      if (table === 'profiles' || table === 'face_verification_submissions' || table === 'host_applications') syncVerificationState();
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') syncVerificationState();
+    };
+
+    window.addEventListener('admin-table-update', handleAdminUpdate);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', handleAdminUpdate);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [currentUserId, refreshUserProfile]);
 
@@ -1454,7 +1446,7 @@ const GoLive = () => {
                       if (userProfile?.face_verification_image) {
                         try {
                           await supabase
-                            .from('profiles')
+                            .from('profiles') // guard-ok: owner-only self avatar update, not a cross-user read
                             .update({ avatar_url: userProfile.face_verification_image })
                             .eq('id', userProfile.id);
                           
