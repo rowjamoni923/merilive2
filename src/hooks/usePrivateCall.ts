@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { updateCachedBalance } from '@/hooks/useUserBalance';
-import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
@@ -596,7 +595,8 @@ export function usePrivateCall(userId: string | null) {
         }
       }, timeoutSeconds * 1000);
 
-      // FALLBACK POLLING: Prevent stuck calling screen if realtime signal is missed
+      // Caller fallback polling: LiveKit call_accepted is primary; bounded 5s REST check
+      // prevents a stuck calling screen if the DataPacket is missed. No Supabase Realtime.
       outgoingStatusPollRef.current = setInterval(async () => {
         if (callEndedRef.current || currentCallIdRef.current !== callIdForTimeout) {
           if (outgoingStatusPollRef.current) {
@@ -662,7 +662,7 @@ export function usePrivateCall(userId: string | null) {
         } catch (err) {
           console.warn('[Call] Poll fallback error:', err);
         }
-      }, 1000);
+      }, 5000);
 
       return data;
     } catch (error: any) {
