@@ -480,8 +480,9 @@ export function useLiveKitCall(
         // Get token and connect
         console.log('[LiveKitCall] Fetching token...');
         warmLiveKitToken(roomName, 'call').catch(() => {});
-        const { token, url } = await getLiveKitToken(roomName, 'call');
-        
+        const tokenResp = await getLiveKitToken(roomName, 'call');
+        const { token, url, ttl } = tokenResp;
+
         if (deadRef.current) return;
 
         console.log('[LiveKitCall] Connecting to room...');
@@ -491,6 +492,20 @@ export function useLiveKitCall(
         })();
         await connectPromise;
         console.log('[LiveKitCall] ✅ Connected to room');
+
+        // Pkg189: silent token refresh before TTL expiry.
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+        }
+        tokenRefreshDetachRef.current = attachLiveKitTokenRefresh(
+          room,
+          async () => {
+            const fresh = await getLiveKitToken(roomName, 'call');
+            return { token: fresh.token, url: fresh.url, ttl: fresh.ttl };
+          },
+          ttl ?? 60 * 60 * 6,
+          { label: 'lk-call' }
+        );
 
         // Pkg73: bind this Room to the callId so call-end packets can be
         // exchanged between caller and host directly (Supabase broadcast
