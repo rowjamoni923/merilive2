@@ -1071,6 +1071,7 @@ const App = () => {
                 {/* Users MUST sign up first before accessing these */}
                 {/* ============================================= */}
                 <Route path="/" element={<ProtectedRoute session={session}><Index /></ProtectedRoute>} />
+                <Route path="/index" element={<ProtectedRoute session={session}><Index /></ProtectedRoute>} />
                 <Route path="/discover" element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
                 <Route path="/live" element={<ProtectedRoute session={session}><Live /></ProtectedRoute>} />
                 <Route path="/live/:id" element={<ProtectedRoute session={session}><RequireNativeAndroidGate feature="live"><LiveStreamKeyWrapper /></RequireNativeAndroidGate></ProtectedRoute>} />
