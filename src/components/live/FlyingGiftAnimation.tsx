@@ -275,6 +275,9 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   // Full-screen gift animation — every gift occupies the complete app viewport.
   const renderFullScreen = () => {
     if (!showFullScreen || animationEnded) return null;
+    // SVGA gifts wait their turn — only render when this instance owns the slot.
+    if (isSVGA && !hasFullscreenSlot) return null;
+
 
     if (displayAnimationUrl) {
       return (
