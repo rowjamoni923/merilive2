@@ -288,26 +288,6 @@ export const InCallChat = memo(({
               <Send className="w-4 h-4" />
             </button>
           </div>
-
-          {/* Input */}
-          <div className="flex items-center gap-2 px-3 py-2 border-t border-white/10">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type a message..."
-              className="flex-1 bg-white/10 text-white text-xs px-3 py-2 rounded-full outline-none placeholder:text-white/30 border border-white/10 focus:border-purple-500/50"
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!input.trim()}
-              className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white disabled:opacity-30 active:scale-95 transition-transform"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
         </motion.div>
       )}
     </AnimatePresence>
