@@ -96,11 +96,8 @@ export async function buildE2EEOptions(
     // SDK accepts string | ArrayBuffer — pass the underlying buffer slice.
     await keyProvider.setKey(keyBytes.buffer.slice(keyBytes.byteOffset, keyBytes.byteOffset + keyBytes.byteLength) as ArrayBuffer);
 
-    // Vite bundles this as a module worker at build time.
-    const worker = new Worker(
-      new URL('livekit-client/dist/livekit-client.e2ee.worker.mjs', import.meta.url),
-      { type: 'module' },
-    );
+    // Worker file is copied to public/ at build time (classic script worker).
+    const worker = new Worker('/livekit-client.e2ee.worker.js');
 
     return {
       e2eeOption: { keyProvider, worker },
