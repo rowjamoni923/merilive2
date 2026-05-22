@@ -97,6 +97,7 @@ import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { SelectiveSubscriptionButton } from "@/components/livekit/SelectiveSubscriptionButton";
 
 interface PartyRoom {
   id: string;
@@ -2275,6 +2276,11 @@ const PartyRoom = () => {
         onEnabledChange={deepAR.handleBeautyEnabledChange}
       />
       <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => deepAR.handleStickerChange(null)} />
+
+      {/* Pkg150: Selective video subscription picker — viewers in large rooms can cap concurrent video subs */}
+      {!isHost && room?.room_type === 'video' && (
+        <SelectiveSubscriptionButton label="Video budget" />
+      )}
     </>
   );
 };
