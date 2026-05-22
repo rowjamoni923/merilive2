@@ -8,6 +8,11 @@
 // Pure REST — zero Supabase Realtime channels, zero polling.
 import { supabase } from '@/integrations/supabase/client';
 import { isLiveKitEnabled } from './livekitSignaling';
+import {
+  type EgressLayout,
+  getEgressLayoutChoice,
+  isEgressLayout,
+} from './livekitEgressLayouts';
 
 export interface HlsEgressStartResult {
   egressId: string;
@@ -19,7 +24,7 @@ export interface HlsEgressStartResult {
 export async function startStreamHlsRecording(
   streamId: string,
   opts?: {
-    layout?: 'speaker' | 'grid' | 'single-speaker';
+    layout?: EgressLayout;
     audioOnly?: boolean;
     /** seconds per .ts segment (2-10, default 4) */
     segmentDuration?: number;
@@ -28,11 +33,15 @@ export async function startStreamHlsRecording(
   if (!streamId) return null;
   if (!(await isLiveKitEnabled('hls_egress'))) return null;
 
+  // Pkg151: shared persisted layout choice (same key as MP4 path).
+  const layout: EgressLayout =
+    opts?.layout && isEgressLayout(opts.layout) ? opts.layout : getEgressLayoutChoice();
+
   const { data, error } = await supabase.functions.invoke('livekit-hls-egress', {
     body: {
       action: 'start',
       streamId,
-      layout: opts?.layout,
+      layout,
       audioOnly: opts?.audioOnly,
       segmentDuration: opts?.segmentDuration,
     },
