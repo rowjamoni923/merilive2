@@ -7314,6 +7314,48 @@ export type Database = {
         }
         Relationships: []
       }
+      livekit_moderation_log: {
+        Row: {
+          action: string
+          admin_token_role: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          participant_identity: string | null
+          reason: string | null
+          request_payload: Json | null
+          room_name: string
+          success: boolean
+          track_sid: string | null
+        }
+        Insert: {
+          action: string
+          admin_token_role?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          participant_identity?: string | null
+          reason?: string | null
+          request_payload?: Json | null
+          room_name: string
+          success?: boolean
+          track_sid?: string | null
+        }
+        Update: {
+          action?: string
+          admin_token_role?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          participant_identity?: string | null
+          reason?: string | null
+          request_payload?: Json | null
+          room_name?: string
+          success?: boolean
+          track_sid?: string | null
+        }
+        Relationships: []
+      }
       livekit_room_events: {
         Row: {
           created_at: string
