@@ -187,6 +187,39 @@ export const ChametSettingsPanel = ({
   onStickerClick,
   onBeautyClick,
 }: ChametSettingsPanelProps) => {
+  const [autoRecord, setAutoRecord] = useState(false);
+  const [autoRecordLoading, setAutoRecordLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    void getAutoRecordPreference().then((r) => {
+      if (!cancelled && r.success) setAutoRecord(!!r.enabled);
+    });
+    return () => { cancelled = true; };
+  }, [isOpen]);
+
+  const handleAutoRecordToggle = async (next: boolean) => {
+    if (autoRecordLoading) return;
+    setAutoRecordLoading(true);
+    const prev = autoRecord;
+    setAutoRecord(next); // optimistic
+    const r = await setAutoRecordPreference(next);
+    if (!r.success) {
+      setAutoRecord(prev);
+      if (r.error === 'auto_record_disabled') {
+        sonner.error('Auto-record is currently disabled by admin');
+      } else if (r.error === 'not_authenticated') {
+        sonner.error('Please sign in again');
+      } else {
+        sonner.error('Could not save preference');
+      }
+    } else {
+      sonner.success(next ? 'Auto-record enabled for your lives' : 'Auto-record disabled');
+    }
+    setAutoRecordLoading(false);
+  };
+
   if (!isOpen) return null;
 
   return (
