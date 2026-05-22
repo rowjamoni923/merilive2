@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Smile, Send, X } from "lucide-react";
+import { Smile, Send, X, Crown, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { getLevelGradient, ensureValidLevel, formatLevel } from "@/features/shared/level";
 
 interface ChatMessage {
@@ -14,6 +13,8 @@ interface ChatMessage {
   message: string;
   type?: 'text' | 'system' | 'gift' | 'entrance' | 'join';
   timestamp: Date;
+  isHost?: boolean;
+  isVip?: boolean;
 }
 
 interface ChametStyleChatPanelProps {
@@ -22,42 +23,61 @@ interface ChametStyleChatPanelProps {
   messages: ChatMessage[];
   onSendMessage: (message: string) => void;
   currentUserId?: string;
+  hostId?: string;
 }
 
-// Quick emoji row matching Chamet
-const quickEmojis = ['😊', '🥰', '😍', '😘', '🤩', '🥳', '😭'];
+// Chamet-style quick emoji row
+const quickEmojis = ['😊', '🥰', '😍', '😘', '🤩', '🥳', '😭', '🔥', '❤️', '👏'];
+
+/* Premium easing curves (Chamet/Bigo-parity) */
+const SPRING_FAST = { type: "spring" as const, damping: 28, stiffness: 380, mass: 0.6 };
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+
+/* Name color tiers — Chamet uses gold for host, purple for VIP, level-gradient for rest */
+const getNameColor = (msg: ChatMessage, isHost: boolean) => {
+  if (isHost) return "text-amber-300";
+  if (msg.isVip) return "text-fuchsia-300";
+  if (msg.userLevel >= 30) return "text-cyan-300";
+  if (msg.userLevel >= 15) return "text-pink-300";
+  return "text-purple-200";
+};
 
 export const ChametStyleChatPanel = ({
   isOpen,
   onClose,
   messages,
   onSendMessage,
-  currentUserId
+  currentUserId,
+  hostId,
 }: ChametStyleChatPanelProps) => {
   const [inputValue, setInputValue] = useState("");
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Smooth bottom-anchor scroll on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!isOpen) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    });
+  }, [messages, isOpen]);
 
   // Focus input when panel opens
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 300);
+      const t = setTimeout(() => inputRef.current?.focus(), 280);
+      return () => clearTimeout(t);
     }
   }, [isOpen]);
 
   const handleSend = () => {
-    if (inputValue.trim()) {
-      onSendMessage(inputValue.trim());
-      setInputValue("");
-      // Auto close panel after sending
-      onClose();
-    }
+    const v = inputValue.trim();
+    if (!v) return;
+    onSendMessage(v);
+    setInputValue("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -76,125 +96,245 @@ export const ChametStyleChatPanel = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed inset-x-0 bottom-0 z-50 flex flex-col"
-          style={{ height: "60vh" }}
+          initial={{ y: "100%", opacity: 0.6 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: "100%", opacity: 0.4 }}
+          transition={SPRING_FAST}
+          className="fixed inset-x-0 bottom-0 z-50 flex flex-col will-change-transform"
+          style={{
+            height: "58vh",
+            transform: "translateZ(0)",
+          }}
         >
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 -z-10"
+          {/* Light tap-to-close layer — does NOT block video view */}
+          <div
+            className="fixed inset-0 -z-10"
+            style={{ background: "transparent" }}
             onClick={onClose}
           />
 
-          {/* Chat Container */}
-          <div className="flex flex-col h-full bg-gradient-to-b from-purple-900/95 to-black/95 backdrop-blur-xl rounded-t-3xl border-t border-white/10">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-              <h3 className="text-white font-semibold text-lg">Chat</h3>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="w-8 h-8 rounded-full text-white/70 hover:text-white hover:bg-white/10"
+          {/* Chat Container — premium glassmorphism, no full video blur */}
+          <div
+            className="flex flex-col h-full rounded-t-[28px] relative overflow-hidden"
+            style={{
+              background: "linear-gradient(180deg, rgba(10,6,28,0.72) 0%, rgba(8,4,20,0.92) 35%, rgba(6,3,16,0.97) 100%)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              borderTop: "1px solid rgba(168,85,247,0.18)",
+              boxShadow: "0 -20px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
+            }}
+          >
+            {/* Top shimmer line */}
+            <motion.div
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-px rounded-full"
+              style={{ background: "linear-gradient(90deg, transparent, rgba(168,85,247,0.55), transparent)" }}
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 2.6, repeat: Infinity }}
+            />
+
+            {/* Header — pill grip + title + close */}
+            <div className="flex items-center justify-between px-5 py-3 relative">
+              <div className="absolute left-1/2 -translate-x-1/2 top-1.5 w-10 h-1 rounded-full bg-white/15" />
+              <h3 className="text-white font-bold text-[15px] tracking-tight mt-2">Live Chat</h3>
+              <motion.button
+                whileTap={{ scale: 0.88 }}
                 onClick={onClose}
+                className="mt-2 w-8 h-8 rounded-full flex items-center justify-center bg-white/8 border border-white/10"
               >
-                <X className="w-5 h-5" />
-              </Button>
+                <X className="w-4 h-4 text-white/70" />
+              </motion.button>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-              {messages.map((msg) => {
-                const level = ensureValidLevel(msg.userLevel);
-                // Extract gift icon from message if it's a gift type
-                const giftIconMatch = msg.message.match(/\[GIFT:([^\]]*)\]/);
-                const giftIconUrl = giftIconMatch ? giftIconMatch[1] : null;
-                const cleanMessage = msg.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
-                const isGiftMessage = msg.type === 'gift' || giftIconMatch;
-                
-                return (
-                <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn(
-                    "py-2 px-3 rounded-xl max-w-[90%]",
-                    msg.type === 'system' 
-                      ? "bg-purple-800/50 border border-purple-500/30"
-                      : isGiftMessage
-                        ? "bg-gradient-to-r from-pink-600/60 to-purple-600/60"
-                        : msg.userId === currentUserId
-                          ? "bg-gradient-to-r from-purple-600/60 to-pink-600/60 ml-auto"
-                          : "bg-white/10"
-                  )}
-                >
-                  {msg.type === 'system' ? (
-                    <p className="text-purple-200 text-sm">{msg.message}</p>
-                  ) : msg.type === 'join' ? (
-                    <div className="flex items-center gap-2">
-                      <Badge className={cn(
-                        "bg-gradient-to-r text-white text-[9px] px-1.5 h-4 border-0",
-                        getLevelGradient(level)
-                      )}>
-                        ✦{formatLevel(level)}
-                      </Badge>
-                      <span className="text-green-400 font-medium text-xs">{msg.userName}</span>
-                      <span className="text-green-300/80 text-xs">joined the room 🎉</span>
-                    </div>
-                  ) : isGiftMessage ? (
-                    <div className="flex items-center gap-2">
-                      <Badge className={cn(
-                        "bg-gradient-to-r text-white text-[9px] px-1.5 h-4 border-0",
-                        getLevelGradient(level)
-                      )}>
-                        ✦{formatLevel(level)}
-                      </Badge>
-                      <span className="text-pink-400 font-medium text-xs">{msg.userName}</span>
-                      {giftIconUrl && (
-                        <img src={giftIconUrl} alt="Gift" className="w-5 h-5 object-contain" />
-                      )}
-                      <span className="text-white/90 text-xs">{cleanMessage}</span>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Badge className={cn(
-                          "bg-gradient-to-r text-white text-[9px] px-1.5 h-4 border-0",
-                          getLevelGradient(level)
-                        )}>
+            {/* Messages — gradient fade mask top + smooth scroll */}
+            <div className="relative flex-1 min-h-0">
+              {/* Top fade mask */}
+              <div
+                className="pointer-events-none absolute top-0 left-0 right-0 h-8 z-10"
+                style={{ background: "linear-gradient(180deg, rgba(6,3,16,0.95), transparent)" }}
+              />
+
+              <div
+                ref={scrollContainerRef}
+                className="h-full overflow-y-auto overflow-x-hidden px-4 py-3 space-y-2 scroll-smooth"
+                style={{
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "rgba(168,85,247,0.3) transparent",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {messages.map((msg, idx) => {
+                  const level = ensureValidLevel(msg.userLevel);
+                  const giftIconMatch = msg.message.match(/\[GIFT:([^\]]*)\]/);
+                  const giftIconUrl = giftIconMatch ? giftIconMatch[1] : null;
+                  const cleanMessage = msg.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
+                  const isGiftMessage = msg.type === 'gift' || !!giftIconMatch;
+                  const isHostMsg = !!(hostId && msg.userId === hostId) || !!msg.isHost;
+                  const isSelf = msg.userId === currentUserId;
+                  const nameColor = getNameColor(msg, isHostMsg);
+
+                  // System message
+                  if (msg.type === 'system') {
+                    return (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.22, ease: EASE_OUT }}
+                        className="mx-auto max-w-[80%] text-center"
+                      >
+                        <span
+                          className="inline-block text-purple-200/85 text-[11px] px-3 py-1 rounded-full"
+                          style={{
+                            background: "rgba(168,85,247,0.12)",
+                            border: "1px solid rgba(168,85,247,0.18)",
+                          }}
+                        >
+                          {msg.message}
+                        </span>
+                      </motion.div>
+                    );
+                  }
+
+                  // Join / Entrance message
+                  if (msg.type === 'join' || msg.type === 'entrance') {
+                    return (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.32, ease: EASE_OUT }}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-2xl max-w-[92%]"
+                        style={{
+                          background: "linear-gradient(90deg, rgba(34,197,94,0.18), rgba(16,185,129,0.08))",
+                          border: "1px solid rgba(74,222,128,0.22)",
+                        }}
+                      >
+                        <span
+                          className={cn(
+                            "text-[9px] font-black px-1.5 py-px rounded text-white bg-gradient-to-r leading-none",
+                            getLevelGradient(level)
+                          )}
+                        >
                           ✦{formatLevel(level)}
-                        </Badge>
-                        <span className="text-pink-400 font-medium text-xs">{msg.userName}</span>
-                      </div>
-                      <p className="text-white text-sm">{msg.message}</p>
-                    </div>
-                  )}
-                </motion.div>
-              )})}
-              <div ref={messagesEndRef} />
+                        </span>
+                        <span className="text-emerald-300 font-bold text-[12px] truncate">{msg.userName}</span>
+                        <span className="text-emerald-200/80 text-[11px]">joined 🎉</span>
+                      </motion.div>
+                    );
+                  }
+
+                  // Gift message
+                  if (isGiftMessage) {
+                    return (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, scale: 0.92, y: 8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: EASE_OUT }}
+                        className="flex items-center gap-2 px-3 py-2 rounded-2xl max-w-[92%] relative overflow-hidden"
+                        style={{
+                          background: "linear-gradient(90deg, rgba(236,72,153,0.28), rgba(168,85,247,0.18))",
+                          border: "1px solid rgba(236,72,153,0.35)",
+                          boxShadow: "0 4px 16px rgba(236,72,153,0.18)",
+                        }}
+                      >
+                        {/* Subtle shimmer */}
+                        <motion.div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)",
+                          }}
+                          animate={{ x: ["-100%", "200%"] }}
+                          transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
+                        />
+                        <span
+                          className={cn(
+                            "text-[9px] font-black px-1.5 py-px rounded text-white bg-gradient-to-r leading-none relative z-10",
+                            getLevelGradient(level)
+                          )}
+                        >
+                          ✦{formatLevel(level)}
+                        </span>
+                        <span className={cn("font-bold text-[12px] truncate relative z-10", nameColor)}>
+                          {msg.userName}
+                        </span>
+                        {giftIconUrl && (
+                          <img src={giftIconUrl} alt="" className="w-5 h-5 object-contain relative z-10 drop-shadow" />
+                        )}
+                        <span className="text-white/95 text-[12px] relative z-10 truncate">{cleanMessage}</span>
+                      </motion.div>
+                    );
+                  }
+
+                  // Regular text message — single-row Chamet style
+                  return (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, x: isSelf ? 12 : -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.24, ease: EASE_OUT }}
+                      className={cn(
+                        "flex items-start gap-1.5 px-3 py-1.5 rounded-2xl max-w-[92%]",
+                        isSelf ? "ml-auto" : ""
+                      )}
+                      style={{
+                        background: isSelf
+                          ? "linear-gradient(135deg, rgba(168,85,247,0.32), rgba(236,72,153,0.20))"
+                          : "rgba(255,255,255,0.06)",
+                        border: isSelf
+                          ? "1px solid rgba(168,85,247,0.32)"
+                          : "1px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <span
+                        className={cn(
+                          "text-[9px] font-black px-1.5 py-px rounded text-white bg-gradient-to-r leading-none mt-0.5 flex-shrink-0",
+                          getLevelGradient(level)
+                        )}
+                      >
+                        ✦{formatLevel(level)}
+                      </span>
+                      {isHostMsg && (
+                        <Crown className="w-3 h-3 text-amber-400 mt-1 flex-shrink-0 drop-shadow-[0_0_4px_rgba(251,191,36,0.7)]" />
+                      )}
+                      <span className={cn("font-bold text-[12px] flex-shrink-0 mt-0.5", nameColor)}>
+                        {msg.userName}:
+                      </span>
+                      <span className="text-white/95 text-[13px] leading-snug break-words">{msg.message}</span>
+                    </motion.div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
 
             {/* Quick Emoji Row */}
-            <div className="flex items-center gap-3 px-4 py-2 border-t border-white/10 overflow-x-auto">
+            <div
+              className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-none"
+              style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+            >
               {quickEmojis.map((emoji, i) => (
-                <button
+                <motion.button
                   key={i}
+                  whileTap={{ scale: 0.85 }}
+                  whileHover={{ scale: 1.15 }}
                   onClick={() => addEmoji(emoji)}
-                  className="text-2xl hover:scale-125 transition-transform flex-shrink-0"
+                  className="text-2xl flex-shrink-0 leading-none"
                 >
                   {emoji}
-                </button>
+                </motion.button>
               ))}
             </div>
 
             {/* Input Area */}
-            <div className="px-4 py-3 pb-safe bg-white/5">
-              <div className="flex items-center gap-3">
+            <div
+              className="px-3 py-3 pb-safe"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                borderTop: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <div className="flex items-center gap-2">
                 <div className="flex-1 relative">
                   <input
                     ref={inputRef}
@@ -202,24 +342,29 @@ export const ChametStyleChatPanel = ({
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type something..."
-                    className="w-full bg-white rounded-full px-5 py-3 pr-12 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Say something nice…"
+                    maxLength={200}
+                    className="w-full rounded-full pl-5 pr-11 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-purple-500/60 text-white placeholder:text-white/40"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                    }}
                   />
-                  <button
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <Smile className="w-5 h-5" />
-                  </button>
+                  <Smile className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 pointer-events-none" />
                 </div>
-                <Button
-                  size="icon"
+                <motion.button
+                  whileTap={{ scale: 0.88 }}
                   onClick={handleSend}
                   disabled={!inputValue.trim()}
-                  className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50"
+                  className="w-12 h-12 rounded-full flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed relative overflow-hidden"
+                  style={{
+                    background: "linear-gradient(135deg, #ec4899, #a855f7, #7c3aed)",
+                    boxShadow: inputValue.trim() ? "0 8px 22px rgba(168,85,247,0.45)" : "none",
+                  }}
                 >
-                  <Send className="w-5 h-5 text-white" />
-                </Button>
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/18 to-transparent" />
+                  <Send className="w-5 h-5 text-white relative z-10 -ml-0.5" />
+                </motion.button>
               </div>
             </div>
           </div>
