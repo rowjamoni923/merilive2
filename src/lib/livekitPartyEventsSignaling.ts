@@ -5,20 +5,17 @@
  *   - `join_broadcast_party_${roomId}` Supabase Realtime channel
  *     → event `participant_joined`
  *   - `.on('broadcast', { event: 'seat_action' })` listener on
- *     `party-room-all-${roomId}` (the postgres_changes subscriptions on
- *     that same channel STAY — DB is source of truth for participants,
- *     seat_requests, and party_room_messages persistence/history).
+ *     `party-room-all-${roomId}`. No party-room postgres_changes fallback
+ *     remains; DB rows are only persistence/history for REST snapshots.
  *
  * Two ephemeral event types (no DB persistence on this path):
  *   - 'participant_joined' — pre-rendered self-profile + entry animation
  *      URLs so receivers can show Bigo-style join banner without an extra
- *      `profiles_public` round-trip. The postgres_changes INSERT on
- *      `party_room_participants` remains the safety net.
+ *      `profiles_public` round-trip.
  *   - 'seat_action'        — host approve / reject seat request +
  *      requester self-submit notification. The seat row is already
  *      written to `seat_requests` / `party_room_participants` BEFORE this
- *      publish, so receivers get instant UI; postgres_changes converges
- *      the canonical state.
+ *      publish, so receivers get instant UI while late joiners read REST.
  *
  * Cost guards ($1400 protection — NEVER violate):
  *  - NO new Supabase Realtime channels (reuses LiveKit Room already
