@@ -351,7 +351,7 @@ export const premiumAnimations: PremiumAnimation[] = [
   { id: 'sticker_dragon_eye', name: 'Dragon Eye', category: 'privilege_sticker', tier: 'legendary', unlockLevel: 48, previewColor: '#FF4500', animationData: createAdvancedLottieAnimation('Dragon Eye', '#FF4500', '#8B0000', '#FF6347', 'glow', 'hexagon') },
 
   // ========== PRIVILEGE GIFT ANIMATIONS (12) ==========
-  { id: 'gift_bronze_coin', name: 'Bronze Coin Gift', category: 'privilege_gift', tier: 'bronze', unlockLevel: 3, previewColor: '#CD7F32', animationData: createAdvancedLottieAnimation('Bronze Coin', '#CD7F32', '#8B4513', '#D2691E', 'rotate', 'ring') },
+  { id: 'gift_bronze_diamond', name: 'Bronze Diamond Gift', category: 'privilege_gift', tier: 'bronze', unlockLevel: 3, previewColor: '#CD7F32', animationData: createAdvancedLottieAnimation('Bronze Diamond', '#CD7F32', '#8B4513', '#D2691E', 'rotate', 'ring') },
   { id: 'gift_silver_rose', name: 'Silver Rose Gift', category: 'privilege_gift', tier: 'silver', unlockLevel: 7, previewColor: '#C0C0C0', animationData: createAdvancedLottieAnimation('Silver Rose', '#C0C0C0', '#A9A9A9', '#FFB6C1', 'float', 'flower') },
   { id: 'gift_gold_heart', name: 'Gold Heart Gift', category: 'privilege_gift', tier: 'gold', unlockLevel: 11, previewColor: '#FFD700', animationData: createAdvancedLottieAnimation('Gold Heart', '#FFD700', '#FFA500', '#FF69B4', 'pulse', 'heart') },
   { id: 'gift_platinum_star', name: 'Platinum Star Gift', category: 'privilege_gift', tier: 'platinum', unlockLevel: 17, previewColor: '#E5E4E2', animationData: createAdvancedLottieAnimation('Platinum Star', '#E5E4E2', '#B0C4DE', '#FFD700', 'sparkle', 'star') },
