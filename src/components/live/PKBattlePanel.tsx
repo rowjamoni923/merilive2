@@ -278,105 +278,194 @@ export const PKBattlePanel = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
       >
         <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/65 backdrop-blur-md"
           onClick={onClose}
         />
 
         <motion.div
-          className="relative w-full max-w-lg bg-gradient-to-b from-purple-900 via-purple-800 to-purple-900 rounded-t-3xl overflow-hidden"
+          className="relative w-full max-w-lg rounded-t-[28px] overflow-hidden border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
+          style={{
+            background: 'linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+          }}
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{ type: "spring", damping: 25 }}
+          transition={{ type: "spring", damping: 28, stiffness: 320 }}
         >
-          <div className="relative px-4 py-4 border-b border-white/10">
-            <div className="flex items-center justify-center gap-2">
-              <Swords className="w-6 h-6 text-amber-400" />
-              <h2 className="text-xl font-bold text-white">PK Battle</h2>
-              <Swords className="w-6 h-6 text-amber-400 transform scale-x-[-1]" />
+          {/* Battle aurora overlay */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.4]"
+            style={{
+              background:
+                'radial-gradient(60% 40% at 12% 0%, rgba(239,68,68,0.28), transparent 70%), radial-gradient(60% 40% at 88% 0%, rgba(59,130,246,0.28), transparent 70%), radial-gradient(50% 30% at 50% 100%, rgba(168,85,247,0.18), transparent 70%)',
+            }}
+          />
+
+          {/* Header */}
+          <div className="relative px-4 pt-3 pb-3 border-b border-white/10">
+            <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-white/25" />
+
+            <div className="flex items-center justify-center gap-2.5">
+              <motion.div
+                animate={{ rotate: [-8, 8, -8] }}
+                transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+              >
+                <Swords className="w-6 h-6 text-amber-300 drop-shadow-[0_2px_8px_rgba(251,191,36,0.55)]" />
+              </motion.div>
+              <h2
+                className="text-xl font-extrabold tracking-wide"
+                style={{
+                  background: 'linear-gradient(90deg, #fca5a5, #fde68a 50%, #93c5fd)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                PK Battle
+              </h2>
+              <motion.div
+                animate={{ rotate: [8, -8, 8] }}
+                transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+              >
+                <Swords className="w-6 h-6 text-amber-300 transform scale-x-[-1] drop-shadow-[0_2px_8px_rgba(251,191,36,0.55)]" />
+              </motion.div>
             </div>
+
             <Button
               size="icon"
               variant="ghost"
-              className="absolute right-3 top-3 w-8 h-8 rounded-full text-white/60 hover:text-white"
+              className="absolute right-3 top-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white"
               onClick={onClose}
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </Button>
 
-            <div className="mt-4 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70" />
+            {/* Search */}
+            <div className="mt-3 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/55" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search hosts..."
-                className="w-full bg-white/10 border-white/20 rounded-full text-white placeholder:text-white/70 pl-10"
+                className="w-full rounded-full text-white placeholder:text-white/50 pl-10 border-white/10 focus-visible:ring-2 focus-visible:ring-pink-500/50"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.05) 100%)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+                }}
               />
             </div>
           </div>
 
-          <ScrollArea className="h-80">
-            <div className="p-4 space-y-3">
+          <ScrollArea className="h-80 relative">
+            <div className="p-4 space-y-2.5" style={{ WebkitOverflowScrolling: 'touch' }}>
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-10">
-                  <div className="w-10 h-10 border-3 border-amber-400 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-white/60 mt-3">Loading...</p>
+                  <div className="w-10 h-10 border-2 border-amber-400/70 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-white/55 text-sm mt-3">Loading...</p>
                 </div>
               ) : filteredHosts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10">
-                  <Users className="w-12 h-12 text-white/30 mb-3" />
-                  <p className="text-white/60">No live hosts found</p>
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-3">
+                    <Users className="w-8 h-8 text-white/30" />
+                  </div>
+                  <p className="text-white/70 text-sm font-medium">No live hosts found</p>
+                  <p className="text-white/40 text-xs mt-1">Try Random Match below</p>
                 </div>
               ) : (
-                filteredHosts.map((host) => (
+                filteredHosts.map((host, idx) => (
                   <motion.div
                     key={host.id}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
-                    whileTap={{ scale: 0.98 }}
+                    className="relative flex items-center gap-3 p-3 rounded-2xl overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                    }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', damping: 24, stiffness: 360, delay: Math.min(idx * 0.035, 0.18) }}
+                    whileTap={{ scale: 0.985 }}
                   >
-                    <div className="relative">
-                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-pink-500 ring-2 ring-pink-500/30">
+                    <div className="relative flex-shrink-0">
+                      <div
+                        className="w-14 h-14 rounded-full overflow-hidden"
+                        style={{
+                          boxShadow: '0 0 0 2px rgba(236,72,153,0.85), 0 0 0 4px rgba(236,72,153,0.25), 0 6px 16px -4px rgba(236,72,153,0.45)',
+                        }}
+                      >
                         <img
                           src={host.avatar_url || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"}
                           alt={host.display_name}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-1.5 py-0.5 rounded text-[8px] font-bold text-black">
+                      <div
+                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[9px] font-bold text-black"
+                        style={{
+                          background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                          boxShadow: '0 2px 6px -1px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.4)',
+                        }}
+                      >
                         Lv{host.user_level}
                       </div>
-                      <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-purple-900" />
+                      <span
+                        className="absolute top-0 right-0 w-3 h-3 bg-emerald-400 rounded-full"
+                        style={{ boxShadow: '0 0 0 2px rgba(20,15,35,1), 0 0 10px 1px rgba(52,211,153,0.65)' }}
+                      />
                     </div>
 
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-white font-semibold">{host.display_name}</span>
-                        <Badge className="bg-red-500/20 text-red-400 border-0 text-xs">
-                          LIVE
+                        <span className="text-white font-semibold text-sm truncate">{host.display_name}</span>
+                        <Badge
+                          className="border-0 text-[10px] font-bold tracking-wide px-1.5 py-0"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(239,68,68,0.30), rgba(244,63,94,0.22))',
+                            color: '#fecaca',
+                            boxShadow: 'inset 0 0 0 1px rgba(248,113,113,0.35)',
+                          }}
+                        >
+                          • LIVE
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 text-white/60 text-sm mt-0.5">
-                        <span>👀 {host.viewer_count}</span>
+                      <div className="flex items-center gap-2 text-white/55 text-xs mt-0.5">
+                        <span className="tabular-nums">👀 {host.viewer_count}</span>
                       </div>
                     </div>
 
-                    <Button
-                      size="sm"
-                      className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-full px-4"
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => sendPKRequest(host)}
                       disabled={sendingRequest === host.id}
+                      className="relative overflow-hidden text-white font-bold rounded-full px-4 py-2 text-sm flex items-center gap-1 disabled:opacity-60"
+                      style={{
+                        background: 'linear-gradient(95deg, #ec4899 0%, #a855f7 100%)',
+                        boxShadow: '0 6px 18px -4px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.30)',
+                      }}
                     >
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.28) 50%, transparent 58%)',
+                          animation: 'giftSendShine 2.8s ease-in-out infinite',
+                        }}
+                      />
                       {sendingRequest === host.id ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin relative z-10" />
                       ) : (
                         <>
-                          <Swords className="w-4 h-4 mr-1" />
-                          PK
+                          <Swords className="w-4 h-4 relative z-10" />
+                          <span className="relative z-10">PK</span>
                         </>
                       )}
-                    </Button>
+                    </motion.button>
                   </motion.div>
                 ))
               )}
@@ -384,24 +473,40 @@ export const PKBattlePanel = ({
           </ScrollArea>
 
           {/* Random Match Button + Footer */}
-          <div className="p-4 border-t border-white/10 bg-white/5 space-y-3">
-            <Button
-              className="w-full h-12 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:from-amber-600 hover:via-orange-600 hover:to-pink-600 text-white font-bold rounded-2xl text-base shadow-lg shadow-orange-500/30"
+          <div
+            className="relative p-4 border-t border-white/10 space-y-2.5"
+            style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.25))' }}
+          >
+            <motion.button
+              whileTap={{ scale: 0.97 }}
               onClick={sendRandomPKRequest}
               disabled={sendingRandom}
+              className="w-full h-12 relative overflow-hidden text-white font-bold rounded-2xl text-base flex items-center justify-center gap-2 disabled:opacity-70"
+              style={{
+                background: 'linear-gradient(95deg, #f59e0b 0%, #f97316 50%, #ec4899 100%)',
+                boxShadow: '0 10px 28px -8px rgba(249,115,22,0.65), 0 4px 12px -2px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.30)',
+                animation: 'giftSendBreathe 2.4s ease-in-out infinite',
+              }}
             >
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.30) 50%, transparent 58%)',
+                  animation: 'giftSendShine 2.6s ease-in-out infinite',
+                }}
+              />
               {sendingRandom ? (
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin relative z-10" />
               ) : (
-                <Shuffle className="w-5 h-5 mr-2" />
+                <Shuffle className="w-5 h-5 relative z-10" />
               )}
-              {sendingRandom ? "Sending..." : "Random Match"}
-            </Button>
-            <div className="flex items-center justify-center gap-4 text-sm">
-              <div className="flex items-center gap-1.5">
-                <Crown className="w-4 h-4 text-amber-400" />
-                <span className="text-white/70">Whoever gets more gifts wins</span>
-              </div>
+              <span className="relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
+                {sendingRandom ? "Sending..." : "Random Match"}
+              </span>
+            </motion.button>
+            <div className="flex items-center justify-center gap-1.5">
+              <Crown className="w-3.5 h-3.5 text-amber-300" />
+              <span className="text-white/65 text-xs">Whoever gets more gifts wins</span>
             </div>
           </div>
         </motion.div>
