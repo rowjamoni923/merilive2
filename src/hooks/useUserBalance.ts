@@ -187,6 +187,7 @@ export function useUserBalancePrefetch(): void {
       const coins = payload.coins;
       const diamonds = payload.diamonds;
       if (coins !== undefined || diamonds !== undefined) {
+        balanceCache.userId = userId;
         updateCachedBalance(Math.max(Number(coins || 0), Number(diamonds || 0)));
       }
 
@@ -198,9 +199,16 @@ export function useUserBalancePrefetch(): void {
     };
     window.addEventListener('app-sync', handleAppSync as EventListener);
 
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        setTimeout(() => void fetchBalance(), 0);
+      }
+    });
+
     return () => {
       clearTimeout(timer);
       window.removeEventListener('app-sync', handleAppSync as EventListener);
+      authListener.subscription.unsubscribe();
     };
   }, []);
 }
