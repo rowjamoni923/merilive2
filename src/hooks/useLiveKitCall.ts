@@ -480,6 +480,8 @@ export function useLiveKitCall(
         if (callId) registerRoomMetadataRoom('call', callId, room);
         // Pkg121: bind for text/byte streams (chunked chat, file attachments).
         if (callId) registerStreamRoom('call', callId, room);
+        // Pkg120: bind for participant RPC (moderator commands, seat-ack, raise-hand).
+        if (callId) registerRpcRoom('call', callId, room);
 
 
         // Enable camera and microphone
