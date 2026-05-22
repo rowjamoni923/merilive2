@@ -74,29 +74,40 @@ export const AutoRecordSettingsRow = () => {
     [],
   );
 
-  if (!isHost) return null;
+  // Pkg129 visibility fix: while we're still detecting host status, show a
+  // skeleton row so face-verified hosts on slow networks don't see a sudden
+  // pop-in. Once isHost===false, fully hide.
+  if (isHost === false) return null;
 
   return (
-    <div className="w-full flex items-center justify-between px-4 py-4 border-b">
-      <div className="flex items-center gap-3">
-        <Video className="w-5 h-5 text-muted-foreground" />
-        <div className="flex flex-col text-left">
-          <span className="text-foreground">Auto-Record Live</span>
-          <span className="text-[11px] text-muted-foreground">
-            Save every live stream to your recordings automatically
-          </span>
+    <>
+      {/* Section header — makes the host-only toggle discoverable */}
+      <div className="w-full px-4 pt-4 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground/80 font-medium">
+        Host tools
+      </div>
+      <div className="w-full flex items-center justify-between px-4 py-4 border-b">
+        <div className="flex items-center gap-3">
+          <Video className="w-5 h-5 text-rose-500" />
+          <div className="flex flex-col text-left">
+            <span className="text-foreground font-medium">Auto-Record Live</span>
+            <span className="text-[11px] text-muted-foreground">
+              Save every live stream to your recordings automatically
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {(saving || isHost === null) && (
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          )}
+          <Switch
+            checked={enabled}
+            onCheckedChange={handleToggle}
+            disabled={saving || isHost === null}
+            aria-label="Auto-record live streams"
+          />
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        {saving && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
-        <Switch
-          checked={enabled}
-          onCheckedChange={handleToggle}
-          disabled={saving}
-          aria-label="Auto-record live streams"
-        />
-      </div>
-    </div>
+    </>
   );
 };
 
