@@ -230,6 +230,7 @@ const AdminHelperOrders = lazy(lazyRetry(() => import("./pages/admin/AdminHelper
 const AdminPayrollOrders = lazy(lazyRetry(() => import("./pages/admin/AdminPayrollOrders")));
 const AdminStreams = lazy(lazyRetry(() => import("./pages/admin/AdminStreams")));
 const AdminRecordings = lazy(lazyRetry(() => import("./pages/admin/AdminRecordings")));
+const AdminTrackRecordings = lazy(lazyRetry(() => import("./pages/admin/AdminTrackRecordings")));
 const AdminPartyRooms = lazy(lazyRetry(() => import("./pages/admin/AdminPartyRooms")));
 const AdminGifts = lazy(lazyRetry(() => import("./pages/admin/AdminGifts")));
 const AdminGiftTransactions = lazy(lazyRetry(() => import("./pages/admin/AdminGiftTransactions")));
