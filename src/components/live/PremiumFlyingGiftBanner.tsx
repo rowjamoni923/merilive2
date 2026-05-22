@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, Suspense, lazy } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,28 @@ const getBannerGradient = (coins: number) => {
   if (coins >= 1000) return 'from-purple-600/90 via-pink-500/85 to-rose-500/80';
   if (coins >= 100) return 'from-blue-600/85 via-indigo-500/80 to-purple-500/75';
   return 'from-slate-700/85 via-gray-600/80 to-slate-700/75';
+};
+
+// Tier-aware multi-stop glow shadow (Pkg176/Pkg178 parity)
+const getTierShadow = (coins: number) => {
+  if (coins >= 10000) {
+    return '0 0 0 1px rgba(251,191,36,0.55), 0 10px 28px -8px rgba(251,146,60,0.55), 0 4px 14px -4px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.22)';
+  }
+  if (coins >= 1000) {
+    return '0 0 0 1px rgba(244,114,182,0.45), 0 10px 28px -8px rgba(168,85,247,0.55), 0 4px 14px -4px rgba(236,72,153,0.4), inset 0 1px 0 rgba(255,255,255,0.18)';
+  }
+  if (coins >= 100) {
+    return '0 0 0 1px rgba(129,140,248,0.4), 0 10px 24px -8px rgba(99,102,241,0.5), 0 4px 12px -4px rgba(59,130,246,0.35), inset 0 1px 0 rgba(255,255,255,0.16)';
+  }
+  return '0 0 0 1px rgba(255,255,255,0.18), 0 10px 22px -8px rgba(0,0,0,0.5), 0 3px 10px -4px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.14)';
+};
+
+// Sparkle accent color
+const getSparkleColor = (coins: number) => {
+  if (coins >= 10000) return '#FFD700';
+  if (coins >= 1000) return '#FF69B4';
+  if (coins >= 100) return '#A5B4FC';
+  return '#E5E7EB';
 };
 
 export const PremiumFlyingGiftBanner = ({
@@ -70,7 +92,6 @@ export const PremiumFlyingGiftBanner = ({
 
   // Render gift visual
   const renderGiftIcon = () => {
-    // Priority: SVGA animation > Image > Emoji
     if (giftAnimationUrl?.toLowerCase().endsWith('.svga')) {
       return (
         <Suspense fallback={<div className="w-10 h-10 animate-pulse bg-white/20 rounded-lg" />}>
@@ -83,18 +104,26 @@ export const PremiumFlyingGiftBanner = ({
         </Suspense>
       );
     }
-    
+
     if (giftImageUrl) {
       return (
-        <img 
-          src={giftImageUrl} 
+        <img
+          src={giftImageUrl}
           alt={giftName}
-          className="w-10 h-10 object-contain drop-shadow-lg"
+          className="w-10 h-10 object-contain"
+          style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }}
         />
       );
     }
-    
-    return <span className="text-3xl drop-shadow-lg">{giftIcon}</span>;
+
+    return (
+      <span
+        className="text-3xl leading-none"
+        style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }}
+      >
+        {giftIcon}
+      </span>
+    );
   };
 
   return (
@@ -102,93 +131,160 @@ export const PremiumFlyingGiftBanner = ({
       {isVisible && (
         <motion.div
           className="fixed z-[60] pointer-events-none"
-          style={{ 
+          style={{
             left: 8,
             top: '65%',
             transform: 'translateY(-50%)'
           }}
-          initial={{ x: -350, opacity: 0, scale: 0.85 }}
+          initial={{ x: -360, opacity: 0, scale: 0.9 }}
           animate={{ x: 0, opacity: 1, scale: 1 }}
-          exit={{ x: -350, opacity: 0, scale: 0.85 }}
-          transition={{ type: "spring", damping: 22, stiffness: 200 }}
+          exit={{ x: -360, opacity: 0, scale: 0.9 }}
+          transition={{ type: "spring", damping: 24, stiffness: 280 }}
         >
           {/* Main banner */}
-          <div className={cn(
-            "flex items-center gap-2.5 pl-1.5 pr-4 py-2 rounded-r-full",
-            "bg-gradient-to-r backdrop-blur-xl",
-            "border border-white/25",
-            getBannerGradient(coins),
-            isLegendary && "shadow-[0_0_30px_rgba(251,191,36,0.5)]",
-            isPremium && !isLegendary && "shadow-[0_0_25px_rgba(168,85,247,0.4)]"
-          )}>
+          <div
+            className={cn(
+              "relative flex items-center gap-2.5 pl-1.5 pr-4 py-2 rounded-r-full overflow-hidden",
+              "bg-gradient-to-r",
+              getBannerGradient(coins)
+            )}
+            style={{
+              backdropFilter: 'blur(16px) saturate(150%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+              boxShadow: getTierShadow(coins),
+            }}
+          >
+            {/* Aurora overlay */}
+            <div
+              className="absolute inset-0 pointer-events-none rounded-r-full"
+              style={{
+                background: isLegendary
+                  ? 'radial-gradient(120% 80% at 0% 0%, rgba(255,255,255,0.22) 0%, transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(0,0,0,0.20) 0%, transparent 55%)'
+                  : 'radial-gradient(120% 80% at 0% 0%, rgba(255,255,255,0.18) 0%, transparent 55%), radial-gradient(120% 80% at 100% 100%, rgba(0,0,0,0.18) 0%, transparent 55%)',
+              }}
+            />
+
+            {/* giftSendShine sweep overlay */}
+            <div
+              className="absolute inset-0 pointer-events-none rounded-r-full overflow-hidden"
+              aria-hidden="true"
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%)',
+                  mixBlendMode: 'overlay',
+                  animation: isLegendary
+                    ? 'giftSendShine 2.6s ease-in-out infinite'
+                    : 'giftSendShine 3.2s ease-in-out infinite',
+                }}
+              />
+            </div>
+
             {/* Sender Avatar with level badge */}
             <div className="relative flex-shrink-0">
-              {/* Glow ring */}
-              <motion.div 
-                className={cn(
-                  "absolute -inset-1 rounded-full blur-sm",
-                  isLegendary ? "bg-amber-400/60" : "bg-pink-400/50"
-                )}
-                animate={{ opacity: [0.5, 0.8, 0.5] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
+              {/* Soft glow ring */}
+              <motion.div
+                className="absolute -inset-1 rounded-full blur-md"
+                style={{
+                  background: isLegendary
+                    ? 'radial-gradient(circle, rgba(251,191,36,0.65) 0%, transparent 70%)'
+                    : isPremium
+                      ? 'radial-gradient(circle, rgba(244,114,182,0.55) 0%, transparent 70%)'
+                      : 'radial-gradient(circle, rgba(255,255,255,0.35) 0%, transparent 70%)',
+                }}
+                animate={{ opacity: [0.55, 0.9, 0.55], scale: [1, 1.06, 1] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
               />
-              
+
               {senderAvatar ? (
                 <img
                   src={senderAvatar}
                   alt={senderName}
-                  className="relative w-11 h-11 rounded-full border-2 border-white/60 object-cover"
+                  className="relative w-11 h-11 rounded-full object-cover"
+                  style={{
+                    border: '2px solid rgba(255,255,255,0.65)',
+                    boxShadow:
+                      '0 0 0 1px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25)',
+                  }}
                 />
               ) : (
-                <div 
-                  className="relative w-11 h-11 rounded-full border-2 border-white/60 flex items-center justify-center text-white font-bold text-base"
-                  style={{ background: getLevelGradient(senderLevel) }}
+                <div
+                  className="relative w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base"
+                  style={{
+                    background: getLevelGradient(senderLevel),
+                    border: '2px solid rgba(255,255,255,0.65)',
+                    boxShadow:
+                      '0 0 0 1px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3)',
+                  }}
                 >
                   {senderName.charAt(0).toUpperCase()}
                 </div>
               )}
-              
+
               {/* Level badge */}
-              <div 
-                className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded text-[8px] font-bold text-white border border-white/30"
-                style={{ background: getLevelGradient(senderLevel) }}
+              <div
+                className="absolute -bottom-1 -right-1 px-1.5 py-[1px] rounded-md text-[8px] font-bold text-white leading-none tabular-nums"
+                style={{
+                  background: getLevelGradient(senderLevel),
+                  border: '1px solid rgba(255,255,255,0.45)',
+                  boxShadow:
+                    '0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35)',
+                }}
               >
                 Lv{senderLevel}
               </div>
             </div>
 
             {/* Gift info */}
-            <div className="flex flex-col min-w-0">
-              <span className={cn(
-                "text-[10px] font-medium",
-                isLegendary ? "text-amber-100/80" : "text-white/70"
-              )}>
-                Send to
+            <div className="relative flex flex-col min-w-0 z-10">
+              <span
+                className={cn(
+                  "text-[10px] font-medium leading-tight tracking-wide",
+                  isLegendary ? "text-amber-50/85" : "text-white/80"
+                )}
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.35)' }}
+              >
+                Sent to
               </span>
-              <span className={cn(
-                "font-bold text-sm truncate max-w-[75px]",
-                isLegendary ? "text-amber-100" : "text-white"
-              )}>
+              <span
+                className={cn(
+                  "font-bold text-sm truncate max-w-[78px] leading-tight",
+                  isLegendary ? "text-amber-50" : "text-white"
+                )}
+                style={{ textShadow: '0 1px 3px rgba(0,0,0,0.45)' }}
+              >
                 {receiverName}
               </span>
             </div>
 
             {/* Gift icon with glow */}
-            <div className="relative flex-shrink-0">
+            <div className="relative flex-shrink-0 z-10">
               <motion.div
-                className={cn(
-                  "absolute -inset-2 rounded-xl blur-md",
-                  isLegendary ? "bg-amber-400/50" : "bg-pink-400/40"
-                )}
-                animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
-                transition={{ duration: 1.2, repeat: Infinity }}
+                className="absolute -inset-2 rounded-xl blur-md"
+                style={{
+                  background: isLegendary
+                    ? 'radial-gradient(circle, rgba(251,191,36,0.6) 0%, transparent 70%)'
+                    : isPremium
+                      ? 'radial-gradient(circle, rgba(244,114,182,0.55) 0%, transparent 70%)'
+                      : 'radial-gradient(circle, rgba(255,255,255,0.35) 0%, transparent 70%)',
+                }}
+                animate={{ scale: [1, 1.18, 1], opacity: [0.45, 0.75, 0.45] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
               />
-              <div className={cn(
-                "relative rounded-xl p-1.5 border",
-                isLegendary 
-                  ? "bg-amber-400/25 border-amber-400/40" 
-                  : "bg-white/15 border-white/30"
-              )}>
+              <div
+                className="relative rounded-xl p-1.5 flex items-center justify-center"
+                style={{
+                  background: isLegendary
+                    ? 'linear-gradient(135deg, rgba(251,191,36,0.28) 0%, rgba(245,158,11,0.18) 100%)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.08) 100%)',
+                  border: isLegendary
+                    ? '1px solid rgba(251,191,36,0.5)'
+                    : '1px solid rgba(255,255,255,0.32)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
+                }}
+              >
                 {renderGiftIcon()}
               </div>
             </div>
@@ -196,46 +292,54 @@ export const PremiumFlyingGiftBanner = ({
             {/* Count display */}
             <motion.span
               key={currentCount}
-              initial={{ scale: 1.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              initial={{ scale: 1.55, opacity: 0, rotate: -4 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ type: 'spring', damping: 14, stiffness: 320 }}
               className={cn(
-                "text-2xl font-black ml-1",
+                "relative z-10 text-2xl font-black ml-1 tabular-nums leading-none",
                 isLegendary
-                  ? "bg-gradient-to-b from-amber-200 via-yellow-300 to-orange-400 bg-clip-text text-transparent"
-                  : "bg-gradient-to-b from-white via-pink-100 to-pink-200 bg-clip-text text-transparent"
+                  ? "bg-gradient-to-b from-amber-100 via-yellow-300 to-orange-400 bg-clip-text text-transparent"
+                  : isPremium
+                    ? "bg-gradient-to-b from-white via-pink-100 to-pink-300 bg-clip-text text-transparent"
+                    : "bg-gradient-to-b from-white via-white to-slate-200 bg-clip-text text-transparent"
               )}
               style={{
-                textShadow: isLegendary 
-                  ? '0 0 20px rgba(251,191,36,0.6)' 
-                  : '0 0 15px rgba(255,255,255,0.5)',
-                WebkitTextStroke: '0.5px rgba(255,255,255,0.2)'
+                filter: isLegendary
+                  ? 'drop-shadow(0 0 8px rgba(251,191,36,0.65)) drop-shadow(0 2px 4px rgba(0,0,0,0.4))'
+                  : 'drop-shadow(0 0 6px rgba(255,255,255,0.5)) drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
+                WebkitTextStroke: '0.4px rgba(0,0,0,0.18)',
               }}
             >
-              X{currentCount}
+              ×{currentCount}
             </motion.span>
           </div>
 
           {/* Sparkle trail for premium gifts */}
           {isPremium && (
-            <div className="absolute -right-4 top-1/2 -translate-y-1/2">
-              {[...Array(5)].map((_, i) => (
+            <div className="absolute -right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              {[...Array(6)].map((_, i) => (
                 <motion.div
                   key={i}
                   className="absolute w-1.5 h-1.5 rounded-full"
                   style={{
-                    background: isLegendary ? '#FFD700' : '#FF69B4',
-                    right: 0
+                    background: getSparkleColor(coins),
+                    right: 0,
+                    boxShadow: isLegendary
+                      ? '0 0 8px rgba(251,191,36,0.8), 0 0 14px rgba(245,158,11,0.45)'
+                      : '0 0 6px rgba(244,114,182,0.7), 0 0 12px rgba(168,85,247,0.4)',
                   }}
                   animate={{
-                    x: [0, 30 + i * 10],
+                    x: [0, 32 + i * 9],
+                    y: [0, (i % 2 === 0 ? -1 : 1) * (4 + i)],
                     opacity: [1, 0],
-                    scale: [1, 0.5]
+                    scale: [1, 0.4],
                   }}
                   transition={{
-                    duration: 0.8,
-                    delay: i * 0.1,
+                    duration: 0.9,
+                    delay: i * 0.09,
                     repeat: Infinity,
-                    repeatDelay: 0.5
+                    repeatDelay: 0.5,
+                    ease: 'easeOut',
                   }}
                 />
               ))}
