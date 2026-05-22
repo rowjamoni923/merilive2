@@ -71,7 +71,7 @@ interface Props {
   isNative?: boolean;
 }
 
-export function VirtualBackgroundDialog({ open, onClose, localVideoTrack }: Props) {
+export function VirtualBackgroundDialog({ open, onClose, localVideoTrack, isNative = false }: Props) {
   const persisted = loadPersisted();
   const [mode, setMode] = useState<VirtualBackgroundMode>(persisted.mode);
   const [blurRadius, setBlurRadius] = useState<number>(persisted.blurRadius);
