@@ -2272,13 +2272,9 @@ const LiveStream = () => {
           toast.error("Couldn't start screen share");
         }
       } },
-    // Pkg125: Virtual Background (web hosts only — native uses DeepAR pipeline)
+    // Pkg125/Pkg119: Virtual Background — web uses track-processors, native routes to Kotlin MediaPipe.
     { id: "virtualbg", name: "Background", iconName: "Wand2" as const, color: "from-emerald-400 to-teal-600", shadowColor: "shadow-emerald-500/40", action: () => {
         setShowMoreOptions(false);
-        if (deepAR.isNativeAndroid) {
-          toast.info("Use the Beauty panel for native background effects.");
-          return;
-        }
         setShowVirtualBackground(true);
       } },
     // Pkg123: Noise Cancellation toggle (Krisp — web hosts; native uses WebRTC NS)
@@ -3603,6 +3599,7 @@ const LiveStream = () => {
             open={showVirtualBackground}
             onClose={() => setShowVirtualBackground(false)}
             localVideoTrack={localVideoTrack}
+            isNative={deepAR.isNativeAndroid}
           />
           <NoiseCancellationDialog
             open={showNoiseCancellation}

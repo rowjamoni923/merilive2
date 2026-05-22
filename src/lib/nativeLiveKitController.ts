@@ -258,6 +258,37 @@ class NativeLiveKitController {
     catch (e) { console.warn('[NativeLiveKitController] stopScreenShare failed:', e); }
   }
 
+  // --- Virtual background / blur (Pkg119 native wiring) ----------
+  async isVirtualBackgroundSupported(): Promise<boolean> {
+    try {
+      const r = await NativeLiveKit.isVirtualBackgroundSupported();
+      return !!r.supported;
+    } catch { return false; }
+  }
+
+  async setVirtualBackground(opts: {
+    mode: 'none' | 'blur' | 'image';
+    blurRadius?: number;
+    imagePath?: string;
+  }): Promise<{ ok: boolean; segmenterReady: boolean; imageApplied: boolean }> {
+    try {
+      const r = await NativeLiveKit.setVirtualBackground(opts);
+      return {
+        ok: true,
+        segmenterReady: !!r.segmenterReady,
+        imageApplied: !!r.imageApplied,
+      };
+    } catch (e) {
+      console.warn('[NativeLiveKitController] setVirtualBackground failed:', e);
+      return { ok: false, segmenterReady: false, imageApplied: false };
+    }
+  }
+
+  async getVirtualBackgroundState() {
+    try { return await NativeLiveKit.getVirtualBackgroundState(); }
+    catch { return null; }
+  }
+
   // --- Lifecycle event subscriptions (Step 17) -------------------
   // Returns an unsubscribe function. Safe no-op on web/iOS.
   /** Fires while LiveKit recovers from a transient network drop. */

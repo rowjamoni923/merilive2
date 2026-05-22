@@ -23,6 +23,7 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import {
   applyVirtualBackground,
+  applyVirtualBackgroundNative,
   isVirtualBackgroundSupported,
   type VirtualBackgroundMode,
 } from "@/lib/livekitVirtualBackground";
@@ -64,11 +65,13 @@ function savePersisted(c: PersistedChoice) {
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Live LocalVideoTrack from LiveKit (`useLiveKitClient.localVideoTrack`). */
-  localVideoTrack: any;
+  /** Live LocalVideoTrack from LiveKit (`useLiveKitClient.localVideoTrack`). Not needed on native. */
+  localVideoTrack?: any;
+  /** When true, routes through nativeLiveKitController instead of web track-processors. */
+  isNative?: boolean;
 }
 
-export function VirtualBackgroundDialog({ open, onClose, localVideoTrack }: Props) {
+export function VirtualBackgroundDialog({ open, onClose, localVideoTrack, isNative = false }: Props) {
   const persisted = loadPersisted();
   const [mode, setMode] = useState<VirtualBackgroundMode>(persisted.mode);
   const [blurRadius, setBlurRadius] = useState<number>(persisted.blurRadius);
@@ -96,17 +99,26 @@ export function VirtualBackgroundDialog({ open, onClose, localVideoTrack }: Prop
       toast.error("Please paste an image URL first");
       return;
     }
-    if (!localVideoTrack) {
+    if (isNative && choice.mode === "image") {
+      toast.info("Image background not supported on Android yet — use Blur");
+      return;
+    }
+    if (!isNative && !localVideoTrack) {
       toast.error("Camera not active yet");
       return;
     }
     setApplying(true);
     try {
-      const ok = await applyVirtualBackground(localVideoTrack, {
-        mode: choice.mode,
-        blurRadius: choice.blurRadius,
-        imageUrl: choice.imageUrl,
-      });
+      const ok = isNative
+        ? await applyVirtualBackgroundNative({
+            mode: choice.mode,
+            blurRadius: choice.blurRadius,
+          })
+        : await applyVirtualBackground(localVideoTrack, {
+            mode: choice.mode,
+            blurRadius: choice.blurRadius,
+            imageUrl: choice.imageUrl,
+          });
       savePersisted(choice);
       if (choice.mode === "none") {
         toast.success("Background cleared");
@@ -174,7 +186,7 @@ export function VirtualBackgroundDialog({ open, onClose, localVideoTrack }: Prop
         <div className="flex gap-2">
           <ModeButton value="none" icon={CircleSlash} label="None" />
           <ModeButton value="blur" icon={Sparkles} label="Blur" />
-          <ModeButton value="image" icon={ImageIcon} label="Image" />
+          {!isNative && <ModeButton value="image" icon={ImageIcon} label="Image" />}
         </div>
 
         {mode === "blur" && (
