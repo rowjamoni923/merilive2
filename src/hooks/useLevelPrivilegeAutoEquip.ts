@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { clearFrameCache } from '@/components/common/AvatarWithFrame';
 import { resolveLevelFromTiers } from '@/utils/levelResolver';
+import { useAppSyncEvent } from '@/hooks/useAppSyncEvent';
 
 const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolean => {
   const level = requiredLevel ?? 1;
@@ -24,6 +25,10 @@ const pickHighest = (items: Candidate[]): Candidate | null => {
 };
 
 export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
+  useAppSyncEvent(['profiles', 'user_purchases'], () => {
+    window.dispatchEvent(new CustomEvent('level-privilege-sync'));
+  }, Boolean(userId));
+
   useEffect(() => {
     if (!userId) return;
 
@@ -204,21 +209,20 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
     void syncLevelRewards();
 
-    const channel = supabase
-      .channel(`level-auto-equip-${userId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` }, () => void syncLevelRewards())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_purchases', filter: `user_id=eq.${userId}` }, () => void syncLevelRewards())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_role_frames', filter: `user_id=eq.${userId}` }, () => void syncLevelRewards())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'avatar_frames' }, () => void syncLevelRewards())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'level_privileges' }, () => void syncLevelRewards())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'entry_name_bars' }, () => void syncLevelRewards())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'entry_banners' }, () => void syncLevelRewards())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'vehicle_entrances' }, () => void syncLevelRewards())
-      .subscribe();
+    const onAdminUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table && ['user_role_frames', 'avatar_frames', 'level_privileges', 'entry_name_bars', 'entry_banners', 'vehicle_entrances'].includes(table)) {
+        void syncLevelRewards();
+      }
+    };
+    const onAppSync = () => void syncLevelRewards();
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    window.addEventListener('level-privilege-sync', onAppSync as EventListener);
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
+      window.removeEventListener('level-privilege-sync', onAppSync as EventListener);
     };
   }, [userId]);
 };
