@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
+import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Users, Crown, Loader2, MessageCircle, CheckCircle, Reply, Image, User, AlertCircle, Eye, Paperclip, X as XIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -71,36 +72,19 @@ const AdminHelperMessaging = () => {
     loadUnreadRepliesCount();
   }, [selectedMessage]);
 
-  // ⚡ REALTIME: Zero-refresh instant message & reply updates
+  // ⚡ REALTIME: Zero-refresh instant message & reply updates via admin_broadcast
   useEffect(() => {
-    const channel = supabase
-      .channel(`admin-helper-messaging-rt-${crypto.randomUUID()}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_admin_messages' },
-        (payload) => {
-          console.log('[AdminHelperMessaging] Message update:', payload.eventType);
-          loadRecentMessages();
-          loadUnreadRepliesCount();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'helper_message_replies' },
-        (payload) => {
-          console.log('[AdminHelperMessaging] Reply update:', payload.eventType);
-          loadUnreadRepliesCount();
-          // If viewing a message's replies, refresh them instantly
-          if (selectedMessage) {
-            loadMessageReplies(selectedMessage.id);
-          }
-          loadRecentMessages();
-        }
-      )
-      .subscribe();
+    const handleAdminSync = (event: Event) => {
+      const table = (event as CustomEvent<AdminTableUpdateEvent>).detail?.table;
+      if (table !== 'helper_admin_messages' && table !== 'helper_message_replies') return;
+      loadUnreadRepliesCount();
+      if (table === 'helper_message_replies' && selectedMessage) loadMessageReplies(selectedMessage.id);
+      loadRecentMessages();
+    };
+    window.addEventListener(ADMIN_REALTIME_EVENT, handleAdminSync);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener(ADMIN_REALTIME_EVENT, handleAdminSync);
     };
   }, [selectedMessage]);
 
