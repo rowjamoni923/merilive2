@@ -268,6 +268,65 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               </Select>
             </div>
           )}
+
+          {/* Pkg190 — ConnectionCheck (Item #2) */}
+          <div className="space-y-2 rounded-xl border border-border/60 bg-muted/30 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <Wifi className="w-3.5 h-3.5" /> Connection test
+              </div>
+              <Button
+                size="sm"
+                variant={ccStatus === 'success' ? 'secondary' : 'outline'}
+                onClick={handleRunCheck}
+                disabled={ccStatus === 'running'}
+                className="h-7 gap-1.5 text-xs"
+              >
+                {ccStatus === 'running' ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing…
+                  </>
+                ) : (
+                  <>
+                    <Activity className="w-3.5 h-3.5" /> {ccStatus === 'idle' ? 'Test' : 'Re-test'}
+                  </>
+                )}
+              </Button>
+            </div>
+            {ccChecks.length > 0 && (
+              <ul className="space-y-1">
+                {ccChecks.map((c) => (
+                  <li key={c.id} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate text-foreground/90">{c.name}</span>
+                    <span className="flex items-center gap-1">
+                      {c.status === CheckStatus.RUNNING && (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                      )}
+                      {c.status === CheckStatus.SUCCESS && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      )}
+                      {c.status === CheckStatus.FAILED && (
+                        <XCircle className="w-3.5 h-3.5 text-destructive" />
+                      )}
+                      {c.status === CheckStatus.SKIPPED && (
+                        <span className="text-[10px] text-muted-foreground">skipped</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {ccStatus === 'success' && (
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                All checks passed — you're ready to go live.
+              </p>
+            )}
+            {ccStatus === 'failed' && (
+              <p className="text-[11px] text-destructive">
+                Some checks failed. Try a different network (Wi-Fi / mobile data) or disable VPN.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
