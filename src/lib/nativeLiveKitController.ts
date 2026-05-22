@@ -289,6 +289,30 @@ class NativeLiveKitController {
     catch { return null; }
   }
 
+  // --- Noise cancellation (Pkg123 native wiring) ----------------
+  async isNoiseCancellationSupported(): Promise<boolean> {
+    try {
+      const r = await NativeLiveKit.isNoiseCancellationSupported();
+      return !!r.supported;
+    } catch { return false; }
+  }
+
+  async setNoiseCancellationEnabled(enabled: boolean): Promise<{ ok: boolean; enabled: boolean }> {
+    try {
+      const r = await NativeLiveKit.setNoiseCancellationEnabled({ enabled });
+      return { ok: !!r.applied, enabled: !!r.enabled };
+    } catch (e) {
+      console.warn('[NativeLiveKitController] setNoiseCancellationEnabled failed:', e);
+      return { ok: false, enabled: false };
+    }
+  }
+
+  async getNoiseCancellationState() {
+    try { return await NativeLiveKit.getNoiseCancellationState(); }
+    catch { return null; }
+  }
+
+
   // --- Lifecycle event subscriptions (Step 17) -------------------
   // Returns an unsubscribe function. Safe no-op on web/iOS.
   /** Fires while LiveKit recovers from a transient network drop. */

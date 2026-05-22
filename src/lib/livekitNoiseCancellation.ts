@@ -19,6 +19,8 @@
  */
 import type { LocalAudioTrack } from 'livekit-client';
 import { isLiveKitEnabled } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
+import { isNativeLiveKitAvailable } from './nativeLiveKitGate';
 
 export interface NoiseCancellationOptions {
   /** True to enable Krisp, false to strip any active processor. */
@@ -26,19 +28,37 @@ export interface NoiseCancellationOptions {
 }
 
 /**
- * Detect browser support. Krisp needs AudioContext + AudioWorklet + WASM in a
- * secure context. Mobile Safari < 16 lacks AudioWorklet on some builds.
+ * Detect support. Native Android routes to the Kotlin noise-suppression
+ * module (WebRTC AudioProcessing NS + LiveKit Android SDK filter where
+ * available). Web requires AudioContext + AudioWorklet + WASM + secure ctx.
  */
 export function isNoiseCancellationSupported(): boolean {
+  if (isNativeLiveKitAvailable()) return true;
   if (typeof window === 'undefined') return false;
   if (!window.isSecureContext) return false;
   const AC: any = (window as any).AudioContext || (window as any).webkitAudioContext;
   if (!AC) return false;
-  // AudioWorklet lives on AudioContext.prototype — check without instantiating.
   if (!AC.prototype || !('audioWorklet' in AC.prototype)) return false;
   if (typeof WebAssembly === 'undefined') return false;
   return true;
 }
+
+/**
+ * Native counterpart for hosts running the Capacitor LiveKit publisher.
+ * Routes through nativeLiveKitController. Honors the same Pkg123 kill-switch.
+ * Returns true when applied, false when unsupported / disabled.
+ */
+export async function applyNoiseCancellationNative(opts: NoiseCancellationOptions): Promise<boolean> {
+  if (!isNativeLiveKitAvailable()) return false;
+  if (opts.enabled) {
+    const enabled = await isLiveKitEnabled('noise_cancellation');
+    if (!enabled) return false;
+  }
+  const r = await nativeLiveKitController.setNoiseCancellationEnabled(opts.enabled);
+  if (!r.ok) return false;
+  return opts.enabled ? r.enabled : true;
+}
+
 
 /**
  * Dynamically import krisp-noise-filter so the wasm bundle (~3MB) only loads

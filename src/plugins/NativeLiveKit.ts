@@ -562,6 +562,24 @@ export interface NativeLiveKitPlugin {
     hasRoom: boolean;
   }>;
 
+  // --- Noise cancellation (Pkg123 native) ---------------------
+  /**
+   * Soft probe — returns supported:false on builds where the native
+   * noise-suppression module is missing, so the UI can hide the toggle.
+   * Backed by WebRTC AudioProcessing NS (and, where available, the
+   * LiveKit Android SDK's enhanced noise filter).
+   */
+  isNoiseCancellationSupported(): Promise<{ supported: boolean }>;
+  /**
+   * Toggle background-noise suppression on the LOCAL mic capture path.
+   * Persists across track re-publish (camera switch, mute/unmute, etc.).
+   * Returns the applied state — false when unsupported.
+   */
+  setNoiseCancellationEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; applied: boolean }>;
+  getNoiseCancellationState(): Promise<{ enabled: boolean; supported: boolean; hasRoom: boolean }>;
+
+
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;

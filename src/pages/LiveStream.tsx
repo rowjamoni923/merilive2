@@ -3701,7 +3701,9 @@ const LiveStream = () => {
             open={showNoiseCancellation}
             onClose={() => setShowNoiseCancellation(false)}
             localAudioTrack={localAudioTrack}
+            isNative={deepAR.isNativeAndroid}
           />
+
           <IngressDialog
             open={showIngress}
             onClose={() => setShowIngress(false)}
