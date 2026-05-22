@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
+import { IngressDialog } from "@/components/livekit/IngressDialog";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
@@ -26,6 +27,7 @@ import {
   RotateCcw,
   MonitorUp,
   ShieldCheck,
+  Radio,
   Gamepad2,
   Swords,
   MessageCircle,
@@ -183,6 +185,7 @@ const LiveStream = () => {
   // Pkg125: Virtual Background dialog (web hosts only)
   const [showVirtualBackground, setShowVirtualBackground] = useState(false);
   const [showNoiseCancellation, setShowNoiseCancellation] = useState(false);
+  const [showIngress, setShowIngress] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -2287,6 +2290,11 @@ const LiveStream = () => {
         }
         setShowNoiseCancellation(true);
       } },
+    // Pkg109: RTMP/WHIP Ingress — broadcast from OBS / external encoder into this room.
+    { id: "ingress", name: "Stream Source", iconName: "Radio" as const, color: "from-rose-400 to-red-600", shadowColor: "shadow-rose-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowIngress(true);
+      } },
   ];
 
   // Combined options - host sees all, viewers see base only
@@ -3135,6 +3143,7 @@ const LiveStream = () => {
                       LogOut: <LogOut className="w-6 h-6" strokeWidth={1.8} />,
                       MonitorUp: <MonitorUp className="w-6 h-6" strokeWidth={1.8} />,
                       ShieldCheck: <ShieldCheck className="w-6 h-6" strokeWidth={1.8} />,
+                      Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
                     
@@ -3606,6 +3615,11 @@ const LiveStream = () => {
             open={showNoiseCancellation}
             onClose={() => setShowNoiseCancellation(false)}
             localAudioTrack={localAudioTrack}
+          />
+          <IngressDialog
+            open={showIngress}
+            onClose={() => setShowIngress(false)}
+            streamId={id}
           />
 
         </>
