@@ -22,9 +22,17 @@ import { isLiveKitEnabled } from './livekitSignaling';
 import { nativeLiveKitController } from './nativeLiveKitController';
 import { isNativeLiveKitAvailable } from './nativeLiveKitGate';
 
+export type NoiseCancellationMode = 'standard' | 'bvc';
+
 export interface NoiseCancellationOptions {
   /** True to enable Krisp, false to strip any active processor. */
   enabled: boolean;
+  /**
+   * Pkg148: 'standard' = regular noise filter (typing/fans/traffic);
+   * 'bvc' = Background Voice Cancellation (also removes other people's voices,
+   * e.g. cafe / shop / market). Defaults to 'standard'.
+   */
+  mode?: NoiseCancellationMode;
 }
 
 /**
