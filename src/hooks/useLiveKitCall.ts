@@ -475,6 +475,8 @@ export function useLiveKitCall(
         if (callId) registerMetadataRoom('call', callId, room);
         // Pkg122: bind for room-wide metadata (shared room state).
         if (callId) registerRoomMetadataRoom('call', callId, room);
+        // Pkg121: bind for text/byte streams (chunked chat, file attachments).
+        if (callId) registerStreamRoom('call', callId, room);
 
 
         // Enable camera and microphone
