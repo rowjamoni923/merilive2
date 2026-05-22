@@ -7449,6 +7449,39 @@ export type Database = {
         }
         Relationships: []
       }
+      livekit_ingress_ops_log: {
+        Row: {
+          action: string
+          actor_admin_role: string
+          created_at: string
+          error: string | null
+          id: string
+          ingress_id: string | null
+          result_count: number | null
+          room_name: string | null
+        }
+        Insert: {
+          action: string
+          actor_admin_role: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          ingress_id?: string | null
+          result_count?: number | null
+          room_name?: string | null
+        }
+        Update: {
+          action?: string
+          actor_admin_role?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          ingress_id?: string | null
+          result_count?: number | null
+          room_name?: string | null
+        }
+        Relationships: []
+      }
       livekit_moderation_log: {
         Row: {
           action: string
