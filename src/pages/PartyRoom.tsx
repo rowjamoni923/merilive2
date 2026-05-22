@@ -2053,12 +2053,10 @@ const PartyRoom = () => {
       {moderateTarget && room?.id && (
         <HostModerationSheet
           open={!!moderateTarget}
-          onOpenChange={(o) => { if (!o) setModerateTarget(null); }}
-          scope="party"
-          scopeId={room.id}
+          onClose={() => setModerateTarget(null)}
           roomName={`party_${room.id}`}
-          targetIdentity={moderateTarget.id}
-          targetDisplayName={moderateTarget.name}
+          identity={moderateTarget.id}
+          displayName={moderateTarget.name}
         />
       )}
 
