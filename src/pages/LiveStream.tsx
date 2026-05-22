@@ -3767,6 +3767,10 @@ const LiveStream = () => {
             onClose={() => setShowSimulcast(false)}
             streamId={id}
           />
+          <PublishLayersDialog
+            open={showPublishLayers}
+            onClose={() => setShowPublishLayers(false)}
+          />
           <AgentDispatchDialog
             open={showAgentDispatch}
             onClose={() => setShowAgentDispatch(false)}
