@@ -68,6 +68,7 @@ import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom"
 import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
 import { ReactionPickerSheet } from "@/components/livekit/ReactionPickerSheet";
+import { PartyRaiseHandUI } from "@/components/livekit/PartyRaiseHandUI";
 
 
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
@@ -197,6 +198,7 @@ const PartyRoom = () => {
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showRoomControls, setShowRoomControls] = useState(false);
   const [showSeatRequests, setShowSeatRequests] = useState(false);
@@ -2084,6 +2086,11 @@ const PartyRoom = () => {
           </button>
         </>
       )}
+
+      {/* Pkg131: Raise-Hand — audience CTA + host queue panel */}
+      {room?.id && <PartyRaiseHandUI roomId={room.id} isHost={isHost} hasSeat={myPosition !== null} showQueue={showRaiseHandQueue} onCloseQueue={() => setShowRaiseHandQueue(false)} onOpenQueue={() => setShowRaiseHandQueue(true)} currentUserId={currentUser?.id} />}
+
+
 
 
       {/* Gift Panel */}
