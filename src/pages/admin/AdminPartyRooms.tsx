@@ -178,7 +178,13 @@ export default function AdminPartyRooms() {
         .update({ left_at: new Date().toISOString(), position: null })
         .eq('room_id', selectedRoom.id)
         .is('left_at', null);
-      
+
+      // Pkg99: server-side LiveKit room termination — instantly evicts everyone.
+      try {
+        const { adminLiveKitDisconnectRoom } = await import('@/admin/livekitModerate');
+        void adminLiveKitDisconnectRoom(`party_${selectedRoom.id}`, 'admin_force_close');
+      } catch { /* non-fatal */ }
+
       toast.success("Party room closed");
       setShowEndDialog(false);
       setSelectedRoom(null);

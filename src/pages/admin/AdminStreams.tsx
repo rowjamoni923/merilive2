@@ -279,6 +279,12 @@ export default function AdminStreams() {
       .update({ left_at: now } as any)
       .eq("stream_id", streamId)
       .is("left_at", null);
+
+    // Pkg99: server-side LiveKit room termination — instantly evicts host + all viewers.
+    try {
+      const { adminLiveKitDisconnectRoom } = await import('@/admin/livekitModerate');
+      void adminLiveKitDisconnectRoom(`live_${streamId}`, 'admin_force_close');
+    } catch { /* non-fatal */ }
   }, []);
 
   useEffect(() => {
