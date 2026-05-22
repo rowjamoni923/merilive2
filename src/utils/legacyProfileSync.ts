@@ -96,25 +96,34 @@ export async function triggerLegacyProfileSync(
       return null;
     }
 
-    const { data, error } = await supabase.functions.invoke("sync-user-profile", {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-user-profile`, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
+      body: JSON.stringify({}),
     });
-    if (error) {
+
+    const text = await response.text();
+    let data: LegacyProfileSyncResult | null = null;
+    try {
+      data = text ? (JSON.parse(text) as LegacyProfileSyncResult) : null;
+    } catch {
+      data = null;
+    }
+
+    if (!response.ok) {
       // Best-effort sync — never surface as runtime error.
-      // Covers 401 (stale session), non-2xx wrappers, network blips, etc.
-      const status = (error as any)?.context?.status ?? (error as any)?.status;
-      const msg = (error as any)?.message || "";
-      if (status === 401 || status === 403 || /401|403|unauthor|non-2xx/i.test(msg)) {
-        return null;
+      // Covers stale sessions, old deployed 401 responses, and transient edge failures.
+      if (response.status !== 401 && response.status !== 403) {
+        console.warn("[legacyProfileSync] non-fatal response:", response.status, data ?? text);
       }
-      console.warn("[legacyProfileSync] non-fatal error:", msg);
       return null;
     }
 
-
-    const result = (data as LegacyProfileSyncResult | null) ?? null;
+    const result = data ?? null;
 
     if (typeof window !== "undefined") {
       if (result?.synced) {
