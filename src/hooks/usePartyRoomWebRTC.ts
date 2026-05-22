@@ -477,6 +477,12 @@ export function usePartyRoomWebRTC(
         } catch (err) {
           console.warn('[Pkg98] registerActiveSpeakerRoom(party) failed:', err);
         }
+        // Pkg101: connection-quality network bars for each seat.
+        try {
+          registerConnectionQualityRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg101] registerConnectionQualityRoom(party) failed:', err);
+        }
 
         setState(prev => ({
           ...prev,
