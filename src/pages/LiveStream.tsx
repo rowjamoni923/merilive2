@@ -3048,16 +3048,8 @@ const LiveStream = () => {
       {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
       {id && <CaptionOverlay scope="live" id={id} />}
 
-      {/* Pkg146: Picture-in-Picture toggle for viewers (auto-hidden if unsupported) */}
-      {!isHost && remoteVideoTrack && (
-        <PictureInPictureButton pipId="live-host" label="Picture in picture" />
-      )}
+      {/* Pkg189: Removed top-left utility buttons (PiP / Audio-only / Quality) per user request */}
 
-      {/* Pkg147: Audio-only data-saver toggle for viewers */}
-      {!isHost && <AudioOnlyToggleButton label="Audio-only mode" />}
-
-      {/* Pkg149: Adaptive video quality picker for viewers */}
-      {!isHost && remoteVideoTrack && <VideoQualityButton label="Video quality" />}
 
 
 
