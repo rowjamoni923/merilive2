@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.PowerManager
 import com.merilive.app.service.CallForegroundService
 import android.util.Log
+import android.util.Base64
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -45,6 +46,7 @@ import io.livekit.android.room.track.CameraPosition
 import io.livekit.android.room.track.LocalVideoTrack
 import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
+import io.livekit.android.room.track.DataPublishReliability
 import io.livekit.android.room.track.VideoCaptureParameter
 import io.livekit.android.room.track.VideoEncoding
 import io.livekit.android.room.track.VideoPreset169
@@ -592,6 +594,26 @@ class LiveKitPlugin : Plugin() {
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
+    fun sendData(call: PluginCall) {
+        val payloadBase64 = call.getString("payloadBase64")
+            ?: return call.reject("payloadBase64 required")
+        val reliable = call.getBoolean("reliable", true) ?: true
+        val topic = call.getString("topic", null)
+        val r = room ?: return call.reject("Not connected")
+        scope.launch {
+            try {
+                val bytes = Base64.decode(payloadBase64, Base64.DEFAULT)
+                val reliability = if (reliable) DataPublishReliability.RELIABLE else DataPublishReliability.LOSSY
+                val result = r.localParticipant.publishData(bytes, reliability, topic)
+                result.exceptionOrNull()?.let { throw it }
+                val ret = JSObject(); ret.put("sent", true); call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("sendData failed: ${e.message}")
             }
         }
     }
