@@ -1421,7 +1421,7 @@ const Chat = () => {
     const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
     const { data: profiles } = await supabase
       .from('profiles_public')
-      .select('id, display_name, avatar_url, user_level')
+      .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
       .in('id', senderIds);
 
     const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
