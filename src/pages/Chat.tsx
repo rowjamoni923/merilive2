@@ -85,6 +85,8 @@ interface Conversation {
     is_host: boolean | null;
     gender: string | null;
     user_level?: number | null;
+    host_level?: number | null;
+    max_user_level?: number | null;
     country_flag?: string | null;
     country_name?: string | null;
     city?: string | null;
