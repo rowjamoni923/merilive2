@@ -857,8 +857,8 @@ const LiveStream = () => {
     };
     
     fetchMessages();
-    
-    fetchMessages();
+
+
 
     // Pkg79: LiveKit DataPacket chat — replaces the Supabase
     // `stream_chat_${id}` postgres_changes subscription entirely.
