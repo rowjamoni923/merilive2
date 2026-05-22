@@ -111,7 +111,7 @@ export const sendGiftNotification = async (
     userId: receiverId,
     type: 'gift_received',
     title: `🎁 ${senderName} sent you a gift!`,
-    message: `${giftName} (${coinAmount} coins)`,
+    message: `${giftName} (${coinAmount} Diamonds)`,
     data: {
       sender_id: senderId,
       sender_name: senderName,
@@ -184,7 +184,7 @@ export const sendCoinsAddedNotification = async (
   return sendNotification({
     userId,
     type: helperName ? 'coin_purchase_helper' : typeMap[source],
-    title: helperName ? `💎 ${helperName} added coins!` : `💎 Diamonds added!`,
+    title: helperName ? `💎 ${helperName} added Diamonds!` : `💎 Diamonds added!`,
     message: `${amount.toLocaleString()} Diamonds have been added to your account`,
     data: {
       amount,
