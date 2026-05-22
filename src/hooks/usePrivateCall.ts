@@ -1153,23 +1153,15 @@ export function usePrivateCall(userId: string | null) {
   }, [userId]);
 
 
-  // 🔴 CALL-END BROADCAST LISTENER: Instant call termination for BOTH parties
-  // When either side ends the call, the other side gets notified in <100ms via broadcast
-  // This is MUCH faster than waiting for DB realtime (which can take 1-3 seconds)
+  // 🔴 PEER NOTIFICATION LISTENERS — instant call_ended + call_accepted via LiveKit DataPacket
+  // Pkg86 audit (LiveKit-Purist): Supabase `call-end-listener-${userId}` channel FULLY REMOVED.
+  // call_ended → LiveKit `livekit-call-ended` window event (Pkg73, was already pure LiveKit since Pkg78)
+  // call_accepted → LiveKit `livekit-call-accepted` window event (Pkg86, just promoted to sole path).
+  // Worst-case caller-side miss → 5s outgoingStatusPollRef on `private_calls.status` catches it.
   useEffect(() => {
     if (!userId) return;
     let isCleanedUp = false;
 
-    // Listen for call-end broadcasts for ANY call we're part of
-    // We subscribe to our own channel so the other party can notify us
-    const endChannel = supabase
-      .channel(`call-end-listener-${userId}`)
-      .on('broadcast', { event: 'call_accepted' }, (payload) => {
-        if (isCleanedUp) return;
-        const data = payload.payload as any;
-        if (!data?.callId) return;
-
-        const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
 
         // Ignore events from a different active call; if callId isn't set yet, bind now
         if (trackedCallId && trackedCallId !== data.callId) return;
