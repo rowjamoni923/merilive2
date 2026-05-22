@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
+import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
+import { raiseHand, lowerHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
 import { RecordingDialog } from "@/components/livekit/RecordingDialog";
@@ -46,6 +48,7 @@ import {
   ChevronDown,
   Mic,
   MicOff,
+  Hand,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -196,6 +199,7 @@ const LiveStream = () => {
   const [showSipDial, setShowSipDial] = useState(false);
   const [showRecording, setShowRecording] = useState(false);
   const [showSimulcast, setShowSimulcast] = useState(false);
+  const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -2256,6 +2260,27 @@ const LiveStream = () => {
     setPKResult(null);
   };
 
+  // Pkg131: raise-hand queue (live) — used for viewer toggle label + host count badge.
+  const raisedHands = useRaisedHands('live', id);
+  const iHaveRaised = !!(currentUserId && raisedHands.some(h => h.identity === currentUserId));
+
+  const handleToggleRaiseHand = async () => {
+    if (!id) return;
+    setShowMoreOptions(false);
+    try {
+      if (iHaveRaised) {
+        await lowerHand('live', id);
+        toast.success("Hand lowered");
+      } else {
+        const ok = await raiseHand('live', id);
+        if (ok) toast.success("Hand raised — host will see your request");
+        else toast.error("Couldn't raise hand. Try again.");
+      }
+    } catch {
+      toast.error("Couldn't update raise-hand state.");
+    }
+  };
+
   // Base options for all users (viewers)
   const baseOptions = [
     { id: "messages", name: "Messages", iconName: "MessageCircle" as const, color: "from-pink-400 to-rose-500", shadowColor: "shadow-pink-500/40", action: () => navigate("/chat") },
@@ -2263,6 +2288,15 @@ const LiveStream = () => {
     { id: "tasks", name: "Tasks", iconName: "ClipboardList" as const, color: "from-amber-400 to-orange-500", shadowColor: "shadow-amber-500/40", action: () => navigate("/tasks") },
     { id: "topup", name: "Top Up", iconName: "Gem" as const, color: "from-emerald-400 to-teal-500", shadowColor: "shadow-emerald-500/40", action: () => navigate("/recharge") },
     { id: "music", name: "Music", iconName: "Music" as const, color: "from-fuchsia-400 to-pink-500", shadowColor: "shadow-fuchsia-500/40", action: () => { setShowMoreOptions(false); setShowMusicPlayer(true); } },
+    // Pkg131: audience raise-hand toggle (also shown to host as no-op preview — hidden below).
+    ...(!isHost ? [{
+      id: "raisehand",
+      name: iHaveRaised ? "Lower Hand" : "Raise Hand",
+      iconName: "Hand" as const,
+      color: iHaveRaised ? "from-slate-400 to-slate-600" : "from-amber-400 to-yellow-500",
+      shadowColor: "shadow-amber-500/40",
+      action: handleToggleRaiseHand,
+    }] : []),
   ];
 
   // Host-only options: Flip
@@ -2321,6 +2355,11 @@ const LiveStream = () => {
     { id: "simulcast", name: "Simulcast", iconName: "Cast" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => {
         setShowMoreOptions(false);
         setShowSimulcast(true);
+      } },
+    // Pkg131: Raised-Hands queue panel (host only). Badge shows queue length.
+    { id: "raisedhands", name: raisedHands.length > 0 ? `Raised Hands (${raisedHands.length})` : "Raised Hands", iconName: "Hand" as const, color: "from-amber-400 to-yellow-500", shadowColor: "shadow-amber-500/40", action: () => {
+        setShowMoreOptions(false);
+        setShowRaiseHandQueue(true);
       } },
   ];
 
@@ -3174,6 +3213,7 @@ const LiveStream = () => {
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
                       Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
                       Cast: <Cast className="w-6 h-6" strokeWidth={1.8} />,
+                      Hand: <Hand className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
                     
@@ -3676,6 +3716,13 @@ const LiveStream = () => {
             open={showSimulcast}
             onClose={() => setShowSimulcast(false)}
             streamId={id}
+          />
+          <RaiseHandQueueSheet
+            open={showRaiseHandQueue}
+            onClose={() => setShowRaiseHandQueue(false)}
+            scope="live"
+            id={id}
+            roomName={id ? `live_${id}` : null}
           />
 
         </>
