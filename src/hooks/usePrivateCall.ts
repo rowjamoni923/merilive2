@@ -277,11 +277,17 @@ export function usePrivateCall(userId: string | null) {
       }
 
       // Only update caller remaining - total spent/earned comes from DB fetch
-      if (currentCallIdRef.current === callId && !callEndedRef.current) {
+      // RPC returns `caller_balance` (post-deduction); older code read `caller_remaining` which is undefined.
+      const remaining = (typeof result.caller_balance === 'number')
+        ? result.caller_balance
+        : (typeof result.caller_remaining === 'number' ? result.caller_remaining : undefined);
+      if (currentCallIdRef.current === callId && !callEndedRef.current && typeof remaining === 'number') {
         setCallState(prev => ({
           ...prev,
-          callerRemainingCoins: result.caller_remaining || 0,
+          callerRemainingCoins: remaining,
         }));
+        // Mirror to global cached balance so Profile/header updates instantly
+        try { updateCachedBalance(remaining); } catch {}
       }
 
       console.log('[Billing] Minute charged:', result);
