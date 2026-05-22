@@ -148,7 +148,7 @@ export async function fetchCallE2EEKey(callId: string): Promise<string | null> {
  */
 export async function buildE2EEOptions(
   key: string | null | undefined,
-): Promise<{ e2eeOption: unknown | undefined }> {
+): Promise<{ e2eeOption: import('livekit-client').E2EEOptions | undefined }> {
   const built = await buildE2EERoomOptions(key);
-  return { e2eeOption: built ?? undefined };
+  return { e2eeOption: (built as import('livekit-client').E2EEOptions | null) ?? undefined };
 }
