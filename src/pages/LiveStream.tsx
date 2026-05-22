@@ -3,6 +3,8 @@ import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFi
 import { VirtualBackgroundDialog } from "@/components/livekit/VirtualBackgroundDialog";
 import { NoiseCancellationDialog } from "@/components/livekit/NoiseCancellationDialog";
 import { RaiseHandQueueSheet } from "@/components/livekit/RaiseHandQueueSheet";
+import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
+import { ReactionPickerSheet } from "@/components/livekit/ReactionPickerSheet";
 import { raiseHand, lowerHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
@@ -200,6 +202,7 @@ const LiveStream = () => {
   const [showRecording, setShowRecording] = useState(false);
   const [showSimulcast, setShowSimulcast] = useState(false);
   const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -2288,6 +2291,8 @@ const LiveStream = () => {
     { id: "tasks", name: "Tasks", iconName: "ClipboardList" as const, color: "from-amber-400 to-orange-500", shadowColor: "shadow-amber-500/40", action: () => navigate("/tasks") },
     { id: "topup", name: "Top Up", iconName: "Gem" as const, color: "from-emerald-400 to-teal-500", shadowColor: "shadow-emerald-500/40", action: () => navigate("/recharge") },
     { id: "music", name: "Music", iconName: "Music" as const, color: "from-fuchsia-400 to-pink-500", shadowColor: "shadow-fuchsia-500/40", action: () => { setShowMoreOptions(false); setShowMusicPlayer(true); } },
+    // Pkg132: floating reactions — visible to everyone (host + viewers)
+    { id: "react", name: "React", iconName: "Smile" as const, color: "from-yellow-400 to-orange-500", shadowColor: "shadow-yellow-500/40", action: () => { setShowMoreOptions(false); setShowReactionPicker(true); } },
     // Pkg131: audience raise-hand toggle (also shown to host as no-op preview — hidden below).
     ...(!isHost ? [{
       id: "raisehand",
@@ -3724,6 +3729,13 @@ const LiveStream = () => {
             id={id}
             roomName={id ? `live_${id}` : null}
           />
+          <ReactionPickerSheet
+            open={showReactionPicker}
+            onClose={() => setShowReactionPicker(false)}
+            scope="live"
+            id={id}
+          />
+          <FloatingReactionsOverlay scope="live" id={id} bottomOffset={120} />
 
         </>
       )}

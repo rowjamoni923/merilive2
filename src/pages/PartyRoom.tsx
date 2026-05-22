@@ -66,6 +66,9 @@ import { RoomEndedModal } from "@/components/room/RoomEndedModal";
 import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
 import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom";
 import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
+import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
+import { ReactionPickerSheet } from "@/components/livekit/ReactionPickerSheet";
+
 
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
 import { GameFooterNew } from "@/components/games/GameFooterNew";
@@ -193,6 +196,7 @@ const PartyRoom = () => {
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showRoomControls, setShowRoomControls] = useState(false);
   const [showSeatRequests, setShowSeatRequests] = useState(false);
@@ -2059,6 +2063,28 @@ const PartyRoom = () => {
           displayName={moderateTarget.name}
         />
       )}
+
+      {/* Pkg132: Floating reactions overlay + picker (all participants) */}
+      {room?.id && (
+        <>
+          <FloatingReactionsOverlay scope="party" id={room.id} bottomOffset={140} />
+          <ReactionPickerSheet
+            open={showReactionPicker}
+            onClose={() => setShowReactionPicker(false)}
+            scope="party"
+            id={room.id}
+          />
+          <button
+            type="button"
+            onClick={() => setShowReactionPicker(true)}
+            className="fixed left-4 bottom-28 z-[55] w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg shadow-orange-500/40 flex items-center justify-center active:scale-95 transition"
+            aria-label="Send reaction"
+          >
+            <Smile className="w-6 h-6 text-white" strokeWidth={2} />
+          </button>
+        </>
+      )}
+
 
       {/* Gift Panel */}
       <AnimatePresence>
