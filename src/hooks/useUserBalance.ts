@@ -157,7 +157,6 @@ export function clearBalanceCache(): void {
  */
 export function useUserBalancePrefetch(): void {
   const prefetched = useRef(false);
-  const realtimeCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (prefetched.current) return;
@@ -168,48 +167,11 @@ export function useUserBalancePrefetch(): void {
       fetchBalance();
     }, 300);
 
-    // Set up realtime subscription for balance updates
-    const setupRealtimeBalance = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
-
-      const channel = supabase
-        .channel(`user-balance-updates-${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`,
-          },
-          (payload) => {
-            const next = payload.new as { coins?: number; diamonds?: number; beans?: number };
-            const newBalance = Math.max(Number(next?.coins || 0), Number((next as any)?.diamonds || 0));
-            updateCachedBalance(newBalance);
-            // Pkg85: own-row beans push for My Beans instant update (Profile page, etc.)
-            if (next?.beans !== undefined) {
-              try {
-                window.dispatchEvent(new CustomEvent('own-beans-updated', {
-                  detail: { beans: Number(next.beans || 0), userId: user.id },
-                }));
-              } catch {}
-            }
-          }
-        )
-        .subscribe();
-
-      realtimeCleanupRef.current = () => {
-        supabase.removeChannel(channel);
-      };
-    };
-
-    setupRealtimeBalance();
+    // `profiles` is deliberately NOT in supabase_realtime publication.
+    // Balance updates are optimistic after RPC success + REST refresh on demand.
 
     return () => {
       clearTimeout(timer);
-      realtimeCleanupRef.current?.();
     };
   }, []);
 }
