@@ -60,11 +60,7 @@ const HIGH_FREQUENCY_TABLES = new Set<string>();
 // Each postgres_changes subscription generates realtime messages that cost $2.50/million.
 const BASE_MONITORED_TABLES: TableSubscription[] = [];
 
-const REALTIME_PUBLICATION_TABLES = new Set([
-  'admin_broadcast',
-  'notifications',
-  'user_active_sessions',
-]);
+const REALTIME_PUBLICATION_TABLES = new Set<string>();
 
 const getActiveMonitoredTables = (): TableSubscription[] => {
   const tables = new Set<string>(BASE_MONITORED_TABLES.map((t) => t.table));
