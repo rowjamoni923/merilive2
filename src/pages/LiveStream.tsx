@@ -590,7 +590,6 @@ const LiveStream = () => {
     isScreenSharing,
     screenTrack,
     remoteScreenTracks,
-    localVideoTrack,
   } = useLiveKitClient({
     liveSignalingStreamId: id,
     giftSignalingStreamId: id,
