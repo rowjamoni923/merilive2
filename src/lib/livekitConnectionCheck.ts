@@ -17,7 +17,7 @@
  * $1400-rule safe: zero new Supabase channels, zero polling, fires only when
  * the user explicitly taps "Test connection".
  */
-import { ConnectionCheck, CheckStatus, type ChecksResults, type CheckInfo } from 'livekit-client';
+import { ConnectionCheck, CheckStatus, type CheckInfo } from 'livekit-client';
 import { getLiveKitToken } from '@/services/livekitService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -85,4 +85,4 @@ export async function runConnectionCheck(
 }
 
 export { CheckStatus };
-export type { CheckInfo, ChecksResults };
+export type { CheckInfo };
