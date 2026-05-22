@@ -118,37 +118,49 @@ export const ChametStyleViewerPanel = ({
     setLoading(false);
   }, []);
 
-  // Pkg81 LiveKit-Purist audit: REMOVED `chamet-viewers-${roomId}` Supabase
-  // postgres_changes channel on `party_room_participants`. Viewer presence
-  // arrives via LiveKit `participant_joined` / `participant_left` DataPackets
-  // (Pkg80). We refetch the full list on those window events + a 20s safety
-  // REST poll. Satisfies $1400-rule (≥5s G1) and LiveKit-Purist policy.
+  // Pkg184 LiveKit-Purist: REMOVED 20s safety REST poll. Viewer in/out is
+  // applied as a pure in-memory delta from LiveKit `participant_joined` /
+  // `participant_left` window events (Pkg80/81b). Initial snapshot fetched
+  // once on open; thereafter zero REST hits, zero polling, 0ms updates.
   useEffect(() => {
     isMountedRef.current = true;
     if (!isOpen || !roomId) return;
 
-    // Initial fetch
+    // Initial fetch (once, for mid-session join history)
     fetchPartyViewers();
 
-    // LiveKit window-event refresh (joined / left / seat_action)
     const onPartyEvent = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       const payload = detail?.payload;
       if (!payload || payload.roomId !== roomId) return;
-      fetchPartyViewers();
+
+      if (payload.type === 'participant_joined') {
+        const userId = payload.userId;
+        if (!userId) return;
+        setRealtimeViewers((prev) => {
+          if (prev.some((v) => v.id === userId)) return prev;
+          const next: Viewer = {
+            id: userId,
+            displayName: payload.userName || 'Anonymous',
+            avatarUrl: payload.userAvatar,
+            level: payload.userLevel || 1,
+            countryFlag: '🌍',
+            isVIP: false,
+            frameId: undefined,
+          };
+          return [next, ...prev];
+        });
+      } else if (payload.type === 'participant_left') {
+        const userId = payload.userId;
+        if (!userId) return;
+        setRealtimeViewers((prev) => prev.filter((v) => v.id !== userId));
+      }
     };
     window.addEventListener('livekit-party-event', onPartyEvent);
-
-    // Safety net: REST snapshot every 20s in case a LiveKit packet is missed
-    // guard-ok: 20s ≥ 5s floor, single bounded poll, no realtime channel
-    const pollId = window.setInterval(() => {
-      if (isMountedRef.current) fetchPartyViewers();
-    }, 20000);
 
     return () => {
       isMountedRef.current = false;
       window.removeEventListener('livekit-party-event', onPartyEvent);
-      window.clearInterval(pollId);
     };
   }, [isOpen, roomId, fetchPartyViewers]);
 
