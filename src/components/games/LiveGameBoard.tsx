@@ -182,41 +182,20 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     fetchGames();
     fetchUserCoins();
 
-    // Real-time subscription for user's coin balance
-    const setupCoinSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const channel = supabase
-          .channel('game-coin-balance')
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'profiles',
-              filter: `id=eq.${user.id}`
-            },
-            (payload) => {
-              const newCoins = (payload.new as any).coins;
-              if (typeof newCoins === 'number') {
-                setUserCoins(newCoins);
-              }
-            }
-          )
-          .subscribe();
-
-        return () => {
-          supabase.removeChannel(channel);
-        };
-      }
-    };
-
-    const cleanup = setupCoinSubscription();
-    
+    // Pkg83: Removed duplicate static-named 'game-coin-balance' channel
+    // (G3 violation + duplicated useUserBalance own-row subscription).
+    // Listen to global 'own-beans-updated' window event (Pkg85) instead, and
+    // refresh via REST on visibility change as safety net.
+    const onOwnUpdate = () => { void fetchUserCoins(); };
+    window.addEventListener('own-beans-updated', onOwnUpdate);
+    const onVis = () => { if (document.visibilityState === 'visible') void fetchUserCoins(); };
+    document.addEventListener('visibilitychange', onVis);
     return () => {
-      cleanup.then(fn => fn && fn());
+      window.removeEventListener('own-beans-updated', onOwnUpdate);
+      document.removeEventListener('visibilitychange', onVis);
     };
   }, []);
+
 
   const fetchGames = async () => {
     try {
