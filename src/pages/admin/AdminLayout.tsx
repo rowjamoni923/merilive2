@@ -41,6 +41,7 @@ import {
   UserPlus,
   DollarSign,
   Phone,
+  PhoneIncoming,
   Crown,
   Star,
   TrendingDown,
@@ -894,6 +895,13 @@ const navGroups: NavGroup[] = [
         path: "/admin/track-recordings",
         hubKey: "content-hub",
         description: "Pkg113 per-participant moderation evidence — admin-only audio/video track recordings.",
+      },
+      {
+        label: "SIP Inbound",
+        icon: PhoneIncoming,
+        path: "/admin/sip-inbound",
+        hubKey: "content-hub",
+        description: "Pkg115 — map PSTN phone numbers (DIDs) to LiveKit rooms. Callers join as regular participants.",
       },
       {
         label: "Reels",
