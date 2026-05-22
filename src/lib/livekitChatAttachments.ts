@@ -29,6 +29,8 @@ import {
   registerByteStreamHandler,
   sendText,
   sendFile,
+  streamText,
+  streamBytes,
   type StreamScope,
   type TextStreamHandlerContext,
   type ByteStreamHandlerContext,
