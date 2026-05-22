@@ -1304,15 +1304,21 @@ const PartyRoom = () => {
         const closedAt = new Date().toISOString();
 
         // Pkg78: Supabase `party-room-close-${roomId}` broadcast REMOVED.
-        // LiveKit publishPartyClosed (below) is the sole instant fanout path.
+        // LiveKit publishPartyClosed is the sole instant fanout path.
 
-        // Pkg75: also fire a LiveKit DataPacket to every viewer in parallel.
-        // Sub-50ms delivery (vs 1–3s Supabase broadcast). Fire-and-forget;
-        // viewers converge with the broadcast handler via showRoomClosedModal guard.
-        publishPartyClosed(roomId, {
+        // Pkg75 audit fix: AWAIT publishPartyClosed BEFORE the LiveKit Room
+        // can be disconnected by the unmount cleanup. Previously fire-and-forget,
+        // which meant `publishData(reliable)` could be queued but never flushed
+        // when cleanupWebRTC ran right after leaveRoom — viewers then had to
+        // wait for the 20s safety poll. Awaiting (~<50ms) guarantees the
+        // packet leaves the host's Room while it is still `connected`.
+        await publishPartyClosed(roomId, {
           hostId: currentUser.id,
           closedAt,
-        }).catch((err) => console.warn('[Pkg75] publishPartyClosed:', err));
+        }).catch((err) => {
+          console.warn('[Pkg75] publishPartyClosed:', err);
+          return false;
+        });
 
         // Then mark room as inactive in database
         const { error: updateError } = await supabase
