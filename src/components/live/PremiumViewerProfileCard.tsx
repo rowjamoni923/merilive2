@@ -605,6 +605,21 @@ export const PremiumViewerProfileCard = ({
                             </Button>
                           </motion.div>
                         </div>
+                        {onModerate && (
+                          <motion.div className="pt-2" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                onModerate(viewer.id);
+                                onClose();
+                              }}
+                              className="w-full rounded-xl h-10 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500"
+                            >
+                              <Shield className="w-4 h-4 mr-2" />
+                              Moderate (Promote / Demote / Mute / Kick)
+                            </Button>
+                          </motion.div>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
