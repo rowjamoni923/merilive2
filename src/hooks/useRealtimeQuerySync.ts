@@ -16,14 +16,14 @@ import { refreshGlobalSettingsCache } from '@/hooks/useGlobalSettings';
 import { clearEntryAnimationCache } from '@/utils/fetchEntryAnimation';
 import { clearAllFrameCaches } from '@/utils/frameCache';
 
-// Tables added to supabase_realtime publication for instant admin→app sync
+// Tables mapped to cache keys. The allowlist below decides which ones may use
+// Supabase Realtime; room/live/call/gift fanout stays on LiveKit/FCM + REST.
 const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   live_streams: [['index-hosts-v4'], ['live-stream'], ['active-streams']],
   conversations: [['conversations'], ['recent-chats']],
   messages: [['messages'], ['conversations']],
   gift_transactions: [['user-profile'], ['gift-history'], ['host-rankings-v2'], ['gifter-rankings-v2'], ['game-rankings-v2']],
   party_rooms: [['party-rooms'], ['index-hosts-v4']],
-  party_room_participants: [['party-rooms'], ['index-hosts-v4']],
   private_calls: [['private-calls'], ['call-history'], ['index-hosts-v4'], ['host-rankings-v2']],
   notifications: [['notifications']],
   app_settings: [['app-settings'], ['global-settings']],
@@ -124,22 +124,14 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   user_reports: [['user-reports']],
 };
 
-// Keep the global bridge scoped to tables that are actually in the Supabase
-// realtime publication. Binding every cache-mapped table was pushing the
-// realtime guard into pressure mode and could prevent the home host feed from
-// receiving profile online/offline events reliably.
+// Keep the global bridge scoped to approved non-room realtime tables.
+// Live/call/party/stream/gift money-room tables are intentionally excluded:
+// room signaling uses LiveKit/FCM + REST snapshots, never Supabase Realtime.
 const REALTIME_PUBLICATION_TABLES = new Set([
   'app_settings',
   'conversations',
   'messages',
   'notifications',
-  'private_calls',
-  'live_streams',
-  'party_rooms',
-  'party_room_participants',
-  'party_room_messages',
-  'stream_chat',
-  'gift_transactions',
   'support_tickets',
   'support_messages',
   'face_verification_submissions',
