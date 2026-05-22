@@ -10,8 +10,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, Mic, Volume2, CheckCircle2 } from 'lucide-react';
+import { Camera, Mic, Volume2, CheckCircle2, Wifi, Loader2, XCircle, Activity } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  runConnectionCheck,
+  CheckStatus,
+  type CheckInfo,
+  type CheckRunStatus,
+} from '@/lib/livekitConnectionCheck';
 import {
   enumerateMediaDevices,
   getDevicePreferences,
@@ -33,6 +39,9 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
   }>({ audioinput: [], videoinput: [], audiooutput: [] });
   const [prefs, setPrefs] = useState<DevicePreferences>({});
   const [micLevel, setMicLevel] = useState(0);
+  // Pkg190 — ConnectionCheck state (Item #2)
+  const [ccStatus, setCcStatus] = useState<CheckRunStatus>('idle');
+  const [ccChecks, setCcChecks] = useState<CheckInfo[]>([]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const previewStreamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -148,6 +157,21 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
     onOpenChange(false);
   };
 
+  const handleRunCheck = async () => {
+    setCcStatus('running');
+    setCcChecks([]);
+    try {
+      await runConnectionCheck(({ checks, overall }) => {
+        setCcChecks([...checks]);
+        setCcStatus(overall);
+      });
+    } catch (err: any) {
+      console.warn('[ConnectionCheck] failed', err?.message);
+      setCcStatus('failed');
+      toast.error('Connection test failed to start');
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -244,6 +268,65 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               </Select>
             </div>
           )}
+
+          {/* Pkg190 — ConnectionCheck (Item #2) */}
+          <div className="space-y-2 rounded-xl border border-border/60 bg-muted/30 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <Wifi className="w-3.5 h-3.5" /> Connection test
+              </div>
+              <Button
+                size="sm"
+                variant={ccStatus === 'success' ? 'secondary' : 'outline'}
+                onClick={handleRunCheck}
+                disabled={ccStatus === 'running'}
+                className="h-7 gap-1.5 text-xs"
+              >
+                {ccStatus === 'running' ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Testing…
+                  </>
+                ) : (
+                  <>
+                    <Activity className="w-3.5 h-3.5" /> {ccStatus === 'idle' ? 'Test' : 'Re-test'}
+                  </>
+                )}
+              </Button>
+            </div>
+            {ccChecks.length > 0 && (
+              <ul className="space-y-1">
+                {ccChecks.map((c, idx) => (
+                  <li key={`${c.name}-${idx}`} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate text-foreground/90">{c.name}</span>
+                    <span className="flex items-center gap-1">
+                      {c.status === CheckStatus.RUNNING && (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                      )}
+                      {c.status === CheckStatus.SUCCESS && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      )}
+                      {c.status === CheckStatus.FAILED && (
+                        <XCircle className="w-3.5 h-3.5 text-destructive" />
+                      )}
+                      {c.status === CheckStatus.SKIPPED && (
+                        <span className="text-[10px] text-muted-foreground">skipped</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {ccStatus === 'success' && (
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                All checks passed — you're ready to go live.
+              </p>
+            )}
+            {ccStatus === 'failed' && (
+              <p className="text-[11px] text-destructive">
+                Some checks failed. Try a different network (Wi-Fi / mobile data) or disable VPN.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
