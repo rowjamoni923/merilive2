@@ -574,6 +574,7 @@ const LiveStream = () => {
     isLoading,
     connectionState,
     localVideoTrack,
+    localAudioTrack,
     isNativeMediaActive,
     remoteUsers,
     error: livekitError,
