@@ -197,9 +197,6 @@ export const useAdminRealtime = (
       // 2) admin_broadcast singleton for dashboard/financial/high-value topics.
       // Listen for every requested topic here without opening extra channels.
       const eventTables = trackedTables;
-      const directTables = enableAdminDirectRealtime
-        ? trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t))
-        : [];
 
       const handleGlobalEvent = (e: Event) => {
         const detail = (e as CustomEvent<AdminTableUpdateEvent>).detail;
@@ -211,48 +208,27 @@ export const useAdminRealtime = (
         window.addEventListener(ADMIN_REALTIME_EVENT, handleGlobalEvent);
       }
 
-      let channel: ReturnType<typeof adminSupabase.channel> | null = null;
-      if (directTables.length > 0) {
-        const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
-        channel = adminSupabase.channel(name);
-        for (const table of directTables) {
-          channel = channel.on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table },
-            () => debouncedRefresh()
-          );
-        }
-        channel.subscribe();
-      }
-
       return () => {
         if (eventTables.length > 0) {
           window.removeEventListener(ADMIN_REALTIME_EVENT, handleGlobalEvent);
         }
-        if (channel) adminSupabase.removeChannel(channel);
         if (debounceRef.current) clearTimeout(debounceRef.current);
       };
     }
 
-    // Non-admin routes — direct postgres_changes for legacy callers.
-    const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
-    if (directTables.length === 0) {
-      return () => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-      };
-    }
-    const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
-    let channel: ReturnType<typeof supabase.channel> = supabase.channel(name);
-    for (const table of directTables) {
-      channel = channel.on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        () => debouncedRefresh()
-      );
-    }
-    channel.subscribe();
+    const handleAppSync = (event: Event) => {
+      const topic = (event as CustomEvent<any>).detail?.topic;
+      if (topic === '*' || trackedTables.includes(topic)) debouncedRefresh();
+    };
+    const handleAdminBroadcast = (event: Event) => {
+      const table = (event as CustomEvent<any>).detail?.table;
+      if (table === '*' || trackedTables.includes(table)) debouncedRefresh();
+    };
+    window.addEventListener('app-sync', handleAppSync);
+    window.addEventListener(ADMIN_REALTIME_EVENT, handleAdminBroadcast);
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('app-sync', handleAppSync);
+      window.removeEventListener(ADMIN_REALTIME_EVENT, handleAdminBroadcast);
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [trackedTables.join('|'), debouncedRefresh, channelName, isOnAdminRoute]);
