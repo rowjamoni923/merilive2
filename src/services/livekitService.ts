@@ -6,7 +6,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getAdminLinkToken } from '@/utils/adminAccessStorage';
 
-interface LiveKitTokenResponse {
+export interface LiveKitTokenResponse {
   token: string;
   url: string;
   /** Pkg189: token TTL in seconds (from edge fn). Optional for backward-compat. */
