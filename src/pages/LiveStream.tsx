@@ -72,6 +72,7 @@ import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSig
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
+import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { PKBattlePanel } from "@/components/live/PKBattlePanel";
 import { PKBattleRequest } from "@/components/live/PKBattleRequest";
 import { PKBattleActive } from "@/components/live/PKBattleActive";
@@ -3056,6 +3057,9 @@ const LiveStream = () => {
 
       {/* Pkg147: Audio-only data-saver toggle for viewers */}
       {!isHost && <AudioOnlyToggleButton label="Audio-only mode" />}
+
+      {/* Pkg149: Adaptive video quality picker for viewers */}
+      {!isHost && remoteVideoTrack && <VideoQualityButton label="Video quality" />}
 
 
 

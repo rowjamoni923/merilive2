@@ -13,6 +13,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { LiveKitVideoPlayer } from "@/components/live/LiveKitVideoPlayer";
 import { PictureInPictureButton } from "@/components/livekit/PictureInPictureButton";
 import { AudioOnlyToggleButton } from "@/components/livekit/AudioOnlyToggleButton";
+import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
@@ -589,6 +590,9 @@ export function ActiveCallScreen({
 
       {/* Pkg147: Audio-only data-saver toggle */}
       {isLiveConnected && <AudioOnlyToggleButton label="Audio-only mode" />}
+
+      {/* Pkg149: Adaptive video quality picker */}
+      {isLiveConnected && primaryHasVideo && <VideoQualityButton label="Video quality" />}
 
 
 
