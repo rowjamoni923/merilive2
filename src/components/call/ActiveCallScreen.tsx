@@ -278,6 +278,11 @@ export function ActiveCallScreen({
         isReceiverGift: true,
         beansEarned: detail.receiverBeans ?? undefined,
       });
+      if ((detail.receiverBeans || 0) > 0) {
+        window.dispatchEvent(new CustomEvent('own-beans-updated', {
+          detail: { userId, beansDelta: Number(detail.receiverBeans || 0) },
+        }));
+      }
     };
 
     window.addEventListener('livekit-gift-sent', handler as EventListener);
