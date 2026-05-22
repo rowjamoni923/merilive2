@@ -164,6 +164,27 @@ export function unregisterGiftRoom(
   registry.delete(k);
 }
 
+export function registerNativeGiftRoom(scope: GiftScope, id: string | null | undefined) {
+  if (!id || typeof window === 'undefined') return;
+  nativeRegistry.add(keyFor(scope, id));
+  if (nativeUnsubscribe) return;
+  nativeUnsubscribe = nativeLiveKitController.onDataReceived((payload, participantIdentity) => {
+    for (const k of nativeRegistry) {
+      const [scope, id] = k.split(':') as [GiftScope, string];
+      dispatchGiftEnvelope(scope, id, payload, participantIdentity);
+    }
+  });
+}
+
+export function unregisterNativeGiftRoom(scope: GiftScope, id: string | null | undefined) {
+  if (!id) return;
+  nativeRegistry.delete(keyFor(scope, id));
+  if (nativeRegistry.size === 0 && nativeUnsubscribe) {
+    nativeUnsubscribe();
+    nativeUnsubscribe = null;
+  }
+}
+
 /**
  * Publish a `gift_sent` packet to every participant in the room.
  * Returns `true` only when actually sent. Never throws.
@@ -176,9 +197,8 @@ export async function publishGiftSent(
 ): Promise<boolean> {
   if (!id) return false;
   const entry = registry.get(keyFor(scope, id));
-  if (!entry) return false;
-  const room = entry.room;
-  if (!room || room.state !== 'connected') return false;
+  const room = entry?.room;
+  if ((!room || room.state !== 'connected') && !nativeRegistry.has(keyFor(scope, id))) return false;
 
   let allowed = false;
   try {
@@ -198,9 +218,12 @@ export async function publishGiftSent(
         id,
         timestamp: payload.timestamp ?? Date.now(),
       },
-      room.localParticipant?.identity,
+      room?.localParticipant?.identity ?? payload.senderId,
     );
     const bytes = encodeEnvelope(env);
+    if (!room || room.state !== 'connected') {
+      return nativeLiveKitController.sendData(bytes, { reliable: true, topic: 'gift' });
+    }
     // Reliable: gift visuals must not drop, but ordering with media is
     // not required — sub-50ms is what matters.
     await room.localParticipant.publishData(bytes, { reliable: true });
