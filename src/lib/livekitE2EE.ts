@@ -131,3 +131,24 @@ export async function provisionCallE2EE(callId: string): Promise<{
   const e2ee = await buildE2EERoomOptions(prov.passphrase);
   return { ok: !!e2ee, passphrase: prov.passphrase, e2ee, reason: e2ee ? undefined : 'build_failed' };
 }
+
+// ─── Back-compat shims for Pkg108 useLiveKitCall integration ──────────────
+// useLiveKitCall.ts imports these names; keep them stable.
+
+/** Alias of `getCallE2EEPassphrase` that returns the raw passphrase string or null. */
+export async function fetchCallE2EEKey(callId: string): Promise<string | null> {
+  const r = await getCallE2EEPassphrase(callId);
+  return r.ok && r.passphrase ? r.passphrase : null;
+}
+
+/**
+ * Builds `{ e2eeOption }` consumed by `new Room({ e2ee: e2eeOption })`.
+ * Returns `{ e2eeOption: undefined }` whenever E2EE cannot run so the call
+ * gracefully falls back to plaintext SFU media.
+ */
+export async function buildE2EEOptions(
+  key: string | null | undefined,
+): Promise<{ e2eeOption: unknown | undefined }> {
+  const built = await buildE2EERoomOptions(key);
+  return { e2eeOption: built ?? undefined };
+}
