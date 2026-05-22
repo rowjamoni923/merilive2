@@ -33,6 +33,7 @@ import {
   isDuplicateEnvelope,
   isLiveKitEnabled,
 } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
 
 export type GiftScope = 'live' | 'party' | 'call';
 
@@ -77,6 +78,8 @@ interface Entry {
 
 // `${scope}:${id}` → Room + DataReceived handler
 const registry = new Map<string, Entry>();
+const nativeRegistry = new Set<string>();
+let nativeUnsubscribe: (() => void) | null = null;
 
 function keyFor(scope: GiftScope, id: string): string {
   return `${scope}:${id}`;
@@ -109,6 +112,22 @@ function makeHandler(scope: GiftScope, id: string) {
       );
     }
   };
+}
+
+function dispatchGiftEnvelope(scope: GiftScope, id: string, payload: Uint8Array, participantIdentity?: string) {
+  if (typeof window === 'undefined') return;
+  const env = decodeEnvelope(payload);
+  if (!env || env.f !== 'gift') return;
+  if (isDuplicateEnvelope(env.id)) return;
+  if (env.t !== 'gift_sent') return;
+
+  const p = (env.p ?? {}) as Partial<GiftSentPayload>;
+  if (p.scope !== scope) return;
+  if (p.id && p.id !== id) return;
+
+  window.dispatchEvent(new CustomEvent<GiftSentDetail>('livekit-gift-sent', {
+    detail: { ...(p as GiftSentPayload), scope, id, senderId: p.senderId || env.s || 'unknown', sender: participantIdentity },
+  }));
 }
 
 /** Bind a (scope,id) tuple to its LiveKit Room. */
