@@ -50,6 +50,8 @@ import {
   requestMicrophonePermission as requestNativeMicrophonePermission,
   requestNotificationPermission as requestNativeNotificationPermission,
 } from "@/utils/nativePermissions";
+import { AutoRecordSettingsRow } from "@/components/livekit/AutoRecordSettingsRow";
+
 
 // World languages - English names only (no native scripts)
 const worldLanguages = [
@@ -830,6 +832,9 @@ const Settings = () => {
       <div className="mobile-page-scrollable">
       {/* Settings List */}
       <div className="divide-y">
+        {/* Pkg129: Host-only Auto-Record live stream toggle (self-gates on is_host). */}
+        <AutoRecordSettingsRow />
+
         {settingsItems.map((item, index) => (
           <button
             key={index}
