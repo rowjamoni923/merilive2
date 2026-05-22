@@ -4866,6 +4866,7 @@ export type Database = {
           sender_id: string | null
           sender_type: string | null
           stream_id: string | null
+          total_coins: number
         }
         Insert: {
           call_id?: string | null
@@ -4885,6 +4886,7 @@ export type Database = {
           sender_id?: string | null
           sender_type?: string | null
           stream_id?: string | null
+          total_coins?: number
         }
         Update: {
           call_id?: string | null
@@ -4904,6 +4906,7 @@ export type Database = {
           sender_id?: string | null
           sender_type?: string | null
           stream_id?: string | null
+          total_coins?: number
         }
         Relationships: [
           {
