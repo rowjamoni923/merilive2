@@ -262,13 +262,36 @@ const CustomEntranceNotification = ({ user, animationUrl }: { user: EntranceUser
   );
 };
 
-// VIP entrance with vehicle animation
+// VIP entrance with vehicle animation — Pkg173 polish
 const VIPEntranceNotification = ({ user }: { user: EntranceUser }) => {
   const getVehicle = (level: number) => {
-    if (level >= 50) return { emoji: "🚀", gradient: "from-amber-500 to-yellow-500" };
-    if (level >= 40) return { emoji: "✈️", gradient: "from-purple-500 to-pink-500" };
-    if (level >= 30) return { emoji: "🏎️", gradient: "from-red-500 to-orange-500" };
-    return { emoji: "🏍️", gradient: "from-violet-500 to-purple-500" };
+    if (level >= 50)
+      return {
+        emoji: '🚀',
+        gradient:
+          'linear-gradient(135deg, rgba(251,191,36,0.95) 0%, rgba(250,204,21,0.95) 50%, rgba(249,115,22,0.95) 100%)',
+        glow: 'rgba(251,191,36,0.6)',
+      };
+    if (level >= 40)
+      return {
+        emoji: '✈️',
+        gradient:
+          'linear-gradient(135deg, rgba(168,85,247,0.95) 0%, rgba(217,70,239,0.95) 50%, rgba(236,72,153,0.95) 100%)',
+        glow: 'rgba(217,70,239,0.6)',
+      };
+    if (level >= 30)
+      return {
+        emoji: '🏎️',
+        gradient:
+          'linear-gradient(135deg, rgba(239,68,68,0.95) 0%, rgba(249,115,22,0.95) 100%)',
+        glow: 'rgba(239,68,68,0.6)',
+      };
+    return {
+      emoji: '🏍️',
+      gradient:
+        'linear-gradient(135deg, rgba(139,92,246,0.95) 0%, rgba(168,85,247,0.95) 100%)',
+      glow: 'rgba(168,85,247,0.6)',
+    };
   };
 
   const vehicle = getVehicle(user.level);
@@ -279,53 +302,68 @@ const VIPEntranceNotification = ({ user }: { user: EntranceUser }) => {
         initial={{ x: -300, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 300, opacity: 0 }}
-        transition={{ type: "spring", damping: 20, stiffness: 100 }}
+        transition={{ type: 'spring', damping: 22, stiffness: 140 }}
         className="relative"
       >
         {/* Speed lines */}
-        {[...Array(5)].map((_, i) => (
+        {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute h-[2px] bg-gradient-to-r from-white/50 to-transparent"
-            style={{ 
-              left: -50 - i * 20,
-              top: `${40 + i * 5}%`,
-              width: 30 + Math.random() * 30
+            className="absolute h-[2px] bg-gradient-to-r from-white/60 to-transparent rounded-full"
+            style={{
+              left: -50 - i * 22,
+              top: `${36 + i * 5}%`,
+              width: 32 + Math.random() * 32,
             }}
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ duration: 0.3, delay: i * 0.05, repeat: 3 }}
+            animate={{ opacity: [0, 1, 0], x: [0, 30, 60] }}
+            transition={{ duration: 0.4, delay: i * 0.05, repeat: 3 }}
           />
         ))}
 
-        <motion.div 
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r ${vehicle.gradient} shadow-xl border border-white/30`}
+        <motion.div
+          className="relative overflow-hidden flex items-center gap-3 px-4 py-2.5 rounded-2xl border border-white/25"
+          style={{
+            background: vehicle.gradient,
+            backdropFilter: 'blur(10px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(10px) saturate(140%)',
+          }}
           animate={{
             boxShadow: [
-              "0 10px 30px -10px rgba(0,0,0,0.3)",
-              "0 15px 40px -10px rgba(0,0,0,0.5)",
-              "0 10px 30px -10px rgba(0,0,0,0.3)"
-            ]
+              `0 10px 28px -10px ${vehicle.glow}, 0 4px 14px -6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.28)`,
+              `0 18px 44px -10px ${vehicle.glow}, 0 8px 22px -6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)`,
+              `0 10px 28px -10px ${vehicle.glow}, 0 4px 14px -6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.28)`,
+            ],
           }}
-          transition={{ duration: 1, repeat: Infinity }}
+          transition={{ duration: 1.4, repeat: Infinity }}
         >
-          <motion.span 
-            className="text-2xl"
-            animate={{ rotate: [-5, 5, -5], y: [-2, 2, -2] }}
-            transition={{ duration: 0.3, repeat: Infinity }}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              background:
+                'linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)',
+              animation: 'giftSendShine 2.8s ease-in-out infinite',
+              mixBlendMode: 'overlay',
+            }}
+          />
+          <motion.span
+            className="relative text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)]"
+            animate={{ rotate: [-6, 6, -6], y: [-2, 2, -2] }}
+            transition={{ duration: 0.35, repeat: Infinity }}
           >
             {vehicle.emoji}
           </motion.span>
-          
+
           <LevelBadge level={user.level} size="sm" />
-          
-          <div className="flex flex-col">
-            <motion.span 
-              className="text-white font-black text-sm drop-shadow-lg"
-              style={{ textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+
+          <div className="relative flex flex-col">
+            <motion.span
+              className="text-white font-black text-sm"
+              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.45)' }}
             >
               {user.displayName}
             </motion.span>
-            <span className="text-white/80 text-xs">🔥 VIP Entrance</span>
+            <span className="text-white/85 text-xs font-semibold tracking-wide">🔥 VIP Entrance</span>
           </div>
         </motion.div>
       </motion.div>
@@ -333,16 +371,24 @@ const VIPEntranceNotification = ({ user }: { user: EntranceUser }) => {
   );
 };
 
-// Simple inline entrance message for chat
+// Simple inline entrance message for chat — Pkg173 glass polish
 export const InlineEntranceMessage = ({ user }: { user: EntranceUser }) => (
   <motion.div
-    initial={{ x: -100, opacity: 0 }}
-    animate={{ x: 0, opacity: 1 }}
-    className="flex items-center gap-1.5 py-1 px-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 w-fit"
+    initial={{ x: -100, opacity: 0, scale: 0.96 }}
+    animate={{ x: 0, opacity: 1, scale: 1 }}
+    transition={{ type: 'spring', damping: 24, stiffness: 320 }}
+    className="relative overflow-hidden flex items-center gap-1.5 py-1 pl-1.5 pr-2.5 rounded-full w-fit border border-white/10"
+    style={{
+      background:
+        'linear-gradient(135deg, rgba(168,85,247,0.32) 0%, rgba(236,72,153,0.32) 100%)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
+    }}
   >
     <InlineLevelBadge level={user.level} />
-    <span className="text-white font-semibold text-xs">{user.displayName}</span>
-    <span className="text-white/70 text-xs">enter the live room</span>
+    <span className="relative text-white font-semibold text-xs truncate max-w-[120px]">{user.displayName}</span>
+    <span className="relative text-white/70 text-xs">entered</span>
   </motion.div>
 );
 
