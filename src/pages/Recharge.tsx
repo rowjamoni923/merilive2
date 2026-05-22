@@ -226,7 +226,8 @@ const Recharge = () => {
   // Play Store Billing State
   const [isPlayStoreAvailable, setIsPlayStoreAvailable] = useState(false);
   const [playStoreProcessing, setPlayStoreProcessing] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'playstore' | 'stripe' | 'local' | 'helper' | 'mericash'>('playstore');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'playstore' | 'local' | 'helper' | 'mericash'>('playstore');
+  // Generic gateway-flow processing flag (kept name for diff stability)
   const [stripeProcessing, setStripeProcessing] = useState(false);
   
   // REALTIME: Diamond Packages & Currency Rates
@@ -361,7 +362,7 @@ const Recharge = () => {
 
   const isAutoGatewayMethod = useCallback((method: Level5HelperPaymentMethod) => {
     const gatewayType = String(method.additional_info?.gateway_type || '').toLowerCase();
-    return gatewayType === 'sslcommerz' || gatewayType === 'aamarpay' || gatewayType === 'zinipay';
+    return gatewayType === 'sslcommerz' || gatewayType === 'aamarpay';
   }, []);
 
   const pickNonRepeatingMethod = useCallback((methods: Level5HelperPaymentMethod[], methodKey: string) => {
@@ -859,7 +860,7 @@ const Recharge = () => {
 
       // Transform to expected format
       const transformedMethods = validMethods.map((m: any) => {
-        const isGateway = m.additional_info?.gateway_type === 'sslcommerz' || m.additional_info?.gateway_type === 'aamarpay' || m.additional_info?.gateway_type === 'zinipay';
+        const isGateway = m.additional_info?.gateway_type === 'sslcommerz' || m.additional_info?.gateway_type === 'aamarpay';
         // For gateway methods, use the display_method name (bkash, nagad etc.) instead of gateway name
         const displayMethodName = isGateway && m.additional_info?.display_method 
           ? m.additional_info.display_method 
@@ -1325,12 +1326,7 @@ const Recharge = () => {
     }
   }, [userCountryCode, fetchLevel5HelperPaymentMethods, fetchAdminPaymentMethods, getTierMinWallet]);
 
-  // Card payment is disabled for Bangladesh users
-  useEffect(() => {
-    if (isBangladesh && selectedPaymentMethod === 'stripe') {
-      setSelectedPaymentMethod('local');
-    }
-  }, [isBangladesh, selectedPaymentMethod]);
+  // Stripe removed — global gateways are crypto (MeriCash) + Google Play only.
 
   // Pkg83-ext: removed static `recharge-helper-methods-realtime` channel
   // (helper_payment_methods/helper_country_payment_methods/topup_payment_methods
@@ -1685,47 +1681,7 @@ const Recharge = () => {
     }
   };
 
-  // Handle Stripe Payment
-  const handleStripePurchase = async () => {
-    if (!selectedPackage || !userId) {
-      toast({
-        title: "Select Package",
-        description: "Please select a diamond package first",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setStripeProcessing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-stripe-payment", {
-        body: { 
-          package_id: selectedPackage.id,
-          origin_url: window.location.origin,
-          country_code: userCountryCode,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      if (data?.url) {
-        // Open Stripe Checkout in new tab (or same window on mobile)
-          const { openInApp } = await import("@/utils/inAppNavigation");
-          await openInApp(data.url, { useOverlay: true });
-      }
-    } catch (error: any) {
-      console.error("[Recharge] Stripe error:", error);
-      recordClientError({ label: "Recharge.handleStripePurchase", message: error instanceof Error ? error.message : String(error) });
-      toast({
-        title: "Payment Error",
-        description: error.message || "Could not start Stripe payment",
-        variant: "destructive"
-      });
-    } finally {
-      setStripeProcessing(false);
-    }
-  };
+  // Stripe payment removed.
 
   const handleStartPayment = () => {
     if (!selectedPackage) {
@@ -1750,11 +1706,7 @@ const Recharge = () => {
       return;
     }
 
-    // If Stripe is selected, use Stripe Checkout
-    if (selectedPaymentMethod === 'stripe') {
-      handleStripePurchase();
-      return;
-    }
+    // Stripe removed.
 
     // Check if payment method is selected for local payment
     if (!selectedPaymentType && helperPaymentMethods.length > 0) {
@@ -2106,84 +2058,9 @@ const Recharge = () => {
 
     try {
       const localAmount = selectedPackage.price_usd * (currencyRate?.rate_to_usd || 1);
-      const gwType = selectedHelperMethod.additional_info?.gateway_type;
-      
-      if (gwType === 'zinipay') {
-        // ZiniPay IN-APP FLOW: Create session → user pays manually → enters TrxID → auto-verify via IPN
-        const { data, error } = await supabase.functions.invoke('create-zinipay-payment', {
-          body: {
-            package_id: selectedPackage.id,
-            payment_method_id: selectedHelperMethod.id,
-            origin_url: window.location.origin,
-            transaction_id: helperTransactionId.trim(),
-            payment_proof: helperPaymentProof,
-            skip_redirect: true, // IN-APP mode — no redirect to ZiniPay page
-          },
-        });
 
-        if (error || data?.error) {
-          throw new Error(data?.error || error?.message || 'ZiniPay payment failed');
-        }
-
-        // Show success and poll for verification
-        toast({
-          title: "⚡ Order Created!",
-          description: "Verifying transaction... Please wait 5-10 seconds.",
-        });
-        
-        setHelperPaymentStep("pending");
-        
-        // Poll for order completion (IPN webhook will update the status)
-        if (data?.order_id) {
-          let attempts = 0;
-          const maxAttempts = 12; // 60 seconds total
-          const pollInterval = setInterval(async () => {
-            attempts++;
-            try {
-              // Try server-side ZiniPay API verification on each poll
-              if (attempts <= 6) {
-                try {
-                  await supabase.functions.invoke("verify-zinipay-payment", {
-                    body: { order_id: data.order_id },
-                  });
-                } catch { /* ignore verify errors */ }
-              }
-
-              const { data: orderStatus } = await supabase
-                .from('helper_orders')
-                .select('status')
-                .eq('id', data.order_id)
-                .single();
-              
-              if (orderStatus?.status === 'completed') {
-                clearInterval(pollInterval);
-                toast({
-                  title: "✅ Diamonds Added!",
-                  description: `${formatNumber(selectedPackage.coins)} 💎 has been added to your account!`,
-                });
-                resetHelperPaymentForm();
-              } else if (orderStatus?.status === 'failed') {
-                clearInterval(pollInterval);
-                toast({
-                  title: "❌ Payment Failed",
-                  description: "Payment could not be verified. Please try again.",
-                  variant: "destructive",
-                });
-                setHelperPaymentStep("form");
-              } else if (attempts >= maxAttempts) {
-                clearInterval(pollInterval);
-                toast({
-                  title: "⏳ Verification in Progress",
-                  description: "Verification is taking a moment. The helper will process it manually.",
-                });
-              }
-            } catch {
-              // Ignore polling errors
-            }
-          }, 5000);
-        }
-      } else {
-        // Manual helper order
+      {
+        // Manual helper order (ZiniPay removed)
         const { data: order, error: orderError } = await supabase
           .from('helper_orders')
           .insert({
@@ -3069,54 +2946,8 @@ const Recharge = () => {
                   </div>
                 </button>
                 
-                {/* Stripe - International Payments */}
-                {!isBangladesh && (
-                  <button
-                    onClick={() => setSelectedPaymentMethod('stripe')}
-                    className={cn(
-                      "flex-1 min-w-[130px] relative overflow-hidden rounded-2xl p-3 transition-all duration-200",
-                      selectedPaymentMethod === 'stripe'
-                        ? "bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25"
-                        : "bg-white border-2 border-gray-100 hover:border-indigo-400/50 shadow-sm"
-                    )}
-                  >
-                    <div className="relative flex items-center gap-2">
-                      <div className={cn(
-                        "w-8 h-8 rounded-xl flex items-center justify-center text-base",
-                        selectedPaymentMethod === 'stripe' ? "bg-white/20" : "bg-indigo-50"
-                      )}>
-                        💳
-                      </div>
-                      <div className="flex-1 text-left">
-                        <p className={cn(
-                          "font-bold text-[13px]",
-                          selectedPaymentMethod === 'stripe' ? "text-heading" : "text-heading"
-                        )}>
-                          {(() => {
-                            const cc = userCountryCode?.toUpperCase();
-                            if (cc === 'IN') return 'UPI / Card';
-                            if (cc === 'PH') return 'GCash / Card';
-                            if (cc === 'MY') return 'FPX / Card';
-                            if (cc === 'TH') return 'PromptPay';
-                            if (cc === 'BR') return 'PIX / Card';
-                            return 'Card Pay';
-                          })()}
-                        </p>
-                        <p className={cn(
-                          "text-[10px] font-medium",
-                          selectedPaymentMethod === 'stripe' ? "text-body" : "text-heading"
-                        )}>
-                          ⚡ Instant • Secure
-                        </p>
-                      </div>
-                      {selectedPaymentMethod === 'stripe' && (
-                        <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
-                          <Check className="w-3 h-3 text-heading" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                )}
+                {/* Stripe removed — crypto (MeriCash) + Google Play cover global. */}
+                
                 
                 {/* Recommend - only visible when a Level-5 payroll helper in
                     the user's country has actually added a local payment method.
@@ -3299,29 +3130,8 @@ const Recharge = () => {
               </div>
             )}
 
-            {/* Stripe Info - Country-Specific Mini Banner */}
-            {!isBangladesh && selectedPaymentMethod === 'stripe' && (
-              <div className="mb-3 rounded-xl p-2.5 border bg-indigo-50 border-indigo-200">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-indigo-600" />
-                  <p className="text-[11px] text-indigo-700 font-semibold">
-                    {(() => {
-                      const cc = userCountryCode?.toUpperCase();
-                      if (cc === 'IN') return '💳 Card, UPI • ⚡ Instant • Secure';
-                      if (cc === 'PH') return '💳 Card, GCash, GrabPay • ⚡ Instant';
-                      if (cc === 'MY') return '💳 Card, FPX, GrabPay • ⚡ Instant';
-                      if (cc === 'TH') return '💳 Card, PromptPay • ⚡ Instant';
-                      if (cc === 'BR') return '💳 Card, PIX, Boleto • ⚡ Instant';
-                      if (cc === 'MX') return '💳 Card, OXXO • ⚡ Instant';
-                      if (cc === 'US') return '💳 Card, CashApp, Amazon Pay • ⚡ Instant';
-                      if (cc === 'DE' || cc === 'AT') return '💳 Card, Klarna, Giropay, SOFORT • ⚡ Instant';
-                      if (cc === 'JP') return '💳 Card, Konbini • ⚡ Instant';
-                      return '💳 Visa, Mastercard, Apple Pay, Google Pay • ⚡ Instant';
-                    })()}
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Stripe info banner removed. */}
+
 
             {/* MeriCash hint when selected as payment method */}
             {selectedPaymentMethod === 'mericash' && (
@@ -3407,36 +3217,6 @@ const Recharge = () => {
                         });
                       }
                     }
-                  } else if (selectedPaymentMethod === 'stripe') {
-                    if (isBangladesh) {
-                      toast({
-                        title: "Card Payment Unavailable",
-                        description: "Card Payment is not available in Bangladesh. Please use a local method.",
-                        variant: "destructive"
-                      });
-                      return;
-                    }
-                    // Stripe payment - invoke directly
-                    setStripeProcessing(true);
-                    supabase.functions.invoke("create-stripe-payment", {
-                      body: { package_id: pkg.id, origin_url: window.location.origin, country_code: userCountryCode },
-                    }).then(({ data, error }) => {
-                      if (error || data?.error) {
-                        toast({
-                          title: "Payment Error",
-                          description: data?.error || error?.message || "Could not start payment",
-                          variant: "destructive"
-                        });
-                      } else if (data?.url) {
-                        import("@/utils/inAppNavigation").then(({ openInApp }) => openInApp(data.url, { useOverlay: true }));
-                      }
-                      setStripeProcessing(false);
-                    }).catch(err => {
-                      console.error('[Recharge] Stripe error:', err);
-                      recordClientError({ label: "Recharge.isAndroid", message: err instanceof Error ? err.message : String(err) });
-                      toast({ title: "Payment Error", description: err.message, variant: "destructive" });
-                      setStripeProcessing(false);
-                    });
                   } else if (selectedPaymentMethod === 'local' || selectedPaymentMethod === 'helper') {
                     // Level 5 Helper payment methods (Recommend tab = 'local', Helper tab = 'helper')
                     if (helperPaymentMethods.length > 0) {
@@ -3452,17 +3232,10 @@ const Recharge = () => {
                       const selectedMethod = selectBalancedLocalMethod();
 
                       if (selectedMethod) {
-                        // Check if this is a gateway method (SSLCommerz/AamarPay/ZiniPay)
+                        // Check if this is an auto-gateway method (SSLCommerz/AamarPay)
                         const gwType = selectedMethod.additional_info?.gateway_type;
                         if (isAutoGatewayMethod(selectedMethod) && gwType) {
-                          if (gwType === 'zinipay') {
-                            // ZiniPay: Show in-app modal with single rotated number (no redirect)
-                            setSelectedHelperMethod(selectedMethod);
-                            setHelperPaymentStep("form");
-                            setShowHelperPaymentModal(true);
-                            return;
-                          }
-                          // Other auto gateways (SSLCommerz/AamarPay) use redirect flow
+                          // SSLCommerz/AamarPay use redirect flow
                           const edgeFn = 'create-local-payment';
                           setStripeProcessing(true);
                           supabase.functions.invoke(edgeFn, {
@@ -4007,7 +3780,7 @@ const Recharge = () => {
                   </p>
                   {selectedHelperMethod.additional_info?.gateway_type ? (
                     <p className="mt-1 text-[11px] text-emerald-300">
-                      ⚡ Enter your transaction ID below to verify via ZiniPay.
+                      ⚡ Enter your transaction ID below for auto-verification.
                     </p>
                   ) : (
                     <p className="mt-1 text-[11px] text-amber-100/70">
@@ -4038,7 +3811,7 @@ const Recharge = () => {
                     </p>
                     {selectedHelperMethod.additional_info?.gateway_type ? (
                       <p className="mt-2 text-[12px] text-emerald-300">
-                        ⚡ Enter your transaction ID below to verify via ZiniPay.
+                        ⚡ Enter your transaction ID below for auto-verification.
                       </p>
                     ) : (
                       <p className="mt-2 text-[12px] text-amber-100/65">

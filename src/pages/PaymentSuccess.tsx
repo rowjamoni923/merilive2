@@ -39,35 +39,25 @@ const PaymentSuccess = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error("Not authenticated");
 
-        // ═══ ZiniPay Gateway ═══
-        if (gateway === "zinipay" && orderId) {
-          let verified = false;
+        // Local gateway redirect (SSLCommerz / AamarPay) — credit already
+        // applied server-side by local-payment-ipn. We just confirm the order.
+        if (orderId) {
+          const { data: order } = await supabase
+            .from('helper_orders')
+            .select('status, coin_amount')
+            .eq('id', orderId)
+            .maybeSingle();
 
-          for (let attempt = 1; attempt <= 5; attempt++) {
-            const { data, error } = await supabase.functions.invoke("verify-zinipay-payment", {
-              body: { order_id: orderId },
+          if (order?.status === 'completed') {
+            setResult({
+              success: true,
+              total_coins: order.coin_amount || 0,
+              already_processed: searchParams.get('already') === 'true',
             });
-
-            if (error) {
-              recordClientError({ label: "PaymentSuccess.verifyPayment", message: error instanceof Error ? error.message : String(error) });
-              break;
-            }
-
-            if (data?.status === "completed" || data?.status === "already_completed") {
-              verified = true;
-              setResult({
-                success: true,
-                total_coins: data.coins_credited,
-                already_processed: data.status === "already_completed",
-              });
-              break;
-            }
-
-            if (attempt < 5) await new Promise(r => setTimeout(r, 3000));
-          }
-
-          if (!verified) {
-            // Auto-verify missed → ask user for TX ID + screenshot for manual review
+          } else if (order?.status === 'failed') {
+            setResult({ success: false, error: 'Payment failed' });
+          } else {
+            // Still pending — let helper review manually
             setResult({
               success: true,
               total_coins: 0,
@@ -75,7 +65,6 @@ const PaymentSuccess = () => {
             });
           }
 
-          // Refresh balance regardless
           const { data: profile } = await supabase
             .from("profiles").select("coins").eq("id", session.user.id).single();
           if (profile) updateCachedBalance(profile.coins || 0);
@@ -83,21 +72,7 @@ const PaymentSuccess = () => {
           return;
         }
 
-        // ═══ Stripe Gateway ═══
-        if (!sessionId) {
-          setResult({ success: false, error: "No payment session found" });
-          return;
-        }
-        const { data, error } = await supabase.functions.invoke("verify-stripe-payment", {
-          body: { session_id: sessionId },
-        });
-        if (error) throw error;
-        setResult(data);
-        if (data?.success && data?.total_coins) {
-          const { data: profile } = await supabase
-            .from("profiles").select("coins").eq("id", session.user.id).single();
-          if (profile) updateCachedBalance(profile.coins || 0);
-        }
+        setResult({ success: false, error: "No payment session found" });
       } catch (err: any) {
         recordClientError({ label: "PaymentSuccess.verifyPayment", message: err instanceof Error ? err.message : String(err) });
         setResult({ success: false, error: err.message || "Verification failed" });
@@ -106,7 +81,7 @@ const PaymentSuccess = () => {
       }
     };
     verifyPayment();
-  }, [sessionId, orderId, gateway]);
+  }, [sessionId, orderId, gateway, searchParams]);
 
   const handleFile = (f: File | null) => {
     setProofFile(f);

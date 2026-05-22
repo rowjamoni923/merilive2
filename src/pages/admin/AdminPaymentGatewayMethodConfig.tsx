@@ -96,7 +96,7 @@ const DEFAULT_CONFIG: PaymentGatewayMethodConfig = {
         { method_name: "bKash", route_type: "manual", gateway_type: "manual", logo_url: "https://cdn.example.com/payments/bkash.png", enabled: true },
         { method_name: "Nagad", route_type: "manual", gateway_type: "manual", logo_url: "https://cdn.example.com/payments/nagad.png", enabled: true },
         { method_name: "Rocket", route_type: "manual", gateway_type: "manual", logo_url: "https://cdn.example.com/payments/rocket.png", enabled: true },
-        { method_name: "bKash", route_type: "auto", gateway_type: "zinipay", logo_url: "https://cdn.example.com/payments/zinipay.png", enabled: true, webhook_verification: "required" },
+        { method_name: "bKash", route_type: "auto", gateway_type: "sslcommerz", logo_url: "https://cdn.example.com/payments/sslcommerz.png", enabled: true, webhook_verification: "required" },
       ],
     },
     IN: {
@@ -455,7 +455,7 @@ const AdminPaymentGatewayMethodConfig = () => {
                     </div>
                     <div className="md:col-span-2 space-y-1">
                       <Label className="text-xs">Gateway type</Label>
-                      <Input value={g.gateway_type} onChange={(e) => updateGateway(code, idx, { gateway_type: e.target.value })} placeholder="manual / zinipay / razorpay" />
+                      <Input value={g.gateway_type} onChange={(e) => updateGateway(code, idx, { gateway_type: e.target.value })} placeholder="manual / sslcommerz / aamarpay" />
                     </div>
                     <div className="md:col-span-3 space-y-1">
                       <Label className="text-xs">Logo URL</Label>

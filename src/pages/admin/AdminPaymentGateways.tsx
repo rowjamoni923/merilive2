@@ -580,7 +580,7 @@ const AdminPaymentGateways = () => {
       bkash: "💜",
       nagad: "🧡",
       rocket: "💙",
-      stripe: "💳",
+      mericash: "💎",
       paypal: "🅿️",
       upi: "🇮🇳",
       paytm: "💰",

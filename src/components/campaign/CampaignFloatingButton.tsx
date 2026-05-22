@@ -604,34 +604,8 @@ function CampaignFloatingButton() {
 
     try {
       const localAmount = userCountryCode === 'BD' ? campaign.original_price_usd * 120 : campaign.original_price_usd;
-      const gwType = String(currentMethod.additional_info?.gateway_type || '').toLowerCase();
+      // ZiniPay removed — falls straight through to manual helper order below.
 
-      if (gwType === 'zinipay') {
-        const { data, error } = await supabase.functions.invoke('create-zinipay-payment', {
-          body: {
-            package_id: matchedPackage.id,
-            payment_method_id: currentMethod.id,
-            origin_url: window.location.origin,
-            transaction_id: helperTransactionId.trim(),
-            payment_proof: helperPaymentProof,
-            skip_redirect: true,
-          },
-        });
-
-        if (error || data?.error) {
-          throw new Error(data?.error || error?.message || 'ZiniPay payment failed');
-        }
-
-        setHelperPaymentStep('pending');
-        localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-        sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
-        setPurchased(true);
-        setCampaign(null);
-        setRemainingSeconds(0);
-        setShowPopup(false);
-        toast({ title: '⚡ Order Created!', description: 'Verifying transaction... Please wait.' });
-        return;
-      }
 
       const { error: orderError } = await supabase
         .from('helper_orders')
@@ -684,9 +658,9 @@ function CampaignFloatingButton() {
   // logos still look polished.
   const gatewayIcon = (g: AutoGateway) => {
     const t = (g.gateway_type || '').toLowerCase();
-    if (t.includes('zinipay') || t.includes('crypto') || t.includes('usdt') || t.includes('mericash')) return '💎';
+    if (t.includes('crypto') || t.includes('usdt') || t.includes('mericash')) return '💎';
     if (t.includes('ssl') || t.includes('aamarpay') || t.includes('bkash') || t.includes('nagad')) return '🏦';
-    if (t.includes('stripe') || t.includes('paypal') || t.includes('card')) return '💳';
+    if (t.includes('paypal') || t.includes('card')) return '💳';
     if (t.includes('skrill')) return '🌐';
     return '💠';
   };
@@ -999,10 +973,10 @@ function CampaignFloatingButton() {
 
                       {/* Auto payment gateways — Recharge Campaign intentionally
                           shows ONLY MeriCash (Diamond auto-credit) alongside
-                          Google Play. All other auto gateways (Wise, ZiniPay,
-                          bKash, Nagad, SSLCommerz, Rocket, AamarPay, Stripe…)
-                          are hidden here even though they exist in the topup
-                          page. Do NOT widen this filter without product sign-off. */}
+                          Google Play. All other auto gateways (Wise, bKash,
+                          Nagad, SSLCommerz, Rocket, AamarPay…) are hidden here
+                          even though they exist in the topup page. Do NOT widen
+                          this filter without product sign-off. */}
                       {gateways.filter((gw) => gw.id === 'mericash').map((gw) => {
                         const isSelected = selectedPaymentTab === gw.id;
                         return (
@@ -1231,7 +1205,7 @@ function CampaignFloatingButton() {
                             </div>
                             <div>
                               <p className="text-sm font-bold text-white">{currentMethod.method_name}</p>
-                              <p className="text-[10px] text-white/50">{currentMethod.additional_info?.gateway_type === 'zinipay' ? 'Merchant' : (currentMethod.account_name || currentMethod.method_name)}</p>
+                              <p className="text-[10px] text-white/50">{currentMethod.account_name || currentMethod.method_name}</p>
                             </div>
                           </div>
                           {currentMethod.additional_info?.gateway_type && (
