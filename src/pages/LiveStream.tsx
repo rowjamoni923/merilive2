@@ -3079,30 +3079,18 @@ const LiveStream = () => {
           
           // Gift animation is already playing - no toast needed
           
-          // Pkg78: Supabase gift broadcast REMOVED — LiveKit DataPacket
-          // (publishGiftSent below) is the sole instant fanout path.
+          // Pkg78: Supabase gift broadcast REMOVED — LiveKit DataPacket is
+          // the sole instant fanout path.
+          //
+          // Pkg76 audit (Pkg90) fix: direct `publishGiftSent('live', id, …)`
+          // REMOVED here. `GiftingService.sendGift` (called below) publishes
+          // the same envelope after the RPC succeeds. Calling both produced
+          // TWO envelopes with different `env.id` → 400ms dedupe missed them
+          // → every other viewer saw the flying-gift animation twice and the
+          // bean counter incremented twice. GiftingService publish carries
+          // the real `coinsSpent`/`hostReceived` from the RPC, so receivers
+          // also get accurate values (vs optimistic estimates here).
 
-          // Pkg76: parallel LiveKit DataPacket — sub-50ms fanout to every
-          // viewer in the LiveKit Room. Fire-and-forget; falls back silently
-          // if kill-switch `livekit_signaling_enabled.gift` is OFF.
-          if (id) {
-            publishGiftSent('live', id, {
-              senderId: currentUserId,
-              senderName,
-              senderAvatar,
-              senderLevel,
-              giftId: gift.id,
-              giftKey,
-              giftName: gift.name,
-              giftIcon: gift.emoji || '🎁',
-              giftIconUrl: gift.icon_url || undefined,
-              giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
-              giftSoundUrl: gift.sound_url || undefined,
-              giftCoins: gift.coins,
-              count,
-              receiverBeans: optimisticReceiverBeans,
-            }).catch((err) => console.warn('[Pkg76] publishGiftSent(live):', err));
-          }
 
           markOptimisticGiftCount(giftKey, optimisticReceiverBeans);
           setTotalBeans(prev => prev + optimisticReceiverBeans);
