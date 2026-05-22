@@ -111,8 +111,8 @@ const AgentRank = () => {
       let ownerProfiles: any[] = [];
       if (ownerIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, avatar_url, country')
+          .from('profiles_public')
+          .select('id, avatar_url, country_code, country_flag')
           .in('id', ownerIds);
         ownerProfiles = profiles || [];
       }
@@ -128,7 +128,7 @@ const AgentRank = () => {
           owner_avatar: owner?.avatar_url || null,
           total_hosts: agency?.total_hosts || 0,
           metric_value: Number(perf.total_income) || 0,
-          country_flag: getCountryFlag(owner?.country),
+          country_flag: owner?.country_flag || getCountryFlag(owner?.country_code),
           rank_position: index + 1
         };
       });
@@ -161,7 +161,6 @@ const AgentRank = () => {
       .channel(`agent-rank-realtime-${periodType}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'agency_performance' }, () => fetchRankings())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'agencies' }, () => fetchRankings())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'gift_transactions' }, () => fetchRankings())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ranking_rewards' }, () => fetchRewards())
       .subscribe();
     // Zero-refresh: realtime channel only, no polling

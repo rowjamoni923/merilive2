@@ -84,25 +84,18 @@ export const ViewerListPanel = ({
 
     fetchViewers();
 
-    // Subscribe to real-time viewer changes
-    const channel = supabase
-      .channel(`viewers_${streamId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "stream_viewers",
-          filter: `stream_id=eq.${streamId}`,
-        },
-        () => {
-          fetchViewers();
-        }
-      )
-      .subscribe();
+    // LiveKit is the in-room realtime path. This panel uses a REST snapshot
+    // when opened and refreshes on foreground/online only — no stream_viewers
+    // Supabase Realtime subscription.
+    const handleRefresh = () => {
+      if (document.visibilityState !== 'hidden') void fetchViewers();
+    };
+    window.addEventListener('online', handleRefresh);
+    document.addEventListener('visibilitychange', handleRefresh);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.removeEventListener('online', handleRefresh);
+      document.removeEventListener('visibilitychange', handleRefresh);
     };
   }, [isOpen, streamId]);
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { PremiumLiveStreamCard } from "@/components/home/PremiumLiveStreamCard";
@@ -126,147 +126,12 @@ const Live = () => {
     }
   };
 
-  // Per-stream Set of active viewer ids → makes ±1 idempotent against
-  // repeat realtime packets (INSERT delivered twice, INSERT+UPDATE for same join, etc).
-  const activeViewersByStreamRef = useRef<Map<string, Set<string>>>(new Map());
-  const reconnectTimerRef = useRef<number | null>(null);
-  const [rtKey, setRtKey] = useState(0);
-
   useEffect(() => {
     fetchLiveStreams();
 
-
-
-    // Realtime: surgical viewer_count updates + full refetch only on stream add/remove
-    const channel = supabase
-      .channel(`live-streams-realtime-${Math.random().toString(36).slice(2, 8)}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'live_streams' },
-        (payload) => {
-          const next = payload.new as any;
-          if (!next?.id) return;
-          // Stream ended → drop it; otherwise patch in place (instant viewer_count)
-          if (next.is_active === false) {
-            setStreams((prev) => prev.filter((s) => s.id !== next.id));
-            return;
-          }
-          setStreams((prev) => {
-            const idx = prev.findIndex((s) => s.id === next.id);
-            if (idx === -1) {
-              // New live stream appeared → full refetch to get host data
-              fetchLiveStreams();
-              return prev;
-            }
-            const updated = [...prev];
-            updated[idx] = {
-              ...updated[idx],
-              viewer_count: next.viewer_count ?? updated[idx].viewer_count,
-              title: next.title ?? updated[idx].title,
-              thumbnail_url: next.thumbnail_url ?? updated[idx].thumbnail_url,
-              ...(next.last_heartbeat ? { last_heartbeat: next.last_heartbeat } : {}),
-            } as any;
-            return updated;
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'live_streams' },
-        () => fetchLiveStreams()
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'live_streams' },
-        (payload) => {
-          const oldId = (payload.old as any)?.id;
-          if (oldId) setStreams((prev) => prev.filter((s) => s.id !== oldId));
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'stream_viewers' },
-        (payload) => {
-          // Idempotent ±1: maintain a per-stream Set of active viewer ids.
-          // A repeat INSERT for the same viewer becomes a no-op; a DELETE for a
-          // viewer we never tracked is ignored. The live_streams UPDATE handler
-          // above still reconciles to the server-authoritative count.
-          const row: any = (payload.new as any) ?? (payload.old as any);
-          const streamId: string | undefined = row?.stream_id;
-          const viewerId: string | undefined =
-            (payload.new as any)?.viewer_id ?? (payload.old as any)?.viewer_id;
-          if (!streamId || !viewerId) return;
-
-          let set = activeViewersByStreamRef.current.get(streamId);
-          if (!set) {
-            set = new Set<string>();
-            activeViewersByStreamRef.current.set(streamId, set);
-          }
-
-          // Compute desired membership for this viewer based on the event.
-          let shouldBeActive: boolean | null = null;
-          if (payload.eventType === 'INSERT') {
-            shouldBeActive = true;
-          } else if (payload.eventType === 'DELETE') {
-            shouldBeActive = false;
-          } else {
-            // UPDATE: presence is encoded by left_at
-            shouldBeActive = !((payload.new as any)?.left_at);
-          }
-
-          const wasActive = set.has(viewerId);
-          if (shouldBeActive === wasActive) return; // duplicate / no-op
-
-          let delta = 0;
-          if (shouldBeActive) {
-            set.add(viewerId);
-            delta = +1;
-          } else {
-            set.delete(viewerId);
-            delta = -1;
-          }
-
-          setStreams((prev) => {
-            const idx = prev.findIndex((s) => s.id === streamId);
-            if (idx === -1) return prev;
-            const updated = [...prev];
-            updated[idx] = {
-              ...updated[idx],
-              viewer_count: Math.max(0, (updated[idx].viewer_count || 0) + delta),
-            } as any;
-            return updated;
-          });
-        }
-      )
-      .subscribe((status) => {
-        // Auto-reconnect + full resync on disconnect (CHANNEL_ERROR / TIMED_OUT / CLOSED)
-        if (
-          status === 'CHANNEL_ERROR' ||
-          status === 'TIMED_OUT' ||
-          (status as string) === 'CLOSED'
-        ) {
-          if (reconnectTimerRef.current) return;
-          reconnectTimerRef.current = window.setTimeout(() => {
-            reconnectTimerRef.current = null;
-            // Reset idempotency tracker so post-reconnect counts match server truth
-            activeViewersByStreamRef.current.clear();
-            // Server-authoritative resync of viewer_count for every stream
-            fetchLiveStreams();
-            try { supabase.removeChannel(channel); } catch {}
-            // Force a fresh channel by bumping the re-subscribe key
-            setRtKey((k) => k + 1);
-          }, 1500);
-        } else if (status === 'SUBSCRIBED') {
-          // Fresh subscription → resync to capture anything missed while disconnected
-          activeViewersByStreamRef.current.clear();
-          fetchLiveStreams();
-        }
-      });
-
-
-    // Browser came back online or tab became visible → force resync
+    // Browser came back online or tab became visible → REST resync.
+    // LiveKit/FCM handle in-room realtime; no Supabase Realtime on live tables.
     const handleOnline = () => {
-      activeViewersByStreamRef.current.clear();
       fetchLiveStreams();
     };
     const handleVisibility = () => {
@@ -275,20 +140,13 @@ const Live = () => {
     window.addEventListener('online', handleOnline);
     document.addEventListener('visibilitychange', handleVisibility);
 
-    // Zero-refresh: realtime channel is the single source of truth, no polling
     return () => {
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
       window.removeEventListener('online', handleOnline);
       document.removeEventListener('visibilitychange', handleVisibility);
-      activeViewersByStreamRef.current.clear();
-      supabase.removeChannel(channel);
       cleanupAllPreloaded(); // Disconnect preloaded rooms when leaving Live page
     };
 
-  }, [rtKey]);
+  }, []);
 
   const totalViewers = streams.reduce((acc, stream) => acc + (stream.viewer_count || 0), 0);
 
