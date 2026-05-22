@@ -35,31 +35,6 @@
   ],
   "rls": [
     {
-      "file": "src/App.tsx",
-      "line": 833,
-      "table": "profiles"
-    },
-    {
-      "file": "src/App.tsx",
-      "line": 840,
-      "table": "agencies"
-    },
-    {
-      "file": "src/App.tsx",
-      "line": 848,
-      "table": "agencies"
-    },
-    {
-      "file": "src/App.tsx",
-      "line": 873,
-      "table": "profiles"
-    },
-    {
-      "file": "src/App.tsx",
-      "line": 890,
-      "table": "profiles"
-    },
-    {
       "file": "src/components/admin/AdminHelperDiamondTopup.tsx",
       "line": 70,
       "table": "agencies"
@@ -351,17 +326,17 @@
     },
     {
       "file": "src/hooks/useRealtimeData.ts",
-      "line": 20,
+      "line": 18,
       "table": "profiles"
     },
     {
       "file": "src/hooks/useRealtimeData.ts",
-      "line": 76,
+      "line": 63,
       "table": "agencies"
     },
     {
       "file": "src/hooks/useRealtimeData.ts",
-      "line": 330,
+      "line": 275,
       "table": "profiles"
     },
     {
@@ -382,11 +357,6 @@
     {
       "file": "src/hooks/useUserPrivileges.ts",
       "line": 82,
-      "table": "profiles"
-    },
-    {
-      "file": "src/hooks/useUserPrivileges.ts",
-      "line": 288,
       "table": "profiles"
     },
     {

@@ -13,15 +13,13 @@ export function useRealtimeProfile(userId: string | null) {
       return;
     }
 
-    let channel: RealtimeChannel;
-
     const fetchProfile = async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      
+
       if (!error && data) {
         setProfile(data);
       }
@@ -30,30 +28,22 @@ export function useRealtimeProfile(userId: string | null) {
 
     fetchProfile();
 
-    channel = supabase
-      .channel(`profile-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Profile updated:', payload.new);
-          setProfile(payload.new);
-        }
-      )
-      .subscribe();
-
+    // Pkg89 LiveKit-Purist: removed `profile-${userId}` postgres_changes subscription.
+    // `profiles` is NOT in supabase_realtime publication (would never fire), and this
+    // hook has ZERO consumers in the app. Use `useUserBalance` (own-row push via
+    // `user-balance-updates-${id}` channel) or rely on `app-sync` events instead.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchProfile();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(channel);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [userId]);
 
   return { profile, loading };
 }
+
 
 // Hook for real-time agency stats
 export function useRealtimeAgencyStats(agencyId: string | null) {
@@ -67,9 +57,6 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
       return;
     }
 
-    let agencyChannel: RealtimeChannel;
-    let performanceChannel: RealtimeChannel;
-
     const fetchData = async () => {
       // Fetch agency info
       const { data: agencyData } = await supabase
@@ -77,7 +64,7 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
         .select('*')
         .eq('id', agencyId)
         .single();
-      
+
       if (agencyData) {
         setStats(agencyData);
       }
@@ -91,62 +78,32 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
         .eq('period_type', 'weekly')
         .eq('period_start', weekStart)
         .maybeSingle();
-      
+
       if (perfData) {
         setPerformance(perfData);
       }
-      
+
       setLoading(false);
     };
 
     fetchData();
 
-    // Subscribe to agency updates
-    agencyChannel = supabase
-      .channel(`agency-${agencyId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'agencies',
-          filter: `id=eq.${agencyId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Agency updated:', payload.new);
-          setStats(payload.new);
-        }
-      )
-      .subscribe();
-
-    // Subscribe to performance updates
-    performanceChannel = supabase
-      .channel(`agency-perf-${agencyId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'agency_performance',
-          filter: `agency_id=eq.${agencyId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Performance updated:', payload.new);
-          if (payload.eventType !== 'DELETE') {
-            setPerformance(payload.new);
-          }
-        }
-      )
-      .subscribe();
-
+    // Pkg89 LiveKit-Purist: removed `agency-${agencyId}` + `agency-perf-${agencyId}`
+    // postgres_changes subscriptions. Neither table is in supabase_realtime publication,
+    // and this hook has ZERO consumers. Use admin-broadcast push (Pkg37) or visibility
+    // refresh — never re-subscribe to cross-user `agencies` tables.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchData();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(agencyChannel);
-      supabase.removeChannel(performanceChannel);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [agencyId]);
 
   return { stats, performance, loading };
 }
+
 
 // Hook for real-time live stream stats
 export function useRealtimeLiveStream(streamId: string | null) {
@@ -248,31 +205,19 @@ export function useRealtimeRankings(rankingType: string, periodType: string) {
   useEffect(() => {
     fetchRankings();
 
-    // Subscribe to performance changes that affect rankings
-    const channel = supabase
-      .channel(`rankings-${rankingType}-${periodType}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'agency_performance'
-        },
-        () => {
-          console.log('[Realtime] Performance changed, refreshing rankings');
-          fetchRankings();
-        }
-      )
-      .subscribe();
-
-    // No polling - realtime subscription handles updates
-    const interval: ReturnType<typeof setInterval> | null = null;
-
+    // Pkg89 LiveKit-Purist: removed `rankings-${type}-${period}` UNFILTERED
+    // postgres_changes on `agency_performance`. UNFILTERED cross-user subscription
+    // is the exact $1400-bill pattern. agency_performance is NOT in publication anyway,
+    // and this hook has ZERO consumers. Use admin-broadcast push or visibility refresh.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchRankings();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(channel);
-      if (interval) clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [fetchRankings]);
+
 
   return { rankings, loading, lastUpdate, refresh: fetchRankings };
 }
@@ -349,39 +294,20 @@ export function useRealtimeEarnings(userId: string | null) {
 
     fetchEarnings();
 
-    // Subscribe to new gifts
-    const channel = supabase
-      .channel(`earnings-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'gift_transactions',
-          filter: `receiver_id=eq.${userId}`
-        },
-        async (payload) => {
-          console.log('[Realtime] New earning:', payload.new);
-          const amount = (payload.new as any).coin_amount;
-          
-          setTodayEarnings(prev => prev + amount);
-          setWeekEarnings(prev => prev + amount);
-          setMonthEarnings(prev => prev + amount);
-          setTotalEarnings(prev => prev + amount);
-          setRecentGifts(prev => [payload.new, ...prev.slice(0, 19)]);
-          setLastUpdate(new Date());
-        }
-      )
-      .subscribe();
-
-    // No polling - realtime subscription handles updates
-    const interval: ReturnType<typeof setInterval> | null = null;
-
+    // Pkg89 LiveKit-Purist: removed `earnings-${userId}` postgres_changes
+    // subscription on `gift_transactions`. Table NOT in supabase_realtime publication;
+    // this hook has ZERO consumers. Gift earnings push instantly via Pkg76
+    // `livekit-gift-sent` window event (for active room views) and Pkg85
+    // `own-beans-updated` (for global My Beans). Visibility refresh covers other surfaces.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchEarnings();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(channel);
-      if (interval) clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [userId]);
+
 
   return { todayEarnings, weekEarnings, monthEarnings, totalEarnings, recentGifts, loading, lastUpdate };
 }
