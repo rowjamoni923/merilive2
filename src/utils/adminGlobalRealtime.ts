@@ -14,36 +14,21 @@
  * Lifecycle: started by AdminLayout once admin session is verified, stopped
  * on admin logout. Multiple start() calls are idempotent.
  */
-import { adminSupabase } from "@/integrations/supabase/adminClient";
 import {
   ADMIN_REALTIME_EVENT,
   GLOBALLY_MONITORED_TABLES,
-  dispatchAdminTableUpdate,
   type AdminTableUpdateEvent,
 } from "@/hooks/useAdminRealtime";
 
-const CHUNK_SIZE = 8;
 const DEDUPE_WINDOW_MS = 800;
-const RECONNECT_BASE_MS = 1500;
-const RECONNECT_MAX_MS = 30_000;
 const VISIBILITY_RESUME_THRESHOLD_MS = 30_000;
 
-type ManagedChannel = ReturnType<typeof adminSupabase.channel>;
-
-interface ChunkState {
-  index: number;
-  tables: string[];
-  channel: ManagedChannel | null;
-  retryAttempt: number;
-  retryTimer: ReturnType<typeof setTimeout> | null;
-}
-
 let started = false;
-const chunks: ChunkState[] = [];
 const recentEvents = new Map<string, number>();
 let lastVisibilityHidden = 0;
 let visibilityHandler: (() => void) | null = null;
 let cleanupInterval: ReturnType<typeof setInterval> | null = null;
+let adminBroadcastHandler: ((event: Event) => void) | null = null;
 
 function makeDedupeKey(table: string, eventType: string, payload: any): string {
   const id = payload?.id ?? payload?.uuid ?? "";
