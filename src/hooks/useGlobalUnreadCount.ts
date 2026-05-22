@@ -207,12 +207,6 @@ const fetchSharedCounts = async (force = false) => {
   await sharedFetchPromise;
 };
 
-const realtimeRefresh = () => {
-  // Skip if we're in an optimistic suppress window (e.g. after mark-all-read)
-  if (optimisticSuppressUntil > Date.now()) return;
-  void fetchSharedCounts(true);
-};
-
 const cleanupRealtimeSubscriptionIfUnused = () => {
   if (listeners.size > 0) return;
 
