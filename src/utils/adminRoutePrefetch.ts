@@ -144,6 +144,7 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/pending-approvals': () => import('@/pages/admin/AdminPendingApprovals'),
   '/admin/auto-actions': () => import('@/pages/admin/AdminAutoActions'),
   '/admin/livekit-rooms': () => import('@/pages/admin/AdminLiveKitRooms'),
+  '/admin/livekit-egress': () => import('@/pages/admin/AdminLiveKitEgress'),
   '/admin/cost-monitor': () => import('@/pages/admin/AdminCostMonitor'),
   '/admin/moderation-audit': () => import('@/pages/admin/AdminModerationAudit'),
   '/admin/sub-admins': () => import('@/pages/admin/AdminSubAdmins'),
