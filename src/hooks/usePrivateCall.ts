@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { updateCachedBalance } from '@/hooks/useUserBalance';
 import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
