@@ -1123,8 +1123,14 @@ const GoLive = () => {
           {/* Close Button */}
           <motion.button
             onClick={handleBack}
-            whileTap={{ scale: 0.9 }}
-            className="absolute right-4 top-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center"
+            whileTap={{ scale: 0.88 }}
+            className="absolute right-4 top-4 w-10 h-10 rounded-full flex items-center justify-center border border-white/15"
+            style={{
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+            }}
           >
             <X className="w-5 h-5 text-white" />
           </motion.button>
@@ -1132,25 +1138,41 @@ const GoLive = () => {
         
         {/* Host Info Badge Row */}
         <div className="px-4 mt-2">
-          <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5">
+          <div
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-white/10"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+            }}
+          >
             <span className="text-white text-sm font-semibold">
               {userProfile?.display_name || "Your Name"} {userLocation?.flag || "🌍"}
             </span>
-            <span className="text-yellow-400 text-xs">
+            <span className="text-amber-300 text-xs">
               ??? ⭐
             </span>
           </div>
-          <div className="flex items-center gap-1 mt-1">
+          <div className="flex items-center gap-1 mt-1.5">
             <BeansIcon size={16} />
-            <span className="text-amber-300 text-sm">0</span>
+            <span className="text-amber-300 text-sm font-semibold tabular-nums">0</span>
           </div>
         </div>
         
         {/* Viewer Count Badge */}
         <div className="absolute left-4 top-36">
-          <div className="flex items-center gap-1 bg-pink-500/80 backdrop-blur-sm rounded-full px-2 py-0.5">
+          <div
+            className="flex items-center gap-1 rounded-full px-2 py-0.5 border border-white/15"
+            style={{
+              background: 'linear-gradient(135deg, rgba(236,72,153,0.85) 0%, rgba(168,85,247,0.85) 100%)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 12px -2px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.20)',
+            }}
+          >
             <Users className="w-3 h-3 text-white" />
-            <span className="text-white text-xs font-medium">0/1</span>
+            <span className="text-white text-xs font-semibold tabular-nums">0/1</span>
           </div>
         </div>
       </motion.div>
