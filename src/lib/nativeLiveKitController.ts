@@ -232,6 +232,32 @@ class NativeLiveKitController {
     catch (e) { console.warn('[NativeLiveKitController] setAudioDevice failed:', e); return false; }
   }
 
+  // --- Screen share (Pkg102 native) ------------------------------
+  async isScreenShareSupported(): Promise<{ supported: boolean; active: boolean }> {
+    try { return await NativeLiveKit.isScreenShareSupported(); }
+    catch { return { supported: false, active: false }; }
+  }
+
+  async startScreenShare(): Promise<boolean> {
+    if (!this.connected) return false;
+    try {
+      const r = await NativeLiveKit.startScreenShare();
+      return !!r.active;
+    } catch (e: any) {
+      // permission-denied is a user cancel — silent
+      const msg = String(e?.message || e?.code || '');
+      if (!/permission|denied|cancel/i.test(msg)) {
+        console.warn('[NativeLiveKitController] startScreenShare failed:', e);
+      }
+      throw e;
+    }
+  }
+
+  async stopScreenShare(): Promise<void> {
+    try { await NativeLiveKit.stopScreenShare(); }
+    catch (e) { console.warn('[NativeLiveKitController] stopScreenShare failed:', e); }
+  }
+
   // --- Lifecycle event subscriptions (Step 17) -------------------
   // Returns an unsubscribe function. Safe no-op on web/iOS.
   /** Fires while LiveKit recovers from a transient network drop. */
