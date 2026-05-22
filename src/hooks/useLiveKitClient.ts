@@ -1423,6 +1423,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     localAudioTrack,
     isNativeMediaActive,
     screenTrack,
+    remoteScreenTracks,
+    isScreenSharing,
     isScreenSharing,
     remoteUsers,
     currentRole,
