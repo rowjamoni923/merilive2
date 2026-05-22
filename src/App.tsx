@@ -1165,9 +1165,9 @@ const App = () => {
                 
                 {/* Admin Panel - Protected by AdminAccessGuard */}
                 {/* Shows blog page to unauthorized users, admin panel to authorized */}
-                <Route path="/admin/auth" element={<AdminAccessGuard><AdminAuth /></AdminAccessGuard>} />
-                <Route path="/admin/login" element={<AdminAccessGuard><AdminAuth /></AdminAccessGuard>} />
-                <Route path="/admin" element={<AdminAccessGuard><AdminLayout /></AdminAccessGuard>}>
+                <Route path="/admin/auth" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminAuth /></AdminAccessGuard></Suspense>} />
+                <Route path="/admin/login" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminAuth /></AdminAccessGuard></Suspense>} />
+                <Route path="/admin" element={<Suspense fallback={<AdminChunkLoader />}><AdminAccessGuard><AdminLayout /></AdminAccessGuard></Suspense>}>
                   <Route index element={<SubAdminDashboardGuard><AdminDashboard /></SubAdminDashboardGuard>} />
                   <Route path="agencies" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencies /></AdminRouteGuard>} />
                   <Route path="agencies/:agencyId" element={<AdminRouteGuard routeSegment="agencies"><AdminAgencyDetail /></AdminRouteGuard>} />
