@@ -20,6 +20,8 @@
  */
 import type { LocalVideoTrack } from 'livekit-client';
 import { isLiveKitEnabled } from './livekitSignaling';
+import { nativeLiveKitController } from './nativeLiveKitController';
+import { isNativeLiveKitAvailable } from './nativeLiveKitGate';
 
 export type VirtualBackgroundMode = 'none' | 'blur' | 'image';
 
