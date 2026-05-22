@@ -23,7 +23,7 @@ const FALLBACK_STEPS: OnboardingStep[] = [
   { image: stepLivestream, title: 'Watch Live Streams', description: 'Discover talented hosts going live 24/7. Send gifts, chat, and make their day!', gradient: 'from-pink-500 to-rose-500' },
   { image: stepParty, title: 'Join Party Rooms', description: 'Audio & video party rooms where you can hang out, sing karaoke, and play games!', gradient: 'from-blue-500 to-cyan-500' },
   { image: stepVideocall, title: 'Private Video Calls', description: 'Connect 1-on-1 with hosts through private video calls. It\'s fun and personal!', gradient: 'from-red-500 to-orange-500' },
-  { image: stepBonus, title: 'You Got Free Coins!', description: 'We\'ve given you welcome bonus coins to get started. Explore and enjoy!', gradient: 'from-amber-500 to-yellow-500' },
+  { image: stepBonus, title: 'You Got Free Diamonds!', description: 'We\'ve given you welcome bonus Diamonds to get started. Explore and enjoy!', gradient: 'from-amber-500 to-yellow-500' },
 ];
 
 const WelcomeOnboarding = () => {

@@ -120,7 +120,7 @@ const ar = {
     friends: "الأصدقاء",
     visitors: "الزوار",
     level: "المستوى",
-    coins: "العملات",
+    coins: "Diamonds",
     beans: "البينز",
     diamonds: "الماس",
     wallet: "المحفظة",
@@ -273,7 +273,7 @@ const ar = {
     selectGift: "اختر هدية",
     quantity: "الكمية",
     totalCost: "التكلفة الإجمالية",
-    insufficientCoins: "عملات غير كافية",
+    insufficientCoins: "Insufficient Diamonds",
     rechargeNow: "اشحن الآن",
   },
   agency: {

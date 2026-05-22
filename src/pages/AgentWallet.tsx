@@ -200,7 +200,7 @@ const AgentWallet = () => {
     if (!amount || amount < 10000) {
       toast({
         title: "Error",
-        description: "Minimum 10,000 coins required",
+        description: "Minimum 10,000 Diamonds required",
         variant: "destructive",
       });
       return;
@@ -320,7 +320,7 @@ const AgentWallet = () => {
     
     toast({
       title: "Success!",
-      description: `${amount.toLocaleString()} beans converted to ${amount.toLocaleString()} coins`,
+      description: `${amount.toLocaleString()} beans converted to ${diamondsReward.toLocaleString()} Diamonds`,
     });
     
     setIsProcessing(false);
@@ -380,7 +380,7 @@ const AgentWallet = () => {
           <div className="grid grid-cols-2 gap-3 mt-5">
             <Button 
               onClick={() => setShowTransfer(true)}
-              aria-label="Send coins"
+              aria-label="Send Diamonds"
               className="h-11 bg-white/20 hover:bg-white/30 active:bg-white/25 backdrop-blur-sm"
             >
               <Send className="w-4 h-4 mr-2" />
@@ -412,7 +412,7 @@ const AgentWallet = () => {
 
           <Button 
             onClick={() => setShowExchange(true)}
-            aria-label="Exchange beans to coins"
+            aria-label="Exchange beans to Diamonds"
             className="w-full h-11 mt-4 bg-white/20 hover:bg-white/30 active:bg-white/25 backdrop-blur-sm"
           >
             <ArrowRightLeft className="w-4 h-4 mr-2" />
@@ -500,8 +500,8 @@ const AgentWallet = () => {
             <div>
               <h4 className="font-medium text-success-800">Transfer Info</h4>
               <ul className="text-sm text-success-700 mt-1 space-y-1">
-                <li>• Send coins to users by their ID</li>
-                <li>• Minimum transfer: 10,000 coins</li>
+                <li>• Send Diamonds to users by their ID</li>
+                <li>• Minimum transfer: 10,000 Diamonds</li>
                 <li>• Instant transfer</li>
               </ul>
             </div>

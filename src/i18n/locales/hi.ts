@@ -120,7 +120,7 @@ const hi = {
     friends: "दोस्त",
     visitors: "विज़िटर",
     level: "लेवल",
-    coins: "सिक्के",
+    coins: "Diamonds",
     beans: "बीन्स",
     diamonds: "डायमंड",
     wallet: "वॉलेट",
@@ -273,7 +273,7 @@ const hi = {
     selectGift: "एक गिफ्ट चुनें",
     quantity: "मात्रा",
     totalCost: "कुल लागत",
-    insufficientCoins: "अपर्याप्त सिक्के",
+    insufficientCoins: "Insufficient Diamonds",
     rechargeNow: "अभी रिचार्ज करें",
   },
   agency: {

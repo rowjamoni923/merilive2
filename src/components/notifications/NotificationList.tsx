@@ -71,7 +71,7 @@ const getNotificationIcon = (type: string, priority?: string) => {
     'gift_received': { icon: Gift, color: 'bg-pink-500' },
     'gift_sent': { icon: Heart, color: 'bg-red-500' },
     
-    // Coins & Purchase - Top-up
+    // Diamonds & Purchase - Top-up
     'topup_approved': { icon: Diamond, color: 'bg-gradient-to-br from-green-500 to-emerald-600' },
     'topup_rejected': { icon: Diamond, color: 'bg-red-500' },
     'coin_purchase_helper': { icon: Diamond, color: 'bg-gradient-to-br from-cyan-500 to-purple-600' },
@@ -526,7 +526,7 @@ const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItem
             </div>
           </div>
           
-          {/* Special display for coin amount */}
+          {/* Special display for Diamond amount */}
           {isCoinNotification && notificationData?.amount && (
             <motion.div 
               className="flex items-center gap-2 mt-1"

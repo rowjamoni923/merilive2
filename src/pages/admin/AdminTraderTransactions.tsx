@@ -126,7 +126,7 @@ const AdminTraderTransactions = () => {
           </Button>
           <div>
             <h1 className="font-bold text-xl text-white">Trader Transactions</h1>
-            <p className="text-white/80 text-sm">All coin transactions</p>
+            <p className="text-white/80 text-sm">All Diamond transactions</p>
           </div>
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 ml-auto" onClick={fetchTransactions}>
             <RefreshCw className="w-5 h-5" />

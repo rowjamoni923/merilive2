@@ -259,7 +259,7 @@ const Discover = () => {
     }
 
     if (room.entry_fee > 0 && (currentUser.profile?.coins || 0) < room.entry_fee) {
-      toast.error("Insufficient coins");
+      toast.error("Insufficient Diamonds");
       return;
     }
 
