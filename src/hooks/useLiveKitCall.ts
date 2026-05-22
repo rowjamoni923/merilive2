@@ -185,6 +185,9 @@ export function useLiveKitCall(
     const room = roomRef.current;
     if (!room?.localParticipant) return;
     room.localParticipant.setMicrophoneEnabled(enabled);
+    if (enabled) {
+      import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
+    }
     setState(p => ({ ...p, isAudioEnabled: enabled }));
   }, [state.isAudioEnabled]);
 
