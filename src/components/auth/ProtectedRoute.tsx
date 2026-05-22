@@ -140,25 +140,26 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
       })();
     }
 
-    // INSTANT ban detection via direct Supabase channel (bypasses universal realtime debounce)
-    const banChannel = supabase
-      .channel(`direct-ban-${userId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
-        (payload) => {
-          if (payload.new?.is_blocked === true) {
-            console.log('[ProtectedRoute] 🚨 INSTANT ban detected via realtime!');
-            banCheckCache.set(userId, { isBanned: true, checkedAt: Date.now() });
-            setIsBanned(true);
-            setBanReason(payload.new?.blocked_reason ?? null);
-          }
-        }
-      )
-      .subscribe();
+    // Instant ban detection via Pkg37 admin_broadcast. `profiles` is NOT in
+    // supabase_realtime publication, so direct postgres_changes here was dead.
+    const onAdminProfileUpdate = async (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table !== 'profiles') return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_blocked, blocked_reason')
+        .eq('id', userId)
+        .maybeSingle();
+      if (data?.is_blocked === true) {
+        banCheckCache.set(userId, { isBanned: true, checkedAt: Date.now() });
+        setIsBanned(true);
+        setBanReason(data.blocked_reason ?? null);
+      }
+    };
+    window.addEventListener('admin-table-update', onAdminProfileUpdate as EventListener);
 
     return () => {
-      supabase.removeChannel(banChannel);
+      window.removeEventListener('admin-table-update', onAdminProfileUpdate as EventListener);
     };
   }, [effectiveSession?.user?.id]);
 
