@@ -57,6 +57,9 @@ verify_jwt = true
 [functions.livekit-auto-record]
 verify_jwt = false
 
+[functions.livekit-update-permission]
+verify_jwt = true
+
 
 
 
