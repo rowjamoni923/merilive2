@@ -7248,7 +7248,11 @@ export type Database = {
           current_music_title: string | null
           current_music_url: string | null
           description: string | null
+          egress_id: string | null
           ended_at: string | null
+          hls_egress_id: string | null
+          hls_playlist_url: string | null
+          hls_status: string | null
           host_id: string
           id: string
           ingress_id: string | null
@@ -7259,7 +7263,9 @@ export type Database = {
           live_privacy: string
           music_playing: boolean | null
           music_started_at: string | null
+          recording_status: string | null
           room_id: string | null
+          room_name: string | null
           rtmp_url: string | null
           started_at: string | null
           status: string | null
@@ -7277,7 +7283,11 @@ export type Database = {
           current_music_title?: string | null
           current_music_url?: string | null
           description?: string | null
+          egress_id?: string | null
           ended_at?: string | null
+          hls_egress_id?: string | null
+          hls_playlist_url?: string | null
+          hls_status?: string | null
           host_id: string
           id?: string
           ingress_id?: string | null
@@ -7288,7 +7298,9 @@ export type Database = {
           live_privacy?: string
           music_playing?: boolean | null
           music_started_at?: string | null
+          recording_status?: string | null
           room_id?: string | null
+          room_name?: string | null
           rtmp_url?: string | null
           started_at?: string | null
           status?: string | null
@@ -7306,7 +7318,11 @@ export type Database = {
           current_music_title?: string | null
           current_music_url?: string | null
           description?: string | null
+          egress_id?: string | null
           ended_at?: string | null
+          hls_egress_id?: string | null
+          hls_playlist_url?: string | null
+          hls_status?: string | null
           host_id?: string
           id?: string
           ingress_id?: string | null
@@ -7317,7 +7333,9 @@ export type Database = {
           live_privacy?: string
           music_playing?: boolean | null
           music_started_at?: string | null
+          recording_status?: string | null
           room_id?: string | null
+          room_name?: string | null
           rtmp_url?: string | null
           started_at?: string | null
           status?: string | null
@@ -11446,17 +11464,25 @@ export type Database = {
           channel_name: string | null
           created_at: string | null
           duration_seconds: number | null
+          egress_id: string | null
           ended_at: string | null
+          error: string | null
           expires_at: string | null
           file_size_bytes: number | null
+          file_url: string | null
+          format: string | null
           host_id: string | null
           host_name: string | null
           host_uid: string | null
           id: string
           metadata: Json | null
+          output_type: string | null
+          playlist_url: string | null
           recording_sid: string | null
           recording_url: string | null
           resource_id: string | null
+          room_name: string | null
+          size_bytes: number | null
           started_at: string | null
           status: string | null
           stream_id: string | null
@@ -11470,17 +11496,25 @@ export type Database = {
           channel_name?: string | null
           created_at?: string | null
           duration_seconds?: number | null
+          egress_id?: string | null
           ended_at?: string | null
+          error?: string | null
           expires_at?: string | null
           file_size_bytes?: number | null
+          file_url?: string | null
+          format?: string | null
           host_id?: string | null
           host_name?: string | null
           host_uid?: string | null
           id?: string
           metadata?: Json | null
+          output_type?: string | null
+          playlist_url?: string | null
           recording_sid?: string | null
           recording_url?: string | null
           resource_id?: string | null
+          room_name?: string | null
+          size_bytes?: number | null
           started_at?: string | null
           status?: string | null
           stream_id?: string | null
@@ -11494,17 +11528,25 @@ export type Database = {
           channel_name?: string | null
           created_at?: string | null
           duration_seconds?: number | null
+          egress_id?: string | null
           ended_at?: string | null
+          error?: string | null
           expires_at?: string | null
           file_size_bytes?: number | null
+          file_url?: string | null
+          format?: string | null
           host_id?: string | null
           host_name?: string | null
           host_uid?: string | null
           id?: string
           metadata?: Json | null
+          output_type?: string | null
+          playlist_url?: string | null
           recording_sid?: string | null
           recording_url?: string | null
           resource_id?: string | null
+          room_name?: string | null
+          size_bytes?: number | null
           started_at?: string | null
           status?: string | null
           stream_id?: string | null
@@ -15972,17 +16014,25 @@ export type Database = {
           channel_name: string | null
           created_at: string | null
           duration_seconds: number | null
+          egress_id: string | null
           ended_at: string | null
+          error: string | null
           expires_at: string | null
           file_size_bytes: number | null
+          file_url: string | null
+          format: string | null
           host_id: string | null
           host_name: string | null
           host_uid: string | null
           id: string
           metadata: Json | null
+          output_type: string | null
+          playlist_url: string | null
           recording_sid: string | null
           recording_url: string | null
           resource_id: string | null
+          room_name: string | null
+          size_bytes: number | null
           started_at: string | null
           status: string | null
           stream_id: string | null
@@ -16133,7 +16183,11 @@ export type Database = {
           current_music_title: string | null
           current_music_url: string | null
           description: string | null
+          egress_id: string | null
           ended_at: string | null
+          hls_egress_id: string | null
+          hls_playlist_url: string | null
+          hls_status: string | null
           host_id: string
           id: string
           ingress_id: string | null
@@ -16144,7 +16198,9 @@ export type Database = {
           live_privacy: string
           music_playing: boolean | null
           music_started_at: string | null
+          recording_status: string | null
           room_id: string | null
+          room_name: string | null
           rtmp_url: string | null
           started_at: string | null
           status: string | null
