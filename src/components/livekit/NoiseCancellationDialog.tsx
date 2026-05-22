@@ -1,20 +1,21 @@
 /**
- * Pkg123: Krisp Noise Cancellation UI toggle (web hosts).
+ * Pkg123 + Pkg148: Krisp Noise Cancellation UI (web hosts).
  *
- * Simple On/Off switch for background-noise suppression on the LIVE mic.
- * Persists in localStorage so the choice survives reloads/re-publish. Honors
- * the Pkg123 server kill-switch (`livekit_signaling_enabled.noise_cancellation`,
- * default OFF) inside applyNoiseCancellation — UI still renders so admin can
- * flip it on/off without a deploy.
+ * 3-way picker:
+ *   • Off — raw mic (strips any active processor, incl. Pkg103 auto-Krisp)
+ *   • Standard — Krisp NC: removes typing/fans/traffic/crowd
+ *   • Voice Cancel (BVC) — Krisp Background Voice Cancellation: ALSO removes
+ *     other people's voices around you (cafe / shop / market). Same Krisp
+ *     model with `useBVC: true`.
  *
- * Pkg103's auto-applied Krisp filter (presence kill-switch) keeps running
- * independently. Toggling OFF here strips ANY processor (including Pkg103's),
- * giving the host a true raw-mic mode.
+ * Persists choice in localStorage. Honors the Pkg123 server kill-switch
+ * inside applyNoiseCancellation. Native Android keeps the 2-way On/Off
+ * (Kotlin module routes through WebRTC NS — BVC not supported natively).
  *
- * No new Supabase channels, no polls, no cross-user reads.
+ * Zero new Supabase channels, polls, or cross-user reads.
  */
 import { useEffect, useState } from "react";
-import { ShieldCheck, ShieldOff, X } from "lucide-react";
+import { ShieldCheck, ShieldOff, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -28,21 +29,26 @@ import {
   applyNoiseCancellationNative,
   clearNoiseCancellation,
   isNoiseCancellationSupported,
+  type NoiseCancellationMode,
 } from "@/lib/livekitNoiseCancellation";
 
+type Choice = "off" | "standard" | "bvc";
 const LS_KEY = "merilive_noisecancel_v1";
 
-function loadPersisted(): boolean {
+function loadPersisted(): Choice {
   try {
-    return localStorage.getItem(LS_KEY) === "1";
+    const v = localStorage.getItem(LS_KEY);
+    if (v === "bvc") return "bvc";
+    if (v === "standard" || v === "1") return "standard";
+    return "off";
   } catch {
-    return false;
+    return "off";
   }
 }
 
-function savePersisted(enabled: boolean) {
+function savePersisted(choice: Choice) {
   try {
-    localStorage.setItem(LS_KEY, enabled ? "1" : "0");
+    localStorage.setItem(LS_KEY, choice);
   } catch {
     /* ignore quota */
   }
@@ -58,16 +64,16 @@ interface Props {
 }
 
 export function NoiseCancellationDialog({ open, onClose, localAudioTrack, isNative = false }: Props) {
-  const [enabled, setEnabled] = useState<boolean>(loadPersisted());
+  const [choice, setChoice] = useState<Choice>(loadPersisted());
   const [applying, setApplying] = useState(false);
   const supported = isNoiseCancellationSupported();
 
   useEffect(() => {
     if (!open) return;
-    setEnabled(loadPersisted());
+    setChoice(loadPersisted());
   }, [open]);
 
-  const apply = async (next: boolean) => {
+  const apply = async (next: Choice) => {
     if (!isNative && !localAudioTrack) {
       toast.error("Microphone not active yet");
       return;
@@ -76,20 +82,25 @@ export function NoiseCancellationDialog({ open, onClose, localAudioTrack, isNati
     try {
       let ok = false;
       if (isNative) {
-        ok = await applyNoiseCancellationNative({ enabled: next });
-        // Native "off" always succeeds even if module missing.
-        if (!next) ok = true;
+        // Native = On/Off only (BVC unavailable on Android Kotlin module).
+        const wantOn = next !== "off";
+        ok = await applyNoiseCancellationNative({ enabled: wantOn });
+        if (!wantOn) ok = true;
+      } else if (next === "off") {
+        await clearNoiseCancellation(localAudioTrack);
+        ok = true;
       } else {
-        ok = next
-          ? await applyNoiseCancellation(localAudioTrack, { enabled: true })
-          : !!(await clearNoiseCancellation(localAudioTrack)) || true;
+        const mode: NoiseCancellationMode = next === "bvc" ? "bvc" : "standard";
+        ok = await applyNoiseCancellation(localAudioTrack, { enabled: true, mode });
       }
       savePersisted(next);
-      setEnabled(next);
-      if (!next) {
+      setChoice(next);
+      if (next === "off") {
         toast.success("Noise cancellation turned off");
       } else if (!ok) {
         toast.error("Noise cancellation unavailable on this device");
+      } else if (next === "bvc") {
+        toast.success("Voice cancellation on — other people's voices filtered");
       } else {
         toast.success("Noise cancellation on");
       }
@@ -101,6 +112,10 @@ export function NoiseCancellationDialog({ open, onClose, localAudioTrack, isNati
     }
   };
 
+  const card = (active: boolean) =>
+    active
+      ? "bg-primary/15 border-primary text-primary"
+      : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50";
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -119,35 +134,37 @@ export function NoiseCancellationDialog({ open, onClose, localAudioTrack, isNati
         )}
 
         <p className="text-xs text-muted-foreground">
-          Removes background noise (typing, fans, traffic, crowd) from your microphone in real time.
+          Standard cleans typing/fans/traffic. Voice Cancel also removes other people's voices around you — perfect for cafes, shops, and crowded places.
         </p>
 
-        <div className="flex gap-2 pt-2">
+        <div className="grid grid-cols-3 gap-2 pt-2">
           <button
             type="button"
-            onClick={() => void apply(false)}
+            onClick={() => void apply("off")}
             disabled={applying}
-            className={`flex-1 flex flex-col items-center gap-1.5 rounded-xl px-3 py-3 border transition-all ${
-              !enabled
-                ? "bg-muted/40 border-border text-foreground"
-                : "bg-muted/20 border-border/40 text-muted-foreground hover:bg-muted/30"
-            }`}
+            className={`flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 border transition-all ${card(choice === "off")}`}
           >
             <ShieldOff className="w-5 h-5" />
-            <span className="text-xs font-medium">Off</span>
+            <span className="text-[11px] font-medium">Off</span>
           </button>
           <button
             type="button"
-            onClick={() => void apply(true)}
-            disabled={applying || !supported}
-            className={`flex-1 flex flex-col items-center gap-1.5 rounded-xl px-3 py-3 border transition-all ${
-              enabled
-                ? "bg-primary/15 border-primary text-primary"
-                : "bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50"
-            }`}
+            onClick={() => void apply("standard")}
+            disabled={applying || (!supported && !isNative)}
+            className={`flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 border transition-all ${card(choice === "standard")}`}
           >
             <ShieldCheck className="w-5 h-5" />
-            <span className="text-xs font-medium">On</span>
+            <span className="text-[11px] font-medium">Standard</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => void apply("bvc")}
+            disabled={applying || !supported || isNative}
+            title={isNative ? "Voice Cancel is not available on Android yet" : undefined}
+            className={`flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 border transition-all ${card(choice === "bvc")} ${isNative ? "opacity-50" : ""}`}
+          >
+            <Sparkles className="w-5 h-5" />
+            <span className="text-[11px] font-medium leading-tight text-center">Voice<br/>Cancel</span>
           </button>
         </div>
 
