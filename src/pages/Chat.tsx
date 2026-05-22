@@ -131,6 +131,10 @@ interface GroupMessage {
     display_name: string | null;
     avatar_url: string | null;
     user_level?: number | null;
+    host_level?: number | null;
+    max_user_level?: number | null;
+    gender?: string | null;
+    is_host?: boolean | null;
   };
 }
 
