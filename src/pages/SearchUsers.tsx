@@ -290,7 +290,7 @@ const SearchUsers = () => {
             userId={user.id}
             src={user.avatar_url || undefined}
             name={user.display_name || user.username || '?'}
-            level={(user as any).user_level || 1}
+            level={pickDisplayLevel(user as any)}
             isHost={!!user.is_host}
             size="md"
             showFrame={true}
