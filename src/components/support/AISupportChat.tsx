@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import ReactMarkdown from "react-markdown";
 import { Capacitor } from "@capacitor/core";
 import { useToast } from "@/hooks/use-toast";
@@ -246,47 +247,46 @@ const AISupportChat = ({
     return () => clearInterval(interval);
   }, [waitingForAdmin, waitStartTime]);
 
-  useEffect(() => {
-    if (!liveChatTicketId) return;
-    const channel = supabase
-      .channel(`live-chat-inline-${liveChatTicketId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "support_messages", filter: `ticket_id=eq.${liveChatTicketId}` },
-        (payload) => {
-          const newMsg = payload.new as any;
-          if (newMsg.sender_type === "admin") {
-            setWaitingForAdmin(false);
-            // User always sees English only — translated_content is the English version
-            const displayContent = newMsg.translated_content || newMsg.content;
-            getSupportAttachmentDisplayUrl(newMsg.attachment_url).then((attachmentUrl) => setMessages(prev => [...prev, {
-              id: newMsg.id,
-              role: "admin",
-              content: displayContent,
-              timestamp: new Date(newMsg.created_at),
-              attachmentUrl,
-              attachmentType: newMsg.attachment_type,
-            }]));
-            supabase.from("support_messages").update({ is_read: true }).eq("id", newMsg.id).then(() => {});
-          }
+  // Pkg91: support_messages/support_tickets not in supabase_realtime publication.
+  // Use app_sync trigger fan-out (Pkg37 pattern) — fetch row on signal.
+  useAppSyncEvent(
+    ['support_messages', 'support_tickets'],
+    async (detail) => {
+      if (!liveChatTicketId) return;
+      const payload = (detail.payload || {}) as any;
+      if (detail.topic === 'support_messages') {
+        if (payload.ticket_id && payload.ticket_id !== liveChatTicketId) return;
+        if (!detail.rowId) return;
+        const { data: newMsg } = await supabase
+          .from('support_messages')
+          .select('*')
+          .eq('id', detail.rowId)
+          .maybeSingle();
+        if (!newMsg || newMsg.sender_type !== 'admin') return;
+        setWaitingForAdmin(false);
+        const displayContent = (newMsg as any).translated_content || newMsg.content;
+        const attachmentUrl = await getSupportAttachmentDisplayUrl((newMsg as any).attachment_url);
+        setMessages(prev => [...prev, {
+          id: newMsg.id,
+          role: 'admin',
+          content: displayContent,
+          timestamp: new Date(newMsg.created_at),
+          attachmentUrl,
+          attachmentType: (newMsg as any).attachment_type,
+        }]);
+        supabase.from('support_messages').update({ is_read: true }).eq('id', newMsg.id).then(() => {});
+      } else if (detail.topic === 'support_tickets') {
+        if (detail.rowId && detail.rowId !== liveChatTicketId) return;
+        const status = payload.status;
+        if (status) {
+          setTicketStatus(status);
+          if (status === 'closed' || status === 'resolved') setWaitingForAdmin(false);
         }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "support_tickets", filter: `id=eq.${liveChatTicketId}` },
-        (payload) => {
-          const updated = payload.new as any;
-          if (updated.status) {
-            setTicketStatus(updated.status);
-            if (updated.status === "closed" || updated.status === "resolved") {
-              setWaitingForAdmin(false);
-            }
-          }
-        }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [liveChatTicketId]);
+      }
+    },
+    !!liveChatTicketId,
+  );
+
 
   // Upload file to support-attachments bucket
   const uploadFile = async (file: File, type: "image" | "voice"): Promise<{ path: string; previewUrl: string } | null> => {

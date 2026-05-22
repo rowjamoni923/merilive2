@@ -139,22 +139,26 @@ export const OfficialNoticeList = () => {
     if (currentUserId) fetchNotices();
   }, [currentUserId, fetchNotices]);
 
+  // Pkg91: admin_notices is admin-managed (tg_admin_broadcast_admin_notices).
+  // Listen to Pkg37 'admin-table-update' window event instead of opening a
+  // dead postgres_changes channel (admin_notices not in supabase_realtime).
   useEffect(() => {
     if (!currentUserId) return;
-
-    const channel = supabase
-      .channel(`official-notices-${currentUserId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'admin_notices'
-      }, () => {
-        fetchNotices();
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    const onAdminUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ table?: string }>).detail;
+      if (detail?.table === 'admin_notices') fetchNotices();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchNotices();
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [currentUserId, fetchNotices]);
+
 
   const markAsRead = async (noticeId: string) => {
     if (!currentUserId) return;

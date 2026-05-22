@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { toast } from "sonner";
 import { useGameSound } from "@/hooks/useGameSound";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
@@ -190,81 +191,67 @@ export const RouletteGame = ({ embedded = false, onWin }: { embedded?: boolean; 
     return () => clearInterval(interval);
   }, [currentSession?.betting_ends_at, gamePhase]);
 
-  // Real-time subscriptions
-  useEffect(() => {
-    if (!currentSession?.id) return;
+  // Pkg91: roulette_bets/roulette_sessions are NOT in supabase_realtime publication
+  // (was a silent dead channel). Use app_sync trigger fan-out (server triggers
+  // tg_app_sync_roulette_bets + tg_app_sync_roulette_sessions emit per-participant
+  // app_sync rows that travel over the single notifications WS).
+  useAppSyncEvent(
+    ['roulette_bets', 'roulette_sessions'],
+    async (detail) => {
+      const sessionId = currentSession?.id;
+      if (!sessionId) return;
+      const payload = (detail.payload || {}) as any;
+      if (payload.session_id && payload.session_id !== sessionId) return;
+      if (detail.topic === 'roulette_sessions' && detail.rowId && detail.rowId !== sessionId) return;
 
-    const channel = supabase
-      .channel(`roulette-${currentSession.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "roulette_bets", filter: `session_id=eq.${currentSession.id}` },
-        async (payload) => {
-          const { data: betWithProfile } = await supabase
-            .from("roulette_bets")
-            .select(`*, profiles:user_id (display_name, avatar_url)`)
-            .eq("id", payload.new.id)
-            .maybeSingle();
-          if (betWithProfile) {
-            setAllBets(prev => {
-              // Prevent duplicates
-              if (prev.some(b => b.id === betWithProfile.id)) return prev;
-              return [...prev, betWithProfile];
-            });
-          }
+      if (detail.topic === 'roulette_bets') {
+        if (!detail.rowId) return;
+        const { data: betWithProfile } = await supabase
+          .from('roulette_bets')
+          .select(`*, profiles:user_id (display_name, avatar_url)`)
+          .eq('id', detail.rowId)
+          .maybeSingle();
+        if (betWithProfile) {
+          setAllBets(prev => {
+            if (prev.some(b => b.id === (betWithProfile as any).id)) return prev;
+            return [...prev, betWithProfile as any];
+          });
         }
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "roulette_sessions", filter: `id=eq.${currentSession.id}` },
-        (payload) => {
-          const updated = payload.new as any;
-          console.log('[Roulette] Session updated:', updated.status, 'winning:', updated.winning_number);
+        return;
+      }
 
-          // Handle spinning state
-          if (updated.status === "spinning" && updated.winning_number !== null) {
-            setIsSpinning(true);
-            setGamePhase('spinning');
-            setWinningNumber(null); // Don't show yet - wheel is spinning
-          }
-
-          // Handle completed state - show result
-          if (updated.status === "completed" && updated.winning_number !== null) {
-            const winNum = updated.winning_number;
-            console.log('[Roulette] ✅ Session completed! Winning number:', winNum);
-
-            // Show the spinning animation briefly, then reveal result
+      if (detail.topic === 'roulette_sessions') {
+        const status = payload.status;
+        const winningNumber = payload.winning_number;
+        if (status === 'spinning' && winningNumber !== null && winningNumber !== undefined) {
+          setIsSpinning(true);
+          setGamePhase('spinning');
+          setWinningNumber(null);
+        }
+        if (status === 'completed' && winningNumber !== null && winningNumber !== undefined) {
+          const winNum = winningNumber as number;
+          setIsSpinning(false);
+          setWinningNumber(winNum);
+          setGamePhase('result');
+          setTimeout(() => { processWinnings(winNum); }, 2000);
+          setTimeout(() => {
+            setWinningNumber(null);
             setIsSpinning(false);
-            setWinningNumber(winNum);
-            setGamePhase('result');
-
-            // ✅ FIX: Use ref for myBets to avoid stale closure
-            setTimeout(() => {
-              processWinnings(winNum);
-            }, 2000);
-
-            // Start new session after showing result
-            setTimeout(() => {
-              setWinningNumber(null);
-              setIsSpinning(false);
-              setMyBets([]);
-              myBetsRef.current = [];
-              setAllBets([]);
-              setGamePhase('betting');
-              spinCalledRef.current = false;
-              completeCalledRef.current = false;
-              fetchCurrentSession();
-              fetchRecentResults();
-            }, 7000);
-          }
+            setMyBets([]);
+            myBetsRef.current = [];
+            setAllBets([]);
+            setGamePhase('betting');
+            spinCalledRef.current = false;
+            completeCalledRef.current = false;
+            fetchCurrentSession();
+            fetchRecentResults();
+          }, 7000);
         }
-      )
-      .subscribe();
+      }
+    },
+    !!currentSession?.id,
+  );
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentSession?.id]);
 
   const spinWheel = async () => {
     if (!currentSession) return;

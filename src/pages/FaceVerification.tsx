@@ -47,6 +47,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -599,39 +600,28 @@ const FaceVerification = () => {
     };
   }, [navigate, refreshVerificationState]);
 
+  // Pkg91: dead postgres_changes channel (3 tables not in publication) replaced
+  // with app_sync trigger fan-out via useAppSyncEvent (zero new realtime channels).
+  useAppSyncEvent(
+    ['face_verification_submissions', 'host_applications', 'profiles'],
+    (detail) => {
+      if (!userId) return;
+      const rowUser = (detail.payload as any)?.user_id ?? (detail.payload as any)?.id;
+      if (rowUser && rowUser !== userId) return;
+      void refreshVerificationState(userId);
+    },
+    !!userId,
+  );
+
   useEffect(() => {
     if (!userId) return;
-
-    const syncVerificationState = () => {
-      void refreshVerificationState(userId);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refreshVerificationState(userId);
     };
-
-    const channel = supabase
-      .channel(`face-verification-sync-${userId}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `id=eq.${userId}`,
-      }, syncVerificationState)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'face_verification_submissions',
-        filter: `user_id=eq.${userId}`,
-      }, syncVerificationState)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'host_applications',
-        filter: `user_id=eq.${userId}`,
-      }, syncVerificationState)
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [userId, refreshVerificationState]);
+
 
   // Handle photo selection (Step 1)
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

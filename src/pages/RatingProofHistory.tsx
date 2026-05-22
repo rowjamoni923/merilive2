@@ -11,6 +11,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Clock, CheckCircle2, XCircle, Star, ImageIcon, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -79,19 +80,13 @@ export default function RatingProofHistory() {
     return () => { cancelled = true; };
   }, [load]);
 
-  useEffect(() => {
-    if (!userId) return;
-    const ch = supabase
-      .channel(`rating-history-${userId}`)
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "rating_reward_claims",
-        filter: `user_id=eq.${userId}`,
-      }, () => { void load(userId); })
-      .subscribe();
-    return () => { void supabase.removeChannel(ch); };
-  }, [userId, load]);
+  // Pkg91: rating_reward_claims not in supabase_realtime publication. Use app_sync.
+  useAppSyncEvent(
+    ['rating_reward_claims'],
+    () => { if (userId) void load(userId); },
+    !!userId,
+  );
+
 
   return (
     <div className="min-h-screen bg-slate-50">

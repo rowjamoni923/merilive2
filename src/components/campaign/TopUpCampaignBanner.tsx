@@ -64,18 +64,24 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
 
   useEffect(() => {
     fetchCampaigns();
-    
-    const channel = supabase
-      .channel(`campaign-updates-${location}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'recharge_campaigns',
-      }, () => fetchCampaigns())
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    // Pkg91: recharge_campaigns is admin-managed (tg_admin_broadcast_recharge_campaigns).
+    // Use Pkg37 'admin-table-update' window event instead of dead postgres_changes
+    // (table not in supabase_realtime publication).
+    const onAdminUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ table?: string }>).detail;
+      if (detail?.table === 'recharge_campaigns') fetchCampaigns();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchCampaigns();
+    };
+    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [fetchCampaigns, location]);
+
 
   const visibleCampaigns = campaigns.filter(c => !dismissed.has(c.id));
 

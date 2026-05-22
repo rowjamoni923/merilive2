@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 export interface ActiveNobleSubscription {
   subscription_id: string;
@@ -120,26 +121,14 @@ export const useNobleSubscription = (userId?: string | null) => {
     fetch();
   }, [fetch]);
 
-  // Realtime: refetch when this user's subscription row changes
-  useEffect(() => {
-    if (!userId) return;
-    const channel = supabase
-      .channel(`noble-sub-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "user_noble_subscriptions",
-          filter: `user_id=eq.${userId}`,
-        },
-        () => fetch()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, fetch]);
+  // Pkg91: user_noble_subscriptions not in supabase_realtime publication.
+  // Use app_sync trigger fan-out (tg_app_sync_user_noble_subscriptions).
+  useAppSyncEvent(
+    ['user_noble_subscriptions'],
+    () => { void fetch(); },
+    !!userId,
+  );
+
 
   return { noble: data, loading, refetch: fetch };
 };

@@ -15,6 +15,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Star, ChevronRight, Clock, CheckCircle2, XCircle, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -89,19 +90,13 @@ export function RatingProofStatusRow() {
     return () => { cancelled = true; };
   }, [refresh]);
 
-  useEffect(() => {
-    if (!userId) return;
-    const ch = supabase
-      .channel(`rating-claim-row-${userId}`)
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "rating_reward_claims",
-        filter: `user_id=eq.${userId}`,
-      }, () => { void refresh(userId); })
-      .subscribe();
-    return () => { void supabase.removeChannel(ch); };
-  }, [userId, refresh]);
+  // Pkg91: rating_reward_claims not in supabase_realtime publication. Use app_sync.
+  useAppSyncEvent(
+    ['rating_reward_claims'],
+    () => { if (userId) void refresh(userId); },
+    !!userId,
+  );
+
 
   // Map admin rejection reason → tailored suggested fixes
   const suggestions = useMemo(() => {
