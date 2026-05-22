@@ -24,6 +24,15 @@ export interface LiveKitRoomSummary {
   activeRecording: boolean;
 }
 
+export interface LiveKitParticipantTrack {
+  sid: string;
+  type: number; // 0=audio, 1=video
+  source: number; // 1=camera, 2=microphone, 3=screen_share, 4=screen_share_audio
+  name: string;
+  muted: boolean;
+  mimeType: string;
+}
+
 export interface LiveKitParticipantSummary {
   sid: string;
   identity: string;
@@ -34,7 +43,9 @@ export interface LiveKitParticipantSummary {
   permission: unknown;
   isPublisher: boolean;
   numTracks: number;
+  tracks?: LiveKitParticipantTrack[];
 }
+
 
 async function invoke<T>(action: string, body: Record<string, unknown> = {}): Promise<T> {
   const { data, error } = await adminSupabase.functions.invoke('livekit-room-ops', {
