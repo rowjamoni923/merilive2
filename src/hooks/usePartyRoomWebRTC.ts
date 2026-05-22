@@ -190,6 +190,9 @@ export function usePartyRoomWebRTC(
             },
             degradationPreference: 'maintain-resolution',
             simulcast: false,
+            // Pkg156: VP9 primary + VP8 backup. Chamet/Bigo party-room parity.
+            videoCodec: 'vp9',
+            backupCodec: { codec: 'vp8' },
           },
         });
         roomRef.current = room;

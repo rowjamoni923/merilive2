@@ -454,6 +454,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           degradationPreference: 'maintain-resolution',
           simulcast: useSimulcast,
           ...(useSimulcast ? { videoSimulcastLayers: simulcastLayers } : {}),
+          // Pkg156: prefer VP9 (Chamet/Bigo standard) — better quality/bitrate
+          // than VP8/H264 at same bandwidth. backupCodec auto-falls back to
+          // VP8 for receivers lacking VP9 decode (older Safari/Android).
+          videoCodec: 'vp9',
+          backupCodec: { codec: 'vp8' },
         },
         ...(isViewer ? {
           autoSubscribe: true,
