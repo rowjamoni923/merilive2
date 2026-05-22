@@ -3040,6 +3040,10 @@ const LiveStream = () => {
         </div>
       </motion.div>
 
+      {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
+      {id && <CaptionOverlay scope="live" id={id} />}
+
+
       {/* Bottom Section - Input Bar & Action Buttons */}
       <motion.div 
         animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 100 : 0 }}

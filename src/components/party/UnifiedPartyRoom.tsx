@@ -1509,6 +1509,10 @@ export function UnifiedPartyRoom({
           </div>
         </div>
 
+        {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
+        {roomId && <CaptionOverlay scope="party" id={roomId} />}
+
+
         {/* Game Board - Works for ALL room types (video, audio, game) */}
         {/* MUST be AFTER messages in DOM so it renders ON TOP of messages */}
         {/* z-50 > z-30, so game board covers messages when visible */}

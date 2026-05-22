@@ -576,6 +576,10 @@ export function ActiveCallScreen({
         style={{ opacity: showNativeCallingSurface ? 0 : 1 }}
       />
 
+      {/* Pkg145: Realtime captions (rides Pkg116 transcription kill-switch) */}
+      {callId && <CaptionOverlay scope="call" id={callId} />}
+
+
       {/* Privacy Warning Overlay */}
       <AnimatePresence>
         {showPrivacyWarning && (
