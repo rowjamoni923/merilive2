@@ -24,6 +24,7 @@ import {
   type RemoteTrackPublication,
 } from 'livekit-client';
 import { getLiveKitToken } from '@/services/livekitService';
+import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 
 export interface OpponentRoomTracks {
   /** Opponent's video track (for split-screen rendering) */
@@ -50,9 +51,15 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
     status: 'idle',
   });
   const roomRef = useRef<Room | null>(null);
+  // Pkg189: token refresh detach handle.
+  const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const mountedRef = useRef(true);
 
   const disconnect = useCallback(() => {
+    if (tokenRefreshDetachRef.current) {
+      try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+      tokenRefreshDetachRef.current = null;
+    }
     const room = roomRef.current;
     if (room) {
       room.removeAllListeners();
@@ -161,6 +168,21 @@ export function usePKOpponentRoom(opponentStreamId: string | null) {
           room.disconnect();
           return;
         }
+
+        // Pkg189: silent token refresh before TTL expiry.
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+        }
+        const roomNameForRefresh = roomName;
+        tokenRefreshDetachRef.current = attachLiveKitTokenRefresh(
+          room,
+          async () => {
+            const fresh = await getLiveKitToken(roomNameForRefresh, 'viewer_stream', undefined, false);
+            return { token: fresh.token, url: fresh.url, ttl: fresh.ttl };
+          },
+          tokenData.ttl ?? 60 * 60 * 6,
+          { label: 'lk-pk-opp' }
+        );
 
         // Initial scan after connect
         updateHostTracks();

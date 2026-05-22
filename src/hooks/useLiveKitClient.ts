@@ -16,6 +16,7 @@ import {
   VideoQuality,
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
+import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
@@ -183,6 +184,9 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   const [isRemoteAudioMuted, setIsRemoteAudioMuted] = useState(false); // Auto-play sound when entering stream
 
   const roomRef = useRef<Room | null>(null);
+  // Pkg189: token auto-refresh detach handle (replaces JWT before expiry so
+  // long live/party sessions survive past the 6h TTL without disconnect).
+  const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const isJoiningRef = useRef(false);
   const isLeavingRef = useRef(false);
   const channelRef = useRef<string>('');
@@ -407,6 +411,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // Disconnect existing room if any
       if (roomRef.current) {
         clearHostVideoRecoveryTimer();
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+          tokenRefreshDetachRef.current = null;
+        }
         roomRef.current.disconnect(true);
         roomRef.current = null;
       }
@@ -815,7 +823,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // Get token (determine room type from role)
       const roomType = config.role === 'host' ? 'host_stream' : 'viewer_stream';
       warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
-      const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
+      const tokenResp = await getLiveKitToken(normalizedChannel, roomType);
+      const { token, url, ttl } = tokenResp;
 
       const tokenTime = performance.now() - startTime;
       console.log(`[LiveKitClient] Token ready in ${tokenTime.toFixed(0)}ms`);
@@ -826,6 +835,20 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       setIsJoined(true);
       setConnectionState('CONNECTED');
       setCurrentRole(config.role);
+
+      // Pkg189: schedule silent token refresh before TTL expiry.
+      if (tokenRefreshDetachRef.current) {
+        try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+      }
+      tokenRefreshDetachRef.current = attachLiveKitTokenRefresh(
+        room,
+        async () => {
+          const fresh = await getLiveKitToken(normalizedChannel, roomType);
+          return { token: fresh.token, url: fresh.url, ttl: fresh.ttl };
+        },
+        ttl ?? 60 * 60 * 6,
+        { label: `lk-live-${roomType}` }
+      );
 
       const joinTime = performance.now() - startTime;
       console.log(`[LiveKitClient] ✅ Connected in ${joinTime.toFixed(0)}ms`);
@@ -1058,6 +1081,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       clearViewerHardReconnectTimer();
       clearHostVideoRecoveryTimer();
       destroyBeautyProcessor();
+      if (tokenRefreshDetachRef.current) {
+        try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+        tokenRefreshDetachRef.current = null;
+      }
       remoteAudioElementsRef.current.forEach(els => {
         els.forEach(el => el.remove());
       });

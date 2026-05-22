@@ -22,6 +22,7 @@ import {
   VideoQuality,
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
+import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 import { registerCallRoom, registerNativeCallRoom, unregisterCallRoom, unregisterNativeCallRoom } from '@/lib/livekitCallSignaling';
 import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
@@ -74,6 +75,8 @@ export function useLiveKitCall(
   });
 
   const roomRef = useRef<Room | null>(null);
+  // Pkg189: token refresh detach handle.
+  const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const isInitRef = useRef(false);
   const deadRef = useRef(false);
   // Pkg73: keep latest callId visible inside the stable `cleanup` callback
@@ -179,6 +182,10 @@ export function useLiveKitCall(
       setNativeActive(false);
     }
 
+    if (tokenRefreshDetachRef.current) {
+      try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+      tokenRefreshDetachRef.current = null;
+    }
     if (roomRef.current) {
       roomRef.current.disconnect(true);
       roomRef.current = null;
@@ -477,8 +484,9 @@ export function useLiveKitCall(
         // Get token and connect
         console.log('[LiveKitCall] Fetching token...');
         warmLiveKitToken(roomName, 'call').catch(() => {});
-        const { token, url } = await getLiveKitToken(roomName, 'call');
-        
+        const tokenResp = await getLiveKitToken(roomName, 'call');
+        const { token, url, ttl } = tokenResp;
+
         if (deadRef.current) return;
 
         console.log('[LiveKitCall] Connecting to room...');
@@ -488,6 +496,20 @@ export function useLiveKitCall(
         })();
         await connectPromise;
         console.log('[LiveKitCall] ✅ Connected to room');
+
+        // Pkg189: silent token refresh before TTL expiry.
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+        }
+        tokenRefreshDetachRef.current = attachLiveKitTokenRefresh(
+          room,
+          async () => {
+            const fresh = await getLiveKitToken(roomName, 'call');
+            return { token: fresh.token, url: fresh.url, ttl: fresh.ttl };
+          },
+          ttl ?? 60 * 60 * 6,
+          { label: 'lk-call' }
+        );
 
         // Pkg73: bind this Room to the callId so call-end packets can be
         // exchanged between caller and host directly (Supabase broadcast

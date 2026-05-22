@@ -141,10 +141,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Pkg189: TTL bumped 1h → 6h to cover long live/party sessions.
+    // Client-side livekitTokenRefresh.ts proactively refreshes at ttl-600s.
+    const TTL_SECONDS = 60 * 60 * 6; // 6 hours
+
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity,
       name: participantName,
-      ttl: 60 * 60, // 1 hour
+      ttl: TTL_SECONDS,
     });
     at.addGrant({
       room: roomName,
@@ -164,6 +168,9 @@ Deno.serve(async (req) => {
       roomType,
       role: canPublish ? "publisher" : "subscriber",
       hidden: hide,
+      ttl: TTL_SECONDS,
+      issuedAt: Math.floor(Date.now() / 1000),
+      expiresAt: Math.floor(Date.now() / 1000) + TTL_SECONDS,
     });
   } catch (e) {
     console.error("[livekit-token] error", e);

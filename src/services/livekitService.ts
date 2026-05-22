@@ -6,9 +6,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getAdminLinkToken } from '@/utils/adminAccessStorage';
 
-interface LiveKitTokenResponse {
+export interface LiveKitTokenResponse {
   token: string;
   url: string;
+  /** Pkg189: token TTL in seconds (from edge fn). Optional for backward-compat. */
+  ttl?: number;
+  /** Pkg189: unix-seconds expiry (from edge fn). Optional. */
+  expiresAt?: number;
 }
 
 interface LiveKitTokenRequest {
@@ -143,7 +147,12 @@ const requestFreshToken = async (
     throw new Error('Invalid token response');
   }
 
-  return { token: data.token, url: data.url };
+  return {
+    token: data.token,
+    url: data.url,
+    ...(typeof data.ttl === 'number' ? { ttl: data.ttl } : {}),
+    ...(typeof data.expiresAt === 'number' ? { expiresAt: data.expiresAt } : {}),
+  };
 };
 
 export async function getLiveKitToken(

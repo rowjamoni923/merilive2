@@ -16,6 +16,7 @@ import {
   VideoQuality,
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
+import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';
@@ -66,6 +67,8 @@ export function usePartyRoomWebRTC(
   const [restartNonce, setRestartNonce] = useState(0);
 
   const roomRef = useRef<Room | null>(null);
+  // Pkg189: token refresh detach handle.
+  const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
   const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -113,6 +116,10 @@ export function usePartyRoomWebRTC(
     // Pkg133: drop reactions registration.
     try { unregisterReactionRoom('party', roomId); } catch { /* ignore */ }
 
+    if (tokenRefreshDetachRef.current) {
+      try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+      tokenRefreshDetachRef.current = null;
+    }
     if (roomRef.current) {
       roomRef.current.disconnect(true);
       roomRef.current = null;
@@ -473,10 +480,25 @@ export function usePartyRoomWebRTC(
 
         // Get token and connect (audience: subscribe-only token)
         warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
-        const { token, url } = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
+        const tokenResp = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
+        const { token, url, ttl } = tokenResp;
         await room.prepareConnection(url, token).catch(() => {});
         await room.connect(url, token);
         console.log('[PartyLiveKit] ✅ Connected to room');
+
+        // Pkg189: silent token refresh before TTL expiry.
+        if (tokenRefreshDetachRef.current) {
+          try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
+        }
+        tokenRefreshDetachRef.current = attachLiveKitTokenRefresh(
+          room,
+          async () => {
+            const fresh = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
+            return { token: fresh.token, url: fresh.url, ttl: fresh.ttl };
+          },
+          ttl ?? 60 * 60 * 6,
+          { label: 'lk-party' }
+        );
 
         // Pkg75: bind this LiveKit Room to the party roomId so the host
         // can publish `room_closed` packets and viewers can receive them
