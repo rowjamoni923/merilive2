@@ -2268,6 +2268,7 @@ const LiveStream = () => {
 
   // Pkg131: raise-hand queue (live) — used for viewer toggle label + host count badge.
   const raisedHands = useRaisedHands('live', id);
+  useLiveKitRpcHandlers('live', id);
   const iHaveRaised = !!(currentUserId && raisedHands.some(h => h.identity === currentUserId));
 
   const handleToggleRaiseHand = async () => {
