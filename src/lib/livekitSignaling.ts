@@ -20,7 +20,8 @@ export type LiveKitFeature =
   | 'chat'
   | 'presence'
   | 'game'
-  | 'pk';
+  | 'pk'
+  | 'e2ee';
 
 export interface SignalEnvelope<T = unknown> {
   /** Envelope version — bump when shape changes. */
