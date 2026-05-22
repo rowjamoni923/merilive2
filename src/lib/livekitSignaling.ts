@@ -32,7 +32,8 @@ export type LiveKitFeature =
   | 'agent'
   | 'virtual_background'
   | 'rpc'
-  | 'streams';
+  | 'streams'
+  | 'room_metadata';
 
 
 
@@ -79,6 +80,7 @@ const DEFAULT_FLAGS: Record<LiveKitFeature, boolean> = {
   virtual_background: false, // Pkg119: OFF by default; admin opts in via app_settings
   rpc: true, // Pkg120: ON by default — peer-to-peer LiveKit RPC wrapper (admin can flip OFF)
   streams: true, // Pkg121: ON by default — text/file streams wrapper (admin can flip OFF)
+  room_metadata: false, // Pkg122: OFF by default — server mutates SFU room state (admin opts in)
 };
 
 
@@ -120,6 +122,7 @@ async function fetchFlags(): Promise<Record<LiveKitFeature, boolean>> {
       virtual_background: parsed.virtual_background === true, // Pkg119: explicit opt-in only
       rpc: parsed.rpc !== false, // Pkg120: ON unless admin explicitly disables
       streams: parsed.streams !== false, // Pkg121: ON unless admin explicitly disables
+      room_metadata: parsed.room_metadata === true, // Pkg122: explicit opt-in only
     };
 
 
