@@ -205,31 +205,19 @@ export function useRealtimeRankings(rankingType: string, periodType: string) {
   useEffect(() => {
     fetchRankings();
 
-    // Subscribe to performance changes that affect rankings
-    const channel = supabase
-      .channel(`rankings-${rankingType}-${periodType}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'agency_performance'
-        },
-        () => {
-          console.log('[Realtime] Performance changed, refreshing rankings');
-          fetchRankings();
-        }
-      )
-      .subscribe();
-
-    // No polling - realtime subscription handles updates
-    const interval: ReturnType<typeof setInterval> | null = null;
-
+    // Pkg89 LiveKit-Purist: removed `rankings-${type}-${period}` UNFILTERED
+    // postgres_changes on `agency_performance`. UNFILTERED cross-user subscription
+    // is the exact $1400-bill pattern. agency_performance is NOT in publication anyway,
+    // and this hook has ZERO consumers. Use admin-broadcast push or visibility refresh.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchRankings();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      supabase.removeChannel(channel);
-      if (interval) clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [fetchRankings]);
+
 
   return { rankings, loading, lastUpdate, refresh: fetchRankings };
 }
