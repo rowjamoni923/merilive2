@@ -1036,7 +1036,12 @@ const GoLive = () => {
             className="relative flex-shrink-0"
             whileTap={{ scale: 0.95 }}
           >
-            <div className="w-20 h-24 rounded-xl overflow-hidden ring-2 ring-pink-500/60 shadow-lg">
+            <div
+              className="w-20 h-24 rounded-2xl overflow-hidden relative"
+              style={{
+                boxShadow: '0 0 0 2px rgba(236,72,153,0.65), 0 8px 22px -6px rgba(236,72,153,0.55), inset 0 1px 0 rgba(255,255,255,0.15)',
+              }}
+            >
               {userProfile?.avatar_url ? (
                 <img 
                   src={userProfile.avatar_url} 
@@ -1048,16 +1053,33 @@ const GoLive = () => {
                   <Camera className="w-8 h-8 text-white" />
                 </div>
               )}
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background: 'linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.22) 50%, transparent 58%)',
+                  animation: 'giftSendShine 3.6s ease-in-out infinite',
+                }}
+              />
             </div>
             {/* Verified Badge at Bottom */}
             {userProfile?.is_face_verified ? (
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-md px-2 py-0.5 flex items-center gap-1">
+              <div
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 flex items-center gap-1"
+                style={{
+                  background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)',
+                  boxShadow: '0 4px 12px -2px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.35)',
+                }}
+              >
                 <Check className="w-3 h-3 text-white" />
               </div>
             ) : (
               <motion.button
                 onClick={() => setShowChametFaceVerification(true)}
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-500 to-orange-500 rounded-md px-2 py-0.5 flex items-center gap-1"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 flex items-center gap-1"
+                style={{
+                  background: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
+                  boxShadow: '0 4px 12px -2px rgba(239,68,68,0.55), inset 0 1px 0 rgba(255,255,255,0.30)',
+                }}
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ repeat: Infinity, duration: 1.5 }}
               >
