@@ -152,6 +152,27 @@ export function unregisterChatRoom(
   registry.delete(k);
 }
 
+export function registerNativeChatRoom(scope: ChatScope, id: string | null | undefined) {
+  if (!id || typeof window === 'undefined') return;
+  nativeRegistry.add(keyFor(scope, id));
+  if (nativeUnsubscribe) return;
+  nativeUnsubscribe = nativeLiveKitController.onDataReceived((payload, participantIdentity) => {
+    for (const k of nativeRegistry) {
+      const [scope, id] = k.split(':') as [ChatScope, string];
+      dispatchChatEnvelope(scope, id, payload, participantIdentity);
+    }
+  });
+}
+
+export function unregisterNativeChatRoom(scope: ChatScope, id: string | null | undefined) {
+  if (!id) return;
+  nativeRegistry.delete(keyFor(scope, id));
+  if (nativeRegistry.size === 0 && nativeUnsubscribe) {
+    nativeUnsubscribe();
+    nativeUnsubscribe = null;
+  }
+}
+
 /**
  * Publish a `chat_message` packet to every participant.
  * Returns `true` only when actually sent. Never throws.
@@ -165,9 +186,8 @@ export async function publishChatMessage(
     return false;
   }
   const entry = registry.get(keyFor(scope, id));
-  if (!entry) return false;
-  const room = entry.room;
-  if (!room || room.state !== 'connected') return false;
+  const room = entry?.room;
+  if ((!room || room.state !== 'connected') && !nativeRegistry.has(keyFor(scope, id))) return false;
 
   let allowed = false;
   try {
@@ -187,9 +207,12 @@ export async function publishChatMessage(
         id,
         timestamp: payload.timestamp ?? Date.now(),
       },
-      room.localParticipant?.identity,
+        room?.localParticipant?.identity ?? payload.userId,
     );
     const bytes = encodeEnvelope(env);
+    if (!room || room.state !== 'connected') {
+      return nativeLiveKitController.sendData(bytes, { reliable: true, topic: 'chat' });
+    }
     await room.localParticipant.publishData(bytes, { reliable: true });
     return true;
   } catch (err) {
