@@ -587,9 +587,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
       });
 
-      // CRYSTAL CLEAR: Always force HIGH quality for all viewers, never downgrade
+      // CRYSTAL CLEAR: Keep HIGH quality for viewers without sub-5s polling.
+      // This touches only LiveKit track state (no DB), but must still respect
+      // the $1400 zero-tolerance guard for live/call/party intervals.
       if (config.role === 'audience') {
-        // Re-enforce HIGH quality every 2 seconds to prevent any downgrade
+        // Re-enforce HIGH quality every 10 seconds to prevent any downgrade.
         const qualityEnforcer = setInterval(() => {
           if (room.state !== ConnectionState.Connected) return;
           room.remoteParticipants.forEach((remote) => {
@@ -602,7 +604,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
               }
             });
           });
-        }, 2000);
+        }, 10000);
 
         room.on(RoomEvent.Disconnected, () => clearInterval(qualityEnforcer));
       }
@@ -830,7 +832,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                   recovering = false;
                 });
             }
-          }, 1800);
+          }, 10000);
         } catch (trackErr: any) {
           console.error('[LiveKitClient] Track creation error:', trackErr);
           // 🚨 Surface the error so the host sees a clear toast instead of
