@@ -334,6 +334,7 @@ const Level5HelperDashboard = () => {
     'helper_admin_messages',
     'helper_message_replies',
     'agency_withdrawals',
+    'agencies',
   ], (detail) => {
     const payload = detail.payload || {};
     if (payload.helper_id && payload.helper_id !== helperData?.id) return;
@@ -348,6 +349,7 @@ const Level5HelperDashboard = () => {
         break;
       case 'helper_notifications':
         loadNotifications();
+        loadAgencyWithdrawals();
         break;
       case 'helper_withdrawal_requests':
         loadWithdrawals();
@@ -364,8 +366,20 @@ const Level5HelperDashboard = () => {
         loadCompletedHistory();
         loadNotifications();
         break;
+      case 'agencies':
+        loadData();
+        break;
     }
   }, Boolean(helperData?.id));
+
+  useEffect(() => {
+    const onAdminTableUpdate = (event: Event) => {
+      const table = (event as CustomEvent<{ table?: string }>).detail?.table;
+      if (table === 'topup_payment_methods') loadAvailablePaymentMethods();
+    };
+    window.addEventListener('admin-table-update', onAdminTableUpdate as EventListener);
+    return () => window.removeEventListener('admin-table-update', onAdminTableUpdate as EventListener);
+  }, [helperData?.id]);
 
   useEffect(() => {
     if (!selectedAgencyWithdrawal?.id || !helperData?.id || !showAgencyWithdrawalDialog) return;
