@@ -11,6 +11,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Clock, CheckCircle2, XCircle, Star, ImageIcon, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
