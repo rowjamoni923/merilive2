@@ -137,8 +137,26 @@ Deno.serve(async (req) => {
       }
       const fileUrl: string | null = file?.location ?? file?.filename ?? null;
 
+      // Pkg126: HLS segmented output reports playlists via `segmentResults`.
+      const segment = Array.isArray(egress.segmentResults) && egress.segmentResults.length > 0
+        ? egress.segmentResults[0]
+        : null;
+      let playlistUrl: string | null = null;
+      if (segment) {
+        playlistUrl = segment.playlistLocation ?? segment.playlistName ?? null;
+        if (durationSeconds == null && segment.duration != null) {
+          const dn = Number(segment.duration);
+          if (Number.isFinite(dn) && dn > 0) durationSeconds = Math.round(dn / 1_000_000_000);
+        }
+        if (sizeBytes == null && segment.size != null) {
+          const sn = Number(segment.size);
+          if (Number.isFinite(sn) && sn >= 0) sizeBytes = sn;
+        }
+      }
+
       const recUpdate: Record<string, unknown> = { status: mappedStatus };
       if (fileUrl) recUpdate.file_url = fileUrl;
+      if (playlistUrl) recUpdate.playlist_url = playlistUrl;
       if (durationSeconds != null) recUpdate.duration_seconds = durationSeconds;
       if (sizeBytes != null) recUpdate.size_bytes = sizeBytes;
       if (egress.error) recUpdate.error = String(egress.error);
@@ -148,17 +166,23 @@ Deno.serve(async (req) => {
         .from("stream_recordings")
         .update(recUpdate)
         .eq("egress_id", egress.egressId)
-        .select("id, stream_id")
+        .select("id, stream_id, format")
         .maybeSingle();
       if (recErr) {
         console.error("[livekit-webhook] stream_recordings update error:", recErr.message);
       }
 
       if (recRow?.stream_id) {
-        const streamUpdate: Record<string, unknown> = { recording_status: mappedStatus };
-        if (fileUrl) streamUpdate.recording_url = fileUrl;
-        // Clear egress_id only on terminal state so host can re-record later.
-        if (isTerminal) streamUpdate.egress_id = null;
+        const isHls = recRow.format === "hls" || !!playlistUrl;
+        const streamUpdate: Record<string, unknown> = isHls
+          ? { hls_status: mappedStatus }
+          : { recording_status: mappedStatus };
+        if (isHls && playlistUrl) streamUpdate.hls_playlist_url = playlistUrl;
+        if (!isHls && fileUrl) streamUpdate.recording_url = fileUrl;
+        // Clear egress id on terminal so host can re-record.
+        if (isTerminal) {
+          streamUpdate[isHls ? "hls_egress_id" : "egress_id"] = null;
+        }
         await admin.from("live_streams").update(streamUpdate).eq("id", recRow.stream_id);
       }
 
