@@ -119,6 +119,10 @@ interface UseLiveKitClientOptions {
    * transcription registry so `RoomEvent.TranscriptionReceived` dispatches a
    * `livekit-transcription` window event for caption / moderation UI. */
   transcriptionStreamId?: string | null;
+  /** Pkg133: When set, the underlying Room is registered with the
+   * reactions registry so `publishReaction`/`useReactions` work with
+   * scope='live' for floating emoji bursts. */
+  reactionsStreamId?: string | null;
 }
 
 
