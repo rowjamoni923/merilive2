@@ -29,6 +29,7 @@ import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '
 import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { registerRoomMetadataRoom, unregisterRoomMetadataRoom } from '@/lib/livekitRoomMetadata';
 import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
+import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -157,6 +158,8 @@ export function useLiveKitCall(
     try { if (callIdRef.current) unregisterRoomMetadataRoom('call', callIdRef.current); } catch { /* ignore */ }
     // Pkg121: drop text/byte stream registration.
     try { if (callIdRef.current) unregisterStreamRoom('call', callIdRef.current); } catch { /* ignore */ }
+    // Pkg120: drop RPC registration.
+    try { if (callIdRef.current) unregisterRpcRoom('call', callIdRef.current); } catch { /* ignore */ }
 
 
     if (usingNativeRef.current) {
@@ -477,6 +480,8 @@ export function useLiveKitCall(
         if (callId) registerRoomMetadataRoom('call', callId, room);
         // Pkg121: bind for text/byte streams (chunked chat, file attachments).
         if (callId) registerStreamRoom('call', callId, room);
+        // Pkg120: bind for participant RPC (moderator commands, seat-ack, raise-hand).
+        if (callId) registerRpcRoom('call', callId, room);
 
 
         // Enable camera and microphone
