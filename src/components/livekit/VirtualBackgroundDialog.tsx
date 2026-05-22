@@ -65,8 +65,10 @@ function savePersisted(c: PersistedChoice) {
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Live LocalVideoTrack from LiveKit (`useLiveKitClient.localVideoTrack`). */
-  localVideoTrack: any;
+  /** Live LocalVideoTrack from LiveKit (`useLiveKitClient.localVideoTrack`). Not needed on native. */
+  localVideoTrack?: any;
+  /** When true, routes through nativeLiveKitController instead of web track-processors. */
+  isNative?: boolean;
 }
 
 export function VirtualBackgroundDialog({ open, onClose, localVideoTrack }: Props) {
