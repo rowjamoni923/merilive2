@@ -912,6 +912,13 @@ const navGroups: NavGroup[] = [
         description: "Pkg135 — read-only SFU inspection of every active LiveKit room (call/live/party) with participant drill-in.",
       },
       {
+        label: "LiveKit Egress",
+        icon: Film,
+        path: "/admin/livekit-egress",
+        hubKey: "content-hub",
+        description: "Pkg136 — every active recording / HLS / RTMP simulcast job. Inspect status, view file outputs, swap layout on room-composite jobs.",
+      },
+      {
         label: "Reels",
         icon: Video,
         path: "/admin/reels",
