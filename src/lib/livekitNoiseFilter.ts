@@ -27,8 +27,8 @@ export async function applyKrispNoiseFilter(track: LocalAudioTrack | null | unde
       if (/merilive-android-native|capacitor/i.test(ua)) return false;
     }
 
-    // Admin kill-switch
-    const enabled = await isLiveKitFeatureEnabled('noiseFilter' as any);
+    // Admin kill-switch (reuse 'presence' family — UX-level feature).
+    const enabled = await isLiveKitEnabled('presence');
     if (enabled === false) return false;
 
     const mod = await import('@livekit/krisp-noise-filter');
