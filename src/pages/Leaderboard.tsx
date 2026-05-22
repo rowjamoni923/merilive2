@@ -329,7 +329,7 @@ const Leaderboard = () => {
   };
 
   const getLevel = (item: RankingData) => {
-    return activeCategory === "host_earning" ? (item.host_level || 1) : (item.user_level || 1);
+    return pickDisplayLevel(item as any);
   };
 
   const getDisplayId = (item: RankingData) => {
