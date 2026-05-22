@@ -3046,7 +3046,7 @@ const LiveStream = () => {
       </motion.div>
 
       {/* Pkg145: Realtime captions overlay (rides Pkg116 transcription kill-switch) */}
-      {id && <CaptionOverlay scope="live" id={id} />}
+      {id && <CaptionOverlay scope="live" id={id} hideToggle />}
 
       {/* Pkg189: Removed top-left utility buttons (PiP / Audio-only / Quality) per user request */}
 
