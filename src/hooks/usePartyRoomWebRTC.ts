@@ -23,6 +23,7 @@ import { registerPartyEventsRoom, unregisterPartyEventsRoom } from '@/lib/liveki
 import { registerChatRoom, unregisterChatRoom } from '@/lib/livekitChatSignaling';
 import { registerActiveSpeakerRoom, unregisterActiveSpeakerRoom } from '@/lib/livekitActiveSpeaker';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from '@/lib/livekitConnectionQuality';
+import { registerMetadataRoom, unregisterMetadataRoom } from '@/lib/livekitMetadata';
 import { toast } from 'sonner';
 
 interface PartyWebRTCState {
@@ -91,6 +92,7 @@ export function usePartyRoomWebRTC(
     try { unregisterChatRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterActiveSpeakerRoom('party', roomId); } catch { /* ignore */ }
     try { unregisterConnectionQualityRoom('party', roomId); } catch { /* ignore */ }
+    try { unregisterMetadataRoom('party', roomId); } catch { /* ignore */ }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -487,6 +489,12 @@ export function usePartyRoomWebRTC(
           registerConnectionQualityRoom('party', roomId, room);
         } catch (err) {
           console.warn('[Pkg101] registerConnectionQualityRoom(party) failed:', err);
+        }
+        // Pkg107: participant metadata sync (AFK/mod flags/theme).
+        try {
+          registerMetadataRoom('party', roomId, room);
+        } catch (err) {
+          console.warn('[Pkg107] registerMetadataRoom(party) failed:', err);
         }
 
         setState(prev => ({
