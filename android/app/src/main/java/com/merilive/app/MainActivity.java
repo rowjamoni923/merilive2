@@ -65,6 +65,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.InAppReviewPlugin.class);
         registerPlugin(com.merilive.app.plugin.HibernationPlugin.class);
         registerPlugin(com.merilive.app.plugin.PlayIntegrityPlugin.class);
+        registerPlugin(com.merilive.app.plugin.MemoryTrimPlugin.class);
 
         super.onCreate(savedInstanceState);
 
