@@ -515,10 +515,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           return;
         }
 
-        if (track.kind === Track.Kind.Audio && !isRemoteAudioMuted) {
+        if (track.kind === Track.Kind.Audio) {
+          // Audit-fix: ALWAYS attach the audio element, then honor the
+          // current mute state via ref. Previously we skipped attach when
+          // muted, so toggling unmute on a late-subscribed track had no
+          // <audio> element to act on and the viewer heard silence.
           const audioEl = track.attach();
+          audioEl.muted = isRemoteAudioMutedRef.current;
+          audioEl.volume = 1;
           audioEl.play().catch(() => {});
-          // Store reference for mute control
           const existing = remoteAudioElementsRef.current.get(participant.identity) || [];
           existing.push(audioEl);
           remoteAudioElementsRef.current.set(participant.identity, existing);
