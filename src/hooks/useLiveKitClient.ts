@@ -675,6 +675,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         // Cleanup audio elements
         const els = remoteAudioElementsRef.current.get(participant.identity);
         if (els) {
+          els.forEach(el => {
+            const key = el.dataset.livekitAudioKey;
+            if (key) remoteAudioTrackKeysRef.current.delete(key);
+          });
           els.forEach(el => el.remove());
           remoteAudioElementsRef.current.delete(participant.identity);
         }
@@ -797,13 +801,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           const pUid = getUidForParticipant(participant.identity);
           if (track.kind === Track.Kind.Audio) {
             // Audit-fix: always attach; honor current mute via ref.
-            const audioEl = track.attach();
-            audioEl.muted = isRemoteAudioMutedRef.current;
-            audioEl.volume = 1;
-            audioEl.play().catch(() => {});
-            const existing = remoteAudioElementsRef.current.get(participant.identity) || [];
-            existing.push(audioEl);
-            remoteAudioElementsRef.current.set(participant.identity, existing);
+            attachRemoteAudioOnce(track, participant.identity, publication);
           }
           if (track.kind === Track.Kind.Video) {
             const userWrapper = { uid: pUid, videoTrack: track, audioTrack: null as any, hasVideo: true, hasAudio: false };
@@ -838,13 +836,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         pRoom.remoteParticipants.forEach((p) => {
           p.trackPublications.forEach((pub) => {
             if (pub.track?.kind === Track.Kind.Audio) {
-              const audioEl = pub.track.attach();
-              audioEl.muted = isRemoteAudioMutedRef.current;
-              audioEl.volume = 1;
-              audioEl.play().catch(() => {});
-              const existing = remoteAudioElementsRef.current.get(p.identity) || [];
-              existing.push(audioEl);
-              remoteAudioElementsRef.current.set(p.identity, existing);
+              attachRemoteAudioOnce(pub.track as RemoteTrack, p.identity, pub as RemoteTrackPublication);
             }
           });
         });
