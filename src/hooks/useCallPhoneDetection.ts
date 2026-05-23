@@ -76,9 +76,10 @@ export function useCallPhoneDetection({
           setDetections(prev => [...prev, newDetection]);
 
           // Send alert to admin
-          await supabase.functions.invoke('admin-phone-alert', {
+          const violatorId = isHost ? userId : remoteUserId;
+          const { data: alertData } = await supabase.functions.invoke('admin-phone-alert', {
             body: {
-              userId: isHost ? remoteUserId : userId,
+              userId: violatorId,
               detectedContent: detection.matches.join(', '),
               contextType: 'video_call',
               callId,
@@ -89,11 +90,13 @@ export function useCallPhoneDetection({
           });
 
           // Show warning toast - Only hosts get auto-deduction
-          toast({
-            title: "🚨 2000 Beans Deducted!",
-            description: "Auto-deduction applied for sharing phone number as host.",
-            variant: "destructive",
-          });
+          if (violatorId === userId && Number(alertData?.violationResult?.beans_deducted || 0) > 0) {
+            toast({
+              title: "🚨 2000 Beans Deducted!",
+              description: "Auto-deduction applied for sharing phone number as host.",
+              variant: "destructive",
+            });
+          }
         }
       }
     } catch (err) {
