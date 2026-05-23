@@ -119,6 +119,16 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     }
   }, [isOpen]);
 
+  // Sync prop-supplied coin balance whenever the parent updates it.
+  // Without this, GiftPanel's local `userCoins` stays frozen at the
+  // value captured on mount until the balance subscription fires.
+  useEffect(() => {
+    if (typeof propUserCoins === 'number' && propUserCoins >= 0) {
+      setUserCoins(propUserCoins);
+      setDisplayCoins(propUserCoins);
+    }
+  }, [propUserCoins]);
+
   // Fetch user's real diamond balance - use cached balance for instant display
   useEffect(() => {
     if (!isOpen) return;
@@ -147,6 +157,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
       unsubscribe();
     };
   }, [isOpen]);
+
 
   // Fetch gifts - use pre-cached data for instant display
   useEffect(() => {
