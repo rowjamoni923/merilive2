@@ -24,6 +24,7 @@ import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/component
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
+import { useLiveFrameMonitor } from "@/hooks/useLiveFrameMonitor";
 import {
   Heart,
   Share2,
