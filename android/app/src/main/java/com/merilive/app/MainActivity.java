@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
 import com.getcapacitor.BridgeActivity;
 import com.merilive.app.plugin.LiveKitPlugin;
@@ -17,6 +18,10 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Pkg231 — Android 12+ native splash screen. Must be installed BEFORE
+        // super.onCreate so the system can intercept the window creation.
+        SplashScreen.installSplashScreen(this);
+
         registerPlugin(com.merilive.app.plugin.PlayStoreBillingPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativePermissionsPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeCameraPlugin.class);

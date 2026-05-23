@@ -109,7 +109,7 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
-            android:theme="@style/AppTheme.NoActionBar"
+            android:theme="@style/AppTheme.Splash"
             android:windowSoftInputMode="adjustResize"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true">

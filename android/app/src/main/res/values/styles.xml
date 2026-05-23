@@ -31,7 +31,15 @@
     </style>
 
     <style name="AppTheme.Splash" parent="Theme.SplashScreen">
+        <!-- Window background during splash -->
         <item name="windowSplashScreenBackground">@color/colorBackground</item>
+        <!-- Center icon (288dp canvas, white logo) -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <!-- Optional circular background behind the icon -->
+        <item name="windowSplashScreenIconBackgroundColor">@color/colorSurface</item>
+        <!-- Max time splash stays visible after app ready (ms); capped at 1000 by system -->
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <!-- Switch to main theme once splash dismisses -->
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>
