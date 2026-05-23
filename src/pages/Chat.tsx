@@ -1392,7 +1392,22 @@ const Chat = () => {
       .order('created_at', { ascending: true });
 
     if (error) return;
-    setMessages((data || []).map(castMessage));
+    const serverMsgs = (data || []).map(castMessage);
+    // Pkg212 — re-attach any persistent queued messages for this conversation
+    // (e.g. after app cold-start while still offline) at the end of the thread.
+    const queued = currentUserId
+      ? messageOutbox.listFor(conversationId, currentUserId).map(q => ({
+          id: q.id,
+          content: q.content,
+          sender_id: q.senderId,
+          created_at: new Date(q.createdAt).toISOString(),
+          is_read: false,
+          message_type: q.messageType,
+          status: 'queued',
+          _optimistic: true,
+        }) as any)
+      : [];
+    setMessages([...serverMsgs, ...queued]);
 
     // Mark as delivered via RPC
     if (currentUserId) {
