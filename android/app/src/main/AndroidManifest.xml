@@ -98,6 +98,7 @@
         android:hardwareAccelerated="true"
         android:largeHeap="true"
         android:vmSafeMode="false"
+        android:localeConfig="@xml/locales_config"
         tools:targetApi="34">
 
         <activity
