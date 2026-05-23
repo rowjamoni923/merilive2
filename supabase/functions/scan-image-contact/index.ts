@@ -362,59 +362,37 @@ Deno.serve(async (req) => {
     if (detection.hasViolation) {
       console.log(`[scan-image-contact] VIOLATION FOUND: ${detection.pattern} - "${detection.detectedContent}"`);
 
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const validConversationId = sourceId && uuidRegex.test(sourceId) ? sourceId : null;
-
-      // Log to chat_moderation_logs
-      await supabase.from('chat_moderation_logs').insert({
-        user_id: senderId,
-        conversation_id: validConversationId,
-        violation_type: detection.pattern || 'contact_sharing',
-        detected_content: `[IMAGE-OCR] ${detection.detectedContent}`,
-        action_taken: 'detected',
-        notes: `Vision OCR scan: ${detection.pattern} | Source: ${sourceType}`,
-        is_auto_action: true,
+      const { data: violationResult, error: violationError } = await supabase.rpc('process_contact_violation', {
+        p_host_id: senderId,
+        p_detected_content: `[IMAGE-OCR] ${detection.detectedContent}`,
+        p_detected_pattern: detection.pattern || 'contact_sharing',
+        p_source_type: sourceType,
+        p_source_id: sourceId,
       });
 
-      // Only process penalties for hosts
-      if (isHost) {
-        const { data: violationResult, error: violationError } = await supabase.rpc('process_contact_violation', {
-          p_host_id: senderId,
-          p_detected_content: `[IMAGE-OCR] ${detection.detectedContent}`,
-          p_detected_pattern: detection.pattern,
-          p_source_type: sourceType,
-          p_source_id: sourceId,
-        });
-
-        if (violationError) {
-          console.error('[scan-image-contact] Violation processing error:', violationError);
-          return new Response(
-            JSON.stringify({ detected: true, error: violationError.message }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        const result = violationResult as {
-          success: boolean;
-          violation_number: number;
-          beans_deducted: number;
-          is_banned: boolean;
-        };
-
+      if (violationError) {
+        console.error('[scan-image-contact] Violation processing error:', violationError);
         return new Response(
-          JSON.stringify({
-            detected: true,
-            violationNumber: result.violation_number,
-            beansDeducted: result.beans_deducted,
-            isBanned: result.is_banned,
-          }),
+          JSON.stringify({ detected: true, error: violationError.message }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Non-host: warning only
+      const result = violationResult as {
+        success: boolean;
+        violation_number: number;
+        beans_deducted: number;
+        is_banned: boolean;
+      };
+
       return new Response(
-        JSON.stringify({ detected: true }),
+        JSON.stringify({
+          detected: true,
+          violationNumber: result.violation_number,
+          beansDeducted: result.beans_deducted,
+          isBanned: result.is_banned,
+          isHost,
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
