@@ -966,6 +966,8 @@ const FaceVerification = () => {
         await nativeFaceCam.startRecording();
         nativeFaceRecordingRef.current = true;
       } else {
+        const webFaceStream = faceStream;
+        if (!webFaceStream) throw new Error('Camera stream is not ready');
         const mimeType = MediaRecorder.isTypeSupported('video/mp4')
           ? 'video/mp4'
           : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
@@ -975,8 +977,8 @@ const FaceVerification = () => {
               : '';
         
         const mediaRecorder = mimeType
-          ? new MediaRecorder(faceStream, { mimeType })
-          : new MediaRecorder(faceStream);
+          ? new MediaRecorder(webFaceStream, { mimeType })
+          : new MediaRecorder(webFaceStream);
         faceRecorderRef.current = mediaRecorder;
         
         mediaRecorder.ondataavailable = (e) => {
