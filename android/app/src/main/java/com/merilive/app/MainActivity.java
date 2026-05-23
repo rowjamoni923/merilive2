@@ -42,6 +42,18 @@ public class MainActivity extends BridgeActivity {
             routeToShare();
         }
 
+        // Pkg227 — edge-to-edge (Android 15 enforces this when targetSdk=35;
+        // we opt in now for consistent behavior on 14 too). System bars stay
+        // transparent; JS already pads via env(safe-area-inset-*).
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        Window window = getWindow();
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.setStatusBarContrastEnforced(false);
+            window.setNavigationBarContrastEnforced(false);
+        }
+
         // SECURITY: Block screenshots & screen recording
         getWindow().setFlags(
             WindowManager.LayoutParams.FLAG_SECURE,
