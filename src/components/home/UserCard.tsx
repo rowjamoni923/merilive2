@@ -140,13 +140,13 @@ export const UserCard = ({
           </div>
 
           {/* Country Badge */}
-          <Badge className="bg-black/60 backdrop-blur-sm text-white border-0 gap-1 px-2 py-0.5 text-xs">
+          <Badge className="bg-black/60 backdrop-blur-sm text-on-dark border-0 gap-1 px-2 py-0.5 text-xs">
             <span className="w-2 h-2 rounded-full bg-red-500" />
             {countryCode}
           </Badge>
 
           {/* Language Badge */}
-          <Badge className="bg-black/60 backdrop-blur-sm text-white border-0 px-2 py-0.5 text-xs">
+          <Badge className="bg-black/60 backdrop-blur-sm text-on-dark border-0 px-2 py-0.5 text-xs">
             {language}
           </Badge>
 
