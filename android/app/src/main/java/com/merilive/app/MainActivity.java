@@ -39,6 +39,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.AppLocalePlugin.class);
         registerPlugin(com.merilive.app.plugin.InAppUpdatePlugin.class);
         registerPlugin(com.merilive.app.plugin.InAppReviewPlugin.class);
+        registerPlugin(com.merilive.app.plugin.HibernationPlugin.class);
 
         super.onCreate(savedInstanceState);
 
