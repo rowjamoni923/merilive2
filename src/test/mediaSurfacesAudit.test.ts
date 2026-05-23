@@ -89,6 +89,15 @@ describe("media surfaces — subscription handlers wired", () => {
     expect(src).toMatch(/realtimeViewers\.length > 0 \? realtimeViewers/);
   });
 
+  it("party room actions use authenticated keepalive patch and broadcast host seat moves", () => {
+    const src = read("src/pages/PartyRoom.tsx");
+    expect(src).toMatch(/sessionAccessTokenRef/);
+    expect(src).toMatch(/method:\s*'PATCH'/);
+    expect(src).toMatch(/keepalive:\s*true/);
+    expect(src).toMatch(/Authorization:\s*`Bearer \$\{accessToken\}`/);
+    expect(src).toMatch(/host-move-\$\{currentUser\.id\}/);
+  });
+
   it("live viewer retries subscription early if first-frame hasn't arrived", () => {
     const live = read("src/pages/LiveStream.tsx");
     expect(live).toMatch(/retrySubscription/);
