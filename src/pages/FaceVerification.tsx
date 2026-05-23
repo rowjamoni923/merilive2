@@ -1441,8 +1441,6 @@ const FaceVerification = () => {
     const out: { front_url?: string; left_url?: string; right_url?: string } = {};
     const fallbackCenter = capturedAnglesRef.current.center || await captureFaceFrameBase64(720);
     if (fallbackCenter && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackCenter;
-    if (fallbackCenter && !capturedAnglesRef.current.left) capturedAnglesRef.current.left = fallbackCenter;
-    if (fallbackCenter && !capturedAnglesRef.current.right) capturedAnglesRef.current.right = fallbackCenter;
     const map: Array<['center' | 'left' | 'right', 'front_url' | 'left_url' | 'right_url', string]> = [
       ['center', 'front_url', 'face-angles/front'],
       ['left', 'left_url', 'face-angles/left'],
