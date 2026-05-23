@@ -58,6 +58,11 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
+  // Pkg-audit#2: keep `muted` in a ref so toggling mute does NOT re-run the
+  // attach effect (which would detach/reattach the track and cause a ~160ms
+  // black flash + stall-watchdog reset on every viewer mute click).
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
 
   // Hide video element until first real frame arrives — prevents native play-icon flash
   // without painting any visible color (no black overlay, container stays transparent).
@@ -65,6 +70,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const el = videoRef.current;
     if (el && el.style.opacity !== '1') el.style.opacity = '1';
   };
+
 
 
 
