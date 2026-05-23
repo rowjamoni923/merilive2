@@ -41,7 +41,7 @@ export type CodecChoice = {
    * it explicitly so the decision is auditable in logs.
    */
   backupCodec?: { codec: VideoCodec };
-  backupCodecPolicy?: BackupCodecPolicy;
+  backupCodecPolicy?: number;
 };
 
 // ─── Platform sniff (cheap, deterministic) ────────────────────────────────
