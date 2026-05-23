@@ -68,8 +68,8 @@ export const LiveStreamCard = ({
 
       {/* Viewer Count */}
       <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-        <Eye className="w-3.5 h-3.5 text-white" />
-        <span className="text-xs text-white font-medium">
+        <Eye className="w-3.5 h-3.5 text-on-dark" />
+        <span className="text-xs text-on-dark font-medium">
           {viewerCount > 1000 ? `${(viewerCount / 1000).toFixed(1)}k` : viewerCount}
         </span>
       </div>
@@ -81,7 +81,7 @@ export const LiveStreamCard = ({
             <Badge
               key={index}
               variant="secondary"
-              className="bg-primary/80 text-white border-0 text-[10px] px-1.5 py-0"
+              className="bg-primary/80 text-on-dark border-0 text-[10px] px-1.5 py-0"
             >
               {tag}
             </Badge>
@@ -105,8 +105,8 @@ export const LiveStreamCard = ({
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-semibold text-sm truncate">{hostName}</h3>
-            <div className="flex items-center gap-1 text-white/70 text-xs">
+            <h3 className="text-on-dark font-semibold text-sm truncate">{hostName}</h3>
+            <div className="flex items-center gap-1 text-on-dark-muted text-xs">
               <span>{countryFlag}</span>
               <span className="truncate">{country}</span>
             </div>

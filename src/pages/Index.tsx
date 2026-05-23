@@ -615,7 +615,7 @@ const Index = () => {
                   }}
                   className={cn(
                     "px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 touch-manipulation flex items-center gap-1",
-                    isActive ? "text-on-dark shadow-md" : "text-muted-pro hover:text-slate-800"
+                    isActive ? "text-on-dark shadow-md" : "text-muted-pro hover:text-foreground"
                   )}
                   style={isActive ? { background: gradients[tab] } : undefined}
                 >

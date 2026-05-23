@@ -147,7 +147,7 @@ export const PremiumLiveStreamCard = ({
         <div className="absolute top-3 left-3 z-10">
           <div className="flex items-center gap-1">
             <Badge className={cn(
-              "border-0 gap-1 px-2 py-0.5 font-bold text-white shadow-lg",
+              "border-0 gap-1 px-2 py-0.5 font-bold text-on-dark shadow-lg",
               `bg-gradient-to-r ${streamBadge.color}`
             )}>
               <motion.span 
@@ -160,7 +160,7 @@ export const PremiumLiveStreamCard = ({
             
             {/* VIP Badge */}
             {isVIP && (
-              <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 border-0 text-white shadow-lg">
+              <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 border-0 text-on-dark shadow-lg">
                 <Crown className="w-3 h-3 mr-0.5" />
                 VIP
               </Badge>
@@ -182,7 +182,7 @@ export const PremiumLiveStreamCard = ({
           >
             <Eye className="w-3.5 h-3.5 text-pink-600" />
           </motion.div>
-          <span className="text-xs text-white font-bold">
+          <span className="text-xs text-on-dark font-bold">
             {viewerCount > 1000 ? `${(viewerCount / 1000).toFixed(1)}k` : viewerCount}
           </span>
         </motion.div>
@@ -198,7 +198,7 @@ export const PremiumLiveStreamCard = ({
             >
               <Gift className="w-3.5 h-3.5 text-yellow-700" />
             </motion.div>
-            <span className="text-xs text-white font-bold">{giftCount}</span>
+            <span className="text-xs text-on-dark font-bold">{giftCount}</span>
           </div>
         </div>
       )}
@@ -210,7 +210,7 @@ export const PremiumLiveStreamCard = ({
             <Badge
               key={tag}
               variant="secondary"
-              className="bg-white/20 backdrop-blur-sm text-white border-0 text-[10px] px-1.5 py-0"
+              className="bg-white/20 backdrop-blur-sm text-on-dark border-0 text-[10px] px-1.5 py-0"
             >
               #{tag}
             </Badge>
@@ -239,7 +239,7 @@ export const PremiumLiveStreamCard = ({
               transition={{ duration: 1, ease: "easeOut" }}
             />
           </div>
-          <div className="flex justify-between mt-1 text-[10px] text-white font-bold">
+          <div className="flex justify-between mt-1 text-[10px] text-on-dark font-bold">
             <span className="text-blue-600">{pkProgress}%</span>
             <motion.span 
               className="text-yellow-600"
@@ -274,7 +274,7 @@ export const PremiumLiveStreamCard = ({
           <div className="flex-1 min-w-0">
             {/* Host Name with Verified Badge */}
             <div className="flex items-center gap-1">
-              <h3 className="text-white font-bold text-sm truncate drop-shadow-lg">{hostName}</h3>
+              <h3 className="text-on-dark font-bold text-sm truncate drop-shadow-lg">{hostName}</h3>
               {isVerified && (
                 <motion.div
                   initial={{ scale: 0 }}
@@ -289,7 +289,7 @@ export const PremiumLiveStreamCard = ({
             {/* Level Badge and Location */}
             <div className="flex items-center gap-1.5 mt-0.5">
               <LevelBadge level={userLevel} size="xs" animated />
-              <div className="flex items-center gap-1 text-white/85 text-[10px]">
+              <div className="flex items-center gap-1 text-on-dark-muted text-[10px]">
                 <CountryFlag code={countryCode} emoji={countryFlag} className="w-[16px] h-[11px]" />
                 {country && <span className="truncate max-w-[60px]">{country}</span>}
               </div>

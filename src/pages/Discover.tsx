@@ -365,7 +365,7 @@ const Discover = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search rooms..."
-                className="w-full pl-9 h-9 bg-white/20 border-amber-200/60 text-heading placeholder:text-slate-400 rounded-full text-sm"
+                className="w-full pl-9 h-9 bg-white/20 border-amber-200/60 text-heading placeholder:text-on-dark-faint rounded-full text-sm"
               />
             </div>
           </div>
@@ -376,19 +376,19 @@ const Discover = () => {
       {/* Tabs */}
       <div className="px-3 mb-3 -mt-3 pt-3">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-slate-100 rounded-full p-0.5 border border-slate-200 h-9">
-            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-on-dark-muted data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+          <TabsList className="w-full bg-muted rounded-full p-0.5 border border-border h-9">
+            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-on-dark">
               All
             </TabsTrigger>
-            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-on-dark-muted data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-on-dark">
               <Monitor className="w-3 h-3 mr-1" />
               Video
             </TabsTrigger>
-            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-on-dark-muted data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-on-dark">
               <Mic className="w-3 h-3 mr-1" />
               Audio
             </TabsTrigger>
-            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-on-dark-muted data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white">
+            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-on-dark">
               <Gamepad2 className="w-3 h-3 mr-1" />
               Game
             </TabsTrigger>

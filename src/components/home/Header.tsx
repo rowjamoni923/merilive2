@@ -48,7 +48,7 @@ export const Header = ({ coins, onRecharge, onSearch, onNotifications }: HeaderP
               />
             ) : (
               <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
-                <span className="text-white font-bold text-lg">
+                <span className="text-primary-foreground font-bold text-lg">
                   {logoPrimary.charAt(0).toUpperCase()}
                 </span>
               </div>

@@ -295,20 +295,20 @@ export function FullScreenPromoBanners() {
               }}
               className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/60 backdrop-blur-md"
             >
-              <X className="h-4 w-4 text-white" />
+              <X className="h-4 w-4 text-on-dark" />
             </motion.button>
           )}
 
           {!canSkip && (
             <div className="absolute right-4 top-4 rounded-full border border-white/20 bg-black/60 px-3 py-1 backdrop-blur-md">
-              <span className="text-xs font-medium text-white">{countdown}s</span>
+              <span className="text-xs font-medium text-on-dark">{countdown}s</span>
             </div>
           )}
 
           {currentBanner.id === "rating" && (
             <div className="absolute inset-x-0 bottom-4 flex justify-center px-4 pointer-events-none">
               <div className="rounded-full border border-white/15 bg-black/55 px-4 py-2 backdrop-blur-md">
-                <span className="text-xs font-semibold tracking-wide text-white">Tap banner to claim your reward</span>
+                <span className="text-xs font-semibold tracking-wide text-on-dark">Tap banner to claim your reward</span>
               </div>
             </div>
           )}

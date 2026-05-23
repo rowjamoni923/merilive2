@@ -51,8 +51,8 @@ export const UserCard = ({
 
   const getLevelColor = () => {
     if (level >= 6) return "bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900";
-    if (level >= 4) return "bg-gradient-to-r from-purple-400 to-pink-500 text-white";
-    return "bg-gradient-to-r from-cyan-400 to-blue-500 text-white";
+    if (level >= 4) return "bg-gradient-to-r from-purple-400 to-pink-500 text-on-dark";
+    return "bg-gradient-to-r from-cyan-400 to-blue-500 text-on-dark";
   };
 
   const handleCallClick = (e: React.MouseEvent) => {
@@ -80,7 +80,7 @@ export const UserCard = ({
         {/* Live Badge - Only show if actually live streaming */}
         {isLive && (
           <div className="absolute top-3 left-0">
-            <div className="bg-gradient-to-r from-pink-500 to-red-500 text-white px-3 py-1.5 rounded-r-lg flex items-center gap-1.5 shadow-lg">
+            <div className="bg-gradient-to-r from-pink-500 to-red-500 text-on-dark px-3 py-1.5 rounded-r-lg flex items-center gap-1.5 shadow-lg">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
               <span className="text-xs font-bold">LIVE</span>
             </div>
@@ -90,8 +90,8 @@ export const UserCard = ({
         {/* Viewer Count - Only show for live streams */}
         {isLive && viewerCount > 0 && (
           <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-            <Eye className="w-3 h-3 text-white" />
-            <span className="text-xs text-white font-medium">{viewerCount}</span>
+            <Eye className="w-3 h-3 text-on-dark" />
+            <span className="text-xs text-on-dark font-medium">{viewerCount}</span>
           </div>
         )}
 
@@ -103,7 +103,7 @@ export const UserCard = ({
         {/* Verified Badge - Top Right (if not live) */}
         {!isLive && (isVerified || isFaceVerified) && (
           <div className="absolute top-3 right-3 w-5 h-5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg border border-white/50">
-            <CheckCircle className="w-3 h-3 text-white fill-current" />
+            <CheckCircle className="w-3 h-3 text-on-dark fill-current" />
           </div>
         )}
 
@@ -140,13 +140,13 @@ export const UserCard = ({
           </div>
 
           {/* Country Badge */}
-          <Badge className="bg-black/60 backdrop-blur-sm text-white border-0 gap-1 px-2 py-0.5 text-xs">
+          <Badge className="bg-black/60 backdrop-blur-sm text-on-dark border-0 gap-1 px-2 py-0.5 text-xs">
             <span className="w-2 h-2 rounded-full bg-red-500" />
             {countryCode}
           </Badge>
 
           {/* Language Badge */}
-          <Badge className="bg-black/60 backdrop-blur-sm text-white border-0 px-2 py-0.5 text-xs">
+          <Badge className="bg-black/60 backdrop-blur-sm text-on-dark border-0 px-2 py-0.5 text-xs">
             {language}
           </Badge>
 
@@ -161,7 +161,7 @@ export const UserCard = ({
       {/* Info Section */}
       <div className="p-3">
         <div className="flex items-center gap-1">
-          <h3 className="font-semibold text-sm truncate">{name}</h3>
+          <h3 className="font-semibold text-sm truncate text-card-foreground">{name}</h3>
           {(isVerified || isFaceVerified) && (
             <CheckCircle className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
           )}
