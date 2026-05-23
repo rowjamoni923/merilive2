@@ -1308,6 +1308,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // Toggle remote audio (mute/unmute for viewers)
   const toggleRemoteAudio = useCallback((muted: boolean) => {
     setIsRemoteAudioMuted(muted);
+    isRemoteAudioMutedRef.current = muted; // keep ref in sync for late attaches
     remoteAudioElementsRef.current.forEach(els => {
       els.forEach(el => {
         el.muted = muted;
