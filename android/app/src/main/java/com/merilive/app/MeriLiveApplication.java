@@ -42,6 +42,16 @@ public class MeriLiveApplication extends Application {
             Log.e(TAG, "Notification channel setup failed (non-fatal)", t);
         }
 
+        // Pkg208 — register our self-managed PhoneAccount with Telecom
+        // at boot so the very first incoming FCM call can be reported
+        // without a registration round-trip. Idempotent + crash-safe.
+        try {
+            com.merilive.app.telecom.TelecomBridge.ensurePhoneAccount(this);
+        } catch (Throwable t) {
+            Log.w(TAG, "Telecom registration failed (non-fatal)", t);
+        }
+
+
         // Catch any uncaught crash on background threads so the WebView
         // process keeps the app visible and the user gets a recoverable UI
         // rather than a hard "App keeps stopping" dialog on first launch.
