@@ -169,9 +169,88 @@ class NativeCallPlugin : Plugin() {
             intent.putExtra("reason", reason)
             context.sendBroadcast(intent)
         } catch (_: Exception) {}
+        // Pkg208 — also tear down the Telecom Connection so the system
+        // call log / audio focus is released even if the user dismissed
+        // from JS without going through the receiver.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            try { com.merilive.app.telecom.TelecomBridge.reportEnded(callId, remote = false) } catch (_: Throwable) {}
+        }
         val ret = JSObject()
         ret.put("dismissed", true)
         ret.put("callId", callId)
         call.resolve(ret)
     }
+
+    // ---- Pkg208 — Self-managed ConnectionService bridge ----------------
+
+    /** Whether the device + API level support Telecom self-managed calls. */
+    @PluginMethod
+    fun isTelecomSupported(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("supported", com.merilive.app.telecom.TelecomBridge.isSupported())
+        call.resolve(ret)
+    }
+
+    /**
+     * Idempotent — registers our SELF_MANAGED PhoneAccount with the OS
+     * once. Returns `{registered:true}` if Telecom accepted it (or it
+     * was already registered).
+     */
+    @PluginMethod
+    fun registerPhoneAccount(call: PluginCall) {
+        val ok = com.merilive.app.telecom.TelecomBridge.ensurePhoneAccount(context)
+        val ret = JSObject()
+        ret.put("registered", ok)
+        ret.put("supported", com.merilive.app.telecom.TelecomBridge.isSupported())
+        call.resolve(ret)
+    }
+
+    /**
+     * Push an incoming call into the Telecom framework so BT headset
+     * buttons + system call log + OS audio routing kick in. Our own
+     * heads-up notification + IncomingCallActivity remain the visible
+     * surface (self-managed).
+     */
+    @PluginMethod
+    fun reportIncomingCall(call: PluginCall) {
+        val callId = call.getString("callId") ?: ""
+        val callerId = call.getString("callerId") ?: ""
+        val callerName = call.getString("callerName") ?: "Caller"
+        val callType = call.getString("callType") ?: "video"
+        val ok = com.merilive.app.telecom.TelecomBridge.reportIncoming(
+            context, callId, callerId, callerName, callType
+        )
+        val ret = JSObject()
+        ret.put("reported", ok)
+        ret.put("callId", callId)
+        call.resolve(ret)
+    }
+
+    /** Mark the active Telecom connection as connected (call answered + media flowing). */
+    @PluginMethod
+    fun reportCallConnected(call: PluginCall) {
+        val callId = call.getString("callId") ?: ""
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            try { com.merilive.app.telecom.TelecomBridge.reportConnected(callId) } catch (_: Throwable) {}
+        }
+        val ret = JSObject()
+        ret.put("ok", true)
+        ret.put("callId", callId)
+        call.resolve(ret)
+    }
+
+    /** Tear down the Telecom connection — releases audio focus + closes the system call log entry. */
+    @PluginMethod
+    fun reportCallEnded(call: PluginCall) {
+        val callId = call.getString("callId") ?: ""
+        val remote = call.getBoolean("remote") ?: false
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            try { com.merilive.app.telecom.TelecomBridge.reportEnded(callId, remote) } catch (_: Throwable) {}
+        }
+        val ret = JSObject()
+        ret.put("ok", true)
+        ret.put("callId", callId)
+        call.resolve(ret)
+    }
 }
+
