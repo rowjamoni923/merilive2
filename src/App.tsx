@@ -114,6 +114,7 @@ const Invitation = lazy(lazyRetry(() => import("./pages/Invitation")));
 const Tasks = lazy(lazyRetry(() => import("./pages/Tasks")));
 const HostBonusLedger = lazy(lazyRetry(() => import("./pages/HostBonusLedger")));
 const Settings = lazy(lazyRetry(() => import("./pages/Settings")));
+const ShareReceive = lazy(lazyRetry(() => import("./pages/ShareReceive")));
 const DebugReferrer = lazy(lazyRetry(() => import("./pages/DebugReferrer")));
 const DebugReferrerTest = lazy(lazyRetry(() => import("./pages/DebugReferrerTest")));
 const Rewards = lazy(lazyRetry(() => import("./pages/Rewards")));
@@ -1120,6 +1121,7 @@ const App = () => {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/smart-link" element={<SmartLink />} />
+                <Route path="/share" element={<ShareReceive />} />
                 <Route path="/link" element={<SmartLink />} />
                 <Route path="/policies" element={<PublicPolicies />} />
                 <Route path="/policies/:policyId" element={<PolicyDetail />} />

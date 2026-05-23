@@ -23,8 +23,15 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.BiometricAuthPlugin.class);
         registerPlugin(com.merilive.app.plugin.ScreenCaptureDetectorPlugin.class);
         registerPlugin(com.merilive.app.plugin.AnalyticsPlugin.class);
+        registerPlugin(com.merilive.app.plugin.ShareTargetPlugin.class);
 
         super.onCreate(savedInstanceState);
+
+        // Pkg214 — cold-start share intent
+        com.merilive.app.plugin.ShareTargetPlugin.handleIntent(getIntent());
+        if (isShareIntent(getIntent())) {
+            routeToShare();
+        }
 
         // SECURITY: Block screenshots & screen recording
         getWindow().setFlags(
@@ -42,7 +49,23 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        com.merilive.app.plugin.ShareTargetPlugin.handleIntent(intent);
+        if (isShareIntent(intent)) {
+            routeToShare();
+            return;
+        }
         handleNotificationRoute(intent);
+    }
+
+    private boolean isShareIntent(Intent intent) {
+        if (intent == null) return false;
+        String a = intent.getAction();
+        return Intent.ACTION_SEND.equals(a) || Intent.ACTION_SEND_MULTIPLE.equals(a);
+    }
+
+    private void routeToShare() {
+        // Defer until WebView ready
+        getWindow().getDecorView().post(() -> navigateWebView("/share"));
     }
 
     @Override
