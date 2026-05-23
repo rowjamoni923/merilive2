@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getProviderConfig, providerScanContent } from '../_shared/externalVerify.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
