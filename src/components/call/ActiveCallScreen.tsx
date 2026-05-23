@@ -96,6 +96,14 @@ export function ActiveCallScreen({
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   const mountedRef = useRef(true);
   const userCoinsRef = useRef(0);
+  // Section#5 pass-3 (Bug M): in-flight guard so rapid double-tap on a gift
+  // tile can't pass the same userCoinsRef.current balance check twice and
+  // double-deduct / double-send.
+  const sendingGiftRef = useRef(false);
+  // Section#5 pass-3 (Bug J): in-flight guard so the End Call button can't
+  // fire onEndCall twice (CallProvider would then run end-call cleanup,
+  // Telecom reportCallEnded, billing finalize, etc. twice).
+  const endingRef = useRef(false);
 
   useEffect(() => {
     userCoinsRef.current = userCoins;
