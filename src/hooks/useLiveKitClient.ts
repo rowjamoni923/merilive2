@@ -200,6 +200,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // Map participant identity to a stable numeric UID for backward compat
   const participantUidMapRef = useRef<Map<string, number>>(new Map());
   const remoteAudioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
+  const remoteAudioTrackKeysRef = useRef<Set<string>>(new Set());
   const hostVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
@@ -315,6 +316,21 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }
     });
   }, [getUidForParticipant]);
+
+  const attachRemoteAudioOnce = useCallback((track: RemoteTrack, participantIdentity: string, publication?: RemoteTrackPublication) => {
+    const trackKey = `${participantIdentity}:${publication?.trackSid || (track as any).sid || (track as any).mediaStreamTrack?.id || 'audio'}`;
+    if (remoteAudioTrackKeysRef.current.has(trackKey)) return;
+    remoteAudioTrackKeysRef.current.add(trackKey);
+
+    const audioEl = track.attach();
+    audioEl.dataset.livekitAudioKey = trackKey;
+    audioEl.muted = isRemoteAudioMutedRef.current;
+    audioEl.volume = 1;
+    audioEl.play().catch(() => {});
+    const existing = remoteAudioElementsRef.current.get(participantIdentity) || [];
+    existing.push(audioEl);
+    remoteAudioElementsRef.current.set(participantIdentity, existing);
+  }, []);
 
   // Join channel - creates a LiveKit room connection
   const joinChannel = useCallback(async (config: LiveKitConfig) => {
@@ -520,13 +536,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           // current mute state via ref. Previously we skipped attach when
           // muted, so toggling unmute on a late-subscribed track had no
           // <audio> element to act on and the viewer heard silence.
-          const audioEl = track.attach();
-          audioEl.muted = isRemoteAudioMutedRef.current;
-          audioEl.volume = 1;
-          audioEl.play().catch(() => {});
-          const existing = remoteAudioElementsRef.current.get(participant.identity) || [];
-          existing.push(audioEl);
-          remoteAudioElementsRef.current.set(participant.identity, existing);
+          attachRemoteAudioOnce(track, participant.identity, publication);
         }
 
         if (track.kind === Track.Kind.Video) {
@@ -629,6 +639,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           // Detach audio elements
           const els = remoteAudioElementsRef.current.get(participant.identity);
           if (els) {
+            els.forEach(el => {
+              const key = el.dataset.livekitAudioKey;
+              if (key) remoteAudioTrackKeysRef.current.delete(key);
+            });
             els.forEach(el => el.remove());
             remoteAudioElementsRef.current.delete(participant.identity);
           }
@@ -661,6 +675,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         // Cleanup audio elements
         const els = remoteAudioElementsRef.current.get(participant.identity);
         if (els) {
+          els.forEach(el => {
+            const key = el.dataset.livekitAudioKey;
+            if (key) remoteAudioTrackKeysRef.current.delete(key);
+          });
           els.forEach(el => el.remove());
           remoteAudioElementsRef.current.delete(participant.identity);
         }
@@ -783,13 +801,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           const pUid = getUidForParticipant(participant.identity);
           if (track.kind === Track.Kind.Audio) {
             // Audit-fix: always attach; honor current mute via ref.
-            const audioEl = track.attach();
-            audioEl.muted = isRemoteAudioMutedRef.current;
-            audioEl.volume = 1;
-            audioEl.play().catch(() => {});
-            const existing = remoteAudioElementsRef.current.get(participant.identity) || [];
-            existing.push(audioEl);
-            remoteAudioElementsRef.current.set(participant.identity, existing);
+            attachRemoteAudioOnce(track, participant.identity, publication);
           }
           if (track.kind === Track.Kind.Video) {
             const userWrapper = { uid: pUid, videoTrack: track, audioTrack: null as any, hasVideo: true, hasAudio: false };
@@ -804,6 +816,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           const pUid = getUidForParticipant(participant.identity);
           if (track.kind === Track.Kind.Video) {
             setRemoteUsers(prev => { const m = new Map(prev); m.delete(pUid); return m; });
+          }
+          if (track.kind === Track.Kind.Audio) {
+            const els = remoteAudioElementsRef.current.get(participant.identity);
+            if (els) {
+              els.forEach(el => {
+                const key = el.dataset.livekitAudioKey;
+                if (key) remoteAudioTrackKeysRef.current.delete(key);
+              });
+              els.forEach(el => el.remove());
+              remoteAudioElementsRef.current.delete(participant.identity);
+            }
+          }
+        });
+        pRoom.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+          const pUid = getUidForParticipant(participant.identity);
+          setRemoteUsers(prev => { const m = new Map(prev); m.delete(pUid); return m; });
+          const els = remoteAudioElementsRef.current.get(participant.identity);
+          if (els) {
+            els.forEach(el => {
+              const key = el.dataset.livekitAudioKey;
+              if (key) remoteAudioTrackKeysRef.current.delete(key);
+            });
+            els.forEach(el => el.remove());
+            remoteAudioElementsRef.current.delete(participant.identity);
           }
         });
         pRoom.on(RoomEvent.Disconnected, () => {
@@ -824,13 +860,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         pRoom.remoteParticipants.forEach((p) => {
           p.trackPublications.forEach((pub) => {
             if (pub.track?.kind === Track.Kind.Audio) {
-              const audioEl = pub.track.attach();
-              audioEl.muted = isRemoteAudioMutedRef.current;
-              audioEl.volume = 1;
-              audioEl.play().catch(() => {});
-              const existing = remoteAudioElementsRef.current.get(p.identity) || [];
-              existing.push(audioEl);
-              remoteAudioElementsRef.current.set(p.identity, existing);
+              attachRemoteAudioOnce(pub.track as RemoteTrack, p.identity, pub as RemoteTrackPublication);
             }
           });
         });
@@ -1094,7 +1124,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     // read via isRemoteAudioMutedRef.current at attach time. Including it
     // here used to invalidate joinChannel on every mute toggle, risking
     // re-joins from upstream effects that depend on its identity.
-  }, [isJoined, options, getUidForParticipant, ensureParticipantSubscribed, clearHostVideoRecoveryTimer]);
+  }, [isJoined, options, getUidForParticipant, ensureParticipantSubscribed, attachRemoteAudioOnce, clearHostVideoRecoveryTimer]);
 
   // Leave channel
   const leaveChannel = useCallback(async () => {
@@ -1116,6 +1146,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         els.forEach(el => el.remove());
       });
       remoteAudioElementsRef.current.clear();
+      remoteAudioTrackKeysRef.current.clear();
 
       // 🛰️ Native publish path teardown.
       if (usingNativeRef.current) {
