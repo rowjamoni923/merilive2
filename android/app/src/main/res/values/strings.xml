@@ -32,5 +32,5 @@
 
     <!-- Pkg236 — Play Integrity API. Paste GCP project NUMBER (digits only),
          visible at top of https://console.cloud.google.com (project "merilive"). -->
-    <string name="play_cloud_project_number" translatable="false">0</string>
+    <string name="play_cloud_project_number" translatable="false">830608832747</string>
 </resources>
