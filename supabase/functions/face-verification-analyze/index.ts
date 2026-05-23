@@ -367,10 +367,8 @@ serve(async (req) => {
     if (leftError) rekognition.left_error = leftError;
     if (rightError) rekognition.right_error = rightError;
 
-    const summary =
-      `Rekognition: faces F/L/R=${details.length}/${leftDetails.length}/${rightDetails.length}` +
-      `${frontError || leftError || rightError ? ` (${[frontError, leftError, rightError].filter(Boolean).join(", ")})` : ""}, ` +
-      `gender=${rawG} (${genderConf.toFixed(1)}%)${genderConflict ? " conflict" : ""}, ` +
+
+
 
     // ───────────────────────────────────────────────────────────────────
     // Profile-photo ↔ verification-selfie cross-check.
