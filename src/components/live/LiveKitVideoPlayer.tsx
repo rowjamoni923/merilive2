@@ -58,6 +58,11 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const onVideoStalledRef = useRef(onVideoStalled);
   onVideoStalledRef.current = onVideoStalled;
+  // Pkg-audit#2: keep `muted` in a ref so toggling mute does NOT re-run the
+  // attach effect (which would detach/reattach the track and cause a ~160ms
+  // black flash + stall-watchdog reset on every viewer mute click).
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
 
   // Hide video element until first real frame arrives — prevents native play-icon flash
   // without painting any visible color (no black overlay, container stays transparent).
@@ -65,6 +70,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     const el = videoRef.current;
     if (el && el.style.opacity !== '1') el.style.opacity = '1';
   };
+
 
 
 
@@ -141,7 +147,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     const markReady = () => {
       revealVideo();
-      if (!muted) {
+      if (!mutedRef.current) {
         // Optional unmute after successful playback start
         try {
           el.muted = false;
@@ -152,6 +158,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         }
       }
     };
+
 
 
 
@@ -241,7 +248,26 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       el.onwaiting = null;
       el.onstalled = null;
     };
-  }, [videoTrack, muted]);
+  }, [videoTrack]);
+
+  // Pkg-audit#2: separate effect to apply mute changes WITHOUT re-attaching the track.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (muted) {
+      el.muted = true;
+      el.defaultMuted = true;
+      el.setAttribute('muted', '');
+    } else if (el.readyState >= 2) {
+      // Only unmute once playback is actually ready to avoid autoplay rejection.
+      try {
+        el.muted = false;
+        el.defaultMuted = false;
+        el.removeAttribute('muted');
+      } catch { /* noop */ }
+    }
+  }, [muted]);
+
 
   // Prevent zoom gestures
   useEffect(() => {
