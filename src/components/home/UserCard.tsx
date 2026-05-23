@@ -80,8 +80,8 @@ export const UserCard = ({
         {/* Live Badge - Only show if actually live streaming */}
         {isLive && (
           <div className="absolute top-3 left-0">
-            <div className="bg-gradient-to-r from-pink-500 to-red-500 text-white px-3 py-1.5 rounded-r-lg flex items-center gap-1.5 shadow-lg">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            <div className="bg-gradient-to-r from-pink-500 to-red-500 text-on-dark px-3 py-1.5 rounded-r-lg flex items-center gap-1.5 shadow-lg">
+              <div className="w-2 h-2 bg-on-dark rounded-full animate-pulse" />
               <span className="text-xs font-bold">LIVE</span>
             </div>
           </div>
