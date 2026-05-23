@@ -702,6 +702,23 @@ const LiveStream = () => {
     },
   });
 
+  // ========== EXTERNAL FRAME MONITOR (verify.merilive.com) ==========
+  // 30s cadence — provider checks for sleeping / face_lost / multi-face / NSFW /
+  // weapons / drugs and broadcasts alerts to admins. Best-effort; failures silent.
+  useLiveFrameMonitor({
+    enabled: isHost && isHostVerified && isJoined,
+    userId: currentUserId,
+    track:
+      (localVideoTrack?.mediaStreamTrack as MediaStreamTrack | undefined) ??
+      (typeof localVideoTrack?.getMediaStreamTrack === 'function'
+        ? (localVideoTrack.getMediaStreamTrack() as MediaStreamTrack | null)
+        : null),
+    context: 'live_stream',
+    streamId: id ?? null,
+    intervalMs: 30_000,
+  });
+
+
   // Fetch current user and stream data from database - VERIFY host status
   useEffect(() => {
     const fetchData = async () => {
