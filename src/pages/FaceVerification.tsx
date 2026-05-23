@@ -2382,43 +2382,44 @@ const FaceVerification = () => {
 
       {/* Tips */}
       {!faceStream && !faceVerified && (
-        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-3 mb-4">
-          <p className="text-cyan-800 text-xs text-center">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4">
+          <p className="text-slate-600 text-xs text-center leading-relaxed">
             {localizedMsg.tips}
           </p>
         </div>
       )}
-      
+
       {/* Action buttons */}
       {!faceStream && !faceVerified && (
         <Button
-          className="w-full h-14 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 hover:from-cyan-500 hover:via-purple-500 hover:to-pink-500 rounded-2xl text-lg font-bold shadow-lg shadow-purple-500/20"
+          className="w-full h-14 bg-slate-900 hover:bg-slate-800 rounded-2xl text-base font-semibold shadow-lg shadow-slate-900/20 text-white"
           onClick={startFaceCamera}
         >
-          <ScanFace className="w-6 h-6 mr-3" />
+          <ScanFace className="w-5 h-5 mr-2.5" />
           {localizedMsg.startScan}
         </Button>
       )}
-      
+
       {faceStream && !verificationStarted && !faceVerified && (
         <div className="space-y-3">
           <Button
-            className="w-full h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-2xl text-lg font-bold shadow-lg shadow-cyan-500/20"
+            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-semibold shadow-lg shadow-emerald-600/25 text-white"
             onClick={startFaceVerification}
             disabled={!cameraReady}
           >
             {!cameraReady ? (
               <>
-                <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                Initializing...
+                <Loader2 className="w-5 h-5 mr-2.5 animate-spin" />
+                Initializing camera…
               </>
             ) : (
               <>
-                <Play className="w-6 h-6 mr-3" />
+                <Play className="w-5 h-5 mr-2.5" />
                 {localizedMsg.beginCheck}
               </>
             )}
           </Button>
+
           <Button
             variant="outline"
             className="w-full h-11 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 text-sm font-semibold leading-5 shadow-sm"
