@@ -342,49 +342,35 @@ serve(async (req) => {
       console.log(`[PhoneDetection] Phone number detected from ${isHost ? 'HOST' : 'USER'} ${userId} (${userProfile.display_name}):`, result.matches);
       console.log(`[PhoneDetection] Confidence: ${result.confidence}`);
 
-      // Log the violation for ALL users
-      const { error: logError } = await supabase
-        .from('chat_moderation_logs')
-        .insert({
-          user_id: userId,
-          message_id: messageId || null,
-          conversation_id: conversationId || null,
-          group_id: groupId || null,
-          violation_type: 'phone_number',
-          detected_content: result.matches.join(', '),
-          action_taken: isHost ? 'auto_deduction' : 'warning',
-          is_auto_action: true,
-          notes: `${isHost ? 'Host' : 'User'} phone violation (${result.confidence} confidence)${isHost ? ` - Auto deducted ${AUTO_DEDUCTION_BEANS} beans` : ' - Warning only'}. Original: "${message.substring(0, 100)}..."`
-        });
+      let newBalance = userProfile.beans_balance || 0;
+      let newViolationCount = userProfile.phone_violation_count || 0;
+      const sourceType = conversationId ? 'conversation' : groupId ? 'group' : messageId ? 'message' : 'chat';
+      const sourceId = conversationId || groupId || messageId || null;
+      const { data: violationResult, error: violationError } = await supabase.rpc('process_contact_violation', {
+        p_host_id: userId,
+        p_detected_content: result.matches.join(', '),
+        p_detected_pattern: 'phone_number',
+        p_source_type: sourceType,
+        p_source_id: sourceId,
+      });
 
-      if (logError) {
-        console.error('Error logging violation:', logError);
+      if (violationError) {
+        console.error('[PhoneDetection] process_contact_violation failed:', violationError);
+      } else {
+        newViolationCount = Number((violationResult as any)?.violation_number || newViolationCount + 1);
+        const { data: refreshedProfile } = await supabase
+          .from('profiles')
+          .select('beans_balance, phone_violation_count')
+          .eq('id', userId)
+          .maybeSingle();
+        newBalance = refreshedProfile?.beans_balance ?? newBalance;
+        newViolationCount = refreshedProfile?.phone_violation_count ?? newViolationCount;
       }
 
-      let newBalance = userProfile.beans_balance || 0;
-      let newViolationCount = (userProfile.phone_violation_count || 0) + 1;
-
-      // Update violation count for ALL users
-      await supabase
-        .from('profiles')
-        .update({ phone_violation_count: newViolationCount })
-        .eq('id', userId);
-
-      // *** AUTO DEDUCT BEANS ONLY FROM HOSTS ***
-      if (isHost) {
-        const currentBalance = userProfile.beans_balance || 0;
-        newBalance = currentBalance - AUTO_DEDUCTION_BEANS; // Allow negative
-        
-        const { error: deductError } = await supabase
-          .from('profiles')
-          .update({ beans_balance: newBalance })
-          .eq('id', userId);
-
-        if (deductError) {
-          console.error('Error deducting beans:', deductError);
-        } else {
-          console.log(`[PhoneDetection] Auto-deducted ${AUTO_DEDUCTION_BEANS} beans from host ${userProfile.display_name}. New balance: ${newBalance}`);
-        }
+      // *** AUTO DEDUCT BEANS ONLY FROM VERIFIED HOSTS (handled by RPC) ***
+      const beansDeducted = Number((violationResult as any)?.beans_deducted || 0);
+      if (isHost && beansDeducted > 0) {
+        console.log(`[PhoneDetection] Auto-deducted ${beansDeducted} beans from host ${userProfile.display_name}. New balance: ${newBalance}`);
 
         // Log admin action for the deduction
         await supabase.from('admin_logs').insert({
@@ -392,7 +378,7 @@ serve(async (req) => {
           target_type: 'user',
           target_id: userId,
           details: {
-            amount: AUTO_DEDUCTION_BEANS,
+            amount: beansDeducted,
             reason: `Phone number sharing (auto deduction): ${result.matches.join(', ')}`,
             previous_balance: userProfile.beans_balance || 0,
             new_balance: newBalance,
@@ -426,8 +412,8 @@ serve(async (req) => {
           originalMessage: message.substring(0, 100),
           violationResult: {
             violation_count: newViolationCount,
-            action_taken: isHost ? 'auto_deduction' : 'warning',
-            beans_deducted: isHost ? AUTO_DEDUCTION_BEANS : 0,
+            action_taken: beansDeducted > 0 ? 'auto_deduction' : 'warning',
+            beans_deducted: beansDeducted,
             is_host: isHost
           }
         }
@@ -441,8 +427,8 @@ serve(async (req) => {
           violationCount: newViolationCount,
           isBanned: false,
           isHost: isHost,
-          autoDeducted: isHost,
-          deductedAmount: isHost ? AUTO_DEDUCTION_BEANS : 0,
+          autoDeducted: beansDeducted > 0,
+          deductedAmount: beansDeducted,
           newBalance: newBalance
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

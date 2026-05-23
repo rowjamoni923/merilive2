@@ -6248,44 +6248,65 @@ export type Database = {
       host_contact_violations: {
         Row: {
           action_taken: string | null
+          beans_deducted: number
           created_at: string | null
           detected_content: string | null
+          detected_pattern: string | null
+          host_id: string | null
           id: string
+          is_auto_detected: boolean
           is_false_positive: boolean | null
           reviewed_at: string | null
           reviewed_by: string | null
           room_id: string | null
           severity: string | null
+          source_id: string | null
+          source_type: string | null
           stream_id: string | null
           user_id: string
+          violation_number: number | null
           violation_type: string
         }
         Insert: {
           action_taken?: string | null
+          beans_deducted?: number
           created_at?: string | null
           detected_content?: string | null
+          detected_pattern?: string | null
+          host_id?: string | null
           id?: string
+          is_auto_detected?: boolean
           is_false_positive?: boolean | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           room_id?: string | null
           severity?: string | null
+          source_id?: string | null
+          source_type?: string | null
           stream_id?: string | null
           user_id: string
+          violation_number?: number | null
           violation_type: string
         }
         Update: {
           action_taken?: string | null
+          beans_deducted?: number
           created_at?: string | null
           detected_content?: string | null
+          detected_pattern?: string | null
+          host_id?: string | null
           id?: string
+          is_auto_detected?: boolean
           is_false_positive?: boolean | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           room_id?: string | null
           severity?: string | null
+          source_id?: string | null
+          source_type?: string | null
           stream_id?: string | null
           user_id?: string
+          violation_number?: number | null
           violation_type?: string
         }
         Relationships: []
