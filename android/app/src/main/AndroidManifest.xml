@@ -130,8 +130,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="merilive.com" />
                 <data android:scheme="https" android:host="www.merilive.com" />
-                <data android:scheme="https" android:host="merilive.top" />
-                <data android:scheme="https" android:host="www.merilive.top" />
             </intent-filter>
 
             <!-- Pkg214 — Share Target. Accept text/image/video from other apps. -->
