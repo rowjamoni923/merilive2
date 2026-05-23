@@ -157,6 +157,7 @@ class NativeCallPlugin : Plugin() {
     fun endIncomingUi(call: PluginCall) {
         val callId = call.getString("callId") ?: ""
         val reason = call.getString("reason") ?: "ended"
+        val keepTelecomAlive = reason == "accepted" || reason == "answered"
         try {
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE)
                 as? android.app.NotificationManager
@@ -169,10 +170,11 @@ class NativeCallPlugin : Plugin() {
             intent.putExtra("reason", reason)
             context.sendBroadcast(intent)
         } catch (_: Exception) {}
-        // Pkg208 — also tear down the Telecom Connection so the system
-        // call log / audio focus is released even if the user dismissed
-        // from JS without going through the receiver.
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        // Pkg208 — also tear down the Telecom Connection when the incoming call
+        // is truly over. Section#5 pass-4: do NOT tear it down for accepted
+        // calls; JS only wants to dismiss the heads-up/full-screen UI while the
+        // self-managed Telecom call continues for BT audio + call log lifecycle.
+        if (!keepTelecomAlive && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             try { com.merilive.app.telecom.TelecomBridge.reportEnded(callId, remote = false) } catch (_: Throwable) {}
         }
         val ret = JSObject()
