@@ -190,7 +190,7 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
             raw.ProcessData(rgba, w, h, w * 4, GPUPixelSourceRawData.FRAME_TYPE_RGBA)
 
             val out = outSink.GetI420Buffer()
-            if (out == null || out.size < w * h * 4) {
+            if (out == null || out.size < (w * h * 3 / 2)) {
                 sink.onFrame(frame)
                 return
             }
@@ -212,19 +212,70 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
         }
     }
 
+    private fun i420ToRgba(i420: VideoFrame.I420Buffer, width: Int, height: Int): ByteArray {
+        val out = ByteArray(width * height * 4)
+        var p = 0
+        for (y in 0 until height) {
+            val yRow = y * i420.strideY
+            val uvRow = (y / 2)
+            for (x in 0 until width) {
+                val yy = (i420.dataY.get(yRow + x).toInt() and 0xFF)
+                val uu = (i420.dataU.get(uvRow * i420.strideU + x / 2).toInt() and 0xFF) - 128
+                val vv = (i420.dataV.get(uvRow * i420.strideV + x / 2).toInt() and 0xFF) - 128
+                val r = (yy + 1.402f * vv).toInt().coerceIn(0, 255)
+                val g = (yy - 0.344136f * uu - 0.714136f * vv).toInt().coerceIn(0, 255)
+                val b = (yy + 1.772f * uu).toInt().coerceIn(0, 255)
+                out[p++] = r.toByte()
+                out[p++] = g.toByte()
+                out[p++] = b.toByte()
+                out[p++] = 0xFF.toByte()
+            }
+        }
+        return out
+    }
+
+    private fun copyPackedI420(src: ByteArray, dst: JavaI420Buffer, width: Int, height: Int): Boolean {
+        val ySize = width * height
+        val uvW = (width + 1) / 2
+        val uvH = (height + 1) / 2
+        val uvSize = uvW * uvH
+        if (src.size < ySize + uvSize * 2) return false
+
+        for (row in 0 until height) {
+            for (col in 0 until width) {
+                dst.dataY.put(row * dst.strideY + col, src[row * width + col])
+            }
+        }
+        var uOffset = ySize
+        var vOffset = ySize + uvSize
+        for (row in 0 until uvH) {
+            for (col in 0 until uvW) {
+                dst.dataU.put(row * dst.strideU + col, src[uOffset++])
+                dst.dataV.put(row * dst.strideV + col, src[vOffset++])
+            }
+        }
+        return true
+    }
+
     fun release() {
         worker.post {
             try {
-                rawInput?.removeAllTargets()
-                beauty?.destroy()
-                reshape?.destroy()
-                lipstick?.destroy()
+                rawInput?.RemoveAllSinks()
+                faceDetector?.destroy()
+                rawInput?.Destroy()
+                rawOutput?.Destroy()
+                beauty?.Destroy()
+                reshape?.Destroy()
+                lipstick?.Destroy()
+                blusher?.Destroy()
             } catch (_: Throwable) {}
+            faceDetector = null
             rawInput = null
+            rawOutput = null
             beauty = null
             reshape = null
             lipstick = null
-            lastFilter = null
+            blusher = null
             initialized.set(false)
         }
         workerThread.quitSafely()
