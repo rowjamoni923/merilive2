@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getProviderConfig, providerScanContent } from '../_shared/externalVerify.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -322,9 +323,41 @@ Deno.serve(async (req) => {
     const combinedText = extractedText + ' ' + decodeURIComponent(imageUrl.split('/').pop() || '');
     const detection = detectContactInText(combinedText);
 
+    // ── Supplemental external image OCR scan (phone-specific provider key)
+    // Catches contacts overlaid as stylised text / stickers that Vision missed.
+    try {
+      const cfg = getProviderConfig('VERIFY_PHONE_API_KEY');
+      if (cfg) {
+        // Fetch image → base64 (max ~6 MB, skip if too big)
+        const imgResp = await fetch(imageUrl);
+        const buf = new Uint8Array(await imgResp.arrayBuffer());
+        if (buf.length > 0 && buf.length <= 6_000_000) {
+          let bin = '';
+          for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+          const b64 = btoa(bin);
+          const r = await providerScanContent(cfg, {
+            external_user_id: senderId,
+            mode: 'image',
+            image_base64: b64,
+          });
+          if (r && r.flagged) {
+            const extra = [...(r.phones || []), ...(r.socials || []), ...(r.handles || []), ...(r.urls || []), ...(r.keywords || [])];
+            if (extra.length && !detection.hasViolation) {
+              detection.hasViolation = true;
+              detection.pattern = r.phones?.length ? 'phone_number' : 'contact_sharing';
+              detection.detectedContent = extra.slice(0, 5).join(', ');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[scan-image-contact] provider scan failed:', e instanceof Error ? e.message : e);
+    }
+
     if (!detection.hasViolation && filenameSuspicious) {
       console.log('[scan-image-contact] Suspicious filename detected:', imageUrl);
     }
+
 
     if (detection.hasViolation) {
       console.log(`[scan-image-contact] VIOLATION FOUND: ${detection.pattern} - "${detection.detectedContent}"`);
