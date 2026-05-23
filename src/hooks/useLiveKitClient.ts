@@ -820,7 +820,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           p.trackPublications.forEach((pub) => {
             if (pub.track?.kind === Track.Kind.Audio) {
               const audioEl = pub.track.attach();
-              audioEl.muted = isRemoteAudioMuted;
+              audioEl.muted = isRemoteAudioMutedRef.current;
               audioEl.volume = 1;
               audioEl.play().catch(() => {});
               const existing = remoteAudioElementsRef.current.get(p.identity) || [];
