@@ -3746,5 +3746,86 @@ class LiveKitPlugin : Plugin() {
         ret.put("requiresAsset", "android/app/src/main/assets/mediapipe/selfie_segmenter.tflite")
         call.resolve(ret)
     }
+
+    // ============================================================
+    // Pkg201 — GPUPixel broadcast beauty processor (feature-flag).
+    // ============================================================
+    //
+    // Off by default. JS calls `setBeautyBroadcast({enabled, smooth,
+    // white, thinFace, bigEye, lipstick})` to attach the processor to
+    // the current LocalVideoTrack. Same reflective setVideoProcessor
+    // pattern as VirtualBackgroundProcessor. Detach with enabled:false.
+    //
+    // Disabled-by-default + reflective attach means existing live
+    // broadcasts are 100% unchanged unless the operator explicitly
+    // enables the flag from the admin panel.
+    // ============================================================
+
+    private var beautyProcessor: com.merilive.app.plugin.video.GPUPixelBeautyProcessor? = null
+
+    private fun ensureBeautyProcessor(): com.merilive.app.plugin.video.GPUPixelBeautyProcessor {
+        beautyProcessor?.let { return it }
+        val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor()
+        beautyProcessor = proc
+        return proc
+    }
+
+    private fun attachBeautyProcessor() {
+        val proc = beautyProcessor ?: return
+        val track = try {
+            room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
+                as? io.livekit.android.room.track.LocalVideoTrack
+        } catch (_: Exception) { null } ?: return
+        try {
+            val m = track.javaClass.methods.firstOrNull {
+                it.name == "setVideoProcessor" && it.parameterTypes.size == 1
+            }
+            m?.invoke(track, proc)
+                ?: Log.w(TAG, "[Pkg201] setVideoProcessor missing — beauty broadcast disabled.")
+        } catch (e: Exception) {
+            Log.w(TAG, "[Pkg201] attachBeautyProcessor failed: ${e.message}")
+        }
+    }
+
+    private fun detachBeautyProcessor() {
+        val track = try {
+            room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
+                as? io.livekit.android.room.track.LocalVideoTrack
+        } catch (_: Exception) { null }
+        try {
+            val m = track?.javaClass?.methods?.firstOrNull {
+                it.name == "setVideoProcessor" && it.parameterTypes.size == 1
+            }
+            m?.invoke(track, null as Any?)
+        } catch (_: Exception) {}
+    }
+
+    @PluginMethod
+    fun setBeautyBroadcast(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", false) ?: false
+        val smooth = (call.getFloat("smooth") ?: 0.6f)
+        val white = (call.getFloat("white") ?: 0.4f)
+        val thinFace = (call.getFloat("thinFace") ?: 0.3f)
+        val bigEye = (call.getFloat("bigEye") ?: 0.3f)
+        val lipstick = (call.getFloat("lipstick") ?: 0f)
+        try {
+            if (enabled) {
+                val proc = ensureBeautyProcessor()
+                proc.setLevels(smooth, white, thinFace, bigEye, lipstick)
+                attachBeautyProcessor()
+            } else {
+                detachBeautyProcessor()
+                beautyProcessor?.release()
+                beautyProcessor = null
+            }
+            val ret = JSObject()
+            ret.put("enabled", enabled)
+            ret.put("hasRoom", room != null)
+            call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setBeautyBroadcast failed: ${e.message}")
+        }
+    }
 }
+
 
