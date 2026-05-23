@@ -1883,25 +1883,28 @@ const FaceVerification = () => {
     };
 
     return (
-    <div className="bg-gradient-to-br from-[#FFFBF2] to-[#FFF6E2] rounded-3xl p-5 border border-amber-400/40 shadow-[0_20px_60px_-20px_rgba(201,168,76,0.45)] ring-1 ring-amber-200/50">
+    <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#f5d97a] via-[#c9a84c] to-[#8a6a1f] flex items-center justify-center shadow-lg shadow-amber-500/40 ring-1 ring-amber-200/70">
-            <ScanFace className="w-6 h-6 text-[#3a2a05] drop-shadow" />
+          <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-900/20 ring-1 ring-slate-200">
+            <ScanFace className="w-6 h-6 text-white" />
           </div>
           {verificationRecording && (
-            <motion.div 
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500"
-              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
+            <motion.div
+              className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 ring-2 ring-white"
+              animate={{ scale: [1, 1.25, 1], opacity: [1, 0.7, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
             />
           )}
         </div>
-        <div>
-          <h2 className="font-bold text-[#3a2a05] text-lg tracking-tight">Live Face Scan</h2>
-          <p className="text-amber-900/70 text-sm">
-            {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length}` : 'AI-powered identity verification'}
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold text-slate-900 text-lg tracking-tight">Live Face Scan</h2>
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-semibold uppercase tracking-wide">Secure</span>
+          </div>
+          <p className="text-slate-500 text-xs">
+            {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length} · Bank-grade liveness check` : 'AI-powered identity verification'}
           </p>
         </div>
       </div>
@@ -1909,19 +1912,20 @@ const FaceVerification = () => {
       {/* Progress Bar */}
       {verificationRecording && (
         <div className="mb-4">
-          <div className="flex justify-between text-xs text-amber-900/70 mb-1.5">
-            <span>Liveness Check Progress</span>
-            <span>{completedCount}/{faceInstructions.length} steps</span>
+          <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+            <span className="font-medium">Liveness Progress</span>
+            <span className="font-mono">{completedCount}/{faceInstructions.length}</span>
           </div>
-          <div className="h-2 bg-amber-100/80 rounded-full overflow-hidden ring-1 ring-amber-200/60">
-            <motion.div 
-              className="h-full bg-gradient-to-r from-[#f5d97a] via-[#c9a84c] to-[#8a6a1f] rounded-full shadow-[0_0_12px_rgba(201,168,76,0.6)]"
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"
               animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.4 }}
             />
           </div>
         </div>
       )}
+
       
       {/* Video Container with Face Oval */}
       <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden bg-white/80 mb-5 shadow-2xl">
