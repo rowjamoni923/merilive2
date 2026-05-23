@@ -161,7 +161,7 @@ export const UserCard = ({
       {/* Info Section */}
       <div className="p-3">
         <div className="flex items-center gap-1">
-          <h3 className="font-semibold text-sm truncate">{name}</h3>
+          <h3 className="font-semibold text-sm truncate text-card-foreground">{name}</h3>
           {(isVerified || isFaceVerified) && (
             <CheckCircle className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
           )}
