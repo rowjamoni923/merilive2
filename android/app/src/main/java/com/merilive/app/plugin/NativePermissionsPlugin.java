@@ -2,9 +2,11 @@ package com.merilive.app.plugin;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -132,6 +134,65 @@ public class NativePermissionsPlugin extends Plugin {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(intent);
         call.resolve();
+    }
+
+    /**
+     * Pkg205 — Battery optimization whitelist check.
+     * Returns { whitelisted: bool }. When false on OEMs (Xiaomi/Oppo/Vivo/
+     * Samsung), the system will kill the FCM listener after ~30 min idle and
+     * DMs/calls stop arriving on a locked screen.
+     */
+    @PluginMethod
+    public void isBatteryOptimizationIgnored(PluginCall call) {
+        JSObject ret = new JSObject();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            ret.put("whitelisted", true);
+            ret.put("supported", false);
+            call.resolve(ret);
+            return;
+        }
+        PowerManager pm = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
+        boolean ok = pm != null && pm.isIgnoringBatteryOptimizations(getContext().getPackageName());
+        Log.i(TAG, "isBatteryOptimizationIgnored -> " + ok);
+        ret.put("whitelisted", ok);
+        ret.put("supported", true);
+        call.resolve(ret);
+    }
+
+    /**
+     * Pkg205 — Request battery optimization whitelist. Opens the system
+     * "Allow always" dialog. On OEM ROMs without that dialog, falls back
+     * to the battery-optimization settings list so the user can toggle
+     * manually. Resolves immediately — re-check status after onResume.
+     */
+    @PluginMethod
+    public void requestIgnoreBatteryOptimizations(PluginCall call) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            JSObject ret = new JSObject();
+            ret.put("whitelisted", true);
+            ret.put("supported", false);
+            call.resolve(ret);
+            return;
+        }
+        try {
+            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + getContext().getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            Log.i(TAG, "requestIgnoreBatteryOptimizations -> launched whitelist dialog");
+        } catch (Exception e) {
+            Log.w(TAG, "Direct whitelist dialog unavailable, falling back to settings list", e);
+            try {
+                Intent fallback = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(fallback);
+            } catch (Exception ignored) {
+                Log.e(TAG, "Battery settings unavailable on this ROM", ignored);
+            }
+        }
+        JSObject ret = new JSObject();
+        ret.put("launched", true);
+        call.resolve(ret);
     }
 
     /**

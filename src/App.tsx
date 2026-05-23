@@ -618,10 +618,22 @@ const App = () => {
 
     // Defer SVGA prewarm to idle
     const svgaIdleId = idle(() => prewarmSVGA(), 3500);
+
+    // Pkg205 — one-time battery-optimization whitelist prompt (native Android
+    // only). Prevents Xiaomi/Oppo/Vivo/Samsung from killing FCM listener and
+    // dropping screen-off DM/call notifications. Gated by localStorage so
+    // we only ever ask once.
+    const batteryIdleId = idle(() => {
+      import('@/utils/nativePermissions')
+        .then(m => m.ensureBatteryOptimizationWhitelistOnce())
+        .catch(() => {});
+    }, 6000);
+
     return () => {
       cancelIdle(routeIdleId);
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
+      cancelIdle(batteryIdleId);
     };
   }, []);
 
