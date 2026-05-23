@@ -1668,10 +1668,7 @@ const FaceVerification = () => {
         if (handleVerificationBlocker(result)) { setLoading(false); return; }
         if (result?.autoFinalize?.success) {
           autoApproved = true;
-          const detected = result.autoFinalize.gender;
-          autoMessage = detected === 'female'
-            ? "🎉 Auto-approved as Host! Welcome."
-            : "🎉 Auto-approved! Your account is verified.";
+          autoMessage = "🎉 Auto-approved! Your account is verified.";
         }
       }
 
@@ -1915,10 +1912,7 @@ const FaceVerification = () => {
         if (handleVerificationBlocker(result)) { setLoading(false); return; }
         if (result?.autoFinalize?.success) {
           autoApproved = true;
-          const detected = result.autoFinalize.gender;
-          autoMessage = detected === 'female'
-            ? "🎉 Auto-approved as Host! Welcome to the platform."
-            : "🎉 Auto-approved! Note: detected as male, account converted to user.";
+          autoMessage = "🎉 Auto-approved as Host! Welcome to the platform.";
         }
       }
 
