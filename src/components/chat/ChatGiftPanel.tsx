@@ -223,18 +223,27 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
 
   // Available categories
   const availableCategories = useMemo(() => 
-    defaultCategories.filter(
-      (cat) => getCategoryGifts(cat.id).length > 0 || cat.id === "popular"
-    ), 
+    defaultCategories.filter((cat) => getCategoryGifts(cat.id).length > 0), 
     [getCategoryGifts]
   );
+
+  // Pkg4-pass4: auto-switch active category to first available if current one has zero gifts
+  useEffect(() => {
+    if (availableCategories.length === 0) return;
+    if (!availableCategories.some((c) => c.id === activeCategory)) {
+      setActiveCategory(availableCategories[0].id);
+    }
+  }, [availableCategories, activeCategory]);
 
   const handleGiftSelect = useCallback((gift: GiftData) => {
     setSelectedGift(prev => prev?.id === gift.id ? null : gift);
   }, []);
 
   const handleSend = useCallback(() => {
-    if (selectedGift && userCoins >= selectedGift.coins) {
+    if (sendingRef.current) return; // Pkg4-pass4: double-tap guard
+    if (!selectedGift || userCoins < selectedGift.coins) return;
+    sendingRef.current = true;
+    try {
       onSendGift({
         id: selectedGift.id,
         name: selectedGift.name,
@@ -243,6 +252,8 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       });
       setSelectedGift(null);
       onClose();
+    } finally {
+      setTimeout(() => { sendingRef.current = false; }, 350);
     }
   }, [selectedGift, userCoins, onSendGift, onClose]);
 
