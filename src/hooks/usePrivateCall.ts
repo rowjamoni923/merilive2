@@ -897,6 +897,15 @@ export function usePrivateCall(userId: string | null) {
     // Clear timers immediately
     clearAllTimers();
 
+    // Pkg5-pass1 BUG-A FIX: tear down Telecom connection on local hang-up
+    // (was missing — BT headset + system call log + audio routing leaked until app kill).
+    // `remote: false` mirrors softEndCall's local-end semantic.
+    if (callIdToEnd && isNativeAndroidApp()) {
+      NativeCall.reportCallEnded({ callId: callIdToEnd, remote: false }).catch(() => {});
+    }
+
+
+
     try {
       // 🔴 Pkg78: Supabase `call_ended` broadcast REMOVED — LiveKit DataPacket
       // (publishCallEnded below) is the sole peer-hangup notifier. Saves
