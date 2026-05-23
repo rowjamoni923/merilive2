@@ -21,14 +21,7 @@
 export type PiPMode = 'video' | 'document';
 
 declare global {
-  interface Document {
-    pictureInPictureEnabled?: boolean;
-    pictureInPictureElement?: Element | null;
-    exitPictureInPicture?: () => Promise<void>;
-  }
   interface HTMLVideoElement {
-    requestPictureInPicture?: () => Promise<PictureInPictureWindow>;
-    disablePictureInPicture?: boolean;
     webkitSupportsPresentationMode?: (mode: string) => boolean;
     webkitSetPresentationMode?: (mode: string) => void;
     webkitPresentationMode?: string;
