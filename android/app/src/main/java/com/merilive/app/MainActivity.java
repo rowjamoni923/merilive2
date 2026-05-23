@@ -71,6 +71,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.LocationPlugin.class);
         registerPlugin(com.merilive.app.plugin.VibrationPlugin.class);
         registerPlugin(com.merilive.app.plugin.ShakeDetectorPlugin.class);
+        registerPlugin(com.merilive.app.plugin.NfcPlugin.class);
 
         super.onCreate(savedInstanceState);
 
