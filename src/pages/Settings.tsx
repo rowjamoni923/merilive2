@@ -778,6 +778,12 @@ const Settings = () => {
       onClick: () => navigate("/settings/privacy-policy"),
     },
     {
+      icon: BarChart3,
+      label: "Share usage data",
+      value: analyticsConsent === "granted" ? "On" : "Off",
+      onClick: () => setConsent(analyticsConsent === "granted" ? "denied" : "granted"),
+    },
+    {
       icon: FileText,
       label: t("settings.userAgreement"),
       onClick: () => navigate("/settings/user-agreement"),
