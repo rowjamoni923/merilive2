@@ -931,7 +931,8 @@ const LiveStream = () => {
             console.log('[LiveStream] 🎬 Self profile equipped_entrance_id:', selfProfile.equipped_entrance_id);
             
             // Delay to let the component fully mount
-            setTimeout(async () => {
+            selfJoinTimer = setTimeout(async () => {
+              if (cancelled || !mountedRef.current) return;
               // Add Bigo-style flying join banner
               addBigoJoinNotification({
                 userId: currentUserId,
@@ -961,6 +962,7 @@ const LiveStream = () => {
                 selfProfile.equipped_vehicle_id,
                 userLevel
               );
+              if (cancelled || !mountedRef.current) return;
               
               console.log('[LiveStream] 📍 Animation fetch result:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl });
               
@@ -1004,7 +1006,7 @@ const LiveStream = () => {
                   vehicleAnimationUrl: vehicleAnimationUrl || null,
                 };
                 let published = false;
-                for (let i = 0; i < 30 && !published && mountedRef.current; i++) {
+                for (let i = 0; i < 30 && !published && mountedRef.current && !cancelled; i++) {
                   published = await publishViewerJoined(id!, payload);
                   if (published) {
                     console.log('[LiveStream] ⚡ Pkg82a viewer_joined published for:', userName, 'attempt', i + 1);
