@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -14,6 +21,19 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const authHeader = req.headers.get('Authorization') || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+
+    const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: authData, error: authError } = await supabaseUser.auth.getUser();
+    if (authError || !authData?.user?.id) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { 
@@ -27,10 +47,12 @@ serve(async (req) => {
     } = await req.json();
 
     if (!userId || !detectedContent) {
-      return new Response(
-        JSON.stringify({ error: 'userId and detectedContent are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'userId and detectedContent are required' }, 400);
+    }
+
+    const callerId = authData.user.id;
+    if (userId !== callerId && hostId !== callerId && !await supabase.rpc('is_admin', { _user_id: callerId }).then(({ data }) => data === true).catch(() => false)) {
+      return jsonResponse({ error: 'Forbidden userId' }, 403);
     }
 
     // Check if user is a host
