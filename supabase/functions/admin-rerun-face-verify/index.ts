@@ -143,7 +143,7 @@ serve(async (req) => {
 
     const { data: submission, error: subErr } = await supabaseAdmin
       .from("face_verification_submissions")
-      .select("id, user_id, profile_photo_url, face_image_url, selfie_url, front_url, left_url, right_url, video_url, host_photos, verification_type, admin_notes")
+      .select("id, user_id, status, profile_photo_url, face_image_url, selfie_url, front_url, left_url, right_url, video_url, host_photos, verification_type, admin_notes, ai_analysis")
       .eq("id", submissionId)
       .maybeSingle();
 
@@ -161,6 +161,8 @@ serve(async (req) => {
         : Array.isArray(submission.host_photos) && submission.host_photos.length > 0
           ? submission.host_photos[0]
           : null;
+    const leftFaceUrl: string | null = submission.left_url || null;
+    const rightFaceUrl: string | null = submission.right_url || null;
 
     const referenceUrl: string | null = submission.profile_photo_url || null;
     if (!referenceUrl) {
@@ -192,6 +194,10 @@ serve(async (req) => {
     }
 
     const liveBytes = await fetchImageBytes(liveFaceUrl, supabaseAdmin);
+    const [leftBytes, rightBytes] = await Promise.all([
+      leftFaceUrl ? fetchImageBytes(leftFaceUrl, supabaseAdmin).catch(() => null) : Promise.resolve(null),
+      rightFaceUrl ? fetchImageBytes(rightFaceUrl, supabaseAdmin).catch(() => null) : Promise.resolve(null),
+    ]);
 
     // DetectFaces
     const detect = await rekognitionCall(
@@ -201,6 +207,14 @@ serve(async (req) => {
     );
     const faceDetails = detect.FaceDetails || [];
     const face = faceDetails[0] || null;
+    const [leftDetect, rightDetect] = await Promise.all([
+      leftBytes ? rekognitionCall("DetectFaces", { Image: { Bytes: uint8ToBase64(leftBytes) }, Attributes: ["ALL"] }, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION).catch(() => null) : Promise.resolve(null),
+      rightBytes ? rekognitionCall("DetectFaces", { Image: { Bytes: uint8ToBase64(rightBytes) }, Attributes: ["ALL"] }, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION).catch(() => null) : Promise.resolve(null),
+    ]);
+    const leftDetails = (leftDetect as any)?.FaceDetails || [];
+    const rightDetails = (rightDetect as any)?.FaceDetails || [];
+    const leftFace = leftDetails[0] || null;
+    const rightFace = rightDetails[0] || null;
 
     let detectSummary = `Faces=${faceDetails.length}`;
     if (face) {
@@ -229,15 +243,79 @@ serve(async (req) => {
       }
     }
 
-    const newNote = `[Re-run @ ${new Date().toISOString()}] ${compareSummary}. ${detectSummary}.`;
+    let compareFL = 0;
+    let compareFR = 0;
+    if (faceDetails.length === 1 && leftDetails.length === 1 && rightDetails.length === 1 && leftBytes && rightBytes) {
+      const [fl, fr] = await Promise.all([
+        rekognitionCall("CompareFaces", { SourceImage: { Bytes: uint8ToBase64(liveBytes) }, TargetImage: { Bytes: uint8ToBase64(leftBytes) }, SimilarityThreshold: 0 }, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION).catch(() => null),
+        rekognitionCall("CompareFaces", { SourceImage: { Bytes: uint8ToBase64(liveBytes) }, TargetImage: { Bytes: uint8ToBase64(rightBytes) }, SimilarityThreshold: 0 }, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION).catch(() => null),
+      ]);
+      compareFL = Math.max(...(((fl as any)?.FaceMatches || []).map((m: any) => Number(m?.Similarity || 0))), 0);
+      compareFR = Math.max(...(((fr as any)?.FaceMatches || []).map((m: any) => Number(m?.Similarity || 0))), 0);
+    }
+
+    const rawGender = face?.Gender?.Value === "Female" ? "female" : face?.Gender?.Value === "Male" ? "male" : "unknown";
+    const genderConfidence = Number(face?.Gender?.Confidence || 0);
+    const leftGender = leftFace?.Gender?.Value === "Female" ? "female" : leftFace?.Gender?.Value === "Male" ? "male" : "unknown";
+    const rightGender = rightFace?.Gender?.Value === "Female" ? "female" : rightFace?.Gender?.Value === "Male" ? "male" : "unknown";
+    const genderConflict = rawGender !== "unknown" && (
+      (leftGender !== "unknown" && leftGender !== rawGender && Number(leftFace?.Gender?.Confidence || 0) >= 90) ||
+      (rightGender !== "unknown" && rightGender !== rawGender && Number(rightFace?.Gender?.Confidence || 0) >= 90)
+    );
+    const frontError = faceDetails.length === 0 ? "no_face_front" : faceDetails.length > 1 ? "multiple_faces_front" : null;
+    const leftError = !leftFaceUrl ? "missing_left_url" : leftDetails.length === 0 ? "no_face_left" : leftDetails.length > 1 ? "multiple_faces_left" : null;
+    const rightError = !rightFaceUrl ? "missing_right_url" : rightDetails.length === 0 ? "no_face_right" : rightDetails.length > 1 ? "multiple_faces_right" : null;
+    const finalGender = !frontError && !genderConflict && genderConfidence >= 86 ? rawGender : "unknown";
+    const rekognitionBlock: Record<string, unknown> = {
+      version: 1,
+      source: "admin-rerun-face-verify",
+      face_count: faceDetails.length,
+      left_face_count: leftDetails.length,
+      right_face_count: rightDetails.length,
+      face_confidence: Number(face?.Confidence || 0),
+      gender_value: rawGender,
+      gender_confidence: genderConfidence,
+      left_gender_value: leftGender,
+      left_gender_confidence: Number(leftFace?.Gender?.Confidence || 0),
+      right_gender_value: rightGender,
+      right_gender_confidence: Number(rightFace?.Gender?.Confidence || 0),
+      gender_conflict: genderConflict,
+      final_gender: finalGender,
+      compare_front_left: compareFL,
+      compare_front_right: compareFR,
+      front_pose_yaw: face?.Pose?.Yaw ?? null,
+      left_pose_yaw: leftFace?.Pose?.Yaw ?? null,
+      right_pose_yaw: rightFace?.Pose?.Yaw ?? null,
+      age_range_low: face?.AgeRange?.Low ?? null,
+      age_range_high: face?.AgeRange?.High ?? null,
+      face_occluded_confidence: face?.FaceOccluded?.Value === true ? Number(face?.FaceOccluded?.Confidence || 0) : 0,
+      profile_match_score: finalReferenceUrl ? matchPct : null,
+      profile_mismatch: finalReferenceUrl ? matchPct < 80 : false,
+      replay_suspected: false,
+      liveness_failed: false,
+    };
+    if (frontError) rekognitionBlock.front_error = frontError;
+    if (leftError) rekognitionBlock.left_error = leftError;
+    if (rightError) rekognitionBlock.right_error = rightError;
+
+    const existingAnalysis = (submission.ai_analysis && typeof submission.ai_analysis === "object") ? submission.ai_analysis as Record<string, unknown> : {};
+    const newNote = `[Re-run @ ${new Date().toISOString()}] ${compareSummary}. ${detectSummary}. Side match F/L=${compareFL.toFixed(1)}% F/R=${compareFR.toFixed(1)}%.`;
     await supabaseAdmin
       .from("face_verification_submissions")
       .update({
         admin_notes: `${newNote}${submission.admin_notes ? "\n---\n" + submission.admin_notes : ""}`,
+        ai_analysis: { ...existingAnalysis, rekognition: rekognitionBlock },
         confidence_score: matchPct,
+        rekognition_confidence: Number(face?.Confidence || 0),
         updated_at: new Date().toISOString(),
       })
       .eq("id", submissionId);
+
+    let autoFinalize: Record<string, unknown> | null = null;
+    if (["pending", "submitted"].includes(String(submission.status || "").toLowerCase())) {
+      const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc("service_auto_finalize_face_verification", { p_submission_id: submissionId });
+      autoFinalize = rpcErr ? { success: false, error: rpcErr.message } : rpcData as Record<string, unknown>;
+    }
 
     return new Response(JSON.stringify({
       ok: true,
@@ -246,6 +324,9 @@ serve(async (req) => {
       facesDetected: faceDetails.length,
       gender: face?.Gender?.Value || null,
       genderConfidence: face?.Gender?.Confidence || 0,
+      sideMatchFrontLeft: compareFL,
+      sideMatchFrontRight: compareFR,
+      autoFinalize,
       note: newNote,
     }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
