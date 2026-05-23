@@ -817,6 +817,30 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           if (track.kind === Track.Kind.Video) {
             setRemoteUsers(prev => { const m = new Map(prev); m.delete(pUid); return m; });
           }
+          if (track.kind === Track.Kind.Audio) {
+            const els = remoteAudioElementsRef.current.get(participant.identity);
+            if (els) {
+              els.forEach(el => {
+                const key = el.dataset.livekitAudioKey;
+                if (key) remoteAudioTrackKeysRef.current.delete(key);
+              });
+              els.forEach(el => el.remove());
+              remoteAudioElementsRef.current.delete(participant.identity);
+            }
+          }
+        });
+        pRoom.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+          const pUid = getUidForParticipant(participant.identity);
+          setRemoteUsers(prev => { const m = new Map(prev); m.delete(pUid); return m; });
+          const els = remoteAudioElementsRef.current.get(participant.identity);
+          if (els) {
+            els.forEach(el => {
+              const key = el.dataset.livekitAudioKey;
+              if (key) remoteAudioTrackKeysRef.current.delete(key);
+            });
+            els.forEach(el => el.remove());
+            remoteAudioElementsRef.current.delete(participant.identity);
+          }
         });
         pRoom.on(RoomEvent.Disconnected, () => {
           clearHostVideoRecoveryTimer();
