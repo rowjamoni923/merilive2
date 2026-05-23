@@ -527,6 +527,17 @@ export function usePrivateCall(userId: string | null) {
         hostEarned: 0,
       }));
 
+      // Pkg211 — register outgoing call with Telecom (BT End / audio routing / system call log)
+      if (isNativeAndroidApp()) {
+        NativeCall.reportOutgoingCall({
+          callId: resolvedCallId,
+          calleeId: hostId,
+          calleeName: hostProfile?.display_name || 'Host',
+          callType: 'video',
+        }).catch(() => {});
+      }
+
+
       // Reliable native call delivery in background (closed/background app).
       // 3-attempt retry with exponential backoff (1s, 2.5s) — aborts as soon
       // as the call is no longer ringing, and treats any non-2xx / network
