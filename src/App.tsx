@@ -475,6 +475,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
           <NetworkStatusBar />
           <PushNotificationInitializer />
           <Suspense fallback={null}><NativeMessageActionsBridge /></Suspense>
+          <Suspense fallback={null}><ScreenshotDetectionBridge /></Suspense>
         </>
       )}
     </>
