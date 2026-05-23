@@ -357,12 +357,6 @@ export function ActiveCallScreen({
   // Gift sending via unified gifting service (single source of truth)
   const handleSendGift = async (gift: GiftData, count: number) => {
     if (!userId || !remoteUserId) return;
-
-    const totalCost = gift.coins * count;
-    const availableCoins = userCoinsRef.current;
-  // Gift sending via unified gifting service (single source of truth)
-  const handleSendGift = async (gift: GiftData, count: number) => {
-    if (!userId || !remoteUserId) return;
     // Section#5 pass-3 (Bug M): swallow duplicate rapid taps.
     if (sendingGiftRef.current) return;
 
