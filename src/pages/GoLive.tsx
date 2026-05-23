@@ -1157,21 +1157,6 @@ const GoLive = () => {
           </div>
         </div>
         
-        {/* Viewer Count Badge */}
-        <div className="absolute left-4 top-36">
-          <div
-            className="flex items-center gap-1 rounded-full px-2 py-0.5 border border-white/15"
-            style={{
-              background: 'linear-gradient(135deg, rgba(236,72,153,0.85) 0%, rgba(168,85,247,0.85) 100%)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              boxShadow: '0 4px 12px -2px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.20)',
-            }}
-          >
-            <Users className="w-3 h-3 text-white" />
-            <span className="text-white text-xs font-semibold tabular-nums">0/1</span>
-          </div>
-        </div>
       </motion.div>
 
       {/* Camera View - Full Screen Horizontal */}
