@@ -2838,29 +2838,52 @@ const FaceVerification = () => {
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
       {renderHeader("Host Verification", "Get verified as a host")}
       
-      {/* Progress Steps */}
-      <div className="flex items-center justify-between mb-8 px-2">
-        {[1, 2, 3].map((step) => (
-          <div key={step} className="flex items-center">
-            <motion.div 
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${
-                currentStep >= step 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-                  : 'bg-amber-50/70 text-slate-700'
-              }`}
-              animate={currentStep === step ? { scale: [1, 1.05, 1] } : {}}
-              transition={{ repeat: Infinity, duration: 2 }}
-            >
-              {currentStep > step ? <CheckCircle2 className="w-6 h-6" /> : step}
-            </motion.div>
-            {step < 3 && (
-              <div className={`w-12 sm:w-20 h-1.5 mx-1 rounded-full ${
-                currentStep > step ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-amber-50/70'
-              }`} />
-            )}
-          </div>
-        ))}
+      {/* Progress Steps — professional KYC-style indicator */}
+      <div className="mb-8 px-1">
+        <div className="flex items-center justify-between">
+          {[
+            { n: 1, label: 'Basic Info' },
+            { n: 2, label: 'Photos & Video' },
+            { n: 3, label: 'Live Face Scan' },
+          ].map((s, idx) => {
+            const done = currentStep > s.n;
+            const active = currentStep === s.n;
+            return (
+              <div key={s.n} className="flex items-center flex-1">
+                <div className="flex flex-col items-center gap-1.5">
+                  <motion.div
+                    className={`relative w-11 h-11 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+                      done
+                        ? 'bg-emerald-600 text-white ring-2 ring-emerald-200'
+                        : active
+                          ? 'bg-slate-900 text-white ring-4 ring-slate-200'
+                          : 'bg-white text-slate-400 ring-1 ring-slate-200'
+                    }`}
+                    animate={active ? { scale: [1, 1.04, 1] } : {}}
+                    transition={{ repeat: Infinity, duration: 2.2 }}
+                  >
+                    {done ? <CheckCircle2 className="w-5 h-5" /> : s.n}
+                  </motion.div>
+                  <span className={`text-[10px] font-medium tracking-tight whitespace-nowrap ${
+                    active ? 'text-slate-900' : done ? 'text-emerald-700' : 'text-slate-400'
+                  }`}>{s.label}</span>
+                </div>
+                {idx < 2 && (
+                  <div className="flex-1 h-[2px] mx-2 mt-[-18px] rounded-full bg-slate-200 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-emerald-500"
+                      initial={false}
+                      animate={{ width: currentStep > s.n ? '100%' : '0%' }}
+                      transition={{ duration: 0.4 }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
+
       
       {/* Step Content */}
       {currentStep === 1 && (
