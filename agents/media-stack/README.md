@@ -37,35 +37,27 @@ sudo ufw reload
 
 ---
 
-## 2. S3 / Cloudflare R2 bucket (for recordings)
+## 2. Cloudflare R2 — already done ✅
 
-Recommended: **Cloudflare R2** — zero egress fees, S3-compatible.
+The R2 bucket is already created and these secrets are already in Supabase:
+- `R2_ACCOUNT_ID`
+- `R2_BUCKET_NAME`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
 
-1. Cloudflare Dashboard → R2 → Create bucket: `merilive-recordings`
-2. R2 → Manage API Tokens → Create API token → Object Read & Write
-3. Copy: Access Key ID, Secret Access Key, Account ID (for endpoint URL)
-4. (Optional) Settings → Public access → Connect custom domain `cdn.merilive.xyz`
+All 4 egress edge functions (`livekit-egress`, `livekit-hls-egress`,
+`livekit-track-egress`, `livekit-auto-record`) now read these `R2_*` secrets
+automatically — **no extra Supabase secrets needed**.
+
+You only need to copy the same 4 values into the VPS `.env` (next step) so the
+Egress Docker container can upload recordings directly to R2.
 
 ---
 
-## 3. Add LiveKit secrets to Supabase
+## 3. Supabase secrets — already done ✅
 
-In Lovable → Project Settings → Edge Function Secrets, set:
-
-```
-LIVEKIT_URL=wss://livekit.merilive.xyz
-LIVEKIT_API_KEY=<same as VPS>
-LIVEKIT_API_SECRET=<same as VPS>
-
-LIVEKIT_EGRESS_S3_BUCKET=merilive-recordings
-LIVEKIT_EGRESS_S3_REGION=auto
-LIVEKIT_EGRESS_S3_ACCESS_KEY=<from R2>
-LIVEKIT_EGRESS_S3_SECRET=<from R2>
-LIVEKIT_EGRESS_S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
-LIVEKIT_EGRESS_S3_PUBLIC_BASE=https://cdn.merilive.xyz   # optional
-```
-
-These are read by `supabase/functions/livekit-egress` and friends.
+`LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, and all 4 `R2_*` keys
+are already configured. Nothing to add on the Supabase side.
 
 ---
 

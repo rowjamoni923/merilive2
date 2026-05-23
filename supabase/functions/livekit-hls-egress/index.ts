@@ -24,12 +24,14 @@ const corsHeaders = {
 const LIVEKIT_URL = Deno.env.get("LIVEKIT_URL") ?? "";
 const LIVEKIT_API_KEY = Deno.env.get("LIVEKIT_API_KEY") ?? "";
 const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET") ?? "";
-const S3_BUCKET = Deno.env.get("LIVEKIT_EGRESS_S3_BUCKET") ?? "";
-const S3_REGION = Deno.env.get("LIVEKIT_EGRESS_S3_REGION") ?? "";
-const S3_ACCESS_KEY = Deno.env.get("LIVEKIT_EGRESS_S3_ACCESS_KEY") ?? "";
-const S3_SECRET = Deno.env.get("LIVEKIT_EGRESS_S3_SECRET") ?? "";
-const S3_ENDPOINT = Deno.env.get("LIVEKIT_EGRESS_S3_ENDPOINT") ?? "";
-const S3_PUBLIC_BASE = (Deno.env.get("LIVEKIT_EGRESS_S3_PUBLIC_BASE") ?? "").replace(/\/+$/, "");
+// Pkg-R2-fallback: prefer LIVEKIT_EGRESS_S3_* but fall back to existing R2_* secrets.
+const R2_ACCOUNT_ID = Deno.env.get("R2_ACCOUNT_ID") ?? "";
+const S3_BUCKET = Deno.env.get("LIVEKIT_EGRESS_S3_BUCKET") ?? Deno.env.get("R2_BUCKET_NAME") ?? "";
+const S3_REGION = Deno.env.get("LIVEKIT_EGRESS_S3_REGION") ?? "auto";
+const S3_ACCESS_KEY = Deno.env.get("LIVEKIT_EGRESS_S3_ACCESS_KEY") ?? Deno.env.get("R2_ACCESS_KEY_ID") ?? "";
+const S3_SECRET = Deno.env.get("LIVEKIT_EGRESS_S3_SECRET") ?? Deno.env.get("R2_SECRET_ACCESS_KEY") ?? "";
+const S3_ENDPOINT = Deno.env.get("LIVEKIT_EGRESS_S3_ENDPOINT") ?? (R2_ACCOUNT_ID ? `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com` : "");
+const S3_PUBLIC_BASE = (Deno.env.get("LIVEKIT_EGRESS_S3_PUBLIC_BASE") ?? Deno.env.get("R2_PUBLIC_URL") ?? "").replace(/\/+$/, "");
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
