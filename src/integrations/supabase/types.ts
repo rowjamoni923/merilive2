@@ -7112,6 +7112,57 @@ export type Database = {
           },
         ]
       }
+      live_frame_alerts: {
+        Row: {
+          alerts: Json
+          context: string
+          created_at: string
+          drugs_detected: boolean | null
+          face_count: number | null
+          face_present: boolean | null
+          id: string
+          nsfw_score: number | null
+          room_id: string | null
+          severity: string
+          stream_id: string | null
+          user_id: string
+          violence_score: number | null
+          weapons_detected: boolean | null
+        }
+        Insert: {
+          alerts?: Json
+          context?: string
+          created_at?: string
+          drugs_detected?: boolean | null
+          face_count?: number | null
+          face_present?: boolean | null
+          id?: string
+          nsfw_score?: number | null
+          room_id?: string | null
+          severity: string
+          stream_id?: string | null
+          user_id: string
+          violence_score?: number | null
+          weapons_detected?: boolean | null
+        }
+        Update: {
+          alerts?: Json
+          context?: string
+          created_at?: string
+          drugs_detected?: boolean | null
+          face_count?: number | null
+          face_present?: boolean | null
+          id?: string
+          nsfw_score?: number | null
+          room_id?: string | null
+          severity?: string
+          stream_id?: string | null
+          user_id?: string
+          violence_score?: number | null
+          weapons_detected?: boolean | null
+        }
+        Relationships: []
+      }
       live_game_bets: {
         Row: {
           bet_amount: number
