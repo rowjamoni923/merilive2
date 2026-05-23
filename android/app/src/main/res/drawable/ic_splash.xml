@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash screen icon for Android 12+ SplashScreen API.
+     Sized to 288dp per spec; inner graphic is ~192dp so it scales cleanly
+     on all screen densities. White fill so it pops on the dark background. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="288dp"
+    android:height="288dp"
+    android:viewportWidth="288"
+    android:viewportHeight="288">
+    <!-- Outer ring -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M144,80c-35.35, 0 -64,28.65 -64,64s28.65,64 64,64 64,-28.65 64,-64S179.35,80 144,80zM144,192c-26.51,0 -48,-21.49 -48,-48s21.49,-48 48,-48 48,21.49 48,48 -21.49,48 -48,48z" />
+    <!-- Inner dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M144,128c-8.84,  0 -16,7.16 -16,16s7.16,16 16,16 16,-7.16 16,-16 -7.16,-16 -16,-16z" />
+</vector>
