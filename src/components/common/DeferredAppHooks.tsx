@@ -9,6 +9,7 @@ import { useBackgroundSync } from "@/hooks/useBackgroundSync";
 import { useInAppUpdate } from "@/hooks/useInAppUpdate";
 import { useHibernationCheck } from "@/hooks/useHibernationCheck";
 import { useMemoryPressureGuard } from "@/hooks/useMemoryPressureGuard";
+import { useConversationShortcuts } from "@/hooks/useConversationShortcuts";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import { queryClient } from "@/lib/queryClient";
 
@@ -55,6 +56,8 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   useHibernationCheck();
   // Pkg244: Android onTrimMemory → evict inactive RQ cache & SW caches under RAM pressure
   useMemoryPressureGuard();
+  // Pkg248: dynamic Conversation shortcuts + Direct Share (top 4 recent DMs)
+  useConversationShortcuts();
 
 
   if (isAdminRoute) return null;
