@@ -17810,6 +17810,7 @@ export type Database = {
           transfer_type: string
         }[]
       }
+      get_background_unread_total: { Args: never; Returns: number }
       get_beans_per_usd: { Args: never; Returns: number }
       get_call_e2ee_key: { Args: { _call_id: string }; Returns: string }
       get_conversations_with_details: {
