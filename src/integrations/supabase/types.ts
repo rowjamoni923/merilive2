@@ -9532,6 +9532,63 @@ export type Database = {
         }
         Relationships: []
       }
+      play_integrity_verdicts: {
+        Row: {
+          account_details: string | null
+          app_recognition_verdict: string | null
+          app_version_code: number | null
+          basic_integrity: boolean | null
+          created_at: string
+          device_id: string | null
+          device_recognition_verdict: string[] | null
+          error_message: string | null
+          id: string
+          meets_device_integrity: boolean | null
+          meets_strong_integrity: boolean | null
+          meets_virtual_integrity: boolean | null
+          nonce: string | null
+          package_name: string | null
+          raw_verdict_json: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          account_details?: string | null
+          app_recognition_verdict?: string | null
+          app_version_code?: number | null
+          basic_integrity?: boolean | null
+          created_at?: string
+          device_id?: string | null
+          device_recognition_verdict?: string[] | null
+          error_message?: string | null
+          id?: string
+          meets_device_integrity?: boolean | null
+          meets_strong_integrity?: boolean | null
+          meets_virtual_integrity?: boolean | null
+          nonce?: string | null
+          package_name?: string | null
+          raw_verdict_json?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          account_details?: string | null
+          app_recognition_verdict?: string | null
+          app_version_code?: number | null
+          basic_integrity?: boolean | null
+          created_at?: string
+          device_id?: string | null
+          device_recognition_verdict?: string[] | null
+          error_message?: string | null
+          id?: string
+          meets_device_integrity?: boolean | null
+          meets_strong_integrity?: boolean | null
+          meets_virtual_integrity?: boolean | null
+          nonce?: string | null
+          package_name?: string | null
+          raw_verdict_json?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       popup_event_banners: {
         Row: {
           auto_dismiss_seconds: number
