@@ -26,4 +26,7 @@
     <string name="shortcut_wallet_long">Recharge &amp; balance</string>
     <string name="shortcut_discover_short">Discover</string>
     <string name="shortcut_discover_long">Find new creators</string>
+
+    <!-- Pkg216 — Quick Settings Tile -->
+    <string name="tile_go_live_label">Go Live</string>
 </resources>
