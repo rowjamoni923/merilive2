@@ -5,6 +5,7 @@ import diamondGem3D from "@/assets/diamond-gem-3d.png";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { formatCompactCount } from "@/utils/formatCount";
 import {
   MessageCircle,
   ChevronRight,
