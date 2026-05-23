@@ -123,7 +123,12 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
   };
 
   const handleSend = () => {
-    if (selectedGift && userCoins >= selectedGift.coins * sendCount) {
+    if (sendingRef.current) return; // Pkg4-pass4: in-flight guard against double-tap
+    if (!selectedGift) return;
+    const totalCost = selectedGift.coins * sendCount;
+    if (userCoins < totalCost) return;
+    sendingRef.current = true;
+    try {
       onSendGift({
         id: selectedGift.id,
         name: selectedGift.name,
@@ -135,6 +140,9 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
       setSelectedGift(null);
       setSendCount(1);
       onClose();
+    } finally {
+      // Release on next tick — onClose unmounts via effect anyway
+      setTimeout(() => { sendingRef.current = false; }, 350);
     }
   };
 
