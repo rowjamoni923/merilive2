@@ -183,6 +183,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     lipColor: 10,
   });
   const [isRemoteAudioMuted, setIsRemoteAudioMuted] = useState(false); // Auto-play sound when entering stream
+  // Audit-fix (Live #2): ref-mirror of isRemoteAudioMuted so late-attached
+  // audio tracks always read the LATEST mute state without needing the
+  // join effect to re-run (which would tear down the room).
+  const isRemoteAudioMutedRef = useRef(false);
 
   const roomRef = useRef<Room | null>(null);
   // Pkg189: token auto-refresh detach handle (replaces JWT before expiry so
@@ -511,10 +515,15 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           return;
         }
 
-        if (track.kind === Track.Kind.Audio && !isRemoteAudioMuted) {
+        if (track.kind === Track.Kind.Audio) {
+          // Audit-fix: ALWAYS attach the audio element, then honor the
+          // current mute state via ref. Previously we skipped attach when
+          // muted, so toggling unmute on a late-subscribed track had no
+          // <audio> element to act on and the viewer heard silence.
           const audioEl = track.attach();
+          audioEl.muted = isRemoteAudioMutedRef.current;
+          audioEl.volume = 1;
           audioEl.play().catch(() => {});
-          // Store reference for mute control
           const existing = remoteAudioElementsRef.current.get(participant.identity) || [];
           existing.push(audioEl);
           remoteAudioElementsRef.current.set(participant.identity, existing);
@@ -767,8 +776,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         const pRoom = config.preloadedRoom;
         pRoom.on(RoomEvent.TrackSubscribed, (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
           const pUid = getUidForParticipant(participant.identity);
-          if (track.kind === Track.Kind.Audio && !isRemoteAudioMuted) {
+          if (track.kind === Track.Kind.Audio) {
+            // Audit-fix: always attach; honor current mute via ref.
             const audioEl = track.attach();
+            audioEl.muted = isRemoteAudioMutedRef.current;
+            audioEl.volume = 1;
             audioEl.play().catch(() => {});
             const existing = remoteAudioElementsRef.current.get(participant.identity) || [];
             existing.push(audioEl);
@@ -808,7 +820,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           p.trackPublications.forEach((pub) => {
             if (pub.track?.kind === Track.Kind.Audio) {
               const audioEl = pub.track.attach();
-              audioEl.muted = isRemoteAudioMuted;
+              audioEl.muted = isRemoteAudioMutedRef.current;
               audioEl.volume = 1;
               audioEl.play().catch(() => {});
               const existing = remoteAudioElementsRef.current.get(p.identity) || [];
@@ -1073,7 +1085,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       isJoiningRef.current = false;
       setIsLoading(false);
     }
-  }, [isJoined, options, getUidForParticipant, ensureParticipantSubscribed, isRemoteAudioMuted, clearHostVideoRecoveryTimer]);
+    // Audit-fix: removed isRemoteAudioMuted from deps — mute state is now
+    // read via isRemoteAudioMutedRef.current at attach time. Including it
+    // here used to invalidate joinChannel on every mute toggle, risking
+    // re-joins from upstream effects that depend on its identity.
+  }, [isJoined, options, getUidForParticipant, ensureParticipantSubscribed, clearHostVideoRecoveryTimer]);
 
   // Leave channel
   const leaveChannel = useCallback(async () => {
@@ -1292,6 +1308,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // Toggle remote audio (mute/unmute for viewers)
   const toggleRemoteAudio = useCallback((muted: boolean) => {
     setIsRemoteAudioMuted(muted);
+    isRemoteAudioMutedRef.current = muted; // keep ref in sync for late attaches
     remoteAudioElementsRef.current.forEach(els => {
       els.forEach(el => {
         el.muted = muted;
