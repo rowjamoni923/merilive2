@@ -12,7 +12,8 @@
     "express": "^4.19.2",
     "livekit-server-sdk": "^2.9.5",
     "@supabase/supabase-js": "^2.45.0",
-    "pino": "^9.5.0"
+    "pino": "^9.5.0",
+    "ws": "^8.18.0"
   },
   "engines": {
     "node": ">=20"
