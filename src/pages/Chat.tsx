@@ -58,6 +58,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { OfficialNoticeList } from "@/components/notifications/OfficialNoticeList";
+import { messageOutbox, type OutboxItem } from "@/lib/messageOutbox";
+import { useMessageOutboxDrain } from "@/hooks/useMessageOutboxDrain";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { GiftEmojiAnimation } from "@/components/chat/GiftEmojiAnimation";
@@ -1371,6 +1373,17 @@ const Chat = () => {
     return newMsg;
   }
 
+  // Pkg212 — offline DM outbox: drain queued messages on reconnect/resume/tick.
+  useMessageOutboxDrain(!!currentUserId, currentUserId, async (item: OutboxItem) => {
+    await persistDirectMessage(item.conversationId, item.senderId, item.content, item.messageType);
+    // Replace the queued optimistic bubble with a "sent" one — realtime
+    // upsertLiveMessage will replace it with the canonical row shortly.
+    setMessages(prev => prev.map(m =>
+      m.id === item.id ? { ...m, status: 'sent' as any } : m
+    ));
+  });
+
+
   const fetchMessages = async (conversationId: string) => {
     const { data, error } = await supabase
       .from('messages')
@@ -1379,7 +1392,22 @@ const Chat = () => {
       .order('created_at', { ascending: true });
 
     if (error) return;
-    setMessages((data || []).map(castMessage));
+    const serverMsgs = (data || []).map(castMessage);
+    // Pkg212 — re-attach any persistent queued messages for this conversation
+    // (e.g. after app cold-start while still offline) at the end of the thread.
+    const queued = currentUserId
+      ? messageOutbox.listFor(conversationId, currentUserId).map(q => ({
+          id: q.id,
+          content: q.content,
+          sender_id: q.senderId,
+          created_at: new Date(q.createdAt).toISOString(),
+          is_read: false,
+          message_type: q.messageType,
+          status: 'queued',
+          _optimistic: true,
+        }) as any)
+      : [];
+    setMessages([...serverMsgs, ...queued]);
 
     // Mark as delivered via RPC
     if (currentUserId) {
@@ -1662,11 +1690,34 @@ const Chat = () => {
         checkPhoneNumber(originalContent, undefined, selectedGroup.id).catch(() => {});
         checkToxic(originalContent, { contextType: 'chat', groupId: selectedGroup.id }).catch(() => {});
       }
-    } catch (error) {
-      toast.error("Failed to send message");
-      setMessage(originalContent);
-      // Remove optimistic message on failure
-      setMessages(prev => prev.filter(m => m.id !== optimisticId));
+    } catch (error: any) {
+      // Pkg212 — instead of dropping the message, enqueue it to the
+      // persistent outbox. The drain hook below auto-retries on
+      // reconnect / app resume / 30 s tick.
+      if (selectedConversation && currentUserId) {
+        try {
+          messageOutbox.enqueue({
+            id: optimisticId,
+            conversationId: selectedConversation.id,
+            senderId: currentUserId,
+            content: contentToSend,
+            messageType: 'text',
+          });
+          // Mark the optimistic message as queued (waiting to send)
+          setMessages(prev => prev.map(m =>
+            m.id === optimisticId ? { ...m, status: 'queued' as any } : m
+          ));
+          toast.message("You're offline — message will send when reconnected");
+        } catch {
+          toast.error("Failed to send message");
+          setMessage(originalContent);
+          setMessages(prev => prev.filter(m => m.id !== optimisticId));
+        }
+      } else {
+        toast.error("Failed to send message");
+        setMessage(originalContent);
+        setMessages(prev => prev.filter(m => m.id !== optimisticId));
+      }
     } finally {
       setSending(false);
     }
