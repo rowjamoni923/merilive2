@@ -7,6 +7,7 @@ import { Capacitor } from '@capacitor/core';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
 import { publishCallEnded, publishCallAccepted, type CallEndedDetail, type CallAcceptedDetail } from '@/lib/livekitCallSignaling';
+import { NativeCall } from '@/plugins/NativeCall';
 
 interface CallState {
   callId: string | null;
@@ -167,6 +168,10 @@ export function usePrivateCall(userId: string | null) {
     setCallState(prev => ({ ...prev, status: 'ended' }));
     setIncomingCall(null);
     Promise.resolve(supabase.rpc('reset_my_call_status')).catch(() => {});
+    // Pkg211 — tear down Telecom connection (releases BT audio + closes log)
+    if (cid && isNativeAndroidApp()) {
+      NativeCall.reportCallEnded({ callId: cid, remote: false }).catch(() => {});
+    }
     setTimeout(() => { callEndedRef.current = false; }, 3000);
     if (endedCallIdsRef.current.size > 20) {
       const idsArray = Array.from(endedCallIdsRef.current);
@@ -207,6 +212,11 @@ export function usePrivateCall(userId: string | null) {
       totalCoinsSpent: 0,
       hostEarned: 0,
     }));
+
+    // Pkg211 — promote Telecom connection to active for outgoing caller
+    if (isNativeAndroidApp()) {
+      NativeCall.reportCallConnected({ callId }).catch(() => {});
+    }
 
     // Caller billing display fetch every 10s (real deductions still every 60s — display only)
     billingFetchIntervalRef.current = setInterval(async () => {
