@@ -231,15 +231,20 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
 
     private void handleMessage(Map<String, String> data, String title, String body, String imageUrl, String iconEmoji) {
         String senderId = data.containsKey("sender_id") ? data.get("sender_id") : "";
+        String senderName = firstNonEmpty(data.get("sender_name"), data.get("senderName"), title);
+        String senderAvatar = firstNonEmpty(data.get("sender_avatar"), data.get("senderAvatar"), "");
+        String conversationId = firstNonEmpty(data.get("conversation_id"), data.get("conversationId"), "");
         int notifId = NotificationHelper.NOTIFICATION_MESSAGE + (senderId != null ? senderId.hashCode() % 1000 : 0);
-        // Prefer rich banner render when an image_url is present; otherwise fall back to existing helper.
+        // Prefer rich banner render when an image_url is present; otherwise use Pkg209 MessagingStyle + RemoteInput.
         if (imageUrl != null && !imageUrl.isEmpty()) {
             handleGeneral(title, body, NotificationHelper.CHANNEL_MESSAGES, imageUrl, iconEmoji);
         } else {
             String richTitle = (iconEmoji != null && !iconEmoji.isEmpty()) ? (iconEmoji + " " + title) : title;
-            NotificationHelper.showMessageNotification(this, richTitle, body, senderId, notifId);
+            NotificationHelper.showMessageNotification(this, richTitle, body, senderId, notifId,
+                    conversationId, senderName, senderAvatar);
         }
     }
+
 
     private void handleGeneral(String title, String body, String channelId, String imageUrl, String iconEmoji) {
         Intent intent = new Intent(this, MainActivity.class);
