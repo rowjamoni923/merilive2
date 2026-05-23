@@ -182,7 +182,7 @@ export const PremiumLiveStreamCard = ({
           >
             <Eye className="w-3.5 h-3.5 text-pink-600" />
           </motion.div>
-          <span className="text-xs text-white font-bold">
+          <span className="text-xs text-on-dark font-bold">
             {viewerCount > 1000 ? `${(viewerCount / 1000).toFixed(1)}k` : viewerCount}
           </span>
         </motion.div>
