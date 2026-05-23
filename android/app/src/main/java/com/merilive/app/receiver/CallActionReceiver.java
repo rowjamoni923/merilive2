@@ -29,6 +29,7 @@ public class CallActionReceiver extends BroadcastReceiver {
         String callId = intent.getStringExtra("call_id");
         String callerId = intent.getStringExtra("caller_id");
         String callerName = intent.getStringExtra("caller_name");
+        String callerAvatar = intent.getStringExtra("caller_avatar");
         String callType = intent.getStringExtra("call_type");
 
         // Always dismiss the heads-up call notification.
