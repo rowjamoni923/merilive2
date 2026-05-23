@@ -160,10 +160,18 @@ public class NotificationHelper {
             .addMessage(body, System.currentTimeMillis(), other);
 
         // ---- Pkg209 — Inline Reply (RemoteInput) -----------------------
+        // Pkg234 — M28 Wear OS companion: setChoices() surfaces canned replies as
+        // tappable chips on Wear OS notifications (also used by Android Auto +
+        // some launchers). Default-bridging (no setLocalOnly) means this
+        // notification mirrors to paired watches automatically.
         androidx.core.app.RemoteInput remoteInput =
             new androidx.core.app.RemoteInput.Builder(
                 com.merilive.app.receiver.MessageActionReceiver.KEY_REPLY_TEXT)
                 .setLabel("Reply")
+                .setChoices(new CharSequence[] {
+                    "👍", "❤️", "OK", "Thanks!", "On my way", "Call you later"
+                })
+                .setAllowFreeFormInput(true)
                 .build();
 
         Intent replyIntent = new Intent(context,
@@ -179,13 +187,22 @@ public class NotificationHelper {
             context, ("reply:" + notificationId).hashCode(), replyIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
 
+        // Pkg234 — Wear OS hint: render reply action inline on the watch
+        // face so the user can tap once to dictate / pick a canned reply.
+        NotificationCompat.Action.WearableExtender replyWear =
+            new NotificationCompat.Action.WearableExtender()
+                .setHintDisplayActionInline(true)
+                .setHintLaunchesActivity(false);
+
         NotificationCompat.Action replyAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_notification, "Reply", replyPI)
             .addRemoteInput(remoteInput)
             .setAllowGeneratedReplies(true)
             .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
             .setShowsUserInterface(false)
+            .extend(replyWear)
             .build();
+
 
         // ---- Pkg209 — Mark as Read action ------------------------------
         Intent readIntent = new Intent(context,
