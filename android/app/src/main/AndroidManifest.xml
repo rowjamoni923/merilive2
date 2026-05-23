@@ -36,9 +36,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- Step 34 — screen-share via MediaProjection (Android 14+ requires the dedicated FGS type) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <!-- Pkg229 — FOREGROUND_SERVICE_MEDIA_PLAYBACK removed: no FGS uses it.
+         Play Console policy review flags unused FGS permissions. Re-add only
+         when a media-playback FGS (background audio player) is introduced. -->
 
     <!-- Full Screen Intent (lock screen calls) -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
