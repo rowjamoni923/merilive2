@@ -103,7 +103,7 @@ export const UserCard = ({
         {/* Verified Badge - Top Right (if not live) */}
         {!isLive && (isVerified || isFaceVerified) && (
           <div className="absolute top-3 right-3 w-5 h-5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg border border-white/50">
-            <CheckCircle className="w-3 h-3 text-white fill-current" />
+            <CheckCircle className="w-3 h-3 text-on-dark fill-current" />
           </div>
         )}
 
