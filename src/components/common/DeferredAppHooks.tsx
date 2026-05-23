@@ -11,6 +11,7 @@ import { useHibernationCheck } from "@/hooks/useHibernationCheck";
 import { useMemoryPressureGuard } from "@/hooks/useMemoryPressureGuard";
 import { useConversationShortcuts } from "@/hooks/useConversationShortcuts";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
+import FeedbackDialog from "@/components/common/FeedbackDialog";
 import { queryClient } from "@/lib/queryClient";
 
 /**
@@ -65,6 +66,8 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
     <>
       <GlobalNotificationsMount />
       <SessionDebugOverlay userId={singleDeviceUserId} />
+      {/* Pkg255: shake-to-feedback dialog (Android shake → feedback, no-op on web/iOS until openFeedbackDialog() is called) */}
+      <FeedbackDialog />
     </>
   );
 });
