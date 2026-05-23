@@ -49,7 +49,17 @@ android {
     }
 }
 
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
 dependencies {
+    // ===== GPUPixel (Pkg200 — Professional beauty filter, Apache 2.0) =====
+    // Native C++ skin smoothing, whitening, face reshape (thin face / big eye),
+    // lipstick, blusher, LUT color filters. Prebuilt .aar shipped under libs/.
+    implementation(name: 'gpupixel-release', ext: 'aar')
     // MultiDex (safety for older devices / large method count)
     implementation 'androidx.multidex:multidex:2.0.1'
     // AndroidX Core
