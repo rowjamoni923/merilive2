@@ -32,11 +32,27 @@ export function ParticipantVideo({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      hardenVideoElementForNative(videoRef.current, { muted: isSelf });
-      videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(e => console.log("Video play error:", e));
+    const el = videoRef.current;
+    if (!el) return;
+    if (stream) {
+      // Avoid re-attaching the same MediaStream (causes flash + audio glitch)
+      if (el.srcObject !== stream) {
+        hardenVideoElementForNative(el, { muted: isSelf });
+        el.srcObject = stream;
+        el.play().catch(e => console.log("Video play error:", e));
+      }
+    } else if (el.srcObject) {
+      // Clear stale frame when stream goes away
+      try { el.pause(); } catch {}
+      el.srcObject = null;
     }
+    return () => {
+      // On unmount, release the MediaStream reference to avoid leaks
+      if (el && el.srcObject) {
+        try { el.pause(); } catch {}
+        el.srcObject = null;
+      }
+    };
   }, [stream, isSelf]);
 
   const showVideo = roomType === 'video' && stream && !isVideoOff;
