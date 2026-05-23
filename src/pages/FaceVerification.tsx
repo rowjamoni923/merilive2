@@ -1589,6 +1589,8 @@ const FaceVerification = () => {
       let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
       if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
+        // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
+        if (handleVerificationBlocker(result)) { setLoading(false); return; }
         if (result?.autoFinalize?.success) {
           autoApproved = true;
           const detected = result.autoFinalize.gender;
@@ -1597,6 +1599,7 @@ const FaceVerification = () => {
             : "🎉 Auto-approved! Your account is verified.";
         }
       }
+
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
@@ -1833,6 +1836,8 @@ const FaceVerification = () => {
       let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
       if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
+        // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
+        if (handleVerificationBlocker(result)) { setLoading(false); return; }
         if (result?.autoFinalize?.success) {
           autoApproved = true;
           const detected = result.autoFinalize.gender;
@@ -1841,6 +1846,7 @@ const FaceVerification = () => {
             : "🎉 Auto-approved! Note: detected as male, account converted to user.";
         }
       }
+
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
