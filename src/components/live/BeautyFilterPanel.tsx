@@ -96,7 +96,12 @@ export function BeautyFilterPanel({
   useEffect(() => {
     if (!open) return;
     persistLevels(levels);
-    if (enabled && native) void applyProBeauty(levels);
+    if (enabled && native) {
+      void applyProBeauty(levels);
+      // Pkg201 — also push to broadcast track when the operator has
+      // explicitly enabled the broadcast flag (off by default).
+      if (isBroadcastBeautyEnabled()) void applyBroadcastBeauty(levels, true);
+    }
   }, [levels, enabled, native, open]);
 
   // Push enabled state to native pipeline.
