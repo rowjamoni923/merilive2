@@ -32,7 +32,7 @@
  * $1400-rule safe.
  */
 
-import type { VideoCodec, BackupCodecPolicy } from 'livekit-client';
+import type { VideoCodec } from 'livekit-client';
 
 export type CodecChoice = {
   videoCodec: VideoCodec;
