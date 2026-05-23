@@ -795,6 +795,17 @@ const FaceVerification = () => {
   // Start face verification camera
   const startFaceCamera = useCallback(async () => {
     try {
+      if (await nativeFaceCam.isAvailable()) {
+        if (faceStream) {
+          faceStream.getTracks().forEach(track => track.stop());
+          setFaceStream(null);
+        }
+        await nativeFaceCam.startPreview('1080p');
+        setNativeFaceCameraActive(true);
+        setCameraReady(true);
+        return;
+      }
+
       // Stop any existing stream first
       if (faceStream) {
         faceStream.getTracks().forEach(track => track.stop());
@@ -813,13 +824,14 @@ const FaceVerification = () => {
     } catch (error: any) {
       console.error('Face camera error:', error);
       recordClientError({ label: "FaceVerification.stream", message: error instanceof Error ? error.message : String(error) });
+      setNativeFaceCameraActive(false);
       toast({
         title: "Camera access failed",
         description: error.message || "Please grant camera permission from settings.",
         variant: "destructive",
       });
     }
-  }, [faceStream, toast, getCameraStream, attachFacePreviewStream]);
+  }, [faceStream, toast, getCameraStream, attachFacePreviewStream, nativeFaceCam, setNativeFaceCameraActive]);
   
   useEffect(() => {
     if (faceStream) {
@@ -852,7 +864,7 @@ const FaceVerification = () => {
   // are cached and used as the starting point for the next verification run,
   // so users with off-axis cameras / glasses don't have to fight defaults.
   const runNeutralCalibration = async () => {
-    if (!cameraReady || !faceVideoRef.current) {
+    if (!cameraReady || (!usingNativeFaceCameraRef.current && !faceVideoRef.current)) {
       toast({ title: 'Camera not ready', description: 'Please wait for the preview, then try again.', variant: 'destructive' });
       return;
     }
@@ -865,9 +877,7 @@ const FaceVerification = () => {
     let consecutiveNoFace = 0;
     try {
       while (samples.length < TARGET && !neutralAbortRef.current) {
-        const videoEl = faceVideoRef.current;
-        if (!videoEl) break;
-        const frame = captureFrameFromLiveVideo(videoEl);
+        const frame = await captureFaceFrameBase64();
         if (frame) {
           const res = await checkFacePose(frame);
           if (res?.faceDetected) {
