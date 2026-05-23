@@ -51,7 +51,7 @@ serve(async (req) => {
     }
 
     const callerId = authData.user.id;
-    if (userId !== callerId && hostId !== callerId && !await supabase.rpc('is_admin', { _user_id: callerId }).then(({ data }) => data === true).catch(() => false)) {
+    if (userId !== callerId && !await supabase.rpc('is_admin', { _user_id: callerId }).then(({ data }) => data === true).catch(() => false)) {
       return jsonResponse({ error: 'Forbidden userId' }, 403);
     }
 
@@ -91,19 +91,7 @@ serve(async (req) => {
 
     if (rpcError) {
       console.error('[AdminPhoneAlert] RPC error:', rpcError);
-      // Fallback: insert directly
-      await supabase.from('host_contact_violations').insert({
-        host_id: userId,
-        violation_number: 1,
-        violation_type: 'contact_sharing',
-        detected_content: detectedContent,
-        detected_pattern: 'phone_number',
-        source_type: sourceType,
-        source_id: callId || null,
-        beans_deducted: 0,
-        is_auto_detected: true,
-      });
-      console.log('[AdminPhoneAlert] Fallback insert done');
+      return jsonResponse({ error: rpcError.message }, 500);
     } else {
       console.log('[AdminPhoneAlert] RPC result:', rpcResult);
     }
