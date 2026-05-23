@@ -2025,32 +2025,7 @@ const PartyRoom = () => {
         />
       )}
 
-      {/* Pkg132: Floating reactions overlay + inline quick-bar (all participants) */}
-      {room?.id && (
-        <>
-          <FloatingReactionsOverlay scope="party" id={room.id} bottomOffset={140} />
-          <ReactionsQuickBar
-            open={showReactionPicker}
-            onClose={() => setShowReactionPicker(false)}
-            scope="party"
-            id={room.id}
-            bottomOffset={112}
-            leftOffset={72}
-          />
-          <button
-            type="button"
-            onClick={() => setShowReactionPicker((v) => !v)}
-            className="fixed left-4 bottom-28 z-[55] w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg shadow-orange-500/40 flex items-center justify-center active:scale-95 transition"
-            aria-label="Send reaction"
-            aria-expanded={showReactionPicker}
-          >
-            <Smile className="w-6 h-6 text-white" strokeWidth={2} />
-          </button>
-        </>
-      )}
-
-      {/* Pkg131: Raise-Hand — audience CTA + host queue panel */}
-      {room?.id && <PartyRaiseHandUI roomId={room.id} isHost={isHost} hasSeat={myPosition !== null} showQueue={showRaiseHandQueue} onCloseQueue={() => setShowRaiseHandQueue(false)} onOpenQueue={() => setShowRaiseHandQueue(true)} currentUserId={currentUser?.id} />}
+      {/* Floating reactions + raise-hand FABs removed — features available via bottom bar */}
 
 
 
