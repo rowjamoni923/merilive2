@@ -443,6 +443,84 @@ serve(async (req) => {
       `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%` +
       profileSummary;
 
+    // ───────────────────────────────────────────────────────────────────
+    // Gender-declaration cross-check.
+    // The user picks a gender at signup ("host account" = female by app
+    // convention). If Rekognition is confident (≥90%) the face does not
+    // match that declaration → block auto-approve AND surface a blocker
+    // so the client can route the user to support.
+    // ───────────────────────────────────────────────────────────────────
+    let declaredGender: string | null = null;
+    let genderDeclarationMismatch = false;
+    try {
+      const { data: profGender } = await supabaseAdmin
+        .from("profiles")
+        .select("gender")
+        .eq("id", userId)
+        .maybeSingle();
+      const g = String(profGender?.gender ?? "").trim().toLowerCase();
+      if (g === "male" || g === "female") {
+        declaredGender = g;
+        if (
+          rawG !== "unknown" &&
+          rawG !== g &&
+          genderConf >= 90 &&
+          !frontError
+        ) {
+          genderDeclarationMismatch = true;
+        }
+      }
+    } catch (e) {
+      console.warn("[face-verification-analyze] declared-gender lookup:", e);
+    }
+    rekognition.declared_gender = declaredGender;
+    rekognition.gender_declaration_mismatch = genderDeclarationMismatch;
+
+    // ───────────────────────────────────────────────────────────────────
+    // Replay / static-image / phone-video spoof detection.
+    // A real person turning left/right produces yaw deltas of roughly
+    // 15-40°. If all three angles have nearly identical yaw, the user is
+    // most likely holding up a phone screen / printed photo / static
+    // image. Combined with the provider's liveness check (below) this
+    // catches the vast majority of replay attacks.
+    // ───────────────────────────────────────────────────────────────────
+    const yawF = Number(frontPose?.Yaw ?? 0);
+    const yawL = Number(leftPose?.Yaw ?? 0);
+    const yawR = Number(rightPose?.Yaw ?? 0);
+    const yawDeltaL = Math.abs(yawL - yawF);
+    const yawDeltaR = Math.abs(yawR - yawF);
+    const replaySuspected = !frontError && !leftError && !rightError &&
+      yawDeltaL < 8 && yawDeltaR < 8;
+    rekognition.yaw_delta_left = yawDeltaL;
+    rekognition.yaw_delta_right = yawDeltaR;
+    rekognition.replay_suspected = replaySuspected;
+
+    // ───────────────────────────────────────────────────────────────────
+    // External provider liveness (best-effort). Provider's verify-face
+    // returns status='liveness_failed' for photo-of-photo / video-replay
+    // when its on-device liveness model rejects the frame.
+    // ───────────────────────────────────────────────────────────────────
+    let livenessFailed = false;
+    let livenessStatus: string | null = null;
+    const faceProviderEarly = getProviderConfig("VERIFY_FACE_API_KEY");
+    if (faceProviderEarly && !frontError) {
+      try {
+        const liveness = await providerVerifyFace(faceProviderEarly, {
+          external_user_id: userId,
+          image_base64: uint8ToBase64(frontBytes),
+        });
+        if (liveness) {
+          livenessStatus = liveness.status;
+          if (liveness.status === "liveness_failed") livenessFailed = true;
+        }
+      } catch (e) {
+        console.warn("[face-verification-analyze] liveness check skipped:", e);
+      }
+    }
+    rekognition.liveness_status = livenessStatus;
+    rekognition.liveness_failed = livenessFailed;
+
+
 
     // ───────────────────────────────────────────────────────────────────
     // Duplicate-face detection via external verification provider.
