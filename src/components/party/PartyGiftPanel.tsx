@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy, ReactNode } from "react";
+import { useState, useEffect, useRef, Suspense, lazy, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
