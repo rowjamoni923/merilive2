@@ -490,41 +490,52 @@ const FaceVerification = () => {
     return response.data;
   };
 
-  // Generate simple face hash from video frame
+  // Generate deterministic face/video hash; never random, so duplicate checks do not silently miss.
   const generateFaceHash = async (videoBlob: Blob): Promise<string> => {
+    const fallbackHash = async () => {
+      const bytes = new Uint8Array(await videoBlob.slice(0, 1024 * 1024).arrayBuffer());
+      const digest = await crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+    };
+
     return new Promise((resolve) => {
       const video = document.createElement('video');
-      video.src = URL.createObjectURL(videoBlob);
-      video.muted = true;
-      
-      video.onloadeddata = () => {
-        video.currentTime = 0.5;
+      const objectUrl = URL.createObjectURL(videoBlob);
+      let settled = false;
+      const settle = async (value?: string) => {
+        if (settled) return;
+        settled = true;
+        URL.revokeObjectURL(objectUrl);
+        resolve(value || await fallbackHash());
       };
-      
+
+      video.src = objectUrl;
+      video.muted = true;
+      video.playsInline = true;
+      video.onloadedmetadata = () => {
+        const target = Number.isFinite(video.duration) && video.duration > 0.8 ? 0.5 : 0;
+        try { video.currentTime = target; } catch { void settle(); }
+      };
       video.onseeked = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 32;
-        canvas.height = 32;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(video, 0, 0, 32, 32);
-        
-        const imageData = ctx?.getImageData(0, 0, 32, 32);
-        if (imageData) {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 32;
+          canvas.height = 32;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return void settle();
+          ctx.drawImage(video, 0, 0, 32, 32);
+          const imageData = ctx.getImageData(0, 0, 32, 32);
           let hash = '';
           for (let i = 0; i < imageData.data.length; i += 16) {
             hash += imageData.data[i].toString(16).padStart(2, '0');
           }
-          resolve(hash.substring(0, 64));
-        } else {
-          resolve(Math.random().toString(36).substring(2, 66));
+          void settle(hash.substring(0, 64));
+        } catch {
+          void settle();
         }
-        URL.revokeObjectURL(video.src);
       };
-      
-      video.onerror = () => {
-        resolve(Math.random().toString(36).substring(2, 66));
-      };
-      
+      video.onerror = () => { void settle(); };
+      setTimeout(() => { void settle(); }, 4000);
       video.load();
     });
   };
