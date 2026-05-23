@@ -71,7 +71,10 @@ public class CallForegroundService extends Service {
 
         Notification notification = buildNotification(callerName, callType, callId, callerId, null);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        // Pkg229 — typed startForeground required since API 29 for camera/mic FGS
+        // started from background. Android 14+ enforces type match against manifest;
+        // ServiceCompat handles the version branching internally.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ServiceCompat.startForeground(this, FOREGROUND_NOTIFICATION_ID, notification,
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
                     | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
