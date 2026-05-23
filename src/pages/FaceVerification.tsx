@@ -45,7 +45,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
-import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
