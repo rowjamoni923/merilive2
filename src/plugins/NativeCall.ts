@@ -60,6 +60,17 @@ export interface NativeCallPlugin {
     callerName: string;
     callType?: 'video' | 'audio';
   }): Promise<{ reported: boolean; callId: string }>;
+  /**
+   * Pkg211 — Outgoing call: place via Telecom so BT End button + OS audio
+   * routing + system call-log entry work for caller side. Safe no-op on
+   * unsupported devices.
+   */
+  reportOutgoingCall(opts: {
+    callId: string;
+    calleeId: string;
+    calleeName: string;
+    callType?: 'video' | 'audio';
+  }): Promise<{ reported: boolean; callId: string }>;
   /** Mark the Telecom connection as connected (media flowing). */
   reportCallConnected(opts: { callId: string }): Promise<{ ok: boolean; callId: string }>;
   /** Tear down the Telecom connection (releases audio focus + closes log entry). */

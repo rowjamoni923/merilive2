@@ -140,4 +140,48 @@ object TelecomBridge {
         } catch (_: Throwable) {}
         MeriConnectionService.remove(callId)
     }
+
+    /**
+     * Pkg211 — outgoing call path. Pushes an outgoing call into Telecom
+     * via `tm.placeCall()` so BT headset End button + OS audio routing +
+     * system call-log entry work for caller-side too.
+     *
+     * Self-managed PhoneAccount → MANAGE_OWN_CALLS (already granted) is
+     * sufficient; we don't need CALL_PHONE. The framework calls
+     * MeriConnectionService.onCreateOutgoingConnection with the extras
+     * below where we mint the Connection.
+     */
+    @SuppressLint("MissingPermission")
+    @JvmStatic
+    fun placeOutgoing(
+        ctx: Context,
+        callId: String,
+        calleeId: String,
+        calleeName: String,
+        callType: String,
+    ): Boolean {
+        if (!isSupported()) return false
+        if (!ensurePhoneAccount(ctx)) return false
+        val tm = ctx.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager ?: return false
+        val h = handle(ctx) ?: return false
+        return try {
+            val callExtras = Bundle().apply {
+                putString(EXTRA_CALL_ID, callId)
+                putString(EXTRA_CALLER_ID, calleeId)
+                putString(EXTRA_CALLER_NAME, calleeName)
+                putString(EXTRA_CALL_TYPE, callType)
+            }
+            val outer = Bundle().apply {
+                putParcelable(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, h)
+                putBundle(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, callExtras)
+            }
+            val addr = Uri.fromParts("merilive", calleeId.ifEmpty { calleeName }, null)
+            tm.placeCall(addr, outer)
+            true
+        } catch (t: Throwable) {
+            Log.w(TAG, "placeCall failed: ${t.message}")
+            false
+        }
+    }
 }
+

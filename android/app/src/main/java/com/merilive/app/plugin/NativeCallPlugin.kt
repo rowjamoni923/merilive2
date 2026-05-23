@@ -252,5 +252,30 @@ class NativeCallPlugin : Plugin() {
         ret.put("callId", callId)
         call.resolve(ret)
     }
+
+    /**
+     * Pkg211 — outgoing call: push into Telecom so caller-side BT End,
+     * audio routing, and system call log work. Idempotent + safe (no-op
+     * on pre-O / unsupported devices).
+     */
+    @PluginMethod
+    fun reportOutgoingCall(call: PluginCall) {
+        val callId = call.getString("callId") ?: ""
+        val calleeId = call.getString("calleeId") ?: ""
+        val calleeName = call.getString("calleeName") ?: "Calling…"
+        val callType = call.getString("callType") ?: "video"
+        val ok = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            try {
+                com.merilive.app.telecom.TelecomBridge.placeOutgoing(
+                    context, callId, calleeId, calleeName, callType
+                )
+            } catch (_: Throwable) { false }
+        } else false
+        val ret = JSObject()
+        ret.put("reported", ok)
+        ret.put("callId", callId)
+        call.resolve(ret)
+    }
 }
+
 
