@@ -232,6 +232,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(NotificationHelper.BRAND_COLOR)
             .setContentTitle(finalTitle)
             .setContentText(body)
             .setAutoCancel(true)
