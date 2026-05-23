@@ -206,9 +206,9 @@ export function usePartyRoomWebRTC(
             },
             degradationPreference: 'maintain-resolution',
             simulcast: false,
-            // Pkg156: VP9 primary + VP8 backup. Chamet/Bigo party-room parity.
-            videoCodec: 'vp9',
-            backupCodec: { codec: 'vp8' },
+            // Pkg205 (M3): device-aware codec selection (Safari → H.264,
+            // Chromium → AV1/VP9, H.264 backup preferred over VP8).
+            ...pickOptimalCodecs(),
             // Pkg163: high-quality voice opus + RED packet-loss resilience.
             audioPreset: AudioPresets.musicHighQuality,
             dtx: false,
