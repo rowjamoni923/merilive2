@@ -532,12 +532,19 @@ serve(async (req) => {
       })
       .eq("id", submissionId);
 
-    const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
-      "service_auto_finalize_face_verification",
-      { p_submission_id: submissionId },
-    );
+    // Profile-photo mismatch forces manual review — never auto-approve a
+    // submission where the avatar belongs to a different person than the
+    // selfie. Duplicate-face hit does the same.
+    const blockAutoApprove = profileMismatch || !!duplicateBlock;
+    const { data: rpcData, error: rpcErr } = blockAutoApprove
+      ? { data: { success: false, reason: profileMismatch ? "profile_face_mismatch" : "duplicate_face" }, error: null as null }
+      : await supabaseAdmin.rpc(
+          "service_auto_finalize_face_verification",
+          { p_submission_id: submissionId },
+        );
     const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
     if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+
 
     // ★ NEVER auto-reject. If auto-approve cannot safely fire, leave the row in
     //   `submitted` so admin sees it in Pending and reviews manually. The previous
