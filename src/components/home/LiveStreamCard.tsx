@@ -81,7 +81,7 @@ export const LiveStreamCard = ({
             <Badge
               key={index}
               variant="secondary"
-              className="bg-primary/80 text-white border-0 text-[10px] px-1.5 py-0"
+              className="bg-primary/80 text-on-dark border-0 text-[10px] px-1.5 py-0"
             >
               {tag}
             </Badge>
