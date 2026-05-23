@@ -84,6 +84,9 @@ dependencies {
     // Pkg224 / M19 — Google Play In-App Updates (flexible + immediate).
     implementation 'com.google.android.play:app-update:2.1.0'
     implementation 'com.google.android.play:app-update-ktx:2.1.0'
+    // Pkg233 / M27 — In-app review API
+    implementation 'com.google.android.play:review:2.0.1'
+    implementation 'com.google.android.play:review-ktx:2.0.1'
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.7.3')
