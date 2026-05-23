@@ -34,13 +34,16 @@
 
 import type { VideoCodec } from 'livekit-client';
 
+/** LiveKit's TrackPublishDefaults.backupCodec only accepts h264 or vp8. */
+export type BackupVideoCodec = 'h264' | 'vp8';
+
 export type CodecChoice = {
   videoCodec: VideoCodec;
   /**
    * `backupCodec: true` lets LiveKit pick H.264 automatically; we name
    * it explicitly so the decision is auditable in logs.
    */
-  backupCodec?: { codec: VideoCodec };
+  backupCodec?: { codec: BackupVideoCodec };
   backupCodecPolicy?: number;
 };
 
