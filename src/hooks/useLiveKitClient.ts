@@ -1122,6 +1122,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         els.forEach(el => el.remove());
       });
       remoteAudioElementsRef.current.clear();
+      remoteAudioTrackKeysRef.current.clear();
 
       // 🛰️ Native publish path teardown.
       if (usingNativeRef.current) {
