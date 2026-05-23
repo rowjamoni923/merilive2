@@ -1,0 +1,15 @@
+[Unit]
+Description=V4 LiveKit Webhook Receiver
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/livekit-webhook
+EnvironmentFile=/opt/livekit-webhook/.env
+ExecStart=/usr/bin/node /opt/livekit-webhook/server.js
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target
