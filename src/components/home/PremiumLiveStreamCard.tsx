@@ -210,7 +210,7 @@ export const PremiumLiveStreamCard = ({
             <Badge
               key={tag}
               variant="secondary"
-              className="bg-white/20 backdrop-blur-sm text-white border-0 text-[10px] px-1.5 py-0"
+              className="bg-white/20 backdrop-blur-sm text-on-dark border-0 text-[10px] px-1.5 py-0"
             >
               #{tag}
             </Badge>
