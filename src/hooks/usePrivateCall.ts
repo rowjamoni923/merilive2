@@ -125,6 +125,13 @@ export function usePrivateCall(userId: string | null) {
     liveSessionStartedRef.current = false;
     currentCallIdRef.current = null;
     clearAllTimers();
+    // Section#5 pass-4: every non-manual reset path (missed/declined/accept
+    // failure/row vanished) must also tear down Android Telecom + any native
+    // incoming UI. Otherwise BT audio/system call-log can stay stuck until app kill.
+    if (callIdToReset && isNativeAndroidApp()) {
+      NativeCall.reportCallEnded({ callId: callIdToReset, remote: true }).catch(() => {});
+      NativeCall.endIncomingUi({ callId: callIdToReset, reason: 'ended' }).catch(() => {});
+    }
     setCallState(INITIAL_CALL_STATE);
     setIncomingCall(null);
     
@@ -170,7 +177,7 @@ export function usePrivateCall(userId: string | null) {
     Promise.resolve(supabase.rpc('reset_my_call_status')).catch(() => {});
     // Pkg211 — tear down Telecom connection (releases BT audio + closes log)
     if (cid && isNativeAndroidApp()) {
-      NativeCall.reportCallEnded({ callId: cid, remote: false }).catch(() => {});
+      NativeCall.reportCallEnded({ callId: cid, remote: true }).catch(() => {});
     }
     setTimeout(() => { callEndedRef.current = false; }, 3000);
     if (endedCallIdsRef.current.size > 20) {
