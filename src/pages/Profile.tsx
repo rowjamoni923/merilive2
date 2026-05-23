@@ -1899,6 +1899,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             <p className="text-2xl font-bold text-display">{formatCompactCount(stats.followersCount)}</p>
             <p className="text-xs text-muted-pro font-medium">{stats.followersCount === 1 ? 'Follower' : 'Followers'}</p>
           </div>
+        </div>
 
         {/* Action Buttons for other profiles - Premium Style */}
         {!isOwnProfile && currentUser && (
