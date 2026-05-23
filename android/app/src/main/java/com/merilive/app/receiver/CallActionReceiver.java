@@ -56,6 +56,23 @@ public class CallActionReceiver extends BroadcastReceiver {
             } catch (Exception ignored) {}
         } else if (ACTION_ACCEPT.equals(action)) {
             NativeCallPlugin.dispatch(context, callId, callerId, callerName, callType, "accept");
+
+            // Pkg203 — start the call foreground service IMMEDIATELY so Android
+            // keeps the process alive while JS boots + connects to LiveKit. Without
+            // this the OS may aggressively kill the cold-started app before the JS
+            // layer is ready, causing dropped calls on locked-screen accepts.
+            try {
+                Intent fg = new Intent(context, CallForegroundService.class);
+                fg.setAction(CallForegroundService.ACTION_START);
+                fg.putExtra("caller_name", callerName);
+                fg.putExtra("call_type", "video".equals(callType) ? "Video Call" : "Audio Call");
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    context.startForegroundService(fg);
+                } else {
+                    context.startService(fg);
+                }
+            } catch (Exception ignored) {}
+
             // Foreground the app so JS can join the LiveKit room.
             try {
                 Intent open = new Intent(context, MainActivity.class);
