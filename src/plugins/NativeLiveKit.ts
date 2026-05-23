@@ -244,7 +244,7 @@ export interface NativeLiveKitPlugin {
   // Pkg201 — broadcast beauty injection (feature-flag, off by default).
   setBeautyBroadcast(opts: {
     enabled: boolean;
-    smooth?: number; white?: number; thinFace?: number; bigEye?: number; lipstick?: number;
+    smooth?: number; white?: number; thinFace?: number; bigEye?: number; lipstick?: number; blusher?: number;
   }): Promise<{ enabled: boolean; hasRoom: boolean }>;
 
   // --- Adaptive bitrate fallback (Step 22) ----------------------

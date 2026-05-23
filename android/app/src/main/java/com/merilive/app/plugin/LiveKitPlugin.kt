@@ -591,6 +591,8 @@ class LiveKitPlugin : Plugin() {
                 stopBluetoothScoInternal()
                 abandonAudioFocusInternal()
                 stopCallForegroundService()
+                try { beautyProcessor?.release() } catch (_: Exception) {}
+                beautyProcessor = null
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
@@ -1384,6 +1386,8 @@ class LiveKitPlugin : Plugin() {
             // Step 36 — release MediaPipe segmenter + RenderScript blur.
             try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
             virtualBackgroundProcessor = null
+            try { beautyProcessor?.release() } catch (_: Exception) {}
+            beautyProcessor = null
         } catch (_: Exception) {}
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.
@@ -3765,7 +3769,7 @@ class LiveKitPlugin : Plugin() {
 
     private fun ensureBeautyProcessor(): com.merilive.app.plugin.video.GPUPixelBeautyProcessor {
         beautyProcessor?.let { return it }
-        val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor()
+        val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor(context.applicationContext)
         beautyProcessor = proc
         return proc
     }
@@ -3808,10 +3812,11 @@ class LiveKitPlugin : Plugin() {
         val thinFace = (call.getFloat("thinFace") ?: 0.3f)
         val bigEye = (call.getFloat("bigEye") ?: 0.3f)
         val lipstick = (call.getFloat("lipstick") ?: 0f)
+        val blusher = (call.getFloat("blusher") ?: 0f)
         try {
             if (enabled) {
                 val proc = ensureBeautyProcessor()
-                proc.setLevels(smooth, white, thinFace, bigEye, lipstick)
+                proc.setLevels(smooth, white, thinFace, bigEye, lipstick, blusher)
                 attachBeautyProcessor()
             } else {
                 detachBeautyProcessor()

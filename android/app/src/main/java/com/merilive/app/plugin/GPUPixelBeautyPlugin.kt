@@ -7,10 +7,7 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import com.pixpark.gpupixel.GPUPixel
-import com.pixpark.gpupixel.GPUPixelSourceRawInput
-import com.pixpark.gpupixel.filter.BeautyFaceFilter
-import com.pixpark.gpupixel.filter.FaceReshapeFilter
-import com.pixpark.gpupixel.filter.LipstickFilter
+import com.pixpark.gpupixel.GPUPixelFilter
 
 /**
  * Pkg200 — Professional Beauty Filter (GPUPixel, Apache 2.0).
@@ -37,9 +34,10 @@ class GPUPixelBeautyPlugin : Plugin() {
         private const val TAG = "GPUPixelBeauty"
     }
 
-    private var beauty: BeautyFaceFilter? = null
-    private var reshape: FaceReshapeFilter? = null
-    private var lipstick: LipstickFilter? = null
+    private var beauty: GPUPixelFilter? = null
+    private var reshape: GPUPixelFilter? = null
+    private var lipstick: GPUPixelFilter? = null
+    private var blusher: GPUPixelFilter? = null
     private var initialized = false
 
     @PluginMethod
@@ -49,12 +47,14 @@ class GPUPixelBeautyPlugin : Plugin() {
                 call.resolve(JSObject().put("ok", true).put("alreadyInitialized", true))
                 return
             }
-            // GPUPixel needs the app context to locate bundled assets.
-            GPUPixel.setContext(context.applicationContext)
+            // GPUPixel v1.3+ copies MarsFace 3D landmark models + LUT assets
+            // from the AAR into app storage and sets the native resource path.
+            GPUPixel.Init(context.applicationContext)
 
-            beauty = BeautyFaceFilter()
-            reshape = FaceReshapeFilter()
-            lipstick = LipstickFilter()
+            beauty = GPUPixelFilter.Create(GPUPixelFilter.BEAUTY_FACE_FILTER)
+            reshape = GPUPixelFilter.Create(GPUPixelFilter.FACE_RESHAPE_FILTER)
+            lipstick = GPUPixelFilter.Create(GPUPixelFilter.LIPSTICK_FILTER)
+            blusher = GPUPixelFilter.Create(GPUPixelFilter.BLUSHER_FILTER)
 
             initialized = true
             Log.i(TAG, "GPUPixel beauty pipeline initialized")
@@ -73,37 +73,37 @@ class GPUPixelBeautyPlugin : Plugin() {
 
     @PluginMethod
     fun setSmooth(call: PluginCall) {
-        beauty?.setSmoothLevel(level(call))
+        beauty?.SetProperty("skin_smoothing", level(call))
         call.resolve()
     }
 
     @PluginMethod
     fun setWhite(call: PluginCall) {
-        beauty?.setWhiteLevel(level(call))
+        beauty?.SetProperty("whiteness", level(call))
         call.resolve()
     }
 
     @PluginMethod
     fun setThinFace(call: PluginCall) {
-        reshape?.setThinLevel(level(call))
+        reshape?.SetProperty("thin_face", level(call))
         call.resolve()
     }
 
     @PluginMethod
     fun setBigEye(call: PluginCall) {
-        reshape?.setBigeyeLevel(level(call))
+        reshape?.SetProperty("big_eye", level(call))
         call.resolve()
     }
 
     @PluginMethod
     fun setLipstick(call: PluginCall) {
-        lipstick?.setBlendLevel(level(call))
+        lipstick?.SetProperty("blend_level", level(call))
         call.resolve()
     }
 
     @PluginMethod
     fun setBlusher(call: PluginCall) {
-        // Some builds expose Blusher as a separate filter; fall back silently.
+        blusher?.SetProperty("blend_level", level(call))
         call.resolve()
     }
 
@@ -119,8 +119,10 @@ class GPUPixelBeautyPlugin : Plugin() {
         beauty = null
         reshape = null
         lipstick = null
+        blusher = null
         initialized = false
         BeautyPipelineBridge.setEnabled(false)
+        try { GPUPixel.Destroy() } catch (_: Throwable) {}
         call.resolve()
     }
 }

@@ -38,6 +38,10 @@
 -keep class com.google.mediapipe.** { *; }
 -dontwarn com.google.mediapipe.**
 
+# GPUPixel professional beauty engine + MarsFace detector
+-keep class com.pixpark.gpupixel.** { *; }
+-dontwarn com.pixpark.gpupixel.**
+
 # CameraX
 -keep class androidx.camera.** { *; }
 -dontwarn androidx.camera.**

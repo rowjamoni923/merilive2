@@ -138,6 +138,7 @@ export async function applyBroadcastBeauty(levels: ProBeautyLevels, enabled: boo
       thinFace: levels.thinFace / 10,
       bigEye: levels.bigEye / 10,
       lipstick: levels.lipstick / 10,
+      blusher: levels.blusher / 10,
     });
   } catch {
     /* native optional */
