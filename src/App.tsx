@@ -383,6 +383,7 @@ import { MandatoryPermissionsGate } from "@/components/common/MandatoryPermissio
 const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScreen")));
 import ScrollToTop from "@/components/common/ScrollToTop";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
+import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
 
 
 
