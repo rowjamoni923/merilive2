@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
@@ -224,6 +225,48 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
     return () => subscription.unsubscribe();
   }, [isSupported, token, saveTokenToDatabase]);
+
+  // Pkg206 — Doze/App-Standby heartbeat. On every foreground resume:
+  //   1. Re-register with FCM → if the token rotated while killed/in deep Doze,
+  //      we get a fresh `registration` event → saveTokenToDatabase upserts it.
+  //   2. Update `device_tokens.updated_at` (= last_seen) so backend cleanup
+  //      can prune tokens not seen in 30+ days (dead/uninstalled).
+  // Heavy throttle: at most once per 60s to avoid spam from quick tab switches.
+  useEffect(() => {
+    if (!isSupported) return;
+    let lastPingAt = 0;
+    const PING_INTERVAL_MS = 60_000;
+
+    const heartbeat = async () => {
+      const now = Date.now();
+      if (now - lastPingAt < PING_INTERVAL_MS) return;
+      lastPingAt = now;
+      try {
+        // Fetches current FCM token; emits `registration` if rotated.
+        await PushNotifications.register();
+      } catch { /* ignore */ }
+      if (!token) return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        await supabase
+          .from('device_tokens')
+          .update({ is_active: true, updated_at: new Date().toISOString() })
+          .eq('token', token)
+          .eq('user_id', user.id);
+      } catch { /* ignore */ }
+    };
+
+    let cleanup: (() => void) | null = null;
+    CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) void heartbeat();
+    }).then((l) => { cleanup = () => l.remove(); });
+
+    // Initial heartbeat after token is known.
+    void heartbeat();
+
+    return () => { if (cleanup) cleanup(); };
+  }, [isSupported, token]);
 
   return {
     isSupported,
