@@ -45,6 +45,20 @@ export function registerStreamRoom(scope: StreamScope, id: string, room: Room) {
     }
   }
   registry.set(k, { room, textTopics: new Set(), byteTopics: new Set() });
+
+  // Pkg201 — auto-attach iOS Safari audio-playback unlock watcher.
+  // Dynamic import avoids a circular import (livekitAudioUnlock imports this file).
+  void import('./livekitAudioUnlock')
+    .then((mod) => {
+      try {
+        mod.startAudioUnlockWatcher(scope, id);
+      } catch {
+        /* ignore */
+      }
+    })
+    .catch(() => {
+      /* ignore */
+    });
 }
 
 export function unregisterStreamRoom(scope: StreamScope, id: string) {
@@ -58,6 +72,19 @@ export function unregisterStreamRoom(scope: StreamScope, id: string) {
     /* ignore */
   }
   registry.delete(k);
+
+  // Pkg201 — tear down audio-unlock watcher for this room.
+  void import('./livekitAudioUnlock')
+    .then((mod) => {
+      try {
+        mod.stopAudioUnlockWatcher(scope, id);
+      } catch {
+        /* ignore */
+      }
+    })
+    .catch(() => {
+      /* ignore */
+    });
 }
 
 /**
