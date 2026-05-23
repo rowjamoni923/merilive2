@@ -13462,6 +13462,48 @@ export type Database = {
           },
         ]
       }
+      user_feedback: {
+        Row: {
+          app_version: string | null
+          category: string
+          created_at: string
+          device_info: Json | null
+          id: string
+          message: string
+          platform: string | null
+          route: string | null
+          status: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          category?: string
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          message: string
+          platform?: string | null
+          route?: string | null
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          category?: string
+          created_at?: string
+          device_info?: Json | null
+          id?: string
+          message?: string
+          platform?: string | null
+          route?: string | null
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_gift_shop_entitlements: {
         Row: {
           expires_at: string | null
