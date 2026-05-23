@@ -99,6 +99,11 @@ Both will receive every event — V4 fast-path, edge fn as redundancy.
 - Update: `scp` new `server.js` → `systemctl restart livekit-webhook`
 - Metrics: `curl http://localhost:8088/metrics`
 
+## Troubleshooting
+
+- Node 20 does not expose native WebSocket support to `@supabase/supabase-js`; this receiver imports `ws` and passes it as the Supabase Realtime transport.
+- If logs mention `Node.js 20 detected without native WebSocket support`, run `npm install --omit=dev` again after updating `package.json` and `server.js`.
+
 ## Firewall
 Port `8088` should **NOT** be open publicly — LiveKit talks to it over localhost only.
 Verify: `ufw status` — no rule for 8088.

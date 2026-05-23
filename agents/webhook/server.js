@@ -10,6 +10,7 @@ import express from 'express';
 import { WebhookReceiver } from 'livekit-server-sdk';
 import { createClient } from '@supabase/supabase-js';
 import pino from 'pino';
+import WebSocket from 'ws';
 
 const log = pino({ level: process.env.LOG_LEVEL || 'info' });
 
@@ -33,6 +34,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 const receiver = new WebhookReceiver(LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
+  realtime: { transport: WebSocket },
 });
 
 // Prometheus counters
