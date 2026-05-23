@@ -1,11 +1,31 @@
 /**
- * useLiveStreamFilters — REMOVED (Pkg200 prep). Stub only.
+ * useLiveStreamFilters — REMOVED (Pkg200 prep). Permissive stub.
  */
-export function useLiveStreamFilters() {
-  return {
+import { useState, useCallback } from 'react';
+import type { BeautySettings } from '@/components/live/BeautyFilterPanel';
+import { DEFAULT_BEAUTY } from '@/components/live/BeautyFilterPanel';
+
+export function useLiveStreamFilters(..._args: unknown[]): any {
+  const [filterState, setFilterState] = useState<any>({
+    beautyEnabled: false,
+    beautySettings: { ...DEFAULT_BEAUTY },
     activeFilter: null,
-    setActiveFilter: (_f: string | null) => {},
-    publishFilter: async (_f: unknown) => {},
+    activeSticker: null,
+  });
+
+  const noop = useCallback(() => {}, []);
+
+  return {
+    filterState,
+    setFilterState,
+    activeFilter: null,
+    setActiveFilter: noop,
+    setBeautyEnabled: (v: boolean) => setFilterState((s: any) => ({ ...s, beautyEnabled: v })),
+    setBeautySettings: (b: BeautySettings) => setFilterState((s: any) => ({ ...s, beautySettings: b })),
+    setActiveSticker: (sk: string | null) => setFilterState((s: any) => ({ ...s, activeSticker: sk })),
+    updateFilter: noop,
+    publishFilter: async () => {},
+    generateFilterCSS: () => '',
   };
 }
 
