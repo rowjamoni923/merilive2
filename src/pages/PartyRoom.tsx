@@ -261,6 +261,7 @@ const PartyRoom = () => {
   const currentUserRef = useRef<any>(null);
   const roomRef = useRef<PartyRoom | null>(null);
   const roomIdRef = useRef<string | undefined>(roomId);
+  const sessionAccessTokenRef = useRef<string | null>(null);
   const hostCommissionPercentRef = useRef(55);
   
   // Keep refs in sync with state
@@ -684,7 +685,7 @@ const PartyRoom = () => {
                 .select('*')
                 .eq('id', user.id)
                 .single();
-              return { ...user, profile };
+              return { ...user, profile, access_token: session.access_token };
 
             }
             return null;
@@ -700,6 +701,7 @@ const PartyRoom = () => {
         
         if (userData) {
           setCurrentUser(userData);
+          sessionAccessTokenRef.current = userData.access_token || null;
           setUserCoins(userData.profile?.coins || 0);
           
           // ✅ LEVEL CHECK: Block joining if user doesn't meet minimum level
