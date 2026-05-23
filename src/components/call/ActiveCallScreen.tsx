@@ -96,6 +96,14 @@ export function ActiveCallScreen({
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   const mountedRef = useRef(true);
   const userCoinsRef = useRef(0);
+  // Section#5 pass-3 (Bug M): in-flight guard so rapid double-tap on a gift
+  // tile can't pass the same userCoinsRef.current balance check twice and
+  // double-deduct / double-send.
+  const sendingGiftRef = useRef(false);
+  // Section#5 pass-3 (Bug J): in-flight guard so the End Call button can't
+  // fire onEndCall twice (CallProvider would then run end-call cleanup,
+  // Telecom reportCallEnded, billing finalize, etc. twice).
+  const endingRef = useRef(false);
 
   useEffect(() => {
     userCoinsRef.current = userCoins;
@@ -349,6 +357,8 @@ export function ActiveCallScreen({
   // Gift sending via unified gifting service (single source of truth)
   const handleSendGift = async (gift: GiftData, count: number) => {
     if (!userId || !remoteUserId) return;
+    // Section#5 pass-3 (Bug M): swallow duplicate rapid taps.
+    if (sendingGiftRef.current) return;
 
     const totalCost = gift.coins * count;
     const availableCoins = userCoinsRef.current;
@@ -358,6 +368,7 @@ export function ActiveCallScreen({
     }
 
     const previousCoins = availableCoins;
+    sendingGiftRef.current = true;
 
     try {
       // Optimistic local balance update for this screen only.
@@ -402,9 +413,17 @@ export function ActiveCallScreen({
       userCoinsRef.current = previousCoins;
       setUserCoins(previousCoins);
       toast.error("Failed to send gift");
+    } finally {
+      // Small cooldown to absorb mechanical double-tap; the GiftPanel itself
+      // also has its own guard, but this is the last line of defense.
+      setTimeout(() => { sendingGiftRef.current = false; }, 250);
     }
   };
   const handleEndCall = () => {
+    // Section#5 pass-3 (Bug J): block double-tap so onEndCall (and its
+    // downstream Telecom + billing finalize) only fires once.
+    if (endingRef.current) return;
+    endingRef.current = true;
     setCallEnded(true);
     cleanup();
     // End immediately on both sides (no waiting modal)
