@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
 // ====== COMPREHENSIVE PHONE NUMBER DETECTION ======
 
 // Number word mappings for multiple languages
@@ -256,15 +263,29 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const authHeader = req.headers.get('Authorization') || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+
+    const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: authData, error: authError } = await supabaseUser.auth.getUser();
+    if (authError || !authData?.user?.id) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { message, userId, messageId, conversationId, groupId } = await req.json();
 
     if (!message || !userId) {
-      return new Response(
-        JSON.stringify({ error: 'Message and userId are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'Message and userId are required' }, 400);
+    }
+
+    if (authData.user.id !== userId) {
+      return jsonResponse({ error: 'Forbidden userId' }, 403);
     }
 
     // Check if detection is enabled.
