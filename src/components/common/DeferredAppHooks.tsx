@@ -7,6 +7,7 @@ import { useAdminBroadcastSync } from "@/hooks/useAdminBroadcastSync";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useBackgroundSync } from "@/hooks/useBackgroundSync";
 import { useInAppUpdate } from "@/hooks/useInAppUpdate";
+import { useHibernationCheck } from "@/hooks/useHibernationCheck";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import { queryClient } from "@/lib/queryClient";
 
@@ -49,6 +50,9 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   useBackgroundSync();
   // Pkg224 / M19: Google Play In-App Updates (Android only, no-op elsewhere)
   useInAppUpdate();
+  // Pkg235 / M29: Android 12+ app-hibernation prompt (no-op on web/iOS)
+  useHibernationCheck();
+
 
   if (isAdminRoute) return null;
   return (
