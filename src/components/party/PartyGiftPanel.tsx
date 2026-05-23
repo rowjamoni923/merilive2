@@ -214,24 +214,8 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
     return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.gif');
   };
 
-  // Swipe handlers
-  const handleTouchStart = (e: React.TouchEvent, startXRef: React.MutableRefObject<number>) => {
-    startXRef.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent, startXRef: React.MutableRefObject<number>) => {
-    const endX = e.changedTouches[0].clientX;
-    const deltaX = endX - startXRef.current;
-    const threshold = 50;
-
-    if (deltaX < -threshold && currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
-    } else if (deltaX > threshold && currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const startXRef = { current: 0 };
+  // Pkg4-pass4: useRef-backed swipe tracker (was redeclared as `{ current: 0 }` literal on every render, losing touchstart→touchend correlation across re-renders)
+  // startXRef defined at top of component now.
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
