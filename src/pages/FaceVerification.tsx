@@ -1242,7 +1242,16 @@ const FaceVerification = () => {
       poseCheckIntervalRef.current = null;
     }
     
-    if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
+    if (usingNativeFaceCameraRef.current && nativeFaceRecordingRef.current) {
+      const nativeVideo = await nativeFaceCam.stopRecording();
+      nativeFaceRecordingRef.current = false;
+      if (nativeVideo?.blob?.size) {
+        setFaceVerificationVideo(nativeVideo.blob);
+      } else if (success) {
+        success = false;
+        pushDebug({ kind: 'error', message: 'native_recording_empty_or_missing' });
+      }
+    } else if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
       faceRecorderRef.current.stop();
     }
     
@@ -1301,6 +1310,13 @@ const FaceVerification = () => {
 
   // Reset verification
   const resetVerification = () => {
+    if (usingNativeFaceCameraRef.current && nativeFaceRecordingRef.current) {
+      nativeFaceCam.stopRecording().catch(() => null);
+      nativeFaceRecordingRef.current = false;
+    }
+    if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
+      faceRecorderRef.current.stop();
+    }
     setVerificationStarted(false);
     setVerificationRecording(false);
     setCurrentInstruction(0);
@@ -1324,6 +1340,11 @@ const FaceVerification = () => {
 
   // Stop camera
   const stopFaceCamera = () => {
+    if (usingNativeFaceCameraRef.current) {
+      nativeFaceCam.stopPreview().catch(() => null);
+      nativeFaceRecordingRef.current = false;
+      setNativeFaceCameraActive(false);
+    }
     if (faceStream) {
       faceStream.getTracks().forEach(track => track.stop());
       setFaceStream(null);
