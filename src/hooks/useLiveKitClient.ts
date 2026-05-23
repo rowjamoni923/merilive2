@@ -1085,7 +1085,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       isJoiningRef.current = false;
       setIsLoading(false);
     }
-  }, [isJoined, options, getUidForParticipant, ensureParticipantSubscribed, isRemoteAudioMuted, clearHostVideoRecoveryTimer]);
+    // Audit-fix: removed isRemoteAudioMuted from deps — mute state is now
+    // read via isRemoteAudioMutedRef.current at attach time. Including it
+    // here used to invalidate joinChannel on every mute toggle, risking
+    // re-joins from upstream effects that depend on its identity.
+  }, [isJoined, options, getUidForParticipant, ensureParticipantSubscribed, clearHostVideoRecoveryTimer]);
 
   // Leave channel
   const leaveChannel = useCallback(async () => {
