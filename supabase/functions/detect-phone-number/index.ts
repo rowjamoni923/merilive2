@@ -267,14 +267,22 @@ serve(async (req) => {
       );
     }
 
-    // Check if detection is enabled
+    // Check if detection is enabled.
+    // NOTE: `setting_value` is a TEXT column but historically the admin panel
+    // has written both raw `true` and JSON-quoted `"true"` here. Accept BOTH
+    // forms — otherwise an accidental JSON encode silently disables the entire
+    // phone-number moderation pipeline (which was the case in production).
     const { data: settings } = await supabase
       .from('app_settings')
       .select('setting_value')
       .eq('setting_key', 'phone_detection_enabled')
-      .single();
+      .maybeSingle();
 
-    if (settings?.setting_value !== 'true') {
+    const enabled = String(settings?.setting_value ?? '')
+      .trim()
+      .replace(/^"|"$/g, '')
+      .toLowerCase();
+    if (enabled !== 'true' && enabled !== '1') {
       return new Response(
         JSON.stringify({ detected: false, reason: 'Detection disabled' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
