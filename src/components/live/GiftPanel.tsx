@@ -478,7 +478,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                   onClick={() => {
                     setActiveCategory(index);
                     setSelectedGift(null);
+                    resetCombo();
                   }}
+
                   className={cn(
                     "flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap flex-shrink-0 border transition-all duration-150",
                     isActive
