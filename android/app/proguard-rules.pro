@@ -46,8 +46,33 @@
 -keep class androidx.camera.** { *; }
 -dontwarn androidx.camera.**
 
+# Play Integrity / Play Core (Pkg236)
+-keep class com.google.android.play.core.** { *; }
+-keep class com.google.android.play.integrity.** { *; }
+-dontwarn com.google.android.play.**
+
+# Firebase Messaging service + AnalyticsConnector reflection
+-keep class com.merilive.app.service.** { *; }
+-keep class * extends com.google.firebase.messaging.FirebaseMessagingService { *; }
+-keepclassmembers class * extends com.google.firebase.messaging.FirebaseMessagingService { <init>(...); }
+
+# Kotlinx serialization (LiveKit data channel payloads)
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+-keepclasseswithmembers class **$$serializer { *; }
+-keepclassmembers class * { @kotlinx.serialization.Serializable *; }
+
+# WorkManager workers (Pkg221 background sync)
+-keep class * extends androidx.work.Worker { <init>(...); }
+-keep class * extends androidx.work.ListenableWorker { <init>(...); }
+
+# AndroidX Startup initializers (future Pkg)
+-keep class * implements androidx.startup.Initializer { <init>(); }
+
 # General
 -keepattributes *Annotation*
 -keepattributes Signature
 -keepattributes SourceFile,LineNumberTable
 -keepattributes InnerClasses,EnclosingMethod
+# Crashlytics deobfuscation
+-keepattributes LineNumberTable,SourceFile
+-renamesourcefileattribute SourceFile
