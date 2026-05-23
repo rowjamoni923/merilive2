@@ -73,6 +73,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.ShakeDetectorPlugin.class);
         registerPlugin(com.merilive.app.plugin.NfcPlugin.class);
         registerPlugin(com.merilive.app.plugin.MediaSessionPlugin.class);
+        registerPlugin(com.merilive.app.plugin.SecureStoragePlugin.class);
 
         super.onCreate(savedInstanceState);
 
