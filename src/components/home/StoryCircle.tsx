@@ -32,7 +32,7 @@ export const StoryCircle = ({
         <div className="p-0.5 bg-background rounded-full">
           <Avatar className="w-16 h-16 transition-transform duration-300 group-hover:scale-105">
             <AvatarImage src={avatarUrl} alt={name} className="object-cover" />
-            <AvatarFallback className="gradient-primary text-white text-lg">
+            <AvatarFallback className="gradient-primary text-primary-foreground text-lg">
               {name.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -40,7 +40,7 @@ export const StoryCircle = ({
       </div>
       
       {isLive && (
-        <span className="px-2 py-0.5 bg-destructive text-white text-[10px] font-bold rounded-full -mt-4 z-10 shadow-lg">
+        <span className="px-2 py-0.5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full -mt-4 z-10 shadow-lg">
           LIVE
         </span>
       )}
