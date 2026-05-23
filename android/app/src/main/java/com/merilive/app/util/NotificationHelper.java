@@ -124,32 +124,107 @@ public class NotificationHelper {
         manager.createNotificationChannel(defChannel);
     }
 
+    /**
+     * Pkg209 — WhatsApp-grade DM notification with inline reply
+     * (RemoteInput) + Mark-as-read action + MessagingStyle.
+     * Backwards-compatible 5-arg overload kept for older callers.
+     */
     public static void showMessageNotification(Context context, String title, String body,
                                                 String senderId, int notificationId) {
+        showMessageNotification(context, title, body, senderId, notificationId,
+                "", title, null);
+    }
+
+    public static void showMessageNotification(Context context, String title, String body,
+                                                String senderId, int notificationId,
+                                                String conversationId, String senderName,
+                                                String senderAvatarUrl) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra("type", "message");
         intent.putExtra("sender_id", senderId);
+        intent.putExtra("conversation_id", conversationId == null ? "" : conversationId);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
             context, notificationId, intent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        // ---- Pkg209 — MessagingStyle ----------------------------------
+        androidx.core.app.Person me = new androidx.core.app.Person.Builder()
+            .setName("You").setKey("me").build();
+        androidx.core.app.Person other = new androidx.core.app.Person.Builder()
+            .setName(senderName == null || senderName.isEmpty() ? title : senderName)
+            .setKey(senderId == null ? "" : senderId)
+            .build();
+        NotificationCompat.MessagingStyle style = new NotificationCompat.MessagingStyle(me)
+            .addMessage(body, System.currentTimeMillis(), other);
+
+        // ---- Pkg209 — Inline Reply (RemoteInput) -----------------------
+        androidx.core.app.RemoteInput remoteInput =
+            new androidx.core.app.RemoteInput.Builder(
+                com.merilive.app.receiver.MessageActionReceiver.KEY_REPLY_TEXT)
+                .setLabel("Reply")
+                .build();
+
+        Intent replyIntent = new Intent(context,
+                com.merilive.app.receiver.MessageActionReceiver.class);
+        replyIntent.setAction(com.merilive.app.receiver.MessageActionReceiver.ACTION_REPLY);
+        replyIntent.putExtra("conversation_id", conversationId);
+        replyIntent.putExtra("sender_id", senderId);
+        replyIntent.putExtra("sender_name", senderName);
+        replyIntent.putExtra("sender_avatar", senderAvatarUrl);
+        replyIntent.putExtra("notif_id", notificationId);
+        // FLAG_MUTABLE required so RemoteInput can attach the typed text.
+        PendingIntent replyPI = PendingIntent.getBroadcast(
+            context, ("reply:" + notificationId).hashCode(), replyIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+
+        NotificationCompat.Action replyAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_notification, "Reply", replyPI)
+            .addRemoteInput(remoteInput)
+            .setAllowGeneratedReplies(true)
+            .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+            .setShowsUserInterface(false)
+            .build();
+
+        // ---- Pkg209 — Mark as Read action ------------------------------
+        Intent readIntent = new Intent(context,
+                com.merilive.app.receiver.MessageActionReceiver.class);
+        readIntent.setAction(com.merilive.app.receiver.MessageActionReceiver.ACTION_MARK_READ);
+        readIntent.putExtra("conversation_id", conversationId);
+        readIntent.putExtra("sender_id", senderId);
+        readIntent.putExtra("notif_id", notificationId);
+        PendingIntent readPI = PendingIntent.getBroadcast(
+            context, ("read:" + notificationId).hashCode(), readIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Action readAction = new NotificationCompat.Action.Builder(
+                R.drawable.ic_notification, "Mark read", readPI)
+            .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
+            .setShowsUserInterface(false)
+            .build();
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_MESSAGES)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(BRAND_COLOR)
-            .setContentTitle(title)
-            .setContentText(body)
+            .setStyle(style)
+            .setShortcutId(conversationId == null ? "" : conversationId)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setGroup(GROUP_MESSAGES)
-            .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(pendingIntent)
-            .setDefaults(NotificationCompat.DEFAULT_ALL);
+            .setOnlyAlertOnce(false)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .addAction(replyAction)
+            .addAction(readAction);
 
-        NotificationManagerCompat.from(context).notify(notificationId, builder.build());
+        try {
+            NotificationManagerCompat.from(context).notify(notificationId, builder.build());
+        } catch (SecurityException ignored) {
+            return;
+        }
 
         // Pkg202 — WhatsApp-style group summary so multiple messages stack
         // into one collapsible bundle on Android 7+ instead of spamming the shade.
@@ -166,8 +241,11 @@ public class NotificationHelper {
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setContentIntent(pendingIntent);
-        NotificationManagerCompat.from(context).notify(SUMMARY_MESSAGES, summary.build());
+        try {
+            NotificationManagerCompat.from(context).notify(SUMMARY_MESSAGES, summary.build());
+        } catch (SecurityException ignored) {}
     }
+
 
     public static void showGiftNotification(Context context, String senderName,
                                              String giftName, int giftValue) {
