@@ -454,8 +454,8 @@ const NativeMessageActionsBridge = lazy(lazyRetry(() => import("./hooks/useNativ
 // Pkg210 — biometric app-lock overlay + Android-14 screenshot detector.
 const AppLockGate = lazy(lazyRetry(() => import("./components/security/AppLockGate")));
 const ScreenshotDetectionBridge = lazy(lazyRetry(() => import("./components/security/ScreenshotDetectionBridge")));
-// Pkg223 — first-launch privacy consent dialog.
-const PrivacyConsentDialog = lazy(lazyRetry(() => import("./components/privacy/PrivacyConsentDialog")));
+// Pkg223 — first-launch privacy consent dialog (eager: tiny, must not suspend on first paint).
+import PrivacyConsentDialog from "./components/privacy/PrivacyConsentDialog";
 
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
@@ -1103,7 +1103,7 @@ const App = () => {
               {session ? <MandatoryPermissionsGate /> : null}
               <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>
               <Suspense fallback={null}><AppLockGate /></Suspense>
-              <Suspense fallback={null}><PrivacyConsentDialog /></Suspense>
+              <PrivacyConsentDialog />
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               {/* Pkg201 — iOS Safari audio-playback unlock overlay (M2). No-op until a Room reports blocked. */}
