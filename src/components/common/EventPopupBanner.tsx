@@ -118,15 +118,11 @@ const EventPopupBanner = () => {
     window.dispatchEvent(new CustomEvent('event-popup-dismissed'));
   }, []);
 
-  const handleBannerClick = useCallback(() => {
-    if (!banner?.link_url) return;
-    handleDismiss();
-    if (banner.link_type === 'external') {
-      window.open(banner.link_url, '_blank');
-    } else {
-      navigate(banner.link_url);
-    }
-  }, [banner, navigate, handleDismiss]);
+  // Banner is display-only — clicking does NOT navigate anywhere.
+  // User must dismiss via the X / skip button (after skip delay).
+  const handleBannerClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
 
   if (!banner) return null;
 
