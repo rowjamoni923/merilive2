@@ -283,6 +283,9 @@ export function usePartyRoomWebRTC(
               // Pkg103: apply Krisp noise filter to published mic
               import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
+              // Pkg204: contentHint='motion' on camera track — smoother under congestion.
+              import('@/lib/livekitCameraTuning').then((m) => m.applyMotionHint(room)).catch(() => {});
+
               const hasVideo = Array.from(room.localParticipant.trackPublications.values())
                 .some((pub) => pub.kind === Track.Kind.Video && pub.track?.mediaStreamTrack?.readyState === 'live');
               const hasAudio = Array.from(room.localParticipant.trackPublications.values())
