@@ -22,6 +22,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.NativeMessageReplyPlugin.class);
         registerPlugin(com.merilive.app.plugin.BiometricAuthPlugin.class);
         registerPlugin(com.merilive.app.plugin.ScreenCaptureDetectorPlugin.class);
+        registerPlugin(com.merilive.app.plugin.AnalyticsPlugin.class);
 
         super.onCreate(savedInstanceState);
 
