@@ -458,15 +458,16 @@ const Reels = () => {
         reelId: sendingReelId,
       });
 
-      if (currentIndexRef.current !== currentIndex || currentUserIdRef.current !== sendingUserId) return;
       if (!result.success) throw new Error(result.error || 'Failed to send gift');
 
       const beansEarned = result.transaction?.beans_earned || 0;
-      setReels(prev => prev.map(r =>
-        r.id === currentReel.id
-          ? { ...r, beans_earned: (r.beans_earned || 0) + beansEarned }
-          : r
-      ));
+      if (currentUserIdRef.current === sendingUserId) {
+        setReels(prev => prev.map(r =>
+          r.id === sendingReelId
+            ? { ...r, beans_earned: (r.beans_earned || 0) + beansEarned }
+            : r
+        ));
+      }
 
       const { data: updatedProfile } = await supabase
         .from('profiles')
