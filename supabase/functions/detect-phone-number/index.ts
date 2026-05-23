@@ -299,6 +299,36 @@ serve(async (req) => {
     // Detect phone numbers with comprehensive patterns (for ALL users)
     const result = detectPhoneNumber(message);
 
+    // ── Supplemental external scan (phone-specific provider key) ───────────
+    // Catches obfuscations / language variants the local regexes might miss.
+    let providerHit: { phones: string[]; socials: string[]; keywords: string[]; urls: string[] } | null = null;
+    try {
+      const cfg = getProviderConfig("VERIFY_PHONE_API_KEY");
+      if (cfg) {
+        const r = await providerScanContent(cfg, {
+          external_user_id: userId,
+          mode: "text",
+          text: message,
+        });
+        if (r && r.flagged) {
+          providerHit = {
+            phones: r.phones || [],
+            socials: r.socials || [],
+            keywords: r.keywords || [],
+            urls: r.urls || [],
+          };
+          const extra = [...providerHit.phones, ...providerHit.socials, ...providerHit.keywords, ...providerHit.urls];
+          if (extra.length) {
+            result.detected = true;
+            result.matches = Array.from(new Set([...result.matches, ...extra]));
+            if (providerHit.phones.length) result.confidence = "high";
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[detect-phone-number] provider scan failed:", e instanceof Error ? e.message : e);
+    }
+
     if (result.detected) {
       const isHost = userProfile.is_host === true;
       console.log(`[PhoneDetection] Phone number detected from ${isHost ? 'HOST' : 'USER'} ${userId} (${userProfile.display_name}):`, result.matches);
