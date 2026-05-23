@@ -24,11 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Pipeline per frame:
  *   1. WebRTC VideoFrame (I420) → ARGB int[] @ frame resolution.
- *   2. GPUPixelSourceRawInput.uploadBytes(...) into the GPU filter
- *      chain (beauty → reshape → lipstick).
- *   3. source.captureAProcessedFrameData(lastFilter, cb) returns
- *      processed RGBA bytes.
- *   4. Convert back to I420, emit as new VideoFrame to LiveKit sink.
+ *   2. MarsFace detects 3D face landmarks from RGBA pixels.
+ *   3. GPUPixelSourceRawData feeds lipstick → blusher → reshape → beauty.
+ *   4. GPUPixelSinkRawData returns processed I420 for LiveKit.
  *
  * IMPORTANT — this is gated behind a Capacitor-side feature flag in
  * GPUPixelBeauty.ts (`setBroadcastEnabled`). When the flag is OFF
