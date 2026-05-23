@@ -329,6 +329,7 @@ const PartyRoom = () => {
   
   // Track joins already processed by broadcast to deduplicate with postgres_changes
   const processedBroadcastJoinsRef = useRef(new Set<string>());
+  const joinedRoomKeyRef = useRef<string | null>(null);
 
   // Calculate if current user is host for room protection
   const isHostForProtection = room?.host_id === currentUser?.id;
@@ -356,6 +357,30 @@ const PartyRoom = () => {
       }
     },
   });
+
+  const leaveRoomForCleanup = useCallback(async (targetRoomId?: string) => {
+    const user = currentUserRef.current;
+    if (!targetRoomId || !user?.id) return;
+
+    const activeRoom = roomRef.current;
+    const isHostNow = activeRoom?.id === targetRoomId && activeRoom.host_id === user.id;
+    const leftAt = new Date().toISOString();
+
+    try {
+      if (isHostNow) {
+        await publishPartyClosed(targetRoomId, { hostId: user.id, closedAt: leftAt }).catch(() => false);
+        await supabase.from('party_rooms').update({ is_active: false, ended_at: leftAt }).eq('id', targetRoomId);
+        await supabase.from('party_room_participants').update({ left_at: leftAt, position: null }).eq('room_id', targetRoomId).is('left_at', null);
+      } else {
+        await supabase.from('party_room_participants').update({ left_at: leftAt, position: null }).eq('room_id', targetRoomId).eq('user_id', user.id);
+      }
+
+      await supabase.from('seat_requests').update({ status: 'cancelled' }).eq('room_id', targetRoomId).eq('requester_id', user.id).eq('status', 'pending');
+    } catch (error) {
+      console.error('[PartyRoom] cleanup leave failed:', error);
+      recordClientError({ label: "PartyRoom.cleanupLeave", message: error instanceof Error ? error.message : String(error) });
+    }
+  }, []);
 
   // Fetch games from database - defer for faster initial load
   useEffect(() => {
@@ -995,8 +1020,10 @@ const PartyRoom = () => {
       window.removeEventListener('livekit-party-closed', handleLiveKitPartyClosed);
       window.removeEventListener('livekit-gift-sent', handleLiveKitPartyGift);
       window.removeEventListener('livekit-party-event', handleLiveKitPartyEvent);
-      leaveRoom();
-      cleanupWebRTC();
+      void (async () => {
+        await leaveRoomForCleanup(roomId);
+        cleanupWebRTC();
+      })();
       // Pkg81b/c: participantChannel + participantChannelContinued deleted (null refs).
       if (participantChannel) supabase.removeChannel(participantChannel);
       if (participantChannelContinued) supabase.removeChannel(participantChannelContinued);
@@ -1008,7 +1035,7 @@ const PartyRoom = () => {
       if (joinBroadcastChannel) supabase.removeChannel(joinBroadcastChannel);
       if (roomCloseBroadcastChannel) supabase.removeChannel(roomCloseBroadcastChannel);
     };
-    }, [roomId, markOptimisticPartyGiftCount]);
+    }, [roomId, markOptimisticPartyGiftCount, leaveRoomForCleanup, cleanupWebRTC]);
 
 
   // Pkg187: Removed 20s room-status safety poll. LiveKit `room_state_changed` + `livekit-party-closed` events already deliver instant room-close to all viewers. Zero functional loss, $1400-rule safe.
@@ -1244,10 +1271,12 @@ const PartyRoom = () => {
   };
 
   useEffect(() => {
-    if (room && currentUser) {
-      joinRoom();
-    }
-  }, [room, currentUser]);
+    if (!room?.id || !currentUser?.id) return;
+    const joinKey = `${room.id}:${currentUser.id}`;
+    if (joinedRoomKeyRef.current === joinKey) return;
+    joinedRoomKeyRef.current = joinKey;
+    void joinRoom();
+  }, [room?.id, currentUser?.id]);
 
   // Ensure video stream is connected when localStream changes
   useEffect(() => {
