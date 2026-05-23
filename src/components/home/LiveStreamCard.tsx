@@ -68,8 +68,8 @@ export const LiveStreamCard = ({
 
       {/* Viewer Count */}
       <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-        <Eye className="w-3.5 h-3.5 text-white" />
-        <span className="text-xs text-white font-medium">
+        <Eye className="w-3.5 h-3.5 text-on-dark" />
+        <span className="text-xs text-on-dark font-medium">
           {viewerCount > 1000 ? `${(viewerCount / 1000).toFixed(1)}k` : viewerCount}
         </span>
       </div>
