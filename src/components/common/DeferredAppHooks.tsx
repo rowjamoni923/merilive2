@@ -44,6 +44,8 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   useLevelPrivilegeAutoEquip(singleDeviceUserId);
   // Pkg36: instant admin → app sync (web + native, all routes)
   useAdminBroadcastSync();
+  // Pkg221: native Android background-sync worker (no-op on web/iOS)
+  useBackgroundSync();
 
   if (isAdminRoute) return null;
   return (
