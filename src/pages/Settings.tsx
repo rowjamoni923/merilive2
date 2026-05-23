@@ -300,11 +300,18 @@ const Settings = () => {
   const handleLanguageChange = (langCode: string) => {
     setSelectedLanguage(langCode);
     localStorage.setItem("meri_app_language", langCode);
-    
+
     // Change i18n language
     const i18nLang = langCode === "auto" ? "en" : langCode;
     i18n.changeLanguage(i18nLang);
-    
+
+    // Pkg222 / M17 — Mirror to Android per-app LocaleManager so the choice
+    // also shows up under System Settings → Apps → MeriLive → Language and
+    // survives across cold starts independent of the OS locale.
+    import("@/plugins/AppLocale").then(({ AppLocale }) => {
+      AppLocale.setAppLocale({ language: langCode === "auto" ? "" : langCode }).catch(() => {});
+    });
+
     setShowLanguageDialog(false);
     toast({
       title: t("settings.languageChanged"),

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pkg222 / M17 — Declares supported app languages for Android 13+
+     per-app language picker (System Settings → Apps → MeriLive → Language). -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="hi" />
+    <locale android:name="ar" />
+</locale-config>
