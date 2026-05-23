@@ -62,6 +62,9 @@ export function CallProvider({ children }: CallProviderProps) {
   const callEndedRef = useRef(false);
   // ☠️ DEAD FOREVER: Track ended call IDs permanently - NEVER reconnect a dead call
   const endedCallIdsRef = useRef<Set<string>>(new Set());
+  // Pkg5-pass1 BUG-B/C: in-flight guards against rapid double-tap on modal buttons
+  const acceptingRef = useRef(false);
+  const decliningRef = useRef(false);
 
   useEffect(() => {
     // ⚡ INSTANT: Use getSession() first (local cache, no network round-trip)
