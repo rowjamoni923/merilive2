@@ -441,6 +441,14 @@ const NativeSystemUIBridge = lazy(lazyRetry(() => import("./hooks/useNativeSyste
   return { default: Bridge };
 })));
 
+// Pkg209 — drains queued inline-reply / mark-as-read actions captured
+// from the DM notification shade and runs them through Supabase under
+// the user's own JWT (RLS-safe).
+const NativeMessageActionsBridge = lazy(lazyRetry(() => import("./hooks/useNativeMessageActions").then(m => {
+  const Bridge = () => { m.useNativeMessageActions(); return null; };
+  return { default: Bridge };
+})));
+
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -466,6 +474,7 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
           <AppUpdateChecker />
           <NetworkStatusBar />
           <PushNotificationInitializer />
+          <Suspense fallback={null}><NativeMessageActionsBridge /></Suspense>
         </>
       )}
     </>
