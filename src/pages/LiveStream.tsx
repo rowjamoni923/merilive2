@@ -449,8 +449,8 @@ const LiveStream = () => {
       if (egressIdRef.current) {
         const egressId = egressIdRef.current;
         
-        supabase.functions.invoke('livekit-egress/stop-recording', {
-          body: { egressId, streamId: id },
+        supabase.functions.invoke('livekit-egress', {
+          body: { action: 'stop', egressId, streamId: id },
         }).catch(e => console.error('[LiveStream] Failed to stop egress:', e));
         
         egressIdRef.current = null;
