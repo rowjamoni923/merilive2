@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Pkg250 — Quick Actions widget layout. Three round-icon buttons (Go Live /
-  Chat / Wallet) on a rounded dark surface. RemoteViews-safe widgets only.
+  Pkg250 + Pkg252 — Quick Actions widget layout. Three round-icon buttons
+  (Go Live / Chat / Wallet) on a rounded dark surface. The Chat slot now
+  has a live unread-count badge overlay (Pkg252). RemoteViews-safe.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -41,11 +42,35 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="6dp">
-        <ImageView
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@drawable/ic_shortcut_chat"
-            android:contentDescription="@string/shortcut_chat_short" />
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_shortcut_chat"
+                android:contentDescription="@string/shortcut_chat_short" />
+
+            <TextView
+                android:id="@+id/widget_chat_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:minWidth="18dp"
+                android:minHeight="18dp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:gravity="center"
+                android:background="@drawable/widget_badge_bg"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:text="" />
+        </FrameLayout>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

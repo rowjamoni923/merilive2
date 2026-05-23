@@ -11,6 +11,8 @@ export interface BackgroundSyncPlugin {
   refreshToken(options: { accessToken: string }): Promise<void>;
   disable(): Promise<void>;
   getStatus(): Promise<{ hasCredentials: boolean; lastUnreadTotal: number; lastSyncAt: number }>;
+  /** Pkg252 — push the latest unread total into the QuickActions home-screen widget badge. */
+  setUnreadCount(options: { count: number }): Promise<void>;
 }
 
 const noop: BackgroundSyncPlugin = {
@@ -18,6 +20,7 @@ const noop: BackgroundSyncPlugin = {
   async refreshToken() { /* noop */ },
   async disable() { /* noop */ },
   async getStatus() { return { hasCredentials: false, lastUnreadTotal: 0, lastSyncAt: 0 }; },
+  async setUnreadCount() { /* noop */ },
 };
 
 const isAndroidNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';

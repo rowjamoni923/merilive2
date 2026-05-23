@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { BackgroundSync } from '@/plugins/BackgroundSync';
+import { useGlobalUnreadCount } from '@/hooks/useGlobalUnreadCount';
 
 /**
  * Pkg221 — wires the native BackgroundSync periodic worker to the
@@ -11,6 +12,16 @@ import { BackgroundSync } from '@/plugins/BackgroundSync';
  * No-op outside Android-native (web/iOS).
  */
 export const useBackgroundSync = () => {
+  // Pkg252 — mirror in-app total to the QuickActions widget badge in real time.
+  const counts = useGlobalUnreadCount();
+
+  useEffect(() => {
+    if (!(Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android')) {
+      return;
+    }
+    BackgroundSync.setUnreadCount({ count: counts.total | 0 }).catch(() => {});
+  }, [counts.total]);
+
   useEffect(() => {
     if (!(Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android')) {
       return;

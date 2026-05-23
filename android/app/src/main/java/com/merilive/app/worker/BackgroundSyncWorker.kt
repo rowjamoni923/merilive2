@@ -43,6 +43,10 @@ class BackgroundSyncWorker(
                 .putInt("last_unread_total", total)
                 .putLong("last_sync_at", System.currentTimeMillis())
                 .apply()
+            // Pkg252 — push count to home-screen widget badge
+            try {
+                com.merilive.app.widget.QuickActionsWidget.updateUnreadCount(ctx, total)
+            } catch (_: Exception) {}
             Result.success()
         } catch (e: Exception) {
             android.util.Log.w(TAG, "sync failed: ${e.message}")
