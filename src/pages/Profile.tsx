@@ -1886,20 +1886,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           onClick={() => isOwnProfile && navigate('/following')}
         >
           <div className="text-center">
-            <p className="text-2xl font-bold text-display">{stats.friendsCount}</p>
+            <p className="text-2xl font-bold text-display">{formatCompactCount(stats.friendsCount)}</p>
             <p className="text-xs text-muted-pro font-medium">Friends</p>
           </div>
           <div className="w-px h-10 bg-gradient-to-b from-transparent via-slate-200 to-transparent" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-display">{stats.followingCount}</p>
+            <p className="text-2xl font-bold text-display">{formatCompactCount(stats.followingCount)}</p>
             <p className="text-xs text-muted-pro font-medium">Following</p>
           </div>
           <div className="w-px h-10 bg-gradient-to-b from-transparent via-slate-200 to-transparent" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-display">{stats.followersCount}</p>
-            <p className="text-xs text-muted-pro font-medium">Followers</p>
+            <p className="text-2xl font-bold text-display">{formatCompactCount(stats.followersCount)}</p>
+            <p className="text-xs text-muted-pro font-medium">{stats.followersCount === 1 ? 'Follower' : 'Followers'}</p>
           </div>
-        </div>
 
         {/* Action Buttons for other profiles - Premium Style */}
         {!isOwnProfile && currentUser && (
