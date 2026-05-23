@@ -16,6 +16,7 @@
 import { useEffect, useRef } from 'react';
 import { App as CapApp } from '@capacitor/app';
 import { messageOutbox, type OutboxItem } from '@/lib/messageOutbox';
+import { networkBus } from '@/lib/networkBus';
 
 const MAX_ATTEMPTS = 12;
 const TICK_MS = 30_000;
@@ -33,12 +34,12 @@ export function useMessageOutboxDrain(
     if (!enabled || !senderId) return;
 
     const drain = async () => {
-      if (inflightRef.current || !navigator.onLine) return;
+      if (inflightRef.current || !networkBus.isOnline()) return;
       inflightRef.current = true;
       try {
         const items = messageOutbox.list().filter(i => i.senderId === senderId);
         for (const item of items) {
-          if (!navigator.onLine) break;
+          if (!networkBus.isOnline()) break;
           if (item.attempts >= MAX_ATTEMPTS) {
             messageOutbox.remove(item.id);
             console.warn('[Outbox] dropped after max attempts', item.id);
@@ -61,9 +62,12 @@ export function useMessageOutboxDrain(
     // initial sweep
     drain();
 
-    const onOnline = () => drain();
+    // Pkg243 — push-based connectivity (Android NetworkCallback under the hood).
+    // Fires the millisecond Wi-Fi/cell flips, no JS polling needed.
+    const unsubBus = networkBus.subscribe((snap) => {
+      if (snap.connected) drain();
+    });
     const onVisible = () => { if (document.visibilityState === 'visible') drain(); };
-    window.addEventListener('online', onOnline);
     document.addEventListener('visibilitychange', onVisible);
     const interval = window.setInterval(drain, TICK_MS);
 
@@ -78,7 +82,7 @@ export function useMessageOutboxDrain(
     })();
 
     return () => {
-      window.removeEventListener('online', onOnline);
+      unsubBus();
       document.removeEventListener('visibilitychange', onVisible);
       window.clearInterval(interval);
       removeAppListener?.();
