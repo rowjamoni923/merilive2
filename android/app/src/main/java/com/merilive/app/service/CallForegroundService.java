@@ -47,12 +47,16 @@ public class CallForegroundService extends Service {
 
         Notification notification = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(NotificationHelper.BRAND_COLOR)
+            .setColorized(true)
             .setContentTitle("Call in progress")
             .setContentText(callType + " with " + callerName)
             .setOngoing(true)
             .setUsesChronometer(true)
+            .setShowWhen(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_CALL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(returnPI)
             .addAction(R.drawable.ic_call_decline, "End Call", endPI)
             .build();
