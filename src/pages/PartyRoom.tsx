@@ -265,6 +265,7 @@ const PartyRoom = () => {
   const sessionAccessTokenRef = useRef<string | null>(null);
   const hostCommissionPercentRef = useRef(55);
   const userCoinsRef = useRef(0);
+  const pendingGiftCostRef = useRef(0);
   
   // Keep refs in sync with state
   useEffect(() => {
@@ -2126,6 +2127,7 @@ const PartyRoom = () => {
               
               // Optimistic coin deduction (instant visual feedback)
               userCoinsRef.current = Math.max(0, availableCoins - totalCost);
+              pendingGiftCostRef.current += totalCost;
               setUserCoins(userCoinsRef.current);
               
               // Play gift sound IMMEDIATELY
@@ -2176,6 +2178,13 @@ const PartyRoom = () => {
               // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
               // Process actual transaction in background - don't block UI
               (async () => {
+                let transactionSucceeded = false;
+                let pendingReleased = false;
+                const releasePendingCost = () => {
+                  if (pendingReleased) return;
+                  pendingGiftCostRef.current = Math.max(0, pendingGiftCostRef.current - totalCost);
+                  pendingReleased = true;
+                };
                 try {
                   const result = await sendGift({
                     giftId: gift.id,
@@ -2186,6 +2195,7 @@ const PartyRoom = () => {
                     roomId: sendingRoomId,
                   });
 
+                  releasePendingCost();
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
 
                   if (!result.success) {
@@ -2194,6 +2204,7 @@ const PartyRoom = () => {
                     toast.error(result.error || "Gift failed - diamonds refunded");
                     return;
                   }
+                  transactionSucceeded = true;
                   
                   // Refresh actual balance from server (in case of discrepancy)
                   const { data: updatedProfile } = await supabase
@@ -2204,7 +2215,7 @@ const PartyRoom = () => {
 
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                   
-                  if (updatedProfile) {
+                  if (updatedProfile && pendingGiftCostRef.current === 0) {
                     userCoinsRef.current = updatedProfile.coins || 0;
                     setUserCoins(userCoinsRef.current);
                     // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
@@ -2237,9 +2248,11 @@ const PartyRoom = () => {
                     });
                   }
                 } catch (err) {
+                  releasePendingCost();
                   console.error('[PartyGift] Background processing error:', err);
                   recordClientError({ label: "PartyRoom.giftChatMessage", message: err instanceof Error ? err.message : String(err) });
-                  // Refund coins on complete failure
+                  if (transactionSucceeded) return;
+                  // Refund coins only when the transaction itself failed before server success.
                   if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                   userCoinsRef.current += totalCost;
                   setUserCoins(userCoinsRef.current);
