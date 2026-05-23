@@ -301,9 +301,15 @@ export function CallProvider({ children }: CallProviderProps) {
 
     let listener: { remove: () => Promise<void> } | null = null;
     void NativeCall.addListener('call-action', handleNativeAction).then((h) => {
+      // Pkg5-pass1 BUG-E FIX: if disposed before registration resolved, remove immediately
+      if (disposed) {
+        void h.remove().catch(() => undefined);
+        return;
+      }
       listener = h;
     }).catch(() => undefined);
     void NativeCall.getLastAction().then(({ actions }) => {
+      if (disposed) return;
       actions?.forEach((action) => void handleNativeAction(action));
     }).catch(() => undefined);
 
@@ -312,6 +318,7 @@ export function CallProvider({ children }: CallProviderProps) {
       void listener?.remove().catch(() => undefined);
     };
   }, [userId, acceptCall, declineCall]);
+
 
   const handleEndCall = async () => {
     if (callEndedRef.current) {
