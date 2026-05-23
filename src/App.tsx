@@ -15,6 +15,7 @@ import { saveSessionToNative, clearNativeSession, getSessionFromNative } from '@
 import { prewarmSVGA } from '@/utils/svgaPrewarm';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
 import { clearBalanceCache, useUserBalancePrefetch } from '@/hooks/useUserBalance';
+import { useAnalyticsBootstrap } from '@/hooks/useAnalyticsBootstrap';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
@@ -509,6 +510,7 @@ const hasStoredSupabaseSession = (): boolean => {
 };
 
 const App = () => {
+  useAnalyticsBootstrap();
   const [session, setSession] = useState<Session | null>(null);
   // ⚡ Skip the splash loader entirely if we already have a stored session.
   // initSession() runs in the background and hydrates the real Session object.
