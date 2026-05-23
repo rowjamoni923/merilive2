@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import {
   DEFAULT_PRO_BEAUTY,
   applyProBeauty,
+  applyBroadcastBeauty,
+  isBroadcastBeautyEnabled,
   isNativeBeautyAvailable,
   loadStoredLevels,
   persistLevels,
