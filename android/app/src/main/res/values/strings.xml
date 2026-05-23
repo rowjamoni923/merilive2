@@ -16,4 +16,14 @@
     <string name="permission_location_rationale">Location is used to show nearby users and detect your country</string>
     <string name="permission_notification_rationale">Enable notifications to receive call alerts and messages</string>
     <string name="default_web_client_id" translatable="false">YOUR_WEB_CLIENT_ID_HERE</string>
+
+    <!-- Pkg215 — App Shortcuts -->
+    <string name="shortcut_live_short">Go Live</string>
+    <string name="shortcut_live_long">Start a live stream</string>
+    <string name="shortcut_chat_short">Chat</string>
+    <string name="shortcut_chat_long">Open messages</string>
+    <string name="shortcut_wallet_short">Wallet</string>
+    <string name="shortcut_wallet_long">Recharge &amp; balance</string>
+    <string name="shortcut_discover_short">Discover</string>
+    <string name="shortcut_discover_long">Find new creators</string>
 </resources>
