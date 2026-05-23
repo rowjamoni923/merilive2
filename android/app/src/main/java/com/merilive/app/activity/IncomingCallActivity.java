@@ -173,13 +173,23 @@ public class IncomingCallActivity extends AppCompatActivity {
 
     private void startRinging() {
         try {
+            // Pkg203 — bypass silent / DND just like WhatsApp / Bigo: force the
+            // ringtone through the RING audio stream with HAPTIC_FEEDBACK + the
+            // notification-ringtone usage so the channel's bypassDnd flag is honored.
             Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
             ringtone = RingtoneManager.getRingtone(this, ringtoneUri);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) ringtone.setLooping(true);
-            ringtone.setAudioAttributes(new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build());
-            ringtone.play();
+            if (ringtone != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) ringtone.setLooping(true);
+                ringtone.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
+                    .build());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    try { ringtone.setVolume(1.0f); } catch (Throwable ignored) {}
+                }
+                ringtone.play();
+            }
         } catch (Exception e) { e.printStackTrace(); }
 
         try {
