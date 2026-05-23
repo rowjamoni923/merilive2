@@ -263,6 +263,53 @@ export const openNativeAppPermissionSettings = async (): Promise<void> => {
 };
 
 // =====================================================
+// Pkg205 — BATTERY OPTIMIZATION WHITELIST
+// Prevents Xiaomi/Oppo/Vivo/Samsung from killing FCM listener after ~30min
+// idle. Required for WhatsApp/Bigo-grade screen-off DM/call delivery.
+// =====================================================
+const BATTERY_PROMPT_STORAGE_KEY = 'merilive_battery_prompt_shown_v1';
+
+export const isBatteryOptimizationIgnored = async (): Promise<boolean> => {
+  if (!isNativeApp()) return true;
+  try {
+    const r = await MeriPermissions.isBatteryOptimizationIgnored();
+    return !!r.whitelisted;
+  } catch {
+    return false;
+  }
+};
+
+export const requestBatteryOptimizationWhitelist = async (): Promise<void> => {
+  if (!isNativeApp()) return;
+  try {
+    await MeriPermissions.requestIgnoreBatteryOptimizations();
+  } catch (err) {
+    console.warn('[Pkg205] requestIgnoreBatteryOptimizations failed:', err);
+  }
+};
+
+/**
+ * One-time prompt: if not already whitelisted AND we haven't asked before,
+ * open the system dialog. Safe to call repeatedly — gated by localStorage.
+ * Call after app is mounted and the user has seen the home screen at least once.
+ */
+export const ensureBatteryOptimizationWhitelistOnce = async (): Promise<void> => {
+  if (!isNativeApp()) return;
+  try {
+    if (typeof window !== 'undefined' && window.localStorage.getItem(BATTERY_PROMPT_STORAGE_KEY) === '1') return;
+    const ok = await isBatteryOptimizationIgnored();
+    if (ok) {
+      window.localStorage.setItem(BATTERY_PROMPT_STORAGE_KEY, '1');
+      return;
+    }
+    await requestBatteryOptimizationWhitelist();
+    window.localStorage.setItem(BATTERY_PROMPT_STORAGE_KEY, '1');
+  } catch (err) {
+    console.warn('[Pkg205] ensureBatteryOptimizationWhitelistOnce failed:', err);
+  }
+};
+
+// =====================================================
 // GET CURRENT LOCATION - Native GPS
 // =====================================================
 export const getCurrentLocation = async (): Promise<{
