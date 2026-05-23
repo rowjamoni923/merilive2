@@ -198,7 +198,7 @@ export const PremiumLiveStreamCard = ({
             >
               <Gift className="w-3.5 h-3.5 text-yellow-700" />
             </motion.div>
-            <span className="text-xs text-white font-bold">{giftCount}</span>
+            <span className="text-xs text-on-dark font-bold">{giftCount}</span>
           </div>
         </div>
       )}
