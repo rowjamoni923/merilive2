@@ -1196,7 +1196,7 @@ export function UnifiedPartyRoom({
   
   // Create seat positions - Host can move between seats
   // Find host's actual position from participants
-  const hostActualPosition = participants.find(p => p.isHost)?.position ?? 
+  const hostActualPosition = participants.find(p => p.id === hostInfo?.id)?.position ?? 
                              (hostInfo ? 0 : null);
   
   const allSeats = Array.from({ length: seatConfig.totalSeats }, (_, i) => {
