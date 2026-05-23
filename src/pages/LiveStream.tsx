@@ -23,6 +23,7 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
+import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
 import {
   Heart,
   Share2,
@@ -173,6 +174,8 @@ const LiveStream = () => {
   // live stream (Bigo/YouTube parity). 9:16 portrait window; reuses native
   // bridge (Pkg207). No-op on web/iOS.
   useNativeAndroidPip({ active: isHostVerified || !isHost, aspect: '9:16' });
+  // Pkg247 — boost to 90/120Hz while live for smooth video + chat scroll
+  useHighRefreshRate(isHostVerified || !isHost);
   const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
     if (location.state?.isHost === true) {
       return consumePreparedHostPreviewStream();
