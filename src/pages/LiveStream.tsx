@@ -24,6 +24,7 @@ import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/component
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { useHighRefreshRate } from "@/hooks/useHighRefreshRate";
+import { useLiveFrameMonitor } from "@/hooks/useLiveFrameMonitor";
 import {
   Heart,
   Share2,
@@ -176,6 +177,8 @@ const LiveStream = () => {
   useNativeAndroidPip({ active: isHostVerified || !isHost, aspect: '9:16' });
   // Pkg247 — boost to 90/120Hz while live for smooth video + chat scroll
   useHighRefreshRate(isHostVerified || !isHost);
+  // Live frame health monitor (face_lost / sleeping / multi-face / NSFW etc.)
+  // Hosts only, once per 30s; results logged to live_frame_alerts + admin broadcast.
   const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
     if (location.state?.isHost === true) {
       return consumePreparedHostPreviewStream();
@@ -698,6 +701,23 @@ const LiveStream = () => {
       handleEndStream();
     },
   });
+
+  // ========== EXTERNAL FRAME MONITOR (verify.merilive.com) ==========
+  // 30s cadence — provider checks for sleeping / face_lost / multi-face / NSFW /
+  // weapons / drugs and broadcasts alerts to admins. Best-effort; failures silent.
+  useLiveFrameMonitor({
+    enabled: isHost && isHostVerified && isJoined,
+    userId: currentUserId,
+    track:
+      (localVideoTrack?.mediaStreamTrack as MediaStreamTrack | undefined) ??
+      (typeof localVideoTrack?.getMediaStreamTrack === 'function'
+        ? (localVideoTrack.getMediaStreamTrack() as MediaStreamTrack | null)
+        : null),
+    context: 'live_stream',
+    streamId: id ?? null,
+    intervalMs: 30_000,
+  });
+
 
   // Fetch current user and stream data from database - VERIFY host status
   useEffect(() => {
