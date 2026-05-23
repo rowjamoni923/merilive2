@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useCallback, useMemo } from "react";
+import { useState, useEffect, memo, useCallback, useMemo, useRef } from "react";
 import { X, Gift, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
