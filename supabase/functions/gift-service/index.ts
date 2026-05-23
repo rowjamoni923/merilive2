@@ -55,7 +55,14 @@ Deno.serve(async (req) => {
     const partyRoomId = body?.partyRoomId as string | undefined
     const callId = body?.callId as string | undefined
     const reelId = body?.reelId as string | undefined
-    const quantity = Math.max(1, Number(body?.quantity || 1))
+    const rawQuantity = Number(body?.quantity ?? 1)
+    if (!Number.isInteger(rawQuantity) || rawQuantity < 1 || rawQuantity > 999) {
+      return new Response(JSON.stringify({ error: 'Invalid gift quantity' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    const quantity = rawQuantity
 
     if (!receiverId || !giftId) {
       return new Response(JSON.stringify({ error: 'receiverId and giftId are required' }), {
@@ -117,6 +124,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        senderId: user.id,
         transactionId: result.transaction_id,
         coinsSpent,
         hostReceived,
