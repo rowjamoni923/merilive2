@@ -832,11 +832,33 @@ const App = () => {
             // Fire-and-forget — do not block any subsequent navigation/state updates
             void Promise.resolve(clearNativeSession()).catch(() => {});
           } else {
-            // 🛡️ AUTO sign-out COMPLETELY BLOCKED — do absolutely nothing
-            // Do NOT call refreshSession() here as it can trigger another SIGNED_OUT loop
-            // The session state stays as-is, user stays logged in
-            console.warn('[App] 🛡️ BLOCKED auto sign-out event — ignoring completely, user stays logged in');
+            // 🛡️ Auto sign-out fired (refresh token likely dead). Try ONE silent
+            // refresh; if that also fails, the JWT is truly gone and every
+            // edge function will return 401 — force re-login.
+            console.warn('[App] ⚠️ Auto sign-out received — attempting silent refresh');
+            (async () => {
+              try {
+                const { data, error } = await supabase.auth.refreshSession();
+                if (error || !data?.session) {
+                  console.error('[App] 🔒 Refresh failed, redirecting to /auth', error);
+                  setSession(null);
+                  invalidateCachedUser();
+                  clearBalanceCache();
+                  void Promise.resolve(clearNativeSession()).catch(() => {});
+                  navigateInAppPath('/auth', { replace: true });
+                } else {
+                  console.log('[App] ✅ Silent refresh succeeded, session restored');
+                  setSession(data.session);
+                }
+              } catch (e) {
+                console.error('[App] 🔒 Refresh threw, redirecting to /auth', e);
+                setSession(null);
+                invalidateCachedUser();
+                navigateInAppPath('/auth', { replace: true });
+              }
+            })();
           }
+
         }
         
         if (event === 'SIGNED_IN' && session?.user) {
