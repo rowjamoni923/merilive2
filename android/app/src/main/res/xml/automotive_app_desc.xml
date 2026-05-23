@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pkg249 — Android Auto messaging support.
+
+  Declaring "notification" enables Android Auto to read aloud our
+  MessagingStyle DM notifications and trigger our RemoteInput Reply +
+  SEMANTIC_ACTION_MARK_AS_READ actions hands-free. No CarAppService is
+  required for messaging-only apps; Auto + Assistant handle the UX.
+-->
+<automotiveApp>
+    <uses name="notification" />
+</automotiveApp>
