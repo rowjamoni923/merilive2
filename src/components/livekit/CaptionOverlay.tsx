@@ -39,11 +39,15 @@ export interface CaptionOverlayProps {
 }
 
 function readEnabled(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") return true;
   try {
-    return window.localStorage.getItem(STORAGE_KEY) === "1";
+    const v = window.localStorage.getItem(STORAGE_KEY);
+    // Default ON when user has never toggled (Pkg196/M2): captions auto-render
+    // whenever a LiveKit Agent publishes transcriptions. Users can still hide
+    // them via the toggle button.
+    return v == null ? true : v === "1";
   } catch {
-    return false;
+    return true;
   }
 }
 
