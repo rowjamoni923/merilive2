@@ -18,6 +18,30 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Pkg239 / M33 — StrictMode in debug builds only. Catches main-thread
+        // disk/network IO + leaked closables/SQLite/registration so they never
+        // ship to production. No-op in release (BuildConfig.DEBUG=false).
+        if (BuildConfig.DEBUG) {
+            android.os.StrictMode.setThreadPolicy(
+                new android.os.StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()
+                    .detectCustomSlowCalls()
+                    .penaltyLog()
+                    .build()
+            );
+            android.os.StrictMode.setVmPolicy(
+                new android.os.StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .detectLeakedClosableObjects()
+                    .detectLeakedRegistrationObjects()
+                    .detectActivityLeaks()
+                    .penaltyLog()
+                    .build()
+            );
+        }
+
         // Pkg231 — Android 12+ native splash screen. Must be installed BEFORE
         // super.onCreate so the system can intercept the window creation.
         SplashScreen.installSplashScreen(this);
