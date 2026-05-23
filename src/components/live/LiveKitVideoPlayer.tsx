@@ -248,7 +248,26 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       el.onwaiting = null;
       el.onstalled = null;
     };
-  }, [videoTrack, muted]);
+  }, [videoTrack]);
+
+  // Pkg-audit#2: separate effect to apply mute changes WITHOUT re-attaching the track.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (muted) {
+      el.muted = true;
+      el.defaultMuted = true;
+      el.setAttribute('muted', '');
+    } else if (el.readyState >= 2) {
+      // Only unmute once playback is actually ready to avoid autoplay rejection.
+      try {
+        el.muted = false;
+        el.defaultMuted = false;
+        el.removeAttribute('muted');
+      } catch { /* noop */ }
+    }
+  }, [muted]);
+
 
   // Prevent zoom gestures
   useEffect(() => {
