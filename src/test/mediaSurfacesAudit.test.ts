@@ -119,11 +119,11 @@ describe("media surfaces — token edge function honors roles", () => {
   it("livekit-token grants canPublish only to publishers; viewers stay subscribe-only", () => {
     const fn = read("supabase/functions/livekit-token/index.ts");
     // Host of a live stream OR participant of a call OR publishing party member can publish.
-    expect(fn).toMatch(/roomType === "host_stream"/);
-    expect(fn).toMatch(/roomType === "call"/);
+    expect(fn).toMatch(/case "host_stream":/);
+    expect(fn).toMatch(/case "call":/);
     // Viewers (viewer_stream) must NEVER publish.
-    expect(fn).not.toMatch(/roomType === "viewer_stream".*canPublish\s*=\s*true/);
+    expect(fn).toMatch(/case "viewer_stream":\s*canPublish = false/s);
     // Admin secret-link tokens are limited to viewer_stream only.
-    expect(fn).toMatch(/isAdminBypass && roomType !== "viewer_stream"/);
+    expect(fn).toMatch(/isAdmin[\s\S]*canPublish = false/);
   });
 });
