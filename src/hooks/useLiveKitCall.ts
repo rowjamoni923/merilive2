@@ -546,6 +546,9 @@ export function useLiveKitCall(
         // Pkg103: apply Krisp noise filter to published mic
         import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
+        // Pkg204: contentHint='motion' on camera track — smoother under congestion.
+        import('@/lib/livekitCameraTuning').then((m) => m.applyMotionHint(room)).catch(() => {});
+
         // Apply Tencent Beauty to camera track (Web only, graceful fallback)
         try {
           const cameraPub = Array.from(room.localParticipant.trackPublications.values())
