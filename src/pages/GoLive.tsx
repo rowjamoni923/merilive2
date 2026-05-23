@@ -1150,9 +1150,6 @@ const GoLive = () => {
             <span className="text-white text-sm font-semibold">
               {userProfile?.display_name || "Your Name"} {userLocation?.flag || "🌍"}
             </span>
-            <span className="text-amber-300 text-xs">
-              ??? ⭐
-            </span>
           </div>
           <div className="flex items-center gap-1 mt-1.5">
             <BeansIcon size={16} />
@@ -1160,21 +1157,6 @@ const GoLive = () => {
           </div>
         </div>
         
-        {/* Viewer Count Badge */}
-        <div className="absolute left-4 top-36">
-          <div
-            className="flex items-center gap-1 rounded-full px-2 py-0.5 border border-white/15"
-            style={{
-              background: 'linear-gradient(135deg, rgba(236,72,153,0.85) 0%, rgba(168,85,247,0.85) 100%)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              boxShadow: '0 4px 12px -2px rgba(236,72,153,0.45), inset 0 1px 0 rgba(255,255,255,0.20)',
-            }}
-          >
-            <Users className="w-3 h-3 text-white" />
-            <span className="text-white text-xs font-semibold tabular-nums">0/1</span>
-          </div>
-        </div>
       </motion.div>
 
       {/* Camera View - Full Screen Horizontal */}
@@ -1746,25 +1728,6 @@ const GoLive = () => {
             <span className="text-[11px] text-white/55 font-semibold">More</span>
           </motion.button>
 
-          {/* Pkg144: Devices (pre-join camera/mic/speaker picker) */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowPreJoinDevices(true)}
-            className="flex flex-col items-center gap-1 touch-manipulation"
-          >
-            <div
-              className="w-14 h-14 rounded-full border-2 border-white/20 flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
-              }}
-            >
-              <Sliders className="w-6 h-6 text-white/75" />
-            </div>
-            <span className="text-[11px] text-white/55 font-semibold">Devices</span>
-          </motion.button>
         </div>
 
         {/* Go Live Button - Chamet Style */}
