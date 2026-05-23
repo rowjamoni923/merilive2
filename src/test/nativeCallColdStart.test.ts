@@ -13,6 +13,8 @@
  * and we know the cold-start contract is broken before we ship.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 type Action = 'accept' | 'decline' | 'timeout' | 'dismissed' | 'presented';
 interface Evt {
@@ -159,6 +161,18 @@ describe('Android NativeCall cold-start / action-loss flow', () => {
   it('endIncomingUi dismisses the heads-up notification + activity', async () => {
     await plugin.endIncomingUi({ callId: 'c1', reason: 'cancelled' });
     expect(plugin.uiDismissed).toEqual({ callId: 'c1', reason: 'cancelled' });
+  });
+
+  it('JS call flow keeps native UI and Telecom lifecycle separated', () => {
+    const hook = readFileSync(resolve(__dirname, '../..', 'src/hooks/usePrivateCall.ts'), 'utf8');
+    const plugin = readFileSync(resolve(__dirname, '../..', 'android/app/src/main/java/com/merilive/app/plugin/NativeCallPlugin.kt'), 'utf8');
+
+    expect(hook).toMatch(/NativeCall\.endIncomingUi\(\{ callId, reason: 'accepted' \}\)/);
+    expect(hook).toMatch(/reason: 'declined' \| 'timeout' = 'declined'/);
+    expect(hook).toMatch(/supabase\.rpc\('timeout_private_call'/);
+    expect(hook).toMatch(/NativeCall\.reportCallEnded\(\{ callId: callIdToReset, remote: true \}\)/);
+    expect(plugin).toMatch(/val keepTelecomAlive = reason == "accepted" \|\| reason == "answered"/);
+    expect(plugin).toMatch(/if \(!keepTelecomAlive && android\.os\.Build\.VERSION\.SDK_INT >= android\.os\.Build\.VERSION_CODES\.O\)/);
   });
 
   it('full cold-start E2E: dispatch → boot → drain → ack → end UI', async () => {

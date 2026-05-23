@@ -294,7 +294,7 @@ export function CallProvider({ children }: CallProviderProps) {
       }
 
       if (event.action === 'decline' || event.action === 'timeout') {
-        await declineCall(event.callId);
+        await declineCall(event.callId, event.action === 'timeout' ? 'timeout' : 'declined');
         await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
       }
     };

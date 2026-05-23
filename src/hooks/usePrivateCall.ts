@@ -125,6 +125,13 @@ export function usePrivateCall(userId: string | null) {
     liveSessionStartedRef.current = false;
     currentCallIdRef.current = null;
     clearAllTimers();
+    // Section#5 pass-4: every non-manual reset path (missed/declined/accept
+    // failure/row vanished) must also tear down Android Telecom + any native
+    // incoming UI. Otherwise BT audio/system call-log can stay stuck until app kill.
+    if (callIdToReset && isNativeAndroidApp()) {
+      NativeCall.reportCallEnded({ callId: callIdToReset, remote: true }).catch(() => {});
+      NativeCall.endIncomingUi({ callId: callIdToReset, reason: 'ended' }).catch(() => {});
+    }
     setCallState(INITIAL_CALL_STATE);
     setIncomingCall(null);
     
@@ -170,7 +177,7 @@ export function usePrivateCall(userId: string | null) {
     Promise.resolve(supabase.rpc('reset_my_call_status')).catch(() => {});
     // Pkg211 — tear down Telecom connection (releases BT audio + closes log)
     if (cid && isNativeAndroidApp()) {
-      NativeCall.reportCallEnded({ callId: cid, remote: false }).catch(() => {});
+      NativeCall.reportCallEnded({ callId: cid, remote: true }).catch(() => {});
     }
     setTimeout(() => { callEndedRef.current = false; }, 3000);
     if (endedCallIdsRef.current.size > 20) {
@@ -738,6 +745,9 @@ export function usePrivateCall(userId: string | null) {
       // Pkg211 — promote Telecom connection to active for accepted incoming call
       if (isNativeAndroidApp()) {
         NativeCall.reportCallConnected({ callId }).catch(() => {});
+        // Section#5 pass-4: accepting from the in-app React modal must dismiss
+        // the native heads-up/full-screen incoming UI, but must NOT end Telecom.
+        NativeCall.endIncomingUi({ callId, reason: 'accepted' }).catch(() => {});
       }
 
 
@@ -850,17 +860,21 @@ export function usePrivateCall(userId: string | null) {
   }, [toast, clearAllTimers, userId, incomingCall, resetCallState]);
 
   // Decline an incoming call
-  const declineCall = useCallback(async (callId: string) => {
+  const declineCall = useCallback(async (callId: string, reason: 'declined' | 'timeout' = 'declined') => {
     try {
-      const { error } = await supabase.rpc('decline_private_call', {
-        _call_id: callId,
-      });
+      const { error } = reason === 'timeout'
+        ? await supabase.rpc('timeout_private_call', { _call_id: callId })
+        : await supabase.rpc('decline_private_call', { _call_id: callId });
 
       if (error) throw error;
 
+      if (isNativeAndroidApp()) {
+        NativeCall.endIncomingUi({ callId, reason }).catch(() => {});
+      }
+
       setIncomingCall(null);
       toast({
-        title: "Call Declined",
+        title: reason === 'timeout' ? "Call Missed" : "Call Declined",
       });
 
       return true;
