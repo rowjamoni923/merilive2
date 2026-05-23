@@ -565,116 +565,6 @@ export async function detectAndProcessViolation(
     userProfile = data;
   } catch {}
 
-  // Log to chat_moderation_logs for ALL users (so admin sees it)
-  try {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const validConversationId = sourceId && uuidRegex.test(sourceId) ? sourceId : null;
-    
-    const { error: logError } = await supabase.from('chat_moderation_logs').insert({
-      user_id: senderId,
-      conversation_id: validConversationId,
-      violation_type: detection.pattern || 'phone_number',
-      detected_content: detection.detectedContent,
-      action_taken: 'detected',
-      notes: `Auto-detected: ${detection.pattern} | Source: ${sourceType} | Matches: ${detection.allMatches.join(', ')}`,
-      is_auto_action: true,
-    });
-    if (logError) {
-      console.error('[ContactDetection] ❌ Insert error:', logError.message, logError.details, logError.hint);
-    } else {
-      console.log('[ContactDetection] ✅ Logged to chat_moderation_logs successfully');
-    }
-  } catch (logErr) {
-    console.error('[ContactDetection] Failed to log moderation:', logErr);
-  }
-
-  // Send INSTANT admin notification for every violation
-  try {
-    await supabase.from('admin_notifications').insert({
-      type: 'contact_sharing_alert',
-      title: '📱 Contact Sharing Detected',
-      message: `${userProfile?.display_name || 'Unknown'} (${userProfile?.app_uid || senderId}) shared: "${detection.detectedContent}" via ${sourceType}. Pattern: ${detection.pattern}`,
-      priority: 'high',
-      data: {
-        user_id: senderId,
-        detected_content: detection.detectedContent,
-        pattern: detection.pattern,
-        source_type: sourceType,
-        source_id: sourceId,
-      },
-    });
-    console.log('[ContactDetection] ✅ Admin notification sent');
-  } catch (notifErr) {
-    console.error('[ContactDetection] Failed to send admin notification:', notifErr);
-  }
-
-  // Increment violation count for ALL users
-  try {
-    await supabase.rpc('increment_field', {
-      row_id: senderId,
-      table_name: 'profiles',
-      field_name: 'phone_violation_count',
-      increment_value: 1,
-    });
-  } catch {}
-
-  // Check violation count - AUTO-BAN after 10+ violations
-  const currentCount = ((userProfile as any)?.phone_violation_count || 0) + 1;
-  if (currentCount >= 10) {
-    console.log(`[ContactDetection] 🚨 AUTO-BAN triggered for ${senderId} - ${currentCount} violations`);
-    try {
-      // Demote host, reset levels
-      await supabase.from('profiles').update({
-        is_host: false,
-        host_status: null,
-        is_face_verified: false,
-        user_level: 0,
-        host_level: 0,
-      }).eq('id', senderId);
-
-      // Block account
-      await supabase.rpc('admin_block_user', {
-        _user_id: senderId,
-        _block: true,
-        _reason: `AI Auto-Ban: ${currentCount} contact sharing violations`,
-      });
-
-      // Ban device permanently
-      const { data: devData } = await supabase.from('profiles').select('device_id').eq('id', senderId).single();
-      if (devData?.device_id) {
-        await supabase.from('banned_devices').upsert({
-          device_id: devData.device_id,
-          user_id: senderId,
-          reason: `AI Auto-Ban: ${currentCount} violations`,
-          is_permanent: true,
-          is_active: true,
-        }, { onConflict: 'device_id' });
-      }
-
-      // Log ban
-      await supabase.from('live_bans').insert({
-        user_id: senderId,
-        ban_reason: `AI Auto-Ban: ${currentCount} contact sharing violations`,
-        violation_type: 'auto_ban',
-        is_active: true,
-        auto_banned: true,
-      });
-
-      // Critical admin notification
-      await supabase.from('admin_notifications').insert({
-        type: 'auto_ban',
-        title: '🤖 AI AUTO-BAN Executed',
-        message: `${userProfile?.display_name || 'Unknown'} (${userProfile?.app_uid || senderId}) auto-banned after ${currentCount} violations. Device + Account banned.`,
-        priority: 'critical',
-        data: { user_id: senderId, violation_count: currentCount, ban_type: 'auto_urgent' },
-      });
-
-      return { detected: true, violationNumber: currentCount, beansDeducted: 0, isBanned: true };
-    } catch (banErr) {
-      console.error('[ContactDetection] Auto-ban failed:', banErr);
-    }
-  }
-
   // Check if sender is a host for penalty processing
   const isHost = userProfile?.is_host === true;
   if (!isHost) {
@@ -683,30 +573,7 @@ export async function detectAndProcessViolation(
     return { detected: false, violationNumber: 0, beansDeducted: 0, isBanned: false };
   }
 
-  // HOST: Always deduct 2000 beans per violation (allow negative balance)
-  const BEANS_PER_VIOLATION = 2000;
-  try {
-    // Deduct beans - allow going negative
-    const { data: currentProfile } = await supabase
-      .from('profiles')
-      .select('beans_balance')
-      .eq('id', senderId)
-      .single();
-    
-    const currentBeans = (currentProfile?.beans_balance as number) || 0;
-    const newBalance = currentBeans - BEANS_PER_VIOLATION;
-    
-    await supabase
-      .from('profiles')
-      .update({ beans_balance: newBalance })
-      .eq('id', senderId);
-
-    console.log(`[ContactDetection] Host beans deducted: ${currentBeans} → ${newBalance} (-${BEANS_PER_VIOLATION})`);
-  } catch (beansErr) {
-    console.error('[ContactDetection] Beans deduction failed:', beansErr);
-  }
-
-  // Also call the RPC for logging and progressive penalties
+  // Server RPC is the single source of truth for logs, counters, and bean deductions.
   const result = await processHostViolation(
     senderId,
     detection.detectedContent,
@@ -717,8 +584,8 @@ export async function detectAndProcessViolation(
 
   return {
     detected: true,
-    violationNumber: result.violationNumber || currentCount,
-    beansDeducted: BEANS_PER_VIOLATION,
+    violationNumber: result.violationNumber || 1,
+    beansDeducted: result.beansDeducted || 0,
     isBanned: result.isBanned || false,
   };
 }
