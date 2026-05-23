@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,7 +15,6 @@ interface PopupBanner {
 }
 
 const EventPopupBanner = () => {
-  const navigate = useNavigate();
   const [banner, setBanner] = useState<PopupBanner | null>(null);
   const [visible, setVisible] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -119,15 +118,11 @@ const EventPopupBanner = () => {
     window.dispatchEvent(new CustomEvent('event-popup-dismissed'));
   }, []);
 
-  const handleBannerClick = useCallback(() => {
-    if (!banner?.link_url) return;
-    handleDismiss();
-    if (banner.link_type === 'external') {
-      window.open(banner.link_url, '_blank');
-    } else {
-      navigate(banner.link_url);
-    }
-  }, [banner, navigate, handleDismiss]);
+  // Banner is display-only — clicking does NOT navigate anywhere.
+  // User must dismiss via the X / skip button (after skip delay).
+  const handleBannerClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
 
   if (!banner) return null;
 
@@ -164,7 +159,7 @@ const EventPopupBanner = () => {
               loading="eager"
               decoding="sync"
               fetchPriority="high"
-              className="absolute inset-0 w-full h-full object-cover cursor-pointer select-none"
+              className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
               draggable={false}
             />
 
