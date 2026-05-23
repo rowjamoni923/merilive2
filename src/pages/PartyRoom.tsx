@@ -56,6 +56,7 @@ import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { publishChatMessage } from "@/lib/livekitChatSignaling";
 import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload, type RoomStateChangedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
@@ -263,6 +264,7 @@ const PartyRoom = () => {
   const roomIdRef = useRef<string | undefined>(roomId);
   const sessionAccessTokenRef = useRef<string | null>(null);
   const hostCommissionPercentRef = useRef(55);
+  const userCoinsRef = useRef(0);
   
   // Keep refs in sync with state
   useEffect(() => {
@@ -270,6 +272,10 @@ const PartyRoom = () => {
     roomRef.current = room;
     roomIdRef.current = roomId;
   }, [currentUser, room, roomId]);
+
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  }, [userCoins]);
   
   // Ref to track component mount status for async operations
   const isMountedRef = useRef(true);
