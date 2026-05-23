@@ -8,6 +8,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useBackgroundSync } from "@/hooks/useBackgroundSync";
 import { useInAppUpdate } from "@/hooks/useInAppUpdate";
 import { useHibernationCheck } from "@/hooks/useHibernationCheck";
+import { useMemoryPressureGuard } from "@/hooks/useMemoryPressureGuard";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import { queryClient } from "@/lib/queryClient";
 
@@ -52,6 +53,8 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   useInAppUpdate();
   // Pkg235 / M29: Android 12+ app-hibernation prompt (no-op on web/iOS)
   useHibernationCheck();
+  // Pkg244: Android onTrimMemory → evict inactive RQ cache & SW caches under RAM pressure
+  useMemoryPressureGuard();
 
 
   if (isAdminRoute) return null;
