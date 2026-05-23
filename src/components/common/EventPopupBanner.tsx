@@ -159,7 +159,7 @@ const EventPopupBanner = () => {
               loading="eager"
               decoding="sync"
               fetchPriority="high"
-              className="absolute inset-0 w-full h-full object-cover cursor-pointer select-none"
+              className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
               draggable={false}
             />
 
