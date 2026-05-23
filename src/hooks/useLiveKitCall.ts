@@ -23,6 +23,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
+import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { registerCallRoom, registerNativeCallRoom, unregisterCallRoom, unregisterNativeCallRoom } from '@/lib/livekitCallSignaling';
 import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
@@ -357,9 +358,9 @@ export function useLiveKitCall(
             },
             degradationPreference: 'maintain-resolution',
             simulcast: false,
-            // Pkg156: VP9 primary + VP8 backup. Chamet/Bigo private-call parity.
-            videoCodec: 'vp9',
-            backupCodec: { codec: 'vp8' },
+            // Pkg205 (M3): device-aware codec selection (Safari → H.264,
+            // Chromium → AV1/VP9, H.264 backup preferred over VP8).
+            ...pickOptimalCodecs(),
             // Pkg163: high-quality voice opus + RED packet-loss resilience.
             audioPreset: AudioPresets.musicHighQuality,
             dtx: false,
