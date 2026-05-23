@@ -270,4 +270,11 @@
         </receiver>
 
     </application>
+
+    <!-- Pkg260 — Speech recognition service visibility (Android 11+ package visibility) -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
 </manifest>
