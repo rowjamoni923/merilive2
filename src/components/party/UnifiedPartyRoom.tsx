@@ -388,6 +388,69 @@ const VideoGridSeat = ({
   const hasRenderableVideoTrack = Boolean(
     streamToUse?.getVideoTracks().some((track) => track.readyState === 'live' && track.enabled !== false)
   );
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const shieldRef = useRef<HTMLDivElement | null>(null);
+  const canRenderVideo = Boolean(hasRenderableVideoTrack && !participant.isVideoOff && streamToUse);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let cancelled = false;
+
+    const clearVideo = () => {
+      try { el.pause(); } catch { /* ignore */ }
+      if (el.srcObject) el.srcObject = null;
+    };
+
+    if (!canRenderVideo || !streamToUse) {
+      clearVideo();
+      return;
+    }
+
+    if (el.srcObject !== streamToUse) {
+      hardenVideoElementForNative(el, { muted: true });
+      el.srcObject = streamToUse;
+      el.muted = true;
+      el.playsInline = true;
+    }
+
+    const tryPlay = () => {
+      if (cancelled || el.srcObject !== streamToUse) return;
+      el.play().catch(() => {
+        if (!cancelled) timers.push(setTimeout(tryPlay, 300));
+      });
+    };
+
+    const hideShield = () => {
+      const shield = shieldRef.current;
+      if (!shield || cancelled) return;
+      shield.style.opacity = '0';
+      timers.push(setTimeout(() => {
+        if (!cancelled && shieldRef.current) shieldRef.current.style.display = 'none';
+      }, 300));
+    };
+
+    tryPlay();
+    const shield = shieldRef.current;
+    if (shield) {
+      shield.style.display = 'flex';
+      shield.style.opacity = '1';
+      if ('requestVideoFrameCallback' in el) {
+        (el as any).requestVideoFrameCallback(hideShield);
+      } else {
+        timers.push(setTimeout(hideShield, 600));
+      }
+      timers.push(setTimeout(hideShield, 1500));
+    }
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      clearVideo();
+    };
+  }, [canRenderVideo, streamToUse]);
   
   // Format number with shortcut (20M, 1.5K, etc.)
   const formatBeans = (num: number) => {
@@ -432,38 +495,10 @@ const VideoGridSeat = ({
       onClick={onTap}
     >
       {/* Video or Avatar */}
-      {hasRenderableVideoTrack && !participant.isVideoOff ? (
+      {canRenderVideo ? (
         <>
           <video
-            ref={(el) => {
-              if (el && streamToUse && hasRenderableVideoTrack && el.srcObject !== streamToUse) {
-                hardenVideoElementForNative(el, { muted: true });
-                el.srcObject = streamToUse;
-                el.muted = true;
-                el.playsInline = true;
-                const tryPlay = () => {
-                  el.play().catch(() => {
-                    setTimeout(tryPlay, 300);
-                  });
-                };
-                tryPlay();
-
-                // Shield removal: wait for actual frames before removing cover
-                const shield = el.parentElement?.querySelector('[data-video-shield]') as HTMLElement | null;
-                if (shield) {
-                  const removeShield = () => {
-                    shield.style.opacity = '0';
-                    setTimeout(() => { shield.style.display = 'none'; }, 300);
-                  };
-                  if ('requestVideoFrameCallback' in el) {
-                    (el as any).requestVideoFrameCallback(removeShield);
-                  } else {
-                    setTimeout(removeShield, 600);
-                  }
-                  setTimeout(removeShield, 1500);
-                }
-              }
-            }}
+            ref={videoRef}
             autoPlay
             playsInline
             muted
@@ -485,6 +520,7 @@ const VideoGridSeat = ({
           />
           {/* Shield: hides native HTML5 play overlay icon until real frames arrive */}
           <div
+            ref={shieldRef}
             data-video-shield
             className="absolute inset-0 z-10 bg-gradient-to-br from-purple-700/80 to-indigo-800/80 flex items-center justify-center pointer-events-none transition-opacity duration-300"
           >
@@ -1160,7 +1196,7 @@ export function UnifiedPartyRoom({
   
   // Create seat positions - Host can move between seats
   // Find host's actual position from participants
-  const hostActualPosition = participants.find(p => p.isHost)?.position ?? 
+  const hostActualPosition = participants.find(p => p.id === hostInfo?.id)?.position ?? 
                              (hostInfo ? 0 : null);
   
   const allSeats = Array.from({ length: seatConfig.totalSeats }, (_, i) => {
