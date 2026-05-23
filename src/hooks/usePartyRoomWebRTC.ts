@@ -17,6 +17,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
+import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { registerPartyRoom, unregisterPartyRoom } from '@/lib/livekitPartySignaling';

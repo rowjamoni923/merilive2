@@ -23,6 +23,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
+import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { registerCallRoom, registerNativeCallRoom, unregisterCallRoom, unregisterNativeCallRoom } from '@/lib/livekitCallSignaling';
 import { registerChatRoom, registerNativeChatRoom, unregisterChatRoom, unregisterNativeChatRoom } from '@/lib/livekitChatSignaling';
 import { registerGiftRoom, registerNativeGiftRoom, unregisterGiftRoom, unregisterNativeGiftRoom } from '@/lib/livekitGiftSignaling';
