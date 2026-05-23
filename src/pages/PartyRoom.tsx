@@ -708,6 +708,7 @@ const PartyRoom = () => {
         if (userData) {
           setCurrentUser(userData);
           sessionAccessTokenRef.current = userData.access_token || null;
+                userCoinsRef.current = userData.profile?.coins || 0;
           setUserCoins(userData.profile?.coins || 0);
           
           // ✅ LEVEL CHECK: Block joining if user doesn't meet minimum level
