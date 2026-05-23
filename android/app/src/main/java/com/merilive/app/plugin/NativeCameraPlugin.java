@@ -1,6 +1,9 @@
 package com.merilive.app.plugin;
 
 import android.Manifest;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
@@ -41,7 +44,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -76,6 +82,12 @@ public class NativeCameraPlugin extends Plugin {
     private File activeRecordingFile;
     private PluginCall pendingStopCall;
     private long recordingStartedAt;
+    private final ExecutorService cameraExecutor = Executors.newSingleThreadExecutor();
+    private final Object frameLock = new Object();
+    private byte[] latestFrameJpeg;
+    private int latestFrameWidth;
+    private int latestFrameHeight;
+    private long lastFrameEncodeAt;
 
     @Override
     public void load() {
@@ -166,7 +178,7 @@ public class NativeCameraPlugin extends Plugin {
     @PluginMethod
     public void capturePhoto(PluginCall call) {
         if (imageCapture == null) {
-            call.reject("Camera not started");
+            resolveLatestFrame(call);
             return;
         }
         imageCapture.takePicture(
@@ -202,7 +214,7 @@ public class NativeCameraPlugin extends Plugin {
     // captureFrame is an alias for capturePhoto used by the pose-frame loop
     @PluginMethod
     public void captureFrame(PluginCall call) {
-        capturePhoto(call);
+        resolveLatestFrame(call);
     }
 
     // ---------- NEW: video recording ----------
