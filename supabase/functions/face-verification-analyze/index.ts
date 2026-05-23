@@ -612,12 +612,29 @@ serve(async (req) => {
       })
       .eq("id", submissionId);
 
-    // Profile-photo mismatch forces manual review — never auto-approve a
-    // submission where the avatar belongs to a different person than the
-    // selfie. Duplicate-face hit does the same.
-    const blockAutoApprove = profileMismatch || !!duplicateBlock;
+    // Hard blockers that must NEVER auto-approve and SHOULD route the user
+    // to support (handled client-side from the `blocker` field returned).
+    //   • gender_mismatch       — declared vs detected gender disagree
+    //   • liveness_failed       — provider rejected as photo/video replay
+    //   • replay_suspected      — 3 angles have near-identical pose
+    //   • profile_face_mismatch — avatar belongs to a different person
+    //   • duplicate_face        — face already verified on another account
+    let hardBlocker:
+      | "gender_mismatch"
+      | "liveness_failed"
+      | "replay_suspected"
+      | "profile_face_mismatch"
+      | "duplicate_face"
+      | null = null;
+    if (genderDeclarationMismatch) hardBlocker = "gender_mismatch";
+    else if (livenessFailed) hardBlocker = "liveness_failed";
+    else if (replaySuspected) hardBlocker = "replay_suspected";
+    else if (profileMismatch) hardBlocker = "profile_face_mismatch";
+    else if (duplicateBlock) hardBlocker = "duplicate_face";
+
+    const blockAutoApprove = hardBlocker !== null;
     const { data: rpcData, error: rpcErr } = blockAutoApprove
-      ? { data: { success: false, reason: profileMismatch ? "profile_face_mismatch" : "duplicate_face" }, error: null as null }
+      ? { data: { success: false, reason: hardBlocker as string }, error: null as null }
       : await supabaseAdmin.rpc(
           "service_auto_finalize_face_verification",
           { p_submission_id: submissionId },
@@ -625,14 +642,8 @@ serve(async (req) => {
     const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
     if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
 
-
-    // ★ NEVER auto-reject. If auto-approve cannot safely fire, leave the row in
-    //   `submitted` so admin sees it in Pending and reviews manually. The previous
-    //   auto-reject branch on invalid_face_count / front_error / underage /
-    //   face_occluded produced many false rejections (Rekognition age is
-    //   unreliable for women, "occluded" misfires on glasses/hair/lighting,
-    //   borderline face counts happen at frame boundary). Falling through to
-    //   admin review is always safer than rejecting a real user.
+    // ★ NEVER auto-reject. If auto-approve cannot safely fire, leave the row
+    //   in `submitted` so admin sees it in Pending and reviews manually.
     const autoReason = String(autoResult?.reason || "");
     if (!autoResult?.success) {
       const reviewReason = autoReason === "invalid_face_count"
@@ -649,7 +660,13 @@ serve(async (req) => {
                   ? `Needs admin review: profile avatar does NOT match the verification selfie (similarity ${profileMatchScore?.toFixed(1) ?? "?"}%). Possible identity abuse.`
                   : autoReason === "duplicate_face"
                     ? "Needs admin review: face already verified on another account."
-                    : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+                    : autoReason === "gender_mismatch"
+                      ? `BLOCKED: Account declared as "${declaredGender}" but face detected as "${rawG}" (${genderConf.toFixed(1)}% confidence). User routed to support.`
+                      : autoReason === "liveness_failed"
+                        ? "BLOCKED: Provider liveness check failed — looks like a photo of a photo / video replay. User routed to support."
+                        : autoReason === "replay_suspected"
+                          ? `BLOCKED: All three angles have near-identical pose (yaw deltas L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°) — likely a static image / phone-screen replay. User routed to support.`
+                          : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
 
       await supabaseAdmin
         .from("face_verification_submissions")
@@ -667,7 +684,11 @@ serve(async (req) => {
         ok: true,
         rekognition,
         autoFinalize: autoResult,
+        blocker: hardBlocker,
+        declaredGender,
+        detectedGender: rawG,
       }),
+
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
