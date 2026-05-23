@@ -1150,9 +1150,6 @@ const GoLive = () => {
             <span className="text-white text-sm font-semibold">
               {userProfile?.display_name || "Your Name"} {userLocation?.flag || "🌍"}
             </span>
-            <span className="text-amber-300 text-xs">
-              ??? ⭐
-            </span>
           </div>
           <div className="flex items-center gap-1 mt-1.5">
             <BeansIcon size={16} />
