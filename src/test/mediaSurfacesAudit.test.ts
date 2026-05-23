@@ -72,6 +72,14 @@ describe("media surfaces — subscription handlers wired", () => {
     expect(src).toMatch(/RoomEvent\.ParticipantDisconnected/);
   });
 
+  it("party video seats use effect cleanup instead of callback-ref timers", () => {
+    const src = read("src/components/party/UnifiedPartyRoom.tsx");
+    expect(src).toMatch(/const videoRef = useRef<HTMLVideoElement \| null>\(null\)/);
+    expect(src).toMatch(/timers\.forEach\(clearTimeout\)/);
+    expect(src).toMatch(/el\.srcObject = null/);
+    expect(src).toMatch(/participants\.find\(p => p\.id === hostInfo\?\.id\)\?\.position/);
+  });
+
   it("live viewer retries subscription early if first-frame hasn't arrived", () => {
     const live = read("src/pages/LiveStream.tsx");
     expect(live).toMatch(/retrySubscription/);
