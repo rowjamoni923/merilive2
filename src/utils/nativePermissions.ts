@@ -25,6 +25,9 @@ interface MeriPermissionsPlugin {
   /** Whether the system will still show its native permission dialog
    *  for each alias (false = permanently denied; only Settings can fix). */
   canRequestAgain(): Promise<MeriPermissionsStatus>;
+  /** Pkg205 — battery optimization whitelist (WhatsApp/Bigo screen-off parity). */
+  isBatteryOptimizationIgnored(): Promise<{ whitelisted: boolean; supported: boolean }>;
+  requestIgnoreBatteryOptimizations(): Promise<{ launched?: boolean; whitelisted?: boolean; supported?: boolean }>;
 }
 
 const MeriPermissions = registerPlugin<MeriPermissionsPlugin>('MeriPermissions');
