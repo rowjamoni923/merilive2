@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
 // ─── Multi-script numeral conversion ───────────────────────────────────
 function convertMultiScriptDigits(text: string): string {
   let result = text;
@@ -223,16 +230,29 @@ Deno.serve(async (req) => {
     const { imageUrl, senderId, sourceType, sourceId } = await req.json();
 
     if (!imageUrl || !senderId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing imageUrl or senderId' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'Missing imageUrl or senderId' }, 400);
     }
 
     console.log(`[scan-image-contact] Scanning image for user ${senderId}`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const authHeader = req.headers.get('Authorization') || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+
+    const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: authData, error: authError } = await supabaseUser.auth.getUser();
+    if (authError || !authData?.user?.id) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+    if (authData.user.id !== senderId) {
+      return jsonResponse({ error: 'Forbidden senderId' }, 403);
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Check if sender is a host
