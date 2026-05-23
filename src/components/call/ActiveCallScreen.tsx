@@ -938,10 +938,15 @@ export function ActiveCallScreen({
               {isAudioEnabled ? <Mic className="w-5 h-5 text-emerald-400" /> : <MicOff className="w-5 h-5 text-red-400" />}
               <span className="text-xs font-medium">{isAudioEnabled ? 'Mute' : 'Unmute'}</span>
             </button>
-            {/* Flip Camera */}
-            <button onClick={() => { handleSwapVideos(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+            {/* Flip Camera — real front↔back lens switch */}
+            <button onClick={() => { void handleFlipCamera(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
               <SwitchCamera className="w-5 h-5 text-purple-400" />
               <span className="text-xs font-medium">Flip Camera</span>
+            </button>
+            {/* Swap View — local↔remote tile */}
+            <button onClick={() => { handleSwapVideos(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+              <Maximize2 className="w-5 h-5 text-cyan-400" />
+              <span className="text-xs font-medium">Swap View</span>
             </button>
             {/* Beauty — Cross-platform */}
               <button onClick={() => { deepAR.setShowBeautyPanel(true); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
