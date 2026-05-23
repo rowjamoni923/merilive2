@@ -1373,6 +1373,17 @@ const Chat = () => {
     return newMsg;
   }
 
+  // Pkg212 — offline DM outbox: drain queued messages on reconnect/resume/tick.
+  useMessageOutboxDrain(!!currentUserId, currentUserId, async (item: OutboxItem) => {
+    await persistDirectMessage(item.conversationId, item.senderId, item.content, item.messageType);
+    // Replace the queued optimistic bubble with a "sent" one — realtime
+    // upsertLiveMessage will replace it with the canonical row shortly.
+    setMessages(prev => prev.map(m =>
+      m.id === item.id ? { ...m, status: 'sent' as any } : m
+    ));
+  });
+
+
   const fetchMessages = async (conversationId: string) => {
     const { data, error } = await supabase
       .from('messages')
