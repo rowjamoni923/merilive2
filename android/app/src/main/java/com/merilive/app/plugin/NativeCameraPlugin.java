@@ -1,6 +1,9 @@
 package com.merilive.app.plugin;
 
 import android.Manifest;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
@@ -41,7 +44,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -76,6 +81,12 @@ public class NativeCameraPlugin extends Plugin {
     private File activeRecordingFile;
     private PluginCall pendingStopCall;
     private long recordingStartedAt;
+    private final ExecutorService cameraExecutor = Executors.newSingleThreadExecutor();
+    private final Object frameLock = new Object();
+    private byte[] latestFrameJpeg;
+    private int latestFrameWidth;
+    private int latestFrameHeight;
+    private long lastFrameEncodeAt;
 
     @Override
     public void load() {
@@ -127,6 +138,12 @@ public class NativeCameraPlugin extends Plugin {
                     activeRecording = null;
                 }
                 if (cameraProvider != null) cameraProvider.unbindAll();
+                synchronized (frameLock) {
+                    latestFrameJpeg = null;
+                    latestFrameWidth = 0;
+                    latestFrameHeight = 0;
+                    lastFrameEncodeAt = 0L;
+                }
                 removePreviewView();
                 call.resolve();
             } catch (Exception e) {
@@ -166,7 +183,7 @@ public class NativeCameraPlugin extends Plugin {
     @PluginMethod
     public void capturePhoto(PluginCall call) {
         if (imageCapture == null) {
-            call.reject("Camera not started");
+            resolveLatestFrame(call);
             return;
         }
         imageCapture.takePicture(
@@ -202,7 +219,7 @@ public class NativeCameraPlugin extends Plugin {
     // captureFrame is an alias for capturePhoto used by the pose-frame loop
     @PluginMethod
     public void captureFrame(PluginCall call) {
-        capturePhoto(call);
+        resolveLatestFrame(call);
     }
 
     // ---------- NEW: video recording ----------
@@ -318,6 +335,67 @@ public class NativeCameraPlugin extends Plugin {
         }
     }
 
+    private void resolveLatestFrame(PluginCall call) {
+        byte[] jpeg;
+        int width;
+        int height;
+        synchronized (frameLock) {
+            jpeg = latestFrameJpeg;
+            width = latestFrameWidth;
+            height = latestFrameHeight;
+        }
+        if (jpeg == null || jpeg.length == 0) {
+            call.reject("Camera frame not ready");
+            return;
+        }
+        JSObject ret = new JSObject();
+        ret.put("base64", Base64.encodeToString(jpeg, Base64.NO_WRAP));
+        ret.put("mimeType", "image/jpeg");
+        ret.put("width", width);
+        ret.put("height", height);
+        call.resolve(ret);
+    }
+
+    private byte[] imageProxyToJpeg(ImageProxy image, int quality) throws IOException {
+        ImageProxy.PlaneProxy[] planes = image.getPlanes();
+        ByteBuffer yBuffer = planes[0].getBuffer();
+        ByteBuffer uBuffer = planes[1].getBuffer();
+        ByteBuffer vBuffer = planes[2].getBuffer();
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+        byte[] nv21 = new byte[width * height * 3 / 2];
+
+        int yRowStride = planes[0].getRowStride();
+        int yPixelStride = planes[0].getPixelStride();
+        int pos = 0;
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                nv21[pos++] = yBuffer.get(row * yRowStride + col * yPixelStride);
+            }
+        }
+
+        int chromaHeight = height / 2;
+        int chromaWidth = width / 2;
+        int uRowStride = planes[1].getRowStride();
+        int vRowStride = planes[2].getRowStride();
+        int uPixelStride = planes[1].getPixelStride();
+        int vPixelStride = planes[2].getPixelStride();
+        for (int row = 0; row < chromaHeight; row++) {
+            for (int col = 0; col < chromaWidth; col++) {
+                nv21[pos++] = vBuffer.get(row * vRowStride + col * vPixelStride);
+                nv21[pos++] = uBuffer.get(row * uRowStride + col * uPixelStride);
+            }
+        }
+
+        YuvImage yuv = new YuvImage(nv21, ImageFormat.NV21, width, height, null);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        if (!yuv.compressToJpeg(new Rect(0, 0, width, height), quality, out)) {
+            throw new IOException("YUV JPEG compression failed");
+        }
+        return out.toByteArray();
+    }
+
     // ============================================================
     // INTERNAL
     // ============================================================
@@ -366,6 +444,23 @@ public class NativeCameraPlugin extends Plugin {
             .setTargetResolution(targetResolution)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build();
+        analysis.setAnalyzer(cameraExecutor, image -> {
+            try {
+                long now = System.currentTimeMillis();
+                if (now - lastFrameEncodeAt < 350) return;
+                byte[] jpeg = imageProxyToJpeg(image, 72);
+                synchronized (frameLock) {
+                    latestFrameJpeg = jpeg;
+                    latestFrameWidth = image.getWidth();
+                    latestFrameHeight = image.getHeight();
+                    lastFrameEncodeAt = now;
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Frame analyzer encode failed: " + e.getMessage());
+            } finally {
+                image.close();
+            }
+        });
 
         imageCapture = new ImageCapture.Builder()
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
@@ -381,15 +476,16 @@ public class NativeCameraPlugin extends Plugin {
 
         cameraProvider.unbindAll();
         try {
-            // Bind preview + imageCapture + videoCapture (analysis omitted —
-            // CameraX max 3 use-cases on most devices, video > analysis here)
+            // Face verification needs simultaneous native preview + video +
+            // pose frames. Analyzer supplies captureFrame while recording.
             camera = cameraProvider.bindToLifecycle(
                 (LifecycleOwner) getActivity(),
                 currentSelector,
                 preview,
-                imageCapture,
+                analysis,
                 videoCapture
             );
+            imageCapture = null;
         } catch (Exception e) {
             // Some devices reject 3 use-cases — fall back to preview+video only
             Log.w(TAG, "3-use-case bind failed, retry with preview+video: " + e.getMessage());

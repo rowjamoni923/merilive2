@@ -48,6 +48,7 @@ import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -138,6 +139,7 @@ const FaceVerification = () => {
   
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
+  const nativeFaceCam = useNativeFaceCamera();
   
   // Determine verification type based on user gender
   const isHost = profile?.is_host;
@@ -183,12 +185,15 @@ const FaceVerification = () => {
   // Face Verification Video States
   const [faceVerificationVideo, setFaceVerificationVideo] = useState<Blob | null>(null);
   const [faceStream, setFaceStream] = useState<MediaStream | null>(null);
+  const [usingNativeFaceCamera, setUsingNativeFaceCamera] = useState(false);
   const [faceVerified, setFaceVerified] = useState(false);
   const [verifyingFace, setVerifyingFace] = useState(false);
   const faceVideoRef = useRef<HTMLVideoElement>(null);
   const faceCanvasRef = useRef<HTMLCanvasElement>(null);
   const faceRecorderRef = useRef<MediaRecorder | null>(null);
   const faceChunksRef = useRef<Blob[]>([]);
+  const usingNativeFaceCameraRef = useRef(false);
+  const nativeFaceRecordingRef = useRef(false);
   
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
@@ -367,6 +372,22 @@ const FaceVerification = () => {
       }, 1600);
     });
   }, []);
+
+  const setNativeFaceCameraActive = useCallback((active: boolean) => {
+    usingNativeFaceCameraRef.current = active;
+    setUsingNativeFaceCamera(active);
+  }, []);
+
+  const captureFaceFrameBase64 = useCallback(async (size = 480): Promise<string | null> => {
+    if (usingNativeFaceCameraRef.current) {
+      const dataUrl = await nativeFaceCam.captureFrame();
+      if (!dataUrl) return null;
+      return dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+    }
+
+    const videoEl = faceVideoRef.current;
+    return videoEl ? captureFrameFromLiveVideo(videoEl, size) : null;
+  }, [nativeFaceCam]);
 
   const refreshVerificationState = useCallback(async (targetUserId: string) => {
     const { data: profileData } = await supabase
@@ -582,6 +603,11 @@ const FaceVerification = () => {
     checkUser();
     
     return () => {
+      if (usingNativeFaceCameraRef.current) {
+        nativeFaceCam.stopPreview().catch(() => null);
+        usingNativeFaceCameraRef.current = false;
+        nativeFaceRecordingRef.current = false;
+      }
       if (faceStream) {
         faceStream.getTracks().forEach(track => track.stop());
       }
@@ -774,6 +800,17 @@ const FaceVerification = () => {
   // Start face verification camera
   const startFaceCamera = useCallback(async () => {
     try {
+      if (await nativeFaceCam.isAvailable()) {
+        if (faceStream) {
+          faceStream.getTracks().forEach(track => track.stop());
+          setFaceStream(null);
+        }
+        await nativeFaceCam.startPreview('1080p');
+        setNativeFaceCameraActive(true);
+        setCameraReady(true);
+        return;
+      }
+
       // Stop any existing stream first
       if (faceStream) {
         faceStream.getTracks().forEach(track => track.stop());
@@ -792,13 +829,14 @@ const FaceVerification = () => {
     } catch (error: any) {
       console.error('Face camera error:', error);
       recordClientError({ label: "FaceVerification.stream", message: error instanceof Error ? error.message : String(error) });
+      setNativeFaceCameraActive(false);
       toast({
         title: "Camera access failed",
         description: error.message || "Please grant camera permission from settings.",
         variant: "destructive",
       });
     }
-  }, [faceStream, toast, getCameraStream, attachFacePreviewStream]);
+  }, [faceStream, toast, getCameraStream, attachFacePreviewStream, nativeFaceCam, setNativeFaceCameraActive]);
   
   useEffect(() => {
     if (faceStream) {
@@ -831,7 +869,7 @@ const FaceVerification = () => {
   // are cached and used as the starting point for the next verification run,
   // so users with off-axis cameras / glasses don't have to fight defaults.
   const runNeutralCalibration = async () => {
-    if (!cameraReady || !faceVideoRef.current) {
+    if (!cameraReady || (!usingNativeFaceCameraRef.current && !faceVideoRef.current)) {
       toast({ title: 'Camera not ready', description: 'Please wait for the preview, then try again.', variant: 'destructive' });
       return;
     }
@@ -844,9 +882,7 @@ const FaceVerification = () => {
     let consecutiveNoFace = 0;
     try {
       while (samples.length < TARGET && !neutralAbortRef.current) {
-        const videoEl = faceVideoRef.current;
-        if (!videoEl) break;
-        const frame = captureFrameFromLiveVideo(videoEl);
+        const frame = await captureFaceFrameBase64();
         if (frame) {
           const res = await checkFacePose(frame);
           if (res?.faceDetected) {
@@ -890,7 +926,7 @@ const FaceVerification = () => {
 
   // Start face verification recording with REAL liveness checking
   const startFaceVerification = async () => {
-    if (!cameraReady || !faceStream) {
+    if (!cameraReady || (!usingNativeFaceCameraRef.current && !faceStream)) {
       toast({ title: "Camera not ready", description: "Please wait...", variant: "destructive" });
       return;
     }
@@ -926,29 +962,47 @@ const FaceVerification = () => {
     });
 
     try {
-      const mimeType = MediaRecorder.isTypeSupported('video/mp4')
-        ? 'video/mp4'
-        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
-          ? 'video/webm;codecs=vp8,opus'
-          : MediaRecorder.isTypeSupported('video/webm')
-            ? 'video/webm'
-            : '';
-      
-      const mediaRecorder = mimeType
-        ? new MediaRecorder(faceStream, { mimeType })
-        : new MediaRecorder(faceStream);
-      faceRecorderRef.current = mediaRecorder;
-      
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) faceChunksRef.current.push(e.data);
-      };
-      
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
-        setFaceVerificationVideo(blob);
-      };
-      
-      mediaRecorder.start();
+      if (usingNativeFaceCameraRef.current) {
+        let nativeFrameReady = false;
+        for (let i = 0; i < 6; i++) {
+          const warmupFrame = await captureFaceFrameBase64(720);
+          if (warmupFrame) {
+            capturedAnglesRef.current.center = capturedAnglesRef.current.center || warmupFrame;
+            nativeFrameReady = true;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 250));
+        }
+        if (!nativeFrameReady) throw new Error('Native camera frame is not ready yet. Please try again.');
+        await nativeFaceCam.startRecording();
+        nativeFaceRecordingRef.current = true;
+      } else {
+        const webFaceStream = faceStream;
+        if (!webFaceStream) throw new Error('Camera stream is not ready');
+        const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+          ? 'video/mp4'
+          : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+            ? 'video/webm;codecs=vp8,opus'
+            : MediaRecorder.isTypeSupported('video/webm')
+              ? 'video/webm'
+              : '';
+        
+        const mediaRecorder = mimeType
+          ? new MediaRecorder(webFaceStream, { mimeType })
+          : new MediaRecorder(webFaceStream);
+        faceRecorderRef.current = mediaRecorder;
+        
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) faceChunksRef.current.push(e.data);
+        };
+        
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
+          setFaceVerificationVideo(blob);
+        };
+        
+        mediaRecorder.start();
+      }
       
       // Overall verification window: 3 essential liveness poses × stepWindowSec,
       // padded for calibration/capture latency. This avoids users getting stuck
@@ -1059,10 +1113,9 @@ const FaceVerification = () => {
     const CALIB_TARGET = 8;
     
     poseCheckIntervalRef.current = setInterval(async () => {
-      const videoEl = faceVideoRef.current;
-      if (!videoEl) return;
+      if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
       
-      const frameBase64 = captureFrameFromLiveVideo(videoEl);
+      const frameBase64 = await captureFaceFrameBase64();
       if (!frameBase64) return;
       
       setScanningStatus('scanning');
@@ -1088,7 +1141,7 @@ const FaceVerification = () => {
           apiOk: !!result,
         });
         if (consecutiveFails >= 15) {
-          const fallbackFrame = captureFrameFromLiveVideo(videoEl, 720);
+          const fallbackFrame = await captureFaceFrameBase64(720);
           if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
           pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
           finishVerification(true, true);
@@ -1167,7 +1220,7 @@ const FaceVerification = () => {
           if (instruction.id === 'center' || instruction.id === 'left' || instruction.id === 'right') {
             const angleKey = instruction.id as 'center' | 'left' | 'right';
             if (!capturedAnglesRef.current[angleKey]) {
-              const stillFrame = captureFrameFromLiveVideo(videoEl, 720);
+              const stillFrame = await captureFaceFrameBase64(720);
               if (stillFrame) capturedAnglesRef.current[angleKey] = stillFrame;
             }
           }
@@ -1207,7 +1260,16 @@ const FaceVerification = () => {
       poseCheckIntervalRef.current = null;
     }
     
-    if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
+    if (usingNativeFaceCameraRef.current && nativeFaceRecordingRef.current) {
+      const nativeVideo = await nativeFaceCam.stopRecording();
+      nativeFaceRecordingRef.current = false;
+      if (nativeVideo?.blob?.size) {
+        setFaceVerificationVideo(nativeVideo.blob);
+      } else if (success) {
+        success = false;
+        pushDebug({ kind: 'error', message: 'native_recording_empty_or_missing' });
+      }
+    } else if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
       faceRecorderRef.current.stop();
     }
     
@@ -1266,6 +1328,13 @@ const FaceVerification = () => {
 
   // Reset verification
   const resetVerification = () => {
+    if (usingNativeFaceCameraRef.current && nativeFaceRecordingRef.current) {
+      nativeFaceCam.stopRecording().catch(() => null);
+      nativeFaceRecordingRef.current = false;
+    }
+    if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
+      faceRecorderRef.current.stop();
+    }
     setVerificationStarted(false);
     setVerificationRecording(false);
     setCurrentInstruction(0);
@@ -1289,6 +1358,11 @@ const FaceVerification = () => {
 
   // Stop camera
   const stopFaceCamera = () => {
+    if (usingNativeFaceCameraRef.current) {
+      nativeFaceCam.stopPreview().catch(() => null);
+      nativeFaceRecordingRef.current = false;
+      setNativeFaceCameraActive(false);
+    }
     if (faceStream) {
       faceStream.getTracks().forEach(track => track.stop());
       setFaceStream(null);
@@ -1354,7 +1428,7 @@ const FaceVerification = () => {
   // Returns { front_url, left_url, right_url } — all three are required for auto-finalize.
   const uploadCapturedAngles = async (): Promise<{ front_url?: string; left_url?: string; right_url?: string }> => {
     const out: { front_url?: string; left_url?: string; right_url?: string } = {};
-    const fallbackCenter = capturedAnglesRef.current.center || (faceVideoRef.current ? captureFrameFromLiveVideo(faceVideoRef.current, 720) : null);
+    const fallbackCenter = capturedAnglesRef.current.center || await captureFaceFrameBase64(720);
     if (fallbackCenter && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackCenter;
     if (fallbackCenter && !capturedAnglesRef.current.left) capturedAnglesRef.current.left = fallbackCenter;
     if (fallbackCenter && !capturedAnglesRef.current.right) capturedAnglesRef.current.right = fallbackCenter;
@@ -1870,12 +1944,13 @@ const FaceVerification = () => {
 
   // Face Verification Section JSX — Professional Scanning UI
   const renderFaceVerificationSection = () => {
+    const faceCameraActive = !!faceStream || usingNativeFaceCamera;
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : scanningStatus === 'scanning' ? '#eab308' : '#a855f7';
     const completeFromPartialScan = () => {
       const completed = instructionsCompletedRef.current.filter(Boolean).length;
-      if (completed < 2 || !faceChunksRef.current.length) {
+      if (completed < 2 || (!usingNativeFaceCameraRef.current && !faceChunksRef.current.length)) {
         toast({ title: 'Keep scanning', description: 'Complete at least forward + one side angle before manual review.', variant: 'destructive' });
         return;
       }
@@ -1883,7 +1958,7 @@ const FaceVerification = () => {
     };
 
     return (
-    <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]">
+    <div className={`${usingNativeFaceCamera ? 'bg-background/20 backdrop-blur-[2px]' : 'bg-white'} rounded-3xl p-5 border border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]`}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
@@ -1928,8 +2003,8 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden bg-white/80 mb-5 shadow-2xl">
-        {!faceStream && !faceVerified ? (
+      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 shadow-2xl ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-white/80'}`}>
+        {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-white">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -1988,20 +2063,22 @@ const FaceVerification = () => {
           </div>
         ) : (
           <>
-            <video 
-              ref={faceVideoRef} 
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover scale-x-[-1]"
-              onLoadedMetadata={() => setCameraReady(true)}
-              onCanPlay={() => setCameraReady(true)}
-              onPlaying={() => setCameraReady(true)}
-              style={{ backgroundColor: '#000' }}
-            />
+            {!usingNativeFaceCamera && (
+              <video 
+                ref={faceVideoRef} 
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover scale-x-[-1]"
+                onLoadedMetadata={() => setCameraReady(true)}
+                onCanPlay={() => setCameraReady(true)}
+                onPlaying={() => setCameraReady(true)}
+                style={{ backgroundColor: '#000' }}
+              />
+            )}
             
             {/* Loading overlay */}
-            {faceStream && !cameraReady && (
+            {faceCameraActive && !cameraReady && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/80">
                 <div className="flex flex-col items-center">
                   <Loader2 className="w-12 h-12 text-cyan-600 animate-spin mb-2" />
@@ -2381,7 +2458,7 @@ const FaceVerification = () => {
       </div>
 
       {/* Tips */}
-      {!faceStream && !faceVerified && (
+      {!faceCameraActive && !faceVerified && (
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4">
           <p className="text-slate-600 text-xs text-center leading-relaxed">
             {localizedMsg.tips}
@@ -2390,7 +2467,7 @@ const FaceVerification = () => {
       )}
 
       {/* Action buttons */}
-      {!faceStream && !faceVerified && (
+      {!faceCameraActive && !faceVerified && (
         <Button
           className="w-full h-14 bg-slate-900 hover:bg-slate-800 rounded-2xl text-base font-semibold shadow-lg shadow-slate-900/20 text-white"
           onClick={startFaceCamera}
@@ -2400,7 +2477,7 @@ const FaceVerification = () => {
         </Button>
       )}
 
-      {faceStream && !verificationStarted && !faceVerified && (
+      {faceCameraActive && !verificationStarted && !faceVerified && (
         <div className="space-y-3">
           <Button
             className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-semibold shadow-lg shadow-emerald-600/25 text-white"
@@ -2530,7 +2607,7 @@ const FaceVerification = () => {
 
   if (verificationStatus === 'rejected') {
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
@@ -2586,7 +2663,7 @@ const FaceVerification = () => {
   // Already submitted - pending review
   if (verificationStatus === 'submitted') {
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
@@ -2607,7 +2684,7 @@ const FaceVerification = () => {
   // Already verified
   if (verificationStatus === 'verified') {
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div
@@ -2840,7 +2917,7 @@ const FaceVerification = () => {
 
   // Host verification (3-step process)
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+    <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
       {renderHeader("Host Verification", "Get verified as a host")}
       
       {/* Progress Steps — professional KYC-style indicator */}
