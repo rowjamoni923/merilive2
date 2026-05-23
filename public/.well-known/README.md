@@ -7,8 +7,6 @@ HTTPS URLs for the domains listed in `AndroidManifest.xml`:
 
 - `https://merilive.com/*`
 - `https://www.merilive.com/*`
-- `https://merilive.top/*`
-- `https://www.merilive.top/*`
 
 When `android:autoVerify="true"` is present on the intent-filter, Android
 fetches `/.well-known/assetlinks.json` from each host during app install and
