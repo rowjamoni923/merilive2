@@ -137,21 +137,43 @@ public class NotificationHelper {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_MESSAGES)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(BRAND_COLOR)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setGroup(GROUP_MESSAGES)
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(pendingIntent)
             .setDefaults(NotificationCompat.DEFAULT_ALL);
 
         NotificationManagerCompat.from(context).notify(notificationId, builder.build());
+
+        // Pkg202 — WhatsApp-style group summary so multiple messages stack
+        // into one collapsible bundle on Android 7+ instead of spamming the shade.
+        NotificationCompat.Builder summary = new NotificationCompat.Builder(context, CHANNEL_MESSAGES)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(BRAND_COLOR)
+            .setContentTitle("New messages")
+            .setContentText(title)
+            .setStyle(new NotificationCompat.InboxStyle()
+                .setSummaryText("MeriLive")
+                .setBigContentTitle("New messages"))
+            .setGroup(GROUP_MESSAGES)
+            .setGroupSummary(true)
+            .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setContentIntent(pendingIntent);
+        NotificationManagerCompat.from(context).notify(SUMMARY_MESSAGES, summary.build());
     }
 
     public static void showGiftNotification(Context context, String senderName,
                                              String giftName, int giftValue) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.putExtra("type", "gift");
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
             context, NOTIFICATION_GIFT, intent,
@@ -161,11 +183,15 @@ public class NotificationHelper {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_GIFTS)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(BRAND_COLOR)
             .setContentTitle("Gift Received! 🎁")
             .setContentText(body)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setGroup(GROUP_GIFTS)
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(pendingIntent);
 
         NotificationManagerCompat.from(context).notify(NOTIFICATION_GIFT, builder.build());
@@ -183,11 +209,14 @@ public class NotificationHelper {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_LIVE)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(BRAND_COLOR)
             .setContentTitle(hostName + " is now LIVE! 🔴")
             .setContentText("Tap to join the live stream")
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setGroup(GROUP_LIVE)
             .setContentIntent(pendingIntent);
 
         NotificationManagerCompat.from(context).notify(NOTIFICATION_LIVE, builder.build());
