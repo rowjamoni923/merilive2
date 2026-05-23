@@ -243,6 +243,19 @@
         <meta-data android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
 
+        <!-- Pkg250 — Quick Actions home screen widget -->
+        <receiver
+            android:name=".widget.QuickActionsWidget"
+            android:exported="true"
+            android:label="@string/widget_quick_actions_desc">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.merilive.app.widget.REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_actions_info" />
+        </receiver>
 
     </application>
 </manifest>
