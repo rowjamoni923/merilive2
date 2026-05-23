@@ -98,6 +98,15 @@ describe("media surfaces — subscription handlers wired", () => {
     expect(src).toMatch(/host-move-\$\{currentUser\.id\}/);
   });
 
+  it("party gift send guards rapid taps, stale rooms, and instant gift chat fanout", () => {
+    const src = read("src/pages/PartyRoom.tsx");
+    expect(src).toMatch(/userCoinsRef/);
+    expect(src).toMatch(/pendingGiftCostRef/);
+    expect(src).toMatch(/roomIdRef\.current !== sendingRoomId/);
+    expect(src).toMatch(/if \(transactionSucceeded\) return/);
+    expect(src).toMatch(/publishChatMessage\('party', sendingRoomId/);
+  });
+
   it("live viewer retries subscription early if first-frame hasn't arrived", () => {
     const live = read("src/pages/LiveStream.tsx");
     expect(live).toMatch(/retrySubscription/);
