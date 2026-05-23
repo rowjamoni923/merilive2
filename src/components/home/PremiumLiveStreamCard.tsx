@@ -289,7 +289,7 @@ export const PremiumLiveStreamCard = ({
             {/* Level Badge and Location */}
             <div className="flex items-center gap-1.5 mt-0.5">
               <LevelBadge level={userLevel} size="xs" animated />
-              <div className="flex items-center gap-1 text-white/85 text-[10px]">
+              <div className="flex items-center gap-1 text-on-dark-muted text-[10px]">
                 <CountryFlag code={countryCode} emoji={countryFlag} className="w-[16px] h-[11px]" />
                 {country && <span className="truncate max-w-[60px]">{country}</span>}
               </div>
