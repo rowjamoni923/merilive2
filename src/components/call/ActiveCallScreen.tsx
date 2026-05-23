@@ -155,8 +155,26 @@ export function ActiveCallScreen({
     connectionState,
     toggleAudio,
     toggleVideo,
+    setSpeakerOn,
     cleanup,
   } = useLiveKitCall(isOpen ? callId : null, userId, isHost);
+
+  // Bug-fix: actually push speaker on/off to native audio routing whenever the
+  // user toggles it (previously the menu button only flipped React state).
+  useEffect(() => {
+    if (!isOpen) return;
+    try { setSpeakerOn?.(isSpeakerOn); } catch { /* ignore */ }
+  }, [isOpen, isSpeakerOn, setSpeakerOn]);
+
+  // Bug-fix: real front↔back camera flip via native LiveKit plugin.
+  const handleFlipCamera = useCallback(async () => {
+    try {
+      const { nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
+      await nativeLiveKitController.switchCamera();
+    } catch (err) {
+      console.warn('[ActiveCall] switchCamera failed:', err);
+    }
+  }, []);
   
   const mediaConnectedNotifiedRef = useRef<string | null>(null);
 
