@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { useNavigate, useParams } from "react-router-dom";
+import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { 
@@ -198,6 +199,10 @@ const PartyRoom = () => {
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [moderateTarget, setModerateTarget] = useState<{ id: string; name: string } | null>(null);
+
+  // Pkg245 — auto-PiP for party rooms (multi-guest grid; 1:1 square window
+  // works best for 2-9 seats). Active once the room loaded successfully.
+  useNativeAndroidPip({ active: !!room && !loading, aspect: '1:1' });
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [showRaiseHandQueue, setShowRaiseHandQueue] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
