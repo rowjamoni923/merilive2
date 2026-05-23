@@ -1883,25 +1883,28 @@ const FaceVerification = () => {
     };
 
     return (
-    <div className="bg-gradient-to-br from-[#FFFBF2] to-[#FFF6E2] rounded-3xl p-5 border border-amber-400/40 shadow-[0_20px_60px_-20px_rgba(201,168,76,0.45)] ring-1 ring-amber-200/50">
+    <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#f5d97a] via-[#c9a84c] to-[#8a6a1f] flex items-center justify-center shadow-lg shadow-amber-500/40 ring-1 ring-amber-200/70">
-            <ScanFace className="w-6 h-6 text-[#3a2a05] drop-shadow" />
+          <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg shadow-slate-900/20 ring-1 ring-slate-200">
+            <ScanFace className="w-6 h-6 text-white" />
           </div>
           {verificationRecording && (
-            <motion.div 
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500"
-              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
+            <motion.div
+              className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 ring-2 ring-white"
+              animate={{ scale: [1, 1.25, 1], opacity: [1, 0.7, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
             />
           )}
         </div>
-        <div>
-          <h2 className="font-bold text-[#3a2a05] text-lg tracking-tight">Live Face Scan</h2>
-          <p className="text-amber-900/70 text-sm">
-            {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length}` : 'AI-powered identity verification'}
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold text-slate-900 text-lg tracking-tight">Live Face Scan</h2>
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-semibold uppercase tracking-wide">Secure</span>
+          </div>
+          <p className="text-slate-500 text-xs">
+            {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length} · Bank-grade liveness check` : 'AI-powered identity verification'}
           </p>
         </div>
       </div>
@@ -1909,47 +1912,48 @@ const FaceVerification = () => {
       {/* Progress Bar */}
       {verificationRecording && (
         <div className="mb-4">
-          <div className="flex justify-between text-xs text-amber-900/70 mb-1.5">
-            <span>Liveness Check Progress</span>
-            <span>{completedCount}/{faceInstructions.length} steps</span>
+          <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+            <span className="font-medium">Liveness Progress</span>
+            <span className="font-mono">{completedCount}/{faceInstructions.length}</span>
           </div>
-          <div className="h-2 bg-amber-100/80 rounded-full overflow-hidden ring-1 ring-amber-200/60">
-            <motion.div 
-              className="h-full bg-gradient-to-r from-[#f5d97a] via-[#c9a84c] to-[#8a6a1f] rounded-full shadow-[0_0_12px_rgba(201,168,76,0.6)]"
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"
               animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.4 }}
             />
           </div>
         </div>
       )}
+
       
       {/* Video Container with Face Oval */}
       <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden bg-white/80 mb-5 shadow-2xl">
         {!faceStream && !faceVerified ? (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#FAF5EA] to-[#FFFBF2]">
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-white">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="relative w-32 h-32 mb-6"
             >
-              {/* Animated scanning circle */}
               <motion.div
-                className="absolute inset-0 rounded-full border-2 border-cyan-400/30"
-                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.1, 0.3] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute inset-0 rounded-full border-2 border-slate-300/60"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.15, 0.5] }}
+                transition={{ duration: 2.2, repeat: Infinity }}
               />
               <motion.div
-                className="absolute inset-2 rounded-full border-2 border-purple-400/40"
+                className="absolute inset-2 rounded-full border-2 border-slate-400/50"
                 animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.1, 0.4] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
+                transition={{ duration: 2.2, repeat: Infinity, delay: 0.3 }}
               />
-              <div className="absolute inset-4 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-                <ScanFace className="w-12 h-12 text-cyan-600" />
+              <div className="absolute inset-4 rounded-full bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-900/20">
+                <ScanFace className="w-12 h-12 text-white" />
               </div>
             </motion.div>
-            <p className="text-slate-700 text-center font-medium mb-1">Ready to Scan</p>
-            <p className="text-slate-600 text-xs text-center max-w-[200px]">Position your face in the oval and follow each instruction</p>
+            <p className="text-slate-900 text-center font-semibold mb-1 text-base">Ready to Scan</p>
+            <p className="text-slate-500 text-xs text-center max-w-[220px] leading-relaxed">Position your face inside the oval and follow each on-screen instruction</p>
           </div>
+
         ) : faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900/60 to-green-900/40">
             <motion.div
@@ -2378,43 +2382,44 @@ const FaceVerification = () => {
 
       {/* Tips */}
       {!faceStream && !faceVerified && (
-        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-3 mb-4">
-          <p className="text-cyan-800 text-xs text-center">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4">
+          <p className="text-slate-600 text-xs text-center leading-relaxed">
             {localizedMsg.tips}
           </p>
         </div>
       )}
-      
+
       {/* Action buttons */}
       {!faceStream && !faceVerified && (
         <Button
-          className="w-full h-14 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 hover:from-cyan-500 hover:via-purple-500 hover:to-pink-500 rounded-2xl text-lg font-bold shadow-lg shadow-purple-500/20"
+          className="w-full h-14 bg-slate-900 hover:bg-slate-800 rounded-2xl text-base font-semibold shadow-lg shadow-slate-900/20 text-white"
           onClick={startFaceCamera}
         >
-          <ScanFace className="w-6 h-6 mr-3" />
+          <ScanFace className="w-5 h-5 mr-2.5" />
           {localizedMsg.startScan}
         </Button>
       )}
-      
+
       {faceStream && !verificationStarted && !faceVerified && (
         <div className="space-y-3">
           <Button
-            className="w-full h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-2xl text-lg font-bold shadow-lg shadow-cyan-500/20"
+            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-semibold shadow-lg shadow-emerald-600/25 text-white"
             onClick={startFaceVerification}
             disabled={!cameraReady}
           >
             {!cameraReady ? (
               <>
-                <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                Initializing...
+                <Loader2 className="w-5 h-5 mr-2.5 animate-spin" />
+                Initializing camera…
               </>
             ) : (
               <>
-                <Play className="w-6 h-6 mr-3" />
+                <Play className="w-5 h-5 mr-2.5" />
                 {localizedMsg.beginCheck}
               </>
             )}
           </Button>
+
           <Button
             variant="outline"
             className="w-full h-11 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 text-sm font-semibold leading-5 shadow-sm"
@@ -2838,29 +2843,52 @@ const FaceVerification = () => {
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
       {renderHeader("Host Verification", "Get verified as a host")}
       
-      {/* Progress Steps */}
-      <div className="flex items-center justify-between mb-8 px-2">
-        {[1, 2, 3].map((step) => (
-          <div key={step} className="flex items-center">
-            <motion.div 
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${
-                currentStep >= step 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-                  : 'bg-amber-50/70 text-slate-700'
-              }`}
-              animate={currentStep === step ? { scale: [1, 1.05, 1] } : {}}
-              transition={{ repeat: Infinity, duration: 2 }}
-            >
-              {currentStep > step ? <CheckCircle2 className="w-6 h-6" /> : step}
-            </motion.div>
-            {step < 3 && (
-              <div className={`w-12 sm:w-20 h-1.5 mx-1 rounded-full ${
-                currentStep > step ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-amber-50/70'
-              }`} />
-            )}
-          </div>
-        ))}
+      {/* Progress Steps — professional KYC-style indicator */}
+      <div className="mb-8 px-1">
+        <div className="flex items-center justify-between">
+          {[
+            { n: 1, label: 'Basic Info' },
+            { n: 2, label: 'Photos & Video' },
+            { n: 3, label: 'Live Face Scan' },
+          ].map((s, idx) => {
+            const done = currentStep > s.n;
+            const active = currentStep === s.n;
+            return (
+              <div key={s.n} className="flex items-center flex-1">
+                <div className="flex flex-col items-center gap-1.5">
+                  <motion.div
+                    className={`relative w-11 h-11 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+                      done
+                        ? 'bg-emerald-600 text-white ring-2 ring-emerald-200'
+                        : active
+                          ? 'bg-slate-900 text-white ring-4 ring-slate-200'
+                          : 'bg-white text-slate-400 ring-1 ring-slate-200'
+                    }`}
+                    animate={active ? { scale: [1, 1.04, 1] } : {}}
+                    transition={{ repeat: Infinity, duration: 2.2 }}
+                  >
+                    {done ? <CheckCircle2 className="w-5 h-5" /> : s.n}
+                  </motion.div>
+                  <span className={`text-[10px] font-medium tracking-tight whitespace-nowrap ${
+                    active ? 'text-slate-900' : done ? 'text-emerald-700' : 'text-slate-400'
+                  }`}>{s.label}</span>
+                </div>
+                {idx < 2 && (
+                  <div className="flex-1 h-[2px] mx-2 mt-[-18px] rounded-full bg-slate-200 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-emerald-500"
+                      initial={false}
+                      animate={{ width: currentStep > s.n ? '100%' : '0%' }}
+                      transition={{ duration: 0.4 }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
+
       
       {/* Step Content */}
       {currentStep === 1 && (

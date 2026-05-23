@@ -612,33 +612,54 @@ serve(async (req) => {
       })
       .eq("id", submissionId);
 
-    // Hard blockers that must NEVER auto-approve and SHOULD route the user
-    // to support (handled client-side from the `blocker` field returned).
-    //   • gender_mismatch       — declared vs detected gender disagree
-    //   • liveness_failed       — provider rejected as photo/video replay
-    //   • replay_suspected      — 3 angles have near-identical pose
-    //   • profile_face_mismatch — avatar belongs to a different person
-    //   • duplicate_face        — face already verified on another account
-    let hardBlocker:
-      | "gender_mismatch"
-      | "liveness_failed"
-      | "replay_suspected"
-      | "profile_face_mismatch"
-      | "duplicate_face"
-      | null = null;
-    if (genderDeclarationMismatch) hardBlocker = "gender_mismatch";
-    else if (livenessFailed) hardBlocker = "liveness_failed";
-    else if (replaySuspected) hardBlocker = "replay_suspected";
-    else if (profileMismatch) hardBlocker = "profile_face_mismatch";
-    else if (duplicateBlock) hardBlocker = "duplicate_face";
+    // ────────────────────────────────────────────────────────────────────
+    // POLICY (per product owner, 2026-05-23):
+    //   • The ONLY case that auto-rejects is `gender_mismatch` — the user
+    //     declared one gender at signup but the live face clearly shows
+    //     another. Status → 'rejected', client routes to support ticket.
+    //   • Every other unclear signal (liveness_failed, replay_suspected,
+    //     profile_face_mismatch, duplicate_face, below-threshold scores,
+    //     occlusion, etc.) goes to admin MANUAL REVIEW — never auto-reject.
+    //   • Clean submissions auto-approve (~90/100 target).
+    // ────────────────────────────────────────────────────────────────────
+    const hardAutoReject: "gender_mismatch" | null = genderDeclarationMismatch ? "gender_mismatch" : null;
 
-    const blockAutoApprove = hardBlocker !== null;
-    const { data: rpcData, error: rpcErr } = blockAutoApprove
-      ? { data: { success: false, reason: hardBlocker as string }, error: null as null }
-      : await supabaseAdmin.rpc(
-          "service_auto_finalize_face_verification",
-          { p_submission_id: submissionId },
-        );
+    if (hardAutoReject) {
+      // Auto-reject: flip status to 'rejected' so admin doesn't have to
+      // touch it, and client sees rejection + support routing.
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          status: "rejected",
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: `Account declared as "${declaredGender}" but live face detected as "${rawG}" (${genderConf.toFixed(1)}% confidence). Please contact Support Chat to resolve.`,
+          admin_notes: `${summary}\n[auto-reject] gender_mismatch: declared=${declaredGender} detected=${rawG} (${genderConf.toFixed(1)}%)`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+        .in("status", ["submitted", "pending"]);
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          rekognition,
+          autoFinalize: { success: false, reason: "gender_mismatch" },
+          blocker: "gender_mismatch",
+          declaredGender,
+          detectedGender: rawG,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Other soft signals (liveness/replay/profile/duplicate/etc.) — log to
+    // admin_notes for admin awareness, but DO NOT block auto-approve unless
+    // the underlying Rekognition thresholds also fail. Admin will see flags
+    // in ai_analysis and can manually override if needed.
+    const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
+      "service_auto_finalize_face_verification",
+      { p_submission_id: submissionId },
+    );
     const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
     if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
 
@@ -646,33 +667,32 @@ serve(async (req) => {
     //   in `submitted` so admin sees it in Pending and reviews manually.
     const autoReason = String(autoResult?.reason || "");
     if (!autoResult?.success) {
+      const softFlags: string[] = [];
+      if (livenessFailed) softFlags.push("liveness_failed");
+      if (replaySuspected) softFlags.push(`replay_suspected(L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°)`);
+      if (profileMismatch) softFlags.push(`profile_mismatch(${profileMatchScore?.toFixed(1)}%)`);
+      if (duplicateBlock) softFlags.push("duplicate_face");
+
       const reviewReason = autoReason === "invalid_face_count"
         ? `Needs admin review: ${details.length === 0 ? "no clear face on front frame" : "multiple faces on front frame"}.`
         : autoReason === "underage"
-          ? "Needs admin review: AI age estimate borderline (often unreliable for women)."
+          ? "Needs admin review: AI age estimate borderline."
           : autoReason === "face_occluded"
-            ? "Needs admin review: AI flagged possible occlusion (glasses/hair/lighting can trigger this)."
-            : autoReason === "gender_unknown" || autoReason === "low_gender_confidence"
+            ? "Needs admin review: AI flagged possible occlusion."
+            : autoReason === "gender_unknown" || autoReason === "invalid_final_gender"
               ? "Needs admin review: gender confidence below auto-approve threshold."
-              : autoReason === "low_compare_score" || autoReason === "low_similarity"
-                ? "Needs admin review: front-vs-side angle similarity below auto-approve threshold."
-                : autoReason === "profile_face_mismatch"
-                  ? `Needs admin review: profile avatar does NOT match the verification selfie (similarity ${profileMatchScore?.toFixed(1) ?? "?"}%). Possible identity abuse.`
-                  : autoReason === "duplicate_face"
-                    ? "Needs admin review: face already verified on another account."
-                    : autoReason === "gender_mismatch"
-                      ? `BLOCKED: Account declared as "${declaredGender}" but face detected as "${rawG}" (${genderConf.toFixed(1)}% confidence). User routed to support.`
-                      : autoReason === "liveness_failed"
-                        ? "BLOCKED: Provider liveness check failed — looks like a photo of a photo / video replay. User routed to support."
-                        : autoReason === "replay_suspected"
-                          ? `BLOCKED: All three angles have near-identical pose (yaw deltas L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°) — likely a static image / phone-screen replay. User routed to support.`
-                          : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+              : autoReason === "low_similarity"
+                ? `Needs admin review: front-vs-side similarity low (L=${compareFL.toFixed(1)}% R=${compareFR.toFixed(1)}%).`
+                : autoReason === "below_thresholds"
+                  ? "Needs admin review: AI confidence below auto-approve threshold."
+                  : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
 
+      const flagsLine = softFlags.length ? `\n[soft-flags] ${softFlags.join(", ")}` : "";
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
           // status stays pending/submitted — admin Pending tab will show it.
-          admin_notes: `${summary}\n[manual-review] ${reviewReason}`,
+          admin_notes: `${summary}\n[manual-review] ${reviewReason}${flagsLine}`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -684,7 +704,7 @@ serve(async (req) => {
         ok: true,
         rekognition,
         autoFinalize: autoResult,
-        blocker: hardBlocker,
+        blocker: null, // soft flags never block client-side anymore
         declaredGender,
         detectedGender: rawG,
       }),
