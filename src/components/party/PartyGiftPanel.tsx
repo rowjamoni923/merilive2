@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy, ReactNode } from "react";
+import { useState, useEffect, useRef, Suspense, lazy, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,17 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
   const [gifts, setGifts] = useState<GiftData[]>(() => transformGiftsFromCache(getCachedGifts()));
   const [loading, setLoading] = useState(!hasGiftCache());
   const [currentPage, setCurrentPage] = useState(0);
+  const sendingRef = useRef(false);
+  const startXRef = useRef(0);
+
+  // Pkg4-pass4: Reset selection + count when sheet closes so stale state doesn't leak
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedGift(null);
+      setSendCount(1);
+      sendingRef.current = false;
+    }
+  }, [isOpen]);
 
   // Load gifts INSTANTLY from prefetch cache, refresh in background
   useEffect(() => {
@@ -112,7 +123,12 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
   };
 
   const handleSend = () => {
-    if (selectedGift && userCoins >= selectedGift.coins * sendCount) {
+    if (sendingRef.current) return; // Pkg4-pass4: in-flight guard against double-tap
+    if (!selectedGift) return;
+    const totalCost = selectedGift.coins * sendCount;
+    if (userCoins < totalCost) return;
+    sendingRef.current = true;
+    try {
       onSendGift({
         id: selectedGift.id,
         name: selectedGift.name,
@@ -124,6 +140,9 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
       setSelectedGift(null);
       setSendCount(1);
       onClose();
+    } finally {
+      // Release on next tick — onClose unmounts via effect anyway
+      setTimeout(() => { sendingRef.current = false; }, 350);
     }
   };
 
@@ -139,9 +158,11 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
     currentGifts.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE)
   );
 
-  // Reset page when category changes
+  // Reset page + clear selection when category changes (Pkg4-pass4: stale gift selection leaked across tabs)
   useEffect(() => {
     setCurrentPage(0);
+    setSelectedGift(null);
+    setSendCount(1);
   }, [activeCategory]);
 
   // Get available categories (only those with gifts)
@@ -195,24 +216,8 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
     return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.gif');
   };
 
-  // Swipe handlers
-  const handleTouchStart = (e: React.TouchEvent, startXRef: React.MutableRefObject<number>) => {
-    startXRef.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent, startXRef: React.MutableRefObject<number>) => {
-    const endX = e.changedTouches[0].clientX;
-    const deltaX = endX - startXRef.current;
-    const threshold = 50;
-
-    if (deltaX < -threshold && currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
-    } else if (deltaX > threshold && currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const startXRef = { current: 0 };
+  // Pkg4-pass4: useRef-backed swipe tracker (was redeclared as `{ current: 0 }` literal on every render, losing touchstart→touchend correlation across re-renders)
+  // startXRef defined at top of component now.
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>

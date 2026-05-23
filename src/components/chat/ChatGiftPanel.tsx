@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useCallback, useMemo } from "react";
+import { useState, useEffect, memo, useCallback, useMemo, useRef } from "react";
 import { X, Gift, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -121,11 +121,25 @@ const GiftItem = memo(({
 GiftItem.displayName = 'GiftItem';
 
 function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUserCoins }: ChatGiftPanelProps) {
-  const [activeCategory, setActiveCategory] = useState("popular");
+  const [activeCategory, setActiveCategory] = useState<string>("wall"); // Pkg4-pass4: was "popular" which had no matching category → empty grid on open
   const [selectedGift, setSelectedGift] = useState<GiftData | null>(null);
   const [gifts, setGifts] = useState<GiftData[]>([]);
   const [loading, setLoading] = useState(!hasGiftCache());
   const [userCoins, setUserCoins] = useState(propUserCoins || 0);
+  const sendingRef = useRef(false);
+
+  // Pkg4-pass4: sync prop changes (parent balance updates were ignored after mount)
+  useEffect(() => {
+    if (typeof propUserCoins === 'number') setUserCoins(propUserCoins);
+  }, [propUserCoins]);
+
+  // Pkg4-pass4: clear selection + release send guard when sheet closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedGift(null);
+      sendingRef.current = false;
+    }
+  }, [isOpen]);
 
   // Transform cached gifts to component format
   const transformGifts = useCallback((rawGifts: any[]): GiftData[] => {
@@ -209,18 +223,27 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
 
   // Available categories
   const availableCategories = useMemo(() => 
-    defaultCategories.filter(
-      (cat) => getCategoryGifts(cat.id).length > 0 || cat.id === "popular"
-    ), 
+    defaultCategories.filter((cat) => getCategoryGifts(cat.id).length > 0), 
     [getCategoryGifts]
   );
+
+  // Pkg4-pass4: auto-switch active category to first available if current one has zero gifts
+  useEffect(() => {
+    if (availableCategories.length === 0) return;
+    if (!availableCategories.some((c) => c.id === activeCategory)) {
+      setActiveCategory(availableCategories[0].id);
+    }
+  }, [availableCategories, activeCategory]);
 
   const handleGiftSelect = useCallback((gift: GiftData) => {
     setSelectedGift(prev => prev?.id === gift.id ? null : gift);
   }, []);
 
   const handleSend = useCallback(() => {
-    if (selectedGift && userCoins >= selectedGift.coins) {
+    if (sendingRef.current) return; // Pkg4-pass4: double-tap guard
+    if (!selectedGift || userCoins < selectedGift.coins) return;
+    sendingRef.current = true;
+    try {
       onSendGift({
         id: selectedGift.id,
         name: selectedGift.name,
@@ -229,6 +252,8 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       });
       setSelectedGift(null);
       onClose();
+    } finally {
+      setTimeout(() => { sendingRef.current = false; }, 350);
     }
   }, [selectedGift, userCoins, onSendGift, onClose]);
 
