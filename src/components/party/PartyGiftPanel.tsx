@@ -73,6 +73,17 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
   const [gifts, setGifts] = useState<GiftData[]>(() => transformGiftsFromCache(getCachedGifts()));
   const [loading, setLoading] = useState(!hasGiftCache());
   const [currentPage, setCurrentPage] = useState(0);
+  const sendingRef = useRef(false);
+  const startXRef = useRef(0);
+
+  // Pkg4-pass4: Reset selection + count when sheet closes so stale state doesn't leak
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedGift(null);
+      setSendCount(1);
+      sendingRef.current = false;
+    }
+  }, [isOpen]);
 
   // Load gifts INSTANTLY from prefetch cache, refresh in background
   useEffect(() => {
