@@ -750,8 +750,12 @@ const LiveStream = () => {
 
   // Fetch current user and stream data from database - VERIFY host status
   useEffect(() => {
+    mountedRef.current = true;
+    let cancelled = false;
+    let selfJoinTimer: ReturnType<typeof setTimeout> | null = null;
+
     const fetchData = async () => {
-      if (!mountedRef.current) return;
+      if (cancelled || !mountedRef.current) return;
       
       // PARALLEL: Fetch user auth + stream data simultaneously for instant load
       const { getCachedUser } = await import('@/utils/cachedAuth');
@@ -765,6 +769,7 @@ const LiveStream = () => {
         .single() : null;
       
       const [cachedUser, streamResult] = await Promise.all([userPromise, streamPromise]);
+      if (cancelled || !mountedRef.current) return;
       let currentUserId: string | null = null;
       
       // Process stream data first to determine host
@@ -793,6 +798,7 @@ const LiveStream = () => {
         // Self profile for viewer join notification
         !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
       ]);
+      if (cancelled || !mountedRef.current) return;
       
       // Process user profile
       if (userProfileRes.data && mountedRef.current) {
