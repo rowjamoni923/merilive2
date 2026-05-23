@@ -923,6 +923,11 @@ export function UnifiedPartyRoom({
   // Load history from party_room_messages; live fanout arrives via LiveKit.
   useEffect(() => {
     if (!roomId) return;
+    const loadSeq = ++chatLoadSeqRef.current;
+    processedMsgIdsRef.current.clear();
+    processedJoinsRef.current.clear();
+    processedParticipantJoinsRef.current.clear();
+    triggeredEntryAnimationsRef.current.clear();
     
     console.log('[UnifiedPartyRoom] Setting up LiveKit chat fanout for room:', roomId);
     
@@ -963,6 +968,7 @@ export function UnifiedPartyRoom({
             bubbleUrl: null,
           };
         });
+        if (loadSeq !== chatLoadSeqRef.current || roomIdRef.current !== roomId) return;
         setPremiumMessages(unifiedMsgs);
         unifiedMsgs.forEach(m => processedMsgIdsRef.current.add(m.id));
 
@@ -971,7 +977,7 @@ export function UnifiedPartyRoom({
         unifiedMsgs.forEach(async (m) => {
           if (!m.userId) return;
           const bubbleUrl = await getEquippedBubble(m.userId);
-          if (bubbleUrl) {
+          if (bubbleUrl && loadSeq === chatLoadSeqRef.current && roomIdRef.current === roomId) {
             setPremiumMessages(prev => prev.map(pm => pm.id === m.id ? { ...pm, bubbleUrl } : pm));
           }
         });
@@ -1027,7 +1033,7 @@ export function UnifiedPartyRoom({
 
       // Async bubble enrichment — cached per user.
       void getEquippedBubble(data.userId).then(bubbleUrl => {
-        if (!bubbleUrl) return;
+        if (!bubbleUrl || roomIdRef.current !== roomId) return;
         setPremiumMessages(prev => prev.map(pm => pm.id === data.messageId ? { ...pm, bubbleUrl } : pm));
       });
     };
