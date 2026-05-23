@@ -86,6 +86,21 @@ const getLevelConfig = (level: number) => {
       innerGlow: "inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.15)",
     };
   }
+  // Audit-fix (Label #10): levels 11-14 previously fell through to Level-0
+  // gray default. Give them a distinct teal/cyan-ish tier between Level-10
+  // (gold trophy) and Level-15+ (cyan diamond) so the badge actually
+  // reflects the user's rank everywhere it renders.
+  if (level >= 11) {
+    return {
+      gradient: "from-teal-500 via-cyan-500 to-sky-500",
+      glow: "shadow-[0_0_7px_rgba(20,184,166,0.4),0_2px_4px_rgba(0,0,0,0.22)]",
+      icon: "🔷",
+      textGradient: "from-teal-100 via-white to-cyan-200",
+      border: "border-teal-300/50",
+      shimmer: false,
+      innerGlow: "inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 1px rgba(0,0,0,0.12)",
+    };
+  }
 
   // ====== UNIQUE PER-LEVEL DESIGNS (0-10) ======
   if (level === 10) {
