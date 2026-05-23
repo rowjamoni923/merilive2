@@ -274,7 +274,7 @@ export const PremiumLiveStreamCard = ({
           <div className="flex-1 min-w-0">
             {/* Host Name with Verified Badge */}
             <div className="flex items-center gap-1">
-              <h3 className="text-white font-bold text-sm truncate drop-shadow-lg">{hostName}</h3>
+              <h3 className="text-on-dark font-bold text-sm truncate drop-shadow-lg">{hostName}</h3>
               {isVerified && (
                 <motion.div
                   initial={{ scale: 0 }}
