@@ -2,8 +2,13 @@ package com.merilive.app;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
+import androidx.core.view.WindowCompat;
 import com.getcapacitor.BridgeActivity;
 import com.merilive.app.plugin.LiveKitPlugin;
 import com.merilive.app.util.NotificationHelper;
@@ -35,6 +40,18 @@ public class MainActivity extends BridgeActivity {
         com.merilive.app.plugin.ShareTargetPlugin.handleIntent(getIntent());
         if (isShareIntent(getIntent())) {
             routeToShare();
+        }
+
+        // Pkg227 — edge-to-edge (Android 15 enforces this when targetSdk=35;
+        // we opt in now for consistent behavior on 14 too). System bars stay
+        // transparent; JS already pads via env(safe-area-inset-*).
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        Window window = getWindow();
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.setStatusBarContrastEnforced(false);
+            window.setNavigationBarContrastEnforced(false);
         }
 
         // SECURITY: Block screenshots & screen recording
