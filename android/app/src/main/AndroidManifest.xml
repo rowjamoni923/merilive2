@@ -154,6 +154,16 @@
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
             </intent-filter>
+
+            <!-- Pkg256 — NFC tap-to-share / tap-to-join.
+                 NDEF_DISCOVERED ensures the app opens when an NFC tag
+                 contains a merilive.com link (room/profile), even before
+                 App Links verification is complete. -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="https" android:host="merilive.com"/>
+            </intent-filter>
         </activity>
 
         <activity
