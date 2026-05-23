@@ -704,8 +704,10 @@ export function UnifiedPartyRoom({
   
   // CRITICAL: Real-time viewers state for header display (NOT relying on props)
   const [realtimeViewers, setRealtimeViewers] = useState<RealtimeViewer[]>([]);
-  const [realtimeViewerCount, setRealtimeViewerCount] = useState(0);
+  const [realtimeViewerCount, setRealtimeViewerCount] = useState<number | null>(null);
   const roomIdRef = useRef(roomId);
+  const viewerFetchSeqRef = useRef(0);
+  const chatLoadSeqRef = useRef(0);
   
   // Update roomId ref when it changes
   useEffect(() => {
@@ -746,6 +748,7 @@ export function UnifiedPartyRoom({
   }, [hostInfo?.id]);
 
   useEffect(() => {
+    let cancelled = false;
     if (!currentUserId) {
       setCurrentUserProfile(null);
       return;
@@ -755,7 +758,12 @@ export function UnifiedPartyRoom({
       .select('display_name, avatar_url, user_level')
       .eq('id', currentUserId)
       .maybeSingle()
-      .then(({ data }) => setCurrentUserProfile(data || null));
+      .then(({ data }) => {
+        if (!cancelled) setCurrentUserProfile(data || null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [currentUserId]);
   
   // Store onTriggerEntryEffect in ref to avoid stale closures
@@ -768,6 +776,7 @@ export function UnifiedPartyRoom({
   const fetchRealtimeViewers = useCallback(async () => {
     const currentRoomId = roomIdRef.current;
     if (!currentRoomId) return;
+    const seq = ++viewerFetchSeqRef.current;
     
     try {
       const { data, error } = await supabase
@@ -807,6 +816,7 @@ export function UnifiedPartyRoom({
           })
           .sort((a: RealtimeViewer, b: RealtimeViewer) => b.level - a.level); // Sort by level descending
         
+        if (seq !== viewerFetchSeqRef.current || roomIdRef.current !== currentRoomId) return;
         setRealtimeViewers(viewerList);
         setRealtimeViewerCount(data.length); // Total including host
         console.log('[UnifiedPartyRoom] ✅ Real-time viewers updated:', viewerList.length, 'host excluded:', currentHostId);
