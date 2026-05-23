@@ -67,6 +67,7 @@ import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/
 import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom";
 import { HostModerationSheet } from "@/components/livekit/HostModerationSheet";
 import { FloatingReactionsOverlay } from "@/components/livekit/FloatingReactionsOverlay";
+import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { ReactionsQuickBar } from "@/components/livekit/ReactionsQuickBar";
 import { PartyRaiseHandUI } from "@/components/livekit/PartyRaiseHandUI";
 
@@ -2029,6 +2030,7 @@ const PartyRoom = () => {
       {room?.id && (
         <>
           <FloatingReactionsOverlay scope="party" id={room.id} bottomOffset={140} />
+          <CaptionOverlay scope="party" id={room.id} />
           <ReactionsQuickBar
             open={showReactionPicker}
             onClose={() => setShowReactionPicker(false)}
