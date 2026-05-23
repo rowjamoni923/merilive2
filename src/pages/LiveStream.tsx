@@ -750,8 +750,12 @@ const LiveStream = () => {
 
   // Fetch current user and stream data from database - VERIFY host status
   useEffect(() => {
+    mountedRef.current = true;
+    let cancelled = false;
+    let selfJoinTimer: ReturnType<typeof setTimeout> | null = null;
+
     const fetchData = async () => {
-      if (!mountedRef.current) return;
+      if (cancelled || !mountedRef.current) return;
       
       // PARALLEL: Fetch user auth + stream data simultaneously for instant load
       const { getCachedUser } = await import('@/utils/cachedAuth');
@@ -765,6 +769,7 @@ const LiveStream = () => {
         .single() : null;
       
       const [cachedUser, streamResult] = await Promise.all([userPromise, streamPromise]);
+      if (cancelled || !mountedRef.current) return;
       let currentUserId: string | null = null;
       
       // Process stream data first to determine host
@@ -793,6 +798,7 @@ const LiveStream = () => {
         // Self profile for viewer join notification
         !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
       ]);
+      if (cancelled || !mountedRef.current) return;
       
       // Process user profile
       if (userProfileRes.data && mountedRef.current) {
@@ -925,7 +931,8 @@ const LiveStream = () => {
             console.log('[LiveStream] 🎬 Self profile equipped_entrance_id:', selfProfile.equipped_entrance_id);
             
             // Delay to let the component fully mount
-            setTimeout(async () => {
+            selfJoinTimer = setTimeout(async () => {
+              if (cancelled || !mountedRef.current) return;
               // Add Bigo-style flying join banner
               addBigoJoinNotification({
                 userId: currentUserId,
@@ -955,6 +962,7 @@ const LiveStream = () => {
                 selfProfile.equipped_vehicle_id,
                 userLevel
               );
+              if (cancelled || !mountedRef.current) return;
               
               console.log('[LiveStream] 📍 Animation fetch result:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl });
               
@@ -998,7 +1006,7 @@ const LiveStream = () => {
                   vehicleAnimationUrl: vehicleAnimationUrl || null,
                 };
                 let published = false;
-                for (let i = 0; i < 30 && !published && mountedRef.current; i++) {
+                for (let i = 0; i < 30 && !published && mountedRef.current && !cancelled; i++) {
                   published = await publishViewerJoined(id!, payload);
                   if (published) {
                     console.log('[LiveStream] ⚡ Pkg82a viewer_joined published for:', userName, 'attempt', i + 1);
@@ -1022,6 +1030,11 @@ const LiveStream = () => {
     fetchData();
     
     return () => {
+      cancelled = true;
+      if (selfJoinTimer) {
+        clearTimeout(selfJoinTimer);
+        selfJoinTimer = null;
+      }
       mountedRef.current = false;
     };
   }, [id, addBigoJoinNotification]);

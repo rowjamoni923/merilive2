@@ -743,9 +743,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       // CRYSTAL CLEAR: Keep HIGH quality for viewers without sub-5s polling.
       // This touches only LiveKit track state (no DB), but must still respect
       // the $1400 zero-tolerance guard for live/call/party intervals.
+      let qualityEnforcer: ReturnType<typeof setInterval> | null = null;
       if (config.role === 'audience') {
         // Re-enforce HIGH quality every 10 seconds to prevent any downgrade.
-        const qualityEnforcer = setInterval(() => {
+        qualityEnforcer = setInterval(() => {
           if (room.state !== ConnectionState.Connected) return;
           room.remoteParticipants.forEach((remote) => {
             remote.trackPublications.forEach((pub) => {
@@ -769,6 +770,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         // Transfer event handlers from new room to preloaded room
         // We already set up handlers on `room` above, but preloaded room is the one connected.
         // Solution: disconnect the new empty room, use the preloaded one instead.
+        if (qualityEnforcer) {
+          clearInterval(qualityEnforcer);
+          qualityEnforcer = null;
+        }
         room.removeAllListeners();
         roomRef.current = config.preloadedRoom;
 
