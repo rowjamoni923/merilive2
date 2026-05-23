@@ -174,8 +174,8 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     private fun processFrame(frame: VideoFrame, sink: VideoSink) {
         ensureGraph()
         val raw = rawInput
-        val last = lastFilter
-        if (!initialized.get() || raw == null || last == null) {
+        val outSink = rawOutput
+        if (!initialized.get() || raw == null || outSink == null) {
             sink.onFrame(frame)
             return
         }
@@ -185,59 +185,20 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
         val i420 = frame.buffer.toI420() ?: run { sink.onFrame(frame); return }
 
         try {
-            // Convert I420 → RGBA int[] (one int per pixel).
-            val rgbaBytes = ByteArray(w * h * 4)
-            val rgbaBuf = ByteBuffer.wrap(rgbaBytes)
-            // YuvHelper exposes I420 → ABGR; treat int[] little-endian as RGBA.
-            YuvHelper.I420ToNV12(
-                i420.dataY, i420.strideY,
-                i420.dataU, i420.strideU,
-                i420.dataV, i420.strideV,
-                rgbaBuf, w, h,
-            )
-            // NOTE: A direct I420→RGBA path is not in stock YuvHelper. The
-            // GPUPixel raw input expects RGBA; if exact conversion is missing
-            // on the running WebRTC build, fall back to passthrough so the
-            // broadcast is never broken.
-            // (Full GPU upload path is provided behind the feature flag; if
-            // it returns black/garbled on a given device, disable the flag.)
+            val rgba = i420ToRgba(i420, w, h)
+            applyLandmarksLocked(rgba, w, h, w * 4)
+            raw.ProcessData(rgba, w, h, w * 4, GPUPixelSourceRawData.FRAME_TYPE_RGBA)
 
-            val rgbaInts = IntArray(w * h)
-            for (i in 0 until rgbaInts.size) {
-                val o = i * 4
-                val r = rgbaBytes[o].toInt() and 0xFF
-                val g = rgbaBytes[o + 1].toInt() and 0xFF
-                val b = rgbaBytes[o + 2].toInt() and 0xFF
-                rgbaInts[i] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
-            }
-
-            raw.uploadBytes(rgbaInts, w, h, w)
-
-            // Trigger the chain; ProcessedFrameDataCallback delivers RGBA bytes.
-            val outBytes = arrayOf<ByteArray?>(null)
-            (raw as GPUPixelSource).captureAProcessedFrameData(last) { bytes, _, _ ->
-                outBytes[0] = bytes
-            }
-            val out = outBytes[0]
+            val out = outSink.GetI420Buffer()
             if (out == null || out.size < w * h * 4) {
                 sink.onFrame(frame)
                 return
             }
 
-            // Convert processed RGBA back to I420 VideoFrame.
+            // GPUPixelSinkRawData returns processed I420 directly, so the
+            // outgoing LiveKit frame keeps real GPU beauty + 3D face reshape.
             val outBuf = JavaI420Buffer.allocate(w, h)
-            // RGBA → I420 again uses YuvHelper if available; otherwise fall back.
-            // Most WebRTC builds shipped with LiveKit 2.x include the helper.
-            try {
-                val src = ByteBuffer.wrap(out)
-                YuvHelper.ABGRToI420(
-                    src, w * 4,
-                    outBuf.dataY, outBuf.strideY,
-                    outBuf.dataU, outBuf.strideU,
-                    outBuf.dataV, outBuf.strideV,
-                    w, h,
-                )
-            } catch (_: Throwable) {
+            if (!copyPackedI420(out, outBuf, w, h)) {
                 outBuf.release()
                 sink.onFrame(frame)
                 return
