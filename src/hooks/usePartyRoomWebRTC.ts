@@ -68,28 +68,58 @@ export function usePartyRoomWebRTC(
   const [restartNonce, setRestartNonce] = useState(0);
 
   const roomRef = useRef<Room | null>(null);
+  const sessionSeqRef = useRef(0);
   // Pkg189: token refresh detach handle.
   const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
   const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
+  const remoteAudioTrackKeysRef = useRef<Set<string>>(new Set());
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initRetryCountRef = useRef(0);
   const deadRef = useRef(false);
+
+  const getRemoteAudioTrackKey = (
+    identity: string,
+    pub?: RemoteTrackPublication | null,
+    track?: RemoteTrack | null,
+  ) => `${identity}:${pub?.trackSid || (pub as any)?.sid || (track as any)?.sid || track?.mediaStreamTrack?.id || 'audio'}`;
+
+  const attachRemoteAudioOnce = (identity: string, pub: RemoteTrackPublication | null, track: RemoteTrack) => {
+    const key = getRemoteAudioTrackKey(identity, pub, track);
+    if (remoteAudioTrackKeysRef.current.has(key)) return;
+
+    const audioEl = track.attach() as HTMLAudioElement;
+    audioEl.autoplay = true;
+    audioEl.dataset.partyAudioKey = key;
+    try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
+    audioEl.play().catch(() => {});
+
+    const existing = audioElementsRef.current.get(identity) || [];
+    existing.push(audioEl);
+    audioElementsRef.current.set(identity, existing);
+    remoteAudioTrackKeysRef.current.add(key);
+  };
 
   const detachAudioForIdentity = (identity: string) => {
     const els = audioElementsRef.current.get(identity);
     if (els) {
       els.forEach((el) => {
+        const key = el.dataset?.partyAudioKey;
+        if (key) remoteAudioTrackKeysRef.current.delete(key);
         try { el.pause(); } catch { /* ignore */ }
         try { (el as any).srcObject = null; } catch { /* ignore */ }
         try { el.remove(); } catch { /* ignore */ }
       });
       audioElementsRef.current.delete(identity);
     }
+    Array.from(remoteAudioTrackKeysRef.current)
+      .filter((key) => key.startsWith(`${identity}:`))
+      .forEach((key) => remoteAudioTrackKeysRef.current.delete(key));
   };
 
   const detachAllAudio = () => {
     Array.from(audioElementsRef.current.keys()).forEach(detachAudioForIdentity);
+    remoteAudioTrackKeysRef.current.clear();
   };
 
   const cleanup = useCallback(() => {
