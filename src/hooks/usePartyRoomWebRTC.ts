@@ -201,7 +201,7 @@ export function usePartyRoomWebRTC(
     deadRef.current = false;
     const sessionSeq = ++sessionSeqRef.current;
     const delayedTimers: ReturnType<typeof setTimeout>[] = [];
-    const isActiveSession = (expectedRoom: Room) => !deadRef.current && sessionSeqRef.current === sessionSeq && roomRef.current === expectedRoom;
+    const isActiveSession = (expectedRoom: Room | null) => !!expectedRoom && !deadRef.current && sessionSeqRef.current === sessionSeq && roomRef.current === expectedRoom;
     const scheduleSessionTask = (fn: () => void, delayMs: number) => {
       const timer = setTimeout(() => {
         if (isActiveSession(room)) fn();
@@ -524,8 +524,14 @@ export function usePartyRoomWebRTC(
         warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
         const tokenResp = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
         const { token, url, ttl } = tokenResp;
+        if (!isActiveSession(room)) return;
         await room.prepareConnection(url, token).catch(() => {});
+        if (!isActiveSession(room)) return;
         await room.connect(url, token);
+        if (!isActiveSession(room)) {
+          try { room.disconnect(true); } catch { /* ignore */ }
+          return;
+        }
         console.log('[PartyLiveKit] ✅ Connected to room');
 
         // Pkg189: silent token refresh before TTL expiry.
@@ -652,8 +658,8 @@ export function usePartyRoomWebRTC(
         rebuildLocalStream();
 
         // Safety: rebuild again after short delays to catch late-publishing tracks
-        setTimeout(rebuildLocalStream, 500);
-        setTimeout(rebuildLocalStream, 1500);
+        scheduleSessionTask(rebuildLocalStream, 500);
+        scheduleSessionTask(rebuildLocalStream, 1500);
 
         // Handle existing participants
         room.remoteParticipants.forEach(participant => {
@@ -703,14 +709,15 @@ export function usePartyRoomWebRTC(
         };
 
         forceSubscribePass();
-        setTimeout(forceSubscribePass, 30);
-        setTimeout(forceSubscribePass, 80);
-        setTimeout(forceSubscribePass, 200);
-        setTimeout(forceSubscribePass, 500);
+        scheduleSessionTask(forceSubscribePass, 30);
+        scheduleSessionTask(forceSubscribePass, 80);
+        scheduleSessionTask(forceSubscribePass, 200);
+        scheduleSessionTask(forceSubscribePass, 500);
         initRetryCountRef.current = 0;
 
       } catch (error) {
         console.error('[PartyLiveKit] Initialization error:', error);
+        if (sessionSeqRef.current !== sessionSeq) return;
         if (!deadRef.current && initRetryCountRef.current < 3) {
           initRetryCountRef.current += 1;
           reconnectTimerRef.current = setTimeout(() => {
@@ -727,6 +734,7 @@ export function usePartyRoomWebRTC(
     init();
 
     return () => {
+      delayedTimers.forEach(clearTimeout);
       cleanup();
     };
   }, [roomId, userId, roomType, partyCanPublish, restartNonce]);
