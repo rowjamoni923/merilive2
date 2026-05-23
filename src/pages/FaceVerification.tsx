@@ -1227,7 +1227,18 @@ const FaceVerification = () => {
       poseCheckIntervalRef.current = null;
     }
     
-    if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
+    if (usingNativeRecorderRef.current) {
+      // Pkg272: native CameraX path — collect MP4 and tear down preview.
+      try {
+        const out = await nativeFaceCam.stopRecording();
+        if (out?.blob) setFaceVerificationVideo(out.blob);
+      } catch (e) {
+        console.warn('[FaceVerify] native stopRecording failed', e);
+      } finally {
+        usingNativeRecorderRef.current = false;
+        try { await nativeFaceCam.stopPreview(); } catch { /* noop */ }
+      }
+    } else if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
       faceRecorderRef.current.stop();
     }
     
