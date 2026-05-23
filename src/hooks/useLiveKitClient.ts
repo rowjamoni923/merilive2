@@ -776,8 +776,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         const pRoom = config.preloadedRoom;
         pRoom.on(RoomEvent.TrackSubscribed, (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
           const pUid = getUidForParticipant(participant.identity);
-          if (track.kind === Track.Kind.Audio && !isRemoteAudioMuted) {
+          if (track.kind === Track.Kind.Audio) {
+            // Audit-fix: always attach; honor current mute via ref.
             const audioEl = track.attach();
+            audioEl.muted = isRemoteAudioMutedRef.current;
+            audioEl.volume = 1;
             audioEl.play().catch(() => {});
             const existing = remoteAudioElementsRef.current.get(participant.identity) || [];
             existing.push(audioEl);
