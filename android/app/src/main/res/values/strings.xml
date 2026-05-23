@@ -19,6 +19,7 @@
 
     <!-- Pkg215 — App Shortcuts -->
     <string name="shortcut_live_short">Go Live</string>
+    <string name="widget_quick_actions_desc">MeriLive Quick Actions</string>
     <string name="shortcut_live_long">Start a live stream</string>
     <string name="shortcut_chat_short">Chat</string>
     <string name="shortcut_chat_long">Open messages</string>
