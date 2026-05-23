@@ -962,7 +962,7 @@ export function UnifiedPartyRoom({
             color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
             userLevel: profile?.user_level || 1,
             userAvatar: profile?.avatar_url,
-            isHost: profile?.is_host || (m.user_id === hostInfo?.id),
+            isHost: profile?.is_host || (m.user_id === hostIdRef.current),
             isNewUser: false,
             type: m.message_type || 'text',
             bubbleUrl: null,
@@ -1009,7 +1009,7 @@ export function UnifiedPartyRoom({
         color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
         userLevel: data.userLevel || 1,
         userAvatar: data.avatarUrl,
-        isHost: data.isHost || (data.userId === hostInfo?.id),
+        isHost: data.isHost || (data.userId === hostIdRef.current),
         isNewUser: false,
         type: msgType,
         bubbleUrl: null,
@@ -1042,7 +1042,7 @@ export function UnifiedPartyRoom({
     return () => {
       window.removeEventListener('livekit-chat-message', handleLiveKitChat);
     };
-  }, [roomId, hostInfo?.id]);
+  }, [roomId]);
 
   
   // ==================== LEGACY: JOIN MESSAGES FROM PROPS (for chat only) ====================
