@@ -644,8 +644,8 @@ serve(async (req) => {
         .update({
           status: "rejected",
           reviewed_at: new Date().toISOString(),
-          rejection_reason: `Account declared as "${declaredGender}" but live face detected as "${rawG}" (${genderConf.toFixed(1)}% confidence). Please contact Support Chat to resolve.`,
-          admin_notes: `${summary}\n[auto-reject] gender_mismatch: declared=${declaredGender} detected=${rawG} (${genderConf.toFixed(1)}%)`,
+          rejection_reason: `Account verification requires "${expectedGender}" but live face detected as "${rawG}" (${genderConf.toFixed(1)}% confidence). Please contact Support Chat to resolve.`,
+          admin_notes: `${summary}\n[auto-reject] gender_mismatch: expected=${expectedGender} declared=${declaredGender} detected=${rawG} (${genderConf.toFixed(1)}%)`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -658,6 +658,7 @@ serve(async (req) => {
           autoFinalize: { success: false, reason: "gender_mismatch" },
           blocker: "gender_mismatch",
           declaredGender,
+          expectedGender,
           detectedGender: rawG,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -718,6 +719,7 @@ serve(async (req) => {
         autoFinalize: autoResult,
         blocker: null, // soft flags never block client-side anymore
         declaredGender,
+        expectedGender,
         detectedGender: rawG,
       }),
 
