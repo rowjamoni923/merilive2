@@ -5,6 +5,7 @@ import { useAppResumeHandler } from "@/hooks/useAppResumeHandler";
 import { useLevelPrivilegeAutoEquip } from "@/hooks/useLevelPrivilegeAutoEquip";
 import { useAdminBroadcastSync } from "@/hooks/useAdminBroadcastSync";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useBackgroundSync } from "@/hooks/useBackgroundSync";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import { queryClient } from "@/lib/queryClient";
 
