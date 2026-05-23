@@ -536,13 +536,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           // current mute state via ref. Previously we skipped attach when
           // muted, so toggling unmute on a late-subscribed track had no
           // <audio> element to act on and the viewer heard silence.
-          const audioEl = track.attach();
-          audioEl.muted = isRemoteAudioMutedRef.current;
-          audioEl.volume = 1;
-          audioEl.play().catch(() => {});
-          const existing = remoteAudioElementsRef.current.get(participant.identity) || [];
-          existing.push(audioEl);
-          remoteAudioElementsRef.current.set(participant.identity, existing);
+          attachRemoteAudioOnce(track, participant.identity, publication);
         }
 
         if (track.kind === Track.Kind.Video) {
@@ -645,6 +639,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           // Detach audio elements
           const els = remoteAudioElementsRef.current.get(participant.identity);
           if (els) {
+            els.forEach(el => {
+              const key = el.dataset.livekitAudioKey;
+              if (key) remoteAudioTrackKeysRef.current.delete(key);
+            });
             els.forEach(el => el.remove());
             remoteAudioElementsRef.current.delete(participant.identity);
           }
