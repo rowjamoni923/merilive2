@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchLiveStreamIngress } from "@/lib/livekitIngress";
 import { toast } from "sonner";
 
 type IngressType = "rtmp" | "whip";
@@ -45,7 +46,7 @@ export default function OBSStreamSetup() {
   const loadActive = useCallback(async (uid: string) => {
     const { data, error } = await supabase
       .from("live_streams")
-      .select("id, title, is_active, ingress_id, rtmp_url, stream_key, ingress_type, started_at")
+      .select("id, title, is_active, ingress_type, started_at")
       .eq("host_id", uid)
       .eq("is_active", true)
       .like("title", `${OBS_TITLE_PREFIX}%`)
@@ -55,7 +56,22 @@ export default function OBSStreamSetup() {
     if (error) {
       console.warn("[OBS] loadActive failed:", error.message);
     }
-    setStream((data as OBSStream | null) ?? null);
+    if (!data) {
+      setStream(null);
+      return;
+    }
+    // Fetch sensitive credentials via host-only SECURITY DEFINER RPC
+    const creds = await fetchLiveStreamIngress(data.id);
+    setStream({
+      id: data.id,
+      title: data.title,
+      is_active: data.is_active,
+      ingress_type: (data.ingress_type as IngressType | null) ?? null,
+      started_at: data.started_at,
+      ingress_id: creds?.ingressId ?? null,
+      rtmp_url: creds?.url ?? null,
+      stream_key: creds?.streamKey ?? null,
+    });
     if (data?.ingress_type) setInputType(data.ingress_type as IngressType);
   }, []);
 
@@ -110,7 +126,7 @@ export default function OBSStreamSetup() {
           viewer_count: 0,
           total_coins_earned: 0,
         })
-        .select("id, title, is_active, ingress_id, rtmp_url, stream_key, ingress_type, started_at")
+        .select("id, title, is_active, ingress_type, started_at")
         .single();
       if (insertErr || !row) throw insertErr ?? new Error("Failed to create stream");
 
