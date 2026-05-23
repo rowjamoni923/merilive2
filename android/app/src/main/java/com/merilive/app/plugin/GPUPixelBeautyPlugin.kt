@@ -73,25 +73,25 @@ class GPUPixelBeautyPlugin : Plugin() {
 
     @PluginMethod
     fun setSmooth(call: PluginCall) {
-        beauty?.setBlurAlpha(level(call))
+        beauty?.setSmoothLevel(level(call))
         call.resolve()
     }
 
     @PluginMethod
     fun setWhite(call: PluginCall) {
-        beauty?.setWhite(level(call))
+        beauty?.setWhiteLevel(level(call))
         call.resolve()
     }
 
     @PluginMethod
     fun setThinFace(call: PluginCall) {
-        reshape?.setThinFaceLevel(level(call))
+        reshape?.setThinLevel(level(call))
         call.resolve()
     }
 
     @PluginMethod
     fun setBigEye(call: PluginCall) {
-        reshape?.setBigEyeLevel(level(call))
+        reshape?.setBigeyeLevel(level(call))
         call.resolve()
     }
 

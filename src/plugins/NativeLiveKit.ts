@@ -241,6 +241,11 @@ export interface NativeLiveKitPlugin {
    * resumes its own capture.
    */
   setBeautyPipelineEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; hasRoom: boolean }>;
+  // Pkg201 — broadcast beauty injection (feature-flag, off by default).
+  setBeautyBroadcast(opts: {
+    enabled: boolean;
+    smooth?: number; white?: number; thinFace?: number; bigEye?: number; lipstick?: number;
+  }): Promise<{ enabled: boolean; hasRoom: boolean }>;
 
   // --- Adaptive bitrate fallback (Step 22) ----------------------
   /**

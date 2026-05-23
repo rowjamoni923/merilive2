@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import {
   DEFAULT_PRO_BEAUTY,
   applyProBeauty,
+  applyBroadcastBeauty,
+  isBroadcastBeautyEnabled,
   isNativeBeautyAvailable,
   loadStoredLevels,
   persistLevels,
@@ -94,14 +96,26 @@ export function BeautyFilterPanel({
   useEffect(() => {
     if (!open) return;
     persistLevels(levels);
-    if (enabled && native) void applyProBeauty(levels);
+    if (enabled && native) {
+      void applyProBeauty(levels);
+      // Pkg201 — also push to broadcast track when the operator has
+      // explicitly enabled the broadcast flag (off by default).
+      if (isBroadcastBeautyEnabled()) void applyBroadcastBeauty(levels, true);
+    }
   }, [levels, enabled, native, open]);
 
   // Push enabled state to native pipeline.
   useEffect(() => {
     if (!open || !native) return;
     void setBeautyEnabled(enabled);
-  }, [enabled, native, open]);
+    // Pkg201 — detach broadcast processor when beauty toggled off, or
+    // (re)apply current levels when toggled on with the flag set.
+    if (!enabled) {
+      void applyBroadcastBeauty(levels, false);
+    } else if (isBroadcastBeautyEnabled()) {
+      void applyBroadcastBeauty(levels, true);
+    }
+  }, [enabled, native, open, levels]);
 
   if (!open) return null;
 
