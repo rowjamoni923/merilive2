@@ -182,6 +182,17 @@ export function ActiveCallScreen({
   const connectionBadgeLabel = isLiveConnected ? 'LIVE' : callStatus === 'ringing' ? 'RINGING' : callStatus === 'calling' ? 'DIALING' : 'SYNC';
   const connectionBadgeTone = isLiveConnected ? 'text-emerald-300' : 'text-amber-300';
 
+  // Pkg207 — Auto-shrink to native Android PiP when user presses home
+  // mid-call (WhatsApp / Google Meet parity). 9:16 for video calls, 1:1
+  // for audio-only. inPip flips true while in floating window — use it
+  // to collapse the heavy chat / gift / settings overlays below.
+  const { inPip: isInNativePip } = useNativeAndroidPip({
+    active: isOpen && callStatus === 'connected' && !callEnded,
+    aspect: '9:16',
+  });
+
+
+
   // Start timer/billing only when actual media is live (camera+connection)
   useEffect(() => {
     if (!isOpen || !callId || callStatus !== 'connected') {
