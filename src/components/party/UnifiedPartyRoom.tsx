@@ -1802,14 +1802,14 @@ export function UnifiedPartyRoom({
       <ChametStyleViewerPanel
         isOpen={showViewerPanel}
         onClose={() => setShowViewerPanel(false)}
-        viewers={viewers.length > 0 ? viewers : topViewers.map((v, i) => ({
+        viewers={(realtimeViewers.length > 0 ? realtimeViewers : viewers.length > 0 ? viewers : topViewers.map((v, i) => ({
           id: v.id || `viewer-${i}`,
           displayName: v.displayName || `Viewer ${i + 1}`,
           avatarUrl: v.avatarUrl,
           level: v.level,
           countryFlag: '🌍',
           frameId: v.frameId || undefined
-        }))}
+        })))}
         applicants={seatRequests}
         isHost={isHost}
         onAcceptApplicant={onAcceptSeatRequest}
