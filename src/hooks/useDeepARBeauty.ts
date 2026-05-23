@@ -1,101 +1,68 @@
 /**
- * useDeepARBeauty — Web-only beauty + sticker hook (DeepAR removed).
+ * useDeepARBeauty — REMOVED (Pkg200 prep). Permissive stub.
  *
- * NOTE: The DeepAR native plugin has been permanently removed from the app
- * per product decision. We now use our own CSS / MediaPipe based beauty
- * pipeline plus the web `StickerOverlay`. The hook name and public API are
- * preserved so existing callers (GoLive, LiveStream, PartyRoom,
- * ActiveCallScreen, UnifiedPartyRoom) keep working without changes.
- *
- * All native-camera methods are now safe no-ops that return `false`, which
- * forces callers to use their existing web camera fallback path.
+ * Returns a permissive object so existing 20+ call-sites compile.
+ * All operations are no-ops; no UI, no processing.
  */
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { BeautySettings } from '@/components/live/BeautyFilterPanel';
-import { isNativeAndroidApp } from '@/utils/nativeUtils';
+import { DEFAULT_BEAUTY } from '@/components/live/BeautyFilterPanel';
 
-const DEFAULT_BEAUTY: BeautySettings = {
-  smoothness: 35, whitening: 20, redness: 10, sharpness: 15,
-  glow: 10, warmth: 10, eyeBright: 15, skinTone: 55,
-  faceSlim: 15, chinSlim: 10, eyeEnlarge: 10, noseNarrow: 5, lipColor: 10,
-};
-
-export function useDeepARBeauty() {
-  const isNativeAndroid = isNativeAndroidApp();
-
-  const [showBeautyPanel, setShowBeautyPanel] = useState(false);
-  const [stickerActive, setStickerActive] = useState(false);
-  const [activeSticker, setActiveSticker] = useState<string | null>(null);
-  const [beautyEnabled, setBeautyEnabled] = useState(true);
+export function useDeepARBeauty(): any {
+  const [beautyEnabled, setBeautyEnabled] = useState(false);
   const [beautySettings, setBeautySettings] = useState<BeautySettings>({ ...DEFAULT_BEAUTY });
-  const [cameraRunning] = useState(false);
-  const [facingMode] = useState<'user' | 'environment'>('user');
+  const [showBeautyPanel, setShowBeautyPanel] = useState(false);
+  const [activeSticker, setActiveSticker] = useState<string | null>(null);
+  const [stickerActive, setStickerActive] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const lastErrorRef = useRef<string | null>(null);
+  const noop = useCallback(() => {}, []);
+  const noopAsync = useCallback(async () => {}, []);
+  const passthroughAsync = useCallback(async <T,>(x: T): Promise<T> => x, []);
 
-  // ===== Camera lifecycle (no-op — web pipeline owns the camera) =====
-  const startNativeCamera = useCallback(async (): Promise<boolean> => false, []);
-  const stopNativeCamera = useCallback(async () => { /* noop */ }, []);
-  const switchNativeCamera = useCallback(async () => { /* noop */ }, []);
-  const getLastError = useCallback(() => lastErrorRef.current, []);
-
-  // ===== Beauty / sticker =====
-  const ensureDeepARReady = useCallback(async () => false, []);
-  const syncBeautyToNative = useCallback(async (_enabled: boolean, _settings: BeautySettings) => {
-    /* noop — native bridge removed */
+  const handleBeautyEnabledChange = useCallback((v: boolean) => setBeautyEnabled(v), []);
+  const handleBeautySettingsChange = useCallback((s: BeautySettings) => setBeautySettings(s), []);
+  const handleStickerChange = useCallback((s: string | null) => setActiveSticker(s), []);
+  const toggleSticker = useCallback(() => setStickerActive(v => !v), []);
+  const openBeautyPanel = useCallback(() => setShowBeautyPanel(true), []);
+  const switchNativeCamera = useCallback(() => {
+    setFacingMode(m => (m === 'user' ? 'environment' : 'user'));
   }, []);
-
-  const openBeautyPanel = useCallback(async () => {
-    setShowBeautyPanel(true);
-    return true;
-  }, []);
-
-  const toggleSticker = useCallback(async () => {
-    setStickerActive((prev) => {
-      const next = !prev;
-      if (!next) setActiveSticker(null);
-      return next;
-    });
-  }, []);
-
-  const handleStickerChange = useCallback((stickerName: string | null) => {
-    setActiveSticker(stickerName);
-    setStickerActive(!!stickerName);
-  }, []);
-
-  const handleBeautySettingsChange = useCallback((settings: BeautySettings) => {
-    setBeautySettings(settings);
-  }, []);
-
-  const handleBeautyEnabledChange = useCallback((enabled: boolean) => {
-    setBeautyEnabled(enabled);
-  }, []);
+  const getLastError = useCallback(() => null, []);
 
   return {
-    // Platform
-    isNativeAndroid,
-
-    // Camera lifecycle (native no-ops; callers fall back to web getUserMedia)
-    cameraRunning,
-    facingMode,
-    startNativeCamera,
-    stopNativeCamera,
-    switchNativeCamera,
-    getLastError,
-
-    // Beauty
+    beautyEnabled,
+    setBeautyEnabled,
+    beautySettings,
+    setBeautySettings,
     showBeautyPanel,
     setShowBeautyPanel,
-    stickerActive,
     activeSticker,
-    beautyEnabled,
-    beautySettings,
-    openBeautyPanel,
-    toggleSticker,
-    handleStickerChange,
-    handleBeautySettingsChange,
+    setActiveSticker,
+    stickerActive,
+    setStickerActive,
+    facingMode,
+    canvasRef,
+    videoRef,
+    isReady: false,
+    isNativeAndroid: false,
     handleBeautyEnabledChange,
-    syncBeautyToNative,
-    ensureDeepARReady,
+    handleBeautySettingsChange,
+    handleStickerChange,
+    toggleSticker,
+    openBeautyPanel,
+    switchNativeCamera,
+    startNativeCamera: noopAsync,
+    stopNativeCamera: noop,
+    initBeauty: async () => false,
+    destroyBeauty: noop,
+    applyToVideoElement: noop,
+    applyToTrack: passthroughAsync,
+    updateSettings: (s: Partial<BeautySettings>) => setBeautySettings(prev => ({ ...prev, ...s })),
+    getLastError,
   };
 }
+
+export default useDeepARBeauty;
