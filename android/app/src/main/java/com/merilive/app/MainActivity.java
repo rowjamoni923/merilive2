@@ -18,6 +18,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.LiveKitPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativeCallPlugin.class);
         registerPlugin(com.merilive.app.plugin.InstallReferrerPlugin.class);
+        registerPlugin(com.merilive.app.plugin.GPUPixelBeautyPlugin.class);
 
         super.onCreate(savedInstanceState);
 
