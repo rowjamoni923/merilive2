@@ -10,7 +10,9 @@ import {
   getProviderConfig,
   providerSearchFace,
   providerIndexFace,
+  providerVerifyFace,
 } from "../_shared/externalVerify.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
