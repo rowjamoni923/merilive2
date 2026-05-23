@@ -34,6 +34,7 @@ import {
   resolveVideoQuality,
 } from '@/lib/livekitVideoQuality';
 import { getPublishLayerConfig } from '@/lib/livekitPublishLayers';
+import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { toast } from 'sonner';
 
 interface LiveKitConfig {
