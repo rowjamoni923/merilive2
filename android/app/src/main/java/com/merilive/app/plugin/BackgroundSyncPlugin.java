@@ -111,4 +111,21 @@ public class BackgroundSyncPlugin extends Plugin {
         res.put("lastSyncAt", p.getLong("last_sync_at", 0L));
         call.resolve(res);
     }
+
+    /**
+     * Pkg252 — JS-driven foreground push of the unread total to the
+     * home-screen QuickActionsWidget badge. Use whenever the in-app
+     * unread count changes (Supabase Realtime, mark-as-read, etc.) so
+     * the badge does not have to wait for the 15-min worker tick.
+     */
+    @PluginMethod
+    public void setUnreadCount(PluginCall call) {
+        Integer count = call.getInt("count", 0);
+        if (count == null) count = 0;
+        try {
+            com.merilive.app.widget.QuickActionsWidget
+                .updateUnreadCount(getContext(), count);
+        } catch (Exception ignored) {}
+        call.resolve();
+    }
 }
