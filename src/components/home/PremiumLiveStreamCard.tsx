@@ -239,7 +239,7 @@ export const PremiumLiveStreamCard = ({
               transition={{ duration: 1, ease: "easeOut" }}
             />
           </div>
-          <div className="flex justify-between mt-1 text-[10px] text-white font-bold">
+          <div className="flex justify-between mt-1 text-[10px] text-on-dark font-bold">
             <span className="text-blue-600">{pkProgress}%</span>
             <motion.span 
               className="text-yellow-600"
