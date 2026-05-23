@@ -199,14 +199,25 @@ export function usePartyRoomWebRTC(
     }
 
     deadRef.current = false;
+    const sessionSeq = ++sessionSeqRef.current;
+    const delayedTimers: ReturnType<typeof setTimeout>[] = [];
+    const isActiveSession = (expectedRoom: Room) => !deadRef.current && sessionSeqRef.current === sessionSeq && roomRef.current === expectedRoom;
+    const scheduleSessionTask = (fn: () => void, delayMs: number) => {
+      const timer = setTimeout(() => {
+        if (isActiveSession(room)) fn();
+      }, delayMs);
+      delayedTimers.push(timer);
+      return timer;
+    };
 
     const roomName = `party_${roomId}`;
+    let room: Room | null = null;
 
     const init = async () => {
       try {
         console.log('[PartyLiveKit] Initializing for room:', roomId);
 
-        const room = new Room({
+        room = new Room({
           // Pkg155: Chamet/Bigo-parity — adaptive stream + dynacast ON
           // Viewer auto-receives only the simulcast layer matching visible video size + bandwidth.
           // Saves uplink/downlink bandwidth, prevents "host crisp, viewers blurry" stalls.
@@ -341,13 +352,7 @@ export function usePartyRoomWebRTC(
           console.log(`[PartyLiveKit] Track subscribed: ${track.kind} from ${participant.identity}`);
 
           if (track.kind === Track.Kind.Audio) {
-            const audioEl = track.attach() as HTMLAudioElement;
-            audioEl.autoplay = true;
-            try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-            audioEl.play().catch(() => {});
-            const existing = audioElementsRef.current.get(participant.identity) || [];
-            existing.push(audioEl);
-            audioElementsRef.current.set(participant.identity, existing);
+            attachRemoteAudioOnce(participant.identity, pub, track);
           }
 
           if (track.kind === Track.Kind.Video) {
@@ -415,6 +420,9 @@ export function usePartyRoomWebRTC(
         });
 
         room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack, pub: RemoteTrackPublication, participant: RemoteParticipant) => {
+          if (track.kind === Track.Kind.Audio) {
+            remoteAudioTrackKeysRef.current.delete(getRemoteAudioTrackKey(participant.identity, pub, track));
+          }
           track.detach().forEach(el => el.remove());
 
           if (track.kind === Track.Kind.Audio) {
