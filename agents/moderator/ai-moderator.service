@@ -1,0 +1,27 @@
+[Unit]
+Description=AI Chat Moderator (LiveKit Agent Worker)
+After=network-online.target livekit-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/ai-moderator
+EnvironmentFile=/opt/ai-moderator/.env
+ExecStart=/opt/ai-moderator/venv/bin/python /opt/ai-moderator/main.py start
+Restart=always
+RestartSec=5
+User=livekit
+Group=livekit
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-moderator
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/ai-moderator
+
+[Install]
+WantedBy=multi-user.target
