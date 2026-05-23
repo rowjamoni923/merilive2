@@ -371,7 +371,78 @@ serve(async (req) => {
       `Rekognition: faces F/L/R=${details.length}/${leftDetails.length}/${rightDetails.length}` +
       `${frontError || leftError || rightError ? ` (${[frontError, leftError, rightError].filter(Boolean).join(", ")})` : ""}, ` +
       `gender=${rawG} (${genderConf.toFixed(1)}%)${genderConflict ? " conflict" : ""}, ` +
-      `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%`;
+
+    // ───────────────────────────────────────────────────────────────────
+    // Profile-photo ↔ verification-selfie cross-check.
+    // The user's profile avatar must be the same person as the verification
+    // selfie. This catches "uploaded a stranger's photo as avatar, then
+    // verified with own face" abuse. Best-effort: missing avatar / fetch
+    // failure / no face in avatar = skip (no block). Mismatch (<80%) =>
+    // force manual review (never auto-approve).
+    // ───────────────────────────────────────────────────────────────────
+    let profileMatchScore: number | null = null;
+    let profileMatchSkipReason: string | null = null;
+    let profileMismatch = false;
+    if (!frontError) {
+      try {
+        const { data: profileRow } = await supabaseAdmin
+          .from("profiles")
+          .select("avatar_url")
+          .eq("id", userId)
+          .maybeSingle();
+        const avatarUrl = (profileRow?.avatar_url as string | null) || null;
+        if (!avatarUrl) {
+          profileMatchSkipReason = "no_profile_avatar";
+        } else {
+          let avatarBytes: Uint8Array | null = null;
+          try {
+            avatarBytes = await fetchImageBytes(avatarUrl, supabaseAdmin);
+          } catch (e) {
+            profileMatchSkipReason = `avatar_fetch_failed:${e instanceof Error ? e.message : "unknown"}`;
+          }
+          if (avatarBytes) {
+            const avatarDet = await detectFaces(avatarBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+            const avatarFaceCount = ((avatarDet.FaceDetails as unknown[] | undefined) ?? []).length;
+            if (avatarFaceCount === 0) {
+              profileMatchSkipReason = "no_face_in_avatar";
+            } else if (avatarFaceCount > 1) {
+              profileMatchSkipReason = "multiple_faces_in_avatar";
+            } else {
+              try {
+                profileMatchScore = await compareFaces(
+                  avatarBytes,
+                  frontBytes,
+                  AWS_ACCESS_KEY_ID,
+                  AWS_SECRET_ACCESS_KEY,
+                  AWS_REGION,
+                );
+                profileMismatch = profileMatchScore < 80;
+              } catch (e) {
+                profileMatchSkipReason = `compare_failed:${e instanceof Error ? e.message : "unknown"}`;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        profileMatchSkipReason = `profile_check_failed:${e instanceof Error ? e.message : "unknown"}`;
+      }
+    }
+    rekognition.profile_match_score = profileMatchScore;
+    rekognition.profile_match_skip_reason = profileMatchSkipReason;
+    rekognition.profile_mismatch = profileMismatch;
+
+    const profileSummary = profileMatchScore !== null
+      ? `, profile↔selfie=${profileMatchScore.toFixed(1)}%${profileMismatch ? " MISMATCH" : ""}`
+      : profileMatchSkipReason
+        ? `, profile-check skipped (${profileMatchSkipReason})`
+        : "";
+    const summary =
+      `Rekognition: faces F/L/R=${details.length}/${leftDetails.length}/${rightDetails.length}` +
+      `${frontError || leftError || rightError ? ` (${[frontError, leftError, rightError].filter(Boolean).join(", ")})` : ""}, ` +
+      `gender=${rawG} (${genderConf.toFixed(1)}%)${genderConflict ? " conflict" : ""}, ` +
+      `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%` +
+      profileSummary;
+
 
     // ───────────────────────────────────────────────────────────────────
     // Duplicate-face detection via external verification provider.
