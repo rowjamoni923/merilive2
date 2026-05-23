@@ -2,8 +2,13 @@ package com.merilive.app;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
+import androidx.core.view.WindowCompat;
 import com.getcapacitor.BridgeActivity;
 import com.merilive.app.plugin.LiveKitPlugin;
 import com.merilive.app.util.NotificationHelper;
