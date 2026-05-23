@@ -147,6 +147,8 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
             .setSmallIcon(R.drawable.ic_notification)
+            .setColor(NotificationHelper.BRAND_COLOR)
+            .setColorized(true)
             .setContentTitle(callerName)
             .setContentText("Incoming " + callLabel)
             .setPriority(NotificationCompat.PRIORITY_MAX)
