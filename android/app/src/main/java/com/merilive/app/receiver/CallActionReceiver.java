@@ -66,6 +66,9 @@ public class CallActionReceiver extends BroadcastReceiver {
                 Intent fg = new Intent(context, CallForegroundService.class);
                 fg.setAction(CallForegroundService.ACTION_START);
                 fg.putExtra("caller_name", callerName);
+                fg.putExtra("caller_avatar", callerAvatar);
+                fg.putExtra("call_id", callId);
+                fg.putExtra("caller_id", callerId);
                 fg.putExtra("call_type", "video".equals(callType) ? "Video Call" : "Audio Call");
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     context.startForegroundService(fg);
