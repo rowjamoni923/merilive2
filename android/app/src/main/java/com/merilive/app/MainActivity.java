@@ -25,6 +25,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.AnalyticsPlugin.class);
         registerPlugin(com.merilive.app.plugin.ShareTargetPlugin.class);
         registerPlugin(com.merilive.app.plugin.PhotoPickerPlugin.class);
+        registerPlugin(com.merilive.app.plugin.BackgroundSyncPlugin.class);
 
         super.onCreate(savedInstanceState);
 
