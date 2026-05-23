@@ -22,6 +22,7 @@ import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
 import {
   Heart,
   Share2,
@@ -167,6 +168,11 @@ const LiveStream = () => {
   const [isHostVerified, setIsHostVerified] = useState(false);
   const [isHostMicMuted, setIsHostMicMuted] = useState(false);
   const streamTitle = location.state?.title || "";
+
+  // Pkg245 — auto-PiP when user taps home button while watching/hosting a
+  // live stream (Bigo/YouTube parity). 9:16 portrait window; reuses native
+  // bridge (Pkg207). No-op on web/iOS.
+  useNativeAndroidPip({ active: isHostVerified || !isHost, aspect: '9:16' });
   const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
     if (location.state?.isHost === true) {
       return consumePreparedHostPreviewStream();
