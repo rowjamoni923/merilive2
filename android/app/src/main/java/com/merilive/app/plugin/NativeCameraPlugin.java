@@ -139,6 +139,12 @@ public class NativeCameraPlugin extends Plugin {
                     activeRecording = null;
                 }
                 if (cameraProvider != null) cameraProvider.unbindAll();
+                synchronized (frameLock) {
+                    latestFrameJpeg = null;
+                    latestFrameWidth = 0;
+                    latestFrameHeight = 0;
+                    lastFrameEncodeAt = 0L;
+                }
                 removePreviewView();
                 call.resolve();
             } catch (Exception e) {
@@ -378,6 +384,23 @@ public class NativeCameraPlugin extends Plugin {
             .setTargetResolution(targetResolution)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build();
+        analysis.setAnalyzer(cameraExecutor, image -> {
+            try {
+                long now = System.currentTimeMillis();
+                if (now - lastFrameEncodeAt < 350) return;
+                byte[] jpeg = imageProxyToJpeg(image, 72);
+                synchronized (frameLock) {
+                    latestFrameJpeg = jpeg;
+                    latestFrameWidth = image.getWidth();
+                    latestFrameHeight = image.getHeight();
+                    lastFrameEncodeAt = now;
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Frame analyzer encode failed: " + e.getMessage());
+            } finally {
+                image.close();
+            }
+        });
 
         imageCapture = new ImageCapture.Builder()
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
@@ -393,15 +416,16 @@ public class NativeCameraPlugin extends Plugin {
 
         cameraProvider.unbindAll();
         try {
-            // Bind preview + imageCapture + videoCapture (analysis omitted —
-            // CameraX max 3 use-cases on most devices, video > analysis here)
+            // Face verification needs simultaneous native preview + video +
+            // pose frames. Analyzer supplies captureFrame while recording.
             camera = cameraProvider.bindToLifecycle(
                 (LifecycleOwner) getActivity(),
                 currentSelector,
                 preview,
-                imageCapture,
+                analysis,
                 videoCapture
             );
+            imageCapture = null;
         } catch (Exception e) {
             // Some devices reject 3 use-cases — fall back to preview+video only
             Log.w(TAG, "3-use-case bind failed, retry with preview+video: " + e.getMessage());
