@@ -137,6 +137,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         acceptIntent.putExtra("call_id", callId);
         acceptIntent.putExtra("caller_id", callerId);
         acceptIntent.putExtra("caller_name", callerName);
+        acceptIntent.putExtra("caller_avatar", callerAvatar);
         acceptIntent.putExtra("call_type", callType);
         PendingIntent acceptPI = PendingIntent.getBroadcast(
             this, ("accept:" + callId).hashCode(), acceptIntent,
@@ -147,6 +148,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         declineIntent.putExtra("call_id", callId);
         declineIntent.putExtra("caller_id", callerId);
         declineIntent.putExtra("caller_name", callerName);
+        declineIntent.putExtra("caller_avatar", callerAvatar);
         declineIntent.putExtra("call_type", callType);
         PendingIntent declinePI = PendingIntent.getBroadcast(
             this, ("decline:" + callId).hashCode(), declineIntent,
