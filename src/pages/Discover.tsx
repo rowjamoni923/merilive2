@@ -365,7 +365,7 @@ const Discover = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search rooms..."
-                className="w-full pl-9 h-9 bg-white/20 border-amber-200/60 text-heading placeholder:text-slate-400 rounded-full text-sm"
+                className="w-full pl-9 h-9 bg-white/20 border-amber-200/60 text-heading placeholder:text-on-dark-faint rounded-full text-sm"
               />
             </div>
           </div>
