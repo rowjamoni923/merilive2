@@ -756,19 +756,28 @@ const PartyRoom = () => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       // Use ref to check host status at the time of close (avoid stale closure)
       const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
+      const accessToken = sessionAccessTokenRef.current;
+      const sendPatchBeacon = (path: string, payload: Record<string, unknown>) => {
+        if (!accessToken) return;
+        try {
+          fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${path}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${accessToken}`,
+              Prefer: 'return=minimal',
+            },
+            body: JSON.stringify(payload),
+            keepalive: true,
+          }).catch(() => {});
+        } catch { /* ignore unload failures */ }
+      };
       
       if (isHostNow && roomId) {
-        const updateData = JSON.stringify({ is_active: false });
-        navigator.sendBeacon(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/party_rooms?id=eq.${roomId}`,
-          new Blob([updateData], { type: 'application/json' })
-        );
-        
-        const participantData = JSON.stringify({ left_at: new Date().toISOString() });
-        navigator.sendBeacon(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/party_room_participants?room_id=eq.${roomId}&left_at=is.null`,
-          new Blob([participantData], { type: 'application/json' })
-        );
+        const leftAt = new Date().toISOString();
+        sendPatchBeacon(`party_rooms?id=eq.${encodeURIComponent(roomId)}`, { is_active: false, ended_at: leftAt });
+        sendPatchBeacon(`party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&left_at=is.null`, { left_at: leftAt, position: null });
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
