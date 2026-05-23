@@ -147,7 +147,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     const markReady = () => {
       revealVideo();
-      if (!muted) {
+      if (!mutedRef.current) {
         // Optional unmute after successful playback start
         try {
           el.muted = false;
@@ -158,6 +158,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
         }
       }
     };
+
 
 
 
