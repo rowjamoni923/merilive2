@@ -1,7 +1,11 @@
 package com.merilive.app;
 
+import android.app.ActivityManager;
 import android.app.Application;
+import android.os.Build;
+import android.os.Process;
 import android.util.Log;
+import android.webkit.WebView;
 import androidx.multidex.MultiDex;
 import android.content.Context;
 
@@ -26,6 +30,30 @@ public class MeriLiveApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // Pkg246 — Per-process WebView data directory.
+        //
+        // Android only allows ONE process per app to use the default WebView
+        // data directory. If our FCM service, WorkManager worker, QS tile,
+        // or any background process ever instantiates a WebView (even
+        // transitively via a 3rd-party SDK), the second process throws
+        // WebViewChromiumLockException and the whole app can crash.
+        //
+        // Calling setDataDirectorySuffix() with the process name *before*
+        // any WebView is touched gives each process its own scratch dir.
+        // Safe on every API level >= 28; below that we just skip.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                String procName = currentProcessName();
+                if (procName != null && !procName.equals(getPackageName())) {
+                    // Sanitize: only ASCII letters/digits/_/. allowed.
+                    String safe = procName.replace(':', '_').replaceAll("[^A-Za-z0-9_.]", "_");
+                    WebView.setDataDirectorySuffix(safe);
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "WebView.setDataDirectorySuffix failed (non-fatal)", t);
+            }
+        }
 
         // CRITICAL: Wrap every init in try/catch so a single failure
         // (e.g. Firebase missing google-services on a stripped device)
@@ -58,5 +86,26 @@ public class MeriLiveApplication extends Application {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             Log.e(TAG, "Uncaught exception in thread " + t.getName(), e);
         });
+    }
+
+    /**
+     * Returns the current process name (e.g. "com.merilive.app:fcm").
+     * Application.getProcessName() exists API 28+; below that we walk
+     * ActivityManager.getRunningAppProcesses() to find our pid.
+     */
+    private String currentProcessName() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try { return Application.getProcessName(); } catch (Throwable ignored) {}
+        }
+        try {
+            int pid = Process.myPid();
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null) {
+                for (ActivityManager.RunningAppProcessInfo p : am.getRunningAppProcesses()) {
+                    if (p.pid == pid) return p.processName;
+                }
+            }
+        } catch (Throwable ignored) {}
+        return null;
     }
 }
