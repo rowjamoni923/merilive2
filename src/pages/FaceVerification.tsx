@@ -48,6 +48,7 @@ import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
+import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -138,6 +139,7 @@ const FaceVerification = () => {
   
   // Native camera permission hook
   const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
+  const nativeFaceCam = useNativeFaceCamera();
   
   // Determine verification type based on user gender
   const isHost = profile?.is_host;
@@ -183,12 +185,15 @@ const FaceVerification = () => {
   // Face Verification Video States
   const [faceVerificationVideo, setFaceVerificationVideo] = useState<Blob | null>(null);
   const [faceStream, setFaceStream] = useState<MediaStream | null>(null);
+  const [usingNativeFaceCamera, setUsingNativeFaceCamera] = useState(false);
   const [faceVerified, setFaceVerified] = useState(false);
   const [verifyingFace, setVerifyingFace] = useState(false);
   const faceVideoRef = useRef<HTMLVideoElement>(null);
   const faceCanvasRef = useRef<HTMLCanvasElement>(null);
   const faceRecorderRef = useRef<MediaRecorder | null>(null);
   const faceChunksRef = useRef<Blob[]>([]);
+  const usingNativeFaceCameraRef = useRef(false);
+  const nativeFaceRecordingRef = useRef(false);
   
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
@@ -367,6 +372,22 @@ const FaceVerification = () => {
       }, 1600);
     });
   }, []);
+
+  const setNativeFaceCameraActive = useCallback((active: boolean) => {
+    usingNativeFaceCameraRef.current = active;
+    setUsingNativeFaceCamera(active);
+  }, []);
+
+  const captureFaceFrameBase64 = useCallback(async (size = 480): Promise<string | null> => {
+    if (usingNativeFaceCameraRef.current) {
+      const dataUrl = await nativeFaceCam.captureFrame();
+      if (!dataUrl) return null;
+      return dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+    }
+
+    const videoEl = faceVideoRef.current;
+    return videoEl ? captureFrameFromLiveVideo(videoEl, size) : null;
+  }, [nativeFaceCam]);
 
   const refreshVerificationState = useCallback(async (targetUserId: string) => {
     const { data: profileData } = await supabase
