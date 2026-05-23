@@ -22,12 +22,13 @@
  */
 
 import type { Room } from 'livekit-client';
-import { scheduleLiveKitTokenRefresh } from './livekitTokenRefresh';
+import { attachLiveKitTokenRefresh, type RefetchTokenFn } from './livekitTokenRefresh';
 import { registerMediaDeviceHandlers, unregisterMediaDeviceHandlers } from './livekitMediaDeviceHandlers';
 import { registerConnectionQualityRoom, unregisterConnectionQualityRoom } from './livekitConnectionQuality';
 import { startAutoQuality, stopAutoQuality } from './livekitAutoQuality';
 import { startBackgroundPause, stopBackgroundPause } from './livekitBackgroundPause';
 import type { QualityScope } from './livekitConnectionQuality';
+
 
 export type BootstrapRole = 'host' | 'viewer' | 'caller' | 'callee' | 'party-member' | 'pk-opponent';
 
