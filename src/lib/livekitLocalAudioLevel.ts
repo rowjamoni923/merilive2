@@ -104,7 +104,7 @@ export function useMediaStreamMicLevel(
       src = ctx.createMediaStreamSource(stream);
       analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
-      buf = new Uint8Array(analyser.frequencyBinCount);
+      buf = new Uint8Array(new ArrayBuffer(analyser.frequencyBinCount));
       src.connect(analyser);
     } catch (err) {
       console.warn('[useMediaStreamMicLevel] init failed', err);
