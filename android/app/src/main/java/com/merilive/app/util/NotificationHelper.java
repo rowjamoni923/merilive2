@@ -31,6 +31,18 @@ public class NotificationHelper {
     public static final int NOTIFICATION_LIVE = 4001;
     public static final int NOTIFICATION_SYSTEM = 5001;
 
+    /** Pkg202 — brand accent shown as background tint on lockscreen heads-up + as the
+     *  small-icon tint. Matches MeriLive primary (hot pink/red). */
+    public static final int BRAND_COLOR = 0xFFE91E63;
+
+    /** Pkg202 — notification group keys (WhatsApp-style stacked notifications). */
+    public static final String GROUP_MESSAGES = "merilive_group_messages";
+    public static final String GROUP_GIFTS = "merilive_group_gifts";
+    public static final String GROUP_LIVE = "merilive_group_live";
+    public static final int SUMMARY_MESSAGES = 2000;
+    public static final int SUMMARY_GIFTS = 3000;
+    public static final int SUMMARY_LIVE = 4000;
+
     public static void createNotificationChannels(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
 
