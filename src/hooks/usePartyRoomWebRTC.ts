@@ -420,15 +420,18 @@ export function usePartyRoomWebRTC(
         });
 
         room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack, pub: RemoteTrackPublication, participant: RemoteParticipant) => {
+          const audioKey = track.kind === Track.Kind.Audio
+            ? getRemoteAudioTrackKey(participant.identity, pub, track)
+            : null;
           if (track.kind === Track.Kind.Audio) {
-            remoteAudioTrackKeysRef.current.delete(getRemoteAudioTrackKey(participant.identity, pub, track));
+            remoteAudioTrackKeysRef.current.delete(audioKey!);
           }
           track.detach().forEach(el => el.remove());
 
           if (track.kind === Track.Kind.Audio) {
-            // Audio element list rebuilds on next subscribe; nothing else to do.
+            // Drop only the detached audio element; keep other audio tracks for this identity alive.
             const remaining = (audioElementsRef.current.get(participant.identity) || []).filter(
-              (el) => document.body.contains(el),
+              (el) => el.dataset?.partyAudioKey !== audioKey,
             );
             if (remaining.length > 0) {
               audioElementsRef.current.set(participant.identity, remaining);
@@ -670,13 +673,7 @@ export function usePartyRoomWebRTC(
           // Play audio for existing participants
           participant.trackPublications.forEach(pub => {
             if (pub.track?.kind === Track.Kind.Audio && pub.isSubscribed) {
-              const audioEl = pub.track.attach() as HTMLAudioElement;
-              audioEl.autoplay = true;
-              try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-              audioEl.play().catch(() => {});
-              const existing = audioElementsRef.current.get(participant.identity) || [];
-              existing.push(audioEl);
-              audioElementsRef.current.set(participant.identity, existing);
+              attachRemoteAudioOnce(participant.identity, pub, pub.track as RemoteTrack);
             }
           });
         });
