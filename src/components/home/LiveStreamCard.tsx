@@ -105,8 +105,8 @@ export const LiveStreamCard = ({
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-semibold text-sm truncate">{hostName}</h3>
-            <div className="flex items-center gap-1 text-white/70 text-xs">
+            <h3 className="text-on-dark font-semibold text-sm truncate">{hostName}</h3>
+            <div className="flex items-center gap-1 text-on-dark-muted text-xs">
               <span>{countryFlag}</span>
               <span className="truncate">{country}</span>
             </div>
