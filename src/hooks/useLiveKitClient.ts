@@ -183,6 +183,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     lipColor: 10,
   });
   const [isRemoteAudioMuted, setIsRemoteAudioMuted] = useState(false); // Auto-play sound when entering stream
+  // Audit-fix (Live #2): ref-mirror of isRemoteAudioMuted so late-attached
+  // audio tracks always read the LATEST mute state without needing the
+  // join effect to re-run (which would tear down the room).
+  const isRemoteAudioMutedRef = useRef(false);
 
   const roomRef = useRef<Room | null>(null);
   // Pkg189: token auto-refresh detach handle (replaces JWT before expiry so
