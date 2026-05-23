@@ -200,6 +200,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   // Map participant identity to a stable numeric UID for backward compat
   const participantUidMapRef = useRef<Map<string, number>>(new Map());
   const remoteAudioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
+  const remoteAudioTrackKeysRef = useRef<Set<string>>(new Set());
   const hostVideoRecoveryTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const viewerHardReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastForcedVideoResubscribeAtRef = useRef(0);
@@ -315,6 +316,21 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
       }
     });
   }, [getUidForParticipant]);
+
+  const attachRemoteAudioOnce = useCallback((track: RemoteTrack, participantIdentity: string, publication?: RemoteTrackPublication) => {
+    const trackKey = `${participantIdentity}:${publication?.trackSid || (track as any).sid || (track as any).mediaStreamTrack?.id || 'audio'}`;
+    if (remoteAudioTrackKeysRef.current.has(trackKey)) return;
+    remoteAudioTrackKeysRef.current.add(trackKey);
+
+    const audioEl = track.attach();
+    audioEl.dataset.livekitAudioKey = trackKey;
+    audioEl.muted = isRemoteAudioMutedRef.current;
+    audioEl.volume = 1;
+    audioEl.play().catch(() => {});
+    const existing = remoteAudioElementsRef.current.get(participantIdentity) || [];
+    existing.push(audioEl);
+    remoteAudioElementsRef.current.set(participantIdentity, existing);
+  }, []);
 
   // Join channel - creates a LiveKit room connection
   const joinChannel = useCallback(async (config: LiveKitConfig) => {
