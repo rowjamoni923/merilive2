@@ -472,11 +472,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           degradationPreference: 'maintain-resolution',
           simulcast: useSimulcast,
           ...(useSimulcast ? { videoSimulcastLayers: simulcastLayers } : {}),
-          // Pkg156: prefer VP9 (Chamet/Bigo standard) — better quality/bitrate
-          // than VP8/H264 at same bandwidth. backupCodec auto-falls back to
-          // VP8 for receivers lacking VP9 decode (older Safari/Android).
-          videoCodec: 'vp9',
-          backupCodec: { codec: 'vp8' },
+          // Pkg205 (M3): device-aware codec selection.
+          // iOS/desktop Safari → H.264 primary (no VP9/AV1 hardware decode).
+          // Chromium with AV1 hw → AV1, else VP9. H.264 backup preferred
+          // over VP8 for broader receiver hardware coverage.
+          ...pickOptimalCodecs(),
           // Pkg163: high-quality voice opus encoder + RED (packet loss resilience).
           // dtx:false → continuous audio (no silence-detection clipping during pauses).
           audioPreset: AudioPresets.musicHighQuality,
