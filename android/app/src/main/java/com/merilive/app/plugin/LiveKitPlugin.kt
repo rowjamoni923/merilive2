@@ -591,6 +591,8 @@ class LiveKitPlugin : Plugin() {
                 stopBluetoothScoInternal()
                 abandonAudioFocusInternal()
                 stopCallForegroundService()
+                try { beautyProcessor?.release() } catch (_: Exception) {}
+                beautyProcessor = null
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
@@ -1384,6 +1386,8 @@ class LiveKitPlugin : Plugin() {
             // Step 36 — release MediaPipe segmenter + RenderScript blur.
             try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
             virtualBackgroundProcessor = null
+            try { beautyProcessor?.release() } catch (_: Exception) {}
+            beautyProcessor = null
         } catch (_: Exception) {}
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.
