@@ -704,8 +704,10 @@ export function UnifiedPartyRoom({
   
   // CRITICAL: Real-time viewers state for header display (NOT relying on props)
   const [realtimeViewers, setRealtimeViewers] = useState<RealtimeViewer[]>([]);
-  const [realtimeViewerCount, setRealtimeViewerCount] = useState(0);
+  const [realtimeViewerCount, setRealtimeViewerCount] = useState<number | null>(null);
   const roomIdRef = useRef(roomId);
+  const viewerFetchSeqRef = useRef(0);
+  const chatLoadSeqRef = useRef(0);
   
   // Update roomId ref when it changes
   useEffect(() => {
@@ -746,6 +748,7 @@ export function UnifiedPartyRoom({
   }, [hostInfo?.id]);
 
   useEffect(() => {
+    let cancelled = false;
     if (!currentUserId) {
       setCurrentUserProfile(null);
       return;
@@ -755,7 +758,12 @@ export function UnifiedPartyRoom({
       .select('display_name, avatar_url, user_level')
       .eq('id', currentUserId)
       .maybeSingle()
-      .then(({ data }) => setCurrentUserProfile(data || null));
+      .then(({ data }) => {
+        if (!cancelled) setCurrentUserProfile(data || null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [currentUserId]);
   
   // Store onTriggerEntryEffect in ref to avoid stale closures
@@ -768,6 +776,7 @@ export function UnifiedPartyRoom({
   const fetchRealtimeViewers = useCallback(async () => {
     const currentRoomId = roomIdRef.current;
     if (!currentRoomId) return;
+    const seq = ++viewerFetchSeqRef.current;
     
     try {
       const { data, error } = await supabase
@@ -807,6 +816,7 @@ export function UnifiedPartyRoom({
           })
           .sort((a: RealtimeViewer, b: RealtimeViewer) => b.level - a.level); // Sort by level descending
         
+        if (seq !== viewerFetchSeqRef.current || roomIdRef.current !== currentRoomId) return;
         setRealtimeViewers(viewerList);
         setRealtimeViewerCount(data.length); // Total including host
         console.log('[UnifiedPartyRoom] ✅ Real-time viewers updated:', viewerList.length, 'host excluded:', currentHostId);
@@ -913,6 +923,11 @@ export function UnifiedPartyRoom({
   // Load history from party_room_messages; live fanout arrives via LiveKit.
   useEffect(() => {
     if (!roomId) return;
+    const loadSeq = ++chatLoadSeqRef.current;
+    processedMsgIdsRef.current.clear();
+    processedJoinsRef.current.clear();
+    processedParticipantJoinsRef.current.clear();
+    triggeredEntryAnimationsRef.current.clear();
     
     console.log('[UnifiedPartyRoom] Setting up LiveKit chat fanout for room:', roomId);
     
@@ -947,12 +962,13 @@ export function UnifiedPartyRoom({
             color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
             userLevel: profile?.user_level || 1,
             userAvatar: profile?.avatar_url,
-            isHost: profile?.is_host || (m.user_id === hostInfo?.id),
+            isHost: profile?.is_host || (m.user_id === hostIdRef.current),
             isNewUser: false,
             type: m.message_type || 'text',
             bubbleUrl: null,
           };
         });
+        if (loadSeq !== chatLoadSeqRef.current || roomIdRef.current !== roomId) return;
         setPremiumMessages(unifiedMsgs);
         unifiedMsgs.forEach(m => processedMsgIdsRef.current.add(m.id));
 
@@ -961,7 +977,7 @@ export function UnifiedPartyRoom({
         unifiedMsgs.forEach(async (m) => {
           if (!m.userId) return;
           const bubbleUrl = await getEquippedBubble(m.userId);
-          if (bubbleUrl) {
+          if (bubbleUrl && loadSeq === chatLoadSeqRef.current && roomIdRef.current === roomId) {
             setPremiumMessages(prev => prev.map(pm => pm.id === m.id ? { ...pm, bubbleUrl } : pm));
           }
         });
@@ -993,7 +1009,7 @@ export function UnifiedPartyRoom({
         color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
         userLevel: data.userLevel || 1,
         userAvatar: data.avatarUrl,
-        isHost: data.isHost || (data.userId === hostInfo?.id),
+        isHost: data.isHost || (data.userId === hostIdRef.current),
         isNewUser: false,
         type: msgType,
         bubbleUrl: null,
@@ -1017,7 +1033,7 @@ export function UnifiedPartyRoom({
 
       // Async bubble enrichment — cached per user.
       void getEquippedBubble(data.userId).then(bubbleUrl => {
-        if (!bubbleUrl) return;
+        if (!bubbleUrl || roomIdRef.current !== roomId) return;
         setPremiumMessages(prev => prev.map(pm => pm.id === data.messageId ? { ...pm, bubbleUrl } : pm));
       });
     };
@@ -1026,7 +1042,7 @@ export function UnifiedPartyRoom({
     return () => {
       window.removeEventListener('livekit-chat-message', handleLiveKitChat);
     };
-  }, [roomId, hostInfo?.id]);
+  }, [roomId]);
 
   
   // ==================== LEGACY: JOIN MESSAGES FROM PROPS (for chat only) ====================
@@ -1076,19 +1092,25 @@ export function UnifiedPartyRoom({
   const handleSendMessage = async (message: string) => {
     if (!roomId || !currentUserId || !message.trim()) return;
     
+    const sendingRoomId = roomId;
+    const sendingUserId = currentUserId;
     const trimmedMessage = message.trim();
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     
     // Mark this message content as pending (to skip when real-time confirms)
-    const msgKey = `${currentUserId}-${trimmedMessage}`;
+    const msgKey = `${sendingUserId}-${trimmedMessage}`;
     pendingMessagesRef.current.add(msgKey);
     
     // OPTIMISTIC UPDATE: Instantly show message in UI before DB save
     const senderName = currentUserProfile?.display_name || (isHost ? hostInfo?.displayName : null) || 'You';
-    const ownBubble = await getEquippedBubble(currentUserId);
+    const ownBubble = await getEquippedBubble(sendingUserId);
+    if (roomIdRef.current !== sendingRoomId) {
+      pendingMessagesRef.current.delete(msgKey);
+      return;
+    }
     const optimisticMessage: RoomChatMessage = {
       id: tempId,
-      userId: currentUserId,
+      userId: sendingUserId,
       user: senderName,
       initial: senderName.charAt(0).toUpperCase(),
       message: trimmedMessage,
@@ -1104,7 +1126,7 @@ export function UnifiedPartyRoom({
     setPremiumMessages(prev => [...prev, optimisticMessage]);
     
     // Run contact detection for hosts - non-blocking with error handling
-    detectAndProcessViolation(currentUserId, trimmedMessage, 'chat', roomId)
+    detectAndProcessViolation(sendingUserId, trimmedMessage, 'chat', sendingRoomId)
       .then(res => {
         console.log('[ContactDetection] PartyRoom result:', res);
         if (res.detected && res.violationNumber) {
@@ -1116,15 +1138,19 @@ export function UnifiedPartyRoom({
        .catch(err => console.error('[ContactDetection] PartyRoom error:', err));
 
     // 🔥 AWS Comprehend toxic content moderation (background)
-    checkToxic(trimmedMessage, { contextType: 'party_room', roomId }).catch(() => {});
+    checkToxic(trimmedMessage, { contextType: 'party_room', roomId: sendingRoomId }).catch(() => {});
     
     // Save to party_room_messages table - background operation
     const { data, error } = await supabase.from('party_room_messages').insert({
-      room_id: roomId,
-      user_id: currentUserId,
+      room_id: sendingRoomId,
+      user_id: sendingUserId,
       content: trimmedMessage,
       message_type: 'chat'
     }).select('id').single();
+    if (roomIdRef.current !== sendingRoomId) {
+      pendingMessagesRef.current.delete(msgKey);
+      return;
+    }
     
     if (error) {
       console.error('[UnifiedPartyRoom] Failed to send message:', error);
@@ -1143,9 +1169,9 @@ export function UnifiedPartyRoom({
       // Pkg81c: publish chat over LiveKit DataPacket. Receivers render
       // sub-50ms without any postgres_changes subscription. DB row above
       // remains the moderation/audit/late-join history source.
-      void publishChatMessage('party', roomId, {
+      void publishChatMessage('party', sendingRoomId, {
         messageId: data.id,
-        userId: currentUserId,
+        userId: sendingUserId,
         displayName: senderName,
         avatarUrl: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
         userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
@@ -1358,7 +1384,7 @@ export function UnifiedPartyRoom({
             <div className="flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-full ml-1">
               <Users className="w-3 h-3 text-white/70" />
               {/* CRITICAL: Use realtimeViewerCount for instant updates */}
-              <span className="text-white text-[10px] font-medium">{realtimeViewerCount > 0 ? realtimeViewerCount : viewerCount}</span>
+              <span className="text-white text-[10px] font-medium">{realtimeViewerCount ?? viewerCount}</span>
             </div>
             
             {/* 🔴 PENDING SEAT REQUEST BADGE - ONLY for Host */}
@@ -1776,14 +1802,14 @@ export function UnifiedPartyRoom({
       <ChametStyleViewerPanel
         isOpen={showViewerPanel}
         onClose={() => setShowViewerPanel(false)}
-        viewers={viewers.length > 0 ? viewers : topViewers.map((v, i) => ({
+        viewers={(realtimeViewers.length > 0 ? realtimeViewers : viewers.length > 0 ? viewers : topViewers.map((v, i) => ({
           id: v.id || `viewer-${i}`,
           displayName: v.displayName || `Viewer ${i + 1}`,
           avatarUrl: v.avatarUrl,
           level: v.level,
           countryFlag: '🌍',
           frameId: v.frameId || undefined
-        }))}
+        })))}
         applicants={seatRequests}
         isHost={isHost}
         onAcceptApplicant={onAcceptSeatRequest}

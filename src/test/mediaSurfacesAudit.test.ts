@@ -80,6 +80,15 @@ describe("media surfaces — subscription handlers wired", () => {
     expect(src).toMatch(/participants\.find\(p => p\.id === hostInfo\?\.id\)\?\.position/);
   });
 
+  it("party room UI guards async viewer/chat state by room session", () => {
+    const src = read("src/components/party/UnifiedPartyRoom.tsx");
+    expect(src).toMatch(/viewerFetchSeqRef/);
+    expect(src).toMatch(/chatLoadSeqRef/);
+    expect(src).toMatch(/roomIdRef\.current !== roomId/);
+    expect(src).toMatch(/roomIdRef\.current !== sendingRoomId/);
+    expect(src).toMatch(/realtimeViewers\.length > 0 \? realtimeViewers/);
+  });
+
   it("live viewer retries subscription early if first-frame hasn't arrived", () => {
     const live = read("src/pages/LiveStream.tsx");
     expect(live).toMatch(/retrySubscription/);
