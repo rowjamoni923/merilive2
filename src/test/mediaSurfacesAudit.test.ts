@@ -107,6 +107,24 @@ describe("media surfaces — subscription handlers wired", () => {
     expect(src).toMatch(/publishChatMessage\('party', sendingRoomId/);
   });
 
+  it("gift service rejects invalid quantities and returns verified sender id", () => {
+    const fn = read("supabase/functions/gift-service/index.ts");
+    expect(fn).toMatch(/Number\.isInteger\(rawQuantity\)/);
+    expect(fn).toMatch(/rawQuantity < 1 \|\| rawQuantity > 999/);
+    expect(fn).toMatch(/senderId: user\.id/);
+    const service = read("src/features/shared/gifting/GiftingService.ts");
+    expect(service).toMatch(/result\.senderId && result\.senderId !== senderId/);
+  });
+
+  it("call and reels gift send use ref-backed balances for rapid combo taps", () => {
+    const call = read("src/components/call/ActiveCallScreen.tsx");
+    const reels = read("src/pages/Reels.tsx");
+    expect(call).toMatch(/userCoinsRef\.current/);
+    expect(call).toMatch(/const availableCoins = userCoinsRef\.current/);
+    expect(reels).toMatch(/userCoinsRef\.current/);
+    expect(reels).toMatch(/currentUserIdRef\.current/);
+  });
+
   it("live viewer retries subscription early if first-frame hasn't arrived", () => {
     const live = read("src/pages/LiveStream.tsx");
     expect(live).toMatch(/retrySubscription/);

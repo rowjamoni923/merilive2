@@ -108,6 +108,19 @@ const Reels = () => {
   const [submittingReport, setSubmittingReport] = useState(false);
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const userCoinsRef = useRef(0);
+  const currentIndexRef = useRef(0);
+  const currentUserIdRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  }, [userCoins]);
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+  useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
   
   // Flying gift animations
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift } = useFlyingGifts();
@@ -126,6 +139,7 @@ const Reels = () => {
           supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order'),
         ]);
         setIsHost(profileRes.data?.is_host || false);
+        userCoinsRef.current = profileRes.data?.coins || 0;
         setUserCoins(profileRes.data?.coins || 0);
         if (categoriesRes.data) setCategories(categoriesRes.data);
       } else {
@@ -395,24 +409,28 @@ const Reels = () => {
   // Handle sending gift to reel creator
   const handleSendGift = async (gift: GiftData, count: number) => {
     const currentReel = reels[currentIndex];
-    if (!currentReel || !currentUserId) {
+    const sendingUserId = currentUserIdRef.current;
+    const sendingReelId = currentReel?.id;
+    if (!currentReel || !sendingUserId || !sendingReelId) {
       toast.error("Please login to send gifts");
       return;
     }
 
-    if (currentReel.user_id === currentUserId) {
+    if (currentReel.user_id === sendingUserId) {
       toast.error("You cannot send gifts to your own reel");
       return;
     }
 
     const totalCost = gift.coins * count;
-    if (totalCost > userCoins) {
+    const availableCoins = userCoinsRef.current;
+    if (totalCost > availableCoins) {
       toast.error("Not enough diamonds!");
       return;
     }
 
-    const previousCoins = userCoins;
-    setUserCoins(prev => prev - totalCost);
+    const previousCoins = availableCoins;
+    userCoinsRef.current = Math.max(0, availableCoins - totalCost);
+    setUserCoins(userCoinsRef.current);
     const { updateCachedBalance, getCachedBalance } = await import("@/hooks/useUserBalance");
     updateCachedBalance(getCachedBalance() - totalCost);
     setShowGiftPanel(false);
@@ -433,36 +451,40 @@ const Reels = () => {
     try {
       const result = await sendGift({
         giftId: gift.id,
-        senderId: currentUserId,
+        senderId: sendingUserId,
         receiverId: currentReel.user_id,
         quantity: count,
         context: 'reel',
-        reelId: currentReel.id,
+        reelId: sendingReelId,
       });
 
       if (!result.success) throw new Error(result.error || 'Failed to send gift');
 
       const beansEarned = result.transaction?.beans_earned || 0;
-      setReels(prev => prev.map(r =>
-        r.id === currentReel.id
-          ? { ...r, beans_earned: (r.beans_earned || 0) + beansEarned }
-          : r
-      ));
+      if (currentUserIdRef.current === sendingUserId) {
+        setReels(prev => prev.map(r =>
+          r.id === sendingReelId
+            ? { ...r, beans_earned: (r.beans_earned || 0) + beansEarned }
+            : r
+        ));
+      }
 
       const { data: updatedProfile } = await supabase
         .from('profiles')
         .select('coins')
-        .eq('id', currentUserId)
+        .eq('id', sendingUserId)
         .single();
       if (updatedProfile) {
-        setUserCoins(updatedProfile.coins || 0);
-        updateCachedBalance(updatedProfile.coins || 0);
+        userCoinsRef.current = updatedProfile.coins || 0;
+        setUserCoins(userCoinsRef.current);
+        updateCachedBalance(userCoinsRef.current);
       }
 
       toast.success(`Sent ${count}x ${gift.name}!`);
     } catch (error) {
       console.error('Gift error:', error);
       recordClientError({ label: "Reels.beansEarned", message: error instanceof Error ? error.message : String(error) });
+      userCoinsRef.current = previousCoins;
       setUserCoins(previousCoins);
       updateCachedBalance(previousCoins);
       toast.error("Failed to send gift");
