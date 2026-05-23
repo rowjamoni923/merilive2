@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pkg250 — Quick Actions widget layout. Three round-icon buttons (Go Live /
+  Chat / Wallet) on a rounded dark surface. RemoteViews-safe widgets only.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:background="@drawable/widget_bg"
+    android:gravity="center">
+
+    <LinearLayout
+        android:id="@+id/widget_go_live"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="6dp">
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_shortcut_live"
+            android:contentDescription="@string/shortcut_live_short" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/shortcut_live_short"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_chat"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="6dp">
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_shortcut_chat"
+            android:contentDescription="@string/shortcut_chat_short" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/shortcut_chat_short"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/widget_wallet"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="6dp">
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_shortcut_wallet"
+            android:contentDescription="@string/shortcut_wallet_short" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/shortcut_wallet_short"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+</LinearLayout>
