@@ -15,7 +15,6 @@ interface PopupBanner {
 }
 
 const EventPopupBanner = () => {
-  const navigate = useNavigate();
   const [banner, setBanner] = useState<PopupBanner | null>(null);
   const [visible, setVisible] = useState(false);
   const [elapsed, setElapsed] = useState(0);
