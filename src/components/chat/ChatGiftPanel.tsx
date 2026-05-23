@@ -121,11 +121,25 @@ const GiftItem = memo(({
 GiftItem.displayName = 'GiftItem';
 
 function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUserCoins }: ChatGiftPanelProps) {
-  const [activeCategory, setActiveCategory] = useState("popular");
+  const [activeCategory, setActiveCategory] = useState<string>("wall"); // Pkg4-pass4: was "popular" which had no matching category → empty grid on open
   const [selectedGift, setSelectedGift] = useState<GiftData | null>(null);
   const [gifts, setGifts] = useState<GiftData[]>([]);
   const [loading, setLoading] = useState(!hasGiftCache());
   const [userCoins, setUserCoins] = useState(propUserCoins || 0);
+  const sendingRef = useRef(false);
+
+  // Pkg4-pass4: sync prop changes (parent balance updates were ignored after mount)
+  useEffect(() => {
+    if (typeof propUserCoins === 'number') setUserCoins(propUserCoins);
+  }, [propUserCoins]);
+
+  // Pkg4-pass4: clear selection + release send guard when sheet closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedGift(null);
+      sendingRef.current = false;
+    }
+  }, [isOpen]);
 
   // Transform cached gifts to component format
   const transformGifts = useCallback((rawGifts: any[]): GiftData[] => {
