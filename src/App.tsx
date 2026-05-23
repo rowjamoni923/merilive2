@@ -449,6 +449,10 @@ const NativeMessageActionsBridge = lazy(lazyRetry(() => import("./hooks/useNativ
   return { default: Bridge };
 })));
 
+// Pkg210 — biometric app-lock overlay + Android-14 screenshot detector.
+const AppLockGate = lazy(lazyRetry(() => import("./components/security/AppLockGate")));
+const ScreenshotDetectionBridge = lazy(lazyRetry(() => import("./components/security/ScreenshotDetectionBridge")));
+
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
