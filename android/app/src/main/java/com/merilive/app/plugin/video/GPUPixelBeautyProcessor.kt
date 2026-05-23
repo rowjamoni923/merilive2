@@ -83,20 +83,25 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
     private fun ensureGraph() {
         if (initialized.get()) return
         try {
-            rawInput = GPUPixelSourceRawInput()
-            beauty = BeautyFaceFilter()
-            reshape = FaceReshapeFilter()
-            lipstick = LipstickFilter()
+            GPUPixel.Init(context.applicationContext)
+            faceDetector = FaceDetector.Create()
+            rawInput = GPUPixelSourceRawData.Create()
+            rawOutput = GPUPixelSinkRawData.Create()
+            lipstick = GPUPixelFilter.Create(GPUPixelFilter.LIPSTICK_FILTER)
+            blusher = GPUPixelFilter.Create(GPUPixelFilter.BLUSHER_FILTER)
+            reshape = GPUPixelFilter.Create(GPUPixelFilter.FACE_RESHAPE_FILTER)
+            beauty = GPUPixelFilter.Create(GPUPixelFilter.BEAUTY_FACE_FILTER)
 
-            // chain: raw → beauty → reshape → lipstick
-            rawInput!!.addTarget(beauty)
-            beauty!!.addTarget(reshape)
-            reshape!!.addTarget(lipstick)
-            lastFilter = lipstick
+            // Professional chain: raw → lipstick/blusher/3D reshape → skin beauty → raw sink.
+            rawInput!!.AddSink(lipstick)
+            lipstick!!.AddSink(blusher)
+            blusher!!.AddSink(reshape)
+            reshape!!.AddSink(beauty)
+            beauty!!.AddSink(rawOutput)
 
             applyLevelsLocked()
             initialized.set(true)
-            Log.i(TAG, "GPUPixel filter graph ready")
+            Log.i(TAG, "GPUPixel MarsFace 3D landmark graph ready")
         } catch (t: Throwable) {
             Log.e(TAG, "ensureGraph failed", t)
         }
@@ -104,12 +109,33 @@ class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
 
     private fun applyLevelsLocked() {
         try {
-            beauty?.setSmoothLevel(smooth)
-            beauty?.setWhiteLevel(white)
-            reshape?.setThinLevel(thinFace)
-            reshape?.setBigeyeLevel(bigEye)
-            lipstick?.setBlendLevel(lipstickLevel)
+            beauty?.SetProperty("skin_smoothing", smooth)
+            beauty?.SetProperty("whiteness", white)
+            reshape?.SetProperty("thin_face", thinFace)
+            reshape?.SetProperty("big_eye", bigEye)
+            lipstick?.SetProperty("blend_level", lipstickLevel)
+            blusher?.SetProperty("blend_level", blusherLevel)
         } catch (_: Throwable) { /* ignore */ }
+    }
+
+    private fun applyLandmarksLocked(rgba: ByteArray, width: Int, height: Int, stride: Int) {
+        val landmarks = try {
+            faceDetector?.detect(
+                rgba,
+                width,
+                height,
+                stride,
+                FaceDetector.GPUPIXEL_MODE_FMT_VIDEO,
+                FaceDetector.GPUPIXEL_FRAME_TYPE_RGBA,
+            )
+        } catch (t: Throwable) {
+            Log.w(TAG, "face landmark detect failed: ${t.message}")
+            null
+        }
+        if (landmarks == null || landmarks.isEmpty()) return
+        reshape?.SetProperty("face_landmark", landmarks)
+        lipstick?.SetProperty("face_landmark", landmarks)
+        blusher?.SetProperty("face_landmark", landmarks)
     }
 
     override fun setSink(s: VideoSink?) { sink = s }
