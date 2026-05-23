@@ -108,7 +108,14 @@ export function BeautyFilterPanel({
   useEffect(() => {
     if (!open || !native) return;
     void setBeautyEnabled(enabled);
-  }, [enabled, native, open]);
+    // Pkg201 — detach broadcast processor when beauty toggled off, or
+    // (re)apply current levels when toggled on with the flag set.
+    if (!enabled) {
+      void applyBroadcastBeauty(levels, false);
+    } else if (isBroadcastBeautyEnabled()) {
+      void applyBroadcastBeauty(levels, true);
+    }
+  }, [enabled, native, open, levels]);
 
   if (!open) return null;
 
