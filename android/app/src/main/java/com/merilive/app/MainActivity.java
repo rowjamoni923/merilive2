@@ -76,6 +76,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.SecureStoragePlugin.class);
         registerPlugin(com.merilive.app.plugin.TextToSpeechPlugin.class);
         registerPlugin(com.merilive.app.plugin.SpeechRecognizerPlugin.class);
+        registerPlugin(com.merilive.app.plugin.DocumentPickerPlugin.class);
 
         super.onCreate(savedInstanceState);
 
