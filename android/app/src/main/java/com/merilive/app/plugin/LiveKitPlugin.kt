@@ -3765,7 +3765,7 @@ class LiveKitPlugin : Plugin() {
 
     private fun ensureBeautyProcessor(): com.merilive.app.plugin.video.GPUPixelBeautyProcessor {
         beautyProcessor?.let { return it }
-        val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor()
+        val proc = com.merilive.app.plugin.video.GPUPixelBeautyProcessor(context.applicationContext)
         beautyProcessor = proc
         return proc
     }
@@ -3808,10 +3808,11 @@ class LiveKitPlugin : Plugin() {
         val thinFace = (call.getFloat("thinFace") ?: 0.3f)
         val bigEye = (call.getFloat("bigEye") ?: 0.3f)
         val lipstick = (call.getFloat("lipstick") ?: 0f)
+        val blusher = (call.getFloat("blusher") ?: 0f)
         try {
             if (enabled) {
                 val proc = ensureBeautyProcessor()
-                proc.setLevels(smooth, white, thinFace, bigEye, lipstick)
+                proc.setLevels(smooth, white, thinFace, bigEye, lipstick, blusher)
                 attachBeautyProcessor()
             } else {
                 detachBeautyProcessor()
