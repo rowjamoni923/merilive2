@@ -38,15 +38,17 @@ export interface BootstrapOpts {
   room: Room;
   /** Role of the local participant — drives sensible feature defaults. */
   role: BootstrapRole;
-  /** Refreshed JWT — required for Pkg189 token auto-refresh. */
-  tokenInfo?: { token: string; expiresAt?: number; ttl?: number };
-  /** Callback for silent token refresh failure (logged-out / 401). */
-  onTokenRefreshFailed?: () => void;
+  /**
+   * Pkg189 token-refresh wiring. Provide a `refetch` that returns a fresh JWT
+   * (typically wraps the existing `livekit-token` edge function call) plus the
+   * current token's TTL in seconds.
+   */
+  tokenRefresh?: { refetch: RefetchTokenFn; ttlSeconds: number; refreshLeadSeconds?: number; label?: string };
 
   // Per-feature toggles (all default to role-appropriate values)
-  enableTokenRefresh?: boolean;          // default: tokenInfo provided
+  enableTokenRefresh?: boolean;          // default: tokenRefresh provided
   enableMediaDeviceHandlers?: boolean;   // default: true
-  mediaDeviceAutoRecover?: boolean;      // default: true (publishers)
+  mediaDeviceAutoRecover?: boolean;      // default: publishers
   enableConnectionQuality?: boolean;     // default: true
   enableAutoQuality?: boolean;           // default: viewers / PK opponents only
   enableBackgroundPause?: boolean;       // default: viewers only
@@ -67,8 +69,8 @@ function viewerRole(role: BootstrapRole): boolean {
 export function bootstrapLiveKitRoom(opts: BootstrapOpts): BootstrapHandle {
   const {
     scope, id, room, role,
-    tokenInfo, onTokenRefreshFailed,
-    enableTokenRefresh = !!tokenInfo,
+    tokenRefresh,
+    enableTokenRefresh = !!tokenRefresh,
     enableMediaDeviceHandlers = true,
     mediaDeviceAutoRecover = publisherRole(role),
     enableConnectionQuality = true,
@@ -80,20 +82,18 @@ export function bootstrapLiveKitRoom(opts: BootstrapOpts): BootstrapHandle {
   const teardown: Array<() => void> = [];
 
   // Pkg189 — Token auto-refresh
-  if (enableTokenRefresh && tokenInfo?.token) {
+  if (enableTokenRefresh && tokenRefresh) {
     try {
-      const stop = scheduleLiveKitTokenRefresh({
+      const stop = attachLiveKitTokenRefresh(
         room,
-        scope,
-        id,
-        token: tokenInfo.token,
-        expiresAt: tokenInfo.expiresAt,
-        ttl: tokenInfo.ttl,
-        onFailed: onTokenRefreshFailed,
-      } as never);
+        tokenRefresh.refetch,
+        tokenRefresh.ttlSeconds,
+        { refreshLeadSeconds: tokenRefresh.refreshLeadSeconds, label: tokenRefresh.label },
+      );
       if (typeof stop === 'function') teardown.push(stop);
-    } catch { /* refresh module signature shift — silently skip */ }
+    } catch { /* skip on failure */ }
   }
+
 
   // Pkg196 — Media device error + active-change handlers
   if (enableMediaDeviceHandlers) {
