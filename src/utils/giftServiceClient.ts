@@ -12,6 +12,7 @@ export interface GiftServicePayload {
 
 export interface GiftServiceResponse {
   success: boolean;
+  senderId?: string;
   transactionId?: string;
   coinsSpent?: number;
   hostReceived?: number;
