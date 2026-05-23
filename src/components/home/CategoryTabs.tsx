@@ -35,7 +35,7 @@ export const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsP
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full whitespace-nowrap transition-all duration-300 shrink-0",
               isActive
-                ? "gradient-primary text-white shadow-glow"
+                ? "gradient-primary text-primary-foreground shadow-glow"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
             )}
           >
