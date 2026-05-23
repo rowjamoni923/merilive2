@@ -99,6 +99,7 @@
         android:largeHeap="true"
         android:vmSafeMode="false"
         android:localeConfig="@xml/locales_config"
+        android:enableOnBackInvokedCallback="true"
         tools:targetApi="34">
 
         <activity
