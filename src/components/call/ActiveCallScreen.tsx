@@ -360,12 +360,21 @@ export function ActiveCallScreen({
 
     const totalCost = gift.coins * count;
     const availableCoins = userCoinsRef.current;
+  // Gift sending via unified gifting service (single source of truth)
+  const handleSendGift = async (gift: GiftData, count: number) => {
+    if (!userId || !remoteUserId) return;
+    // Section#5 pass-3 (Bug M): swallow duplicate rapid taps.
+    if (sendingGiftRef.current) return;
+
+    const totalCost = gift.coins * count;
+    const availableCoins = userCoinsRef.current;
     if (availableCoins < totalCost) {
       toast.error("Not enough diamonds!");
       return;
     }
 
     const previousCoins = availableCoins;
+    sendingGiftRef.current = true;
 
     try {
       // Optimistic local balance update for this screen only.
@@ -410,9 +419,17 @@ export function ActiveCallScreen({
       userCoinsRef.current = previousCoins;
       setUserCoins(previousCoins);
       toast.error("Failed to send gift");
+    } finally {
+      // Small cooldown to absorb mechanical double-tap; the GiftPanel itself
+      // also has its own guard, but this is the last line of defense.
+      setTimeout(() => { sendingGiftRef.current = false; }, 250);
     }
   };
   const handleEndCall = () => {
+    // Section#5 pass-3 (Bug J): block double-tap so onEndCall (and its
+    // downstream Telecom + billing finalize) only fires once.
+    if (endingRef.current) return;
+    endingRef.current = true;
     setCallEnded(true);
     cleanup();
     // End immediately on both sides (no waiting modal)
