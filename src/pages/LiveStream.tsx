@@ -177,6 +177,8 @@ const LiveStream = () => {
   useNativeAndroidPip({ active: isHostVerified || !isHost, aspect: '9:16' });
   // Pkg247 — boost to 90/120Hz while live for smooth video + chat scroll
   useHighRefreshRate(isHostVerified || !isHost);
+  // Live frame health monitor (face_lost / sleeping / multi-face / NSFW etc.)
+  // Hosts only, once per 30s; results logged to live_frame_alerts + admin broadcast.
   const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
     if (location.state?.isHost === true) {
       return consumePreparedHostPreviewStream();
