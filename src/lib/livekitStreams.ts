@@ -98,6 +98,19 @@ export function unregisterStreamRoom(scope: StreamScope, id: string) {
     .catch(() => {
       /* ignore */
     });
+
+  // Pkg202 — tear down disconnect-reason watcher (M5).
+  void import('./livekitDisconnectReason')
+    .then((mod) => {
+      try {
+        mod.stopDisconnectReasonWatcher(scope, id);
+      } catch {
+        /* ignore */
+      }
+    })
+    .catch(() => {
+      /* ignore */
+    });
 }
 
 /**
