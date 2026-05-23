@@ -18,6 +18,9 @@ const CustomerService = () => {
   const deepLinkTicketId = searchParams.get("ticket_id");
   const deepLinkMessageId = searchParams.get("message_id");
   const shouldOpenLiveChatFromNotification = deepLinkMode === "live_chat" || Boolean(deepLinkTicketId);
+  const hasVerificationSupportBlocker = (() => {
+    try { return Boolean(sessionStorage.getItem("verification_blocker")); } catch { return false; }
+  })();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -47,10 +50,10 @@ const CustomerService = () => {
   }, []);
 
   useEffect(() => {
-    if (shouldOpenLiveChatFromNotification) {
+    if (shouldOpenLiveChatFromNotification || hasVerificationSupportBlocker) {
       setShowChat(true);
     }
-  }, [shouldOpenLiveChatFromNotification]);
+  }, [shouldOpenLiveChatFromNotification, hasVerificationSupportBlocker]);
 
   const isPremium = userLevel >= 6;
 

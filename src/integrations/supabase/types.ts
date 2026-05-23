@@ -2940,10 +2940,15 @@ export type Database = {
       chat_moderation_logs: {
         Row: {
           action_taken: string
+          conversation_id: string | null
           created_at: string | null
           detected_at: string | null
+          detected_content: string | null
+          group_id: string | null
           id: string
+          is_auto_action: boolean
           message_id: string | null
+          notes: string | null
           original_content: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -2952,10 +2957,15 @@ export type Database = {
         }
         Insert: {
           action_taken: string
+          conversation_id?: string | null
           created_at?: string | null
           detected_at?: string | null
+          detected_content?: string | null
+          group_id?: string | null
           id?: string
+          is_auto_action?: boolean
           message_id?: string | null
+          notes?: string | null
           original_content?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -2964,10 +2974,15 @@ export type Database = {
         }
         Update: {
           action_taken?: string
+          conversation_id?: string | null
           created_at?: string | null
           detected_at?: string | null
+          detected_content?: string | null
+          group_id?: string | null
           id?: string
+          is_auto_action?: boolean
           message_id?: string | null
+          notes?: string | null
           original_content?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null

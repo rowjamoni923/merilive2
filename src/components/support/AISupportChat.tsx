@@ -33,6 +33,8 @@ interface AISupportChatProps {
 type ActivateLiveChatOptions = {
   forcedTicketId?: string;
   skipIntroMessage?: boolean;
+  categoryOverride?: string;
+  initialContext?: string;
 };
 
 const INITIAL_CATEGORIES = [
@@ -514,7 +516,7 @@ const AISupportChat = ({
             .map((m) => m.content.trim())
             .filter(Boolean);
 
-          const categoryLabel = INITIAL_CATEGORIES.find(c => c.key === selectedCategory)?.label || "General";
+          const categoryLabel = options?.categoryOverride || INITIAL_CATEGORIES.find(c => c.key === selectedCategory)?.label || "General";
 
           const { data: ticket, error } = await supabase
             .from("support_tickets")
@@ -530,7 +532,9 @@ const AISupportChat = ({
           if (error) throw error;
           ticketId = ticket.id;
 
-          const initialUserContext = userContextMessages.length > 0
+          const initialUserContext = options?.initialContext
+            ? `[Category: ${categoryLabel}]\n\n${options.initialContext}`
+            : userContextMessages.length > 0
             ? `[Category: ${categoryLabel}]\n\n${userContextMessages[userContextMessages.length - 1]}`
             : `[Category: ${categoryLabel}]\n\nUser opened live chat.`;
 
