@@ -565,7 +565,12 @@ serve(async (req) => {
               ? "Needs admin review: gender confidence below auto-approve threshold."
               : autoReason === "low_compare_score" || autoReason === "low_similarity"
                 ? "Needs admin review: front-vs-side angle similarity below auto-approve threshold."
-                : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+                : autoReason === "profile_face_mismatch"
+                  ? `Needs admin review: profile avatar does NOT match the verification selfie (similarity ${profileMatchScore?.toFixed(1) ?? "?"}%). Possible identity abuse.`
+                  : autoReason === "duplicate_face"
+                    ? "Needs admin review: face already verified on another account."
+                    : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
