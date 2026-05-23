@@ -417,8 +417,9 @@ const LiveStream = () => {
         
         console.log('[LiveStream] 🎬 Requesting egress recording for room:', roomName);
         
-        const { data, error } = await supabase.functions.invoke('livekit-egress/start-recording', {
+        const { data, error } = await supabase.functions.invoke('livekit-egress', {
           body: {
+            action: 'start',
             streamId: id,
             roomName,
             hostId: session.user.id,
@@ -448,8 +449,8 @@ const LiveStream = () => {
       if (egressIdRef.current) {
         const egressId = egressIdRef.current;
         
-        supabase.functions.invoke('livekit-egress/stop-recording', {
-          body: { egressId, streamId: id },
+        supabase.functions.invoke('livekit-egress', {
+          body: { action: 'stop', egressId, streamId: id },
         }).catch(e => console.error('[LiveStream] Failed to stop egress:', e));
         
         egressIdRef.current = null;
