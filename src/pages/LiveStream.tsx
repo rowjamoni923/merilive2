@@ -417,8 +417,9 @@ const LiveStream = () => {
         
         console.log('[LiveStream] 🎬 Requesting egress recording for room:', roomName);
         
-        const { data, error } = await supabase.functions.invoke('livekit-egress/start-recording', {
+        const { data, error } = await supabase.functions.invoke('livekit-egress', {
           body: {
+            action: 'start',
             streamId: id,
             roomName,
             hostId: session.user.id,
