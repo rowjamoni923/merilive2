@@ -69,6 +69,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.AdaptiveRefreshPlugin.class);
         registerPlugin(com.merilive.app.plugin.ConversationShortcutsPlugin.class);
         registerPlugin(com.merilive.app.plugin.LocationPlugin.class);
+        registerPlugin(com.merilive.app.plugin.VibrationPlugin.class);
 
         super.onCreate(savedInstanceState);
 
