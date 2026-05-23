@@ -13,6 +13,8 @@
  * and we know the cold-start contract is broken before we ship.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 type Action = 'accept' | 'decline' | 'timeout' | 'dismissed' | 'presented';
 interface Evt {
@@ -162,14 +164,8 @@ describe('Android NativeCall cold-start / action-loss flow', () => {
   });
 
   it('JS call flow keeps native UI and Telecom lifecycle separated', () => {
-    const hook = require('node:fs').readFileSync(
-      require('node:path').resolve(__dirname, '../..', 'src/hooks/usePrivateCall.ts'),
-      'utf8',
-    );
-    const plugin = require('node:fs').readFileSync(
-      require('node:path').resolve(__dirname, '../..', 'android/app/src/main/java/com/merilive/app/plugin/NativeCallPlugin.kt'),
-      'utf8',
-    );
+    const hook = readFileSync(resolve(__dirname, '../..', 'src/hooks/usePrivateCall.ts'), 'utf8');
+    const plugin = readFileSync(resolve(__dirname, '../..', 'android/app/src/main/java/com/merilive/app/plugin/NativeCallPlugin.kt'), 'utf8');
 
     expect(hook).toMatch(/NativeCall\.endIncomingUi\(\{ callId, reason: 'accepted' \}\)/);
     expect(hook).toMatch(/reason: 'declined' \| 'timeout' = 'declined'/);
