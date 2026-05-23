@@ -6,6 +6,11 @@
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  getProviderConfig,
+  providerSearchFace,
+  providerIndexFace,
+} from "../_shared/externalVerify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -368,6 +373,71 @@ serve(async (req) => {
       `gender=${rawG} (${genderConf.toFixed(1)}%)${genderConflict ? " conflict" : ""}, ` +
       `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%`;
 
+    // ───────────────────────────────────────────────────────────────────
+    // Duplicate-face detection via external verification provider.
+    // Best-effort: if the provider key is missing or the call fails, we
+    // silently skip and fall through to the existing flow. Never blocks.
+    // ───────────────────────────────────────────────────────────────────
+    let duplicateFields: Record<string, unknown> = {};
+    let duplicateNote = "";
+    let duplicateBlock: Record<string, unknown> | null = null;
+    const faceProvider = getProviderConfig("VERIFY_FACE_API_KEY");
+    if (faceProvider && !frontError) {
+      try {
+        const frontB64 = uint8ToBase64(frontBytes);
+        const search = await providerSearchFace(faceProvider, {
+          image_base64: frontB64,
+          threshold: 92,
+          max_matches: 5,
+        });
+        if (search && search.status === "matches_found" && search.matches.length > 0) {
+          // Filter out the current user (re-submissions are not duplicates).
+          const others = search.matches.filter(
+            (m) => m.external_user_id && m.external_user_id !== userId,
+          );
+          if (others.length > 0) {
+            const top = others[0];
+            // Look up the previous account's display name / app_uid / avatar.
+            const { data: prevProfile } = await supabaseAdmin
+              .from("profiles")
+              .select("id,display_name,app_uid,avatar_url")
+              .eq("id", top.external_user_id as string)
+              .maybeSingle();
+            const prevName = (prevProfile?.display_name as string | null) || null;
+            const prevUid = (prevProfile?.app_uid as string | null) || null;
+            const prevAvatar = (prevProfile?.avatar_url as string | null) || null;
+            duplicateFields = {
+              is_duplicate_face: true,
+              duplicate_face_user_id: top.external_user_id,
+              duplicate_face_name: prevName,
+              duplicate_face_uid: prevUid,
+              duplicate_face_avatar: prevAvatar,
+            };
+            duplicateBlock = {
+              previous_user_id: top.external_user_id,
+              previous_display_name: prevName,
+              previous_app_uid: prevUid,
+              similarity: top.similarity,
+              other_matches: others.length,
+              indexed_at: top.indexed_at,
+            };
+            duplicateNote = `Duplicate face detected — previously verified as ${prevName ? `"${prevName}"` : "an existing account"}${prevUid ? ` (UID ${prevUid})` : ""}, similarity ${top.similarity.toFixed(1)}%. Requires manual admin review.`;
+          }
+        }
+        // Index this submission's front face so future submissions can match it.
+        // Skip when duplicate found (we don't want to keep multiplying entries for the same person).
+        if (!duplicateBlock) {
+          void providerIndexFace(faceProvider, {
+            external_user_id: userId,
+            image_base64: frontB64,
+            metadata: { submission_id: submissionId, source: "merilive_main_app" },
+          });
+        }
+      } catch (e) {
+        console.warn("[face-verification-analyze] duplicate check skipped:", e instanceof Error ? e.message : e);
+      }
+    }
+
     // Re-read ai_analysis right before the merge so we never blow away client-set
     // flags like { manual_review_required: true } that the insert wrote.
     const { data: existingRow } = await supabaseAdmin
@@ -376,14 +446,19 @@ serve(async (req) => {
       .eq("id", submissionId)
       .maybeSingle();
     const existingAnalysis = (existingRow?.ai_analysis ?? {}) as Record<string, unknown>;
-    const mergedAnalysis = { ...existingAnalysis, rekognition };
+    const mergedAnalysis = duplicateBlock
+      ? { ...existingAnalysis, rekognition, duplicate_account: duplicateBlock }
+      : { ...existingAnalysis, rekognition };
+
+    const finalNotes = duplicateNote ? `${summary}\n[duplicate-face] ${duplicateNote}` : summary;
 
     await supabaseAdmin
       .from("face_verification_submissions")
       .update({
         ai_analysis: mergedAnalysis,
         rekognition_confidence: faceConf,
-        admin_notes: summary,
+        admin_notes: finalNotes,
+        ...duplicateFields,
         updated_at: new Date().toISOString(),
       })
       .eq("id", submissionId);
