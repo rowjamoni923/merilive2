@@ -27,7 +27,21 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
-        Log.d(TAG, "FCM Token refreshed: " + token);
+        Log.i(TAG, "FCM Token refreshed (Pkg206)");
+        // Pkg206 — persist pending token + timestamp so JS can detect rotation
+        // after a Doze/standby/reinstall kill on the next foreground.
+        try {
+            getSharedPreferences("meri_push_state", MODE_PRIVATE)
+                .edit()
+                .putString("pending_fcm_token", token)
+                .putLong("pending_fcm_token_at", System.currentTimeMillis())
+                .apply();
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to persist rotated FCM token", e);
+        }
+        // Defensive: re-create channels in case the OS dropped them after
+        // a force-stop or data-clear that did NOT trigger BOOT_COMPLETED.
+        try { NotificationHelper.createNotificationChannels(this); } catch (Exception ignored) { /* ignore */ }
     }
 
     @Override
