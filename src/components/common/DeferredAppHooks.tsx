@@ -6,6 +6,7 @@ import { useLevelPrivilegeAutoEquip } from "@/hooks/useLevelPrivilegeAutoEquip";
 import { useAdminBroadcastSync } from "@/hooks/useAdminBroadcastSync";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useBackgroundSync } from "@/hooks/useBackgroundSync";
+import { useInAppUpdate } from "@/hooks/useInAppUpdate";
 import { SessionDebugOverlay } from "@/components/debug/SessionDebugOverlay";
 import { queryClient } from "@/lib/queryClient";
 
@@ -46,6 +47,8 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   useAdminBroadcastSync();
   // Pkg221: native Android background-sync worker (no-op on web/iOS)
   useBackgroundSync();
+  // Pkg224 / M19: Google Play In-App Updates (Android only, no-op elsewhere)
+  useInAppUpdate();
 
   if (isAdminRoute) return null;
   return (

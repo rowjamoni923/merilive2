@@ -81,6 +81,10 @@ dependencies {
     // Pkg210 — Biometric App Lock (fingerprint / face / device credential).
     implementation 'androidx.biometric:biometric:1.2.0-alpha05'
 
+    // Pkg224 / M19 — Google Play In-App Updates (flexible + immediate).
+    implementation 'com.google.android.play:app-update:2.1.0'
+    implementation 'com.google.android.play:app-update-ktx:2.1.0'
+
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.7.3')
     implementation 'com.google.firebase:firebase-messaging'
