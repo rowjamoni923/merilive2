@@ -221,7 +221,7 @@ serve(async (req) => {
 
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("face_verification_submissions")
-      .select("id,user_id,status,front_url,left_url,right_url,selfie_url,face_image_url")
+      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url")
       .eq("id", submissionId)
       .maybeSingle();
 
@@ -451,19 +451,30 @@ serve(async (req) => {
     // so the client can route the user to support.
     // ───────────────────────────────────────────────────────────────────
     let declaredGender: string | null = null;
+    let expectedGender: "male" | "female" | null = null;
     let genderDeclarationMismatch = false;
     try {
       const { data: profGender } = await supabaseAdmin
         .from("profiles")
-        .select("gender")
+        .select("gender,is_host")
         .eq("id", userId)
         .maybeSingle();
       const g = String(profGender?.gender ?? "").trim().toLowerCase();
       if (g === "male" || g === "female") {
         declaredGender = g;
+      }
+
+      const vt = String(row.verification_type ?? "").trim().toLowerCase();
+      if (vt === "host") expectedGender = "female";
+      else if (vt === "user" || vt === "face") expectedGender = "male";
+      else if (declaredGender === "male" || declaredGender === "female") expectedGender = declaredGender;
+      else if (profGender?.is_host === true) expectedGender = "female";
+      else expectedGender = "male";
+
+      if (expectedGender) {
         if (
           rawG !== "unknown" &&
-          rawG !== g &&
+          rawG !== expectedGender &&
           genderConf >= 90 &&
           !frontError
         ) {
@@ -474,6 +485,7 @@ serve(async (req) => {
       console.warn("[face-verification-analyze] declared-gender lookup:", e);
     }
     rekognition.declared_gender = declaredGender;
+    rekognition.expected_gender = expectedGender;
     rekognition.gender_declaration_mismatch = genderDeclarationMismatch;
 
     // ───────────────────────────────────────────────────────────────────
