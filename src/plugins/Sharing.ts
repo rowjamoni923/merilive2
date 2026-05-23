@@ -10,6 +10,7 @@ export interface SharedPayload {
 interface SharingPlugin {
   consumeIncoming(): Promise<{ payload: SharedPayload | null }>;
   hasIncoming(): Promise<{ value: boolean }>;
+  readUri(opts: { uri: string }): Promise<{ base64: string; mime: string; name?: string; size?: number }>;
 }
 
 const Native = registerPlugin<SharingPlugin>('Sharing');
