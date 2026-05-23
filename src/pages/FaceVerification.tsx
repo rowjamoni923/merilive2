@@ -1095,10 +1095,9 @@ const FaceVerification = () => {
     const CALIB_TARGET = 8;
     
     poseCheckIntervalRef.current = setInterval(async () => {
-      const videoEl = faceVideoRef.current;
-      if (!videoEl) return;
+      if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
       
-      const frameBase64 = captureFrameFromLiveVideo(videoEl);
+      const frameBase64 = await captureFaceFrameBase64();
       if (!frameBase64) return;
       
       setScanningStatus('scanning');
@@ -1124,7 +1123,7 @@ const FaceVerification = () => {
           apiOk: !!result,
         });
         if (consecutiveFails >= 15) {
-          const fallbackFrame = captureFrameFromLiveVideo(videoEl, 720);
+          const fallbackFrame = await captureFaceFrameBase64(720);
           if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
           pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
           finishVerification(true, true);
@@ -1203,7 +1202,7 @@ const FaceVerification = () => {
           if (instruction.id === 'center' || instruction.id === 'left' || instruction.id === 'right') {
             const angleKey = instruction.id as 'center' | 'left' | 'right';
             if (!capturedAnglesRef.current[angleKey]) {
-              const stillFrame = captureFrameFromLiveVideo(videoEl, 720);
+              const stillFrame = await captureFaceFrameBase64(720);
               if (stillFrame) capturedAnglesRef.current[angleKey] = stillFrame;
             }
           }
