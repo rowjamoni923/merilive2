@@ -51,8 +51,8 @@ export const UserCard = ({
 
   const getLevelColor = () => {
     if (level >= 6) return "bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900";
-    if (level >= 4) return "bg-gradient-to-r from-purple-400 to-pink-500 text-white";
-    return "bg-gradient-to-r from-cyan-400 to-blue-500 text-white";
+    if (level >= 4) return "bg-gradient-to-r from-purple-400 to-pink-500 text-on-dark";
+    return "bg-gradient-to-r from-cyan-400 to-blue-500 text-on-dark";
   };
 
   const handleCallClick = (e: React.MouseEvent) => {
