@@ -1391,12 +1391,64 @@ const FaceVerification = () => {
         return null;
       }
       console.log('[FaceVerification] Rekognition analyze result:', data);
-      return data as { ok?: boolean; autoFinalize?: { success?: boolean; gender?: string; verification_type?: string; reason?: string } | null };
+      return data as {
+        ok?: boolean;
+        autoFinalize?: { success?: boolean; gender?: string; verification_type?: string; reason?: string } | null;
+        blocker?: 'gender_mismatch' | 'liveness_failed' | 'replay_suspected' | 'profile_face_mismatch' | 'duplicate_face' | null;
+        declaredGender?: string | null;
+        detectedGender?: string | null;
+      };
     } catch (err) {
       console.warn('[FaceVerification] face-verification-analyze invoke threw:', err);
       return null;
     }
   };
+
+  // If the edge function returned a hard `blocker`, show a blocking dialog
+  // (English only, per app convention) and route the user to support. Returns
+  // true when the user was routed so the caller can short-circuit normal flow.
+  const handleVerificationBlocker = (
+    result: Awaited<ReturnType<typeof triggerRekognitionAutoApprove>>,
+  ): boolean => {
+    const blocker = result?.blocker;
+    if (!blocker) return false;
+    const declared = result?.declaredGender ?? 'unknown';
+    const detected = result?.detectedGender ?? 'unknown';
+    const messages: Record<string, { title: string; body: string }> = {
+      gender_mismatch: {
+        title: '❌ Gender Mismatch Detected',
+        body: `Your account is registered as "${declared}", but our AI detected your face as "${detected}". You cannot complete verification on this account. Please open a support ticket — our team will help you correct your account.`,
+      },
+      liveness_failed: {
+        title: '❌ Liveness Check Failed',
+        body: 'Our system detected that the verification was performed using a photo or recorded video instead of your real, live face. Please open a support ticket so our team can review your case.',
+      },
+      replay_suspected: {
+        title: '❌ Replay / Static Image Detected',
+        body: 'Your three angle captures showed almost no head movement — this looks like a phone screen, printed photo or static image instead of a live person. Please open a support ticket for assistance.',
+      },
+      profile_face_mismatch: {
+        title: '❌ Profile Photo Does Not Match',
+        body: 'The face in your verification selfie does not match the photo on your profile. Please open a support ticket so we can verify your identity manually.',
+      },
+      duplicate_face: {
+        title: '❌ Duplicate Account Detected',
+        body: 'This face is already verified on another account. You cannot verify the same face on multiple accounts. Please open a support ticket if you believe this is an error.',
+      },
+    };
+    const { title, body } = messages[blocker];
+    toast({ title, description: body, variant: 'destructive' });
+    // Persist the blocker reason so the support page can pre-fill the ticket.
+    try {
+      sessionStorage.setItem('verification_blocker', JSON.stringify({
+        blocker, declared, detected, at: Date.now(),
+      }));
+    } catch { /* noop */ }
+    setTimeout(() => navigate('/settings/customer-service'), 600);
+    return true;
+  };
+
+
 
   const getMissingHostRequirements = () => {
     const missing: string[] = [];
@@ -1537,6 +1589,8 @@ const FaceVerification = () => {
       let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
       if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
+        // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
+        if (handleVerificationBlocker(result)) { setLoading(false); return; }
         if (result?.autoFinalize?.success) {
           autoApproved = true;
           const detected = result.autoFinalize.gender;
@@ -1545,6 +1599,7 @@ const FaceVerification = () => {
             : "🎉 Auto-approved! Your account is verified.";
         }
       }
+
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
@@ -1781,6 +1836,8 @@ const FaceVerification = () => {
       let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
       if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
+        // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
+        if (handleVerificationBlocker(result)) { setLoading(false); return; }
         if (result?.autoFinalize?.success) {
           autoApproved = true;
           const detected = result.autoFinalize.gender;
@@ -1789,6 +1846,7 @@ const FaceVerification = () => {
             : "🎉 Auto-approved! Note: detected as male, account converted to user.";
         }
       }
+
 
       toast({
         title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
