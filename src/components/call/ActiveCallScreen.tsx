@@ -95,6 +95,11 @@ export function ActiveCallScreen({
   // Flying gift animations for real-time display
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   const mountedRef = useRef(true);
+  const userCoinsRef = useRef(0);
+
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  }, [userCoins]);
   
   // ✅ REAL-TIME: Fetch and subscribe to gift commission
   useEffect(() => {
@@ -237,6 +242,7 @@ export function ActiveCallScreen({
         .eq('id', userId)
         .single();
       if (data) {
+        userCoinsRef.current = data.coins || 0;
         setUserCoins(data.coins || 0);
         if (data.display_name) setMyDisplayName(data.display_name);
         if (data.avatar_url) setMyAvatarUrl(data.avatar_url);
@@ -345,19 +351,21 @@ export function ActiveCallScreen({
     if (!userId || !remoteUserId) return;
 
     const totalCost = gift.coins * count;
-    if (userCoins < totalCost) {
+    const availableCoins = userCoinsRef.current;
+    if (availableCoins < totalCost) {
       toast.error("Not enough diamonds!");
       return;
     }
 
-    const previousCoins = userCoins;
+    const previousCoins = availableCoins;
 
     try {
       // Optimistic local balance update for this screen only.
       // Pkg85 made GiftingService the single source for global cached balance
       // deduction after the RPC succeeds. Do NOT also update useUserBalance here,
       // or call gifts double-deduct the app-wide diamond cache.
-      setUserCoins(prev => prev - totalCost);
+      userCoinsRef.current = Math.max(0, availableCoins - totalCost);
+      setUserCoins(userCoinsRef.current);
 
       const result = await sendGift({
         giftId: gift.id,
@@ -391,6 +399,7 @@ export function ActiveCallScreen({
     } catch (error) {
       console.error("Gift send error:", error);
       // Rollback optimistic update
+      userCoinsRef.current = previousCoins;
       setUserCoins(previousCoins);
       toast.error("Failed to send gift");
     }
