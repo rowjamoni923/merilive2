@@ -81,6 +81,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.CalendarBridgePlugin.class);
         registerPlugin(com.merilive.app.plugin.ContactsPickerPlugin.class);
         registerPlugin(com.merilive.app.plugin.ScreenControlPlugin.class);
+        registerPlugin(com.merilive.app.plugin.ProximityLockPlugin.class);
 
         super.onCreate(savedInstanceState);
 
