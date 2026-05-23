@@ -201,6 +201,7 @@ const LiveStream = () => {
     gender: string;
     id: string;
     coins: number;
+    is_host?: boolean;
     display_name?: string;
     avatar_url?: string;
     user_level?: number;
@@ -786,7 +787,7 @@ const LiveStream = () => {
       
       const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
         // User profile
-        cachedUser ? supabase.from("profiles").select("id, gender, coins, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, is_host, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }), // guard-ok: owner-only self balance/profile fetch
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
@@ -800,6 +801,7 @@ const LiveStream = () => {
           gender: profile.gender || "male",
           id: cachedUser!.id,
           coins: profile.coins || 0,
+          is_host: profile.is_host === true,
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           user_level: profile.user_level || 1,
@@ -1738,7 +1740,7 @@ const LiveStream = () => {
     const detection = detectContactInfo(messageText);
     
     let contentToSend = messageText;
-    if (detection.hasViolation) {
+    if (currentUser?.is_host === true && detection.hasViolation) {
       contentToSend = maskContactContent(messageText, detection);
       console.log('[ContactDetection] LiveStream BLOCKED, masked:', contentToSend);
       
