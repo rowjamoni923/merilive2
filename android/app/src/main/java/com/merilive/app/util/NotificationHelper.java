@@ -234,6 +234,12 @@ public class NotificationHelper {
             .setContentIntent(pendingIntent)
             .setOnlyAlertOnce(false)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
+            // Pkg234 — explicit WearableExtender on the notification so paired
+            // Wear OS watches treat MeriLive DMs as a first-class messaging
+            // notification (bridged by default — setLocalOnly NEVER set).
+            .extend(new NotificationCompat.WearableExtender()
+                .setHintContentIntentLaunchesActivity(true)
+                .setBridgeTag("merilive_message"))
             .addAction(replyAction)
             .addAction(readAction);
 
