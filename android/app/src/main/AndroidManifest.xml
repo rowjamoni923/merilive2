@@ -44,6 +44,11 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
 
+    <!-- Pkg205: prevent OEM (Xiaomi/Oppo/Vivo/Samsung) from killing background
+         FCM listener after ~30 min idle. Required for WhatsApp/Bigo-grade
+         screen-off DM/call delivery. Triggers system dialog (not auto-granted). -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <!-- Media (Android 13+) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
