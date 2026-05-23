@@ -113,7 +113,7 @@ export function useMediaStreamMicLevel(
 
     const tick = () => {
       if (cancelled || !analyser || !buf) return;
-      analyser.getByteTimeDomainData(buf);
+      analyser.getByteTimeDomainData(buf as unknown as Uint8Array<ArrayBuffer>);
       // RMS over the waveform, normalised to [0, 1].
       let sum = 0;
       for (let i = 0; i < buf.length; i++) {
