@@ -51,6 +51,7 @@ import {
   requestNotificationPermission as requestNativeNotificationPermission,
 } from "@/utils/nativePermissions";
 import { AutoRecordSettingsRow } from "@/components/livekit/AutoRecordSettingsRow";
+import AppLockToggle from "@/components/settings/AppLockToggle";
 
 
 // World languages - English names only (no native scripts)
@@ -834,6 +835,13 @@ const Settings = () => {
       <div className="divide-y">
         {/* Pkg129: Host-only Auto-Record live stream toggle (self-gates on is_host). */}
         <AutoRecordSettingsRow />
+
+        {/* Pkg210 — biometric app lock */}
+        {isNativeApp() && (
+          <div className="px-4 py-3">
+            <AppLockToggle />
+          </div>
+        )}
 
         {settingsItems.map((item, index) => (
           <button
