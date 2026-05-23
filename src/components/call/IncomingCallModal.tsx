@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { Phone, PhoneOff, Radio, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
@@ -22,10 +22,14 @@ export function IncomingCallModal({
   onDecline,
 }: IncomingCallModalProps) {
   const { startRingtone, stopRingtone, playSound } = useSound();
+  // Section#5 pass-2 (Bug F): in-flight guard so rapid double-tap can't
+  // fire onAccept/onDecline twice and race CallProvider's accept/decline.
+  const processingRef = useRef(false);
 
   // Play ringtone when modal opens
   useEffect(() => {
     if (isOpen) {
+      processingRef.current = false; // reset on each new incoming call
       startRingtone();
     } else {
       stopRingtone();
@@ -36,18 +40,24 @@ export function IncomingCallModal({
   }, [isOpen, startRingtone, stopRingtone]);
 
   const handleAccept = useCallback(() => {
+    if (processingRef.current) return;
+    processingRef.current = true;
     console.log('[IncomingCall] Accept button clicked');
     stopRingtone();
     onAccept();
   }, [stopRingtone, onAccept]);
 
   const handleDecline = useCallback(() => {
+    if (processingRef.current) return;
+    processingRef.current = true;
     console.log('[IncomingCall] Decline button clicked');
     stopRingtone();
     onDecline();
   }, [stopRingtone, onDecline]);
 
-  if (!isOpen) return null;
+  // Section#5 pass-2 (Bug G): removed `if (!isOpen) return null;` early-return —
+  // it unmounted the motion children before AnimatePresence could play the
+  // exit transition. The inner `{isOpen && (...)}` already gates rendering.
 
   return (
     <AnimatePresence>

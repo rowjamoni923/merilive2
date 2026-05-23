@@ -293,6 +293,15 @@ export function useLiveKitCall(
             }
             if (lastNErr) throw lastNErr;
 
+            // Section#5 pass-2 (Bug I — NATIVE CAMERA LEAK): if cleanup ran
+            // while connectAndPublish was awaiting, native side is already
+            // publishing — disconnect immediately so the camera/mic don't
+            // stay on after the React component is gone.
+            if (deadRef.current) {
+              try { await nativeLiveKitController.disconnect(); } catch { /* ignore */ }
+              return;
+            }
+
             usingNativeRef.current = true;
             if (callId) {
               registerNativeCallRoom(callId);
@@ -498,6 +507,16 @@ export function useLiveKitCall(
         await connectPromise;
         console.log('[LiveKitCall] ✅ Connected to room');
 
+        // Section#5 pass-2 (Bug H — CAMERA LEAK): if the component unmounted
+        // while `room.connect` was in-flight, cleanup already ran but the
+        // room object we just connected is detached from React. Tear it down
+        // immediately so we don't go on to call enableCameraAndMicrophone()
+        // and leave the camera/mic publishing forever.
+        if (deadRef.current) {
+          try { room.disconnect(true); } catch { /* ignore */ }
+          return;
+        }
+
         // Pkg189: silent token refresh before TTL expiry.
         if (tokenRefreshDetachRef.current) {
           try { tokenRefreshDetachRef.current(); } catch { /* ignore */ }
@@ -543,6 +562,17 @@ export function useLiveKitCall(
         // Enable camera and microphone
         await room.localParticipant.enableCameraAndMicrophone();
         console.log('[LiveKitCall] ✅ Camera and mic enabled');
+
+        // Section#5 pass-2 (Bug H continued): cleanup may have fired during
+        // the enableCameraAndMicrophone() await. Disable + disconnect now so
+        // we don't leave a publishing camera/mic behind.
+        if (deadRef.current) {
+          try { await room.localParticipant.setCameraEnabled(false); } catch { /* ignore */ }
+          try { await room.localParticipant.setMicrophoneEnabled(false); } catch { /* ignore */ }
+          try { room.disconnect(true); } catch { /* ignore */ }
+          return;
+        }
+
         // Pkg103: apply Krisp noise filter to published mic
         import('@/lib/livekitNoiseFilter').then((m) => m.applyKrispToRoomMic(room)).catch(() => {});
 
