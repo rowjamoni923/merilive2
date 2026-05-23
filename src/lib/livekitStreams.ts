@@ -59,6 +59,19 @@ export function registerStreamRoom(scope: StreamScope, id: string, room: Room) {
     .catch(() => {
       /* ignore */
     });
+
+  // Pkg202 — auto-attach disconnect-reason watcher (M5).
+  void import('./livekitDisconnectReason')
+    .then((mod) => {
+      try {
+        mod.startDisconnectReasonWatcher(scope, id);
+      } catch {
+        /* ignore */
+      }
+    })
+    .catch(() => {
+      /* ignore */
+    });
 }
 
 export function unregisterStreamRoom(scope: StreamScope, id: string) {
@@ -78,6 +91,19 @@ export function unregisterStreamRoom(scope: StreamScope, id: string) {
     .then((mod) => {
       try {
         mod.stopAudioUnlockWatcher(scope, id);
+      } catch {
+        /* ignore */
+      }
+    })
+    .catch(() => {
+      /* ignore */
+    });
+
+  // Pkg202 — tear down disconnect-reason watcher (M5).
+  void import('./livekitDisconnectReason')
+    .then((mod) => {
+      try {
+        mod.stopDisconnectReasonWatcher(scope, id);
       } catch {
         /* ignore */
       }

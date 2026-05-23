@@ -384,6 +384,7 @@ const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScre
 import ScrollToTop from "@/components/common/ScrollToTop";
 import RequireNativeAndroidGate from "@/components/native/RequireNativeAndroidGate";
 import { AudioUnlockOverlay } from "@/components/live/AudioUnlockOverlay";
+import { DisconnectReasonToaster } from "@/components/live/DisconnectReasonToaster";
 
 
 
@@ -1051,6 +1052,8 @@ const App = () => {
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               {/* Pkg201 — iOS Safari audio-playback unlock overlay (M2). No-op until a Room reports blocked. */}
               <AudioUnlockOverlay />
+              {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
+              <DisconnectReasonToaster />
               <CallProvider>
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
