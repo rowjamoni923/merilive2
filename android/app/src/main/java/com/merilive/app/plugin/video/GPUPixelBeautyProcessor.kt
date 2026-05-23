@@ -1,21 +1,18 @@
 package com.merilive.app.plugin.video
 
-import android.graphics.Bitmap
+import android.content.Context
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
+import com.pixpark.gpupixel.FaceDetector
 import com.pixpark.gpupixel.GPUPixel
-import com.pixpark.gpupixel.GPUPixelSource
-import com.pixpark.gpupixel.GPUPixelSourceRawInput
-import com.pixpark.gpupixel.filter.BeautyFaceFilter
-import com.pixpark.gpupixel.filter.FaceReshapeFilter
-import com.pixpark.gpupixel.filter.LipstickFilter
+import com.pixpark.gpupixel.GPUPixelFilter
+import com.pixpark.gpupixel.GPUPixelSinkRawData
+import com.pixpark.gpupixel.GPUPixelSourceRawData
 import org.webrtc.JavaI420Buffer
 import org.webrtc.VideoFrame
 import org.webrtc.VideoProcessor
 import org.webrtc.VideoSink
-import org.webrtc.YuvHelper
-import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -43,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * new frame arrives while the previous one is still being processed,
  * the previous one is dropped (publisher stays at source fps).
  */
-class GPUPixelBeautyProcessor : VideoProcessor {
+class GPUPixelBeautyProcessor(private val context: Context) : VideoProcessor {
 
     companion object {
         private const val TAG = "GPUPixelBeautyProc"
@@ -56,12 +53,14 @@ class GPUPixelBeautyProcessor : VideoProcessor {
     private val workerThread = HandlerThread("GPUPixelBeauty").apply { start() }
     private val worker = Handler(workerThread.looper)
 
-    // GPUPixel filter chain — created lazily on the worker thread.
-    private var rawInput: GPUPixelSourceRawInput? = null
-    private var beauty: BeautyFaceFilter? = null
-    private var reshape: FaceReshapeFilter? = null
-    private var lipstick: LipstickFilter? = null
-    private var lastFilter: com.pixpark.gpupixel.filter.GPUPixelFilter? = null
+    // GPUPixel v1.3+ filter chain — created lazily on the worker thread.
+    private var faceDetector: FaceDetector? = null
+    private var rawInput: GPUPixelSourceRawData? = null
+    private var rawOutput: GPUPixelSinkRawData? = null
+    private var beauty: GPUPixelFilter? = null
+    private var reshape: GPUPixelFilter? = null
+    private var lipstick: GPUPixelFilter? = null
+    private var blusher: GPUPixelFilter? = null
 
     // Live levels (0..1). Updated from JS via setLevels(...).
     @Volatile var smooth: Float = 0.6f
@@ -69,13 +68,15 @@ class GPUPixelBeautyProcessor : VideoProcessor {
     @Volatile var thinFace: Float = 0.3f
     @Volatile var bigEye: Float = 0.3f
     @Volatile var lipstickLevel: Float = 0f
+    @Volatile var blusherLevel: Float = 0f
 
-    fun setLevels(smooth: Float, white: Float, thinFace: Float, bigEye: Float, lipstick: Float) {
+    fun setLevels(smooth: Float, white: Float, thinFace: Float, bigEye: Float, lipstick: Float, blusher: Float) {
         this.smooth = smooth.coerceIn(0f, 1f)
         this.white = white.coerceIn(0f, 1f)
         this.thinFace = thinFace.coerceIn(0f, 1f)
         this.bigEye = bigEye.coerceIn(0f, 1f)
         this.lipstickLevel = lipstick.coerceIn(0f, 1f)
+        this.blusherLevel = blusher.coerceIn(0f, 1f)
         worker.post { applyLevelsLocked() }
     }
 
