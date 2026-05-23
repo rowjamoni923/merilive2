@@ -1467,9 +1467,10 @@ const FaceVerification = () => {
       console.log('[FaceVerification] Rekognition analyze result:', data);
       return data as {
         ok?: boolean;
-        autoFinalize?: { success?: boolean; gender?: string; verification_type?: string; reason?: string } | null;
+        autoFinalize?: { success?: boolean; gender?: string; expected_gender?: string; verification_type?: string; reason?: string } | null;
         blocker?: 'gender_mismatch' | 'liveness_failed' | 'replay_suspected' | 'profile_face_mismatch' | 'duplicate_face' | null;
         declaredGender?: string | null;
+        expectedGender?: string | null;
         detectedGender?: string | null;
       };
     } catch (err) {
@@ -1486,7 +1487,7 @@ const FaceVerification = () => {
   ): boolean => {
     const blocker = result?.blocker;
     if (!blocker) return false;
-    const declared = result?.declaredGender ?? 'unknown';
+    const declared = result?.declaredGender ?? result?.expectedGender ?? 'unknown';
     const detected = result?.detectedGender ?? 'unknown';
     const messages: Record<string, { title: string; body: string }> = {
       gender_mismatch: {
