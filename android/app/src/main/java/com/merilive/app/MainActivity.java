@@ -82,6 +82,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.ContactsPickerPlugin.class);
         registerPlugin(com.merilive.app.plugin.ScreenControlPlugin.class);
         registerPlugin(com.merilive.app.plugin.ProximityLockPlugin.class);
+        registerPlugin(com.merilive.app.plugin.AudioFocusPlugin.class);
 
         super.onCreate(savedInstanceState);
 
