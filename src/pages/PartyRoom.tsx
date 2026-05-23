@@ -1418,6 +1418,15 @@ const PartyRoom = () => {
         ));
         setMyPosition(position);
         setShowSeatSelector(false);
+        void publishPartyEvent(roomId, {
+          type: 'seat_action',
+          roomId,
+          action: 'approved',
+          requester_id: currentUser.id,
+          seat_position: position,
+          request_id: `host-move-${currentUser.id}-${Date.now()}`,
+          timestamp: Date.now(),
+        });
         
         console.log('[PartyRoom] Host auto-joined seat:', position);
         return;
