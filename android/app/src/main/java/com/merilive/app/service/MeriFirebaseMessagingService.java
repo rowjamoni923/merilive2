@@ -218,7 +218,16 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         com.merilive.app.plugin.NativeCallPlugin.dispatch(
             this, callId, callerId, callerName, callType, "presented");
         try { startActivity(fullScreenIntent); } catch (Exception ignored) {}
+
+        // Pkg208 — also push this into Telecom so BT headset Answer button
+        // works + system call log is updated + audio focus is properly
+        // grabbed. Self-managed: our own UI above stays the visible surface.
+        try {
+            com.merilive.app.telecom.TelecomBridge.reportIncoming(
+                getApplicationContext(), callId, callerId, callerName, callType);
+        } catch (Throwable ignored) {}
     }
+
 
     private void handleMessage(Map<String, String> data, String title, String body, String imageUrl, String iconEmoji) {
         String senderId = data.containsKey("sender_id") ? data.get("sender_id") : "";

@@ -44,6 +44,27 @@ export interface NativeCallPlugin {
    */
   endIncomingUi(opts: { callId: string; reason?: string }): Promise<{ dismissed: boolean; callId: string }>;
 
+  // ---- Pkg208 — Telecom / self-managed ConnectionService ---------------
+  /** Whether the device + API level support Telecom self-managed calls. */
+  isTelecomSupported(): Promise<{ supported: boolean }>;
+  /** Idempotent. Registers our SELF_MANAGED PhoneAccount with the OS. */
+  registerPhoneAccount(): Promise<{ registered: boolean; supported: boolean }>;
+  /**
+   * Push an incoming call into Telecom so BT headset Answer/End buttons,
+   * the system call log, and OS audio routing all work. Our heads-up
+   * notification + IncomingCallActivity remain the visible UI.
+   */
+  reportIncomingCall(opts: {
+    callId: string;
+    callerId: string;
+    callerName: string;
+    callType?: 'video' | 'audio';
+  }): Promise<{ reported: boolean; callId: string }>;
+  /** Mark the Telecom connection as connected (media flowing). */
+  reportCallConnected(opts: { callId: string }): Promise<{ ok: boolean; callId: string }>;
+  /** Tear down the Telecom connection (releases audio focus + closes log entry). */
+  reportCallEnded(opts: { callId: string; remote?: boolean }): Promise<{ ok: boolean; callId: string }>;
+
   addListener(
     eventName: 'call-action',
     cb: (e: NativeCallActionEvent) => void,
