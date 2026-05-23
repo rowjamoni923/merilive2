@@ -60,7 +60,11 @@ export const ProfessionalHostInfo = ({
         </div>
         <div className="flex items-center gap-1">
           <LevelBadge level={level} size="xs" />
-          <span className="text-white/60 text-[10px]">{followersCount} followers</span>
+          {/* Audit-fix (Label #10): proper pluralization + K/M compact
+              formatting so big creators don't render "12345 followers". */}
+          <span className="text-white/60 text-[10px]">
+            {formatFollowerCount(followersCount)} {followersCount === 1 ? 'follower' : 'followers'}
+          </span>
         </div>
       </div>
 
