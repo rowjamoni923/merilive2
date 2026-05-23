@@ -23,8 +23,10 @@ import {
   UserX,
   AlertTriangle,
   Calendar,
-  Users
+  Users,
+  BarChart3
 } from "lucide-react";
+import { getConsent, setConsent, onConsentChange } from "@/lib/privacyConsent";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -146,6 +148,9 @@ const Settings = () => {
     deletionScheduledAt: string | null;
   } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [analyticsConsent, setAnalyticsConsent] = useState<"granted" | "denied" | null>(() => getConsent());
+
+  useEffect(() => onConsentChange((s) => setAnalyticsConsent(s)), []);
   
   // Permission states
   const [permissions, setPermissions] = useState<Record<PermissionKey, boolean>>(() => readCachedPermissions());
@@ -771,6 +776,12 @@ const Settings = () => {
       icon: Shield,
       label: t("settings.privacyPolicy"),
       onClick: () => navigate("/settings/privacy-policy"),
+    },
+    {
+      icon: BarChart3,
+      label: "Share usage data",
+      value: analyticsConsent === "granted" ? "On" : "Off",
+      onClick: () => setConsent(analyticsConsent === "granted" ? "denied" : "granted"),
     },
     {
       icon: FileText,
