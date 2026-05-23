@@ -46,7 +46,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -334,6 +333,67 @@ public class NativeCameraPlugin extends Plugin {
             }
             return Base64.encodeToString(buf, 0, read, Base64.NO_WRAP);
         }
+    }
+
+    private void resolveLatestFrame(PluginCall call) {
+        byte[] jpeg;
+        int width;
+        int height;
+        synchronized (frameLock) {
+            jpeg = latestFrameJpeg;
+            width = latestFrameWidth;
+            height = latestFrameHeight;
+        }
+        if (jpeg == null || jpeg.length == 0) {
+            call.reject("Camera frame not ready");
+            return;
+        }
+        JSObject ret = new JSObject();
+        ret.put("base64", Base64.encodeToString(jpeg, Base64.NO_WRAP));
+        ret.put("mimeType", "image/jpeg");
+        ret.put("width", width);
+        ret.put("height", height);
+        call.resolve(ret);
+    }
+
+    private byte[] imageProxyToJpeg(ImageProxy image, int quality) throws IOException {
+        ImageProxy.PlaneProxy[] planes = image.getPlanes();
+        ByteBuffer yBuffer = planes[0].getBuffer();
+        ByteBuffer uBuffer = planes[1].getBuffer();
+        ByteBuffer vBuffer = planes[2].getBuffer();
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+        byte[] nv21 = new byte[width * height * 3 / 2];
+
+        int yRowStride = planes[0].getRowStride();
+        int yPixelStride = planes[0].getPixelStride();
+        int pos = 0;
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                nv21[pos++] = yBuffer.get(row * yRowStride + col * yPixelStride);
+            }
+        }
+
+        int chromaHeight = height / 2;
+        int chromaWidth = width / 2;
+        int uRowStride = planes[1].getRowStride();
+        int vRowStride = planes[2].getRowStride();
+        int uPixelStride = planes[1].getPixelStride();
+        int vPixelStride = planes[2].getPixelStride();
+        for (int row = 0; row < chromaHeight; row++) {
+            for (int col = 0; col < chromaWidth; col++) {
+                nv21[pos++] = vBuffer.get(row * vRowStride + col * vPixelStride);
+                nv21[pos++] = uBuffer.get(row * uRowStride + col * uPixelStride);
+            }
+        }
+
+        YuvImage yuv = new YuvImage(nv21, ImageFormat.NV21, width, height, null);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        if (!yuv.compressToJpeg(new Rect(0, 0, width, height), quality, out)) {
+            throw new IOException("YUV JPEG compression failed");
+        }
+        return out.toByteArray();
     }
 
     // ============================================================
