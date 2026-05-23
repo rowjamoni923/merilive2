@@ -74,6 +74,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.merilive.app.plugin.NfcPlugin.class);
         registerPlugin(com.merilive.app.plugin.MediaSessionPlugin.class);
         registerPlugin(com.merilive.app.plugin.SecureStoragePlugin.class);
+        registerPlugin(com.merilive.app.plugin.TextToSpeechPlugin.class);
 
         super.onCreate(savedInstanceState);
 
