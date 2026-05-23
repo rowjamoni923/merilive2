@@ -1926,12 +1926,13 @@ const FaceVerification = () => {
 
   // Face Verification Section JSX — Professional Scanning UI
   const renderFaceVerificationSection = () => {
+    const faceCameraActive = !!faceStream || usingNativeFaceCamera;
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : scanningStatus === 'scanning' ? '#eab308' : '#a855f7';
     const completeFromPartialScan = () => {
       const completed = instructionsCompletedRef.current.filter(Boolean).length;
-      if (completed < 2 || !faceChunksRef.current.length) {
+      if (completed < 2 || (!usingNativeFaceCameraRef.current && !faceChunksRef.current.length)) {
         toast({ title: 'Keep scanning', description: 'Complete at least forward + one side angle before manual review.', variant: 'destructive' });
         return;
       }
@@ -1939,7 +1940,7 @@ const FaceVerification = () => {
     };
 
     return (
-    <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]">
+    <div className={`${usingNativeFaceCamera ? 'bg-background/20 backdrop-blur-[2px]' : 'bg-white'} rounded-3xl p-5 border border-slate-200 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.18)]`}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
@@ -1984,8 +1985,8 @@ const FaceVerification = () => {
 
       
       {/* Video Container with Face Oval */}
-      <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden bg-white/80 mb-5 shadow-2xl">
-        {!faceStream && !faceVerified ? (
+      <div className={`relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden mb-5 shadow-2xl ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-white/80'}`}>
+        {!faceCameraActive && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-white">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -2044,20 +2045,22 @@ const FaceVerification = () => {
           </div>
         ) : (
           <>
-            <video 
-              ref={faceVideoRef} 
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover scale-x-[-1]"
-              onLoadedMetadata={() => setCameraReady(true)}
-              onCanPlay={() => setCameraReady(true)}
-              onPlaying={() => setCameraReady(true)}
-              style={{ backgroundColor: '#000' }}
-            />
+            {!usingNativeFaceCamera && (
+              <video 
+                ref={faceVideoRef} 
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover scale-x-[-1]"
+                onLoadedMetadata={() => setCameraReady(true)}
+                onCanPlay={() => setCameraReady(true)}
+                onPlaying={() => setCameraReady(true)}
+                style={{ backgroundColor: '#000' }}
+              />
+            )}
             
             {/* Loading overlay */}
-            {faceStream && !cameraReady && (
+            {faceCameraActive && !cameraReady && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/80">
                 <div className="flex flex-col items-center">
                   <Loader2 className="w-12 h-12 text-cyan-600 animate-spin mb-2" />
@@ -2437,7 +2440,7 @@ const FaceVerification = () => {
       </div>
 
       {/* Tips */}
-      {!faceStream && !faceVerified && (
+      {!faceCameraActive && !faceVerified && (
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4">
           <p className="text-slate-600 text-xs text-center leading-relaxed">
             {localizedMsg.tips}
@@ -2446,7 +2449,7 @@ const FaceVerification = () => {
       )}
 
       {/* Action buttons */}
-      {!faceStream && !faceVerified && (
+      {!faceCameraActive && !faceVerified && (
         <Button
           className="w-full h-14 bg-slate-900 hover:bg-slate-800 rounded-2xl text-base font-semibold shadow-lg shadow-slate-900/20 text-white"
           onClick={startFaceCamera}
@@ -2456,7 +2459,7 @@ const FaceVerification = () => {
         </Button>
       )}
 
-      {faceStream && !verificationStarted && !faceVerified && (
+      {faceCameraActive && !verificationStarted && !faceVerified && (
         <div className="space-y-3">
           <Button
             className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-semibold shadow-lg shadow-emerald-600/25 text-white"
