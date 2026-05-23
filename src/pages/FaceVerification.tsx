@@ -963,6 +963,17 @@ const FaceVerification = () => {
 
     try {
       if (usingNativeFaceCameraRef.current) {
+        let nativeFrameReady = false;
+        for (let i = 0; i < 6; i++) {
+          const warmupFrame = await captureFaceFrameBase64(720);
+          if (warmupFrame) {
+            capturedAnglesRef.current.center = capturedAnglesRef.current.center || warmupFrame;
+            nativeFrameReady = true;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 250));
+        }
+        if (!nativeFrameReady) throw new Error('Native camera frame is not ready yet. Please try again.');
         await nativeFaceCam.startRecording();
         nativeFaceRecordingRef.current = true;
       } else {
