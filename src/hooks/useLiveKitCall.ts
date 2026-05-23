@@ -293,6 +293,15 @@ export function useLiveKitCall(
             }
             if (lastNErr) throw lastNErr;
 
+            // Section#5 pass-2 (Bug I — NATIVE CAMERA LEAK): if cleanup ran
+            // while connectAndPublish was awaiting, native side is already
+            // publishing — disconnect immediately so the camera/mic don't
+            // stay on after the React component is gone.
+            if (deadRef.current) {
+              try { await nativeLiveKitController.disconnect(); } catch { /* ignore */ }
+              return;
+            }
+
             usingNativeRef.current = true;
             if (callId) {
               registerNativeCallRoom(callId);
