@@ -263,6 +263,33 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Pkg202 — gift push handler.
+     * Routes the FCM "gift" type into the rich gift notification with
+     * sender name / gift name / bean value. Falls back to handleGeneral
+     * when sender info is missing so the user still sees something.
+     */
+    private void handleGift(Map<String, String> data) {
+        String senderName = firstNonEmpty(data.get("sender_name"), data.get("senderName"), "Someone");
+        String giftName = firstNonEmpty(data.get("gift_name"), data.get("giftName"), "a gift");
+        int giftValue = 0;
+        try {
+            String v = firstNonEmpty(data.get("gift_value"), data.get("giftValue"), "0");
+            giftValue = Integer.parseInt(v);
+        } catch (NumberFormatException ignored) {}
+        NotificationHelper.showGiftNotification(this, senderName, giftName, giftValue);
+    }
+
+    /**
+     * Pkg202 — live-start push handler.
+     * Routes the FCM "live_start" type into the rich live notification.
+     */
+    private void handleLiveStart(Map<String, String> data) {
+        String hostName = firstNonEmpty(data.get("host_name"), data.get("hostName"), "A creator");
+        String roomId = firstNonEmpty(data.get("room_id"), data.get("roomId"), "");
+        NotificationHelper.showLiveNotification(this, hostName, roomId);
+    }
+
     private Bitmap loadBitmapFromUrl(String urlString) {
         try {
             URL url = new URL(urlString);
