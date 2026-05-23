@@ -1030,6 +1030,11 @@ const LiveStream = () => {
     fetchData();
     
     return () => {
+      cancelled = true;
+      if (selfJoinTimer) {
+        clearTimeout(selfJoinTimer);
+        selfJoinTimer = null;
+      }
       mountedRef.current = false;
     };
   }, [id, addBigoJoinNotification]);
