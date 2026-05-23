@@ -56,6 +56,7 @@ import { cn } from "@/lib/utils";
 import { usePartyRoomWebRTC } from "@/hooks/usePartyRoomWebRTC";
 import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySignaling";
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
+import { publishChatMessage } from "@/lib/livekitChatSignaling";
 import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload, type RoomStateChangedPayload } from "@/lib/livekitPartyEventsSignaling";
 import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
@@ -263,6 +264,8 @@ const PartyRoom = () => {
   const roomIdRef = useRef<string | undefined>(roomId);
   const sessionAccessTokenRef = useRef<string | null>(null);
   const hostCommissionPercentRef = useRef(55);
+  const userCoinsRef = useRef(0);
+  const pendingGiftCostRef = useRef(0);
   
   // Keep refs in sync with state
   useEffect(() => {
@@ -270,6 +273,10 @@ const PartyRoom = () => {
     roomRef.current = room;
     roomIdRef.current = roomId;
   }, [currentUser, room, roomId]);
+
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  }, [userCoins]);
   
   // Ref to track component mount status for async operations
   const isMountedRef = useRef(true);
@@ -702,6 +709,7 @@ const PartyRoom = () => {
         if (userData) {
           setCurrentUser(userData);
           sessionAccessTokenRef.current = userData.access_token || null;
+                userCoinsRef.current = userData.profile?.coins || 0;
           setUserCoins(userData.profile?.coins || 0);
           
           // ✅ LEVEL CHECK: Block joining if user doesn't meet minimum level
@@ -2094,16 +2102,22 @@ const PartyRoom = () => {
             isOpen={showGiftPanel}
             onClose={() => setShowGiftPanel(false)}
             onSendGift={async (gift: GiftData, count: number) => {
-              if (!currentUser?.id || !room.host?.id || !room.id) return;
+              const sendingUser = currentUserRef.current || currentUser;
+              const sendingRoom = roomRef.current || room;
+              const sendingUserId = sendingUser?.id;
+              const sendingRoomId = sendingRoom?.id;
+              const receiverId = sendingRoom?.host?.id;
+              if (!sendingUserId || !receiverId || !sendingRoomId) return;
               
               // CRITICAL: Prevent self-gifting
-              if (currentUser.id === room.host.id) {
+              if (sendingUserId === receiverId) {
                 toast.error("You cannot send gifts to yourself!");
                 return;
               }
               
               const totalCost = gift.coins * count;
-              if (userCoins < totalCost) {
+              const availableCoins = userCoinsRef.current;
+              if (availableCoins < totalCost) {
                 toast.error("Not enough diamonds!");
                 return;
               }
@@ -2112,16 +2126,21 @@ const PartyRoom = () => {
               // NOTE: Do NOT close panel — keeping it open enables professional combo gifting
               
               // Optimistic coin deduction (instant visual feedback)
-              setUserCoins(prev => prev - totalCost);
+              userCoinsRef.current = Math.max(0, availableCoins - totalCost);
+              pendingGiftCostRef.current += totalCost;
+              setUserCoins(userCoinsRef.current);
               
               // Play gift sound IMMEDIATELY
               playSound('gift');
               
               // Prepare gift animation data
               const optimisticReceiverBeans = Math.floor(totalCost * hostCommissionPercentRef.current / 100);
-              const giftKey = getPartyGiftRealtimeKey(currentUser.id, gift.id, totalCost, count);
+              const giftKey = getPartyGiftRealtimeKey(sendingUserId, gift.id, totalCost, count);
+              const senderName = sendingUser?.profile?.display_name || 'You';
+              const senderAvatar = sendingUser?.profile?.avatar_url || undefined;
+              const senderLevel = sendingUser?.profile?.user_level || 1;
               const giftAnimationData = {
-                senderName: currentUser?.profile?.display_name || 'You',
+                senderName,
                 giftName: gift.name,
                 giftIcon: gift.emoji,
                 giftImageUrl: gift.icon_url || undefined,
@@ -2151,7 +2170,7 @@ const PartyRoom = () => {
               setTotalRoomBeans(prev => prev + optimisticReceiverBeans);
               setParticipantBeans(prev => ({
                 ...prev,
-                [currentUser.id]: (prev[currentUser.id] || 0) + totalCost,
+                [sendingUserId]: (prev[sendingUserId] || 0) + totalCost,
               }));
               
               // Gift animation is already playing - no toast needed
@@ -2159,35 +2178,49 @@ const PartyRoom = () => {
               // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
               // Process actual transaction in background - don't block UI
               (async () => {
+                let transactionSucceeded = false;
+                let pendingReleased = false;
+                const releasePendingCost = () => {
+                  if (pendingReleased) return;
+                  pendingGiftCostRef.current = Math.max(0, pendingGiftCostRef.current - totalCost);
+                  pendingReleased = true;
+                };
                 try {
                   const result = await sendGift({
                     giftId: gift.id,
-                    senderId: currentUser.id,
-                    receiverId: room.host!.id,
+                    senderId: sendingUserId,
+                    receiverId,
                     quantity: count,
                     context: 'party',
-                    roomId: room.id,
+                    roomId: sendingRoomId,
                   });
 
+                  releasePendingCost();
+                  if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
+
                   if (!result.success) {
-                    setUserCoins(prev => prev + totalCost);
+                    userCoinsRef.current += totalCost;
+                    setUserCoins(userCoinsRef.current);
                     toast.error(result.error || "Gift failed - diamonds refunded");
                     return;
                   }
+                  transactionSucceeded = true;
                   
                   // Refresh actual balance from server (in case of discrepancy)
                   const { data: updatedProfile } = await supabase
                     .from("profiles") // guard-ok: owner-only self balance refresh after gift send
                     .select("coins")
-                    .eq("id", currentUser.id)
+                    .eq("id", sendingUserId)
                     .single();
 
+                  if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
                   
-                  if (updatedProfile) {
-                    setUserCoins(updatedProfile.coins || 0);
+                  if (updatedProfile && pendingGiftCostRef.current === 0) {
+                    userCoinsRef.current = updatedProfile.coins || 0;
+                    setUserCoins(userCoinsRef.current);
                     // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
                     const { updateCachedBalance } = await import("@/hooks/useUserBalance");
-                    updateCachedBalance(updatedProfile.coins || 0);
+                    updateCachedBalance(userCoinsRef.current);
                   }
                   
                   // Save gift message to party_room_messages
@@ -2195,18 +2228,34 @@ const PartyRoom = () => {
                     const finalBeans = result.transaction?.beans_earned ?? optimisticReceiverBeans;
                     const finalCost = result.transaction?.coins_spent ?? totalCost;
                     const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
-                    await supabase.from("party_room_messages").insert({
-                      room_id: room.id,
-                      user_id: currentUser.id,
+                    const { data: giftRow } = await supabase.from("party_room_messages").insert({
+                      room_id: sendingRoomId,
+                      user_id: sendingUserId,
                       content: giftChatMessage,
                       message_type: 'gift'
+                    }).select('id').single();
+
+                    if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
+                    void publishChatMessage('party', sendingRoomId, {
+                      messageId: giftRow?.id || `gift-${Date.now()}`,
+                      userId: sendingUserId,
+                      displayName: senderName,
+                      avatarUrl: senderAvatar,
+                      userLevel: senderLevel,
+                      isHost: sendingUserId === sendingRoom.host_id,
+                      message: giftChatMessage,
+                      messageType: 'gift',
                     });
                   }
                 } catch (err) {
+                  releasePendingCost();
                   console.error('[PartyGift] Background processing error:', err);
                   recordClientError({ label: "PartyRoom.giftChatMessage", message: err instanceof Error ? err.message : String(err) });
-                  // Refund coins on complete failure
-                  setUserCoins(prev => prev + totalCost);
+                  if (transactionSucceeded) return;
+                  // Refund coins only when the transaction itself failed before server success.
+                  if (!isMountedRef.current || roomIdRef.current !== sendingRoomId) return;
+                  userCoinsRef.current += totalCost;
+                  setUserCoins(userCoinsRef.current);
                   toast.error(`Gift failed: ${err instanceof Error ? err.message : String(err)}`);
                 }
               })();

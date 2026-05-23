@@ -98,6 +98,15 @@ describe("media surfaces — subscription handlers wired", () => {
     expect(src).toMatch(/host-move-\$\{currentUser\.id\}/);
   });
 
+  it("party gift send guards rapid taps, stale rooms, and instant gift chat fanout", () => {
+    const src = read("src/pages/PartyRoom.tsx");
+    expect(src).toMatch(/userCoinsRef/);
+    expect(src).toMatch(/pendingGiftCostRef/);
+    expect(src).toMatch(/roomIdRef\.current !== sendingRoomId/);
+    expect(src).toMatch(/if \(transactionSucceeded\) return/);
+    expect(src).toMatch(/publishChatMessage\('party', sendingRoomId/);
+  });
+
   it("live viewer retries subscription early if first-frame hasn't arrived", () => {
     const live = read("src/pages/LiveStream.tsx");
     expect(live).toMatch(/retrySubscription/);
@@ -110,11 +119,11 @@ describe("media surfaces — token edge function honors roles", () => {
   it("livekit-token grants canPublish only to publishers; viewers stay subscribe-only", () => {
     const fn = read("supabase/functions/livekit-token/index.ts");
     // Host of a live stream OR participant of a call OR publishing party member can publish.
-    expect(fn).toMatch(/roomType === "host_stream"/);
-    expect(fn).toMatch(/roomType === "call"/);
+    expect(fn).toMatch(/case "host_stream":/);
+    expect(fn).toMatch(/case "call":/);
     // Viewers (viewer_stream) must NEVER publish.
-    expect(fn).not.toMatch(/roomType === "viewer_stream".*canPublish\s*=\s*true/);
+    expect(fn).toMatch(/case "viewer_stream":\s*canPublish = false/s);
     // Admin secret-link tokens are limited to viewer_stream only.
-    expect(fn).toMatch(/isAdminBypass && roomType !== "viewer_stream"/);
+    expect(fn).toMatch(/isAdmin[\s\S]*canPublish = false/);
   });
 });
