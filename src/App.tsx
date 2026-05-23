@@ -1052,6 +1052,8 @@ const App = () => {
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               {/* Pkg201 — iOS Safari audio-playback unlock overlay (M2). No-op until a Room reports blocked. */}
               <AudioUnlockOverlay />
+              {/* Pkg202 — LiveKit disconnect-reason → sonner toast (M5). No-op until a Room disconnects with a non-silent reason. */}
+              <DisconnectReasonToaster />
               <CallProvider>
                   {/* Stable, light-themed Suspense fallback. Memoized identity
                        prevents flicker on parent re-renders during route swaps. */}
