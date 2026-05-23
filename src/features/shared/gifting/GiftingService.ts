@@ -133,6 +133,11 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       return { success: false, error: result.error || 'Transaction failed' };
     }
 
+    if (result.senderId && result.senderId !== senderId) {
+      console.error('[GiftingService] Sender mismatch:', { requested: senderId, actual: result.senderId });
+      return { success: false, error: 'Gift sender mismatch. Please refresh and try again.' };
+    }
+
     console.log('[GiftingService] ✅ Gift sent successfully:', {
       transaction_id: result.transactionId,
       coins_spent: result.coinsSpent,
