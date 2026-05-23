@@ -188,7 +188,16 @@ export const RoomChatBubble = memo(function RoomChatBubble({
         >
           <div className="flex flex-wrap items-center gap-1">
             <InlineLevelBadge level={userLevel} />
+            {/* Audit-fix (Label #10): designer-bubble variant previously
+                omitted Host + Trader chips, so VIP hosts lost their
+                "Host" label in chat. Mirror the regular-line set. */}
+            {isHost && (
+              <span className="inline-flex items-center h-4 px-1.5 rounded text-[9px] font-bold bg-gradient-to-r from-red-500 to-pink-500 text-white">
+                Host
+              </span>
+            )}
             {isVIP && <span className={vipChipClass(vipTier)}>VIP{vipTier || ""}</span>}
+            {isTrader && <TraderBadge level={traderLevel} size="xs" />}
             <span
               className={cn(
                 "font-bold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]",

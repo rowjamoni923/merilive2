@@ -6,6 +6,14 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Users, Eye, Heart, Share2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Audit-fix (Label #10): compact count formatter — 1.2K / 3.4M style.
+const formatFollowerCount = (n: number): string => {
+  if (!Number.isFinite(n) || n < 0) return '0';
+  if (n < 1000) return String(n);
+  if (n < 1_000_000) return `${(n / 1000).toFixed(n < 10_000 ? 1 : 0).replace(/\.0$/, '')}K`;
+  return `${(n / 1_000_000).toFixed(n < 10_000_000 ? 1 : 0).replace(/\.0$/, '')}M`;
+};
+
 interface HostInfoProps {
   name: string;
   avatar?: string;
@@ -60,7 +68,11 @@ export const ProfessionalHostInfo = ({
         </div>
         <div className="flex items-center gap-1">
           <LevelBadge level={level} size="xs" />
-          <span className="text-white/60 text-[10px]">{followersCount} followers</span>
+          {/* Audit-fix (Label #10): proper pluralization + K/M compact
+              formatting so big creators don't render "12345 followers". */}
+          <span className="text-white/60 text-[10px]">
+            {formatFollowerCount(followersCount)} {followersCount === 1 ? 'follower' : 'followers'}
+          </span>
         </div>
       </div>
 

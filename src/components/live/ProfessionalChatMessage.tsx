@@ -117,6 +117,14 @@ export const ProfessionalChatMessage = ({
             {/* Level Badge */}
             <InlineLevelBadge level={userLevel} />
 
+            {/* Audit-fix (Label #10): Host + Trader badges were missing
+                from the designer-bubble variant. Now mirror regular line. */}
+            {isHost && (
+              <span className="inline-flex items-center h-4 px-1.5 rounded text-[9px] font-bold bg-gradient-to-r from-red-500 to-pink-500 text-white">
+                Host
+              </span>
+            )}
+
             {/* VIP Badge with tier-specific styling */}
             {isVIP && (
               <span className={cn(
@@ -128,6 +136,8 @@ export const ProfessionalChatMessage = ({
                 VIP{vipTier}
               </span>
             )}
+
+            {isTrader && <TraderBadge level={traderLevel} size="xs" />}
 
             {/* User Name */}
             <span
