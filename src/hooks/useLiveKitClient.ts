@@ -1124,7 +1124,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     // read via isRemoteAudioMutedRef.current at attach time. Including it
     // here used to invalidate joinChannel on every mute toggle, risking
     // re-joins from upstream effects that depend on its identity.
-  }, [isJoined, options, getUidForParticipant, ensureParticipantSubscribed, clearHostVideoRecoveryTimer]);
+  }, [isJoined, options, getUidForParticipant, ensureParticipantSubscribed, attachRemoteAudioOnce, clearHostVideoRecoveryTimer]);
 
   // Leave channel
   const leaveChannel = useCallback(async () => {
