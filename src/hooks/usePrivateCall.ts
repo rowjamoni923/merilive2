@@ -735,6 +735,12 @@ export function usePrivateCall(userId: string | null) {
         hostEarned: 0,
       }));
 
+      // Pkg211 — promote Telecom connection to active for accepted incoming call
+      if (isNativeAndroidApp()) {
+        NativeCall.reportCallConnected({ callId }).catch(() => {});
+      }
+
+
       // ⚡ Run accept RPC + call lookup in parallel
       const [callDataRes, acceptRes] = await Promise.all([
         supabase
