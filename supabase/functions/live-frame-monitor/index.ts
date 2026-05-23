@@ -5,21 +5,29 @@
  * Caller (client or scheduled worker) POSTs a single JPEG/PNG frame
  * (base64) along with the room/host context. We forward it to the external
  * verification provider's /monitor-frame endpoint and:
- *   • alert admins when the host is absent / sleeping / multiple faces /
- *     looking away / NSFW or violence content / weapons / drugs.
- *   • log every alert to `live_frame_alerts` (best-effort; table is optional).
- *
- * Auto-action is intentionally limited to alerting + logging. Bans / kicks
- * remain a manual admin decision (matching app convention).
+ *   • Optionally re-verify identity (the broadcasting face must match the
+ *     verified user's indexed face — protects against handoff to a stranger).
+ *   • Log every non-OK frame to `live_frame_alerts` (admin dashboards
+ *     subscribe via Realtime postgres_changes — replaces the previous
+ *     unreliable broadcast.send pattern).
+ *   • Track per-stream strikes; on 3+ critical frames inside 5 minutes,
+ *     respond with `action:"end_stream"` so the host client tears the
+ *     stream down. Identity mismatch triggers an immediate end.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import {
   getProviderConfig,
   providerMonitorFrame,
+  providerSearchFace,
   type MonitorFrameResult,
 } from "../_shared/externalVerify.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 interface Body {
   userId: string;
@@ -28,6 +36,10 @@ interface Body {
   roomId?: string | null;
   streamId?: string | null;
 }
+
+const STRIKE_WINDOW_MIN = 5;
+const STRIKE_LIMIT = 3;
+const IDENTITY_THRESHOLD = 85; // similarity %
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -49,15 +61,15 @@ serve(async (req) => {
       });
     }
 
-    const cfg = getProviderConfig("VERIFY_VIDEO_API_KEY");
-    if (!cfg) {
+    const videoCfg = getProviderConfig("VERIFY_VIDEO_API_KEY");
+    if (!videoCfg) {
       return new Response(
         JSON.stringify({ ok: false, skipped: "provider_not_configured" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const result = (await providerMonitorFrame(cfg, {
+    const result = (await providerMonitorFrame(videoCfg, {
       external_user_id: body.userId,
       image_base64: body.imageBase64,
     })) as MonitorFrameResult | null;
@@ -68,75 +80,111 @@ serve(async (req) => {
       });
     }
 
-    // Classify alert severity locally so the client/admin gets a single signal.
-    const critical = (result.alerts || []).filter((a) =>
+    // ── Identity check (best-effort) ───────────────────────────────────
+    // If a face is present, confirm it matches the verified user. If the
+    // top match belongs to someone else, treat as identity_mismatch.
+    let identityMatch: boolean | null = null;
+    if (result.face_present && result.face_count === 1) {
+      const faceCfg = getProviderConfig("VERIFY_FACE_API_KEY");
+      if (faceCfg) {
+        try {
+          const search = await providerSearchFace(faceCfg, {
+            image_base64: body.imageBase64,
+            threshold: IDENTITY_THRESHOLD,
+            max_matches: 3,
+          });
+          if (search && search.status === "matches_found" && search.matches.length > 0) {
+            identityMatch = search.matches.some(
+              (m) => m.external_user_id === body.userId,
+            );
+          }
+        } catch (_e) {
+          // best-effort
+        }
+      }
+    }
+
+    const alerts = [...(result.alerts || [])];
+    if (identityMatch === false) alerts.push("identity_mismatch");
+
+    // ── Classify severity ──────────────────────────────────────────────
+    const criticalAlerts = alerts.filter((a) =>
       a === "face_lost" ||
       a === "multiple_faces" ||
       a === "sleeping" ||
+      a === "identity_mismatch" ||
       a.startsWith("moderation:")
     );
-    const minor = (result.alerts || []).filter((a) => !critical.includes(a));
+    const minorAlerts = alerts.filter((a) => !criticalAlerts.includes(a));
     const severity: "ok" | "warning" | "critical" =
-      critical.length > 0 ? "critical" : minor.length > 0 ? "warning" : "ok";
+      criticalAlerts.length > 0 ? "critical" : minorAlerts.length > 0 ? "warning" : "ok";
 
-    // Best-effort logging + broadcast to admins
+    let strikes = 0;
+    let action: "end_stream" | null = null;
+
+    // ── Logging + strike tracking ──────────────────────────────────────
     if (severity !== "ok") {
+      const sb = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+
+      // Insert alert row — admin dashboards subscribed via Realtime
+      // postgres_changes get an instant push. Best-effort; missing table /
+      // perms never break the live moderation pipeline.
       try {
-        const sb = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-        );
-
-        // Insert into table if it exists; ignore failures so a missing table
-        // never breaks the live moderation pipeline.
-        await sb
-          .from("live_frame_alerts")
-          .insert({
-            user_id: body.userId,
-            context: body.context ?? "live_stream",
-            room_id: body.roomId ?? null,
-            stream_id: body.streamId ?? null,
-            severity,
-            alerts: result.alerts,
-            face_present: result.face_present,
-            face_count: result.face_count,
-            nsfw_score: result.nsfw_score ?? null,
-            violence_score: result.violence_score ?? null,
-            weapons_detected: result.weapons_detected ?? false,
-            drugs_detected: result.drugs_detected ?? false,
-          })
-          .then(() => undefined, (e: unknown) =>
-            console.warn("[live-frame-monitor] log insert failed:", e),
-          );
-
-        // Broadcast to admin dashboard
-        const ch = sb.channel("admin-alerts");
-        await ch.send({
-          type: "broadcast",
-          event: "live_frame_alert",
-          payload: {
-            userId: body.userId,
-            context: body.context ?? "live_stream",
-            roomId: body.roomId ?? null,
-            streamId: body.streamId ?? null,
-            severity,
-            alerts: result.alerts,
-            face_present: result.face_present,
-            face_count: result.face_count,
-            nsfw_score: result.nsfw_score ?? 0,
-            violence_score: result.violence_score ?? 0,
-            weapons_detected: !!result.weapons_detected,
-            drugs_detected: !!result.drugs_detected,
-            timestamp: new Date().toISOString(),
-          },
+        await sb.from("live_frame_alerts").insert({
+          user_id: body.userId,
+          context: body.context ?? "live_stream",
+          room_id: body.roomId ?? null,
+          stream_id: body.streamId ?? null,
+          severity,
+          alerts,
+          face_present: result.face_present,
+          face_count: result.face_count,
+          nsfw_score: result.nsfw_score ?? null,
+          violence_score: result.violence_score ?? null,
+          weapons_detected: result.weapons_detected ?? false,
+          drugs_detected: result.drugs_detected ?? false,
         });
       } catch (e) {
-        console.warn("[live-frame-monitor] alert side-effects failed:", e);
+        console.warn("[live-frame-monitor] log insert failed:", e);
+      }
+
+      // 3-strike rule: count critical alerts in the last 5 min for this
+      // user+stream. Identity mismatch is a single-strike kill.
+      if (severity === "critical") {
+        if (alerts.includes("identity_mismatch")) {
+          action = "end_stream";
+        } else {
+          try {
+            const since = new Date(Date.now() - STRIKE_WINDOW_MIN * 60_000).toISOString();
+            let q = sb
+              .from("live_frame_alerts")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", body.userId)
+              .eq("severity", "critical")
+              .gte("created_at", since);
+            if (body.streamId) q = q.eq("stream_id", body.streamId);
+            else if (body.roomId) q = q.eq("room_id", body.roomId);
+            const { count } = await q;
+            strikes = count ?? 0;
+            if (strikes >= STRIKE_LIMIT) action = "end_stream";
+          } catch (e) {
+            console.warn("[live-frame-monitor] strike count failed:", e);
+          }
+        }
       }
     }
 
     return new Response(
-      JSON.stringify({ ok: true, severity, result }),
+      JSON.stringify({
+        ok: true,
+        severity,
+        action,
+        strikes,
+        result: { ...result, alerts, identity_match: identityMatch },
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {

@@ -1,6 +1,23 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface FrameMonitorResponse {
+  ok: boolean;
+  severity?: 'ok' | 'warning' | 'critical';
+  action?: 'end_stream' | null;
+  result?: {
+    alerts?: string[];
+    face_present?: boolean;
+    face_count?: number;
+    nsfw_score?: number;
+    violence_score?: number;
+    weapons_detected?: boolean;
+    drugs_detected?: boolean;
+    identity_match?: boolean;
+  };
+  strikes?: number;
+}
+
 interface Options {
   /** When false, monitor is suspended. */
   enabled: boolean;
@@ -13,10 +30,19 @@ interface Options {
   /** Room or stream id passed through to the alert payload. */
   roomId?: string | null;
   streamId?: string | null;
-  /** Capture interval in ms — defaults 30s. */
+  /** Capture interval in ms — defaults 15s (Bigo-grade cadence). */
   intervalMs?: number;
   /** Frame max width in px — defaults 320 (compact for fast upload). */
   maxWidth?: number;
+  /** Called whenever the provider returns severity='warning'. */
+  onWarning?: (resp: FrameMonitorResponse) => void;
+  /** Called whenever the provider returns severity='critical'. */
+  onCritical?: (resp: FrameMonitorResponse) => void;
+  /**
+   * Called when the server signals action:'end_stream' (3+ critical strikes
+   * inside 5min, or identity_mismatch). Host should tear the stream down.
+   */
+  onForceEnd?: (resp: FrameMonitorResponse) => void;
 }
 
 /**
@@ -35,11 +61,18 @@ export function useLiveFrameMonitor({
   context = 'live_stream',
   roomId = null,
   streamId = null,
-  intervalMs = 30_000,
+  intervalMs = 15_000,
   maxWidth = 320,
+  onWarning,
+  onCritical,
+  onForceEnd,
 }: Options): void {
   const inFlightRef = useRef(false);
   const videoElRef = useRef<HTMLVideoElement | null>(null);
+  // Latest callbacks captured in a ref so they can change without resetting
+  // the interval (which would skip ticks during re-renders).
+  const cbRef = useRef({ onWarning, onCritical, onForceEnd });
+  cbRef.current = { onWarning, onCritical, onForceEnd };
 
   useEffect(() => {
     if (!enabled || !userId || !track) return;
@@ -76,9 +109,16 @@ export function useLiveFrameMonitor({
         const imageBase64 = dataUrl.split(',')[1] ?? '';
         if (!imageBase64) return;
 
-        await supabase.functions.invoke('live-frame-monitor', {
-          body: { userId, imageBase64, context, roomId, streamId },
-        });
+        const { data, error } = await supabase.functions.invoke<FrameMonitorResponse>(
+          'live-frame-monitor',
+          { body: { userId, imageBase64, context, roomId, streamId } },
+        );
+        if (cancelled || error || !data) return;
+
+        if (data.severity === 'critical') cbRef.current.onCritical?.(data);
+        else if (data.severity === 'warning') cbRef.current.onWarning?.(data);
+
+        if (data.action === 'end_stream') cbRef.current.onForceEnd?.(data);
       } catch (e) {
         // best-effort — never surface
         if (import.meta.env.DEV) console.warn('[useLiveFrameMonitor] tick failed', e);

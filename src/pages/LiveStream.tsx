@@ -703,8 +703,10 @@ const LiveStream = () => {
   });
 
   // ========== EXTERNAL FRAME MONITOR (verify.merilive.com) ==========
-  // 30s cadence — provider checks for sleeping / face_lost / multi-face / NSFW /
-  // weapons / drugs and broadcasts alerts to admins. Best-effort; failures silent.
+  // 15s cadence — provider checks for sleeping / face_lost / multi-face / NSFW /
+  // weapons / drugs / identity. 3 critical strikes in 5 min OR identity mismatch
+  // → server signals end_stream; we tear down immediately. Best-effort; failures
+  // are silent.
   useLiveFrameMonitor({
     enabled: isHost && isHostVerified && isJoined,
     userId: currentUserId,
@@ -715,8 +717,34 @@ const LiveStream = () => {
         : null),
     context: 'live_stream',
     streamId: id ?? null,
-    intervalMs: 30_000,
+    intervalMs: 15_000,
+    onWarning: (resp) => {
+      const a = resp.result?.alerts?.[0];
+      if (a === 'looking_away') toast.warning('আপনি ক্যামেরা থেকে দূরে তাকিয়ে আছেন');
+      else if (a === 'low_quality') toast.warning('ভিডিও কোয়ালিটি কম — আলো বাড়ান');
+    },
+    onCritical: (resp) => {
+      const a = resp.result?.alerts?.[0] ?? 'নিয়ম লঙ্ঘন';
+      const msg =
+        a === 'face_lost' ? 'মুখ দেখা যাচ্ছে না — সামনে আসুন'
+        : a === 'sleeping' ? 'ঘুমিয়ে পড়েছেন? জেগে উঠুন'
+        : a === 'multiple_faces' ? 'একাধিক মুখ — নিয়ম ভঙ্গ'
+        : a === 'identity_mismatch' ? 'অন্য ব্যক্তি detect হয়েছে'
+        : a.startsWith('moderation:') ? 'অনুপযুক্ত content detect হয়েছে'
+        : 'সতর্কতা — admin notified';
+      toast.error(msg, { description: `Strike ${resp.strikes ?? '?'}/3 — ৩বার হলে stream auto-end` });
+    },
+    onForceEnd: (resp) => {
+      toast.error('Stream auto-ended', {
+        description: resp.result?.alerts?.includes('identity_mismatch')
+          ? 'অন্য ব্যক্তি detect — instant end'
+          : '৩বার নিয়ম ভঙ্গ — auto-end',
+      });
+      console.log('[FrameMonitor] Auto-ending stream due to', resp.result?.alerts);
+      handleEndStream();
+    },
   });
+
 
 
   // Fetch current user and stream data from database - VERIFY host status

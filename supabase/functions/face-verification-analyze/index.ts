@@ -367,11 +367,80 @@ serve(async (req) => {
     if (leftError) rekognition.left_error = leftError;
     if (rightError) rekognition.right_error = rightError;
 
+
+
+
+    // ───────────────────────────────────────────────────────────────────
+    // Profile-photo ↔ verification-selfie cross-check.
+    // The user's profile avatar must be the same person as the verification
+    // selfie. This catches "uploaded a stranger's photo as avatar, then
+    // verified with own face" abuse. Best-effort: missing avatar / fetch
+    // failure / no face in avatar = skip (no block). Mismatch (<80%) =>
+    // force manual review (never auto-approve).
+    // ───────────────────────────────────────────────────────────────────
+    let profileMatchScore: number | null = null;
+    let profileMatchSkipReason: string | null = null;
+    let profileMismatch = false;
+    if (!frontError) {
+      try {
+        const { data: profileRow } = await supabaseAdmin
+          .from("profiles")
+          .select("avatar_url")
+          .eq("id", userId)
+          .maybeSingle();
+        const avatarUrl = (profileRow?.avatar_url as string | null) || null;
+        if (!avatarUrl) {
+          profileMatchSkipReason = "no_profile_avatar";
+        } else {
+          let avatarBytes: Uint8Array | null = null;
+          try {
+            avatarBytes = await fetchImageBytes(avatarUrl, supabaseAdmin);
+          } catch (e) {
+            profileMatchSkipReason = `avatar_fetch_failed:${e instanceof Error ? e.message : "unknown"}`;
+          }
+          if (avatarBytes) {
+            const avatarDet = await detectFaces(avatarBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+            const avatarFaceCount = ((avatarDet.FaceDetails as unknown[] | undefined) ?? []).length;
+            if (avatarFaceCount === 0) {
+              profileMatchSkipReason = "no_face_in_avatar";
+            } else if (avatarFaceCount > 1) {
+              profileMatchSkipReason = "multiple_faces_in_avatar";
+            } else {
+              try {
+                profileMatchScore = await compareFaces(
+                  avatarBytes,
+                  frontBytes,
+                  AWS_ACCESS_KEY_ID,
+                  AWS_SECRET_ACCESS_KEY,
+                  AWS_REGION,
+                );
+                profileMismatch = profileMatchScore < 80;
+              } catch (e) {
+                profileMatchSkipReason = `compare_failed:${e instanceof Error ? e.message : "unknown"}`;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        profileMatchSkipReason = `profile_check_failed:${e instanceof Error ? e.message : "unknown"}`;
+      }
+    }
+    rekognition.profile_match_score = profileMatchScore;
+    rekognition.profile_match_skip_reason = profileMatchSkipReason;
+    rekognition.profile_mismatch = profileMismatch;
+
+    const profileSummary = profileMatchScore !== null
+      ? `, profile↔selfie=${profileMatchScore.toFixed(1)}%${profileMismatch ? " MISMATCH" : ""}`
+      : profileMatchSkipReason
+        ? `, profile-check skipped (${profileMatchSkipReason})`
+        : "";
     const summary =
       `Rekognition: faces F/L/R=${details.length}/${leftDetails.length}/${rightDetails.length}` +
       `${frontError || leftError || rightError ? ` (${[frontError, leftError, rightError].filter(Boolean).join(", ")})` : ""}, ` +
       `gender=${rawG} (${genderConf.toFixed(1)}%)${genderConflict ? " conflict" : ""}, ` +
-      `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%`;
+      `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%` +
+      profileSummary;
+
 
     // ───────────────────────────────────────────────────────────────────
     // Duplicate-face detection via external verification provider.
@@ -463,12 +532,19 @@ serve(async (req) => {
       })
       .eq("id", submissionId);
 
-    const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
-      "service_auto_finalize_face_verification",
-      { p_submission_id: submissionId },
-    );
+    // Profile-photo mismatch forces manual review — never auto-approve a
+    // submission where the avatar belongs to a different person than the
+    // selfie. Duplicate-face hit does the same.
+    const blockAutoApprove = profileMismatch || !!duplicateBlock;
+    const { data: rpcData, error: rpcErr } = blockAutoApprove
+      ? { data: { success: false, reason: profileMismatch ? "profile_face_mismatch" : "duplicate_face" }, error: null as null }
+      : await supabaseAdmin.rpc(
+          "service_auto_finalize_face_verification",
+          { p_submission_id: submissionId },
+        );
     const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
     if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+
 
     // ★ NEVER auto-reject. If auto-approve cannot safely fire, leave the row in
     //   `submitted` so admin sees it in Pending and reviews manually. The previous
@@ -489,7 +565,12 @@ serve(async (req) => {
               ? "Needs admin review: gender confidence below auto-approve threshold."
               : autoReason === "low_compare_score" || autoReason === "low_similarity"
                 ? "Needs admin review: front-vs-side angle similarity below auto-approve threshold."
-                : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+                : autoReason === "profile_face_mismatch"
+                  ? `Needs admin review: profile avatar does NOT match the verification selfie (similarity ${profileMatchScore?.toFixed(1) ?? "?"}%). Possible identity abuse.`
+                  : autoReason === "duplicate_face"
+                    ? "Needs admin review: face already verified on another account."
+                    : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+
       await supabaseAdmin
         .from("face_verification_submissions")
         .update({
