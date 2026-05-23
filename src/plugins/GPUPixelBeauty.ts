@@ -107,3 +107,40 @@ export function loadStoredLevels(): ProBeautyLevels {
 export function persistLevels(levels: ProBeautyLevels) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(levels)); } catch { /* ignore */ }
 }
+
+// ---------------------------------------------------------------
+// Pkg201 — Broadcast injection (feature-flag, OFF by default).
+// ---------------------------------------------------------------
+
+const BROADCAST_FLAG_KEY = 'pkg201.broadcast.enabled';
+
+export function isBroadcastBeautyEnabled(): boolean {
+  try { return localStorage.getItem(BROADCAST_FLAG_KEY) === '1'; } catch { return false; }
+}
+export function setBroadcastBeautyFlag(enabled: boolean) {
+  try { localStorage.setItem(BROADCAST_FLAG_KEY, enabled ? '1' : '0'); } catch { /* ignore */ }
+}
+
+/**
+ * Push current beauty levels into LiveKit's outgoing camera track via the
+ * native GPUPixelBeautyProcessor. No-op on web or when the broadcast flag
+ * is off. Calls NativeLiveKit.setBeautyBroadcast under the hood.
+ */
+export async function applyBroadcastBeauty(levels: ProBeautyLevels, enabled: boolean) {
+  if (!isNativeBeautyAvailable()) return;
+  if (enabled && !isBroadcastBeautyEnabled()) return;
+  try {
+    const NativeLiveKit = (await import('@/plugins/NativeLiveKit')).NativeLiveKit;
+    await NativeLiveKit.setBeautyBroadcast({
+      enabled,
+      smooth: levels.smooth / 10,
+      white: levels.white / 10,
+      thinFace: levels.thinFace / 10,
+      bigEye: levels.bigEye / 10,
+      lipstick: levels.lipstick / 10,
+    });
+  } catch {
+    /* native optional */
+  }
+}
+
