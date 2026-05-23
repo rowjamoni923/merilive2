@@ -68,28 +68,58 @@ export function usePartyRoomWebRTC(
   const [restartNonce, setRestartNonce] = useState(0);
 
   const roomRef = useRef<Room | null>(null);
+  const sessionSeqRef = useRef(0);
   // Pkg189: token refresh detach handle.
   const tokenRefreshDetachRef = useRef<(() => void) | null>(null);
   const peerStreamsRef = useRef<Map<string, MediaStream>>(new Map());
   const audioElementsRef = useRef<Map<string, HTMLAudioElement[]>>(new Map());
+  const remoteAudioTrackKeysRef = useRef<Set<string>>(new Set());
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initRetryCountRef = useRef(0);
   const deadRef = useRef(false);
+
+  const getRemoteAudioTrackKey = (
+    identity: string,
+    pub?: RemoteTrackPublication | null,
+    track?: RemoteTrack | null,
+  ) => `${identity}:${pub?.trackSid || (pub as any)?.sid || (track as any)?.sid || track?.mediaStreamTrack?.id || 'audio'}`;
+
+  const attachRemoteAudioOnce = (identity: string, pub: RemoteTrackPublication | null, track: RemoteTrack) => {
+    const key = getRemoteAudioTrackKey(identity, pub, track);
+    if (remoteAudioTrackKeysRef.current.has(key)) return;
+
+    const audioEl = track.attach() as HTMLAudioElement;
+    audioEl.autoplay = true;
+    audioEl.dataset.partyAudioKey = key;
+    try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
+    audioEl.play().catch(() => {});
+
+    const existing = audioElementsRef.current.get(identity) || [];
+    existing.push(audioEl);
+    audioElementsRef.current.set(identity, existing);
+    remoteAudioTrackKeysRef.current.add(key);
+  };
 
   const detachAudioForIdentity = (identity: string) => {
     const els = audioElementsRef.current.get(identity);
     if (els) {
       els.forEach((el) => {
+        const key = el.dataset?.partyAudioKey;
+        if (key) remoteAudioTrackKeysRef.current.delete(key);
         try { el.pause(); } catch { /* ignore */ }
         try { (el as any).srcObject = null; } catch { /* ignore */ }
         try { el.remove(); } catch { /* ignore */ }
       });
       audioElementsRef.current.delete(identity);
     }
+    Array.from(remoteAudioTrackKeysRef.current)
+      .filter((key) => key.startsWith(`${identity}:`))
+      .forEach((key) => remoteAudioTrackKeysRef.current.delete(key));
   };
 
   const detachAllAudio = () => {
     Array.from(audioElementsRef.current.keys()).forEach(detachAudioForIdentity);
+    remoteAudioTrackKeysRef.current.clear();
   };
 
   const cleanup = useCallback(() => {
@@ -169,14 +199,25 @@ export function usePartyRoomWebRTC(
     }
 
     deadRef.current = false;
+    const sessionSeq = ++sessionSeqRef.current;
+    const delayedTimers: ReturnType<typeof setTimeout>[] = [];
+    const isActiveSession = (expectedRoom: Room | null) => !!expectedRoom && !deadRef.current && sessionSeqRef.current === sessionSeq && roomRef.current === expectedRoom;
+    const scheduleSessionTask = (fn: () => void, delayMs: number) => {
+      const timer = setTimeout(() => {
+        if (isActiveSession(room)) fn();
+      }, delayMs);
+      delayedTimers.push(timer);
+      return timer;
+    };
 
     const roomName = `party_${roomId}`;
+    let room: Room | null = null;
 
     const init = async () => {
       try {
         console.log('[PartyLiveKit] Initializing for room:', roomId);
 
-        const room = new Room({
+        room = new Room({
           // Pkg155: Chamet/Bigo-parity — adaptive stream + dynacast ON
           // Viewer auto-receives only the simulcast layer matching visible video size + bandwidth.
           // Saves uplink/downlink bandwidth, prevents "host crisp, viewers blurry" stalls.
@@ -311,13 +352,7 @@ export function usePartyRoomWebRTC(
           console.log(`[PartyLiveKit] Track subscribed: ${track.kind} from ${participant.identity}`);
 
           if (track.kind === Track.Kind.Audio) {
-            const audioEl = track.attach() as HTMLAudioElement;
-            audioEl.autoplay = true;
-            try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-            audioEl.play().catch(() => {});
-            const existing = audioElementsRef.current.get(participant.identity) || [];
-            existing.push(audioEl);
-            audioElementsRef.current.set(participant.identity, existing);
+            attachRemoteAudioOnce(participant.identity, pub, track);
           }
 
           if (track.kind === Track.Kind.Video) {
@@ -385,12 +420,18 @@ export function usePartyRoomWebRTC(
         });
 
         room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack, pub: RemoteTrackPublication, participant: RemoteParticipant) => {
+          const audioKey = track.kind === Track.Kind.Audio
+            ? getRemoteAudioTrackKey(participant.identity, pub, track)
+            : null;
+          if (track.kind === Track.Kind.Audio) {
+            remoteAudioTrackKeysRef.current.delete(audioKey!);
+          }
           track.detach().forEach(el => el.remove());
 
           if (track.kind === Track.Kind.Audio) {
-            // Audio element list rebuilds on next subscribe; nothing else to do.
+            // Drop only the detached audio element; keep other audio tracks for this identity alive.
             const remaining = (audioElementsRef.current.get(participant.identity) || []).filter(
-              (el) => document.body.contains(el),
+              (el) => el.dataset?.partyAudioKey !== audioKey,
             );
             if (remaining.length > 0) {
               audioElementsRef.current.set(participant.identity, remaining);
@@ -486,8 +527,14 @@ export function usePartyRoomWebRTC(
         warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
         const tokenResp = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
         const { token, url, ttl } = tokenResp;
+        if (!isActiveSession(room)) return;
         await room.prepareConnection(url, token).catch(() => {});
+        if (!isActiveSession(room)) return;
         await room.connect(url, token);
+        if (!isActiveSession(room)) {
+          try { room.disconnect(true); } catch { /* ignore */ }
+          return;
+        }
         console.log('[PartyLiveKit] ✅ Connected to room');
 
         // Pkg189: silent token refresh before TTL expiry.
@@ -614,8 +661,8 @@ export function usePartyRoomWebRTC(
         rebuildLocalStream();
 
         // Safety: rebuild again after short delays to catch late-publishing tracks
-        setTimeout(rebuildLocalStream, 500);
-        setTimeout(rebuildLocalStream, 1500);
+        scheduleSessionTask(rebuildLocalStream, 500);
+        scheduleSessionTask(rebuildLocalStream, 1500);
 
         // Handle existing participants
         room.remoteParticipants.forEach(participant => {
@@ -626,13 +673,7 @@ export function usePartyRoomWebRTC(
           // Play audio for existing participants
           participant.trackPublications.forEach(pub => {
             if (pub.track?.kind === Track.Kind.Audio && pub.isSubscribed) {
-              const audioEl = pub.track.attach() as HTMLAudioElement;
-              audioEl.autoplay = true;
-              try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-              audioEl.play().catch(() => {});
-              const existing = audioElementsRef.current.get(participant.identity) || [];
-              existing.push(audioEl);
-              audioElementsRef.current.set(participant.identity, existing);
+              attachRemoteAudioOnce(participant.identity, pub, pub.track as RemoteTrack);
             }
           });
         });
@@ -665,14 +706,15 @@ export function usePartyRoomWebRTC(
         };
 
         forceSubscribePass();
-        setTimeout(forceSubscribePass, 30);
-        setTimeout(forceSubscribePass, 80);
-        setTimeout(forceSubscribePass, 200);
-        setTimeout(forceSubscribePass, 500);
+        scheduleSessionTask(forceSubscribePass, 30);
+        scheduleSessionTask(forceSubscribePass, 80);
+        scheduleSessionTask(forceSubscribePass, 200);
+        scheduleSessionTask(forceSubscribePass, 500);
         initRetryCountRef.current = 0;
 
       } catch (error) {
         console.error('[PartyLiveKit] Initialization error:', error);
+        if (sessionSeqRef.current !== sessionSeq) return;
         if (!deadRef.current && initRetryCountRef.current < 3) {
           initRetryCountRef.current += 1;
           reconnectTimerRef.current = setTimeout(() => {
@@ -689,6 +731,7 @@ export function usePartyRoomWebRTC(
     init();
 
     return () => {
+      delayedTimers.forEach(clearTimeout);
       cleanup();
     };
   }, [roomId, userId, roomType, partyCanPublish, restartNonce]);
