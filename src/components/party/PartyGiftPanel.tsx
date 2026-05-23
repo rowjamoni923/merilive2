@@ -158,9 +158,11 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
     currentGifts.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE)
   );
 
-  // Reset page when category changes
+  // Reset page + clear selection when category changes (Pkg4-pass4: stale gift selection leaked across tabs)
   useEffect(() => {
     setCurrentPage(0);
+    setSelectedGift(null);
+    setSendCount(1);
   }, [activeCategory]);
 
   // Get available categories (only those with gifts)
