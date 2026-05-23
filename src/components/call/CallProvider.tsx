@@ -62,6 +62,9 @@ export function CallProvider({ children }: CallProviderProps) {
   const callEndedRef = useRef(false);
   // ☠️ DEAD FOREVER: Track ended call IDs permanently - NEVER reconnect a dead call
   const endedCallIdsRef = useRef<Set<string>>(new Set());
+  // Pkg5-pass1 BUG-B/C: in-flight guards against rapid double-tap on modal buttons
+  const acceptingRef = useRef(false);
+  const decliningRef = useRef(false);
 
   useEffect(() => {
     // ⚡ INSTANT: Use getSession() first (local cache, no network round-trip)
@@ -185,46 +188,59 @@ export function CallProvider({ children }: CallProviderProps) {
   }, [callState.status, showCallEndedModal]);
 
   const handleAcceptCall = async () => {
+    if (acceptingRef.current) return; // Pkg5-pass1 BUG-B: double-tap guard
     if (incomingCall && !callEndedRef.current) {
-      // Pkg35: If the host is currently broadcasting a live stream, end it
-      // automatically so the private call can take over cleanly.
-      if (userId) {
-        try {
-          const { data: liveRows } = await supabase
-            .from('live_streams')
-            .select('id')
-            .eq('host_id', userId)
-            .is('ended_at', null)
-            .eq('is_active', true)
-            .limit(5);
-          if (liveRows && liveRows.length > 0) {
-            await Promise.all(
-              liveRows.map(async (r: any) => {
-                try { await supabase.rpc('end_live_stream', { p_stream_id: r.id }); } catch { /* ignore */ }
-              })
-            );
+      acceptingRef.current = true;
+      try {
+        // Pkg35: If the host is currently broadcasting a live stream, end it
+        // automatically so the private call can take over cleanly.
+        if (userId) {
+          try {
+            const { data: liveRows } = await supabase
+              .from('live_streams')
+              .select('id')
+              .eq('host_id', userId)
+              .is('ended_at', null)
+              .eq('is_active', true)
+              .limit(5);
+            if (liveRows && liveRows.length > 0) {
+              await Promise.all(
+                liveRows.map(async (r: any) => {
+                  try { await supabase.rpc('end_live_stream', { p_stream_id: r.id }); } catch { /* ignore */ }
+                })
+              );
+            }
+          } catch (_) {
+            /* non-blocking */
           }
-        } catch (_) {
-          /* non-blocking */
         }
+
+        // Store the incoming call info BEFORE accepting (because incomingCall will be cleared)
+        setAcceptedCallInfo({
+          callId: incomingCall.callId,
+          callerId: incomingCall.callerId,
+          callerName: incomingCall.callerName,
+          callerAvatar: incomingCall.callerAvatar,
+        });
+        setIsHost(true);
+
+        await acceptCall(incomingCall.callId);
+      } finally {
+        // Release on next tick — modal has already been dismissed by acceptCall
+        setTimeout(() => { acceptingRef.current = false; }, 500);
       }
-
-      // Store the incoming call info BEFORE accepting (because incomingCall will be cleared)
-      setAcceptedCallInfo({
-        callId: incomingCall.callId,
-        callerId: incomingCall.callerId,
-        callerName: incomingCall.callerName,
-        callerAvatar: incomingCall.callerAvatar,
-      });
-      setIsHost(true);
-
-      await acceptCall(incomingCall.callId);
     }
   };
 
   const handleDeclineCall = async () => {
+    if (decliningRef.current) return; // Pkg5-pass1 BUG-C: double-tap guard
     if (incomingCall) {
-      await declineCall(incomingCall.callId);
+      decliningRef.current = true;
+      try {
+        await declineCall(incomingCall.callId);
+      } finally {
+        setTimeout(() => { decliningRef.current = false; }, 500);
+      }
     }
   };
 
@@ -285,9 +301,15 @@ export function CallProvider({ children }: CallProviderProps) {
 
     let listener: { remove: () => Promise<void> } | null = null;
     void NativeCall.addListener('call-action', handleNativeAction).then((h) => {
+      // Pkg5-pass1 BUG-E FIX: if disposed before registration resolved, remove immediately
+      if (disposed) {
+        void h.remove().catch(() => undefined);
+        return;
+      }
       listener = h;
     }).catch(() => undefined);
     void NativeCall.getLastAction().then(({ actions }) => {
+      if (disposed) return;
       actions?.forEach((action) => void handleNativeAction(action));
     }).catch(() => undefined);
 
@@ -296,6 +318,7 @@ export function CallProvider({ children }: CallProviderProps) {
       void listener?.remove().catch(() => undefined);
     };
   }, [userId, acceptCall, declineCall]);
+
 
   const handleEndCall = async () => {
     if (callEndedRef.current) {
