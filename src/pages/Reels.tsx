@@ -108,6 +108,19 @@ const Reels = () => {
   const [submittingReport, setSubmittingReport] = useState(false);
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const userCoinsRef = useRef(0);
+  const currentIndexRef = useRef(0);
+  const currentUserIdRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  }, [userCoins]);
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+  useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
   
   // Flying gift animations
   const { gifts: flyingGifts, addGift: addFlyingGift, removeGift } = useFlyingGifts();
@@ -126,6 +139,7 @@ const Reels = () => {
           supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order'),
         ]);
         setIsHost(profileRes.data?.is_host || false);
+        userCoinsRef.current = profileRes.data?.coins || 0;
         setUserCoins(profileRes.data?.coins || 0);
         if (categoriesRes.data) setCategories(categoriesRes.data);
       } else {
