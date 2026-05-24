@@ -3,7 +3,7 @@ import { getSessionCache, setSessionCache } from "@/hooks/useSessionCache";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { 
   ArrowLeft, 
   Users, 
@@ -185,32 +185,45 @@ const Discover = () => {
         return;
       }
 
-      const roomsData = await Promise.all(
-        ((roomsRes.data || []) as any[])
-          .filter(room => activeRoomIds.has(room.id))
-          .map(async (room) => {
-            const host = Array.isArray(room.host) ? room.host[0] : room.host;
-            const resolvedHostLevel = host
-              ? (await import('@/utils/levelResolver')).resolveLevelFromTiers({
-                  id: host.id,
-                  user_level: host.user_level,
-                  host_level: host.host_level,
-                  is_host: host.is_host,
-                  gender: host.gender,
-                  total_recharged: host.total_recharged,
-                  total_earnings: host.total_earnings,
-                  weekly_earnings: host.weekly_earnings,
-                  max_user_level: host.max_user_level,
-                }).then(result => result.level).catch(() => host.host_level || host.user_level || 1)
-              : 1;
-
-            return {
-              ...room,
-              host: host ? { ...host, user_level: resolvedHostLevel } : null,
-              current_participants: roomParticipantCounts.get(room.id) || 1,
-            };
+      // Resolve host levels once per host (no N+1 dynamic imports)
+      const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
+      const hostLevelMap = new Map<string, number>();
+      await Promise.all(
+        Array.from(new Set((roomsRes.data || [])
+          .filter((r: any) => activeRoomIds.has(r.id) && r.host)
+          .map((r: any) => r.host as any)
+          .filter(Boolean)))
+          .map(async (host: any) => {
+            try {
+              const res = await resolveLevelFromTiers({
+                id: host.id,
+                user_level: host.user_level,
+                host_level: host.host_level,
+                is_host: host.is_host,
+                gender: host.gender,
+                total_recharged: host.total_recharged,
+                total_earnings: host.total_earnings,
+                weekly_earnings: host.weekly_earnings,
+                max_user_level: host.max_user_level,
+              });
+              hostLevelMap.set(host.id, res.level);
+            } catch {
+              hostLevelMap.set(host.id, host.host_level || host.user_level || 1);
+            }
           })
       );
+
+      const roomsData = ((roomsRes.data || []) as any[])
+        .filter(room => activeRoomIds.has(room.id))
+        .map((room) => {
+          const host = Array.isArray(room.host) ? room.host[0] : room.host;
+          const resolvedHostLevel = host ? (hostLevelMap.get(host.id) ?? (host.host_level || host.user_level || 1)) : 1;
+          return {
+            ...room,
+            host: host ? { ...host, user_level: resolvedHostLevel } : null,
+            current_participants: roomParticipantCounts.get(room.id) || 1,
+          };
+        });
 
       const visibleRooms = roomsData
         .filter(room => room.current_participants >= 1)
@@ -271,15 +284,17 @@ const Discover = () => {
     if (selectedCountry !== "all") {
       if (!room.host?.country_code || room.host.country_code !== selectedCountry) return false;
     }
-    // Search filter
-    if (searchQuery) {
-      return room.name.toLowerCase().includes(searchQuery.toLowerCase());
-    }
     // Tab filter
-    if (activeTab === "all") return true;
-    if (activeTab === "video") return room.room_type === "video";
-    if (activeTab === "audio") return room.room_type === "audio";
-    if (activeTab === "game") return room.room_type === "game";
+    if (activeTab === "video" && room.room_type !== "video") return false;
+    if (activeTab === "audio" && room.room_type !== "audio") return false;
+    if (activeTab === "game" && room.room_type !== "game") return false;
+    // Search filter (AND, not OR)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const name = room.name?.toLowerCase() || "";
+      const host = room.host?.display_name?.toLowerCase() || "";
+      if (!name.includes(q) && !host.includes(q)) return false;
+    }
     return true;
   });
 
@@ -340,7 +355,7 @@ const Discover = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-bold text-heading">Party Rooms</h1>
+            <h1 className="text-lg font-bold text-on-dark">Party Rooms</h1>
             <Button
               variant="ghost"
               size="icon"
@@ -360,12 +375,12 @@ const Discover = () => {
           {/* Search */}
           <div className="px-4 mt-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-pro" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-dark-faint" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search rooms..."
-                className="w-full pl-9 h-9 bg-white/20 border-amber-200/60 text-heading placeholder:text-on-dark-faint rounded-full text-sm"
+                placeholder="Search rooms or hosts..."
+                className="w-full pl-9 h-9 bg-white/20 border-white/30 text-on-dark placeholder:text-on-dark-faint rounded-full text-sm"
               />
             </div>
           </div>
@@ -404,8 +419,8 @@ const Discover = () => {
               className={cn(
                 "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 border",
                 selectedCountry === country.code
-                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-heading border-transparent shadow-md shadow-pink-500/20"
-                  : "bg-white text-heading border-slate-200 hover:border-slate-300"
+                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-on-dark border-transparent shadow-md shadow-pink-500/20"
+                  : "bg-card text-foreground border-border hover:border-muted-foreground/30"
               )}
             >
               <span className="text-sm">{country.flag}</span>
