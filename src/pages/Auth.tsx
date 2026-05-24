@@ -1265,7 +1265,7 @@ const Auth = () => {
       if (verifyError) {
         throw new Error(await getFunctionErrorMessage(verifyError, "Invalid verification code"));
       }
-      if (!verifyData?.success) {
+      if (!verifyData?.success || !verifyData?.verified_token) {
         throw new Error(verifyData?.error || "Invalid verification code");
       }
 
@@ -1536,7 +1536,7 @@ const Auth = () => {
         return;
       }
 
-      await recordAttempt(`otp:${fullPhone}`, false);
+      await recordAttempt(`otp:${fullPhone}`, true);
       toast({
         title: "📱 WhatsApp OTP Sent!",
         description: `Verification code sent to ${fullPhone} via WhatsApp`,
@@ -1601,7 +1601,7 @@ const Auth = () => {
       if (existingProfile) {
         // Existing account found — auto-login via edge function
         const { data: signInResult, error: signInError } = await supabase.functions.invoke('otp-direct-signin', {
-          body: { email: phoneEmail }
+          body: { email: phoneEmail, channel: "phone", identifier: fullPhone, verified_token: data.verified_token }
         });
 
         if (!signInError && signInResult?.session) {
