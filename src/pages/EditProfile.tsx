@@ -132,6 +132,9 @@ const EditProfile = () => {
   };
 
   useEffect(() => {
+    let cancelled = false;
+    let unsubscribeRealtime: (() => void) | null = null;
+
     const fetchProfile = async () => {
       const { getCachedUser } = await import('@/utils/cachedAuth');
       const user = await getCachedUser();
@@ -140,21 +143,32 @@ const EditProfile = () => {
         return;
       }
 
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (profileData) {
-        setProfile(profileData);
-        setDisplayName(profileData.display_name || "");
-        setBio(profileData.bio || "");
-        setAge(profileData.age);
-        setGender(profileData.gender || "");
-        setTags((profileData as any).tags || []);
-        setHideLocation(profileData.hide_location || false);
+      if (cancelled) return;
+
+      if (profileError) {
+        recordClientError({ label: "EditProfile.fetchProfile", message: profileError.message });
+        sonnerToast.error("Failed to load profile");
       }
+
+      if (profileData) {
+        syncProfileState(profileData as ProfileData);
+      }
+
+      unsubscribeRealtime = subscribeToTables(
+        `edit-profile-${user.id}`,
+        ["profiles"],
+        (table, _event, payload) => {
+          if (table === "profiles" && payload?.id === user.id) {
+            syncProfileState(payload as ProfileData);
+          }
+        }
+      );
 
       setUserEmail(user.email || "");
       setPhone((user as any).phone || "");
@@ -162,6 +176,12 @@ const EditProfile = () => {
     };
 
     fetchProfile();
+
+    return () => {
+      cancelled = true;
+      if (linkOtpCooldownTimerRef.current) clearInterval(linkOtpCooldownTimerRef.current);
+      if (unsubscribeRealtime) unsubscribeRealtime();
+    };
   }, [navigate]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,7 +239,7 @@ const EditProfile = () => {
 
       if (updateError) throw updateError;
 
-      setProfile({ ...profile, avatar_url: publicUrl });
+      syncProfileState({ ...profile, avatar_url: publicUrl });
       sonnerToast.success("Profile picture updated!");
     } catch (error) {
       console.error("Upload error:", error);
