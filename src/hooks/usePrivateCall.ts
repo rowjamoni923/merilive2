@@ -51,7 +51,7 @@ const INITIAL_CALL_STATE: CallState = {
 // private_calls realtime listener. This is only a 30s safety-net REST poll for
 // foreground/resume recovery. Was 800ms (catastrophic: 10k users × 75 reads/min).
 const FALLBACK_PENDING_CALL_POLL_MS = 30000;
-const DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS = 30;
+const DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS = 60;
 const INCOMING_CALL_STALE_BUFFER_MS = 5000;
 
 export function usePrivateCall(userId: string | null) {
@@ -566,6 +566,9 @@ export function usePrivateCall(userId: string | null) {
 
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
       const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
+      const resolvedTimeoutSeconds = Number(
+        rpcPayload?.timeout_seconds ?? callSettings.call_timeout_seconds ?? DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS,
+      ) || DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS;
 
       // Pkg84: client Supabase broadcast removed. `call-deliver` edge function
       // (invoked just below) is sole delivery path → FCM high-priority data
@@ -657,9 +660,7 @@ export function usePrivateCall(userId: string | null) {
         description: `Calling ${hostProfile?.display_name || 'Host'}`,
       });
 
-      const timeoutSeconds = settingsRes.data?.setting_value 
-        ? ((settingsRes.data.setting_value as any)?.call_timeout_seconds || 30)
-        : 30;
+      const timeoutSeconds = Math.max(15, Math.min(120, resolvedTimeoutSeconds));
       
       const callIdForTimeout = resolvedCallId;
       callTimeoutRef.current = setTimeout(async () => {
