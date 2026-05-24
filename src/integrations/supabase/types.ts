@@ -18522,6 +18522,10 @@ export type Database = {
         }
         Returns: Json
       }
+      process_helper_order_secure: {
+        Args: { _action: string; _notes?: string; _order_id: string }
+        Returns: Json
+      }
       process_live_game_round: {
         Args: { p_result?: string; p_round_id: string; p_winning_value: string }
         Returns: Json
