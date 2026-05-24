@@ -58,6 +58,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
 
+  // Pkg326 — ref-wrap callbacks (declared early so initWebGL/useEffect can read them).
+  const onLoadRef = useRef(onLoad);
+  const onErrorRef = useRef(onError);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onLoadRef.current = onLoad;
+    onErrorRef.current = onError;
+    onCompleteRef.current = onComplete;
+  }, [onLoad, onError, onComplete]);
+
   // Default config for standard VAP format
   const defaultConfig: VAPConfig = {
     v: 2,
@@ -190,7 +200,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     if (!gl) {
       setError('WebGL not supported');
-      onError?.(new Error('WebGL not supported'));
+      onErrorRef.current?.(new Error('WebGL not supported'));
       return;
     }
 
@@ -294,9 +304,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     render();
     setLoading(false);
-    onLoad?.();
+    onLoadRef.current?.();
 
-  }, [createShaders, onLoad, onError]);
+  }, [createShaders]);
+
+
 
   // Initialize video and WebGL
   useEffect(() => {
@@ -318,14 +330,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     video.onended = () => {
       if (!loop) {
-        onComplete?.();
+        onCompleteRef.current?.();
       }
     };
 
     video.onerror = () => {
       setError('Video load failed');
       setLoading(false);
-      onError?.(new Error('Video load failed'));
+      onErrorRef.current?.(new Error('Video load failed'));
     };
 
     video.src = src;
@@ -344,7 +356,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       video.src = '';
       videoRef.current = null;
     };
-  }, [src, config, loop, autoPlay, muted, volume, initWebGL, onComplete, onError]);
+  }, [src, config, loop, autoPlay, muted, volume, initWebGL]);
 
   if (error) {
     return (

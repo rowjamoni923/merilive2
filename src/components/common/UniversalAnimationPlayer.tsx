@@ -92,7 +92,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const animationType = type || detectAnimationType(src);
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef(false);
-  useEffect(() => { startTimeRef.current = Date.now(); completedRef.current = false; }, [src]);
+  useEffect(() => { startTimeRef.current = Date.now(); completedRef.current = false; }, [src, loop]);
 
   const fireComplete = (source: AnimationCompletionSource) => {
     if (completedRef.current) return;
