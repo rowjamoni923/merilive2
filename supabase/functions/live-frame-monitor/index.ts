@@ -53,10 +53,36 @@ serve(async (req) => {
   }
 
   try {
+    // Pkg321: require caller authentication — prevents anonymous frame spam
+    // and ensures userId in body matches the authenticated user.
+    const authHeader = req.headers.get("Authorization") || "";
+    let callerUserId: string | null = null;
+    if (authHeader.toLowerCase().startsWith("bearer ")) {
+      const sbUrl = Deno.env.get("SUPABASE_URL")!;
+      const sbAnon = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const userClient = createClient(sbUrl, sbAnon, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: u, error: ue } = await userClient.auth.getUser();
+      if (!ue && u?.user?.id) callerUserId = u.user.id;
+    }
+    if (!callerUserId) {
+      return new Response(JSON.stringify({ error: "authentication required" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = (await req.json()) as Body;
     if (!body?.userId || !body?.imageBase64) {
       return new Response(JSON.stringify({ error: "userId and imageBase64 required" }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (body.userId !== callerUserId) {
+      return new Response(JSON.stringify({ error: "userId mismatch" }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
