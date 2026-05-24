@@ -26,47 +26,35 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Verify the requesting user is an owner
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      console.error("[update-sub-admin] No authorization header");
+    // Verify the requesting admin session is an owner
+    const adminToken = req.headers.get("x-admin-token");
+    if (!adminToken || adminToken.length < 16) {
+      console.error("[update-sub-admin] No admin session token");
       return new Response(
-        JSON.stringify({ error: "No authorization header" }),
+        JSON.stringify({ error: "Admin session required" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user: requestingUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (authError || !requestingUser) {
-      console.error("[update-sub-admin] Invalid token:", authError?.message);
-      return new Response(
-        JSON.stringify({ error: "Invalid token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const { data: sessionRow } = await supabaseAdmin
+      .from("admin_sessions")
+      .select("admin_user_id, expires_at")
+      .eq("session_token", adminToken)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+    const { data: requestingAdmin } = sessionRow?.admin_user_id
+      ? await supabaseAdmin.from("admin_users").select("id, role, is_active").eq("id", sessionRow.admin_user_id).maybeSingle()
+      : { data: null } as any;
 
-    console.log("[update-sub-admin] Requesting user:", requestingUser.id);
-
-    // Check if requesting user is owner
-    const { data: isOwner, error: ownerCheckError } = await supabaseAdmin.rpc("is_admin_owner", { _user_id: requestingUser.id });
-    
-    if (ownerCheckError) {
-      console.error("[update-sub-admin] Owner check error:", ownerCheckError.message);
-      return new Response(
-        JSON.stringify({ error: "Permission check failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    if (!isOwner) {
-      console.error("[update-sub-admin] User is not owner");
+    if (!requestingAdmin?.is_active || requestingAdmin.role !== "owner") {
+      console.error("[update-sub-admin] Requesting admin is not owner");
       return new Response(
         JSON.stringify({ error: "Only Owners can manage sub-admins" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log("[update-sub-admin] Requesting admin:", requestingAdmin.id);
 
     const body = await req.json();
     const { admin_user_id, action, new_password }: UpdateSubAdminRequest = body;
