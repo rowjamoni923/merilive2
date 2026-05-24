@@ -2418,6 +2418,75 @@ export default function AdminLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSidebarOpen, searchQuery]);
 
+  // Admin table scroll bridge: nested horizontal table wrappers were trapping
+  // vertical wheel/touch gestures. Forward vertical gestures to the one admin
+  // content scroller unless a real inner vertical scroller can still move.
+  useEffect(() => {
+    const root = adminScrollRootRef.current;
+    if (!root) return;
+
+    const isEditableTarget = (target: EventTarget | null) => {
+      const el = target instanceof Element ? target : null;
+      return Boolean(el?.closest('input, textarea, select, [contenteditable="true"], [role="textbox"], [data-admin-allow-inner-scroll="true"]'));
+    };
+
+    const canAncestorScrollVertically = (target: EventTarget | null, deltaY: number) => {
+      let el = target instanceof Element ? target.parentElement : null;
+      while (el && el !== root) {
+        const style = window.getComputedStyle(el);
+        const canScroll = /(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight + 1;
+        if (canScroll) {
+          const down = deltaY > 0;
+          if ((down && el.scrollTop + el.clientHeight < el.scrollHeight - 1) || (!down && el.scrollTop > 0)) {
+            return true;
+          }
+        }
+        el = el.parentElement;
+      }
+      return false;
+    };
+
+    const shouldBridge = (target: EventTarget | null) => {
+      const el = target instanceof Element ? target : null;
+      return Boolean(el?.closest('table, [role="table"], [class*="overflow-x-auto"], [class*="overflow-auto"], [data-radix-scroll-area-viewport]'));
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      if (isEditableTarget(event.target) || Math.abs(event.deltaY) <= Math.abs(event.deltaX) || !shouldBridge(event.target)) return;
+      if (canAncestorScrollVertically(event.target, event.deltaY)) return;
+      root.scrollTop += event.deltaY;
+      event.preventDefault();
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      adminTouchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      const start = adminTouchStartRef.current;
+      const touch = event.touches[0];
+      if (!start || !touch || isEditableTarget(event.target) || !shouldBridge(event.target)) return;
+      const dx = touch.clientX - start.x;
+      const dy = touch.clientY - start.y;
+      if (Math.abs(dy) <= Math.abs(dx)) return;
+      if (canAncestorScrollVertically(event.target, -dy)) return;
+      root.scrollTop += -dy;
+      adminTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
+      event.preventDefault();
+    };
+
+    root.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    root.addEventListener('touchstart', onTouchStart, { passive: true, capture: true });
+    root.addEventListener('touchmove', onTouchMove, { passive: false, capture: true });
+
+    return () => {
+      root.removeEventListener('wheel', onWheel, { capture: true } as AddEventListenerOptions);
+      root.removeEventListener('touchstart', onTouchStart, { capture: true } as AddEventListenerOptions);
+      root.removeEventListener('touchmove', onTouchMove, { capture: true } as AddEventListenerOptions);
+    };
+  }, []);
+
   // Close transient UI on route change + force-disable secure mode in admin
   useEffect(() => {
     setIsMobileSidebarOpen(false);
