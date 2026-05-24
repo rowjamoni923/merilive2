@@ -56,6 +56,8 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminActorId } from "@/utils/adminActionMeta";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+const supabase = adminSupabase;
+
 interface AdminUser {
   id: string;
   user_id: string | null;
