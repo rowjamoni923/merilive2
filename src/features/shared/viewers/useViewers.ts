@@ -18,6 +18,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
   const [viewers, setViewers] = useState<Viewer[]>([]);
   const [loading, setLoading] = useState(true);
   const mountedRef = useRef(true);
+  const activeKeyRef = useRef('');
 
   const hydrateProfiles = useCallback(async (ids: string[]) => {
     if (ids.length === 0) return new Map<string, any>();
@@ -43,7 +44,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     joined_at,
   });
 
-  const fetchStreamViewers = useCallback(async (sid: string) => {
+  const fetchStreamViewers = useCallback(async (sid: string, requestKey = `stream:${sid}`) => {
     const { data: sv, error } = await supabase
       .from("stream_viewers")
       .select("viewer_id, joined_at")
@@ -53,11 +54,11 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     if (error) return console.error("[useViewers] stream_viewers error:", error);
     const ids = (sv || []).map((r: any) => r.viewer_id).filter(Boolean);
     const profiles = await hydrateProfiles(ids);
-    if (!mountedRef.current) return;
+    if (!mountedRef.current || activeKeyRef.current !== requestKey) return;
     setViewers((sv || []).map((r: any) => buildViewer(r.viewer_id, r.joined_at, profiles.get(r.viewer_id))));
   }, [hydrateProfiles]);
 
-  const fetchPartyViewers = useCallback(async (rid: string) => {
+  const fetchPartyViewers = useCallback(async (rid: string, requestKey = `party:${rid}`) => {
     const { data: pv, error } = await supabase
       .from("party_room_participants")
       .select("user_id, joined_at")
@@ -67,7 +68,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
     if (error) return console.error("[useViewers] party_room_participants error:", error);
     const ids = (pv || []).map((r: any) => r.user_id).filter(Boolean);
     const profiles = await hydrateProfiles(ids);
-    if (!mountedRef.current) return;
+    if (!mountedRef.current || activeKeyRef.current !== requestKey) return;
     setViewers((pv || []).map((r: any) => buildViewer(r.user_id, r.joined_at, profiles.get(r.user_id))));
   }, [hydrateProfiles]);
 
@@ -104,10 +105,12 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
 
     const isStream = !!streamId;
     const id = (streamId || roomId) as string;
+    const requestKey = `${isStream ? 'stream' : 'party'}:${id}`;
+    activeKeyRef.current = requestKey;
 
     setLoading(true);
-    (isStream ? fetchStreamViewers(id) : fetchPartyViewers(id)).finally(() => {
-      if (mountedRef.current) setLoading(false);
+    (isStream ? fetchStreamViewers(id, requestKey) : fetchPartyViewers(id, requestKey)).finally(() => {
+      if (mountedRef.current && activeKeyRef.current === requestKey) setLoading(false);
     });
 
     const handleLiveEvent = (evt: Event) => {
@@ -158,6 +161,7 @@ export const useViewers = ({ streamId, roomId, enabled = true }: UseViewersOptio
 
     return () => {
       mountedRef.current = false;
+      if (activeKeyRef.current === requestKey) activeKeyRef.current = '';
       window.removeEventListener('livekit-live-event', handleLiveEvent);
       window.removeEventListener('livekit-party-event', handlePartyEvent);
     };

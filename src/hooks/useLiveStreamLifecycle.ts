@@ -19,6 +19,9 @@ const getSupabaseAuthStorageKey = () => {
   }
 };
 
+const getSupabasePublishableKey = () =>
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
 interface UseLiveStreamLifecycleProps {
   streamId: string | undefined;
   isHost: boolean;
@@ -67,7 +70,7 @@ export const useLiveStreamLifecycle = ({
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'apikey': getSupabasePublishableKey(),
               'Authorization': `Bearer ${token}`,
               'Prefer': 'return=minimal',
             },
@@ -98,7 +101,7 @@ export const useLiveStreamLifecycle = ({
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'apikey': getSupabasePublishableKey(),
             'Authorization': `Bearer ${token}`,
             'Prefer': 'return=minimal',
           },

@@ -693,7 +693,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
           if (config.role === 'audience') {
             setRemoteUsers(new Map());
-            const resync = () => room.remoteParticipants.forEach((participant) => ensureParticipantSubscribed(participant));
+            const resync = () => {
+              if (roomRef.current !== room || room.state !== ConnectionState.Connected) return;
+              room.remoteParticipants.forEach((participant) => ensureParticipantSubscribed(participant));
+            };
             resync();
             [40, 120, 300].forEach((delay) => setTimeout(resync, delay));
           }
