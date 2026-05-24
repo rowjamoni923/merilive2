@@ -1908,6 +1908,34 @@ body[data-admin-active="true"] #root {
   scrollbar-gutter: stable;
 }
 
+.admin-content,
+.admin-content * {
+  box-sizing: border-box;
+}
+
+.admin-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.admin-content > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.admin-content > [class*="max-w-"] {
+  max-width: none !important;
+}
+
+.admin-content [class*="overflow-x-auto"],
+.admin-content [class*="overflow-auto"],
+.admin-content [data-radix-scroll-area-viewport] {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
 /* Many legacy admin pages were authored as standalone screens with
    min-h-screen/h-screen wrappers. Inside AdminLayout those wrappers must not
    become a second viewport that clips content while the scroll pane owns
@@ -1915,7 +1943,9 @@ body[data-admin-active="true"] #root {
 .admin-content > [class*="min-h-screen"],
 .admin-content > [class*="h-screen"],
 .admin-content [class*="min-h-screen"],
-.admin-content [class*="h-screen"] {
+.admin-content [class*="h-screen"],
+.admin-content [class*="h-\[100vh\]"],
+.admin-content [class*="min-h-\[100vh\]"] {
   min-height: 0 !important;
   height: auto !important;
 }
