@@ -17799,7 +17799,7 @@ export type Database = {
         Returns: Json
       }
       claim_daily_login_reward: {
-        Args: { _claimed_date: string; _day_end: string; _day_start: string }
+        Args: { _claimed_date?: string; _day_end?: string; _day_start?: string }
         Returns: Json
       }
       claim_daily_task_reward: {
