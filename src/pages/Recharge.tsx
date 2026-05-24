@@ -3259,43 +3259,8 @@ const Recharge = () => {
                   if (selectedPaymentMethod === 'playstore') {
                       const isAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
                       if (isPlayStoreAvailable || isAndroid) {
-                      // For Play Store, directly initiate purchase
-                      setPlayStoreProcessing(true);
-                      const productId = playStoreBilling.getProductIdForCoins(pkg.coins);
-                      if (productId && userId) {
-                        playStoreBilling.purchase(productId, userId).then(result => {
-                          if (result.success) {
-                            fetchUserData();
-                            toast({
-                              title: "🎉 Purchase Successful!",
-                              description: `${formatNumber(pkg.coins)} diamonds added to your account`,
-                            });
-                          } else {
-                            toast({
-                              title: "Purchase Failed",
-                              description: result.error || "Could not complete purchase. Please try again.",
-                              variant: "destructive"
-                            });
-                          }
-                          setPlayStoreProcessing(false);
-                        }).catch(err => {
-                          console.error('[Recharge] Play Store purchase error:', err);
-                          recordClientError({ label: "Recharge.productId", message: err instanceof Error ? err.message : String(err) });
-                          toast({
-                            title: "Purchase Error",
-                            description: err.message || "An error occurred during purchase",
-                            variant: "destructive"
-                          });
-                          setPlayStoreProcessing(false);
-                        });
-                      } else {
-                        toast({
-                          title: "Product Not Available",
-                          description: "This package is not available for Play Store purchase",
-                          variant: "destructive"
-                        });
-                        setPlayStoreProcessing(false);
-                      }
+                      // For Play Store, directly initiate purchase through the same guarded path
+                      purchasePlayStorePackage(pkg);
                     } else {
                       // Play Store not available - show appropriate message
                       if (isAndroid) {
