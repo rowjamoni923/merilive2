@@ -29,6 +29,7 @@ interface ProfileReel {
   caption: string | null;
   views_count: number | null;
   is_active: boolean;
+  is_public: boolean | null;
 }
 
 interface ProfileReelsSectionProps {
@@ -65,7 +66,7 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
     try {
       let query = supabase
         .from('reels')
-        .select('id, video_url, thumbnail_url, caption, views_count, is_active')
+        .select('id, video_url, thumbnail_url, caption, views_count, is_active, is_public')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -117,7 +118,7 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
     }
   };
 
-  const handleTogglePrivacy = async (reelId: string, isCurrentlyActive: boolean) => {
+  const handleTogglePrivacy = async (reelId: string, isCurrentlyPublic: boolean | null) => {
     if (!currentUserId) {
       toast.error("Please login");
       return;
@@ -126,7 +127,7 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
     try {
       const { error } = await supabase
         .from('reels')
-        .update({ is_active: !isCurrentlyActive })
+        .update({ is_public: !isCurrentlyPublic })
         .eq('id', reelId)
         .eq('user_id', currentUserId);
 
@@ -134,10 +135,10 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
 
       // Update local state
       setReels(prev => prev.map(r => 
-        r.id === reelId ? { ...r, is_active: !isCurrentlyActive } : r
+        r.id === reelId ? { ...r, is_public: !isCurrentlyPublic } : r
       ));
 
-      toast.success(isCurrentlyActive ? "Reel set to Private" : "Reel set to Public");
+      toast.success(isCurrentlyPublic ? "Reel set to Private" : "Reel set to Public");
     } catch (error: any) {
       console.error('Privacy toggle error:', error);
       toast.error("Failed to update privacy");

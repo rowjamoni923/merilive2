@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Gift, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,6 +85,7 @@ interface Category {
 
 const Reels = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("/chat");
   const [reels, setReels] = useState<Reel[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -154,6 +155,13 @@ const Reels = () => {
     fetchReels(reels.length === 0);
   }, [selectedCategory, currentUserId]);
 
+  useEffect(() => {
+    const startId = searchParams.get('start') || searchParams.get('id');
+    if (!startId || reels.length === 0) return;
+    const index = reels.findIndex((reel) => reel.id === startId);
+    if (index >= 0) setCurrentIndex(index);
+  }, [searchParams, reels]);
+
   const fetchReels = async (isInitial = false) => {
     // Only show loading on initial load, not on category/filter change
     if (isInitial || reels.length === 0) setLoading(true);
@@ -218,20 +226,22 @@ const Reels = () => {
     const reel = reels.find(r => r.id === reelId);
     if (!reel) return;
 
-    if (reel.is_liked) {
-      // Unlike
-      await supabase.from('reel_likes').delete().eq('reel_id', reelId).eq('user_id', currentUserId);
-      await supabase.from('reels').update({ like_count: Math.max(0, reel.like_count - 1) }).eq('id', reelId);
-      setReels(prev => prev.map(r => 
-        r.id === reelId ? { ...r, is_liked: false, like_count: Math.max(0, r.like_count - 1) } : r
-      ));
-    } else {
-      // Like
-      await supabase.from('reel_likes').insert({ reel_id: reelId, user_id: currentUserId });
-      await supabase.from('reels').update({ like_count: reel.like_count + 1 }).eq('id', reelId);
-      setReels(prev => prev.map(r => 
-        r.id === reelId ? { ...r, is_liked: true, like_count: r.like_count + 1 } : r
-      ));
+    try {
+      if (reel.is_liked) {
+        const { error } = await supabase.from('reel_likes').delete().eq('reel_id', reelId).eq('user_id', currentUserId);
+        if (error) throw error;
+        setReels(prev => prev.map(r => 
+          r.id === reelId ? { ...r, is_liked: false, like_count: Math.max(0, r.like_count - 1) } : r
+        ));
+      } else {
+        const { error } = await supabase.from('reel_likes').insert({ reel_id: reelId, user_id: currentUserId });
+        if (error) throw error;
+        setReels(prev => prev.map(r => 
+          r.id === reelId ? { ...r, is_liked: true, like_count: r.like_count + 1 } : r
+        ));
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update like");
     }
   };
 
@@ -271,8 +281,8 @@ const Reels = () => {
       });
       
       if (currentUserId) {
-        await supabase.from('reel_shares').insert({ reel_id: reelId, user_id: currentUserId });
-        await supabase.from('reels').update({ share_count: reel.share_count + 1 }).eq('id', reelId);
+        const { error } = await supabase.from('reel_shares').insert({ reel_id: reelId, user_id: currentUserId, share_type: 'native' });
+        if (error) throw error;
         setReels(prev => prev.map(r => 
           r.id === reelId ? { ...r, share_count: r.share_count + 1 } : r
         ));
@@ -325,7 +335,6 @@ const Reels = () => {
 
     if (!error && data) {
       setComments(prev => [data, ...prev]);
-      await supabase.from('reels').update({ comment_count: currentReel.comment_count + 1 }).eq('id', currentReel.id);
       setReels(prev => prev.map(r => 
         r.id === currentReel.id ? { ...r, comment_count: r.comment_count + 1 } : r
       ));
@@ -1042,11 +1051,9 @@ const Reels = () => {
                             setSubmittingReport(true);
                             setReportReason(reason);
                             try {
-                              const { error } = await supabase.from("reports" as any).insert({
-                                reporter_id: currentUserId,
-                                reported_user_id: currentReel.user_id,
-                                content_type: "reel",
-                                content_id: currentReel.id,
+                              const { error } = await supabase.from("reel_reports").insert({
+                                user_id: currentUserId,
+                                reel_id: currentReel.id,
                                 reason,
                               });
                               if (error) throw error;
