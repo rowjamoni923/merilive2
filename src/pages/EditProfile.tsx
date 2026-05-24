@@ -125,9 +125,6 @@ const EditProfile = () => {
         localStorage.setItem(key, payload);
         sessionStorage.setItem(key, payload);
       });
-      window.dispatchEvent(new CustomEvent("app-sync", {
-        detail: { topic: "profiles", eventType: "UPDATE", payload: nextProfile },
-      }));
     } catch {}
   };
 
