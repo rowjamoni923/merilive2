@@ -141,11 +141,23 @@ const Live = () => {
   useEffect(() => {
     fetchLiveStreams();
 
-    // Browser came back online or tab became visible → REST resync.
-    // LiveKit/FCM handle in-room realtime; no Supabase Realtime on live tables.
-    const handleOnline = () => {
-      fetchLiveStreams();
+    // Pkg305: Supabase Realtime on live_streams — instant list refresh on
+    // host go-live / end / viewer_count change. Replaces visibility-only resync.
+    // LiveKit still owns in-room media; this is the list-level signal.
+    let pendingRefresh: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (pendingRefresh) return;
+      pendingRefresh = setTimeout(() => {
+        pendingRefresh = null;
+        fetchLiveStreams();
+      }, 400);
     };
+
+    const unsubscribe = subscribeToTables('live-page-streams', ['live_streams'], () => {
+      scheduleRefresh();
+    });
+
+    const handleOnline = () => fetchLiveStreams();
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') handleOnline();
     };
@@ -153,9 +165,11 @@ const Live = () => {
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
+      if (pendingRefresh) clearTimeout(pendingRefresh);
+      unsubscribe?.();
       window.removeEventListener('online', handleOnline);
       document.removeEventListener('visibilitychange', handleVisibility);
-      cleanupAllPreloaded(); // Disconnect preloaded rooms when leaving Live page
+      cleanupAllPreloaded();
     };
 
   }, []);
