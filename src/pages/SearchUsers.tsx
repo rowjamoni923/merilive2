@@ -392,20 +392,20 @@ const SearchUsers = () => {
   };
 
   return (
-    <div className="mobile-page bg-[#F7F8FA]">
+    <div className="mobile-page bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200/70 safe-area-top">
+      <header className="sticky top-0 z-40 bg-card border-b border-border safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
-            className="text-slate-700 hover:bg-slate-100"
+            className="text-foreground hover:bg-muted"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Enter App ID (10 digits)..."
               value={searchQuery}
@@ -414,7 +414,7 @@ const SearchUsers = () => {
                 const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                 setSearchQuery(value);
               }}
-              className="pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-300"
+              className="pl-10 pr-10 rounded-full bg-muted border border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring"
               autoFocus
               inputMode="numeric"
               maxLength={10}
@@ -426,10 +426,11 @@ const SearchUsers = () => {
                 className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8"
                 onClick={() => setSearchQuery("")}
               >
-                <X className="w-4 h-4 text-slate-500" />
+                <X className="w-4 h-4 text-muted-foreground" />
               </Button>
             )}
           </div>
+
           {/* ID Icon */}
           <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
             <span className="text-white font-bold text-sm">ID</span>
