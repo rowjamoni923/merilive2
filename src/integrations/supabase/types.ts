@@ -18718,6 +18718,10 @@ export type Database = {
         Args: { p_context?: string; p_text: string }
         Returns: Json
       }
+      normalize_public_profile_media_url: {
+        Args: { _url: string }
+        Returns: string
+      }
       place_game_bet:
         | {
             Args: { p_amount: number; p_game_type?: string; p_user_id: string }
@@ -18867,6 +18871,10 @@ export type Database = {
       }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
       profile_follow_stats: { Args: { uid: string }; Returns: Json }
+      publish_approved_profile_media: {
+        Args: { _submission_id: string }
+        Returns: undefined
+      }
       purchase_noble_card: {
         Args: { _auto_renew?: boolean; _noble_card_id: string }
         Returns: Json
