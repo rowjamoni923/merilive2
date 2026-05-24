@@ -35,6 +35,51 @@ function isGatewayMinimumAmountError(message: string): boolean {
   return normalized.includes("less than minimal") || normalized.includes("less than minimum");
 }
 
+function roundUsd(value: number): number {
+  return Number(value.toFixed(2));
+}
+
+function getHelperPackageLevel(pkg: { display_order?: number | null; description?: string | null }, index: number): number {
+  const descriptionMatch = String(pkg.description ?? "").match(/level\s*(\d+)/i);
+  return Number(pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1));
+}
+
+async function resolveBestDiamondsPerUsd(admin: ReturnType<typeof createClient>): Promise<number | null> {
+  const { data } = await admin
+    .from("coin_packages")
+    .select("coins_amount, bonus_coins, price_usd")
+    .eq("is_active", true);
+  const best = Math.max(
+    ...((data ?? []) as Array<{ coins_amount?: number; bonus_coins?: number; price_usd?: number }>).map((p) =>
+      (Number(p.coins_amount ?? 0) + Number(p.bonus_coins ?? 0)) / Math.max(Number(p.price_usd ?? 0), 0.01),
+    ),
+  );
+  return Number.isFinite(best) && best > 0 ? Math.floor(best) : null;
+}
+
+async function resolveSwiftPayMinUsd(admin: ReturnType<typeof createClient>): Promise<number> {
+  let minUsd = 100;
+  try {
+    const { data: setting } = await admin
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "swift_pay_crypto_min_usd")
+      .maybeSingle();
+    const raw = setting?.setting_value as unknown;
+    const parsed = typeof raw === "number"
+      ? raw
+      : typeof raw === "string"
+        ? Number(raw)
+        : (raw && typeof raw === "object" && "min_usd" in (raw as Record<string, unknown>))
+          ? Number((raw as Record<string, unknown>).min_usd)
+          : NaN;
+    if (Number.isFinite(parsed) && parsed > 0) minUsd = parsed;
+  } catch {
+    // ignore — fall back to default 100
+  }
+  return minUsd;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
