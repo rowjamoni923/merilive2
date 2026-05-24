@@ -7,6 +7,20 @@ const corsHeaders = {
 };
 
 const CURRENCY_ZERO_DECIMAL = new Set(["bif", "clp", "djf", "gnf", "jpy", "kmf", "krw", "mga", "pyg", "rwf", "ugx", "vnd", "vuv", "xaf", "xof", "xpf"]);
+const ALLOWED_RETURN_ORIGINS = new Set([
+  "https://merilive.top",
+  "https://merilive2.lovable.app",
+  "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
+]);
+
+function normalizeReturnOrigin(raw: unknown): string {
+  try {
+    const origin = new URL(String(raw || "")).origin;
+    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.top";
+  } catch {
+    return "https://merilive.top";
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -16,6 +30,10 @@ serve(async (req) => {
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+  );
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
   try {
@@ -29,9 +47,10 @@ serve(async (req) => {
 
     const { package_id, payment_method_id, origin_url } = await req.json();
     if (!package_id || !payment_method_id) throw new Error("Package ID and Payment Method ID are required");
+    const returnOrigin = normalizeReturnOrigin(origin_url);
 
     // Fetch payment method with gateway credentials
-    const { data: paymentMethod, error: pmError } = await supabaseClient
+    const { data: paymentMethod, error: pmError } = await supabaseAdmin
       .from("helper_country_payment_methods")
       .select("*, helper:topup_helpers!helper_country_payment_methods_helper_id_fkey(id, user_id, wallet_balance, is_active)")
       .eq("id", payment_method_id)
@@ -39,6 +58,16 @@ serve(async (req) => {
       .single();
 
     if (pmError || !paymentMethod) throw new Error("Payment method not found");
+    if (!paymentMethod.helper?.is_active) throw new Error("Payment helper is not active");
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("country_code")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!profile?.country_code || String(profile.country_code).toUpperCase() !== String(paymentMethod.country_code).toUpperCase()) {
+      throw new Error("This payment method is not available in your country");
+    }
     
     const gatewayInfo = paymentMethod.additional_info as any;
     if (!gatewayInfo?.gateway_type) throw new Error("Invalid gateway configuration");
@@ -46,7 +75,7 @@ serve(async (req) => {
     const gatewayType = gatewayInfo.gateway_type; // 'sslcommerz' or 'aamarpay'
 
     // Fetch package
-    const { data: pkg, error: pkgError } = await supabaseClient
+    const { data: pkg, error: pkgError } = await supabaseAdmin
       .from("coin_packages")
       .select("*")
       .eq("id", package_id)
@@ -56,7 +85,7 @@ serve(async (req) => {
     if (pkgError || !pkg) throw new Error("Package not found");
 
     // Get currency rate for BDT (both gateways are BD-focused)
-    const { data: rateData } = await supabaseClient
+    const { data: rateData } = await supabaseAdmin
       .from("currency_rates")
       .select("rate_to_usd, currency_code")
       .eq("currency_code", "BDT")
@@ -68,7 +97,7 @@ serve(async (req) => {
     const currency = "BDT";
 
     // Check first recharge bonus
-    const { data: firstRechargeData } = await supabaseClient
+    const { data: firstRechargeData } = await supabaseAdmin
       .from("first_recharge_claims")
       .select("id")
       .eq("user_id", user.id)
@@ -82,10 +111,10 @@ serve(async (req) => {
     const totalCoins = baseCoins + bonusCoins;
 
     // Generate unique transaction ID
-    const txnId = `ML${Date.now()}_${user.id.substring(0, 8)}`;
+    const txnId = `ML${Date.now()}_${crypto.randomUUID().slice(0, 8)}_${user.id.substring(0, 8)}`;
 
     // Create pending order in helper_orders
-    const { data: order, error: orderError } = await supabaseClient
+    const { data: order, error: orderError } = await supabaseAdmin
       .from("helper_orders")
       .insert({
         helper_id: paymentMethod.helper_id,
@@ -105,6 +134,7 @@ serve(async (req) => {
           base_coins: baseCoins,
           total_coins: totalCoins,
           payment_method_id: payment_method_id,
+          origin_url: returnOrigin,
         },
         status: "gateway_pending",
       })
@@ -113,9 +143,9 @@ serve(async (req) => {
 
     if (orderError) throw orderError;
 
-    const successUrl = `${origin_url}/payment-success?order_id=${order.id}&gateway=${gatewayType}`;
-    const failUrl = `${origin_url}/recharge?payment=failed`;
-    const cancelUrl = `${origin_url}/recharge?payment=cancelled`;
+    const successUrl = `${returnOrigin}/payment-success?order_id=${order.id}&gateway=${gatewayType}`;
+    const failUrl = `${returnOrigin}/recharge?payment=failed`;
+    const cancelUrl = `${returnOrigin}/recharge?payment=cancelled`;
     const ipnUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/local-payment-ipn`;
 
     let paymentUrl: string;
