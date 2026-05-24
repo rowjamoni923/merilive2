@@ -67,6 +67,7 @@ const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'profiles',
   'followers',
   'gift_transactions',
+  'live_streams',
   'private_calls',
   'agencies',
   'topup_helpers',

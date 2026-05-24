@@ -33,6 +33,7 @@ const PUBLICATION_TABLES = new Set([
   'profiles',
   'followers',
   'gift_transactions',
+  'live_streams',
   'private_calls',
   'agencies',
   'topup_helpers',
