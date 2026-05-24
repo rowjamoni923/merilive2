@@ -3583,6 +3583,7 @@ const LiveStream = () => {
 
           // Trigger flying gift animation IMMEDIATELY
           addFlyingGift({
+            senderId: currentUserId,
             senderName: senderName,
             senderAvatar: senderAvatar,
             giftName: gift.name,
