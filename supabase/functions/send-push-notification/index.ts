@@ -124,7 +124,69 @@ const handler = async (req: Request): Promise<Response> => {
 
     const isBroadcast = target && ['all', 'android', 'ios'].includes(target);
     const isMultiUser = Array.isArray(userIds) && userIds.length > 0;
-    
+
+    // ── Pkg308 deep-audit: authorize the caller ─────────────────────────────
+    // Previously: any holder of the anon key (every authenticated user) could
+    // broadcast push to ALL devices or to any arbitrary userId. Major spam +
+    // impersonation vector. Now:
+    //   • target=all/android/ios → admin session required
+    //   • userIds[]              → admin session required
+    //   • single userId          → admin OR caller === userId (self-push only)
+    //   • service-role JWT       → allowed (internal triggers / cron)
+    const authHeader = req.headers.get("authorization") || "";
+    const bearer = authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7) : "";
+    const isServiceRoleCall = !!bearer && bearer === supabaseServiceKey;
+
+    let callerUserId: string | null = null;
+    if (!isServiceRoleCall && bearer) {
+      try {
+        const userClient = createClient(supabaseUrl, supabaseServiceKey, {
+          global: { headers: { Authorization: `Bearer ${bearer}` } },
+        });
+        const { data: u } = await userClient.auth.getUser();
+        callerUserId = u?.user?.id ?? null;
+      } catch (e) {
+        console.warn("[Push] auth.getUser failed:", e);
+      }
+    }
+
+    let isAdmin = false;
+    const adminToken = req.headers.get("x-admin-token");
+    if (!isServiceRoleCall && adminToken) {
+      const { data: sessionRow } = await supabase
+        .from("admin_sessions")
+        .select("admin_user_id, expires_at")
+        .eq("session_token", adminToken)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+      if (sessionRow?.admin_user_id) {
+        const { data: adminUser } = await supabase
+          .from("admin_users")
+          .select("id, is_active")
+          .eq("id", sessionRow.admin_user_id)
+          .maybeSingle();
+        isAdmin = !!adminUser?.is_active;
+      }
+    }
+
+    const needsElevated = isBroadcast || isMultiUser || (!!userId && userId !== callerUserId);
+    if (!isServiceRoleCall && !isAdmin && needsElevated) {
+      console.warn("[Push] Unauthorized cross-user/broadcast push attempted", {
+        callerUserId, userId, isMultiUser, target,
+      });
+      return new Response(
+        JSON.stringify({ success: false, error: "Admin session required for broadcast or cross-user push" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    if (!isServiceRoleCall && !isAdmin && !callerUserId) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Authentication required" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     console.log(`[Push] ${isBroadcast ? 'Broadcasting' : isMultiUser ? `Multi-user (${userIds!.length})` : 'Sending'} notification: ${title}`);
 
     // Build query for device tokens
