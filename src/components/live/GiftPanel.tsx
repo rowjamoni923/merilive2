@@ -307,29 +307,35 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     }
   }, [selectedGift, resetCombo]);
 
+  // Keep ref in sync with userCoins (mirror, not state-source).
+  useEffect(() => { userCoinsRef.current = userCoins; }, [userCoins]);
+
   // Combo-aware send: each tap fires the currently-selected `count` and bumps combo.
   // Optimistically deduct the cost from local balance so that rapid combo taps
   // can't overdraw — the real balance reconciles via subscribeToBalance.
+  // Guard via ref so back-to-back taps within one render still see deducted balance.
   const handleSend = useCallback(() => {
     if (!selectedGift) return;
     const cost = selectedGift.coins * count;
-    if (userCoins < cost) return;
+    if (userCoinsRef.current < cost) return;
+    userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
     onSendGift(selectedGift, count);
-    setUserCoins((prev) => Math.max(0, prev - cost));
+    setUserCoins(userCoinsRef.current);
     setComboCount(prev => prev + count);
     startComboTimer();
-  }, [selectedGift, userCoins, count, onSendGift, startComboTimer]);
+  }, [selectedGift, count, onSendGift, startComboTimer]);
 
   const handleQuickSend = useCallback((quickCount: number) => {
     if (!selectedGift) return;
     const cost = selectedGift.coins * quickCount;
-    if (userCoins < cost) return;
+    if (userCoinsRef.current < cost) return;
+    userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
     setCount(quickCount);
     onSendGift(selectedGift, quickCount);
-    setUserCoins((prev) => Math.max(0, prev - cost));
+    setUserCoins(userCoinsRef.current);
     setComboCount(prev => prev + quickCount);
     startComboTimer();
-  }, [selectedGift, userCoins, onSendGift, startComboTimer]);
+  }, [selectedGift, onSendGift, startComboTimer]);
 
 
   // Reset combo on close / category switch / unmount
