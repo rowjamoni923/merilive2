@@ -378,9 +378,9 @@ const PartyRoom = () => {
       if (isHostNow) {
         await publishPartyClosed(targetRoomId, { hostId: user.id, closedAt: leftAt }).catch(() => false);
         await supabase.from('party_rooms').update({ is_active: false, ended_at: leftAt }).eq('id', targetRoomId);
-        await supabase.from('party_room_participants').update({ left_at: leftAt, position: null }).eq('room_id', targetRoomId).is('left_at', null);
+        await supabase.from('party_room_participants').update({ left_at: leftAt, seat_number: null }).eq('room_id', targetRoomId).is('left_at', null);
       } else {
-        await supabase.from('party_room_participants').update({ left_at: leftAt, position: null }).eq('room_id', targetRoomId).eq('user_id', user.id);
+        await supabase.from('party_room_participants').update({ left_at: leftAt, seat_number: null }).eq('room_id', targetRoomId).eq('user_id', user.id);
       }
 
       await supabase.from('seat_requests').update({ status: 'cancelled' }).eq('room_id', targetRoomId).eq('requester_id', user.id).eq('status', 'pending');
