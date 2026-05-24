@@ -1346,7 +1346,7 @@ const resolveNotificationNavPath = (notification: AdminNotification): string => 
 };
 
 export default function AdminLayout() {
-  useEnableBrowserPageInteraction({ mode: "app-shell" });
+  useEnableBrowserPageInteraction({ mode: "document" });
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
