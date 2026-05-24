@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useToast } from "@/hooks/use-toast";
 import { useCall } from "@/components/call/CallProvider";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
