@@ -28,6 +28,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearerToken = authHeader.replace(/^Bearer\s+/i, "").trim();
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    if (!bearerToken || !anonKey || bearerToken === anonKey) {
+      return new Response(
+        JSON.stringify({ error: "Admin 2FA requires an authenticated admin recovery session" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
