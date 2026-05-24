@@ -8,8 +8,9 @@ const LEGACY_CHAT_MEDIA_GIFT_PUBLIC_PATTERN = /\/storage\/v1\/object\/public\/ch
 const extractFirstUrl = (value: string): string => {
   // If the input looks like a wrapped chat payload (e.g. "[Gift: https://...|emoji name]"),
   // pull out the first http(s) URL fragment that stops at whitespace / pipe / bracket.
-  const match = value.match(/https?:\/\/[^\s|\]]+/i);
-  return match ? match[0] : value;
+  const match = value.match(/https?:\/{1,2}[^\s|\]]+/i);
+  const raw = match ? match[0] : value;
+  return raw.replace(/^https:\/([^/])/i, "https://$1").replace(/^http:\/([^/])/i, "http://$1");
 };
 
 export const normalizeGiftMediaUrl = (url?: string | null): string | null => {
