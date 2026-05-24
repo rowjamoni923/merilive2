@@ -7,6 +7,7 @@ import { GiftSwipeableGrid } from "./GiftSwipeableGrid";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -71,16 +72,7 @@ const GIF_PATTERN = /\.gif(\?|$)/i;
 const getAssetPathWithoutQuery = (url?: string | null) =>
   url?.split('?')[0] ?? '';
 
-const normalizeGiftAssetUrl = (url?: string | null) => {
-  if (!url) return null;
-  if (url.startsWith('http')) return url;
-  if (url.includes('/storage/v1/object/public/')) {
-    const path = url.startsWith('/') ? url : `/${url}`;
-    return `${import.meta.env.VITE_SUPABASE_URL}${path}`;
-  }
-  if (url.startsWith('/')) return url;
-  return null;
-};
+const normalizeGiftAssetUrl = normalizeGiftMediaUrl;
 
 const getOptimizedGiftIconUrl = (iconUrl?: string | null, animationUrl?: string | null) => {
   const normalizedIconUrl = normalizeGiftAssetUrl(iconUrl);

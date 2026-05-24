@@ -4,6 +4,7 @@ import { Smile, Send, X, Crown, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { getLevelGradient, ensureValidLevel, formatLevel } from "@/features/shared/level";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 interface ChatMessage {
   id: string;
@@ -165,7 +166,7 @@ export const ChametStyleChatPanel = ({
                 {messages.map((msg, idx) => {
                   const level = ensureValidLevel(msg.userLevel);
                   const giftIconMatch = msg.message.match(/\[GIFT:([^\]]*)\]/);
-                  const giftIconUrl = giftIconMatch ? giftIconMatch[1] : null;
+                  const giftIconUrl = normalizeGiftMediaUrl(giftIconMatch?.[1]);
                   const cleanMessage = msg.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
                   const isGiftMessage = msg.type === 'gift' || !!giftIconMatch;
                   const isHostMsg = !!(hostId && msg.userId === hostId) || !!msg.isHost;

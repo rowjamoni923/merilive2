@@ -9,6 +9,7 @@
 
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 
 // Global cache - shared across all components
 interface GiftCacheItem {
@@ -77,7 +78,12 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
       }
 
       if (requestVersion === giftCache.version) {
-        giftCache.gifts = data || [];
+        giftCache.gifts = (data || []).map((gift) => ({
+          ...gift,
+          icon_url: normalizeGiftMediaUrl(gift.icon_url),
+          animation_url: normalizeGiftMediaUrl(gift.animation_url),
+          sound_url: normalizeGiftMediaUrl(gift.sound_url),
+        }));
         giftCache.timestamp = Date.now();
         listeners.forEach(cb => cb());
       }

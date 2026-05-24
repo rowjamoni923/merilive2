@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { Gift, X, Coins, Diamond, Play, Sparkles } from "lucide-react";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 // Lazy load animation players
 const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
@@ -52,9 +53,8 @@ const transformGiftsFromCache = (raw: ReturnType<typeof getCachedGifts>): GiftDa
     coins: gift.coin_value,
     category: gift.category || 'wall',
     animationType: getAnimationTypeFromCoin(gift.coin_value),
-    icon_url: gift.icon_url?.startsWith('http') ? gift.icon_url :
-              (gift.animation_url?.startsWith('http') ? gift.animation_url : null),
-    animation_url: gift.animation_url,
+    icon_url: normalizeGiftMediaUrl(gift.icon_url) || normalizeGiftMediaUrl(gift.animation_url),
+    animation_url: normalizeGiftMediaUrl(gift.animation_url),
   }));
 
 interface PartyGiftPanelProps {
