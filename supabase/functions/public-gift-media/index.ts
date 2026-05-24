@@ -31,6 +31,41 @@ const usefulMimeType = (value?: string | null) => {
   return clean && clean !== "application/octet-stream" ? clean : "";
 };
 
+const decodePathSafely = (value: string) => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
+const extractGiftPath = (value: string) => {
+  const cleaned = decodePathSafely(value).trim().replace(/^\[?Gift:\s*/i, "");
+  const firstToken = (cleaned.match(/https?:\/\/[^\s|\]]+/i)?.[0] || cleaned).split(/[\s|\]]/)[0].replace(/^\/+/, "");
+
+  try {
+    const parsed = new URL(firstToken);
+    const proxyMatch = parsed.pathname.match(/\/functions\/v1\/public-gift-media\/(gifts\/[^\s|\]]+)/i);
+    if (proxyMatch?.[1]) return decodePathSafely(proxyMatch[1]);
+    const chatMatch = parsed.pathname.match(/\/storage\/v1\/object\/public\/chat-media\/(gifts\/[^\s|\]]+)/i);
+    if (chatMatch?.[1]) return decodePathSafely(chatMatch[1]);
+    const publicGiftMatch = parsed.pathname.match(/\/storage\/v1\/object\/public\/gifts\/(legacy-chat-media\/[^\s|\]]+)/i);
+    if (publicGiftMatch?.[1]) return `gifts/${decodePathSafely(publicGiftMatch[1].replace(/^legacy-chat-media\//, ""))}`;
+  } catch {
+    // Not a full URL; validate as a plain storage key below.
+  }
+
+  return firstToken;
+};
+
+const isValidGiftPath = (path: string) => {
+  return /^gifts\/[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(path)
+    && !path.includes("..")
+    && !path.includes("\\")
+    && !path.includes("\0")
+    && !/[\s|\]]/.test(path);
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "GET" && req.method !== "HEAD") {
@@ -42,11 +77,11 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const rawPath = decodeURIComponent(url.pathname.split("/public-gift-media/")[1] || "").replace(/^\/+/, "");
-    const queryPath = String(url.searchParams.get("path") || "").replace(/^\/+/, "");
-    const path = (rawPath || queryPath).trim();
+    const rawPath = url.pathname.split("/public-gift-media/")[1] || "";
+    const queryPath = String(url.searchParams.get("path") || "");
+    const path = extractGiftPath(rawPath || queryPath);
 
-    if (!path || path.includes("..") || path.includes("\\0") || !path.startsWith("gifts/")) {
+    if (!path || !isValidGiftPath(path)) {
       return new Response(JSON.stringify({ error: "Invalid gift media path" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -59,7 +94,13 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false } },
     );
 
-    const { data, error } = await supabase.storage.from("chat-media").download(path);
+    const publicGiftPath = `legacy-chat-media/${path.replace(/^gifts\//, "")}`;
+    let { data, error } = await supabase.storage.from("chat-media").download(path);
+    if (error || !data) {
+      const publicDownload = await supabase.storage.from("gifts").download(publicGiftPath);
+      data = publicDownload.data;
+      error = publicDownload.error;
+    }
     if (error || !data) {
       return new Response(JSON.stringify({ error: "Gift media not found" }), {
         status: 404,
@@ -71,6 +112,17 @@ Deno.serve(async (req) => {
     const contentType = usefulMimeType(data.type) || MIME[ext] || "application/octet-stream";
     const body = req.method === "HEAD" ? null : data;
 
+    // Lazy-copy old chat-media/gifts assets into the real public gifts bucket.
+    // This keeps old messages working while moving toward the main-app model:
+    // public gift/SVGA/icon assets are served from a public asset bucket.
+    if (body && data.size > 0) {
+      supabase.storage.from("gifts").upload(publicGiftPath, data, {
+        upsert: false,
+        contentType,
+        cacheControl: "31536000",
+      }).then(() => undefined, () => undefined);
+    }
+
     return new Response(body, {
       status: 200,
       headers: {
@@ -79,6 +131,7 @@ Deno.serve(async (req) => {
         "Content-Length": String(data.size),
         "Cache-Control": "public, max-age=604800, immutable",
         "Accept-Ranges": "bytes",
+        "X-Gift-Public-Url": `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${publicGiftPath.split("/").map(encodeURIComponent).join("/")}`,
       },
     });
   } catch (error) {
