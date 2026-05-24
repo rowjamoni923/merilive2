@@ -182,8 +182,8 @@ const AdminSubAdmins = () => {
   };
 
   const handleCreateSubAdmin = async () => {
-    if (!newEmail.trim() || !newPassword || newPassword.length < 6) {
-      toast.error("Please enter email and password (minimum 6 characters)");
+    if (!newEmail.trim() || !newPassword || newPassword.length < 8) {
+      toast.error("Please enter email and password (minimum 8 characters)");
       return;
     }
 
@@ -243,8 +243,8 @@ const AdminSubAdmins = () => {
   };
 
   const handleChangePassword = async () => {
-    if (!selectedAdmin || !changePassword || changePassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    if (!selectedAdmin || !changePassword || changePassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
       return;
     }
 
