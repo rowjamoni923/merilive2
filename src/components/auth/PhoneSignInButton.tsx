@@ -149,23 +149,44 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
      setStep("phone");
    };
  
-   const handleSendOtp = async () => {
-     if (!phoneNumber || phoneNumber.length < 6) {
-       toast({
-         title: "Error",
-         description: "Please enter a valid phone number",
-         variant: "destructive",
-       });
-       return;
-     }
- 
-     const fullNumber = selectedCountry.code + phoneNumber.replace(/^0+/, '');
-     const result = await sendOtp(fullNumber);
-     
-     if (result.success) {
-       setStep("gender");
-     }
-   };
+  const handleSendOtp = async () => {
+    if (!phoneNumber || phoneNumber.length < 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const fullNumber = selectedCountry.code + phoneNumber.replace(/^0+/, '');
+    const bfKey = `phone-otp:${fullNumber}`;
+    const allowed = await checkBeforeLogin(bfKey);
+    if (!allowed) return;
+
+    const result = await sendOtp(fullNumber);
+    await recordAttempt(bfKey, result.success);
+
+    if (result.success) {
+      setResendCooldown(30);
+      setStep("gender");
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    const fullNumber = selectedCountry.code + phoneNumber.replace(/^0+/, '');
+    const bfKey = `phone-otp:${fullNumber}`;
+    const allowed = await checkBeforeLogin(bfKey);
+    if (!allowed) return;
+    const result = await sendOtp(fullNumber);
+    await recordAttempt(bfKey, result.success);
+    if (result.success) {
+      setOtpCode("");
+      setResendCooldown(30);
+    }
+  };
+
  
    const handleGenderSelect = (gender: Gender) => {
      setSelectedGender(gender);
