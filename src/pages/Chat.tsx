@@ -209,6 +209,8 @@ const Chat = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
+  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
 
   // 🛡️ DM dedup guard: enforce one row per message id at all times. Catches
   // any race between optimistic insert, REST fetch, realtime INSERT,
@@ -239,6 +241,23 @@ const Chat = () => {
       return out.length === prev.length ? prev : out;
     });
   }, [groupMessages]);
+
+  useEffect(() => {
+    const paths = [...messages, ...groupMessages]
+      .map((m) => m.content || '')
+      .concat(pendingMedia?.url || '')
+      .filter((value) => value && !/^https?:|^blob:|^data:/i.test(value) && value.includes('/'));
+    const missing = [...new Set(paths)].filter((path) => !signedChatMediaUrls[path]);
+    if (missing.length === 0) return;
+    let cancelled = false;
+    Promise.all(missing.map(async (path) => {
+      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60);
+      return [path, data?.signedUrl || path] as const;
+    })).then((entries) => {
+      if (!cancelled) setSignedChatMediaUrls(prev => ({ ...prev, ...Object.fromEntries(entries) }));
+    });
+    return () => { cancelled = true; };
+  }, [messages, groupMessages, pendingMedia?.url, signedChatMediaUrls]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -303,8 +322,7 @@ const Chat = () => {
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Pending Media (image/video to send with send button)
-  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
-  
+
   // Translator
   const [showTranslator, setShowTranslator] = useState(false);
   const [translateText, setTranslateText] = useState("");
@@ -594,7 +612,7 @@ const Chat = () => {
     setSendingVoice(true);
     try {
       const fileExtension = audioBlob.type?.includes('mp4') ? 'mp4' : 'webm';
-      const fileName = `voice-${currentUserId}-${Date.now()}.${fileExtension}`;
+      const fileName = `${currentUserId}/voice-${Date.now()}.${fileExtension}`;
       console.log('[Voice] Uploading to:', fileName);
       
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -610,16 +628,12 @@ const Chat = () => {
         throw uploadError;
       }
       
-      const { data: urlData } = supabase.storage
-        .from('chat-media')
-        .getPublicUrl(fileName);
-      
       // Send voice message
       if (selectedConversation) {
         const sentMessage = await persistDirectMessage(
           selectedConversation.id,
           currentUserId,
-          urlData.publicUrl,
+          fileName,
           'audio'
         );
 
@@ -643,7 +657,7 @@ const Chat = () => {
           .insert({
             group_id: selectedGroup.id,
             sender_id: currentUserId,
-            content: urlData.publicUrl,
+            content: fileName,
             message_type: 'audio'
           })
           .select()
@@ -2215,6 +2229,7 @@ const Chat = () => {
                           (content.includes('supabase.co/storage') && /\.(webm|mp3|wav|ogg|m4a)($|\?)/i.test(content));
                         const isGift = msg.message_type === 'gift';
                         const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice): /, '').replace(/\]$/, '');
+                        const displayUrl = signedChatMediaUrls[cleanUrl] || cleanUrl;
 
                         // Gift messages - with SVGA/animation support
                         if (isGift) {
@@ -2317,10 +2332,10 @@ const Chat = () => {
                           return (
                             <div className="flex flex-col">
                               <img 
-                                src={cleanUrl} 
+                                src={displayUrl} 
                                 alt="Shared image"
                                 className="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => imageViewer.openImage(cleanUrl)}
+                                onClick={() => imageViewer.openImage(displayUrl)}
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).src = '/placeholder.svg';
                                 }}
@@ -2338,7 +2353,7 @@ const Chat = () => {
                           return (
                             <div className="flex flex-col">
                               <video 
-                                src={cleanUrl} 
+                                src={displayUrl} 
                                 controls
                                 className="max-w-[200px] max-h-[200px] rounded-xl"
                               />
@@ -2364,7 +2379,7 @@ const Chat = () => {
                                   <Mic className="w-4 h-4" />
                                 </div>
                                 <audio 
-                                  src={cleanUrl} 
+                                  src={displayUrl} 
                                   controls
                                   className="max-w-[180px] h-8"
                                 />
@@ -2470,6 +2485,7 @@ const Chat = () => {
           <MediaUploader
             isOpen={showMediaUploader}
             onClose={() => setShowMediaUploader(false)}
+            userId={currentUserId}
             onMediaSelect={(url, type) => {
               // Save as pending media, don't send directly
               setPendingMedia({ url, type });
@@ -2727,7 +2743,7 @@ const Chat = () => {
                     {pendingMedia.type === 'image' ? (
                       <>
                         <img 
-                          src={pendingMedia.url} 
+                          src={signedChatMediaUrls[pendingMedia.url] || pendingMedia.url} 
                           alt="Preview" 
                           className="w-8 h-8 rounded-lg object-cover"
                         />
@@ -2770,7 +2786,7 @@ const Chat = () => {
                           toast.error("⚠️ Contact sharing detected! Image blocked.");
                           numberWarning.showGenericWarning();
                           const sourceId = selectedConversation?.id || selectedGroup?.id;
-                          scanImageForContactInfo(pendingMedia.url, currentUserId, 'private_message', sourceId)
+                          scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
                             .then(res => {
                               if (res.detected && res.violationNumber) {
                                 numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
@@ -2782,7 +2798,7 @@ const Chat = () => {
                         
                         // Background OCR scan
                         const sourceId = selectedConversation?.id || selectedGroup?.id;
-                        scanImageForContactInfo(pendingMedia.url, currentUserId, 'private_message', sourceId)
+                        scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
                           .then(res => {
                             if (res.detected && res.violationNumber) {
                               numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);

@@ -8,10 +8,11 @@ interface MediaUploaderProps {
   isOpen: boolean;
   onClose: () => void;
   onMediaSelect: (url: string, type: 'image' | 'video' | 'audio') => void;
+  userId?: string | null;
   directGallery?: boolean;
 }
 
-export const MediaUploader = ({ isOpen, onClose, onMediaSelect, directGallery = true }: MediaUploaderProps) => {
+export const MediaUploader = ({ isOpen, onClose, onMediaSelect, userId, directGallery = true }: MediaUploaderProps) => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,9 +54,13 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, directGallery = 
     // Upload to Supabase Storage
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const ownerId = userId || user?.id;
+      if (!ownerId) throw new Error('Not authenticated');
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `chat-media/${fileName}`;
+      const filePath = `${ownerId}/${fileName}`;
 
       const { error: uploadError, data } = await supabase.storage
         .from('chat-media')
@@ -74,13 +79,8 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, directGallery = 
         throw uploadError;
       }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('chat-media')
-        .getPublicUrl(filePath);
-
       const mediaType = isImage ? 'image' : isVideo ? 'video' : 'audio';
-      onMediaSelect(urlData.publicUrl, mediaType);
+      onMediaSelect(filePath, mediaType);
       onClose();
       toast.success("Media uploaded successfully!");
     } catch (error: any) {
