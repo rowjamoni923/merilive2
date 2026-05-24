@@ -387,19 +387,20 @@ const Shop = () => {
       const actualItemId = isPartyBackground ? item.id.replace('bg_', '') : item.id;
 
       if (isPartyBackground) {
-        const { data: deductData, error: updateError } = await supabase.rpc('deduct_coins', {
-          p_user_id: user.id,
-          p_amount: item.price_diamonds,
+        // Pkg318: secure atomic purchase via SECURITY DEFINER RPC
+        // (direct insert no longer allowed by RLS)
+        const { data: bgData, error: bgError } = await (supabase as any).rpc('purchase_party_background', {
+          _background_id: actualItemId,
         });
-        const deductResult = deductData as any;
-        if (updateError || !deductResult?.success) throw new Error(deductResult?.error || 'Failed to deduct coins');
+        if (bgError) throw bgError;
+        const bgResult = bgData as any;
+        if (!bgResult?.success) throw new Error(bgResult?.error || 'Purchase failed');
 
-        const { error: bgPurchaseError } = await (supabase.from("user_purchased_backgrounds" as any).insert({ user_id: user.id, background_id: actualItemId, price_paid: item.price_diamonds }) as any);
-        if (bgPurchaseError) throw bgPurchaseError;
-
-        setUserDiamonds(deductResult.new_balance ?? deductResult.balance ?? (userDiamonds - item.price_diamonds));
+        const newBalance = Number(bgResult.new_balance ?? (userDiamonds - (bgResult.price_paid ?? item.price_diamonds)));
+        setUserDiamonds(Number.isFinite(newBalance) ? newBalance : userDiamonds - item.price_diamonds);
         setPurchases(prev => [...prev, { id: crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: null }]);
       } else {
+
         const { data: purchaseData, error: purchaseError } = await (supabase as any).rpc("purchase_shop_item", {
           _item_id: actualItemId,
           _equip: true,
