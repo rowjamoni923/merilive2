@@ -2,6 +2,7 @@ import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 
 import { cn } from "@/lib/utils";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
@@ -19,29 +20,30 @@ const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
 >(({ className, src, onError, ...props }, ref) => {
-  const [imgSrc, setImgSrc] = React.useState(src);
+  const normalizedSrc = React.useMemo(() => normalizeProfileMediaUrl(src as string | null | undefined) || src, [src]);
+  const [imgSrc, setImgSrc] = React.useState(normalizedSrc);
   
   React.useEffect(() => {
     let cancelled = false;
-    if (!src || typeof window === 'undefined' || !window.location.pathname.startsWith('/admin')) {
-      setImgSrc(src);
+    if (!normalizedSrc || typeof window === 'undefined' || !window.location.pathname.startsWith('/admin')) {
+      setImgSrc(normalizedSrc);
       return;
     }
 
     setImgSrc(undefined);
     import('@/utils/adminStorageImages')
-      .then(({ resolveAdminStorageImageUrl }) => resolveAdminStorageImageUrl(src, 'avatars'))
+      .then(({ resolveAdminStorageImageUrl }) => resolveAdminStorageImageUrl(normalizedSrc, 'avatars'))
       .then((resolved) => {
         if (!cancelled) setImgSrc(resolved || undefined);
       })
       .catch(() => {
-        if (!cancelled) setImgSrc(src);
+        if (!cancelled) setImgSrc(normalizedSrc);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [src]);
+  }, [normalizedSrc]);
   
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     // Hide the broken image by setting src to empty
