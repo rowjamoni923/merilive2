@@ -65,6 +65,7 @@ import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { LazyImage } from "@/components/LazyImage";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { getAdminSessionToken } from "@/utils/adminSession";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface GiftItem {
@@ -241,7 +242,7 @@ export default function AdminGifts() {
     // Step 1: Initialize multipart upload
     const initResponse = await fetch(R2_FUNCTION_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
       body: JSON.stringify({
         action: 'init-multipart',
         folder,
@@ -279,7 +280,7 @@ export default function AdminGifts() {
       // Upload part via edge function proxy
       const uploadResponse = await fetch(R2_FUNCTION_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
         body: JSON.stringify({
           action: 'upload-part',
           uploadId,
@@ -307,7 +308,7 @@ export default function AdminGifts() {
     
     const completeResponse = await fetch(R2_FUNCTION_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': getAdminSessionToken() },
       body: JSON.stringify({
         action: 'complete-multipart',
         uploadId,
