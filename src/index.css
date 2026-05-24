@@ -1951,7 +1951,7 @@ body[data-admin-active="true"] #root {
 }
 
 .admin-content > [class*="overflow-hidden"] {
-  overflow-y: visible !important;
+  overflow: visible !important;
 }
 
 /* Legacy admin pages sometimes pin themselves with `fixed inset-0` which
@@ -3016,9 +3016,9 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
 
 /* Tables and dense data: professional scroll instead of clipping on every admin page */
 .admin-content :where(table) {
-  width: max-content;
+  width: 100%;
   min-width: 100%;
-  max-width: none;
+  max-width: 100%;
 }
 
 .admin-content :where(th, td) {
