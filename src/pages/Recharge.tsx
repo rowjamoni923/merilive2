@@ -1924,21 +1924,19 @@ const Recharge = () => {
           const errMsg = deductError?.message || deductData?.error || "Merchant doesn't have enough diamonds";
           console.error('Failed to deduct from helper:', errMsg);
           recordClientError({ label: 'Recharge.helper', message: String(errMsg) });
-          // Mark the pending row as failed so it never looks completed in reports.
+          // Mark the pending row as failed via SECURITY DEFINER RPC (users have
+          // no direct UPDATE policy on helper_orders, so a raw .update() would
+          // silently no-op under user JWT).
           try {
-            await supabase
-              .from('helper_orders')
-              .update({
-                status: 'failed',
-                payment_details: {
-                  ...(helperOrder.payment_details as any || {}),
-                  deduct_failure: String(errMsg),
-                },
-              })
-              .eq('id', helperOrder.id);
+            await supabase.rpc('user_finalize_helper_order' as any, {
+              _order_id: helperOrder.id,
+              _new_status: 'failed',
+              _reason: `deduct_failure: ${String(errMsg)}`,
+            });
           } catch (flagErr) {
             console.error('Failed to flag helper_order as failed after deduct error:', flagErr);
           }
+
           throw new Error(errMsg);
         }
 
