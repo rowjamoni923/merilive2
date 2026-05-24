@@ -559,7 +559,7 @@ const Tasks = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-amber-700 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
+                  <p className="text-amber-300 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
                   <p className="text-[10px] text-purple-200/70">beans/hour</p>
                 </div>
               </div>
