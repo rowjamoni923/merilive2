@@ -15464,11 +15464,13 @@ export type Database = {
           tags: string[] | null
           total_call_minutes: number | null
           total_calls_received: number | null
+          total_earnings: number | null
           user_level: number | null
           username: string | null
           verification_type: string | null
           vip_expires_at: string | null
           vip_tier: number | null
+          weekly_earnings: number | null
         }
         Insert: {
           age?: number | null
@@ -15519,11 +15521,13 @@ export type Database = {
           tags?: string[] | null
           total_call_minutes?: number | null
           total_calls_received?: number | null
+          total_earnings?: number | null
           user_level?: number | null
           username?: string | null
           verification_type?: string | null
           vip_expires_at?: string | null
           vip_tier?: number | null
+          weekly_earnings?: number | null
         }
         Update: {
           age?: number | null
@@ -15574,11 +15578,13 @@ export type Database = {
           tags?: string[] | null
           total_call_minutes?: number | null
           total_calls_received?: number | null
+          total_earnings?: number | null
           user_level?: number | null
           username?: string | null
           verification_type?: string | null
           vip_expires_at?: string | null
           vip_tier?: number | null
+          weekly_earnings?: number | null
         }
         Relationships: [
           {
