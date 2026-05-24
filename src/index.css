@@ -3063,10 +3063,10 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   }
 
   .admin-content table {
-    display: block;
-    width: max-content !important;
+    display: table;
+    width: 100% !important;
     min-width: 100% !important;
-    max-width: none !important;
+    max-width: 100% !important;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
@@ -3075,9 +3075,8 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   .admin-content table thead,
   .admin-content table tbody,
   .admin-content table tr {
-    display: table;
+    display: revert;
     width: 100%;
-    table-layout: fixed;
   }
 
   .admin-content table th,
