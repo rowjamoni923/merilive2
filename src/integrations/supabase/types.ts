@@ -17809,10 +17809,7 @@ export type Database = {
         Returns: Json
       }
       claim_invitation_reward: { Args: { _tier_id: string }; Returns: Json }
-      claim_new_host_live_bonus: {
-        Args: { _bonus_coins?: number; _host_id: string }
-        Returns: Json
-      }
+      claim_new_host_live_bonus: { Args: never; Returns: Json }
       claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
       claim_task_reward:
         | { Args: { _task_id: string }; Returns: Json }
