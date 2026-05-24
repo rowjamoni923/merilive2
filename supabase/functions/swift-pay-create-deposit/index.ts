@@ -35,6 +35,51 @@ function isGatewayMinimumAmountError(message: string): boolean {
   return normalized.includes("less than minimal") || normalized.includes("less than minimum");
 }
 
+function roundUsd(value: number): number {
+  return Number(value.toFixed(2));
+}
+
+function getHelperPackageLevel(pkg: { display_order?: number | null; description?: string | null }, index: number): number {
+  const descriptionMatch = String(pkg.description ?? "").match(/level\s*(\d+)/i);
+  return Number(pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1));
+}
+
+async function resolveBestDiamondsPerUsd(admin: ReturnType<typeof createClient>): Promise<number | null> {
+  const { data } = await admin
+    .from("coin_packages")
+    .select("coins_amount, bonus_coins, price_usd")
+    .eq("is_active", true);
+  const best = Math.max(
+    ...((data ?? []) as Array<{ coins_amount?: number; bonus_coins?: number; price_usd?: number }>).map((p) =>
+      (Number(p.coins_amount ?? 0) + Number(p.bonus_coins ?? 0)) / Math.max(Number(p.price_usd ?? 0), 0.01),
+    ),
+  );
+  return Number.isFinite(best) && best > 0 ? Math.floor(best) : null;
+}
+
+async function resolveSwiftPayMinUsd(admin: ReturnType<typeof createClient>): Promise<number> {
+  let minUsd = 100;
+  try {
+    const { data: setting } = await admin
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "swift_pay_crypto_min_usd")
+      .maybeSingle();
+    const raw = setting?.setting_value as unknown;
+    const parsed = typeof raw === "number"
+      ? raw
+      : typeof raw === "string"
+        ? Number(raw)
+        : (raw && typeof raw === "object" && "min_usd" in (raw as Record<string, unknown>))
+          ? Number((raw as Record<string, unknown>).min_usd)
+          : NaN;
+    if (Number.isFinite(parsed) && parsed > 0) minUsd = parsed;
+  } catch {
+    // ignore — fall back to default 100
+  }
+  return minUsd;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -86,12 +131,12 @@ Deno.serve(async (req) => {
     let externalUserId = `merilive_${user.id}`;
 
     if (target === "helper_wallet") {
-      if (!body.helper_id || !body.custom_coins || !body.custom_price_usd) {
-        return json({ error: "helper_id, custom_coins, custom_price_usd are required" }, 400);
+      if (!body.helper_id || !body.custom_coins) {
+        return json({ error: "helper_id and custom_coins are required" }, 400);
       }
       const { data: helper, error: hErr } = await admin
         .from("topup_helpers")
-        .select("id, user_id, is_active")
+        .select("id, user_id, is_active, trader_level")
         .eq("id", body.helper_id)
         .maybeSingle();
       if (hErr || !helper) return json({ error: "helper_not_found" }, 404);
@@ -99,9 +144,21 @@ Deno.serve(async (req) => {
       if (helper.is_active === false) return json({ error: "helper_inactive" }, 400);
 
       totalCoins = Math.floor(Number(body.custom_coins));
-      priceUsd = Number(body.custom_price_usd);
       if (!Number.isFinite(totalCoins) || totalCoins <= 0) return json({ error: "invalid_custom_coins" }, 400);
-      if (!Number.isFinite(priceUsd) || priceUsd <= 0) return json({ error: "invalid_custom_price_usd" }, 400);
+      const { data: pricingRows, error: pricingErr } = await admin
+        .from("helper_diamond_packages")
+        .select("diamond_amount, price_usd, display_order, description, is_active")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      if (pricingErr || !pricingRows?.length) return json({ error: "helper_pricing_not_configured" }, 500);
+      const level = Number(helper.trader_level || 1);
+      const pricing = (pricingRows as any[]).find((pkg, index) => getHelperPackageLevel(pkg, index) === level) ?? pricingRows[0];
+      const diamondUnit = Number((pricing as any).diamond_amount ?? 0);
+      const usdUnit = Number((pricing as any).price_usd ?? 0);
+      if (!Number.isFinite(diamondUnit) || diamondUnit <= 0 || !Number.isFinite(usdUnit) || usdUnit <= 0) {
+        return json({ error: "invalid_helper_pricing" }, 500);
+      }
+      priceUsd = roundUsd((totalCoins / diamondUnit) * usdUnit);
       targetHelperId = helper.id;
       // Isolated Swift Pay sub-account per helper
       externalUserId = `merilive_helper_${helper.id}`;
@@ -123,36 +180,36 @@ Deno.serve(async (req) => {
         }
         packageId = pkg.id;
       } else if (body.custom_coins && body.custom_price_usd) {
-        totalCoins = Math.floor(Number(body.custom_coins));
-        priceUsd = Number(body.custom_price_usd);
-        if (!Number.isFinite(totalCoins) || totalCoins <= 0) return json({ error: "invalid_custom_coins" }, 400);
-        if (!Number.isFinite(priceUsd) || priceUsd <= 0) return json({ error: "invalid_custom_price_usd" }, 400);
+        const requestedCoins = Math.floor(Number(body.custom_coins));
+        const requestedUsd = Number(body.custom_price_usd);
+        if (!Number.isFinite(requestedCoins) || requestedCoins <= 0) return json({ error: "invalid_custom_coins" }, 400);
+        if (!Number.isFinite(requestedUsd) || requestedUsd <= 0) return json({ error: "invalid_custom_price_usd" }, 400);
 
-        // SERVER-SIDE FLOOR — Swift Pay's on-chain auto-verification has a hard
-        // minimum for the helper-application crypto flow (default $100). The
-        // campaign recharge flow mirrors the My Diamond package path and must
-        // NOT be floored — campaigns can be priced at any amount the admin sets.
-        const isCampaign = body.purpose === "campaign";
-        if (!isCampaign) {
-          let minUsd = 100;
-          try {
-            const { data: setting } = await admin
-              .from("app_settings")
-              .select("setting_value")
-              .eq("setting_key", "swift_pay_crypto_min_usd")
-              .maybeSingle();
-            const raw = setting?.setting_value as unknown;
-            const parsed = typeof raw === "number"
-              ? raw
-              : typeof raw === "string"
-                ? Number(raw)
-                : (raw && typeof raw === "object" && "min_usd" in (raw as Record<string, unknown>))
-                  ? Number((raw as Record<string, unknown>).min_usd)
-                  : NaN;
-            if (Number.isFinite(parsed) && parsed > 0) minUsd = parsed;
-          } catch {
-            // ignore — fall back to default 100
-          }
+        if (body.purpose === "campaign") {
+          const { data: campaigns, error: cErr } = await admin
+            .from("recharge_campaigns")
+            .select("diamonds_amount, bonus_diamonds, original_price_usd, offer_price_usd, is_active, schedule_start, schedule_end, priority")
+            .eq("is_active", true)
+            .order("priority", { ascending: false });
+          if (cErr) return json({ error: "campaign_lookup_failed" }, 500);
+          const now = Date.now();
+          const match = (campaigns ?? []).find((c: any) => {
+            const startsOk = !c.schedule_start || new Date(c.schedule_start).getTime() <= now;
+            const endsOk = !c.schedule_end || new Date(c.schedule_end).getTime() >= now;
+            const campaignCoins = Number(c.diamonds_amount ?? 0) + Number(c.bonus_diamonds ?? 0);
+            const campaignUsd = Number(c.offer_price_usd ?? c.original_price_usd ?? 0);
+            return startsOk && endsOk && campaignCoins === requestedCoins && Math.abs(campaignUsd - requestedUsd) <= 0.01;
+          });
+          if (!match) return json({ error: "invalid_campaign_offer" }, 400);
+          totalCoins = requestedCoins;
+          priceUsd = roundUsd(Number((match as any).offer_price_usd ?? (match as any).original_price_usd));
+        } else {
+          const minUsd = await resolveSwiftPayMinUsd(admin);
+          const rate = await resolveBestDiamondsPerUsd(admin);
+          if (!rate) return json({ error: "diamond_rate_not_configured" }, 500);
+          totalCoins = Math.floor(requestedUsd * rate);
+          priceUsd = roundUsd(requestedUsd);
+          if (requestedCoins !== totalCoins) return json({ error: "invalid_custom_coin_amount" }, 400);
           if (priceUsd < minUsd) {
             return json({
               error: "below_minimum",
