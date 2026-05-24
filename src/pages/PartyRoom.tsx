@@ -1074,7 +1074,7 @@ const PartyRoom = () => {
       .select('*')
       .eq('room_id', currentRoomId)
       .is('left_at', null)
-      .order('position', { ascending: true });
+      .order('seat_number', { ascending: true });
 
     if (error) {
       console.error('[PartyRoom] ❌ Error fetching participants:', error);
@@ -1088,7 +1088,7 @@ const PartyRoom = () => {
 
     // Get current user ID from ref to avoid stale closure
     const currentUserId = currentUserRef.current?.id;
-    
+
     if (data) {
       const userIds = [...new Set(data.map((p: any) => p.user_id).filter(Boolean))];
       const { data: publicProfiles } = userIds.length
@@ -1100,20 +1100,22 @@ const PartyRoom = () => {
       const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
       const hydratedParticipants = data.map((participant: any) => ({
         ...participant,
+        // Section #12 pass-2: DB column is seat_number — expose it as `position` for app code.
+        position: participant.seat_number ?? null,
         user: profileMap.get(participant.user_id) || null,
       }));
 
       setParticipants(hydratedParticipants as Participant[]);
-      
+
       // Update my position and role from DB
       if (currentUserId) {
         const myParticipant = data.find(p => p.user_id === currentUserId);
         if (myParticipant) {
-          setMyPosition(myParticipant.position);
+          setMyPosition(myParticipant.seat_number ?? null);
           setMyRole(myParticipant.role);
-          
+
           // If user has a seat position, clear their pending request
-          if (myParticipant.position !== null) {
+          if (myParticipant.seat_number !== null && myParticipant.seat_number !== undefined) {
             setMyPendingRequest(null);
           }
         }
