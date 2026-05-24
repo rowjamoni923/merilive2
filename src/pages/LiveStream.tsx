@@ -3555,7 +3555,8 @@ const LiveStream = () => {
           }
           
           const totalCost = gift.coins * count;
-          if (userCoins < totalCost) {
+          const availableCoins = userCoinsRef.current;
+          if (availableCoins < totalCost) {
             toast.error("Not enough diamonds!");
             return;
           }
@@ -3564,7 +3565,9 @@ const LiveStream = () => {
           // NOTE: Do NOT close panel — keeping it open enables professional combo gifting
           
           // Optimistic coin deduction (instant visual feedback)
-          setUserCoins(prev => prev - totalCost);
+          userCoinsRef.current = Math.max(0, availableCoins - totalCost);
+          pendingGiftCostRef.current += totalCost;
+          setUserCoins(userCoinsRef.current);
           
           // Play gift sound IMMEDIATELY
           playSound('gift');
@@ -3628,6 +3631,13 @@ const LiveStream = () => {
           
           // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
           (async () => {
+            let transactionSucceeded = false;
+            let pendingReleased = false;
+            const releasePendingCost = () => {
+              if (pendingReleased) return;
+              pendingGiftCostRef.current = Math.max(0, pendingGiftCostRef.current - totalCost);
+              pendingReleased = true;
+            };
             try {
               const result = await sendGift({
                 giftId: gift.id,
@@ -3638,11 +3648,14 @@ const LiveStream = () => {
                 streamId: id,
               });
 
+              releasePendingCost();
               if (!result.success) {
-                setUserCoins(prev => prev + totalCost);
+                userCoinsRef.current += totalCost;
+                setUserCoins(userCoinsRef.current);
                 toast.error(result.error || "Gift failed - diamonds refunded");
                 return;
               }
+              transactionSucceeded = true;
               
               // Refresh actual balance from server
               const { data: updatedProfile } = await supabase
@@ -3651,11 +3664,12 @@ const LiveStream = () => {
                 .eq("id", currentUserId)
                 .single();
               
-              if (updatedProfile) {
-                setUserCoins(updatedProfile.coins || 0);
+              if (updatedProfile && pendingGiftCostRef.current === 0) {
+                userCoinsRef.current = updatedProfile.coins || 0;
+                setUserCoins(userCoinsRef.current);
                 // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
                 const { updateCachedBalance } = await import("@/hooks/useUserBalance");
-                updateCachedBalance(updatedProfile.coins || 0);
+                updateCachedBalance(userCoinsRef.current);
               }
               
               // Save gift message to database for other participants
@@ -3701,10 +3715,13 @@ const LiveStream = () => {
               }
 
             } catch (err) {
+              releasePendingCost();
               console.error('[Gift] Background processing error:', err);
               recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });
+              if (transactionSucceeded) return;
               // Refund coins on complete failure
-              setUserCoins(prev => prev + totalCost);
+              userCoinsRef.current += totalCost;
+              setUserCoins(userCoinsRef.current);
               toast.error(`Gift failed: ${err instanceof Error ? err.message : String(err)}`);
             }
           })();
