@@ -1869,14 +1869,30 @@ const Recharge = () => {
             _amount: totalCoinsToAdd
           });
 
-        if (addError) {
-          console.error('Failed to add to user:', addError);
-          recordClientError({ label: "Recharge.totalCoinsToAdd", message: addError instanceof Error ? addError.message : String(addError) });
-        }
         const addData = addResult as any;
-        if (addData && addData.success === false) {
-          console.error('Add coins failed:', addData.error);
-          recordClientError({ label: "Recharge.addData", message: addData.error instanceof Error ? addData.error.message : String(addData.error) });
+        const addFailed = !!addError || (addData && addData.success === false);
+        if (addFailed) {
+          const errMsg = addError?.message || addData?.error || 'Unknown error crediting user';
+          console.error('Failed to add coins to user after helper deduction:', errMsg);
+          recordClientError({ label: 'Recharge.addCoinsAfterHelperDeduct', message: String(errMsg) });
+          // CRITICAL: helper wallet already debited — flag the order so admin can reconcile,
+          // and surface the failure to the user instead of falsely reporting success.
+          try {
+            await supabase
+              .from('helper_orders')
+              .update({
+                status: 'failed',
+                payment_details: {
+                  ...(helperOrder.payment_details as any || {}),
+                  credit_failure: String(errMsg),
+                  needs_reconciliation: true,
+                },
+              })
+              .eq('id', helperOrder.id);
+          } catch (flagErr) {
+            console.error('Failed to flag helper_order as failed:', flagErr);
+          }
+          throw new Error('Diamonds could not be credited. Support has been notified — your payment will be reconciled.');
         }
 
         // If first recharge, record the claim
