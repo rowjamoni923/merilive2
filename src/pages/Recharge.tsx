@@ -1915,34 +1915,17 @@ const Recharge = () => {
           throw new Error(deductData.error || "Merchant doesn't have enough diamonds");
         }
 
-        // Claim first-recharge bonus BEFORE crediting so DB unique(user_id)
-        // prevents repeat bonus if two payment flows race.
+        const candidateBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
+          ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
+          : 0;
         let bonusCoins = 0;
-        if (isFirstRecharge && selectedPackage.bonus_percentage > 0 && firstRechargeBonusId) {
-          const candidateBonus = Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100);
-          if (candidateBonus > 0) {
-            const { error: claimError } = await supabase.from('first_recharge_claims').insert({
-              user_id: userId,
-              bonus_id: firstRechargeBonusId,
-              original_amount: selectedPackage.coins,
-              bonus_amount: candidateBonus,
-            });
-            if (!claimError) {
-              bonusCoins = candidateBonus;
-              setIsFirstRecharge(false);
-            } else {
-              console.warn('[Recharge] First recharge bonus claim skipped:', claimError.message);
-              setIsFirstRecharge(false);
-            }
-          }
-        }
-        const totalCoinsToAdd = selectedPackage.coins + bonusCoins;
+        let totalCoinsToAdd = selectedPackage.coins;
 
-        // ATOMIC: Add diamonds to user (base + bonus) - helper-safe RPC
+        // ATOMIC: Add base diamonds first. Bonus claim/credit happens only after base credit succeeds.
         const { data: addResult, error: addError } = await supabase
           .rpc('helper_add_coins_to_user', {
             _user_id: userId,
-            _amount: totalCoinsToAdd
+            _amount: selectedPackage.coins
           });
 
         const addData = addResult as any;
@@ -1969,6 +1952,23 @@ const Recharge = () => {
             console.error('Failed to flag helper_order as failed:', flagErr);
           }
           throw new Error('Diamonds could not be credited. Support has been notified — your payment will be reconciled.');
+        }
+
+        if (candidateBonusCoins > 0 && firstRechargeBonusId) {
+          const { data: bonusResult, error: bonusError } = await supabase.rpc('claim_first_recharge_bonus_and_credit' as any, {
+            _user_id: userId,
+            _bonus_id: firstRechargeBonusId,
+            _original_amount: selectedPackage.coins,
+            _bonus_amount: candidateBonusCoins,
+          });
+          const bonusData = bonusResult as any;
+          if (!bonusError && bonusData?.success && !bonusData?.already_claimed) {
+            bonusCoins = Number(bonusData.bonus_amount || candidateBonusCoins);
+            totalCoinsToAdd += bonusCoins;
+          } else if (bonusError) {
+            console.warn('[Recharge] First recharge bonus credit skipped:', bonusError.message);
+          }
+          setIsFirstRecharge(false);
         }
 
         // Notify user
