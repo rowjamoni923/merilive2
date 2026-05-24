@@ -1755,7 +1755,7 @@ const PartyRoom = () => {
         .from('party_room_participants')
         .update({ 
           left_at: new Date().toISOString(), 
-          position: null,
+          seat_number: null,
           role: 'audience'
         })
         .eq('room_id', roomId)
