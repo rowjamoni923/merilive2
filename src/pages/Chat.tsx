@@ -210,6 +210,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
   const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
+  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
 
   // 🛡️ DM dedup guard: enforce one row per message id at all times. Catches
   // any race between optimistic insert, REST fetch, realtime INSERT,
@@ -321,8 +322,7 @@ const Chat = () => {
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Pending Media (image/video to send with send button)
-  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
-  
+
   // Translator
   const [showTranslator, setShowTranslator] = useState(false);
   const [translateText, setTranslateText] = useState("");
