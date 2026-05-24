@@ -11,6 +11,7 @@ import {
   preloadUserFrames,
 } from '@/utils/frameCache';
 import { getDisplayAvatar } from '@/utils/placeholderAvatar';
+import { normalizeProfileMediaUrl } from '@/utils/profileMediaUrl';
 import {
   getCachedGender,
   getCachedViewerId,
@@ -315,7 +316,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
     : !!(userId && viewerId && userId === viewerId);
 
   const effectiveSrc = useMemo(() => {
-    if (hasRealSrc) return src!;
+    if (hasRealSrc) return normalizeProfileMediaUrl(src) || src!;
     if (!userId) return undefined;
     if (isOwner) return undefined; // owner sees blank → AvatarFallback initial
     // Default to female pool when gender unknown (host-first product).
