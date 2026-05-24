@@ -419,7 +419,7 @@ const Discover = () => {
               className={cn(
                 "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 border",
                 selectedCountry === country.code
-                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-on-dark border-transparent shadow-md shadow-pink-500/20"
+                  ? "bg-gradient-primary text-on-dark border-transparent shadow-md shadow-brand/20"
                   : "bg-card text-foreground border-border hover:border-muted-foreground/30"
               )}
             >
@@ -433,9 +433,9 @@ const Discover = () => {
       {/* Scrollable Room List */}
       <NativePullToRefresh onRefresh={async () => { await fetchRooms(false); }} className="flex-1">
       <main className="h-full overflow-y-auto overscroll-contain px-3" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
-        <div className="flex items-center justify-between mb-2 sticky top-0 bg-[#F7F8FA]/95 backdrop-blur-sm py-2 -mx-3 px-3 z-10">
+        <div className="flex items-center justify-between mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 -mx-3 px-3 z-10">
           <h2 className="font-semibold text-sm text-display flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            <Sparkles className="w-4 h-4 text-money" />
             Active Rooms
           </h2>
           <span className="text-xs text-muted-pro">{filteredRooms.length} rooms</span>
@@ -443,23 +443,23 @@ const Discover = () => {
         
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredRooms.length === 0 ? (
           <div 
-            className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[50vh]"
+            className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl shadow-sm border border-border min-h-[50vh]"
           >
             {/* Static Icon */}
             <div className="relative mb-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center border border-slate-200">
-                <Gamepad2 className="w-10 h-10 text-purple-500" />
+              <div className="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center border border-border/50">
+                <Gamepad2 className="w-10 h-10 text-on-dark" />
               </div>
             </div>
             
             <h3 className="text-lg font-semibold text-display mb-2 relative z-10">No Active Rooms</h3>
             <p className="text-sm text-muted-pro text-center max-w-[200px] relative z-10">Rooms will appear when hosts start streaming!</p>
             
-            <div className="mt-6 w-24 h-0.5 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent rounded-full animate-pulse" />
+            <div className="mt-6 w-24 h-0.5 bg-gradient-to-r from-transparent via-primary/40 to-transparent rounded-full animate-pulse" />
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
@@ -475,7 +475,7 @@ const Discover = () => {
                   <div
                     key={room.id}
                     onClick={() => joinRoom(room)}
-                    className="relative rounded-xl overflow-hidden bg-white cursor-pointer active:scale-[0.98] transition-transform border border-slate-200 shadow-[0_6px_20px_-8px_rgba(15,23,42,0.10)]"
+                    className="relative rounded-xl overflow-hidden bg-card cursor-pointer active:scale-[0.98] transition-transform border border-border shadow-sm"
                     style={{ contain: 'layout style paint' }}
                   >
                     {/* Background - Use host avatar or gradient */}
@@ -492,15 +492,15 @@ const Discover = () => {
                       )}
                       
                       {/* Dark overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-rose-50 to-orange-50" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/55 to-transparent" />
                       
                       {/* Room type badge & participant count */}
                       <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between">
-                        <Badge className={cn("border-0 text-heading text-[10px] px-1.5 py-0.5 bg-gradient-to-r", getRoomTypeColor(room.room_type))}>
+                        <Badge className={cn("border-0 text-on-dark text-[10px] px-1.5 py-0.5 bg-gradient-to-r", getRoomTypeColor(room.room_type))}>
                           <TypeIcon className="w-2.5 h-2.5 mr-0.5" />
                           {room.room_type}
                         </Badge>
-                        <div className="flex items-center gap-0.5 bg-white/80 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+                        <div className="flex items-center gap-0.5 bg-card/85 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-border/60">
                           <Users className="w-2.5 h-2.5 text-heading" />
                           <span className="text-[10px] text-heading font-medium">{room.current_participants}</span>
                         </div>
