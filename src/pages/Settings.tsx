@@ -700,7 +700,7 @@ const Settings = () => {
     setDeleteLoading(true);
     try {
       const { error } = await supabase.rpc('cancel_account_deletion', {
-        user_id_param: userId
+        _user_id: userId
       });
       
       if (error) throw error;

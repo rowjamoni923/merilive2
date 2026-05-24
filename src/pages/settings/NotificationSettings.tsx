@@ -165,7 +165,7 @@ export default function NotificationSettings() {
     <div className="mobile-page bg-background">
       <div className="mobile-header bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="flex items-center h-14 px-4">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="flex-1 text-center text-lg font-semibold pr-7">Notification Settings</h1>
