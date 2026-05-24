@@ -403,11 +403,11 @@ const Index = () => {
     const isActuallyBusy = user.actuallyBusy ?? !!user.is_in_call;
 
     const getBorderGlow = () => {
-      if (user.isLive) return "shadow-[0_4px_18px_-4px_rgba(239,68,68,0.45)] border-red-300";
-      if (displayLevel >= 40) return "shadow-[0_4px_18px_-6px_rgba(245,158,11,0.40)] border-amber-200";
-      if (displayLevel >= 20) return "shadow-[0_4px_18px_-6px_rgba(168,85,247,0.32)] border-purple-200";
-      if (displayLevel >= 10) return "shadow-[0_4px_18px_-6px_rgba(59,130,246,0.28)] border-blue-200";
-      return "border-slate-200 shadow-[0_4px_14px_-8px_rgba(15,23,42,0.18)]";
+      if (user.isLive) return "border-danger/50 shadow-lg shadow-danger/20";
+      if (displayLevel >= 40) return "border-warning/50 shadow-lg shadow-warning/20";
+      if (displayLevel >= 20) return "border-brand/40 shadow-lg shadow-brand/15";
+      if (displayLevel >= 10) return "border-info/40 shadow-lg shadow-info/15";
+      return "border-border shadow-sm";
     };
 
     
@@ -416,7 +416,7 @@ const Index = () => {
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
         className={cn(
           "relative overflow-hidden rounded-2xl cursor-pointer group active:scale-[0.97]",
-          "bg-white border",
+          "bg-card border",
           getBorderGlow()
         )}
         style={{ contain: 'layout style paint' }}
@@ -462,15 +462,15 @@ const Index = () => {
           {user.isLive && (
             <>
               <div className="absolute top-2.5 left-2">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-[0_2px_12px_rgba(239,68,68,0.5)]">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-danger to-primary shadow-lg shadow-danger/30">
+                  <span className="w-1.5 h-1.5 bg-primary-foreground rounded-full animate-pulse" />
                   <span className="text-[10px] font-extrabold text-on-dark tracking-wider">LIVE</span>
                 </div>
               </div>
               {/* Viewer Count */}
               {(user.viewerCount ?? 0) > 0 && (
                 <div className="absolute top-2.5 right-2">
-                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+                  <div className="flex items-center gap-1 bg-foreground/60 backdrop-blur-sm rounded-full px-2 py-1">
                     <Eye className="w-3 h-3 text-on-dark" />
                     <span className="text-[10px] text-on-dark font-bold">{user.viewerCount}</span>
                   </div>
@@ -485,8 +485,8 @@ const Index = () => {
               <div className={cn(
                 "w-2.5 h-2.5 rounded-full ring-2 ring-white/80 shadow-md",
                 isActuallyBusy
-                  ? "bg-amber-500"
-                  : "bg-emerald-500 animate-pulse"
+                  ? "bg-warning"
+                  : "bg-success animate-pulse"
               )} />
             </div>
           )}
@@ -494,7 +494,7 @@ const Index = () => {
           {/* VIP/Verified Badge */}
           {(user.is_verified || user.is_face_verified) && (
             <div className="absolute top-2.5 right-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center shadow-[0_2px_10px_rgba(59,130,246,0.5)] border border-white/30">
+              <div className="w-6 h-6 bg-gradient-to-br from-info to-primary rounded-full flex items-center justify-center shadow-lg shadow-info/30 border border-primary-foreground/30">
                 <svg className="w-3 h-3 text-on-dark" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
@@ -571,42 +571,27 @@ const Index = () => {
 
   // Native mobile optimized render
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      {/* Header — clean white, hairline border, dark icons */}
+    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      {/* Header */}
       <header
-        className="shrink-0"
-        style={{
-          zIndex: 40,
-          background: '#ffffff',
-          borderBottom: '1px solid rgba(15, 23, 42, 0.06)',
-        }}
+        className="shrink-0 bg-card border-b border-border"
+        style={{ zIndex: 40 }}
       >
         <div className="flex items-center justify-center px-3 py-2.5 relative">
           {/* Search Button - Left Side (icon only, matches home white theme) */}
           <button
             aria-label="Search"
             onClick={() => navigate('/search')}
-            className="absolute left-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform"
-            style={{
-              background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
-              border: '1px solid rgba(15, 23, 42, 0.10)',
-              boxShadow: '0 2px 6px -2px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
-            }}
+            className="absolute left-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform bg-background border border-border shadow-sm"
           >
             <Search className="w-[18px] h-[18px] text-heading" strokeWidth={2.5} />
           </button>
 
           {/* Sub Tabs - Centered */}
-          <div className="flex items-center gap-0.5 bg-slate-100 rounded-full p-0.5 border border-slate-200/70">
+          <div className="flex items-center gap-0.5 bg-muted rounded-full p-0.5 border border-border">
             {(["popular", "live", "new", "following"] as SubTab[]).map((tab) => {
               const labels: Record<SubTab, string> = { popular: "Popular", live: "Live", new: "New", following: "Follow" };
               const isActive = subTab === tab;
-              const gradients: Record<SubTab, string> = {
-                popular: 'linear-gradient(to right, #ec4899, #a855f7)',
-                live: 'linear-gradient(to right, #ef4444, #ec4899)',
-                new: 'linear-gradient(to right, #ec4899, #a855f7)',
-                following: 'linear-gradient(to right, #ec4899, #a855f7)',
-              };
               return (
                 <button
                   key={tab}
@@ -615,11 +600,10 @@ const Index = () => {
                   }}
                   className={cn(
                     "px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 touch-manipulation flex items-center gap-1",
-                    isActive ? "text-on-dark shadow-md" : "text-muted-pro hover:text-foreground"
+                    isActive ? "bg-gradient-primary text-on-dark shadow-md" : "text-muted-pro hover:text-foreground"
                   )}
-                  style={isActive ? { background: gradients[tab] } : undefined}
                 >
-                  {tab === "live" && <span className={cn("w-1.5 h-1.5 rounded-full", isActive ? "bg-white" : "bg-red-500 animate-pulse")} />}
+                  {tab === "live" && <span className={cn("w-1.5 h-1.5 rounded-full", isActive ? "bg-primary-foreground" : "bg-danger animate-pulse")} />}
                   {labels[tab]}
                 </button>
               );
@@ -630,14 +614,9 @@ const Index = () => {
           <button
             aria-label="Leaderboard"
             onClick={() => navigate('/leaderboard')}
-            className="absolute right-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform"
-            style={{
-              background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
-              border: '1px solid rgba(15, 23, 42, 0.10)',
-              boxShadow: '0 2px 6px -2px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
-            }}
+            className="absolute right-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform bg-background border border-border shadow-sm"
           >
-            <Trophy className="w-[18px] h-[18px] text-amber-500" strokeWidth={2.5} fill="rgba(245, 158, 11, 0.18)" />
+            <Trophy className="w-[18px] h-[18px] text-money" strokeWidth={2.5} fill="currentColor" />
           </button>
         </div>
 
@@ -651,10 +630,9 @@ const Index = () => {
                   className={cn(
                     "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap active:scale-95 touch-manipulation border",
                     selectedCountry === country.code
-                      ? "text-on-dark shadow-md border-transparent"
-                      : "bg-white text-heading border-slate-200 hover:bg-slate-50"
+                      ? "bg-gradient-primary text-on-dark shadow-md border-transparent"
+                      : "bg-background text-heading border-border hover:bg-muted"
                   )}
-                  style={selectedCountry === country.code ? { background: 'linear-gradient(to right, #ec4899, #a855f7)' } : undefined}
                 >
                   <span className="text-sm">{country.flag}</span>
                   <span>{country.name}</span>
@@ -698,7 +676,7 @@ const Index = () => {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[3/4] rounded-2xl bg-slate-200 animate-pulse border border-slate-200"
+                className="aspect-[3/4] rounded-2xl bg-muted animate-pulse border border-border"
               />
             ))}
           </div>
