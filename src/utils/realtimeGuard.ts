@@ -23,7 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // ============= THE ONLY SOURCE OF TRUTH =============
 // These are the ONLY app-facing tables allowed in the supabase_realtime publication.
-// Room/call/live/gift/chat fanout is LiveKit/FCM + REST snapshots only.
+// Room media/chat/gift fanout is LiveKit/FCM; live_streams stays realtime for list/end state.
 const PUBLICATION_TABLES = new Set([
   'notifications',
   // Pkg37: single broadcast table fans out admin saves; cost-guarded server-side

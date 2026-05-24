@@ -1358,8 +1358,8 @@ const LiveStream = () => {
 
   // Pkg78: LiveKit-ONLY stream-ended + viewer-count signaling.
   // Removed: Supabase `live-stream-close-${id}` broadcast + `stream_viewer_count_${id}` postgres_changes.
-  // Safety net: 30s stale-stream check (separate useEffect below) covers
-  // the rare LiveKit disconnect case via DB poll (no realtime cost).
+  // Safety net: live_streams row realtime + 30s stale-stream poll covers
+  // the rare LiveKit disconnect case.
   useEffect(() => {
     if (!id) return;
 
