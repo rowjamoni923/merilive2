@@ -2229,6 +2229,7 @@ const Chat = () => {
                           (content.includes('supabase.co/storage') && /\.(webm|mp3|wav|ogg|m4a)($|\?)/i.test(content));
                         const isGift = msg.message_type === 'gift';
                         const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice): /, '').replace(/\]$/, '');
+                        const displayUrl = signedChatMediaUrls[cleanUrl] || cleanUrl;
 
                         // Gift messages - with SVGA/animation support
                         if (isGift) {
@@ -2331,10 +2332,10 @@ const Chat = () => {
                           return (
                             <div className="flex flex-col">
                               <img 
-                                src={cleanUrl} 
+                                src={displayUrl} 
                                 alt="Shared image"
                                 className="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => imageViewer.openImage(cleanUrl)}
+                                onClick={() => imageViewer.openImage(displayUrl)}
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).src = '/placeholder.svg';
                                 }}
@@ -2352,7 +2353,7 @@ const Chat = () => {
                           return (
                             <div className="flex flex-col">
                               <video 
-                                src={cleanUrl} 
+                                src={displayUrl} 
                                 controls
                                 className="max-w-[200px] max-h-[200px] rounded-xl"
                               />
@@ -2378,7 +2379,7 @@ const Chat = () => {
                                   <Mic className="w-4 h-4" />
                                 </div>
                                 <audio 
-                                  src={cleanUrl} 
+                                  src={displayUrl} 
                                   controls
                                   className="max-w-[180px] h-8"
                                 />
