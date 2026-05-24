@@ -9,6 +9,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { callGiftService } from '@/utils/giftServiceClient';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 // Pkg88: broadcastGiftSent import removed — Supabase channel was opening per gift
 // with zero live consumers (LiveKit-Purist policy + $1400-rule).
 
@@ -56,6 +57,8 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const normalizeGiftAssetUrl = (url?: string | null): string | undefined => {
   if (!url) return undefined;
+  const normalizedGiftUrl = normalizeGiftMediaUrl(url);
+  if (normalizedGiftUrl) return normalizedGiftUrl;
   if (url.startsWith('http')) return url;
   if (url.includes('/storage/v1/object/public/')) {
     const path = url.startsWith('/') ? url : `/${url}`;
