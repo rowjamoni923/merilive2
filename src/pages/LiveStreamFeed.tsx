@@ -209,7 +209,7 @@ export default function LiveStreamFeed() {
           className="h-full w-full object-cover"
           onClick={() => navigate(`/live/${currentStream.id}`)}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/35" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/20 to-foreground/35" />
 
         <div className="absolute left-4 right-20 bottom-[calc(var(--content-bottom-padding)+1rem)]">
           <div className="flex items-center gap-2 mb-3">
@@ -238,7 +238,7 @@ export default function LiveStreamFeed() {
             aria-label="Previous stream"
             disabled={currentIndex <= 0}
             onClick={goToPrevious}
-            className={cn("h-11 w-11 rounded-full bg-black/45 border border-white/20 flex items-center justify-center text-on-dark backdrop-blur-sm", currentIndex <= 0 && "opacity-40")}
+            className={cn("h-11 w-11 rounded-full bg-foreground/45 border border-primary-foreground/20 flex items-center justify-center text-on-dark backdrop-blur-sm", currentIndex <= 0 && "opacity-40")}
           >
             <ChevronUp className="w-6 h-6" />
           </button>
@@ -246,7 +246,7 @@ export default function LiveStreamFeed() {
             aria-label="Next stream"
             disabled={currentIndex >= streams.length - 1}
             onClick={goToNext}
-            className={cn("h-11 w-11 rounded-full bg-black/45 border border-white/20 flex items-center justify-center text-on-dark backdrop-blur-sm", currentIndex >= streams.length - 1 && "opacity-40")}
+            className={cn("h-11 w-11 rounded-full bg-foreground/45 border border-primary-foreground/20 flex items-center justify-center text-on-dark backdrop-blur-sm", currentIndex >= streams.length - 1 && "opacity-40")}
           >
             <ChevronDown className="w-6 h-6" />
           </button>
