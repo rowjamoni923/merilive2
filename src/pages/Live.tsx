@@ -5,7 +5,7 @@ import { PremiumLiveStreamCard } from "@/components/home/PremiumLiveStreamCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { preloadAllStreams, cleanupAllPreloaded, isStreamPreloaded, markPreloadedStreamForHandoff } from "@/services/liveStreamPreloader";
+import { preloadAllStreams, cleanupAllPreloaded, markPreloadedStreamForHandoff } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
@@ -44,7 +44,6 @@ const Live = () => {
       return [];
     }
   });
-  const [loading, setLoading] = useState(streams.length === 0);
   const mountedRef = useRef(false);
 
   const fetchLiveStreams = async () => {
@@ -137,7 +136,7 @@ const Live = () => {
       console.error('Error fetching live streams:', error);
       recordClientError({ label: "Live.startPreload", message: error instanceof Error ? error.message : String(error) });
     } finally {
-      if (mountedRef.current) setLoading(false);
+      // no-op: cached streams render immediately; errors are logged above
     }
   };
 
