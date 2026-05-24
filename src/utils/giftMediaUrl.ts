@@ -23,6 +23,10 @@ export const normalizeGiftMediaUrl = (url?: string | null): string | null => {
     return `${SUPABASE_URL}/functions/v1/public-gift-media/${legacyMatch[1]}`;
   }
 
+  if (/^gifts\/[A-Za-z0-9._~!$&'()+,;=:@/-]+$/i.test(trimmed)) {
+    return `${SUPABASE_URL}/functions/v1/public-gift-media/${trimmed}`;
+  }
+
   if (trimmed.startsWith("http") || trimmed.startsWith("/")) return trimmed;
   if (trimmed.includes("/storage/v1/object/public/")) {
     return `${SUPABASE_URL}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;

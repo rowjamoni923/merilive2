@@ -101,7 +101,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
       } catch (e) {}
     }
 
-    setTimeout(() => cleanupAudio(), 500);
+    cleanupAudio();
     onCompleteRef.current?.();
   }, [cleanupAudio, src]);
 
