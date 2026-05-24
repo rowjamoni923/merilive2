@@ -1200,6 +1200,10 @@ const Auth = () => {
       return;
     }
 
+    // Brute-force / abuse gate (shared identifier namespace with login)
+    const canProceed = await checkBeforeLogin(`otp:${normalizedEmail}`);
+    if (!canProceed) return;
+
     setEmail(normalizedEmail);
     setLoading(true);
     try {
@@ -1212,6 +1216,9 @@ const Auth = () => {
         throw new Error(data.error || "Failed to send verification code");
       }
 
+      // Count a successful send as one "attempt" so spam loops still trip the gate
+      await recordAttempt(`otp:${normalizedEmail}`, false);
+
       toast({
         title: "📧 Verification Code Sent",
         description: `Check your email at ${normalizedEmail} for the 6-digit verification code.`,
@@ -1220,7 +1227,8 @@ const Auth = () => {
       setAuthStep("email_otp");
     } catch (error: any) {
       console.error("Email OTP error:", error);
-      recordClientError({ label: "Auth.emailRegex", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "Auth.handleSendEmailOtp", message: error instanceof Error ? error.message : String(error) });
+      await recordAttempt(`otp:${normalizedEmail}`, false);
       const errorMessage = await getFunctionErrorMessage(error, "Failed to send verification code");
       toast({
         title: "Error",
@@ -1507,6 +1515,10 @@ const Auth = () => {
 
     const fullPhone = selectedCountryCode + cleanPhone;
 
+    // Brute-force / abuse gate — shared namespace prevents OTP spam
+    const canProceed = await checkBeforeLogin(`otp:${fullPhone}`);
+    if (!canProceed) return;
+
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
@@ -1515,6 +1527,7 @@ const Auth = () => {
 
       if (error) throw error;
       if (!data?.success) {
+        await recordAttempt(`otp:${fullPhone}`, false);
         toast({
           title: "Error",
           description: data?.error || "Failed to send OTP",
@@ -1523,12 +1536,15 @@ const Auth = () => {
         return;
       }
 
+      await recordAttempt(`otp:${fullPhone}`, false);
       toast({
         title: "📱 WhatsApp OTP Sent!",
         description: `Verification code sent to ${fullPhone} via WhatsApp`,
       });
       setAuthStep("phone_otp");
     } catch (error: any) {
+      recordClientError({ label: "Auth.handleSendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
+      await recordAttempt(`otp:${fullPhone}`, false);
       toast({
         title: "Error",
         description: error.message || "Failed to send WhatsApp OTP",
@@ -1719,29 +1735,41 @@ const Auth = () => {
     }
   };
 
-  // Resend WhatsApp OTP
+  // Resend WhatsApp OTP — rate-limited via brute-force gate
   const handleResendPhoneOtp = async () => {
+    const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
+    const fullPhone = selectedCountryCode + cleanPhone;
+
+    const canProceed = await checkBeforeLogin(`otp:${fullPhone}`);
+    if (!canProceed) return;
+
     setPhoneOtpLoading(true);
     try {
-      const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
-      const fullPhone = selectedCountryCode + cleanPhone;
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
         body: { phone_number: fullPhone, action: "send" }
       });
       if (error) throw error;
+      await recordAttempt(`otp:${fullPhone}`, false);
       toast({ title: "Code Resent", description: `New code sent to ${fullPhone} via WhatsApp` });
-    } catch {
-      toast({ title: "Error", description: "Failed to resend. Please wait 60 seconds.", variant: "destructive" });
+    } catch (error: any) {
+      recordClientError({ label: "Auth.handleResendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
+      await recordAttempt(`otp:${fullPhone}`, false);
+      toast({ title: "Error", description: "Failed to resend. Please wait a moment.", variant: "destructive" });
     } finally {
       setPhoneOtpLoading(false);
     }
   };
 
-  // Resend OTP for new email flow using custom edge function
+  // Resend OTP for new email flow — rate-limited via brute-force gate
   const handleResendEmailOtp = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
+
+    const canProceed = await checkBeforeLogin(`otp:${normalizedEmail}`);
+    if (!canProceed) return;
+
     setOtpLoading(true);
     try {
-      const normalizedEmail = email.trim().toLowerCase();
       const { data, error } = await supabase.functions.invoke("send-email-otp", {
         body: { email: normalizedEmail, purpose: "login" },
       });
@@ -1751,11 +1779,14 @@ const Auth = () => {
         throw new Error(data.error || "Failed to resend code");
       }
 
+      await recordAttempt(`otp:${normalizedEmail}`, false);
       toast({
         title: "Code Resent",
         description: `A new verification code has been sent to ${normalizedEmail}`,
       });
     } catch (error: any) {
+      recordClientError({ label: "Auth.handleResendEmailOtp", message: error instanceof Error ? error.message : String(error) });
+      await recordAttempt(`otp:${normalizedEmail}`, false);
       const errorMessage = await getFunctionErrorMessage(error, "Failed to resend code. Please try again.");
       toast({
         title: "Error",
@@ -2086,7 +2117,7 @@ const Auth = () => {
 
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="min-h-full flex flex-col justify-between p-6 safe-area-top safe-area-bottom">
+        <div className="min-h-full flex flex-col gap-4 px-5 pt-6 pb-8 safe-area-top safe-area-bottom">
         {/* Logo */}
         <div className="pt-8 flex flex-col items-center">
           {branding.logo_image_url ? (

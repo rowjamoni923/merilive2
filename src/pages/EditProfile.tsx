@@ -276,18 +276,46 @@ const EditProfile = () => {
       sonnerToast.error("Enter phone number");
       return;
     }
-    
+
+    // Basic E.164-ish sanity check (digits, optional leading +, 6-15 digits)
+    const trimmed = newPhone.trim();
+    const e164 = /^\+?[1-9]\d{5,14}$/;
+    if (!e164.test(trimmed.replace(/[\s\-()]/g, ""))) {
+      sonnerToast.error("Enter a valid phone number with country code (e.g. +8801XXXXXXXXX)");
+      return;
+    }
+
     setPhoneVerifying(true);
     try {
-      const { error } = await supabase.auth.updateUser({ phone: newPhone });
+      const { error } = await supabase.auth.updateUser({ phone: trimmed });
       if (error) throw error;
-      
-      setPhone(newPhone);
+
+      setPhone(trimmed);
       setShowPhoneModal(false);
       setNewPhone("");
-      sonnerToast.success("Phone number updated!");
+      sonnerToast.success("Phone number updated! Check SMS for the verification code.");
     } catch (error: any) {
-      sonnerToast.error(error.message || "Phone update failed");
+      // Friendly messaging for common backend states (esp. missing Twilio SMS provider)
+      const raw = (error?.message || "").toLowerCase();
+      let friendly = error?.message || "Phone update failed";
+      if (
+        raw.includes("twilio") ||
+        raw.includes("sms provider") ||
+        raw.includes("unable to get sms") ||
+        raw.includes("phone provider")
+      ) {
+        friendly =
+          "Phone updates by SMS are temporarily unavailable. Please try again later or contact support.";
+      } else if (raw.includes("rate limit") || raw.includes("too many")) {
+        friendly = "Too many attempts. Please wait a few minutes and try again.";
+      } else if (raw.includes("already")) {
+        friendly = "This phone number is already linked to another account.";
+      }
+      sonnerToast.error(friendly);
+      recordClientError({
+        label: "EditProfile.handlePhoneUpdate",
+        message: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setPhoneVerifying(false);
     }
