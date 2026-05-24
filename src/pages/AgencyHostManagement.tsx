@@ -165,7 +165,8 @@ const AgencyHostManagement = () => {
 
       if (error) throw error;
 
-      if (data) {
+      const result = typeof data === 'object' && data !== null ? data as { success?: boolean; error?: string } : null;
+      if (result?.success) {
         supabase.functions.invoke('send-app-notification', {
           body: {
             userId: hostData.host_id,
@@ -218,7 +219,7 @@ const AgencyHostManagement = () => {
 
         toast({ title: "Request Rejected", description: `${hostData.host?.display_name || 'Host'}'s request rejected` });
       } else {
-        throw new Error("Failed to reject request");
+        throw new Error(result?.error || "Failed to reject request");
       }
     } catch (error: any) {
       // Rollback on failure

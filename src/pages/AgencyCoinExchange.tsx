@@ -534,18 +534,6 @@ const AgencyCoinExchange = () => {
           throw new Error(rpcResult?.error || 'Transfer failed');
         }
 
-        // Record transaction
-        await supabase
-          .from("agency_diamond_transactions")
-          .insert({
-            agency_id: agency.id,
-            transaction_type: "send",
-            diamond_amount: diamonds,
-            beans_amount: 0,
-            fee_amount: 0,
-            user_id: selectedUser.id
-          });
-
         setAgency({ 
           ...agency, 
           diamond_balance: rpcResult.new_agency_balance
@@ -576,31 +564,6 @@ const AgencyCoinExchange = () => {
         if (!rpcResult?.success) {
           throw new Error(rpcResult?.error || 'Transfer failed');
         }
-
-        // Record transaction
-        await supabase
-          .from("agency_diamond_transactions")
-          .insert({
-            agency_id: agency.id,
-            transaction_type: "send_agency",
-            diamond_amount: diamonds,
-            beans_amount: 0,
-            fee_amount: 0,
-            user_id: selectedTargetAgency.owner_id
-          });
-
-        // Create notification for recipient
-        await supabase.from('notifications').insert({
-          user_id: selectedTargetAgency.owner_id,
-          type: 'diamond_received',
-          title: 'Diamonds Received! 💎',
-          message: `You received ${diamonds.toLocaleString()} diamonds from ${agency.name}. Added to your Agency Diamond Balance.`,
-          data: { 
-            from_agency_id: agency.id, 
-            from_agency_name: agency.name,
-            diamonds: diamonds 
-          }
-        });
 
         setAgency({ 
           ...agency, 

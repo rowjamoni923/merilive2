@@ -210,20 +210,15 @@ const CreateAgency = () => {
       return;
     }
 
-    // If this is a sub-agency, update parent_agency_id and increment parent's total_agents
+    // If this is a sub-agency, link it through the secure server RPC.
     if (parentAgency?.id) {
-      await supabase.from("agencies")
-        .update({ parent_agency_id: parentAgency.id })
-        .eq("id", result.agency_id);
-      // Increment parent's total_agents atomically
-      const { data: parentData } = await supabase
-        .from("agencies")
-        .select("total_agents")
-        .eq("id", parentAgency.id)
-        .maybeSingle();
-      await supabase.from("agencies")
-        .update({ total_agents: (parentData?.total_agents || 0) + 1 })
-        .eq("id", parentAgency.id);
+      const { data: linkResult, error: linkError } = await (supabase as any).rpc('link_agency_to_parent', {
+        _child_agency_id: result.agency_id,
+        _parent_agency_id: parentAgency.id,
+      });
+      if (linkError || !linkResult?.success) {
+        throw new Error(linkError?.message || linkResult?.error || 'Failed to link parent agency');
+      }
     }
 
     toast({
