@@ -284,6 +284,43 @@ const downloadAdminStoragePathAsObjectUrl = async (storagePath: AdminStoragePath
   return createTypedObjectUrl(blob, downloadResp.headers.get('content-type'), storagePath.path).catch(() => null);
 };
 
+const flushBatchSignQueue = () => {
+  const queue = batchSignQueue;
+  batchSignQueue = [];
+  batchSignTimer = null;
+  if (!queue.length) return;
+
+  const adminToken = queue[0]?.adminToken || '';
+  const uniqueItems = Array.from(new Map(queue.map(({ storagePath }) => [`${storagePath.bucket}/${storagePath.path}`, storagePath])).values());
+
+  fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'x-admin-token': adminToken,
+    },
+    body: JSON.stringify({ items: uniqueItems.map((item) => ({ bucket: item.bucket, path: item.path, expiresIn: 60 * 60 })) }),
+  })
+    .then((resp) => resp.ok ? resp.json() : null)
+    .then((payload: AdminBatchSignResponse | null) => {
+      const signedByKey = new Map<string, string>();
+      (payload?.results || []).forEach((item) => {
+        if (item.bucket && item.path && item.signedUrl) signedByKey.set(`${item.bucket}/${item.path}`, item.signedUrl);
+      });
+      queue.forEach(({ storagePath, resolve }) => resolve(signedByKey.get(`${storagePath.bucket}/${storagePath.path}`) || null));
+    })
+    .catch(() => queue.forEach(({ resolve }) => resolve(null)));
+};
+
+const batchSignAdminStoragePath = (storagePath: AdminStoragePath, adminToken: string) => new Promise<string | null>((resolve) => {
+  batchSignQueue.push({ storagePath, adminToken, resolve });
+  if (batchSignTimer === null) {
+    batchSignTimer = window.setTimeout(flushBatchSignQueue, 12);
+  }
+});
+
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   const adminToken = resolveStoredAdminToken();
