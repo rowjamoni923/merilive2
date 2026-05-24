@@ -8646,6 +8646,42 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_exchange_tokens: {
+        Row: {
+          channel: string
+          created_at: string
+          expires_at: string
+          id: string
+          identifier: string
+          is_used: boolean
+          purpose: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          identifier: string
+          is_used?: boolean
+          purpose?: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          identifier?: string
+          is_used?: boolean
+          purpose?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       parcel_claims: {
         Row: {
           claimed_at: string | null
@@ -9306,6 +9342,7 @@ export type Database = {
       }
       phone_otps: {
         Row: {
+          attempts: number
           created_at: string | null
           delivery_method: string | null
           expires_at: string
@@ -9316,6 +9353,7 @@ export type Database = {
           purpose: string | null
         }
         Insert: {
+          attempts?: number
           created_at?: string | null
           delivery_method?: string | null
           expires_at: string
@@ -9326,6 +9364,7 @@ export type Database = {
           purpose?: string | null
         }
         Update: {
+          attempts?: number
           created_at?: string | null
           delivery_method?: string | null
           expires_at?: string
