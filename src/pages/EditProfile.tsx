@@ -289,6 +289,8 @@ const EditProfile = () => {
         // by the auto_convert_account_by_gender database trigger (SECURITY DEFINER)
       }
 
+      updateData.language = language;
+
       const { data, error } = await supabase
         .from("profiles")
         .update(updateData)
@@ -299,7 +301,7 @@ const EditProfile = () => {
       if (error) throw error;
       
       if (data) {
-        setProfile(data as ProfileData);
+        syncProfileState(data as ProfileData);
       }
       
       if (gender.toLowerCase() === "female" && profile.gender?.toLowerCase() !== "female") {
@@ -413,9 +415,14 @@ const EditProfile = () => {
       sonnerToast.success("Verification code sent to your email");
       setLinkStep("otp");
       setLinkOtpCooldown(60);
-      const t = setInterval(() => {
+      if (linkOtpCooldownTimerRef.current) clearInterval(linkOtpCooldownTimerRef.current);
+      linkOtpCooldownTimerRef.current = setInterval(() => {
         setLinkOtpCooldown((s) => {
-          if (s <= 1) { clearInterval(t); return 0; }
+          if (s <= 1) {
+            if (linkOtpCooldownTimerRef.current) clearInterval(linkOtpCooldownTimerRef.current);
+            linkOtpCooldownTimerRef.current = null;
+            return 0;
+          }
           return s - 1;
         });
       }, 1000);
