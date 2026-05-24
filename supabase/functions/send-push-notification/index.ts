@@ -12,8 +12,8 @@ interface PushNotificationRequest {
   title: string;
   body: string;
   imageUrl?: string;
-  data?: Record<string, string>;
-  type?: 'call' | 'message' | 'gift' | 'general' | 'broadcast';
+  data?: Record<string, unknown>;
+  type?: string;
   target?: 'all' | 'android' | 'ios';
 }
 
@@ -29,6 +29,15 @@ interface ServiceAccountCredentials {
   auth_provider_x509_cert_url: string;
   client_x509_cert_url: string;
 }
+
+const sanitizeFcmData = (input: Record<string, unknown> = {}): Record<string, string> => {
+  const output: Record<string, string> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value === undefined || value === null) continue;
+    output[key] = typeof value === "string" ? value : JSON.stringify(value);
+  }
+  return output;
+};
 
 // Generate JWT for FCM V1 authentication
 async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
