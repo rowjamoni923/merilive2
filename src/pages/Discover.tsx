@@ -86,25 +86,6 @@ const Discover = () => {
     }, 100);
   }, []);
 
-  useEffect(() => {
-    fetchCurrentUser();
-    fetchRooms(true); // Initial load with loading indicator
-
-    // Use universal realtime system instead of manual channels
-    const unsubscribe = subscribeToTables(
-      `discover-rooms-${Date.now()}`,
-      ['party_rooms', 'party_room_participants'],
-      () => debouncedFetch()
-    );
-
-    return () => {
-      unsubscribe();
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
-    };
-  }, [debouncedFetch]);
-
   const fetchCurrentUser = async () => {
     const { getCachedUser } = await import('@/utils/cachedAuth');
     const user = await getCachedUser();
@@ -243,6 +224,25 @@ const Discover = () => {
   useEffect(() => {
     fetchRoomsRef.current = fetchRooms;
   });
+
+  useEffect(() => {
+    fetchCurrentUser();
+    void fetchRoomsRef.current(true); // Initial load with loading indicator
+
+    // Use universal realtime system instead of manual channels
+    const unsubscribe = subscribeToTables(
+      `discover-rooms-${Date.now()}`,
+      ['party_rooms', 'party_room_participants'],
+      () => debouncedFetch()
+    );
+
+    return () => {
+      unsubscribe();
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [debouncedFetch]);
 
   const joinRoom = async (room: PartyRoom) => {
     if (!currentUser) {
