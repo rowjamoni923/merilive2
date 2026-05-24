@@ -17825,10 +17825,12 @@ export type Database = {
         Returns: Json
       }
       claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
-      claim_task_reward: {
-        Args: { _task_date?: string; _task_id: string; _user_id: string }
-        Returns: Json
-      }
+      claim_task_reward:
+        | { Args: { _task_id: string }; Returns: Json }
+        | {
+            Args: { _task_date?: string; _task_id: string; _user_id: string }
+            Returns: Json
+          }
       claim_vip_daily_reward: { Args: never; Returns: Json }
       cleanup_admin_broadcast_rate_counter: { Args: never; Returns: undefined }
       cleanup_application_logs: {
@@ -19182,12 +19184,10 @@ export type Database = {
         Args: { _stream_id: string }
         Returns: undefined
       }
-      update_task_progress:
-        | { Args: { _task_key: string }; Returns: Json }
-        | {
-            Args: { _increment?: number; _task_type: string; _value?: number }
-            Returns: Json
-          }
+      update_task_progress: {
+        Args: { _increment?: number; _task_type: string; _value?: number }
+        Returns: Json
+      }
       update_user_beauty_presets: { Args: { _presets: Json }; Returns: boolean }
       user_complete_instant_helper_topup: {
         Args: { _order_id: string }
