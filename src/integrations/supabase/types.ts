@@ -5620,6 +5620,7 @@ export type Database = {
           payment_proof_url: string | null
           processed_at: string | null
           processing_time_minutes: number | null
+          provider_transaction_id: string | null
           status: string | null
           total_price_usd: number | null
           updated_at: string | null
@@ -5648,6 +5649,7 @@ export type Database = {
           payment_proof_url?: string | null
           processed_at?: string | null
           processing_time_minutes?: number | null
+          provider_transaction_id?: string | null
           status?: string | null
           total_price_usd?: number | null
           updated_at?: string | null
@@ -5676,6 +5678,7 @@ export type Database = {
           payment_proof_url?: string | null
           processed_at?: string | null
           processing_time_minutes?: number | null
+          provider_transaction_id?: string | null
           status?: string | null
           total_price_usd?: number | null
           updated_at?: string | null
@@ -16246,6 +16249,7 @@ export type Database = {
               payment_proof_url: string | null
               processed_at: string | null
               processing_time_minutes: number | null
+              provider_transaction_id: string | null
               status: string | null
               total_price_usd: number | null
               updated_at: string | null
