@@ -81,6 +81,7 @@ export function usePrivateCall(userId: string | null) {
 
   const showVerifiedIncomingCall = useCallback(async (callId: string) => {
     if (!userId || !callId || endedCallIdsRef.current.has(callId)) return false;
+    if (incomingCallIdRef.current === callId) return true;
 
     const { data: call, error } = await supabase
       .from('private_calls')
