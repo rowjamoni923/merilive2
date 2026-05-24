@@ -26,6 +26,7 @@ import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { useSound } from "@/hooks/useSound";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 
 interface ActiveCallScreenProps {
@@ -253,7 +254,7 @@ export function ActiveCallScreen({
         userCoinsRef.current = data.coins || 0;
         setUserCoins(data.coins || 0);
         if (data.display_name) setMyDisplayName(data.display_name);
-        if (data.avatar_url) setMyAvatarUrl(data.avatar_url);
+        if (data.avatar_url) setMyAvatarUrl(normalizeProfileMediaUrl(data.avatar_url) || data.avatar_url);
         if (data.user_level) setMyLevel(data.user_level);
       }
     };
@@ -274,7 +275,11 @@ export function ActiveCallScreen({
         const photos: string[] = [];
         if (data.host_photos?.length) photos.push(...data.host_photos);
         if (data.profile_photo_url) photos.push(data.profile_photo_url);
+        const normalizedPhotos = photos
+          .map((photo) => normalizeProfileMediaUrl(photo) || photo)
+          .filter(Boolean);
         setHostPhotos(photos);
+        setHostPhotos(normalizedPhotos);
       }
     };
     
@@ -703,7 +708,7 @@ export function ActiveCallScreen({
               {/* Remote user avatar mini */}
               <div className="w-7 h-7 rounded-full overflow-hidden border border-white/20">
                 {remoteUserAvatar ? (
-                  <img src={remoteUserAvatar} alt="" className="w-full h-full object-cover" />
+                  <img src={normalizeProfileMediaUrl(remoteUserAvatar) || remoteUserAvatar} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-bold">
                     {remoteUserName?.charAt(0)}
