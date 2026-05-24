@@ -15,6 +15,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearerToken = authHeader.replace(/^Bearer\s+/i, "").trim();
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    if (!bearerToken || !anonKey || bearerToken === anonKey) {
+      return new Response(
+        JSON.stringify({ error: "Admin recovery session required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { email } = await req.json();
 
     if (!email) {
