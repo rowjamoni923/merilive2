@@ -208,7 +208,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         if (mountedRef.current) {
           setError('Failed to load animation');
           setLoading(false);
-          onError?.(err instanceof Error ? err : new Error('Failed to load SVGA'));
+          onErrorRef.current?.(err instanceof Error ? err : new Error('Failed to load SVGA'));
         }
       }
     };
