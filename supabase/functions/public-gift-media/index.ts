@@ -81,7 +81,9 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const rawPath = url.pathname.split("/public-gift-media/")[1] || "";
+    const marker = "/public-gift-media/";
+    const markerIndex = url.pathname.indexOf(marker);
+    const rawPath = markerIndex >= 0 ? url.pathname.slice(markerIndex + marker.length) : "";
     const queryPath = String(url.searchParams.get("path") || "");
     const path = extractGiftPath(rawPath || queryPath);
 
