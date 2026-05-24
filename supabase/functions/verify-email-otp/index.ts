@@ -7,6 +7,24 @@ const corsHeaders = {
     "authorization, x-client-info, x-client-platform, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function createExchangeToken(supabase: any, identifier: string, purpose: string): Promise<string> {
+  const rawBytes = new Uint8Array(32);
+  crypto.getRandomValues(rawBytes);
+  const token = Array.from(rawBytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  const tokenHash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  const { error } = await supabase.from("otp_exchange_tokens").insert({
+    token_hash: tokenHash,
+    identifier,
+    channel: "email",
+    purpose,
+    expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+  });
+  if (error) throw error;
+  return token;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -106,8 +124,10 @@ serve(async (req) => {
       console.log("[verify-email-otp] Expired OTPs cleaned up");
     });
 
+    const verifiedToken = await createExchangeToken(supabase, email.toLowerCase(), purpose);
+
     return new Response(
-      JSON.stringify({ success: true, verified: true }),
+      JSON.stringify({ success: true, verified: true, verified_token: verifiedToken }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
