@@ -29,13 +29,19 @@ export async function callGiftService(payload: GiftServicePayload): Promise<Gift
     throw new Error("No active session. Please sign in again.");
   }
 
+  // Pkg306 audit: header was hardcoded "android-webview" — wrong for web.
+  // Detect Capacitor native shell vs browser at call time.
+  const isNative = typeof (globalThis as any)?.Capacitor?.isNativePlatform === 'function'
+    && (globalThis as any).Capacitor.isNativePlatform();
+  const platform = isNative ? 'android-webview' : 'web';
+
   const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gift-service`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`,
       "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      "x-client-platform": "android-webview",
+      "x-client-platform": platform,
     },
     body: JSON.stringify(payload),
   });
