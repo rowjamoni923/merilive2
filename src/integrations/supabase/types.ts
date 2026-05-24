@@ -16148,6 +16148,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_has_any_section_permission: {
+        Args: { _require_edit?: boolean; _section_keys: string[] }
+        Returns: boolean
+      }
+      admin_has_section_permission: {
+        Args: { _require_edit?: boolean; _section_key: string }
+        Returns: boolean
+      }
       admin_helper_applications_stats: { Args: never; Returns: Json }
       admin_helper_management_stats: { Args: never; Returns: Json }
       admin_helper_requests_stats: { Args: never; Returns: Json }
@@ -17941,6 +17949,8 @@ export type Database = {
       current_admin_id_from_header: { Args: never; Returns: string }
       current_admin_reviewer_auth_id: { Args: never; Returns: string }
       current_admin_token_from_header: { Args: never; Returns: string }
+      current_effective_admin_id: { Args: never; Returns: string }
+      current_effective_admin_role: { Args: never; Returns: string }
       current_user_id: { Args: never; Returns: string }
       debug_distribute_test: {
         Args: { p_category: string; p_period_type: string }
