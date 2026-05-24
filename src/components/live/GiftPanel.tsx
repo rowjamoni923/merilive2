@@ -73,8 +73,12 @@ const getAssetPathWithoutQuery = (url?: string | null) =>
 
 const normalizeGiftAssetUrl = (url?: string | null) => {
   if (!url) return null;
-  if (url.startsWith('http') || url.startsWith('/')) return url;
-  if (url.includes('/storage/v1/object/public/')) return url.startsWith('http') ? url : `https://${window.location.host}${url.startsWith('/') ? '' : '/'}${url}`;
+  if (url.startsWith('http')) return url;
+  if (url.includes('/storage/v1/object/public/')) {
+    const path = url.startsWith('/') ? url : `/${url}`;
+    return `${import.meta.env.VITE_SUPABASE_URL}${path}`;
+  }
+  if (url.startsWith('/')) return url;
   return null;
 };
 
