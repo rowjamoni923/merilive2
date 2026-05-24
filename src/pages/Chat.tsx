@@ -612,7 +612,7 @@ const Chat = () => {
     setSendingVoice(true);
     try {
       const fileExtension = audioBlob.type?.includes('mp4') ? 'mp4' : 'webm';
-      const fileName = `voice-${currentUserId}-${Date.now()}.${fileExtension}`;
+      const fileName = `${currentUserId}/voice-${Date.now()}.${fileExtension}`;
       console.log('[Voice] Uploading to:', fileName);
       
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -628,16 +628,12 @@ const Chat = () => {
         throw uploadError;
       }
       
-      const { data: urlData } = supabase.storage
-        .from('chat-media')
-        .getPublicUrl(fileName);
-      
       // Send voice message
       if (selectedConversation) {
         const sentMessage = await persistDirectMessage(
           selectedConversation.id,
           currentUserId,
-          urlData.publicUrl,
+          fileName,
           'audio'
         );
 
@@ -661,7 +657,7 @@ const Chat = () => {
           .insert({
             group_id: selectedGroup.id,
             sender_id: currentUserId,
-            content: urlData.publicUrl,
+            content: fileName,
             message_type: 'audio'
           })
           .select()
