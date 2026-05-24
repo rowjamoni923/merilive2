@@ -128,10 +128,12 @@ const AdminReels = () => {
   };
 
   const toggleApproval = async (reel: Reel) => {
-    const { error } = await supabase
-      .from('reels')
-      .update({ is_approved: !reel.is_approved })
-      .eq('id', reel.id);
+    const { error } = await supabase.rpc('admin_update_reel_status', {
+      _reel_id: reel.id,
+      _is_approved: !reel.is_approved,
+      _is_active: null,
+      _is_featured: null,
+    });
     
     if (error) {
       toast.error("Failed to update");
@@ -144,10 +146,12 @@ const AdminReels = () => {
   };
 
   const toggleFeatured = async (reel: Reel) => {
-    const { error } = await supabase
-      .from('reels')
-      .update({ is_featured: !reel.is_featured })
-      .eq('id', reel.id);
+    const { error } = await supabase.rpc('admin_update_reel_status', {
+      _reel_id: reel.id,
+      _is_approved: null,
+      _is_active: null,
+      _is_featured: !reel.is_featured,
+    });
     
     if (error) {
       toast.error("Failed to update");
@@ -164,10 +168,13 @@ const AdminReels = () => {
     
     const reel = reels.find(r => r.id === reelId);
     
-    const { error } = await supabase
-      .from('reels')
-      .delete()
-      .eq('id', reelId);
+    const adminId = getCurrentAdminId();
+    if (!adminId) {
+      toast.error("Admin session expired");
+      return;
+    }
+
+    const { error } = await supabase.rpc('admin_delete_reel', { _admin_id: adminId, _reel_id: reelId });
     
     if (error) {
       console.error("Delete reel error:", error);
@@ -269,13 +276,10 @@ const AdminReels = () => {
   };
 
   const resolveReport = async (reportId: string, status: string) => {
-    const { error } = await supabase
-      .from('reel_reports')
-      .update({ 
-        status,
-        reviewed_at: new Date().toISOString()
-      })
-      .eq('id', reportId);
+    const { error } = await supabase.rpc('admin_resolve_reel_report', {
+      _report_id: reportId,
+      _status: status,
+    });
     
     if (!error) {
       setReports(prev => prev.map(r => 
