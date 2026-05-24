@@ -105,7 +105,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
 
         player.setVideoItem(videoItemToUse);
         setReady(true);
-        onLoad?.();
+        onLoadRef.current?.();
 
         if (autoPlay) {
           player.startAnimation();
