@@ -15,6 +15,24 @@ const json = (body: unknown, status: number) => new Response(JSON.stringify(body
   headers: { ...corsHeaders, "Content-Type": "application/json" },
 });
 
+const hasKey = (value: unknown, key: string) => typeof value === "string" && value.includes(key);
+const arrayHasKey = (value: unknown, key: string) => Array.isArray(value) && value.some((item) => hasKey(item, key));
+
+const isPublishedProfileMedia = async (key: string): Promise<boolean> => {
+  const [profiles, posters, streams, submissions] = await Promise.all([
+    admin.from("profiles").select("avatar_url, cover_url, host_photos").or(`avatar_url.ilike.%${key}%,cover_url.ilike.%${key}%`).limit(20),
+    admin.from("poster_images").select("image_url").ilike("image_url", `%${key}%`).limit(20),
+    admin.from("live_streams").select("thumbnail_url").ilike("thumbnail_url", `%${key}%`).limit(20),
+    admin.from("face_verification_submissions").select("profile_photo_url, video_url, host_photos").eq("status", "approved").limit(200),
+  ]);
+
+  if (profiles.data?.some((row) => hasKey(row.avatar_url, key) || hasKey(row.cover_url, key) || arrayHasKey(row.host_photos, key))) return true;
+  if (posters.data?.some((row) => hasKey(row.image_url, key))) return true;
+  if (streams.data?.some((row) => hasKey(row.thumbnail_url, key))) return true;
+  if (submissions.data?.some((row) => hasKey(row.profile_photo_url, key) || hasKey(row.video_url, key) || arrayHasKey(row.host_photos, key))) return true;
+  return false;
+};
+
 // Public proxy that serves PROFILE PHOTOS originally uploaded into the
 // PRIVATE face-verification bucket (historical bug). We download via
 // service role and stream back, so every viewer can render the avatar.
@@ -31,10 +49,9 @@ Deno.serve(async (req) => {
       return new Response("Bad key", { status: 400, headers: corsHeaders });
     }
 
-    const { data: allowed, error: allowError } = await admin.rpc("is_public_profile_media_key", { _key: key });
-    if (allowError || allowed !== true) {
-      if (allowError) console.error("[public-profile-avatar] allow-list rpc failed", allowError.message);
-      else console.warn("[public-profile-avatar] blocked unpublished key", key);
+    const allowed = await isPublishedProfileMedia(key);
+    if (!allowed) {
+      console.warn("[public-profile-avatar] blocked unpublished key", key);
       return json({ error: "not-public-profile-media", key }, 403);
     }
 
