@@ -1346,7 +1346,7 @@ const resolveNotificationNavPath = (notification: AdminNotification): string => 
 };
 
 export default function AdminLayout() {
-  useEnableBrowserPageInteraction({ mode: "app-shell" });
+  useEnableBrowserPageInteraction({ mode: "document" });
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -2648,7 +2648,7 @@ export default function AdminLayout() {
   const getGroupAccent = (title: string) => groupAccents[title] || groupAccents["Overview"];
 
   return (
-    <div className="admin-shell h-screen overflow-hidden bg-[#06060a]" style={{ height: '100dvh' }}>
+    <div className="admin-shell min-h-screen bg-[#06060a]" style={{ minHeight: '100dvh' }}>
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence mode="wait">
         {isMobileSidebarOpen && (
@@ -2862,7 +2862,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ━━━ MAIN CONTENT ━━━ */}
-      <div className={cn("transition-all duration-300 h-full min-h-0 flex flex-col overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")}>
+      <div className={cn("transition-all duration-300 min-h-screen flex flex-col", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")} style={{ minHeight: '100dvh' }}>
         
         {/* ━━━ TOP HEADER ━━━ */}
         <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top">
@@ -3042,7 +3042,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main data-admin-scroll-root="true" className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 80px), 80px)' }}>
+        <main data-admin-scroll-root="true" className="flex-1 overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 80px), 80px)' }}>
           <Suspense fallback={
             <div className="min-h-[40vh]" aria-hidden="true" />
           }>
