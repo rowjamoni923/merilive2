@@ -293,8 +293,8 @@ const SearchUsers = () => {
             isOnline={!!user.is_online}
           />
           {user.is_verified && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-card">
-              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-info rounded-full flex items-center justify-center border-2 border-card">
+              <svg className="w-2.5 h-2.5 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
@@ -306,7 +306,7 @@ const SearchUsers = () => {
           <div className="flex items-center gap-2">
             <p className="font-semibold truncate">{user.display_name || user.username || 'User'}</p>
             {user.is_host && (
-              <span className="text-xs bg-pink-500/15 text-pink-500 px-2 py-0.5 rounded-full shrink-0">Host</span>
+              <span className="text-xs bg-primary/15 text-primary px-2 py-0.5 rounded-full shrink-0">Host</span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -352,23 +352,23 @@ const SearchUsers = () => {
               {user.is_host && user.is_online && (
                 <Button
                   size="icon"
-                  className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"
+                  className="w-10 h-10 rounded-full bg-success text-primary-foreground hover:bg-success/90"
                   onClick={(e) => handleCall(user.id, e)}
                 >
-                  <Phone className="w-4 h-4 text-white" />
+                  <Phone className="w-4 h-4" />
                 </Button>
               )}
               
               <Button
                 size="icon"
                 variant={isFollowing ? "outline" : "default"}
-                className={`w-10 h-10 rounded-full ${!isFollowing ? 'bg-gradient-to-r from-purple-500 to-pink-500' : ''}`}
+                className="w-10 h-10 rounded-full"
                 onClick={(e) => handleFollow(user.id, e)}
               >
                 {isFollowing ? (
                   <UserCheck className="w-4 h-4" />
                 ) : (
-                  <UserPlus className="w-4 h-4 text-white" />
+                  <UserPlus className="w-4 h-4" />
                 )}
               </Button>
             </>
