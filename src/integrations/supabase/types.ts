@@ -15908,6 +15908,14 @@ export type Database = {
         Args: { _target_user_id?: string }
         Returns: boolean
       }
+      _pkg311_profile_equip_update_for_shop_item: {
+        Args: {
+          _category: string
+          _item_id: string
+          _profile: Database["public"]["Tables"]["profiles"]["Row"]
+        }
+        Returns: Json
+      }
       _pkg311_recalculate_all_user_levels_impl: {
         Args: never
         Returns: undefined
@@ -18868,14 +18876,16 @@ export type Database = {
         Args: { _auto_renew?: boolean; _noble_card_id: string }
         Returns: Json
       }
-      purchase_shop_item: {
-        Args: {
-          p_duration_days?: number
-          p_item_id: string
-          p_item_type: string
-        }
-        Returns: Json
-      }
+      purchase_shop_item:
+        | { Args: { _equip?: boolean; _item_id: string }; Returns: Json }
+        | {
+            Args: {
+              p_duration_days?: number
+              p_item_id: string
+              p_item_type: string
+            }
+            Returns: Json
+          }
       purchase_vip_tier: {
         Args: {
           p_duration_days: number
