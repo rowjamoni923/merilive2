@@ -554,9 +554,8 @@ const ProfileDetail = () => {
     const onVisible = () => {
       if (document.visibilityState === 'visible') void fetchData(true);
     };
-    // Bounded safety poll for this host's live status (30s, $1400-rule safe per Pkg57).
-    // guard-ok: bounded 30s poll, single host filter, Pkg82c pattern.
-    const liveStatusPoll = setInterval(async () => {
+    // Realtime live_streams subscription (replaces 30s poll — Core rule: no polling in place of realtime).
+    const refetchLiveStatus = async () => {
       try {
         const { data } = await supabase
           .from('live_streams')
@@ -570,7 +569,16 @@ const ProfileDetail = () => {
           setActiveLiveStream(null);
         }
       } catch { /* noop */ }
-    }, 30000);
+    };
+    const unsubscribeLive = subscribeToTables(
+      `profile-detail-live-${targetId}`,
+      ['live_streams'],
+      (_table, _event, payload) => {
+        const row = (payload?.new ?? payload?.old) as { host_id?: string } | undefined;
+        if (row?.host_id === targetId) void refetchLiveStatus();
+      }
+    );
+    void refetchLiveStatus();
 
     window.addEventListener('app-sync', onAppSync as EventListener);
     window.addEventListener('own-beans-updated', onOwnBeans);
@@ -579,7 +587,7 @@ const ProfileDetail = () => {
       window.removeEventListener('app-sync', onAppSync as EventListener);
       window.removeEventListener('own-beans-updated', onOwnBeans);
       document.removeEventListener('visibilitychange', onVisible);
-      clearInterval(liveStatusPoll);
+      unsubscribeLive();
     };
   }, [userId, currentUser?.id, fetchData]);
 
