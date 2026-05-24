@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
 import { Button } from "@/components/ui/button";
