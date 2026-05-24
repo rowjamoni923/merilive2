@@ -265,7 +265,7 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
  
        {/* Phone Auth Dialog */}
        <Dialog open={showDialog} onOpenChange={closeDialog}>
-         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border border-amber-200/70 rounded-3xl shadow-2xl shadow-amber-900/10">
+         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto max-h-[88vh] overflow-y-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border border-amber-200/70 rounded-3xl shadow-2xl shadow-amber-900/10">
            
            {/* Step 1: Phone Number */}
            {step === "phone" && (
