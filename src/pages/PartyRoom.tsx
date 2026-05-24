@@ -785,7 +785,7 @@ const PartyRoom = () => {
       if (isHostNow && roomId) {
         const leftAt = new Date().toISOString();
         sendPatchBeacon(`party_rooms?id=eq.${encodeURIComponent(roomId)}`, { is_active: false, ended_at: leftAt });
-        sendPatchBeacon(`party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&left_at=is.null`, { left_at: leftAt, position: null });
+        sendPatchBeacon(`party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&left_at=is.null`, { left_at: leftAt, seat_number: null });
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
