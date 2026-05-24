@@ -6,15 +6,11 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 
-const normalizeGiftAssetUrl = (url?: string | null) => {
-  if (!url) return null;
-  if (url.startsWith('http') || url.startsWith('/')) return url;
-  if (url.includes('/storage/v1/object/public/')) return url.startsWith('http') ? url : `https://${window.location.host}${url.startsWith('/') ? '' : '/'}${url}`;
-  return null;
-};
+const normalizeGiftAssetUrl = normalizeGiftMediaUrl;
 
 const getDisplayUrl = (iconUrl?: string | null, animationUrl?: string | null) => {
   const normalizedIconUrl = normalizeGiftAssetUrl(iconUrl);
