@@ -3,11 +3,34 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers": "authorization, x-admin-token, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+
+async function requireAdminSession(req: Request, supabase: ReturnType<typeof createClient>) {
+  const token = req.headers.get("x-admin-token") || "";
+  if (token.length < 16) return false;
+
+  const { data: session, error } = await supabase
+    .from("admin_sessions")
+    .select("admin_user_id, expires_at")
+    .eq("session_token", token)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+
+  if (error || !session?.admin_user_id) return false;
+
+  const { data: admin } = await supabase
+    .from("admin_users")
+    .select("id")
+    .eq("id", session.admin_user_id)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  return !!admin?.id;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -17,6 +40,14 @@ serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
+    const isAdmin = await requireAdminSession(req, supabase);
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Unauthorized admin session" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const url = new URL(req.url);
     const path = url.pathname.split("/").pop();
 
@@ -54,7 +85,7 @@ serve(async (req) => {
         const { data: conversations, error } = await supabase
           .from("conversations")
           .select("*")
-          .or(`participant_1.eq.${userId},participant_2.eq.${userId}`)
+          .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
           .order("last_message_at", { ascending: false })
           .limit(50);
 
@@ -62,8 +93,8 @@ serve(async (req) => {
 
         const participantIds = new Set<string>();
         (conversations || []).forEach((c: any) => {
-          participantIds.add(c.participant_1);
-          participantIds.add(c.participant_2);
+          participantIds.add(c.participant1_id);
+          participantIds.add(c.participant2_id);
         });
 
         const { data: profiles } = await supabase
@@ -78,7 +109,7 @@ serve(async (req) => {
 
         const conversationsWithDetails = await Promise.all(
           (conversations || []).map(async (conv: any) => {
-            const otherId = conv.participant_1 === userId ? conv.participant_2 : conv.participant_1;
+            const otherId = conv.participant1_id === userId ? conv.participant2_id : conv.participant1_id;
 
             const { data: lastMsg } = await supabase
               .from("messages")
