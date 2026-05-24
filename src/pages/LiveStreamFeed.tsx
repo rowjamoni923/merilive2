@@ -20,6 +20,7 @@ import { ChevronUp, ChevronDown, Eye, Loader2, Radio } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface LiveStream {
   id: string;
@@ -93,7 +94,16 @@ export default function LiveStreamFeed() {
     };
 
     fetchStreams();
-    return () => { cancelled = true; };
+    const unsubscribe = subscribeToTables(
+      `live-feed-${Date.now()}`,
+      ['live_streams', 'profiles'],
+      () => fetchStreams()
+    );
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [currentStreamId]);
 
   // Navigate to previous stream (swipe down)
@@ -104,9 +114,8 @@ export default function LiveStreamFeed() {
     const newIndex = currentIndex - 1;
     setCurrentIndex(newIndex);
     
-    // Navigate to new stream
     if (streams[newIndex]) {
-      navigate(`/live/${streams[newIndex].id}`, { replace: true });
+      navigate(`/live-feed/${streams[newIndex].id}`, { replace: true });
     }
     
     setTimeout(() => {
@@ -122,9 +131,8 @@ export default function LiveStreamFeed() {
     const newIndex = currentIndex + 1;
     setCurrentIndex(newIndex);
     
-    // Navigate to new stream
     if (streams[newIndex]) {
-      navigate(`/live/${streams[newIndex].id}`, { replace: true });
+      navigate(`/live-feed/${streams[newIndex].id}`, { replace: true });
     }
     
     setTimeout(() => {
