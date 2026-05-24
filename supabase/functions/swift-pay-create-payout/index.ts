@@ -53,15 +53,13 @@ Deno.serve(async (req) => {
       return json({ error: "withdrawal_id and pay_address are required" }, 400);
     }
 
-    // 🔒 FINANCIAL HARDENING — withdrawals are USDT ONLY.
+    // 🔒 FINANCIAL HARDENING — withdrawals are USDT TRC20 ONLY.
     // Reject anything else even if the client tampers with the request.
-    const ALLOWED_CURRENCIES = new Set(["usdttrc20", "usdtbep20", "usdterc20"]);
     const payCurrency = String(body.pay_currency ?? "usdttrc20").toLowerCase().trim();
-    if (!ALLOWED_CURRENCIES.has(payCurrency)) {
-      return json({ error: "only USDT withdrawals are supported" }, 400);
+    if (payCurrency !== "usdttrc20") {
+      return json({ error: "only USDT TRC20 withdrawals are supported" }, 400);
     }
-    const payNetwork = body.pay_network ??
-      (payCurrency === "usdtbep20" ? "BEP20" : payCurrency === "usdterc20" ? "ERC20" : "TRC20");
+    const payNetwork = "TRC20";
 
     // Basic wallet address sanity (alphanumeric, 20–100 chars — same rule as the client)
     const payAddress = String(body.pay_address).trim();
