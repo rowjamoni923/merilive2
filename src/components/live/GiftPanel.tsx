@@ -131,6 +131,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   // value captured on mount until the balance subscription fires.
   useEffect(() => {
     if (typeof propUserCoins === 'number' && propUserCoins >= 0) {
+      userCoinsRef.current = propUserCoins;
       setUserCoins(propUserCoins);
       setDisplayCoins(propUserCoins);
     }
@@ -143,18 +144,21 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     // Use cached balance immediately for instant UI
     const cachedBalance = getCachedBalance();
     if (cachedBalance > 0) {
+      userCoinsRef.current = cachedBalance;
       setUserCoins(cachedBalance);
       setDisplayCoins(cachedBalance);
     }
 
     // Subscribe to balance updates
     const unsubscribe = subscribeToBalance((newBalance) => {
+      userCoinsRef.current = newBalance;
       setUserCoins(newBalance);
     });
 
     // Fetch fresh balance in background (only if cache is empty)
     if (cachedBalance === 0) {
       getBalanceWithFetch().then((balance) => {
+        userCoinsRef.current = balance;
         setUserCoins(balance);
         setDisplayCoins(balance);
       });
