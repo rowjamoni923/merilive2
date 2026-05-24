@@ -185,6 +185,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         animationType: getAnimationType(gift.coin_value),
         icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),
         animation_url: normalizeGiftAssetUrl(gift.animation_url),
+        sound_url: normalizeGiftAssetUrl(gift.sound_url),
       }));
       setGifts(transformedGifts);
     };
