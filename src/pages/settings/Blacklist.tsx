@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserX, Trash2 } from "lucide-react";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,11 +37,8 @@ const Blacklist = () => {
   const [loading, setLoading] = useState(true);
   const [unblockUserId, setUnblockUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchBlockedUsers();
-  }, []);
-
-  const fetchBlockedUsers = async () => {
+  const fetchBlockedUsers = useCallback(async () => {
+    setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -59,7 +57,7 @@ const Blacklist = () => {
       if (data && data.length > 0) {
         const blockedIds = data.map(b => b.blocked_id);
         const { data: profiles } = await supabase
-          .from("profiles")
+          .from("profiles_public")
           .select("id, display_name, avatar_url, username")
           .in("id", blockedIds);
 
@@ -84,7 +82,15 @@ const Blacklist = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    void fetchBlockedUsers();
+  }, [fetchBlockedUsers]);
+
+  useAppSyncEvent(['user_blocks', 'blocked_users'], () => {
+    void fetchBlockedUsers();
+  });
 
   const handleUnblock = async (blockId: string) => {
     try {
@@ -122,7 +128,7 @@ const Blacklist = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
+              className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -134,11 +140,11 @@ const Blacklist = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
       {blockedUsers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4">
-          <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mb-4">
-            <UserX className="w-10 h-10 text-slate-600" />
+            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+              <UserX className="w-10 h-10 text-muted-foreground" />
           </div>
           <h2 className="text-lg font-semibold mb-2">No Blocked Users</h2>
-          <p className="text-slate-600 text-center text-sm">
+            <p className="text-muted-foreground text-center text-sm">
             You haven't blocked anyone. You can block users from their profile if they bother you.
           </p>
         </div>
@@ -152,7 +158,7 @@ const Blacklist = () => {
               <div className="flex items-center gap-3">
                 <Avatar className="w-12 h-12">
                   <AvatarImage src={blocked.blocked_profile?.avatar_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-800">
+                  <AvatarFallback className="bg-primary/10 text-primary">
                     {blocked.blocked_profile?.display_name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -160,7 +166,7 @@ const Blacklist = () => {
                   <p className="font-medium">
                     {blocked.blocked_profile?.display_name || "Unknown User"}
                   </p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-muted-foreground">
                     @{blocked.blocked_profile?.username || blocked.blocked_id.slice(0, 8)}
                   </p>
                 </div>

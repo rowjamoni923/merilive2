@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserX, ShieldOff, Search, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,7 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 interface BlockedUser {
   id: string;
@@ -22,14 +23,14 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    fetchBlockedUsers();
-  }, []);
-
-  const fetchBlockedUsers = async () => {
+  const fetchBlockedUsers = useCallback(async () => {
+    setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
 
       const { data, error } = await supabase
         .from("blocked_users")
@@ -42,7 +43,7 @@ const UserManagement = () => {
       if (data && data.length > 0) {
         const blockedIds = data.map(b => b.blocked_id);
         const { data: profiles } = await supabase
-          .from("profiles")
+          .from("profiles_public")
           .select("id, display_name, avatar_url")
           .in("id", blockedIds);
 
@@ -55,6 +56,8 @@ const UserManagement = () => {
           blocked_avatar: profileMap.get(b.blocked_id)?.avatar_url || null,
           blocked_at: b.created_at,
         })));
+      } else {
+        setBlockedUsers([]);
       }
     } catch (error) {
       console.error("Error fetching blocked users:", error);
@@ -62,7 +65,15 @@ const UserManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    void fetchBlockedUsers();
+  }, [fetchBlockedUsers]);
+
+  useAppSyncEvent(['blocked_users', 'user_blocks'], () => {
+    void fetchBlockedUsers();
+  });
 
   const handleUnblock = async (blockedUserId: string, name: string) => {
     try {
@@ -91,7 +102,7 @@ const UserManagement = () => {
         <div className="flex items-center h-14 px-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -102,13 +113,13 @@ const UserManagement = () => {
       {/* Search */}
       <div className="px-4 py-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search blocked users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-amber-50/50 border border-amber-200/60 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full pl-10 pr-4 py-2.5 bg-muted/40 border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
         </div>
       </div>
@@ -117,19 +128,19 @@ const UserManagement = () => {
       <div className="px-4">
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-amber-50/30 border border-amber-200/60 rounded-xl p-3 text-center">
+          <div className="bg-card border border-border rounded-xl p-3 text-center">
             <UserX className="w-5 h-5 mx-auto mb-1 text-destructive" />
             <p className="text-lg font-bold">{blockedUsers.length}</p>
-            <p className="text-xs text-slate-600">Blocked Users</p>
+            <p className="text-xs text-muted-foreground">Blocked Users</p>
           </div>
-          <div className="bg-amber-50/30 border border-amber-200/60 rounded-xl p-3 text-center">
+          <div className="bg-card border border-border rounded-xl p-3 text-center">
             <User className="w-5 h-5 mx-auto mb-1 text-primary" />
             <p className="text-lg font-bold">Active</p>
-            <p className="text-xs text-slate-600">Account Status</p>
+            <p className="text-xs text-muted-foreground">Account Status</p>
           </div>
         </div>
 
-        <h2 className="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">
+        <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
           Blocked Users ({filteredUsers.length})
         </h2>
 
@@ -137,11 +148,11 @@ const UserManagement = () => {
           <LoadingSpinner text="Loading..." />
         ) : filteredUsers.length === 0 ? (
           <div className="text-center py-12">
-            <ShieldOff className="w-12 h-12 mx-auto mb-3 text-slate-600/30" />
-            <p className="text-slate-600">
+            <ShieldOff className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+            <p className="text-muted-foreground">
               {searchQuery ? "No users found" : "No blocked users"}
             </p>
-            <p className="text-xs text-slate-600/60 mt-1">
+            <p className="text-xs text-muted-foreground/60 mt-1">
               {searchQuery ? "Try a different search" : "Users you block will appear here"}
             </p>
           </div>
@@ -150,19 +161,19 @@ const UserManagement = () => {
             {filteredUsers.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center justify-between p-3 bg-amber-50/20 border border-amber-200/60 rounded-xl"
+                className="flex items-center justify-between p-3 bg-card border border-border rounded-xl"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                     {user.blocked_avatar ? (
                       <img src={user.blocked_avatar} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <User className="w-5 h-5 text-slate-600" />
+                      <User className="w-5 h-5 text-muted-foreground" />
                     )}
                   </div>
                   <div>
                     <p className="font-medium text-sm">{user.blocked_name}</p>
-                    <p className="text-xs text-slate-600">
+                    <p className="text-xs text-muted-foreground">
                       Blocked {new Date(user.blocked_at).toLocaleDateString()}
                     </p>
                   </div>

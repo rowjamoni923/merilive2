@@ -5,29 +5,29 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 interface NotificationCategory {
   key: string;
   label: string;
   description: string;
   icon: any;
-  color: string;
 }
 
 const CATEGORIES: NotificationCategory[] = [
-  { key: 'calls', label: 'Calls', description: 'Incoming calls, missed calls', icon: Phone, color: 'bg-blue-500' },
-  { key: 'gifts', label: 'Gifts', description: 'Gift sent & received', icon: Gift, color: 'bg-pink-500' },
-  { key: 'social', label: 'Social', description: 'New followers, messages', icon: Users, color: 'bg-indigo-500' },
-  { key: 'live', label: 'Live & Party', description: 'Live streams, party invites', icon: Video, color: 'bg-red-500' },
-  { key: 'transactions', label: 'Transactions', description: 'Top-up, withdrawal, diamonds', icon: Coins, color: 'bg-amber-500' },
-  { key: 'rewards', label: 'Rewards', description: 'Level up, tasks, bonuses', icon: Award, color: 'bg-green-500' },
-  { key: 'system', label: 'System', description: 'Admin messages, security', icon: Shield, color: 'bg-gray-500' },
-  { key: 'agency', label: 'Agency', description: 'Agency notifications', icon: Building2, color: 'bg-purple-500' },
-  { key: 'helper', label: 'Helper', description: 'Orders, payroll, level', icon: HeadphonesIcon, color: 'bg-teal-500' },
-  { key: 'host', label: 'Host', description: 'Application status', icon: Crown, color: 'bg-yellow-500' },
-  { key: 'face_verification_approved', label: 'Face Verification — Approved', description: 'Notify when your face verification is approved', icon: ShieldCheck, color: 'bg-emerald-500' },
-  { key: 'face_verification_rejected', label: 'Face Verification — Rejected', description: 'Notify when your face verification is rejected', icon: ShieldX, color: 'bg-rose-500' },
-  { key: 'general', label: 'General', description: 'Other notifications', icon: Bell, color: 'bg-amber-50' },
+  { key: 'calls', label: 'Calls', description: 'Incoming calls, missed calls', icon: Phone },
+  { key: 'gifts', label: 'Gifts', description: 'Gift sent & received', icon: Gift },
+  { key: 'social', label: 'Social', description: 'New followers, messages', icon: Users },
+  { key: 'live', label: 'Live & Party', description: 'Live streams, party invites', icon: Video },
+  { key: 'transactions', label: 'Transactions', description: 'Top-up, withdrawal, diamonds', icon: Coins },
+  { key: 'rewards', label: 'Rewards', description: 'Level up, tasks, bonuses', icon: Award },
+  { key: 'system', label: 'System', description: 'Admin messages, security', icon: Shield },
+  { key: 'agency', label: 'Agency', description: 'Agency notifications', icon: Building2 },
+  { key: 'helper', label: 'Helper', description: 'Orders, payroll, level', icon: HeadphonesIcon },
+  { key: 'host', label: 'Host', description: 'Application status', icon: Crown },
+  { key: 'face_verification_approved', label: 'Face Verification — Approved', description: 'Notify when your face verification is approved', icon: ShieldCheck },
+  { key: 'face_verification_rejected', label: 'Face Verification — Rejected', description: 'Notify when your face verification is rejected', icon: ShieldX },
+  { key: 'general', label: 'General', description: 'Other notifications', icon: Bell },
 ];
 
 interface PrefState {
@@ -45,15 +45,19 @@ export default function NotificationSettings() {
   const [loading, setLoading] = useState(true);
   const [globalSound, setGlobalSound] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
+  const loadPreferences = async () => {
+    try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('notification_preferences')
         .select('category, enabled, push_enabled, sound_enabled')
         .eq('user_id', user.id);
+      if (error) throw error;
 
       const map: Record<string, PrefState> = {};
       data?.forEach(p => {
@@ -64,10 +68,22 @@ export default function NotificationSettings() {
       // Check if any sound is disabled
       const anySoundOff = data?.some(p => !p.sound_enabled);
       setGlobalSound(!anySoundOff);
+    } catch (error) {
+      console.error('Failed to load notification preferences:', error);
+      recordClientError({ label: "NotificationSettings.load", message: error instanceof Error ? error.message : String(error) });
+      toast({ title: 'Error', description: 'Failed to load preferences', variant: 'destructive' });
+    } finally {
       setLoading(false);
-    };
-    load();
+    }
+  };
+
+  useEffect(() => {
+    void loadPreferences();
   }, []);
+
+  useAppSyncEvent(['notification_preferences'], () => {
+    void loadPreferences();
+  });
 
   const updatePref = async (category: string, field: keyof PrefState, value: boolean) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -139,17 +155,17 @@ export default function NotificationSettings() {
 
   if (loading) {
     return (
-      <div className="mobile-page bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] flex items-center justify-center">
+      <div className="mobile-page bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="mobile-page bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
-      <div className="mobile-header bg-white/80 backdrop-blur-xl border-b border-amber-200/50 border-amber-200/60">
+    <div className="mobile-page bg-background">
+      <div className="mobile-header bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="flex items-center h-14 px-4">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="flex-1 text-center text-lg font-semibold pr-7">Notification Settings</h1>
@@ -158,17 +174,17 @@ export default function NotificationSettings() {
 
       <div className="mobile-page-scrollable">
         {/* Global Sound Toggle */}
-        <div className="px-4 py-3 bg-amber-50/30 border-b border-amber-200/60">
+        <div className="px-4 py-3 bg-card border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {globalSound ? (
                 <Volume2 className="w-5 h-5 text-primary" />
               ) : (
-                <VolumeX className="w-5 h-5 text-slate-600" />
+                <VolumeX className="w-5 h-5 text-muted-foreground" />
               )}
               <div>
-                <p className="font-medium text-slate-800">Notification Sound</p>
-                <p className="text-xs text-slate-600">Play sound for all notifications</p>
+                <p className="font-medium text-foreground">Notification Sound</p>
+                <p className="text-xs text-muted-foreground">Play sound for all notifications</p>
               </div>
             </div>
             <Switch checked={globalSound} onCheckedChange={toggleGlobalSound} />
@@ -183,12 +199,12 @@ export default function NotificationSettings() {
             return (
               <div key={cat.key} className="px-4 py-3.5">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-8 h-8 rounded-lg ${cat.color} flex items-center justify-center`}>
-                    <Icon className="w-4 h-4 text-slate-800" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-800 text-sm">{cat.label}</p>
-                    <p className="text-xs text-slate-600">{cat.description}</p>
+                    <p className="font-medium text-foreground text-sm">{cat.label}</p>
+                    <p className="text-xs text-muted-foreground">{cat.description}</p>
                   </div>
                   <Switch
                     checked={pref.enabled}
@@ -197,7 +213,7 @@ export default function NotificationSettings() {
                 </div>
                 {pref.enabled && (
                   <div className="ml-11 flex items-center gap-4 mt-1">
-                    <label className="flex items-center gap-2 text-xs text-slate-600">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Switch
                         className="scale-75"
                         checked={pref.push_enabled}
@@ -205,7 +221,7 @@ export default function NotificationSettings() {
                       />
                       Push
                     </label>
-                    <label className="flex items-center gap-2 text-xs text-slate-600">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Switch
                         className="scale-75"
                         checked={pref.sound_enabled}
@@ -220,7 +236,7 @@ export default function NotificationSettings() {
           })}
         </div>
 
-        <div className="p-4 text-center text-xs text-slate-600">
+        <div className="p-4 text-center text-xs text-muted-foreground">
           Disabled categories will not appear in your notifications. Push notifications require device permission to be enabled.
         </div>
       </div>

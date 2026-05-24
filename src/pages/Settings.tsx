@@ -234,39 +234,9 @@ const Settings = () => {
           return;
         }
 
-        // Try multiple IP APIs for language detection
-        let countryCode = null;
-
-        // API 1: ipapi.co
-        try {
-          const response = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.country_code && !data.error) countryCode = data.country_code;
-          }
-        } catch (e) { /* fallback */ }
-
-        // API 2: ipwho.is (if API 1 failed)
-        if (!countryCode) {
-          try {
-            const response = await fetch("https://ipwho.is/", { signal: AbortSignal.timeout(4000) });
-            if (response.ok) {
-              const data = await response.json();
-              if (data.success && data.country_code) countryCode = data.country_code;
-            }
-          } catch (e) { /* fallback */ }
-        }
-
-        // API 3: freeipapi.com
-        if (!countryCode) {
-          try {
-            const response = await fetch("https://freeipapi.com/api/json", { signal: AbortSignal.timeout(4000) });
-            if (response.ok) {
-              const data = await response.json();
-              if (data.countryCode) countryCode = data.countryCode;
-            }
-          } catch (e) { /* ignore */ }
-        }
+        const { data, error } = await supabase.functions.invoke("detect-country");
+        if (error) throw error;
+        const countryCode = typeof data?.countryCode === "string" ? data.countryCode : null;
 
         if (countryCode) {
           setDetectedCountry(countryCode);
@@ -657,13 +627,29 @@ const Settings = () => {
   };
 
   const handleClearCache = () => {
-    const deviceAccount = localStorage.getItem("meri_device_account");
-    const deviceId = localStorage.getItem("meri_device_id");
-    const appLang = localStorage.getItem("meri_app_language");
-    localStorage.clear();
-    if (deviceAccount) localStorage.setItem("meri_device_account", deviceAccount);
-    if (deviceId) localStorage.setItem("meri_device_id", deviceId);
-    if (appLang) localStorage.setItem("meri_app_language", appLang);
+    const removableLocalPrefixes = [
+      "meri_profile_cache",
+      "meri_level_cache",
+      "meri_maintenance_mode_cache",
+      "daily_login_popup_dismissed",
+      "meri_sound_disabled",
+    ];
+    const removableSessionPrefixes = ["meri:instant-rest:", "meri:instant-rest-meta:"];
+
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (removableLocalPrefixes.some((prefix) => key.startsWith(prefix))) {
+          localStorage.removeItem(key);
+        }
+      });
+      Object.keys(sessionStorage).forEach((key) => {
+        if (removableSessionPrefixes.some((prefix) => key.startsWith(prefix))) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      recordClientError({ label: "Settings.clearCache", message: error instanceof Error ? error.message : String(error) });
+    }
     
     toast({
       title: "Cache Cleared",
@@ -714,7 +700,7 @@ const Settings = () => {
     setDeleteLoading(true);
     try {
       const { error } = await supabase.rpc('cancel_account_deletion', {
-        user_id_param: userId
+        _user_id: userId
       });
       
       if (error) throw error;
