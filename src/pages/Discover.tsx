@@ -419,8 +419,8 @@ const Discover = () => {
               className={cn(
                 "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 border",
                 selectedCountry === country.code
-                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-heading border-transparent shadow-md shadow-pink-500/20"
-                  : "bg-white text-heading border-slate-200 hover:border-slate-300"
+                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-on-dark border-transparent shadow-md shadow-pink-500/20"
+                  : "bg-card text-foreground border-border hover:border-muted-foreground/30"
               )}
             >
               <span className="text-sm">{country.flag}</span>
