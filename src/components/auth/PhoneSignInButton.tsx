@@ -1,18 +1,19 @@
- import { useState, useEffect } from "react";
- import { Button } from "@/components/ui/button";
- import { Input } from "@/components/ui/input";
- import { Phone, ArrowRight, Check, Search, ChevronDown } from "lucide-react";
- import { useToast } from "@/hooks/use-toast";
- import { useFirebasePhoneAuth } from "@/hooks/useFirebasePhoneAuth";
- import {
-   Dialog,
-   DialogContent,
-   DialogHeader,
-   DialogTitle,
-   DialogDescription,
- } from "@/components/ui/dialog";
- import { ScrollArea } from "@/components/ui/scroll-area";
- import { COUNTRY_CODES, getCountryByCode, CountryCode } from "@/data/countryCodes";
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Phone, ArrowRight, Check, Search, ChevronDown } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useFirebasePhoneAuth } from "@/hooks/useFirebasePhoneAuth";
+import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { COUNTRY_CODES, getCountryByCode, CountryCode } from "@/data/countryCodes";
  
  interface PhoneSignInButtonProps {
    agreed: boolean;
