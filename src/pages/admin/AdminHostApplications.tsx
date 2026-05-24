@@ -449,6 +449,10 @@ export default function AdminHostApplications() {
     profile_photo_url?: string | null;
     video_url?: string | null;
     face_image_url?: string | null;
+    selfie_url?: string | null;
+    front_url?: string | null;
+    left_url?: string | null;
+    right_url?: string | null;
     host_photos?: string[];
   }>({});
 
@@ -460,10 +464,14 @@ export default function AdminHostApplications() {
     let cancelled = false;
     (async () => {
       const a = selectedApplication;
-      const [profile_photo_url, video_url, face_image_url, ...hostPhotos] = await Promise.all([
+      const [profile_photo_url, video_url, face_image_url, selfie_url, front_url, left_url, right_url, ...hostPhotos] = await Promise.all([
         resolveAdminStorageObjectUrl(a.profile_photo_url, 'face-verification'),
         resolveAdminStorageObjectUrl(a.video_url, 'face-verification'),
         resolveAdminStorageObjectUrl(a.face_image_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(a.selfie_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(a.front_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(a.left_url, 'face-verification'),
+        resolveAdminStorageObjectUrl(a.right_url, 'face-verification'),
         ...((a.host_photos || []).map((u) => resolveAdminStorageObjectUrl(u, 'face-verification'))),
       ]);
       if (cancelled) return;
@@ -471,6 +479,10 @@ export default function AdminHostApplications() {
         profile_photo_url,
         video_url,
         face_image_url,
+        selfie_url,
+        front_url,
+        left_url,
+        right_url,
         host_photos: hostPhotos.map((u) => u || ''),
       });
     })();
@@ -484,6 +496,10 @@ export default function AdminHostApplications() {
       profile_photo_url: resolvedMedia.profile_photo_url ?? selectedApplication.profile_photo_url,
       video_url: resolvedMedia.video_url ?? selectedApplication.video_url,
       face_image_url: resolvedMedia.face_image_url ?? selectedApplication.face_image_url,
+      selfie_url: resolvedMedia.selfie_url ?? selectedApplication.selfie_url,
+      front_url: resolvedMedia.front_url ?? selectedApplication.front_url,
+      left_url: resolvedMedia.left_url ?? selectedApplication.left_url,
+      right_url: resolvedMedia.right_url ?? selectedApplication.right_url,
       host_photos: (resolvedMedia.host_photos && resolvedMedia.host_photos.length === (selectedApplication.host_photos?.length || 0))
         ? resolvedMedia.host_photos.map((u, i) => u || (selectedApplication.host_photos?.[i] ?? ''))
         : selectedApplication.host_photos,
