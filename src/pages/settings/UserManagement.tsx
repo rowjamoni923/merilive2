@@ -128,19 +128,19 @@ const UserManagement = () => {
       <div className="px-4">
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-amber-50/30 border border-amber-200/60 rounded-xl p-3 text-center">
+          <div className="bg-card border border-border rounded-xl p-3 text-center">
             <UserX className="w-5 h-5 mx-auto mb-1 text-destructive" />
             <p className="text-lg font-bold">{blockedUsers.length}</p>
-            <p className="text-xs text-slate-600">Blocked Users</p>
+            <p className="text-xs text-muted-foreground">Blocked Users</p>
           </div>
-          <div className="bg-amber-50/30 border border-amber-200/60 rounded-xl p-3 text-center">
+          <div className="bg-card border border-border rounded-xl p-3 text-center">
             <User className="w-5 h-5 mx-auto mb-1 text-primary" />
             <p className="text-lg font-bold">Active</p>
-            <p className="text-xs text-slate-600">Account Status</p>
+            <p className="text-xs text-muted-foreground">Account Status</p>
           </div>
         </div>
 
-        <h2 className="text-sm font-semibold text-slate-600 mb-3 uppercase tracking-wider">
+        <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
           Blocked Users ({filteredUsers.length})
         </h2>
 
@@ -148,11 +148,11 @@ const UserManagement = () => {
           <LoadingSpinner text="Loading..." />
         ) : filteredUsers.length === 0 ? (
           <div className="text-center py-12">
-            <ShieldOff className="w-12 h-12 mx-auto mb-3 text-slate-600/30" />
-            <p className="text-slate-600">
+            <ShieldOff className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+            <p className="text-muted-foreground">
               {searchQuery ? "No users found" : "No blocked users"}
             </p>
-            <p className="text-xs text-slate-600/60 mt-1">
+            <p className="text-xs text-muted-foreground/60 mt-1">
               {searchQuery ? "Try a different search" : "Users you block will appear here"}
             </p>
           </div>
@@ -161,19 +161,19 @@ const UserManagement = () => {
             {filteredUsers.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center justify-between p-3 bg-amber-50/20 border border-amber-200/60 rounded-xl"
+                className="flex items-center justify-between p-3 bg-card border border-border rounded-xl"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                     {user.blocked_avatar ? (
                       <img src={user.blocked_avatar} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <User className="w-5 h-5 text-slate-600" />
+                      <User className="w-5 h-5 text-muted-foreground" />
                     )}
                   </div>
                   <div>
                     <p className="font-medium text-sm">{user.blocked_name}</p>
-                    <p className="text-xs text-slate-600">
+                    <p className="text-xs text-muted-foreground">
                       Blocked {new Date(user.blocked_at).toLocaleDateString()}
                     </p>
                   </div>
