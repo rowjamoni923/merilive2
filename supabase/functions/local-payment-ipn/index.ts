@@ -173,6 +173,54 @@ serve(async (req) => {
 
       console.log(`[IPN] AamarPay: status=${status}, txn=${txnId}, order=${orderId}`);
 
+      // 🛡️ REQUIRED: verify AamarPay status against their transaction-check API.
+      if (status === "VALID" && txnId) {
+        const { data: pm } = await supabaseAdmin
+          .from("helper_country_payment_methods")
+          .select("additional_info")
+          .eq("id", paymentMethodId)
+          .single();
+
+        const gatewayInfo = pm?.additional_info as any;
+        if (gatewayInfo?.store_id && gatewayInfo?.signature_key) {
+          const isSandbox = gatewayInfo.is_sandbox ?? false;
+          const checkBase = isSandbox
+            ? "https://sandbox.aamarpay.com/api/v1/trxcheck/request.php"
+            : "https://secure.aamarpay.com/api/v1/trxcheck/request.php";
+          const checkUrl = `${checkBase}?request_id=${encodeURIComponent(txnId)}&store_id=${encodeURIComponent(gatewayInfo.store_id)}&signature_key=${encodeURIComponent(gatewayInfo.signature_key)}&type=json`;
+          const checkRes = await fetch(checkUrl);
+          const checkData = await checkRes.json();
+          const verified = checkData?.pay_status === "Successful" || String(checkData?.status_code || "") === "2";
+          if (!verified) {
+            console.error("[IPN] AamarPay validation FAILED:", checkData);
+            status = "FAILED";
+            await supabaseAdmin.from("payment_reconciliation_log").insert({
+              event_type: "credit_failed",
+              gateway: "aamarpay",
+              user_id: userId,
+              order_id: orderId,
+              transaction_id: txnId,
+              amount_coins: totalCoins,
+              metadata: { reason: "AamarPay API validation failed", check_response: checkData },
+            });
+          } else {
+            validationData = { ...validationData, gateway_validation: checkData };
+          }
+        } else {
+          console.error("[IPN] AamarPay: No gateway credentials for payment method:", paymentMethodId);
+          status = "FAILED";
+          await supabaseAdmin.from("payment_reconciliation_log").insert({
+            event_type: "credit_failed",
+            gateway: "aamarpay",
+            user_id: userId,
+            order_id: orderId,
+            transaction_id: txnId,
+            amount_coins: totalCoins,
+            metadata: { reason: "Gateway credentials not found for AamarPay verification" },
+          });
+        }
+      }
+
     } else {
       throw new Error("Unknown IPN format");
     }
