@@ -1653,6 +1653,7 @@ const ProfileDetail = () => {
 
           // Trigger LOCAL full-screen SVGA animation INSTANTLY for the sender
           addFlyingGift({
+            senderId: currentUser.id,
             senderName: 'You',
             receiverName: profile?.display_name || 'User',
             giftName: gift.name,

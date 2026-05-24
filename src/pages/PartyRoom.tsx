@@ -866,6 +866,7 @@ const PartyRoom = () => {
       }
 
       addFlyingGift({
+        senderId: giftData.senderId,
         senderName: giftData.senderName || 'Someone',
         giftName: giftData.giftName,
         giftIcon: giftData.giftIcon || '🎁',
@@ -2142,6 +2143,7 @@ const PartyRoom = () => {
               const senderAvatar = sendingUser?.profile?.avatar_url || undefined;
               const senderLevel = sendingUser?.profile?.user_level || 1;
               const giftAnimationData = {
+                senderId: sendingUserId,
                 senderName,
                 giftName: gift.name,
                 giftIcon: gift.emoji,

@@ -314,6 +314,7 @@ export function ActiveCallScreen({
 
       playSound('gift');
       addFlyingGift({
+        senderId: detail.senderId,
         senderName: detail.senderName || "User",
         senderAvatar: detail.senderAvatar || undefined,
         receiverName: remoteUserName,
@@ -393,6 +394,7 @@ export function ActiveCallScreen({
 
       // Show local animation for sender immediately
       addFlyingGift({
+        senderId: userId,
         senderName: "You",
         giftName: gift.name,
         giftIcon: "🎁",
