@@ -18846,6 +18846,10 @@ export type Database = {
         }
         Returns: Json
       }
+      submit_private_call_rating: {
+        Args: { p_call_id: string; p_rating: number; p_review?: string }
+        Returns: Json
+      }
       support_admin_file_report: {
         Args: { _message_id: string; _reason: string; _ticket_id: string }
         Returns: string
