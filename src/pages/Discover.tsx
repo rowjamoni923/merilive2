@@ -73,6 +73,7 @@ const Discover = () => {
   const [searchQuery, setSearchQuery] = useState("");
   
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fetchRoomsRef = useRef<(isInitialLoad?: boolean) => Promise<void>>(() => Promise.resolve());
   const { checkFeatureAccess } = useFeatureLevelCheck();
 
   // Debounced fetch to prevent too many calls - reduced delay for faster response
@@ -81,9 +82,9 @@ const Discover = () => {
       clearTimeout(fetchTimeoutRef.current);
     }
     fetchTimeoutRef.current = setTimeout(() => {
-      fetchRooms(false);
+      void fetchRoomsRef.current(false);
     }, 100);
-  }, [fetchRooms]);
+  }, []);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -238,6 +239,10 @@ const Discover = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchRoomsRef.current = fetchRooms;
+  });
 
   const joinRoom = async (room: PartyRoom) => {
     if (!currentUser) {
