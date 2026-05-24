@@ -10854,6 +10854,8 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_active: boolean
+          like_count: number
           likes_count: number | null
           parent_id: string | null
           reel_id: string
@@ -10863,6 +10865,8 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          is_active?: boolean
+          like_count?: number
           likes_count?: number | null
           parent_id?: string | null
           reel_id: string
@@ -10872,6 +10876,8 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_active?: boolean
+          like_count?: number
           likes_count?: number | null
           parent_id?: string | null
           reel_id?: string
@@ -10957,25 +10963,34 @@ export type Database = {
       reel_reports: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           reason: string
           reel_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           reason: string
           reel_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           reason?: string
           reel_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
           user_id?: string
         }
@@ -11009,6 +11024,7 @@ export type Database = {
           id: string
           platform: string | null
           reel_id: string
+          share_type: string | null
           user_id: string
         }
         Insert: {
@@ -11016,6 +11032,7 @@ export type Database = {
           id?: string
           platform?: string | null
           reel_id: string
+          share_type?: string | null
           user_id: string
         }
         Update: {
@@ -11023,6 +11040,7 @@ export type Database = {
           id?: string
           platform?: string | null
           reel_id?: string
+          share_type?: string | null
           user_id?: string
         }
         Relationships: []
@@ -11350,6 +11368,49 @@ export type Database = {
           winning_number?: number | null
         }
         Relationships: []
+      }
+      saved_reels: {
+        Row: {
+          created_at: string
+          id: string
+          reel_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reel_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reel_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_reels_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_reels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_reels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       seat_invitations: {
         Row: {
@@ -16614,7 +16675,7 @@ export type Database = {
         }
       }
       admin_list_reels: {
-        Args: { _admin_id: string; _limit?: number }
+        Args: { _admin_id?: string; _limit?: number }
         Returns: {
           beans_earned: number | null
           caption: string | null
@@ -17432,6 +17493,10 @@ export type Database = {
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
+      }
+      bump_reel_counter: {
+        Args: { _delta: number; _field: string; _reel_id: string }
+        Returns: undefined
       }
       bump_sync_test: {
         Args: never
