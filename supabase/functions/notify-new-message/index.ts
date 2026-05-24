@@ -136,15 +136,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: verifiedMessage, error: verifyError } = await supabase
       .from("messages")
-      .select("id, conversation_id, sender_id, content, message_type, conversations!inner(participant_1, participant_2)")
+      .select("id, conversation_id, sender_id, content, message_type")
       .eq("id", messageId)
       .eq("conversation_id", conversationId)
       .eq("sender_id", senderId)
       .maybeSingle();
 
-    const conversation = verifiedMessage?.conversations as { participant_1?: string; participant_2?: string } | undefined;
+    const { data: conversation, error: conversationError } = await supabase
+      .from("conversations")
+      .select("participant_1, participant_2")
+      .eq("id", conversationId)
+      .maybeSingle();
     const participants = [conversation?.participant_1, conversation?.participant_2];
-    if (verifyError || !verifiedMessage || !participants.includes(senderId) || !participants.includes(recipientId)) {
+    if (verifyError || conversationError || !verifiedMessage || !conversation || !participants.includes(senderId) || !participants.includes(recipientId)) {
       console.warn("[MsgPush] Message/conversation verification rejected", { conversationId, messageId, senderId, recipientId });
       return new Response(
         JSON.stringify({ success: false, error: "Message verification failed" }),
