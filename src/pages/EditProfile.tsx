@@ -64,6 +64,7 @@ interface ProfileData {
   host_status?: string | null;
   hide_location?: boolean;
   language?: string | null;
+  secondary_language?: string | null;
 }
 
 const EditProfile = () => {
@@ -118,6 +119,7 @@ const EditProfile = () => {
     setTags((nextProfile as any).tags || []);
     setHideLocation(nextProfile.hide_location || false);
     setLanguage(nextProfile.language || "English");
+    setSecondLanguage(nextProfile.secondary_language || "");
 
     try {
       const payload = JSON.stringify({ data: nextProfile, ts: Date.now() });
@@ -292,6 +294,7 @@ const EditProfile = () => {
       }
 
       updateData.language = language;
+      updateData.secondary_language = secondLanguage || null;
 
       const { data, error } = await supabase
         .from("profiles")
