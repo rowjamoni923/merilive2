@@ -121,6 +121,7 @@ export default function AdminGifts() {
   const [editingGift, setEditingGift] = useState<GiftItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [migratingGiftMedia, setMigratingGiftMedia] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fullscreenPreviewGift, setFullscreenPreviewGift] = useState<GiftItem | null>(null);
 
@@ -234,6 +235,7 @@ export default function AdminGifts() {
   // R2 requires minimum 5MB per part (except last part) for multipart uploads
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB parts - R2 minimum requirement
   const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
+  const ADMIN_MIGRATE_GIFT_MEDIA_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-migrate-gift-media`;
 
   const uploadToR2Multipart = async (file: File, folder: string, onProgress?: (pct: number) => void): Promise<string> => {
     const totalParts = Math.ceil(file.size / CHUNK_SIZE);
@@ -443,6 +445,25 @@ export default function AdminGifts() {
     } finally {
       setUploading(false);
       setUploadProgress(0);
+    }
+  };
+
+  const migrateLegacyGiftMedia = async () => {
+    if (!confirm("Move legacy gift media from private chat-media/gifts into the public gifts bucket?")) return;
+    setMigratingGiftMedia(true);
+    try {
+      const response = await fetch(ADMIN_MIGRATE_GIFT_MEDIA_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-token": getAdminSessionToken() },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result.error || "Gift media migration failed");
+      toast.success(`Gift media migrated: ${result.moved_count || 0} files, ${result.updated_gifts || 0} gifts updated`);
+      await fetchGifts();
+    } catch (error: any) {
+      toast.error(error?.message || "Gift media migration failed");
+    } finally {
+      setMigratingGiftMedia(false);
     }
   };
 
