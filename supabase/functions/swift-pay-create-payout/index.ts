@@ -170,6 +170,7 @@ Deno.serve(async (req) => {
       console.error("[swift-pay-create-payout] gateway error", payoutRes.status, parsed);
       // Stamp the failure but don't roll back the withdrawal (admin can retry / process manually)
       await admin.from("agency_withdrawals").update({
+        status: "pending",
         payment_details: { ...initiatingDetails, swift_pay_payout: { ...initiatingDetails.swift_pay_payout, error: parsed, status: "failed", at: new Date().toISOString() } },
       }).eq("id", w.id);
       return json({ error: parsed?.error ?? "gateway_error", details: parsed }, 502);
