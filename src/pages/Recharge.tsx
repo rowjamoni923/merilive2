@@ -2068,6 +2068,10 @@ const Recharge = () => {
   };
 
   const handleHelperPaymentSubmit = async () => {
+    if (helperSubmitRef.current) {
+      console.warn('[Recharge] Helper payment submit already in flight — ignoring duplicate tap');
+      return;
+    }
     if (!selectedPackage || !selectedHelperMethod || !userId) {
       toast({
         title: "Error",
@@ -2086,6 +2090,7 @@ const Recharge = () => {
       return;
     }
 
+    helperSubmitRef.current = true;
     setHelperPaymentProcessing(true);
     setHelperPaymentStep("processing");
 
