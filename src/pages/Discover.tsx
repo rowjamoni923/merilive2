@@ -375,12 +375,12 @@ const Discover = () => {
           {/* Search */}
           <div className="px-4 mt-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-pro" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-dark-faint" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search rooms..."
-                className="w-full pl-9 h-9 bg-white/20 border-amber-200/60 text-heading placeholder:text-on-dark-faint rounded-full text-sm"
+                placeholder="Search rooms or hosts..."
+                className="w-full pl-9 h-9 bg-white/20 border-white/30 text-on-dark placeholder:text-on-dark-faint rounded-full text-sm"
               />
             </div>
           </div>
