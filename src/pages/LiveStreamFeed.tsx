@@ -44,6 +44,7 @@ export default function LiveStreamFeed() {
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef(0);
   const isScrolling = useRef(false);
+  const resetScrollLockRef = useRef<number | null>(null);
 
   // Fetch active live streams
   useEffect(() => {
@@ -118,7 +119,8 @@ export default function LiveStreamFeed() {
       navigate(`/live-feed/${streams[newIndex].id}`, { replace: true });
     }
     
-    setTimeout(() => {
+    if (resetScrollLockRef.current) window.clearTimeout(resetScrollLockRef.current);
+    resetScrollLockRef.current = window.setTimeout(() => {
       isScrolling.current = false;
     }, 500);
   }, [currentIndex, streams, navigate]);
@@ -135,7 +137,8 @@ export default function LiveStreamFeed() {
       navigate(`/live-feed/${streams[newIndex].id}`, { replace: true });
     }
     
-    setTimeout(() => {
+    if (resetScrollLockRef.current) window.clearTimeout(resetScrollLockRef.current);
+    resetScrollLockRef.current = window.setTimeout(() => {
       isScrolling.current = false;
     }, 500);
   }, [currentIndex, streams, navigate]);
@@ -180,6 +183,10 @@ export default function LiveStreamFeed() {
     }
   }, [handleWheel]);
 
+  useEffect(() => () => {
+    if (resetScrollLockRef.current) window.clearTimeout(resetScrollLockRef.current);
+  }, []);
+
   if (loading) {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center">
@@ -216,12 +223,19 @@ export default function LiveStreamFeed() {
           alt={currentStream.title || currentStream.host?.display_name || "Live stream"}
           className="h-full w-full object-cover"
           onClick={() => navigate(`/live/${currentStream.id}`)}
+          onError={(event) => {
+            const img = event.currentTarget;
+            if (!img.dataset.fallbackApplied) {
+              img.dataset.fallbackApplied = "1";
+              img.src = "/placeholder.svg";
+            }
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/20 to-foreground/35" />
 
         <div className="absolute left-4 right-20 bottom-[calc(var(--content-bottom-padding)+1rem)]">
           <div className="flex items-center gap-2 mb-3">
-            <Avatar className="h-10 w-10 border border-white/40">
+            <Avatar className="h-10 w-10 border border-primary-foreground/40">
               <AvatarImage src={currentStream.host?.avatar_url || undefined} />
               <AvatarFallback className="bg-gradient-primary text-on-dark">
                 {(currentStream.host?.display_name || "L").charAt(0)}
