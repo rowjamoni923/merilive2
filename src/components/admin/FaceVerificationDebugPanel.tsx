@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Bug, Copy, Check } from "lucide-react";
-import { extractAdminStoragePath, resolveAdminStorageObjectUrl, resolveAdminStorageSignedUrl } from "@/utils/adminStorageImages";
+import { extractAdminStoragePath, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
 type MediaInput = { label: string; raw?: string | null };
