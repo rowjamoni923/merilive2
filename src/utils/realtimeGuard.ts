@@ -28,8 +28,15 @@ const PUBLICATION_TABLES = new Set([
   'notifications',
   // Pkg37: single broadcast table fans out admin saves; cost-guarded server-side
   'admin_broadcast',
-  // Pkg44: single-device instant kick mirror. Never add profiles to publication.
   'user_active_sessions',
+  // Pkg302 profile section realtime: own/profile UI, counters, wallet, and review status.
+  'profiles',
+  'followers',
+  'gift_transactions',
+  'private_calls',
+  'agencies',
+  'topup_helpers',
+  'face_verification_submissions',
 ]);
 
 // During DB pressure we preserve only mission-critical realtime tables.
@@ -130,9 +137,9 @@ export function installRealtimeGuard() {
       const bypassAdminGuards = false;
       const table = config?.table as string | undefined;
 
-      // Server-called truth: supabase_realtime publication contains ONLY
-      // notifications/admin_broadcast/user_active_sessions. Admin screens must use
-      // admin_broadcast or REST/RPC, never direct postgres_changes on unpublished tables.
+      // Server-called truth: only tables listed in PUBLICATION_TABLES may bind here.
+      // Admin screens must use admin_broadcast or REST/RPC, never direct postgres_changes
+      // on unpublished tables.
       if (bypassAdminGuards) {
         if (table) {
           allowedTables.add(table);
