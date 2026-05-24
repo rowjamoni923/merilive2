@@ -555,7 +555,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
                   {selectedGift.animation_url && isVideoOrGif(selectedGift.animation_url) ? (
-                    selectedGift.animation_url.endsWith('.gif') ? (
+                    GIF_PATTERN.test(selectedGift.animation_url) ? (
                       <img src={selectedGift.animation_url} alt={selectedGift.name} className="w-full h-full object-cover" />
                     ) : (
                       <video 
@@ -574,7 +574,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                     )
                   ) : selectedGift.animation_url && HEAVY_ANIMATION_ASSET_PATTERN.test(selectedGift.animation_url) ? (
                     <Suspense fallback={<div className="w-6 h-6 rounded-full bg-white/10 animate-pulse" />}>
-                      {selectedGift.animation_url.toLowerCase().endsWith('.svga') ? (
+                      {/\.svga(\?|$)/i.test(selectedGift.animation_url) ? (
                         <SVGAPlayer
                           src={selectedGift.animation_url}
                           className="w-6 h-6"
