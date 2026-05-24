@@ -2114,7 +2114,7 @@ const Auth = () => {
               <div className="relative">
                {/* Premium MERI text with metallic shine effect */}
                <h1 
-                 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-pink-200 to-pink-400 text-center tracking-wide"
+                 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-pink-200 to-pink-400 text-center tracking-wide"
                  style={{ 
                    fontFamily: "'Pacifico', cursive",
                    WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.2)',
@@ -2125,10 +2125,10 @@ const Auth = () => {
                 </div>
              
              {/* LIVE badge with elegant underline */}
-             <div className="flex items-center gap-3 mt-1">
-               <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+             <div className="flex items-center gap-2 mt-0.5">
+               <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                <h2 
-                 className="text-3xl font-bold text-white uppercase" /* dark-ok */
+                 className="text-xl font-bold text-white uppercase" /* dark-ok */
                  style={{ 
                    fontFamily: "'Montserrat', sans-serif",
                    letterSpacing: '0.5em',
@@ -2136,7 +2136,7 @@ const Auth = () => {
                >
                   {branding.logo_text_secondary}
                 </h2>
-               <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+               <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
              </div>
             </>
           )}
