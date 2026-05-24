@@ -10885,6 +10885,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "reel_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "reel_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_comments_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reel_comments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -10919,7 +10933,29 @@ export type Database = {
           reel_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reel_likes_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reel_moderation_log: {
         Row: {
@@ -11043,7 +11079,29 @@ export type Database = {
           share_type?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reel_shares_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reels: {
         Row: {
@@ -17115,6 +17173,26 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_resolve_reel_report: {
+        Args: { _report_id: string; _status: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          reason: string
+          reel_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reel_reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_reverse_auto_action: {
         Args: { _action_id: string; _action_type: string; _reason: string }
         Returns: Json
@@ -17229,6 +17307,46 @@ export type Database = {
       admin_update_my_support_display_name: {
         Args: { _name: string }
         Returns: string
+      }
+      admin_update_reel_status: {
+        Args: { _is_active?: boolean; _is_approved?: boolean; _reel_id: string }
+        Returns: {
+          beans_earned: number | null
+          caption: string | null
+          category_id: string | null
+          comment_count: number
+          comments_count: number | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_active: boolean | null
+          is_approved: boolean | null
+          is_original_sound: boolean | null
+          is_public: boolean | null
+          like_count: number | null
+          likes_count: number | null
+          music_artist: string | null
+          music_id: string | null
+          music_title: string | null
+          share_count: number
+          shares_count: number | null
+          sound_artist: string | null
+          sound_audio_url: string | null
+          sound_id: string | null
+          sound_title: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          video_url: string
+          view_count: number | null
+          views_count: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reels"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       admin_update_support_report: {
         Args: { _notes?: string; _report_id: string; _status: string }
