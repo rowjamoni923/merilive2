@@ -35,6 +35,7 @@ import {
 import { JoinNotification, RoomChatMessage } from './types';
 import { getGameLogoUrl, getGameEmoji } from '@/hooks/useGameLogos';
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 // ============= WELCOME MESSAGE COMPONENT (Ultra Premium Luxury Style) =============
 interface WelcomeMessageProps {
@@ -202,7 +203,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
   
   // Extract gift icon URL from message format: [GIFT:url] sent GiftName x count
   const giftIconMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
-  const giftIconUrl = giftIconMatch ? giftIconMatch[1] : null;
+  const giftIconUrl = normalizeGiftMediaUrl(giftIconMatch?.[1]);
   // Clean message text - remove the [GIFT:url] prefix
   let cleanMessage = message.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
   
@@ -421,6 +422,8 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
             src={giftIconUrl} 
             alt="Gift" 
             className="w-full h-full object-contain"
+            loading="lazy"
+            decoding="async"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}
