@@ -155,6 +155,7 @@ serve(async (req) => {
 
     if (orderError) throw orderError;
     createdOrderId = order.id;
+    createdOrderDetails = (order.payment_details as Record<string, unknown>) || null;
 
     const successUrl = `${returnOrigin}/payment-success?order_id=${order.id}&gateway=${gatewayType}`;
     const failUrl = `${returnOrigin}/recharge?payment=failed`;
@@ -296,6 +297,7 @@ serve(async (req) => {
           .update({
             status: "failed",
             payment_details: {
+              ...(createdOrderDetails || {}),
               payment_session_failure: String(error?.message || error),
               failed_at: new Date().toISOString(),
             },
