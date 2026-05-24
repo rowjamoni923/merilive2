@@ -62,7 +62,11 @@ interface GiftPanelProps {
   userCoins?: number; // Optional - will fetch from DB if not provided
 }
 
-const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)$/i;
+// Pkg306 audit: accept URLs with query strings (cache-busters, signed Supabase URLs).
+// Previously `/\.(svga|json)$/i` mis-routed SVGA gifts with `?token=` into the <img> branch.
+const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
+const VIDEO_OR_GIF_PATTERN = /\.(mp4|webm|gif)(\?|$)/i;
+const GIF_PATTERN = /\.gif(\?|$)/i;
 
 const getAssetPathWithoutQuery = (url?: string | null) =>
   url?.split('?')[0] ?? '';
