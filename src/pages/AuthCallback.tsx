@@ -202,31 +202,31 @@ const AuthCallback = () => {
           // Navigate to home
           setTimeout(() => navigate('/'), 500);
         } else {
-          // No session yet, might need to wait for it
+          // No session yet — poll briefly with backoff
           setMessage('Creating session...');
-          
-          // Wait a bit and check again
+
           let attempts = 0;
-          const maxAttempts = 5;
-          
+          const maxAttempts = 8; // ~3s total, faster perceived response
+          const delays = [300, 400, 500, 500, 500, 500, 500, 500];
+
           const checkSession = async () => {
             attempts++;
             const { data: { session: retrySession } } = await supabase.auth.getSession();
-            
+
             if (retrySession) {
               setStatus('success');
               setMessage('Signed in successfully!');
-              setTimeout(() => navigate('/'), 500);
+              setTimeout(() => navigate('/'), 250);
             } else if (attempts < maxAttempts) {
-              setTimeout(checkSession, 1000);
+              setTimeout(checkSession, delays[attempts] ?? 500);
             } else {
               setStatus('error');
               setMessage('Login failed. Please try again.');
-              setTimeout(() => navigate('/auth'), 2000);
+              setTimeout(() => navigate('/auth'), 1500);
             }
           };
-          
-          setTimeout(checkSession, 1000);
+
+          setTimeout(checkSession, delays[0]);
         }
       } catch (err) {
         console.error('Auth callback error:', err);

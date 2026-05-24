@@ -20,20 +20,19 @@ const ResetPassword = () => {
     // Check if we have a valid session from the password reset email link
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         // Check if this is a password recovery flow
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const type = hashParams.get('type');
-        
-        if (accessToken && type === 'recovery') {
-          // Set the session using the recovery token
+        const accessToken = hashParams.get("access_token");
+        const type = hashParams.get("type");
+
+        if (accessToken && type === "recovery") {
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
-            refresh_token: hashParams.get('refresh_token') || '',
+            refresh_token: hashParams.get("refresh_token") || "",
           });
-          
+
           if (error) {
             toast.error("Recovery link expired or invalid");
             navigate("/auth");
@@ -45,7 +44,7 @@ const ResetPassword = () => {
           return;
         }
       }
-      
+
       setSessionChecked(true);
     };
 
@@ -78,11 +77,10 @@ const ResetPassword = () => {
 
       setSuccess(true);
       toast.success("Password updated successfully!");
-      
-      // Redirect to home after 2 seconds
+
       setTimeout(() => {
         navigate("/");
-      }, 2000);
+      }, 1500);
     } catch (error: any) {
       toast.error(error.message || "Failed to update password");
     } finally {
@@ -90,96 +88,132 @@ const ResetPassword = () => {
     }
   };
 
+  // Shared dark premium background matching Auth page
+  const Background = () => (
+    <>
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)",
+        }}
+      />
+      <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full opacity-25 blur-3xl pointer-events-none"
+        style={{ background: "radial-gradient(circle, #9b87f5 0%, transparent 70%)" }} />
+      <div className="absolute bottom-1/3 right-1/4 w-56 h-56 rounded-full opacity-20 blur-3xl pointer-events-none"
+        style={{ background: "radial-gradient(circle, #f472b6 0%, transparent 70%)" }} />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+    </>
+  );
+
   if (!sessionChecked) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-rose-50 to-orange-50 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+      <div className="fixed inset-0 overflow-hidden">
+        <Background />
+        <div className="relative z-10 min-h-screen flex items-center justify-center">
+          <div className="w-12 h-12 border-[3px] border-white/25 border-t-white rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-rose-50 to-orange-50 flex items-center justify-center p-6">
-        <div className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-3xl p-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 bg-green-500/20 rounded-full flex items-center justify-center">
-            <CheckCircle className="w-10 h-10 text-green-400" />
+      <div className="fixed inset-0 overflow-hidden">
+        <Background />
+        <div className="relative z-10 min-h-screen flex items-center justify-center p-6">
+          <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-8 text-center shadow-2xl">
+            <div className="w-20 h-20 mx-auto mb-6 bg-green-500/20 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-green-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Password Updated!</h1>
+            <p className="text-white/70">Redirecting you to home...</p>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Password Updated!</h1>
-          <p className="text-slate-600">Redirecting you to home...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-rose-50 to-orange-50 flex items-center justify-center p-6 overflow-y-auto overflow-x-hidden">
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-3xl p-8">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
-            <Lock className="w-8 h-8 text-white" />
+    <div className="fixed inset-0 overflow-hidden">
+      <Background />
+      <div
+        className="relative z-10 h-full overflow-y-auto overflow-x-hidden"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <div className="min-h-full flex items-center justify-center p-6 safe-area-top safe-area-bottom">
+          <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-8 shadow-2xl">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+                <Lock className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-white mb-2">Reset Password</h1>
+              <p className="text-white/70 text-sm">Enter your new password below</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="New Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  className="h-14 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl pr-12 focus-visible:ring-purple-400/60"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm New Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  className="h-14 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl pr-12 focus-visible:ring-purple-400/60"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+
+              <Button
+                onClick={handleResetPassword}
+                disabled={loading}
+                className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl shadow-[0_6px_24px_-6px_rgba(168,85,247,0.55)] disabled:opacity-60"
+              >
+                {loading ? (
+                  <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
+            </div>
+
+            <p className="text-center text-white/70 text-sm mt-6">
+              Remember your password?{" "}
+              <button
+                onClick={() => navigate("/auth")}
+                className="text-pink-300 hover:text-pink-200 font-medium"
+              >
+                Sign In
+              </button>
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Reset Password</h1>
-          <p className="text-slate-600 text-sm">Enter your new password below</p>
         </div>
-
-        <div className="space-y-4">
-          <div className="relative">
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="New Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="h-14 bg-white/10 border-amber-200/60 text-white placeholder:text-slate-400 rounded-xl pr-12"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-
-          <div className="relative">
-            <Input
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm New Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="h-14 bg-white/10 border-amber-200/60 text-white placeholder:text-slate-400 rounded-xl pr-12"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
-            >
-              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-
-          <Button
-            onClick={handleResetPassword}
-            disabled={loading}
-            className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl"
-          >
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-amber-200/60 border-t-white rounded-full animate-spin" />
-            ) : (
-              "Update Password"
-            )}
-          </Button>
-        </div>
-
-        <p className="text-center text-slate-500 text-sm mt-6">
-          Remember your password?{" "}
-          <button
-            onClick={() => navigate("/auth")}
-            className="text-purple-400 hover:text-purple-300"
-          >
-            Sign In
-          </button>
-        </p>
       </div>
     </div>
   );
