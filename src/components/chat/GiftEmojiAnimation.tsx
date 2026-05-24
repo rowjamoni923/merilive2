@@ -115,18 +115,12 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
       };
     }
     
-    // For animated content (SVGA/Lottie/VAP), use safety timeout only
-    const safetyTimeout = setTimeout(() => {
-      if (mountedRef.current && !completedRef.current) {
-        console.log('[GiftEmojiAnimation] Safety timeout - forcing complete');
-        handleAnimationEnd();
-      }
-    }, 15000); // 15s safety
+    // Animated media completes from the native player callback only. No fixed
+    // duration is added here, so SVGA/Lottie/VAP do not get extra seconds.
     
     return () => {
       mountedRef.current = false;
       clearTimeout(enterTimer);
-      clearTimeout(safetyTimeout);
     };
   }, []); // CRITICAL: Empty deps - run only ONCE on mount
 

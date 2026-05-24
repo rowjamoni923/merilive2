@@ -101,7 +101,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
       } catch (e) {}
     }
 
-    setTimeout(() => cleanupAudio(), 500);
+    cleanupAudio();
     onCompleteRef.current?.();
   }, [cleanupAudio, src]);
 
@@ -148,11 +148,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         setLoading(false);
         onLoadRef.current?.();
 
-        if (autoPlay) {
-          startTimeRef.current = Date.now();
-          player.startAnimation();
-        }
-
         if (shouldPlayAudio) {
           void (async () => {
             let audioFound = false;
@@ -182,25 +177,27 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
               handleAnimationComplete('native');
             }
           });
-
-          // Native-duration safety fallback: exact duration + small buffer
-          if (exactDuration > 0) {
-            const safetyBuffer = Math.min(1500, exactDuration * 0.2);
-            completionTimerRef.current = setTimeout(() => {
-              if (mountedRef.current && !completedRef.current) {
-                if (isAnimationDebugEnabled()) {
-                  console.warn(
-                    `[SVGAPlayerWithAudio] ⚠️ Native onFinished did NOT fire within ${(exactDuration + safetyBuffer).toFixed(0)}ms — triggering safety fallback for "${fileTag}"`
-                  );
-                }
-                handleAnimationComplete('safety-timer');
-              }
-            }, exactDuration + safetyBuffer);
-          }
         } else {
           player.onFinished(() => {
             requestAnimationFrame(resumeLoopingAnimation);
           });
+        }
+
+        if (autoPlay) {
+          startTimeRef.current = Date.now();
+          player.startAnimation();
+          if (!loop && exactDuration > 0) {
+            completionTimerRef.current = setTimeout(() => {
+              if (mountedRef.current && !completedRef.current) {
+                if (isAnimationDebugEnabled()) {
+                  console.warn(
+                    `[SVGAPlayerWithAudio] ⚠️ Native onFinished did NOT fire at native duration ${exactDuration.toFixed(0)}ms — triggering duration fallback for "${fileTag}"`
+                  );
+                }
+                handleAnimationComplete('safety-timer');
+              }
+            }, Math.ceil(exactDuration));
+          }
         }
         
       } catch (err) {
