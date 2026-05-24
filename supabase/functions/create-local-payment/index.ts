@@ -278,6 +278,23 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error("[LocalPayment] Error:", error.message);
+    if (createdOrderId) {
+      try {
+        await supabaseAdmin
+          .from("helper_orders")
+          .update({
+            status: "failed",
+            payment_details: {
+              payment_session_failure: String(error?.message || error),
+              failed_at: new Date().toISOString(),
+            },
+          })
+          .eq("id", createdOrderId)
+          .eq("status", "gateway_pending");
+      } catch (flagErr) {
+        console.error("[LocalPayment] Failed to flag order as failed:", flagErr);
+      }
+    }
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
