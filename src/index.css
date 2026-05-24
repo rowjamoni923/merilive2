@@ -1908,6 +1908,34 @@ body[data-admin-active="true"] #root {
   scrollbar-gutter: stable;
 }
 
+.admin-content,
+.admin-content * {
+  box-sizing: border-box;
+}
+
+.admin-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.admin-content > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.admin-content > [class*="max-w-"] {
+  max-width: none !important;
+}
+
+.admin-content [class*="overflow-x-auto"],
+.admin-content [class*="overflow-auto"],
+.admin-content [data-radix-scroll-area-viewport] {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
 /* Many legacy admin pages were authored as standalone screens with
    min-h-screen/h-screen wrappers. Inside AdminLayout those wrappers must not
    become a second viewport that clips content while the scroll pane owns
@@ -1915,13 +1943,15 @@ body[data-admin-active="true"] #root {
 .admin-content > [class*="min-h-screen"],
 .admin-content > [class*="h-screen"],
 .admin-content [class*="min-h-screen"],
-.admin-content [class*="h-screen"] {
+.admin-content [class*="h-screen"],
+.admin-content [class*="h-\[100vh\]"],
+.admin-content [class*="min-h-\[100vh\]"] {
   min-height: 0 !important;
   height: auto !important;
 }
 
 .admin-content > [class*="overflow-hidden"] {
-  overflow-y: visible !important;
+  overflow: visible !important;
 }
 
 /* Legacy admin pages sometimes pin themselves with `fixed inset-0` which
@@ -2984,11 +3014,67 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
    Comprehensive responsive styles for all admin pages
    ============================================ */
 
+/* Tables and dense data: professional scroll instead of clipping on every admin page */
+.admin-content :where(table) {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+}
+
+.admin-content [class*="overflow-x-auto"] > table,
+.admin-content [class*="overflow-auto"] > table,
+.admin-content [data-radix-scroll-area-viewport] > table {
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+}
+
+.admin-content :where(th, td) {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.admin-content :where(img, video, canvas, svg) {
+  max-width: 100%;
+}
+
 /* Tables: horizontal scroll wrapper on mobile */
 @media (max-width: 768px) {
+  .admin-shell [data-admin-scroll-root="true"] {
+    padding-inline: 10px !important;
+    padding-top: 10px !important;
+    padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px) !important;
+    scrollbar-gutter: auto;
+  }
+
+  .admin-content {
+    overflow-x: hidden !important;
+  }
+
+  .admin-content > [class*="fixed"][class*="inset-0"],
+  .admin-content [class*="h-\[100vh\]"],
+  .admin-content [class*="min-h-\[100vh\]"] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .admin-content [class*="min-w-"] {
+    min-width: 0 !important;
+  }
+
+  .admin-content [class*="max-w-"] {
+    max-width: 100% !important;
+  }
+
+  .admin-content [class*="whitespace-nowrap"] {
+    white-space: normal !important;
+  }
+
   .admin-content table {
-    display: block;
-    width: 100%;
+    display: table;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
@@ -2997,13 +3083,8 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   .admin-content table thead,
   .admin-content table tbody,
   .admin-content table tr {
-    display: table;
+    display: revert;
     width: 100%;
-    table-layout: fixed;
-  }
-
-  .admin-content table {
-    min-width: 600px;
   }
 
   .admin-content table th,
@@ -3245,6 +3326,16 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
 
 /* Extra small screens (< 400px) */
 @media (max-width: 400px) {
+  .admin-shell [data-admin-scroll-root="true"] {
+    padding-inline: 8px !important;
+    padding-top: 8px !important;
+  }
+
+  .admin-content .grid,
+  .admin-content [class*="grid-cols-"] {
+    grid-template-columns: 1fr !important;
+  }
+
   .admin-content .grid-cols-2,
   .admin-content .md\:grid-cols-2,
   .admin-content .md\:grid-cols-3,
@@ -3259,6 +3350,23 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   .admin-content .p-6,
   .admin-content .p-5 {
     padding: 10px !important;
+  }
+
+  .admin-content button,
+  .admin-content [role="button"] {
+    min-height: 34px;
+  }
+}
+
+@media (min-width: 769px) {
+  .admin-content > [class*="max-w-"] {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .admin-content [class*="overflow-x-auto"],
+  .admin-content [class*="overflow-auto"] {
+    border-radius: 12px;
   }
 }
 

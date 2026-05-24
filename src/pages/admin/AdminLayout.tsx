@@ -2648,7 +2648,7 @@ export default function AdminLayout() {
   const getGroupAccent = (title: string) => groupAccents[title] || groupAccents["Overview"];
 
   return (
-    <div className="admin-shell h-screen min-h-0 bg-[#06060a]" style={{ height: '100dvh' }}>
+    <div className="admin-shell h-screen min-h-0 w-full max-w-full bg-[#06060a]" style={{ height: '100dvh' }}>
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence mode="wait">
         {isMobileSidebarOpen && (
@@ -2669,7 +2669,7 @@ export default function AdminLayout() {
         "bg-[#08080e]/95 backdrop-blur-2xl border-r border-white/[0.04]",
         "shadow-[4px_0_50px_-10px_rgba(0,0,0,0.8)]",
         // Mobile: slightly narrower; Desktop: collapsible
-        isMobileSidebarOpen ? "w-[82vw] max-w-[300px]" : (isSidebarOpen ? "w-72" : "w-20"),
+        isMobileSidebarOpen ? "w-[min(84vw,320px)]" : (isSidebarOpen ? "w-72" : "w-20"),
         isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         {/* Subtle gradient overlays */}
@@ -2862,10 +2862,10 @@ export default function AdminLayout() {
       </aside>
 
       {/* ━━━ MAIN CONTENT ━━━ */}
-      <div className={cn("transition-all duration-300 h-screen min-h-0 flex flex-col overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")} style={{ height: '100dvh' }}>
+      <div className={cn("transition-all duration-300 h-screen min-h-0 min-w-0 max-w-full flex flex-col overflow-hidden", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")} style={{ height: '100dvh' }}>
         
         {/* ━━━ TOP HEADER ━━━ */}
-        <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top">
+        <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top max-w-full overflow-visible">
           <div className="flex items-center justify-between px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Button
@@ -2888,7 +2888,7 @@ export default function AdminLayout() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0 min-w-0">
               {/* Desktop Search */}
               <div className="relative hidden lg:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
@@ -3042,7 +3042,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main data-admin-scroll-root="true" className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 80px), 80px)' }}>
+        <main data-admin-scroll-root="true" className="flex-1 min-h-0 w-full max-w-full min-w-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px)' }}>
           <Suspense fallback={
             <div className="min-h-[40vh]" aria-hidden="true" />
           }>
