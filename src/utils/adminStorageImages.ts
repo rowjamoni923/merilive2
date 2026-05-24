@@ -17,6 +17,7 @@ export interface AdminStoragePath {
   path: string;
 }
 const PRIVATE_STORAGE_BUCKETS = new Set([
+  'face-verification',
   'host-verification',
   'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
@@ -392,7 +393,7 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
 
 /**
  * Synchronous fast-path: if `value` points at a PUBLIC verification bucket
- * (face-verification / chat-media), return the direct public URL immediately
+ * (currently chat-media), return the direct public URL immediately
  * with zero network round-trips. Used to prime <img> src so admin thumbnails
  * render INSTANTLY instead of showing a "Resolving signed media URL…" spinner.
  * Returns null for private buckets, raw http(s) urls, or anything that needs

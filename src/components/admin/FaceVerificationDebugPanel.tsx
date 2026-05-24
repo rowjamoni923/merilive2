@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Bug, Copy, Check } from "lucide-react";
-import { extractAdminStoragePath, resolveAdminStorageObjectUrl, resolveAdminStorageSignedUrl } from "@/utils/adminStorageImages";
+import { extractAdminStoragePath, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
 type MediaInput = { label: string; raw?: string | null };
@@ -50,7 +50,7 @@ export const FaceVerificationDebugPanel = ({ items }: { items: MediaInput[] }) =
         let signed = "";
         let error: string | undefined;
         try {
-          signed = (await resolveAdminStorageSignedUrl(raw, "face-verification")) || "";
+          signed = (await resolveAdminStorageObjectUrl(raw, "face-verification")) || "";
         } catch (e: unknown) {
           error = e instanceof Error ? e.message : String(e);
         }

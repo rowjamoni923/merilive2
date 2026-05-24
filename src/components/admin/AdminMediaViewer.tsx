@@ -107,6 +107,7 @@ export function AdminMediaFrame({
   const [failed, setFailed] = useState(false);
   const [failReason, setFailReason] = useState<string>("");
   const [retryNonce, setRetryNonce] = useState(0);
+  const [adminSessionNonce, setAdminSessionNonce] = useState(0);
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoTime, setVideoTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
@@ -130,6 +131,13 @@ export function AdminMediaFrame({
         : kind;
   const [imageFallbackFailed, setImageFallbackFailed] = useState(false);
   const mediaKind = rawKind;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const retryOnAdminSession = () => setAdminSessionNonce((n) => n + 1);
+    window.addEventListener("admin-session-change", retryOnAdminSession);
+    return () => window.removeEventListener("admin-session-change", retryOnAdminSession);
+  }, []);
 
   useEffect(() => {
     if (!displaySrc?.startsWith("blob:")) {
@@ -178,15 +186,16 @@ export function AdminMediaFrame({
         resolver(poster, bucket),
       ]);
       if (!cancelled) {
-        setDisplaySrc(resolved || syncSrc || src);
+        const rawNeedsSigning = isPrivateStorage || (!!src && !syncSrc && isPrivateAdminStorageReference(src, bucket));
+        setDisplaySrc(resolved || syncSrc || (rawNeedsSigning ? null : src));
         setDisplayPoster(resolvedPoster || syncPoster || null);
-        setResolutionFailed(false);
+        setResolutionFailed(Boolean(rawNeedsSigning && !resolved && !syncSrc));
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [src, poster, bucket, retryNonce]);
+  }, [src, poster, bucket, retryNonce, adminSessionNonce, isPrivateStorage]);
 
   if (!src) {
     return (
