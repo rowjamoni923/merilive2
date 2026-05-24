@@ -725,48 +725,10 @@ const VIP = () => {
         return;
       }
 
-      // STEP 1: Fetch current equipped items to save as "previous" before VIP activation
-      const { data: currentProfile } = await supabase
-        .from("profiles")
-        .select(`
-          equipped_frame_id, equipped_entrance_id, equipped_bubble_id,
-          equipped_vehicle_id, equipped_medal_id, equipped_entry_name_bar_id,
-          equipped_entry_banner_id, equipped_noble_card_id
-        `)
-        .eq("id", user.id)
-        .maybeSingle();
-
-      // Build equip updates
-      const equipUpdates: Record<string, any> = {};
-      if (tier.frame_animation_url) {
-        if (currentProfile?.equipped_frame_id) {
-          equipUpdates.previous_frame_id = currentProfile.equipped_frame_id;
-        }
-        equipUpdates.equipped_frame_id = tier.id;
-      }
-      if (tier.entry_animation_url) {
-        if (currentProfile?.equipped_entrance_id) {
-          equipUpdates.previous_entrance_id = currentProfile.equipped_entrance_id;
-        }
-        equipUpdates.equipped_entrance_id = tier.id;
-      }
-      if (tier.bubble_animation_url) {
-        if (currentProfile?.equipped_bubble_id) {
-          equipUpdates.previous_bubble_id = currentProfile.equipped_bubble_id;
-        }
-        equipUpdates.equipped_bubble_id = tier.id;
-      }
-
-      console.log('[VIP] Purchasing via RPC with equip updates:', equipUpdates);
-
-      // STEP 2: Use secure RPC to deduct diamonds + activate VIP
-      const { data: result, error: rpcError } = await supabase.rpc("purchase_vip_tier", {
-        p_user_id: user.id,
-        p_tier_id: tier.id,
-        p_price_diamonds: tier.price_diamonds,
-        p_tier_level: tier.tier_level,
-        p_duration_days: tier.duration_days,
-        p_equip_updates: equipUpdates,
+      const { data: result, error: rpcError } = await supabase.rpc("process_vip_subscription", {
+        p_plan_id: tier.id,
+        p_billing: "monthly",
+        p_equip_updates: {},
       });
 
       if (rpcError) throw rpcError;

@@ -15904,6 +15904,22 @@ export type Database = {
         Args: { _action: string; _new: Json; _old: Json; _table: string }
         Returns: string
       }
+      _pkg311_can_recalculate_level: {
+        Args: { _target_user_id?: string }
+        Returns: boolean
+      }
+      _pkg311_recalculate_all_user_levels_impl: {
+        Args: never
+        Returns: undefined
+      }
+      _pkg311_recalculate_single_user_level_impl: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
+      _pkg311_recalculate_user_level_impl: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       _resolve_private_call_coins_per_minute: {
         Args: { p_host_id: string }
         Returns: number
