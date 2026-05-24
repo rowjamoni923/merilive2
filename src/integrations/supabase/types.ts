@@ -8988,7 +8988,6 @@ export type Database = {
           min_level: number
           mood: string | null
           name: string
-          password: string | null
           password_hash: string | null
           room_code: string | null
           room_type: string | null
@@ -9013,7 +9012,6 @@ export type Database = {
           min_level?: number
           mood?: string | null
           name: string
-          password?: string | null
           password_hash?: string | null
           room_code?: string | null
           room_type?: string | null
@@ -9038,7 +9036,6 @@ export type Database = {
           min_level?: number
           mood?: string | null
           name?: string
-          password?: string | null
           password_hash?: string | null
           room_code?: string | null
           room_type?: string | null
@@ -19215,10 +19212,6 @@ export type Database = {
       verify_admin_token_rpc_access: { Args: never; Returns: Json }
       verify_live_stream_password: {
         Args: { p_password: string; p_stream_id: string }
-        Returns: boolean
-      }
-      verify_party_room_password: {
-        Args: { _password: string; _room_id: string }
         Returns: boolean
       }
     }
