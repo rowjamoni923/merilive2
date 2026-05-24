@@ -5,29 +5,29 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 
 interface NotificationCategory {
   key: string;
   label: string;
   description: string;
   icon: any;
-  color: string;
 }
 
 const CATEGORIES: NotificationCategory[] = [
-  { key: 'calls', label: 'Calls', description: 'Incoming calls, missed calls', icon: Phone, color: 'bg-blue-500' },
-  { key: 'gifts', label: 'Gifts', description: 'Gift sent & received', icon: Gift, color: 'bg-pink-500' },
-  { key: 'social', label: 'Social', description: 'New followers, messages', icon: Users, color: 'bg-indigo-500' },
-  { key: 'live', label: 'Live & Party', description: 'Live streams, party invites', icon: Video, color: 'bg-red-500' },
-  { key: 'transactions', label: 'Transactions', description: 'Top-up, withdrawal, diamonds', icon: Coins, color: 'bg-amber-500' },
-  { key: 'rewards', label: 'Rewards', description: 'Level up, tasks, bonuses', icon: Award, color: 'bg-green-500' },
-  { key: 'system', label: 'System', description: 'Admin messages, security', icon: Shield, color: 'bg-gray-500' },
-  { key: 'agency', label: 'Agency', description: 'Agency notifications', icon: Building2, color: 'bg-purple-500' },
-  { key: 'helper', label: 'Helper', description: 'Orders, payroll, level', icon: HeadphonesIcon, color: 'bg-teal-500' },
-  { key: 'host', label: 'Host', description: 'Application status', icon: Crown, color: 'bg-yellow-500' },
-  { key: 'face_verification_approved', label: 'Face Verification — Approved', description: 'Notify when your face verification is approved', icon: ShieldCheck, color: 'bg-emerald-500' },
-  { key: 'face_verification_rejected', label: 'Face Verification — Rejected', description: 'Notify when your face verification is rejected', icon: ShieldX, color: 'bg-rose-500' },
-  { key: 'general', label: 'General', description: 'Other notifications', icon: Bell, color: 'bg-amber-50' },
+  { key: 'calls', label: 'Calls', description: 'Incoming calls, missed calls', icon: Phone },
+  { key: 'gifts', label: 'Gifts', description: 'Gift sent & received', icon: Gift },
+  { key: 'social', label: 'Social', description: 'New followers, messages', icon: Users },
+  { key: 'live', label: 'Live & Party', description: 'Live streams, party invites', icon: Video },
+  { key: 'transactions', label: 'Transactions', description: 'Top-up, withdrawal, diamonds', icon: Coins },
+  { key: 'rewards', label: 'Rewards', description: 'Level up, tasks, bonuses', icon: Award },
+  { key: 'system', label: 'System', description: 'Admin messages, security', icon: Shield },
+  { key: 'agency', label: 'Agency', description: 'Agency notifications', icon: Building2 },
+  { key: 'helper', label: 'Helper', description: 'Orders, payroll, level', icon: HeadphonesIcon },
+  { key: 'host', label: 'Host', description: 'Application status', icon: Crown },
+  { key: 'face_verification_approved', label: 'Face Verification — Approved', description: 'Notify when your face verification is approved', icon: ShieldCheck },
+  { key: 'face_verification_rejected', label: 'Face Verification — Rejected', description: 'Notify when your face verification is rejected', icon: ShieldX },
+  { key: 'general', label: 'General', description: 'Other notifications', icon: Bell },
 ];
 
 interface PrefState {
