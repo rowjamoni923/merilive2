@@ -10,6 +10,24 @@ const generateOTP = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+async function createPhoneExchangeToken(supabase: any, identifier: string): Promise<string> {
+  const rawBytes = new Uint8Array(32);
+  crypto.getRandomValues(rawBytes);
+  const token = Array.from(rawBytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  const tokenHash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  const { error } = await supabase.from("otp_exchange_tokens").insert({
+    token_hash: tokenHash,
+    identifier,
+    channel: "phone",
+    purpose: "login",
+    expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+  });
+  if (error) throw error;
+  return token;
+}
+
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -149,6 +167,22 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
+      if ((otpRecord.attempts ?? 0) >= 5) {
+        await supabase
+          .from("phone_otps")
+          .update({ is_used: true })
+          .eq("id", otpRecord.id);
+        return new Response(
+          JSON.stringify({ error: "Too many failed attempts. Please request a new OTP" }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      await supabase
+        .from("phone_otps")
+        .update({ attempts: (otpRecord.attempts ?? 0) + 1 })
+        .eq("id", otpRecord.id);
+
       // Mark as used
       await supabase
         .from("phone_otps")
@@ -157,8 +191,10 @@ serve(async (req: Request): Promise<Response> => {
 
       console.log(`[whatsapp-otp] OTP verified for ${cleanPhone}`);
 
+      const verifiedToken = await createPhoneExchangeToken(supabase, cleanPhone);
+
       return new Response(
-        JSON.stringify({ success: true, verified: true }),
+        JSON.stringify({ success: true, verified: true, verified_token: verifiedToken }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
