@@ -136,7 +136,8 @@ export async function registerFCMToken(userId: string): Promise<string | null> {
 
     // Save token to database
     await saveTokenToDatabase(userId, token, 'web');
-    tokenRegistered = true;
+    registeredForUserId = userId;
+    lastRegisteredToken = token;
 
     return token;
   } catch (error) {
