@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useToast } from "@/hooks/use-toast";
 import { useCall } from "@/components/call/CallProvider";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
@@ -554,9 +555,8 @@ const ProfileDetail = () => {
     const onVisible = () => {
       if (document.visibilityState === 'visible') void fetchData(true);
     };
-    // Bounded safety poll for this host's live status (30s, $1400-rule safe per Pkg57).
-    // guard-ok: bounded 30s poll, single host filter, Pkg82c pattern.
-    const liveStatusPoll = setInterval(async () => {
+    // Realtime live_streams subscription (replaces 30s poll — Core rule: no polling in place of realtime).
+    const refetchLiveStatus = async () => {
       try {
         const { data } = await supabase
           .from('live_streams')
@@ -570,7 +570,16 @@ const ProfileDetail = () => {
           setActiveLiveStream(null);
         }
       } catch { /* noop */ }
-    }, 30000);
+    };
+    const unsubscribeLive = subscribeToTables(
+      `profile-detail-live-${targetId}`,
+      ['live_streams'],
+      (_table, _event, payload) => {
+        const row = (payload?.new ?? payload?.old) as { host_id?: string } | undefined;
+        if (row?.host_id === targetId) void refetchLiveStatus();
+      }
+    );
+    void refetchLiveStatus();
 
     window.addEventListener('app-sync', onAppSync as EventListener);
     window.addEventListener('own-beans-updated', onOwnBeans);
@@ -579,7 +588,7 @@ const ProfileDetail = () => {
       window.removeEventListener('app-sync', onAppSync as EventListener);
       window.removeEventListener('own-beans-updated', onOwnBeans);
       document.removeEventListener('visibilitychange', onVisible);
-      clearInterval(liveStatusPoll);
+      unsubscribeLive();
     };
   }, [userId, currentUser?.id, fetchData]);
 
@@ -686,7 +695,7 @@ const ProfileDetail = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="max-w-sm w-full text-center space-y-5"
         >
- <button onClick={() => navigate(-1)} className="absolute top-4 left-4 p-2 rounded-full bg-white/10 text-slate-900">
+ <button onClick={() => navigate(-1)} aria-label="Go back" className="absolute top-4 left-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <motion.div
@@ -695,20 +704,20 @@ const ProfileDetail = () => {
             transition={{ delay: 0.2, type: "spring" }}
             className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-red-500/30 to-red-900/30 border-2 border-red-500/50 flex items-center justify-center"
           >
-            <ShieldX className="w-12 h-12 text-red-600" />
+            <ShieldX className="w-12 h-12 text-red-400" />
           </motion.div>
           <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
- className="text-xl font-bold text-slate-900">
+ className="text-xl font-bold text-white">
             Account Permanently Banned
           </motion.h1>
           <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
- className="text-slate-700/80 text-sm leading-relaxed">
+ className="text-white/75 text-sm leading-relaxed">
             This account has been permanently suspended for violating our Community Guidelines. 
             All associated data, host privileges, and agency memberships have been revoked.
           </motion.p>
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
             <Button variant="outline" onClick={() => navigate(-1)}
- className="bg-white/5 border-slate-200/10 text-white hover:bg-white/10">
+ className="bg-white/10 border-white/20 text-white hover:bg-white/20">
               <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
             </Button>
           </motion.div>
