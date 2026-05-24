@@ -1575,7 +1575,7 @@ const Auth = () => {
       });
 
       if (error) throw error;
-      if (!data?.verified) {
+      if (!data?.verified || !data?.verified_token) {
         toast({
           title: "Invalid Code",
           description: data?.error || "The verification code is incorrect",
@@ -1604,10 +1604,10 @@ const Auth = () => {
           body: { email: phoneEmail, channel: "phone", identifier: fullPhone, verified_token: data.verified_token }
         });
 
-        if (!signInError && signInResult?.session) {
+        if (!signInError && signInResult?.access_token && signInResult?.refresh_token) {
           await supabase.auth.setSession({
-            access_token: signInResult.session.access_token,
-            refresh_token: signInResult.session.refresh_token,
+            access_token: signInResult.access_token,
+            refresh_token: signInResult.refresh_token,
           });
 
           localStorage.removeItem('meri_manual_logout');
