@@ -1116,32 +1116,12 @@ export function usePrivateCall(userId: string | null) {
         const callAge = Date.now() - new Date(call.created_at).getTime();
         if (callAge >= 30000) return;
 
-        // ⚡ Fetch caller profile without re-verifying call status; DB query above validated freshness.
-        const { data: callerProfile } = await supabase
-          .from('profiles_public')
-          .select('display_name, avatar_url, user_level')
-          .eq('id', call.caller_id)
-          .single();
-
-        // Quick staleness check - don't override if actively in a call
-        if (endedCallIdsRef.current.has(call.id)) return;
-        const activeStatus = callStateRef.current.status;
-        if (currentCallIdRef.current && (activeStatus === 'connected' || activeStatus === 'calling' || activeStatus === 'ringing')) return;
+        const shown = await showVerifiedIncomingCall(call.id);
+        if (!shown) return;
 
         // ⚡ Pre-warm LiveKit token for faster accept
         import('@/services/livekitService').then(({ warmLiveKitToken }) => {
           warmLiveKitToken(`call_${call.id}`, 'call').catch(() => {});
-        });
-
-        // ✅ CRITICAL: Force-reset callEndedRef for new incoming call
-        callEndedRef.current = false;
-
-        setIncomingCall({
-          callId: call.id,
-          callerId: call.caller_id,
-          callerName: callerProfile?.display_name || 'User',
-          callerAvatar: callerProfile?.avatar_url || null,
-          callerLevel: callerProfile?.user_level || 1,
         });
 
         // 📳 NATIVE: Vibrate phone for incoming call
@@ -1199,7 +1179,7 @@ export function usePrivateCall(userId: string | null) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       appResumeCleanup?.();
     };
-  }, [userId]);
+  }, [userId, showVerifiedIncomingCall]);
 
   // 🔴 Pkg84: INCOMING CALL LISTENER — FCM-only (Chamet/WhatsApp/Imo standard)
   // The `incoming-call-${userId}` Supabase Realtime channel + 15s heartbeat
