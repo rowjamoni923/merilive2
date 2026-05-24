@@ -1870,7 +1870,7 @@ body[data-admin-active="true"] {
   overflow-x: hidden !important;
   overflow-y: hidden !important;
   overscroll-behavior: contain !important;
-  touch-action: pan-y !important;
+  touch-action: pan-y pinch-zoom !important;
   background: hsl(230 15% 6%);
 }
 
@@ -1888,7 +1888,7 @@ body[data-admin-active="true"] #root {
   min-height: 0;
   width: 100%;
   overflow: hidden;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
   overscroll-behavior: contain;
 }
 
@@ -1902,10 +1902,31 @@ body[data-admin-active="true"] #root {
   max-height: 100% !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  touch-action: pan-y !important;
+  touch-action: pan-y pinch-zoom !important;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
+}
+
+.admin-shell,
+.admin-shell *:not(input):not(textarea):not([contenteditable="true"]):not([role="textbox"]) {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+.admin-content,
+.admin-content *:not(button):not(a):not(input):not(textarea):not(select):not([role="button"]):not([role="menuitem"]):not([role="option"]):not([role="checkbox"]):not([role="switch"]):not([contenteditable="true"]) {
+  touch-action: pan-y pinch-zoom !important;
+}
+
+.admin-content button,
+.admin-content a,
+.admin-content [role="button"],
+.admin-content [role="menuitem"],
+.admin-content [role="option"],
+.admin-content [data-radix-collection-item] {
+  touch-action: manipulation !important;
 }
 
 .admin-content,
