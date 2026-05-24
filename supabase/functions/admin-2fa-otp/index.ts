@@ -27,6 +27,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  return new Response(
+    JSON.stringify({ error: "Legacy admin 2FA endpoint is disabled" }),
+    { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+
   try {
     const authHeader = req.headers.get("Authorization") || "";
     const bearerToken = authHeader.replace(/^Bearer\s+/i, "").trim();
