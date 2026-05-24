@@ -378,6 +378,7 @@ const LiveStream = () => {
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
   const giftBroadcastChannelRef = useRef<any>(null);
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
+  const streamEndRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
     return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
@@ -1369,9 +1370,12 @@ const LiveStream = () => {
       if (detail.streamId !== id) return;
       if (isHost) return;
       console.log('[LiveStream] ⚡ Pkg74 livekit-stream-ended received');
+      if (streamEndedRef.current) return;
+      streamEndedRef.current = true;
       setStreamEndedBy(detail.hostName || hostInfo?.name || 'Host');
       setShowStreamEndedModal(true);
-      setTimeout(async () => {
+      if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
+      streamEndRedirectTimerRef.current = setTimeout(async () => {
         await leaveChannel();
         navigate('/');
       }, 3000);
@@ -1393,6 +1397,10 @@ const LiveStream = () => {
     window.addEventListener('livekit-viewer-count', handleLiveKitViewerCount);
 
     return () => {
+      if (streamEndRedirectTimerRef.current) {
+        clearTimeout(streamEndRedirectTimerRef.current);
+        streamEndRedirectTimerRef.current = null;
+      }
       window.removeEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
       window.removeEventListener('livekit-viewer-count', handleLiveKitViewerCount);
     };
