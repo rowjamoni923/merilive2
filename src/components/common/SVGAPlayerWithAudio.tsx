@@ -172,7 +172,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
             } catch (e) {
               console.warn('[SVGAPlayerWithAudio] Audio resolved after visual start failed:', e);
             }
-            onAudioExtracted?.(audioFound ? 'embedded' : null);
+            onAudioExtractedRef.current?.(audioFound ? 'embedded' : null);
           })();
         }
 
