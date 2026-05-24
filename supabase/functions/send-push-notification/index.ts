@@ -180,6 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     let isVerifiedNotificationTrigger = false;
+    let notificationTriggerId: string | null = null;
     if (!isServiceRoleCall && !isAdmin && !callerUserId && data.origin === "notifications_trigger" && data.notification_id && userId) {
       const { data: notificationRow } = await supabase
         .from("notifications")
@@ -192,6 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
         && notificationRow.title === title
         && notificationRow.message === body
         && notificationRow.type === type;
+      notificationTriggerId = isVerifiedNotificationTrigger ? String(data.notification_id) : null;
     }
 
     const needsElevated = isBroadcast || isMultiUser || (!!userId && userId !== callerUserId);
@@ -209,6 +211,20 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ success: false, error: "Authentication required" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
+    }
+    if (isVerifiedNotificationTrigger && notificationTriggerId) {
+      const { error: dispatchError } = await supabase
+        .from("notification_push_dispatches")
+        .insert({ notification_id: notificationTriggerId });
+      if (dispatchError) {
+        if (dispatchError.code === "23505") {
+          return new Response(
+            JSON.stringify({ success: true, skipped: true, reason: "already_dispatched" }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+        throw dispatchError;
+      }
     }
     // ────────────────────────────────────────────────────────────────────────
 
