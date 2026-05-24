@@ -204,10 +204,23 @@ serve(async (req) => {
 
       const result = creditResult as any;
 
-      if (result?.error === "duplicate") {
+      if (result?.error === "duplicate" || result?.already_credited === true) {
         console.log(`[IPN] Duplicate credit blocked for order ${orderId}`);
+        await supabaseAdmin
+          .from("helper_orders")
+          .update({
+            status: "completed",
+            processed_at: new Date().toISOString(),
+            payment_details: {
+              ...(order.payment_details as any),
+              ipn_status: status,
+              duplicate_credit_blocked: true,
+              ...validationData,
+            },
+          })
+          .eq("id", orderId);
         return Response.redirect(
-          `https://merilive.lovable.app/payment-success?order_id=${orderId}&gateway=${gatewayType}&already=true`,
+          `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&already=true`,
           302
         );
       }
@@ -290,7 +303,7 @@ serve(async (req) => {
       console.log(`[IPN] ✅ SUCCESS: ${totalCoins} diamonds → user ${userId} (${result.balance_before} → ${result.balance_after})`);
 
       return Response.redirect(
-        `https://merilive.lovable.app/payment-success?order_id=${orderId}&gateway=${gatewayType}&coins=${totalCoins}`,
+        `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&coins=${totalCoins}`,
         302
       );
 
@@ -311,7 +324,7 @@ serve(async (req) => {
         .eq("id", orderId);
 
       return Response.redirect(
-        `https://merilive.lovable.app/recharge?payment=failed&order_id=${orderId}`,
+        `${returnOrigin}/recharge?payment=failed&order_id=${orderId}`,
         302
       );
     }
