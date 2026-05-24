@@ -376,7 +376,6 @@ const LiveStream = () => {
 
   // Deduplicate optimistic/broadcast gift counters against DB realtime confirmation
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
-  const giftBroadcastChannelRef = useRef<any>(null);
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
   const streamEndRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1411,6 +1410,19 @@ const LiveStream = () => {
   useEffect(() => {
     if (!id || isHost) return;
 
+    const showEndedFromDb = () => {
+      if (streamEndedRef.current) return;
+      streamEndedRef.current = true;
+      console.log('[LiveStream] Stream detected as ended by live_streams update');
+      setStreamEndedBy(hostInfo?.name || "Host");
+      setShowStreamEndedModal(true);
+      if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
+      streamEndRedirectTimerRef.current = setTimeout(async () => {
+        await leaveChannel();
+        navigate('/');
+      }, 3000);
+    };
+
     const checkStaleStream = async () => {
       try {
         // Trigger server-side cleanup of stale streams (heartbeat > 60s ago)
@@ -1423,23 +1435,33 @@ const LiveStream = () => {
           .eq('id', id)
           .single();
         
-        if (data && !data.is_active) {
-          console.log('[LiveStream] Stream detected as stale/ended by heartbeat check');
-          setStreamEndedBy(hostInfo?.name || "Host");
-          setShowStreamEndedModal(true);
-          setTimeout(async () => {
-            await leaveChannel();
-            navigate('/');
-          }, 3000);
-        }
+        if (data && !data.is_active) showEndedFromDb();
       } catch (e) {
         console.error('[LiveStream] Stale check error:', e);
         recordClientError({ label: "LiveStream.checkStaleStream", message: e instanceof Error ? e.message : String(e) });
       }
     };
 
+    // Pkg305 pass-2: row-level realtime detects host/admin end instantly;
+    // 30s poll remains only as stale-heartbeat safety net.
+    const unsubscribeStream = subscribeToTables(
+      `livestream-row-${id}`,
+      ['live_streams'],
+      (_table, _event, payload) => {
+        const row = payload as any;
+        if (row?.id === id && row.is_active === false) showEndedFromDb();
+      }
+    );
+
     const interval = setInterval(checkStaleStream, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      unsubscribeStream?.();
+      if (streamEndRedirectTimerRef.current) {
+        clearTimeout(streamEndRedirectTimerRef.current);
+        streamEndRedirectTimerRef.current = null;
+      }
+    };
   }, [id, isHost, hostInfo?.name, leaveChannel, navigate]);
 
   // ========== VIEWER: Detect host busy on call ==========
