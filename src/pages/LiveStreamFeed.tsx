@@ -14,31 +14,12 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronUp, ChevronDown, Loader2 } from "lucide-react";
-
-// Lazy load the actual LiveStream component for each stream
-const LiveStreamWrapper = ({ streamId, isActive }: { streamId: string; isActive: boolean }) => {
-  const navigate = useNavigate();
-  
-  // When this stream becomes active, update the URL
-  useEffect(() => {
-    if (isActive) {
-      window.history.replaceState(null, '', `/live/${streamId}`);
-    }
-  }, [isActive, streamId]);
-  
-  // Navigate to actual live stream page
-  useEffect(() => {
-    if (isActive) {
-      navigate(`/live/${streamId}`, { replace: true });
-    }
-  }, [isActive, streamId, navigate]);
-  
-  return null;
-};
+import { ChevronUp, ChevronDown, Eye, Loader2, Radio } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface LiveStream {
   id: string;
@@ -193,13 +174,84 @@ export default function LiveStreamFeed() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+      <div className="fixed inset-0 bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
-  // If no streams or at the stream, just render it normally
-  // The actual LiveStream page will handle the rendering
-  return null;
+  const currentStream = streams[currentIndex] ?? streams[0];
+
+  if (!currentStream) {
+    return (
+      <div className="fixed inset-0 bg-background flex flex-col items-center justify-center px-6 text-center">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4 border border-border">
+          <Radio className="w-8 h-8 text-primary" />
+        </div>
+        <h1 className="text-lg font-bold text-display mb-2">No Live Streams</h1>
+        <p className="text-sm text-muted-pro max-w-[240px]">Live hosts will appear here as soon as they start streaming.</p>
+        <Button className="mt-5" onClick={() => navigate('/')}>Back Home</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="fixed inset-0 bg-background overflow-hidden"
+    >
+      <div className="relative h-full w-full">
+        <img
+          src={currentStream.thumbnail_url || currentStream.host?.avatar_url || "/placeholder.svg"}
+          alt={currentStream.title || currentStream.host?.display_name || "Live stream"}
+          className="h-full w-full object-cover"
+          onClick={() => navigate(`/live/${currentStream.id}`)}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/35" />
+
+        <div className="absolute left-4 right-20 bottom-[calc(var(--content-bottom-padding)+1rem)]">
+          <div className="flex items-center gap-2 mb-3">
+            <Avatar className="h-10 w-10 border border-white/40">
+              <AvatarImage src={currentStream.host?.avatar_url || undefined} />
+              <AvatarFallback className="bg-gradient-primary text-on-dark">
+                {(currentStream.host?.display_name || "L").charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="text-on-dark font-bold truncate">{currentStream.host?.display_name || "Live Host"}</p>
+              <div className="flex items-center gap-1.5 text-on-dark-muted text-xs">
+                <Eye className="w-3.5 h-3.5" />
+                <span>{currentStream.viewer_count} viewers</span>
+              </div>
+            </div>
+          </div>
+          <h2 className="text-on-dark text-base font-bold line-clamp-2">{currentStream.title || "Live stream"}</h2>
+          <Button className="mt-4 bg-gradient-primary text-on-dark border-0" onClick={() => navigate(`/live/${currentStream.id}`)}>
+            Enter Live
+          </Button>
+        </div>
+
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+          <button
+            aria-label="Previous stream"
+            disabled={currentIndex <= 0}
+            onClick={goToPrevious}
+            className={cn("h-11 w-11 rounded-full bg-black/45 border border-white/20 flex items-center justify-center text-on-dark backdrop-blur-sm", currentIndex <= 0 && "opacity-40")}
+          >
+            <ChevronUp className="w-6 h-6" />
+          </button>
+          <button
+            aria-label="Next stream"
+            disabled={currentIndex >= streams.length - 1}
+            onClick={goToNext}
+            className={cn("h-11 w-11 rounded-full bg-black/45 border border-white/20 flex items-center justify-center text-on-dark backdrop-blur-sm", currentIndex >= streams.length - 1 && "opacity-40")}
+          >
+            <ChevronDown className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
