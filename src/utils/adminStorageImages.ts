@@ -41,8 +41,15 @@ const FALLBACK_SIGNING_BUCKETS = [
 const RAW_FILE_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|mp3|wav|m4a|pdf)(?:[?#].*)?$/i;
 const VIDEO_FILE_RE = /\.(?:mp4|m4v|mov|qt|webm|ogg|ogv|avi|mkv|3gp|3gpp|3g2|mpg|mpeg|hevc|ts|m3u8|mpd)(?:$|[?#])/i;
 
-type AdminSignStorageResponse = { success?: boolean; signedUrl?: string; contentType?: string | null; error?: string };
+type AdminBatchSignResponse = {
+  success?: boolean;
+  results?: Array<{ bucket?: string; path?: string; signedUrl?: string; error?: string }>;
+  error?: string;
+};
 type AdminMediaResolverWindow = Window & { __adminMediaAutoResolverInstalled?: boolean };
+
+let batchSignQueue: Array<{ storagePath: AdminStoragePath; adminToken: string; resolve: (url: string | null) => void }> = [];
+let batchSignTimer: number | null = null;
 
 export const extractAdminStoragePath = (value: string, defaultBucket?: string): AdminStoragePath | null => {
   const raw = value.trim();
@@ -225,12 +232,10 @@ const shouldDownloadPrivateImageFirst = (storagePath: AdminStoragePath) => {
   if (storagePath.bucket !== 'face-verification' && storagePath.bucket !== 'host-verification') return false;
   const lower = storagePath.path.toLowerCase();
   if (lower.includes('/face-videos/') || lower.includes('/videos/') || lower.includes('/video/') || lower.includes('/liveness/')) return false;
-  return lower.includes('/face-angles/')
-    || lower.includes('/host-photos/')
-    || lower.includes('/photos/')
-    || lower.includes('/profile/')
-    || lower.includes('/selfie')
-    || /\.(jpg|jpeg|png|webp|gif|avif|heic|heif)(?:$|[?#])/i.test(lower);
+  const imageLikeFolder = lower.includes('/face-angles/') || lower.includes('/host-photos/') || lower.includes('/photos/') || lower.includes('/profile/') || lower.includes('/selfie');
+  const hasImageExt = /\.(jpg|jpeg|png|webp|gif|avif|heic|heif)(?:$|[?#])/i.test(lower);
+  const hasVideoExt = /\.(mp4|m4v|mov|qt|webm|ogg|ogv|avi|mkv|3gp|3gpp|3g2)(?:$|[?#])/i.test(lower);
+  return imageLikeFolder && !hasImageExt && hasVideoExt;
 };
 
 const shouldStreamSignedStoragePath = (_storagePath: AdminStoragePath) => {
@@ -276,6 +281,43 @@ const downloadAdminStoragePathAsObjectUrl = async (storagePath: AdminStoragePath
   return createTypedObjectUrl(blob, downloadResp.headers.get('content-type'), storagePath.path).catch(() => null);
 };
 
+const flushBatchSignQueue = () => {
+  const queue = batchSignQueue;
+  batchSignQueue = [];
+  batchSignTimer = null;
+  if (!queue.length) return;
+
+  const adminToken = queue[0]?.adminToken || '';
+  const uniqueItems = Array.from(new Map(queue.map(({ storagePath }) => [`${storagePath.bucket}/${storagePath.path}`, storagePath])).values());
+
+  fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'x-admin-token': adminToken,
+    },
+    body: JSON.stringify({ items: uniqueItems.map((item) => ({ bucket: item.bucket, path: item.path, expiresIn: 60 * 60 })) }),
+  })
+    .then((resp) => resp.ok ? resp.json() : null)
+    .then((payload: AdminBatchSignResponse | null) => {
+      const signedByKey = new Map<string, string>();
+      (payload?.results || []).forEach((item) => {
+        if (item.bucket && item.path && item.signedUrl) signedByKey.set(`${item.bucket}/${item.path}`, item.signedUrl);
+      });
+      queue.forEach(({ storagePath, resolve }) => resolve(signedByKey.get(`${storagePath.bucket}/${storagePath.path}`) || null));
+    })
+    .catch(() => queue.forEach(({ resolve }) => resolve(null)));
+};
+
+const batchSignAdminStoragePath = (storagePath: AdminStoragePath, adminToken: string) => new Promise<string | null>((resolve) => {
+  batchSignQueue.push({ storagePath, adminToken, resolve });
+  if (batchSignTimer === null) {
+    batchSignTimer = window.setTimeout(flushBatchSignQueue, 12);
+  }
+});
+
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
   const adminToken = resolveStoredAdminToken();
@@ -295,19 +337,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
     //    the service role, backfills correct Content-Type, and works even when
     //    the user app has no Supabase auth session.
     if (adminToken) {
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'x-admin-token': adminToken,
-        },
-        body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
-      }).catch(() => null);
-      if (!resp?.ok) console.warn('[AdminMedia] Signed URL request failed', { bucket: storagePath.bucket, path: storagePath.path, status: resp?.status || 0 });
-      const signed = resp?.ok ? await resp.json().catch(() => null) : null;
-      const signedUrl = (signed as AdminSignStorageResponse | null)?.signedUrl;
+      const signedUrl = await batchSignAdminStoragePath(storagePath, adminToken);
       if (signedUrl) {
         signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
         return signedUrl;
@@ -382,6 +412,9 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
     // Public verification buckets → direct public URL, no signing, no probe.
     const publicUrl = await resolvePublicVerificationUrl(candidate, raw, defaultBucket);
     if (publicUrl) return publicUrl;
+
+    const objectUrl = shouldDownloadPrivateImageFirst(candidate) ? await downloadAdminStoragePathAsObjectUrl(candidate) : null;
+    if (objectUrl) return objectUrl;
 
     // Private buckets still go through the admin signer.
     const signed = await signAdminStoragePath(candidate);
