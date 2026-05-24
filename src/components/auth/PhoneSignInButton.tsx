@@ -496,14 +496,20 @@ export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSign
                    )}
                  </Button>
                  
-                 <div className="text-center">
-                   <button
-                     onClick={() => setStep("phone")}
-                     className="text-slate-600 text-sm hover:text-slate-800 transition-colors"
-                   >
-                     Didn't receive code? <span className="text-emerald-600 font-semibold">Resend</span>
-                   </button>
-                 </div>
+                  <div className="text-center">
+                    <button
+                      onClick={handleResendOtp}
+                      disabled={loading || resendCooldown > 0}
+                      className="text-slate-600 text-sm hover:text-slate-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {resendCooldown > 0 ? (
+                        <>Resend in <span className="text-emerald-600 font-semibold">{resendCooldown}s</span></>
+                      ) : (
+                        <>Didn't receive code? <span className="text-emerald-600 font-semibold">Resend</span></>
+                      )}
+                    </button>
+                  </div>
+
                </div>
              </>
            )}
