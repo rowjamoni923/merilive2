@@ -337,8 +337,8 @@ export default function AdminUsers() {
               <p className="font-bold">No users found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto touch-pan-y">
+              <table className="w-full touch-pan-y select-none">
                 <thead>
                   <tr className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-purple-50/30">
                     <th className="text-left p-4 text-black font-bold">User</th>
@@ -356,9 +356,9 @@ export default function AdminUsers() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.03 }}
-                      className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-blue-50/50 transition-colors"
+                      className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-blue-50/50 transition-colors touch-pan-y select-none"
                     >
-                      <td className="p-4">
+                      <td className="p-4 touch-pan-y select-none">
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <Avatar className="w-10 h-10 border-2 border-slate-200 shadow-sm">
@@ -376,7 +376,7 @@ export default function AdminUsers() {
                             )}
                           </div>
                           <div>
-                            <p className="text-black font-bold flex items-center gap-2">
+                            <p className="text-black font-bold flex items-center gap-2 select-none">
                               {user.display_name || "Unknown"}
                               {user.is_verified && (
                                 <CheckCircle className="w-4 h-4 text-blue-500" />
@@ -386,7 +386,7 @@ export default function AdminUsers() {
                               )}
                             </p>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-sm text-slate-500">@{user.username || user.id.slice(0, 8)}</p>
+                              <p className="text-sm text-slate-500 select-none">@{user.username || user.id.slice(0, 8)}</p>
                               {user.app_uid && (
                                 <Badge className="text-xs bg-purple-100 text-purple-700 border-purple-200">
                                   {user.app_uid}
