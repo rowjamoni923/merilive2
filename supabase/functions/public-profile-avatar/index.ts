@@ -10,6 +10,11 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(supabaseUrl, serviceKey);
 
+const json = (body: unknown, status: number) => new Response(JSON.stringify(body), {
+  status,
+  headers: { ...corsHeaders, "Content-Type": "application/json" },
+});
+
 // Public proxy that serves PROFILE PHOTOS originally uploaded into the
 // PRIVATE face-verification bucket (historical bug). We download via
 // service role and stream back, so every viewer can render the avatar.
@@ -26,12 +31,14 @@ Deno.serve(async (req) => {
       return new Response("Bad key", { status: 400, headers: corsHeaders });
     }
 
+    const { data: allowed, error: allowError } = await admin.rpc("is_public_profile_media_key", { _key: key });
+    if (allowError || allowed !== true) {
+      return json({ error: "not-public-profile-media", key }, 403);
+    }
+
     const dl = await admin.storage.from("face-verification").download(key);
     if (dl.error || !dl.data) {
-      return new Response(JSON.stringify({ error: dl.error?.message ?? "not-found", key }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: dl.error?.message ?? "not-found", key }, 404);
     }
 
     const ext = (key.split(".").pop() || "jpg").toLowerCase();
@@ -54,9 +61,6 @@ Deno.serve(async (req) => {
       },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
 });
