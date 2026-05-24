@@ -3055,6 +3055,20 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   word-break: normal;
 }
 
+.admin-content :where(table, thead, tbody, tr, th, td),
+.admin-content :where(p, span, label, small, strong, em, h1, h2, h3, h4, h5, h6),
+.admin-content :where([class*="Badge"], .badge) {
+  touch-action: pan-y pinch-zoom !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+.admin-content :where(input, textarea, [contenteditable="true"], [role="textbox"]) {
+  touch-action: auto !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
 .admin-content :where(img, video, canvas, svg) {
   max-width: 100%;
 }
