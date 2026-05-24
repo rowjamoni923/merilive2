@@ -15853,6 +15853,10 @@ export type Database = {
         Args: { frame_id_to_clear: string }
         Returns: Json
       }
+      admin_complete_payment_transaction: {
+        Args: { _transaction_id: string }
+        Returns: Json
+      }
       admin_convert_user_role: {
         Args: { _to_host: boolean; _user_id: string }
         Returns: boolean
@@ -16948,6 +16952,10 @@ export type Database = {
         Returns: {
           table_name: string
         }[]
+      }
+      admin_reject_payment_transaction: {
+        Args: { _reason?: string; _transaction_id: string }
+        Returns: Json
       }
       admin_reject_pending_action: {
         Args: { _id: string; _notes?: string }
