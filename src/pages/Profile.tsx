@@ -818,36 +818,43 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
     try {
       if (isFollowing) {
-        // Unfollow
-        await supabase
+        const { error } = await supabase
           .from("followers")
           .delete()
           .eq("follower_id", currentUser.id)
           .eq("following_id", profileId);
-        
+        if (error) throw error;
+
         setIsFollowing(false);
-        setStats(prev => ({ ...prev, followersCount: prev.followersCount - 1 }));
+        setStats(prev => ({ ...prev, followersCount: Math.max(0, prev.followersCount - 1) }));
         toast({ title: "Unfollowed successfully" });
       } else {
-        // Follow
-        await supabase
+        const { error } = await supabase
           .from("followers")
           .insert({
             follower_id: currentUser.id,
             following_id: profileId
           });
-        
+        if (error) throw error;
+
         setIsFollowing(true);
         setStats(prev => ({ ...prev, followersCount: prev.followersCount + 1 }));
         toast({ title: "Followed successfully" });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Follow error:', error);
       recordClientError({ label: "Profile.handleFollow", message: error instanceof Error ? error.message : String(error) });
-      toast({ title: "Action failed", variant: "destructive" });
+      const raw = String(error?.message || "").toLowerCase();
+      let friendly = "Action failed. Please try again.";
+      if (raw.includes("cannot follow yourself") || raw.includes("self")) friendly = "You can't follow yourself.";
+      else if (raw.includes("banned") || raw.includes("deleted")) friendly = "This user is no longer available.";
+      else if (raw.includes("blocked")) friendly = "Following is blocked between you and this user.";
+      else if (raw.includes("duplicate") || raw.includes("already")) friendly = "You already follow this user.";
+      toast({ title: friendly, variant: "destructive" });
     } finally {
       setFollowLoading(false);
     }
+
   };
 
   const handleCall = async () => {
