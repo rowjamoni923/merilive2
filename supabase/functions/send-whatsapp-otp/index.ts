@@ -7,7 +7,9 @@ const corsHeaders = {
 };
 
 const generateOTP = (): string => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => String(b % 10)).join("");
 };
 
 async function createPhoneExchangeToken(supabase: any, identifier: string): Promise<string> {
@@ -154,9 +156,10 @@ serve(async (req: Request): Promise<Response> => {
         .from("phone_otps")
         .select("*")
         .eq("phone_number", cleanPhone)
-        .eq("otp_code", otp)
         .eq("is_used", false)
         .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (findError || !otpRecord) {
@@ -182,6 +185,13 @@ serve(async (req: Request): Promise<Response> => {
         .from("phone_otps")
         .update({ attempts: (otpRecord.attempts ?? 0) + 1 })
         .eq("id", otpRecord.id);
+
+      if (otpRecord.otp_code !== otp) {
+        return new Response(
+          JSON.stringify({ error: "Invalid or expired verification code" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       // Mark as used
       await supabase
