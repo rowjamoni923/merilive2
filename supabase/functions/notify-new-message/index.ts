@@ -100,6 +100,34 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { conversationId, senderId, recipientId, messageContent, messageType = 'text' }: MessageNotificationRequest = await req.json();
 
+    // ── Pkg308 deep-audit: caller must be the sender ────────────────────────
+    // Previously any authenticated client could call with arbitrary
+    // senderId/recipientId/messageContent → spoof DM push notifications from
+    // any user to any user.
+    const authHeader = req.headers.get("authorization") || "";
+    const bearer = authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7) : "";
+    const isServiceRoleCall = !!bearer && bearer === supabaseServiceKey;
+    let callerUserId: string | null = null;
+    if (!isServiceRoleCall && bearer) {
+      try {
+        const userClient = createClient(supabaseUrl, supabaseServiceKey, {
+          global: { headers: { Authorization: `Bearer ${bearer}` } },
+        });
+        const { data: u } = await userClient.auth.getUser();
+        callerUserId = u?.user?.id ?? null;
+      } catch (e) {
+        console.warn("[MsgPush] auth.getUser failed:", e);
+      }
+    }
+    if (!isServiceRoleCall && (!callerUserId || callerUserId !== senderId)) {
+      console.warn("[MsgPush] Sender impersonation rejected", { callerUserId, senderId });
+      return new Response(
+        JSON.stringify({ success: false, error: "Forbidden" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     console.log(`[MsgPush] New message from ${senderId} to ${recipientId}`);
 
     // Fetch sender profile and recipient device tokens in parallel
