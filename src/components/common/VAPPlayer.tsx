@@ -190,7 +190,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     if (!gl) {
       setError('WebGL not supported');
-      onError?.(new Error('WebGL not supported'));
+      onErrorRef.current?.(new Error('WebGL not supported'));
       return;
     }
 
