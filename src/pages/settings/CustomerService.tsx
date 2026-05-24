@@ -112,7 +112,7 @@ const CustomerService = () => {
         >
           {isPremium && (
             <div className="absolute top-3 right-3">
-              <span className="px-2.5 py-1 text-[11px] font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full flex items-center gap-1 shadow-md">
+              <span className="px-2.5 py-1 text-[11px] font-bold bg-primary text-primary-foreground rounded-full flex items-center gap-1 shadow-md">
                 <Sparkles className="w-3 h-3" />
                 Priority Support
               </span>
@@ -120,8 +120,8 @@ const CustomerService = () => {
           )}
 
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-pink-500/30">
-              <Bot className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/30">
+              <Bot className="w-7 h-7 text-primary-foreground" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-lg mb-1 text-foreground">Chat with AI Support</h3>
@@ -130,7 +130,7 @@ const CustomerService = () => {
               </p>
               <Button
                 size="sm"
-                className="gap-2 bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700 text-white border-0 shadow-md shadow-purple-500/30 rounded-full px-5"
+                className="gap-2 border-0 shadow-md shadow-primary/30 rounded-full px-5"
               >
                 <MessageCircle className="w-4 h-4" />
                 Start Chat
