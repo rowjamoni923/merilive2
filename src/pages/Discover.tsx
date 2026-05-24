@@ -185,32 +185,45 @@ const Discover = () => {
         return;
       }
 
-      const roomsData = await Promise.all(
-        ((roomsRes.data || []) as any[])
-          .filter(room => activeRoomIds.has(room.id))
-          .map(async (room) => {
-            const host = Array.isArray(room.host) ? room.host[0] : room.host;
-            const resolvedHostLevel = host
-              ? (await import('@/utils/levelResolver')).resolveLevelFromTiers({
-                  id: host.id,
-                  user_level: host.user_level,
-                  host_level: host.host_level,
-                  is_host: host.is_host,
-                  gender: host.gender,
-                  total_recharged: host.total_recharged,
-                  total_earnings: host.total_earnings,
-                  weekly_earnings: host.weekly_earnings,
-                  max_user_level: host.max_user_level,
-                }).then(result => result.level).catch(() => host.host_level || host.user_level || 1)
-              : 1;
-
-            return {
-              ...room,
-              host: host ? { ...host, user_level: resolvedHostLevel } : null,
-              current_participants: roomParticipantCounts.get(room.id) || 1,
-            };
+      // Resolve host levels once per host (no N+1 dynamic imports)
+      const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
+      const hostLevelMap = new Map<string, number>();
+      await Promise.all(
+        Array.from(new Set((roomsRes.data || [])
+          .filter((r: any) => activeRoomIds.has(r.id) && r.host)
+          .map((r: any) => r.host as any)
+          .filter(Boolean)))
+          .map(async (host: any) => {
+            try {
+              const res = await resolveLevelFromTiers({
+                id: host.id,
+                user_level: host.user_level,
+                host_level: host.host_level,
+                is_host: host.is_host,
+                gender: host.gender,
+                total_recharged: host.total_recharged,
+                total_earnings: host.total_earnings,
+                weekly_earnings: host.weekly_earnings,
+                max_user_level: host.max_user_level,
+              });
+              hostLevelMap.set(host.id, res.level);
+            } catch {
+              hostLevelMap.set(host.id, host.host_level || host.user_level || 1);
+            }
           })
       );
+
+      const roomsData = ((roomsRes.data || []) as any[])
+        .filter(room => activeRoomIds.has(room.id))
+        .map((room) => {
+          const host = Array.isArray(room.host) ? room.host[0] : room.host;
+          const resolvedHostLevel = host ? (hostLevelMap.get(host.id) ?? (host.host_level || host.user_level || 1)) : 1;
+          return {
+            ...room,
+            host: host ? { ...host, user_level: resolvedHostLevel } : null,
+            current_participants: roomParticipantCounts.get(room.id) || 1,
+          };
+        });
 
       const visibleRooms = roomsData
         .filter(room => room.current_participants >= 1)
