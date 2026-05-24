@@ -1229,23 +1229,18 @@ export function usePrivateCall(userId: string | null) {
       }
     };
 
-    const callerChannel = supabase
-      .channel(`private-call-caller-${userId}`)
+    const privateCallChannel = supabase
+      .channel(`private-call-${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `caller_id=eq.${userId}` }, (payload) => {
         handleRow((payload as any).new || (payload as any).old);
       })
-      .subscribe();
-
-    const hostChannel = supabase
-      .channel(`private-call-host-${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `host_id=eq.${userId}` }, (payload) => {
         handleRow((payload as any).new || (payload as any).old);
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(callerChannel);
-      supabase.removeChannel(hostChannel);
+      supabase.removeChannel(privateCallChannel);
     };
   }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
 
