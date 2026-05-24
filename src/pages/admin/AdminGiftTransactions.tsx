@@ -9,9 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { getAdminSessionToken } from "@/utils/adminSession";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface GiftTransaction {
@@ -67,6 +67,7 @@ export default function AdminGiftTransactions() {
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             'Content-Type': 'application/json',
+            'x-admin-token': getAdminSessionToken(),
           },
         }
       );

@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
+import { getAdminSessionToken } from "@/utils/adminSession";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 // Import sub-sections as tab content
@@ -26,6 +27,12 @@ import AdminLiveBans from "./AdminLiveBans";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 const EDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector`;
+
+const adminEdgeHeaders = () => ({
+  apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+  "Content-Type": "application/json",
+  "x-admin-token": getAdminSessionToken(),
+});
 
 interface UserProfile {
   id: string;
@@ -278,8 +285,9 @@ const AdminChatInspector = () => {
     }
     setSearching(true);
     try {
-      const res = await fetch(`${EDGE_URL}/search-user?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`${EDGE_URL}/search-user?q=${encodeURIComponent(searchQuery)}`, { headers: adminEdgeHeaders() });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Search failed");
       setSearchResults(data.users || []);
     } catch (e) {
       recordAdminError({ kind: "rpc", label: "AdminChatInspector.SearchFailed", message: formatAdminError(e)});
@@ -299,8 +307,9 @@ const AdminChatInspector = () => {
     setMessages([]);
     setLoadingConversations(true);
     try {
-      const res = await fetch(`${EDGE_URL}/user-conversations?userId=${user.id}`);
+      const res = await fetch(`${EDGE_URL}/user-conversations?userId=${user.id}`, { headers: adminEdgeHeaders() });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load conversations");
       setConversations(data.conversations || []);
     } catch (e) {
       recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadConversationsFailed", message: formatAdminError(e)});
@@ -313,8 +322,9 @@ const AdminChatInspector = () => {
     setSelectedConversation(conv);
     setLoadingMessages(true);
     try {
-      const res = await fetch(`${EDGE_URL}/conversation-messages?conversationId=${conv.id}`);
+      const res = await fetch(`${EDGE_URL}/conversation-messages?conversationId=${conv.id}`, { headers: adminEdgeHeaders() });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load messages");
       setMessages(data.messages || []);
     } catch (e) {
       recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadMessagesFailed", message: formatAdminError(e)});
@@ -326,8 +336,9 @@ const AdminChatInspector = () => {
   const loadPhoneAlerts = useCallback(async (markAsSeen = false) => {
     setLoadingAlerts(true);
     try {
-      const res = await fetch(`${EDGE_URL}/phone-alerts`);
+      const res = await fetch(`${EDGE_URL}/phone-alerts`, { headers: adminEdgeHeaders() });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load alerts");
       const alerts = data.alerts || [];
       setPhoneAlerts(alerts);
 

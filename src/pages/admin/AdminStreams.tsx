@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { getAdminSession } from "@/utils/adminSession";
+import { getAdminSessionToken } from "@/utils/adminSession";
 import { toast } from "sonner";
 import AdminStreamViewer from "@/components/admin/AdminStreamViewer";
 import AdminRecordings from "@/components/admin/AdminRecordings";
@@ -422,13 +422,12 @@ export default function AdminStreams() {
 
         if (banError || banData?.error) {
           try {
-            const __as2 = getAdminSession(); const session = __as2?.admin_id ? ({ user: { id: __as2.admin_id } } as any) : null;
             const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector/create-ban`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${session?.access_token}`,
                 "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                "x-admin-token": getAdminSessionToken(),
               },
               body: JSON.stringify(banPayload),
             });
