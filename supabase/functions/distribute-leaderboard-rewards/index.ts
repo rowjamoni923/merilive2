@@ -33,7 +33,7 @@ async function isAuthorized(req: Request, supabaseAdmin: ReturnType<typeof creat
     if (req.headers.get('x-internal-secret') === internalSecret) return true;
     if (bearer === internalSecret) return true;
   }
-  const adminAuth = await requireAdminSession(req, supabaseAdmin, { sectionKey: 'leaderboards', requireEdit: true });
+  const adminAuth = await requireAdminSession(req, supabaseAdmin, { sectionKey: 'leaderboard', requireEdit: true });
   if (adminAuth.ok) return true;
   return false;
 }
