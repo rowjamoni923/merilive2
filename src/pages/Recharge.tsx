@@ -39,6 +39,7 @@ interface PaymentGateway {
   gateway_code: string;
   description: string;
   logo_url: string | null;
+  country_codes: string[];
   supported_currencies: string[];
   fee_percentage: number;
   fee_fixed: number;
@@ -1512,6 +1513,7 @@ const Recharge = () => {
         gateway_code: g.gateway_type,
         description: (g.config as any)?.description || '',
         logo_url: g.logo_url || (g.config as any)?.logo_url || null,
+        country_codes: Array.isArray(g.country_codes) ? g.country_codes : [],
         supported_currencies: g.supported_currencies || [],
         fee_percentage: Number((g.config as any)?.fee_percentage) || 0,
         fee_fixed: Number((g.config as any)?.fee_fixed) || 0,
