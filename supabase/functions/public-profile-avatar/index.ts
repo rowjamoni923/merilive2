@@ -38,7 +38,11 @@ Deno.serve(async (req) => {
     const contentType = dl.data.type
       || (ext === "png" ? "image/png"
         : ext === "webp" ? "image/webp"
+        : ext === "gif" ? "image/gif"
+        : ext === "avif" ? "image/avif"
         : ext === "mp4" ? "video/mp4"
+        : ext === "webm" ? "video/webm"
+        : ext === "mov" || ext === "qt" ? "video/quicktime"
         : "image/jpeg");
 
     return new Response(dl.data, {

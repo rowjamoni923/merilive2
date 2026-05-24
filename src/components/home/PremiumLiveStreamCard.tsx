@@ -8,6 +8,7 @@ import { LevelBadge } from "@/components/common/LevelBadge";
 import { CountryFlag } from "@/components/common/CountryFlag";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 const DEFAULT_THUMB = "/placeholder.svg";
 
@@ -89,11 +90,12 @@ export const PremiumLiveStreamCard = ({
           host's avatar (profile_photo_url) so offline hosts still render. */}
       {(() => {
         const avatarFallback = hostId
-          ? getDisplayAvatar(hostId, hostAvatar || null, { gender: hostGender ?? "female", isOwner })
-          : (hostAvatar || DEFAULT_THUMB);
+          ? getDisplayAvatar(hostId, normalizeProfileMediaUrl(hostAvatar) || hostAvatar || null, { gender: hostGender ?? "female", isOwner })
+          : (normalizeProfileMediaUrl(hostAvatar) || hostAvatar || DEFAULT_THUMB);
         const hasLiveThumb = !!thumbnailUrl && thumbnailUrl !== DEFAULT_THUMB;
+        const normalizedThumb = normalizeProfileMediaUrl(thumbnailUrl) || thumbnailUrl;
         const primarySrc = hasLiveThumb
-          ? enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
+          ? enhanceThumbnail(normalizedThumb, { width: 600, quality: 90, sharpen: 1.4 })
           : avatarFallback;
 
         return (
@@ -107,9 +109,9 @@ export const PremiumLiveStreamCard = ({
             onError={(e) => {
               const img = e.currentTarget;
               // Step 1: raw thumbnail URL (skip CDN proxy)
-              if (hasLiveThumb && img.src !== thumbnailUrl && !img.dataset.s1) {
+              if (hasLiveThumb && img.src !== normalizedThumb && !img.dataset.s1) {
                 img.dataset.s1 = "1";
-                img.src = thumbnailUrl;
+                img.src = normalizedThumb;
                 return;
               }
               // Step 2: host avatar fallback (stable placeholder)
