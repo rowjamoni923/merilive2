@@ -44,7 +44,6 @@ import {
   Smartphone,
   Lock
 } from "lucide-react";
-import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
@@ -189,7 +188,7 @@ const AdminSubAdmins = () => {
     setIsCreating(true);
 
     try {
-      const response = await supabase.functions.invoke("create-sub-admin", {
+      const response = await adminSupabase.functions.invoke("create-sub-admin", {
         body: {
           email: newEmail.trim().toLowerCase(),
           password: newPassword,
@@ -222,7 +221,7 @@ const AdminSubAdmins = () => {
 
   const handleToggleBlock = async (admin: AdminUser) => {
     try {
-      const response = await supabase.functions.invoke("update-sub-admin", {
+      const response = await adminSupabase.functions.invoke("update-sub-admin", {
         body: {
           admin_user_id: admin.id,
           action: "toggle_block",
@@ -248,7 +247,7 @@ const AdminSubAdmins = () => {
     }
 
     try {
-      const response = await supabase.functions.invoke("update-sub-admin", {
+      const response = await adminSupabase.functions.invoke("update-sub-admin", {
         body: {
           admin_user_id: selectedAdmin.id,
           action: "update_password",
@@ -273,7 +272,7 @@ const AdminSubAdmins = () => {
     if (!confirm(`Delete ${admin.email}? This sub-admin will no longer be able to log in.`)) return;
 
     try {
-      const response = await supabase.functions.invoke("update-sub-admin", {
+      const response = await adminSupabase.functions.invoke("update-sub-admin", {
         body: {
           admin_user_id: admin.id,
           action: "delete",
