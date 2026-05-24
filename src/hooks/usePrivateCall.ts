@@ -1181,6 +1181,74 @@ export function usePrivateCall(userId: string | null) {
     };
   }, [userId, showVerifiedIncomingCall]);
 
+  // Supabase Realtime is the authoritative instant DB-status path for private_calls.
+  // FCM delivers the ring; LiveKit DataPackets deliver in-room peer events; this
+  // scoped listener closes the gaps across devices/reconnects without waiting for polls.
+  useEffect(() => {
+    if (!userId) return;
+
+    const isTerminal = (status?: string | null) => status === 'ended' || status === 'declined' || status === 'missed';
+
+    const handleRow = (row: any) => {
+      if (!row?.id) return;
+      const callId = String(row.id);
+      const status = String(row.status || '');
+
+      if (row.host_id === userId && (status === 'pending' || status === 'ringing')) {
+        void showVerifiedIncomingCall(callId);
+        return;
+      }
+
+      if (status === 'connected' && row.caller_id === userId) {
+        activateCallerConnectedState(callId);
+        return;
+      }
+
+      if (!isTerminal(status)) return;
+
+      if (incomingCallIdRef.current === callId) {
+        incomingCallIdRef.current = null;
+        endedCallIdsRef.current.add(callId);
+        setIncomingCall(null);
+        if (isNativeAndroidApp()) {
+          NativeCall.endIncomingUi({ callId, reason: status === 'missed' ? 'timeout' : status }).catch(() => {});
+        }
+      }
+
+      const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
+      if (trackedCallId !== callId || callEndedRef.current || endedCallIdsRef.current.has(callId)) return;
+
+      if (status === 'ended') {
+        softEndCallRef.current?.();
+      } else {
+        resetCallStateRef.current?.();
+        toastRef.current({
+          title: status === 'declined' ? 'Call Declined' : 'Call Missed',
+          description: status === 'declined' ? 'Host declined the call' : 'Host did not answer',
+        });
+      }
+    };
+
+    const callerChannel = supabase
+      .channel(`private-call-caller-${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `caller_id=eq.${userId}` }, (payload) => {
+        handleRow((payload as any).new || (payload as any).old);
+      })
+      .subscribe();
+
+    const hostChannel = supabase
+      .channel(`private-call-host-${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `host_id=eq.${userId}` }, (payload) => {
+        handleRow((payload as any).new || (payload as any).old);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(callerChannel);
+      supabase.removeChannel(hostChannel);
+    };
+  }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
+
   // 🔴 Pkg84: INCOMING CALL LISTENER — FCM-only (Chamet/WhatsApp/Imo standard)
   // The `incoming-call-${userId}` Supabase Realtime channel + 15s heartbeat
   // are DELETED. `call-deliver` edge function (caller-side) inserts a
