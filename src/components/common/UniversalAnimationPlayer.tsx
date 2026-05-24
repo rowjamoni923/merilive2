@@ -163,8 +163,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
             loop={loop}
             autoPlay={autoPlay}
             onLoad={onLoad}
-            onComplete={onComplete}
-            onCompleteDebug={(s) => { completedRef.current = true; onCompleteDebug?.(s); }}
+            onComplete={() => fireComplete('native')}
+            onCompleteDebug={onCompleteDebug}
             onError={(err) => {
               setHasError(true);
               onError?.(err);
@@ -182,6 +182,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           autoPlay={autoPlay}
           muted={muted}
           onLoad={onLoad}
+          onComplete={() => fireComplete('native')}
           onError={(err) => {
             setHasError(true);
             onError?.(err);
