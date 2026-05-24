@@ -2485,6 +2485,7 @@ const Chat = () => {
           <MediaUploader
             isOpen={showMediaUploader}
             onClose={() => setShowMediaUploader(false)}
+            userId={currentUserId}
             onMediaSelect={(url, type) => {
               // Save as pending media, don't send directly
               setPendingMedia({ url, type });
@@ -2742,7 +2743,7 @@ const Chat = () => {
                     {pendingMedia.type === 'image' ? (
                       <>
                         <img 
-                          src={pendingMedia.url} 
+                          src={signedChatMediaUrls[pendingMedia.url] || pendingMedia.url} 
                           alt="Preview" 
                           className="w-8 h-8 rounded-lg object-cover"
                         />
@@ -2785,7 +2786,7 @@ const Chat = () => {
                           toast.error("⚠️ Contact sharing detected! Image blocked.");
                           numberWarning.showGenericWarning();
                           const sourceId = selectedConversation?.id || selectedGroup?.id;
-                          scanImageForContactInfo(pendingMedia.url, currentUserId, 'private_message', sourceId)
+                          scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
                             .then(res => {
                               if (res.detected && res.violationNumber) {
                                 numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
@@ -2797,7 +2798,7 @@ const Chat = () => {
                         
                         // Background OCR scan
                         const sourceId = selectedConversation?.id || selectedGroup?.id;
-                        scanImageForContactInfo(pendingMedia.url, currentUserId, 'private_message', sourceId)
+                        scanImageForContactInfo(signedChatMediaUrls[pendingMedia.url] || pendingMedia.url, currentUserId, 'private_message', sourceId)
                           .then(res => {
                             if (res.detected && res.violationNumber) {
                               numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
