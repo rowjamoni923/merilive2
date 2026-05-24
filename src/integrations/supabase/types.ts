@@ -18867,6 +18867,10 @@ export type Database = {
         Args: { _auto_renew?: boolean; _noble_card_id: string }
         Returns: Json
       }
+      purchase_party_background: {
+        Args: { _background_id: string }
+        Returns: Json
+      }
       purchase_shop_item:
         | { Args: { _equip?: boolean; _item_id: string }; Returns: Json }
         | {
