@@ -1,13 +1,47 @@
+// Cron-triggered: invokes auto_distribute_leaderboard_rewards or a specific
+// distribute_period_rewards(category, period_type) call.
+// Hardened (Pkg313): requires CRON_SECRET / service-role JWT — previously any
+// anon could POST {category, period_type, force_all} and force premature
+// payouts + notification spam (the underlying RPCs were SECURITY DEFINER and
+// publicly grantable).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-token, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-token, x-cron-secret, x-internal-secret, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+}
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+function isAuthorized(req: Request): boolean {
+  const serviceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const internalSecret =
+    Deno.env.get('CRON_SECRET') ?? Deno.env.get('INTERNAL_FUNCTION_SECRET');
+
+  const authHeader = req.headers.get('Authorization') ?? '';
+  const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+
+  if (serviceRole && bearer === serviceRole) return true;
+  if (internalSecret) {
+    if (req.headers.get('x-cron-secret') === internalSecret) return true;
+    if (req.headers.get('x-internal-secret') === internalSecret) return true;
+    if (bearer === internalSecret) return true;
+  }
+  return false;
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
+  }
+
+  if (!isAuthorized(req)) {
+    return jsonResponse({ success: false, error: 'Forbidden: cron-only endpoint' }, 403);
   }
 
   try {
@@ -46,15 +80,9 @@ Deno.serve(async (req) => {
       results.push(`${category}/${periodType}: distributed to ${data || 0} winners`)
     }
 
-    return new Response(
-      JSON.stringify({ success: true, results }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return jsonResponse({ success: true, results });
   } catch (error) {
     console.error('Distribution error:', error)
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return jsonResponse({ success: false, error: error instanceof Error ? error.message : String(error) }, 500);
   }
 })
