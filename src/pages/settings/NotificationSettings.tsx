@@ -45,15 +45,19 @@ export default function NotificationSettings() {
   const [loading, setLoading] = useState(true);
   const [globalSound, setGlobalSound] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
+  const loadPreferences = async () => {
+    try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('notification_preferences')
         .select('category, enabled, push_enabled, sound_enabled')
         .eq('user_id', user.id);
+      if (error) throw error;
 
       const map: Record<string, PrefState> = {};
       data?.forEach(p => {
@@ -64,10 +68,22 @@ export default function NotificationSettings() {
       // Check if any sound is disabled
       const anySoundOff = data?.some(p => !p.sound_enabled);
       setGlobalSound(!anySoundOff);
+    } catch (error) {
+      console.error('Failed to load notification preferences:', error);
+      recordClientError({ label: "NotificationSettings.load", message: error instanceof Error ? error.message : String(error) });
+      toast({ title: 'Error', description: 'Failed to load preferences', variant: 'destructive' });
+    } finally {
       setLoading(false);
-    };
-    load();
+    }
+  };
+
+  useEffect(() => {
+    void loadPreferences();
   }, []);
+
+  useAppSyncEvent(['notification_preferences'], () => {
+    void loadPreferences();
+  });
 
   const updatePref = async (category: string, field: keyof PrefState, value: boolean) => {
     const { data: { user } } = await supabase.auth.getUser();
