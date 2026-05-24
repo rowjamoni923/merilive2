@@ -3,7 +3,7 @@ import { getSessionCache, setSessionCache } from "@/hooks/useSessionCache";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { 
   ArrowLeft, 
   Users, 
