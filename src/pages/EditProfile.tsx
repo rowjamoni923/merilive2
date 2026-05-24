@@ -722,7 +722,7 @@ const EditProfile = () => {
                               .eq("id", user.id)
                               .select()
                               .single();
-                            if (data) setProfile(data as ProfileData);
+                            if (data) syncProfileState(data as ProfileData);
                             localStorage.setItem(`gender_selected_${user.id}`, "true");
                             sonnerToast.success("Gender saved! This cannot be changed.");
                           }
@@ -750,7 +750,7 @@ const EditProfile = () => {
                               .eq("id", user.id)
                               .select()
                               .single();
-                            if (data) setProfile(data as ProfileData);
+                            if (data) syncProfileState(data as ProfileData);
                             localStorage.setItem(`gender_selected_${user.id}`, "true");
                             sonnerToast.success("🎉 You are now a Host! This cannot be changed.");
                           }
