@@ -485,8 +485,11 @@ export const useNotifications = () => {
       // Scheduled refresh from optimistic update will verify DB state
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+      // Pkg308 deep-audit: prior code set unread count to total notifications
+      // length on error, which made every transient failure inflate the badge
+      // to include already-read items. Restore the true unread count.
       setNotifications(previousNotifications);
-      setUnreadCount(previousNotifications.length);
+      setUnreadCount(previousNotifications.filter(n => !n.is_read).length);
       emitGlobalUnreadRefresh();
       fetchNotifications();
     }

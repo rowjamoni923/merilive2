@@ -32,7 +32,11 @@ type NotificationPayload = {
 
 let firebaseApp: FirebaseApp | null = null;
 let messaging: Messaging | null = null;
-let tokenRegistered = false;
+// Pkg308 deep-audit: track which (userId, token) pair the singleton last saved.
+// Previously a single boolean meant a second login (user A → user B in the
+// same tab) would short-circuit and never re-bind the FCM token to user B.
+let registeredForUserId: string | null = null;
+let lastRegisteredToken: string | null = null;
 
 /**
  * Initialize Firebase & get Messaging instance
@@ -70,7 +74,13 @@ async function getMessagingInstance() {
  * Request notification permission and register FCM token
  */
 export async function registerFCMToken(userId: string): Promise<string | null> {
-  if (tokenRegistered) return null;
+  // Only short-circuit if the SAME user already registered. On user switch
+  // (logout/login as a different account) we must re-bind the token.
+  if (registeredForUserId === userId && lastRegisteredToken) return lastRegisteredToken;
+  if (registeredForUserId && registeredForUserId !== userId) {
+    registeredForUserId = null;
+    lastRegisteredToken = null;
+  }
 
   // On native platform, use Capacitor Push Notifications instead
   if (isNativeApp()) {
@@ -126,7 +136,8 @@ export async function registerFCMToken(userId: string): Promise<string | null> {
 
     // Save token to database
     await saveTokenToDatabase(userId, token, 'web');
-    tokenRegistered = true;
+    registeredForUserId = userId;
+    lastRegisteredToken = token;
 
     return token;
   } catch (error) {
@@ -169,7 +180,8 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
           
           const platform = Capacitor.getPlatform() === 'ios' ? 'ios' : 'android';
           await saveTokenToDatabase(userId, token, platform);
-          tokenRegistered = true;
+          registeredForUserId = userId;
+          lastRegisteredToken = token;
           await finish(token);
         });
 
@@ -385,16 +397,27 @@ function handleNotificationTap(data?: NotificationData) {
 }
 
 /**
- * Deactivate FCM token (on logout)
+ * Deactivate FCM token (on logout).
+ *
+ * Pkg308 deep-audit: previously deactivated ALL device tokens for the user
+ * across every device they were logged in on, which silenced push on phones
+ * the user never logged out of. Now only deactivates the CURRENT device's
+ * token (the one this tab/install registered), leaving other devices intact.
  */
 export async function deactivateFCMToken(userId: string) {
-  tokenRegistered = false;
+  const currentToken = lastRegisteredToken;
+  registeredForUserId = null;
+  lastRegisteredToken = null;
   try {
-    await supabase
+    let query = supabase
       .from('device_tokens')
       .update({ is_active: false })
       .eq('user_id', userId);
-    console.log('[FCM] Tokens deactivated for user');
+    if (currentToken) {
+      query = query.eq('token', currentToken);
+    }
+    await query;
+    console.log('[FCM] Token deactivated for current device');
   } catch (e) {
     console.error('[FCM] Deactivation error:', e);
   }

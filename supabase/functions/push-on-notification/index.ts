@@ -79,6 +79,24 @@ serve(async (req) => {
   }
 
   try {
+    // ── Pkg308 deep-audit: lock to service role only ───────────────────────
+    // This endpoint is a Supabase DB webhook target (fires when a row is
+    // inserted into `notifications`). Previously it accepted any caller →
+    // an authenticated user could POST a fabricated `record` with arbitrary
+    // `user_id`/`type`/`title` and fan out an FCM push to any user's devices
+    // without ever inserting a real notification row.
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const authHeader = req.headers.get("authorization") || "";
+    const bearer = authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7) : "";
+    if (!bearer || bearer !== supabaseServiceKey) {
+      console.warn("[PushOnNotif] Rejected non-service-role caller");
+      return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
+        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     const { record } = await req.json();
     
     if (!record || !record.user_id || !record.title) {
@@ -106,8 +124,8 @@ serve(async (req) => {
     }
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      supabaseUrl,
+      supabaseServiceKey,
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 

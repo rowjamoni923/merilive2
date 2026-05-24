@@ -54,6 +54,66 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // ── Pkg308 deep-audit: authorize caller ─────────────────────────────────
+    // Previously: any authenticated client (anon-key holder) could insert a
+    // notification row for ANY other user, complete with arbitrary `type` →
+    // impersonation of admin/system/call notifications + push spam (since the
+    // notifications-row trigger fans out to FCM).
+    // Now: service-role OR admin-session required for cross-user; self-only
+    // allowed for ordinary authenticated callers.
+    const authHeader = req.headers.get("authorization") || "";
+    const bearer = authHeader.toLowerCase().startsWith("bearer ") ? authHeader.slice(7) : "";
+    const isServiceRoleCall = !!bearer && bearer === supabaseServiceKey;
+
+    let callerUserId: string | null = null;
+    if (!isServiceRoleCall && bearer) {
+      try {
+        const userClient = createClient(supabaseUrl, supabaseServiceKey, {
+          global: { headers: { Authorization: `Bearer ${bearer}` } },
+        });
+        const { data: u } = await userClient.auth.getUser();
+        callerUserId = u?.user?.id ?? null;
+      } catch (e) {
+        console.warn("[send-app-notification] auth.getUser failed:", e);
+      }
+    }
+
+    let isAdmin = false;
+    const adminToken = req.headers.get("x-admin-token");
+    if (!isServiceRoleCall && adminToken) {
+      const { data: sessionRow } = await supabase
+        .from("admin_sessions")
+        .select("admin_user_id, expires_at")
+        .eq("session_token", adminToken)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+      if (sessionRow?.admin_user_id) {
+        const { data: adminUser } = await supabase
+          .from("admin_users")
+          .select("id, is_active")
+          .eq("id", sessionRow.admin_user_id)
+          .maybeSingle();
+        isAdmin = !!adminUser?.is_active;
+      }
+    }
+
+    if (!isServiceRoleCall && !isAdmin && userId !== callerUserId) {
+      console.warn("[send-app-notification] Unauthorized cross-user notification attempt", {
+        callerUserId, userId, templateKey, type,
+      });
+      return new Response(JSON.stringify({ success: false, error: "Not authorized to send notifications to other users" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    if (!isServiceRoleCall && !isAdmin && !callerUserId) {
+      return new Response(JSON.stringify({ success: false, error: "Authentication required" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     console.log(`Sending notification to user ${userId} with template ${templateKey}`);
 
     const { data: template, error: templateError } = await supabase
