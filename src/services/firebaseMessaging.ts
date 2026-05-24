@@ -74,7 +74,13 @@ async function getMessagingInstance() {
  * Request notification permission and register FCM token
  */
 export async function registerFCMToken(userId: string): Promise<string | null> {
-  if (tokenRegistered) return null;
+  // Only short-circuit if the SAME user already registered. On user switch
+  // (logout/login as a different account) we must re-bind the token.
+  if (registeredForUserId === userId && lastRegisteredToken) return lastRegisteredToken;
+  if (registeredForUserId && registeredForUserId !== userId) {
+    registeredForUserId = null;
+    lastRegisteredToken = null;
+  }
 
   // On native platform, use Capacitor Push Notifications instead
   if (isNativeApp()) {
