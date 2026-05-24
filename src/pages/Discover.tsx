@@ -309,10 +309,10 @@ const Discover = () => {
 
   const getRoomTypeColor = (type: string) => {
     switch (type) {
-      case "video": return "from-green-500 to-emerald-600";
-      case "audio": return "from-blue-500 to-cyan-600";
-      case "game": return "from-pink-500 to-rose-600";
-      default: return "from-gray-500 to-gray-600";
+      case "video": return "from-success to-success/80";
+      case "audio": return "from-info to-info/80";
+      case "game": return "from-primary to-secondary";
+      default: return "from-muted-foreground to-muted-foreground/80";
     }
   };
 
@@ -327,14 +327,14 @@ const Discover = () => {
 
   const getGameModeColor = (gameMode: string) => {
     const colorMap: Record<string, string> = {
-      ludo: "from-blue-500 to-purple-600", lucky28: "from-orange-500 to-red-600",
-      wheel: "from-violet-500 to-purple-600", crash: "from-yellow-500 to-amber-600",
-      dice: "from-rose-500 to-pink-600", coinflip: "from-amber-500 to-yellow-600",
-      mines: "from-cyan-500 to-blue-600", hilo: "from-emerald-500 to-green-600",
-      slots: "from-fuchsia-500 to-pink-600", poker: "from-green-500 to-teal-600",
-      quiz: "from-green-500 to-teal-600",
+      ludo: "from-info to-secondary", lucky28: "from-warning to-danger",
+      wheel: "from-secondary to-primary", crash: "from-warning to-accent",
+      dice: "from-danger to-primary", coinflip: "from-accent to-warning",
+      mines: "from-info to-primary", hilo: "from-success to-success/80",
+      slots: "from-secondary to-primary", poker: "from-success to-info",
+      quiz: "from-success to-info",
     };
-    return colorMap[gameMode] || "from-purple-500 to-pink-600";
+    return colorMap[gameMode] || "from-secondary to-primary";
   };
 
   const handleTabChange = (path: string) => {
@@ -342,9 +342,9 @@ const Discover = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 pb-5">
+      <div className="bg-gradient-primary pb-5">
         <header className="safe-area-top">
           <div className="flex items-center justify-between px-4 py-2">
             <Button
@@ -392,18 +392,18 @@ const Discover = () => {
       <div className="px-3 mb-3 -mt-3 pt-3">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full bg-muted rounded-full p-0.5 border border-border h-9">
-            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-on-dark">
+            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-primary data-[state=active]:text-on-dark">
               All
             </TabsTrigger>
-            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-on-dark">
+            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-success data-[state=active]:text-on-dark">
               <Monitor className="w-3 h-3 mr-1" />
               Video
             </TabsTrigger>
-            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-on-dark">
+            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-info data-[state=active]:text-on-dark">
               <Mic className="w-3 h-3 mr-1" />
               Audio
             </TabsTrigger>
-            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-on-dark">
+            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-on-dark">
               <Gamepad2 className="w-3 h-3 mr-1" />
               Game
             </TabsTrigger>
