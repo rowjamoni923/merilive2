@@ -749,7 +749,7 @@ export function usePrivateCall(userId: string | null) {
         }
       }, 5000);
 
-      return data;
+      return resolvedCallId;
     } catch (error: any) {
       console.error('Error starting call:', error);
       setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
