@@ -1896,7 +1896,6 @@ body[data-admin-active="true"] #root {
   min-height: calc(100dvh - 56px);
   height: auto;
   max-height: none;
-  min-height: 0;
   overflow-y: visible !important;
   overflow-x: hidden !important;
   touch-action: pan-y !important;
@@ -1917,9 +1916,9 @@ body[data-admin-active="true"] #root {
 
 @media (max-width: 1023px) {
   .admin-shell {
-    position: fixed;
-    inset: 0;
+    position: relative;
     width: 100vw;
+    min-height: 100dvh;
   }
 }
 
