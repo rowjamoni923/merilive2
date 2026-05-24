@@ -643,25 +643,34 @@ const ProfileDetail = () => {
     if (!currentUser || !userId) return;
     try {
       if (isFollowing) {
-        await supabase
+        const { error } = await supabase
           .from("followers")
           .delete()
           .eq("follower_id", currentUser.id)
           .eq("following_id", userId);
+        if (error) throw error;
         setIsFollowing(false);
-        setFollowersCount((prev) => prev - 1);
+        setFollowersCount((prev) => Math.max(0, prev - 1));
       } else {
-        await supabase.from("followers").insert({
+        const { error } = await supabase.from("followers").insert({
           follower_id: currentUser.id,
           following_id: userId,
         });
+        if (error) throw error;
         setIsFollowing(true);
         setFollowersCount((prev) => prev + 1);
       }
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      const raw = String(error?.message || "").toLowerCase();
+      let friendly = "Action failed. Please try again.";
+      if (raw.includes("cannot follow yourself") || raw.includes("self")) friendly = "You can't follow yourself.";
+      else if (raw.includes("banned") || raw.includes("deleted")) friendly = "This user is no longer available.";
+      else if (raw.includes("blocked")) friendly = "Following is blocked between you and this user.";
+      else if (raw.includes("duplicate") || raw.includes("already")) friendly = "You already follow this user.";
+      toast({ title: friendly, variant: "destructive" });
     }
   };
+
 
   // Get current cover image (from poster images or default)
   const getCurrentCoverImage = useCallback(() => {
