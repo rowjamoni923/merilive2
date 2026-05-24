@@ -510,7 +510,7 @@ const Discover = () => {
                       {gameEmoji && (
                         <div className="absolute bottom-1.5 left-1.5">
                           <div className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center text-lg shadow-lg border border-amber-200/60 bg-gradient-to-br",
+                            "w-8 h-8 rounded-lg flex items-center justify-center text-lg shadow-lg border border-accent/40 bg-gradient-to-br",
                             gameColor
                           )}>
                             {gameEmoji}
@@ -521,15 +521,15 @@ const Discover = () => {
                       {/* Lock icon */}
                       {room.is_private && (
                         <div className="absolute bottom-1.5 right-1.5">
-                          <div className="w-5 h-5 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center">
-                            <Lock className="w-2.5 h-2.5 text-yellow-400" />
+                          <div className="w-5 h-5 rounded-full bg-card/85 backdrop-blur-sm flex items-center justify-center border border-border/60">
+                            <Lock className="w-2.5 h-2.5 text-money" />
                           </div>
                         </div>
                       )}
                     </div>
 
                     {/* Room info with host avatar */}
-                    <div className="p-2 bg-white">
+                    <div className="p-2 bg-card">
                       {/* Room name */}
                       <h3 className="font-semibold text-display truncate text-xs mb-1.5">{room.name}</h3>
                       
@@ -539,15 +539,15 @@ const Discover = () => {
                         <div className="relative flex-shrink-0">
                           <div className={cn(
                             "rounded-full p-0.5 bg-gradient-to-br",
-                            hostLevel >= 40 ? "from-red-400 to-orange-500" :
-                            hostLevel >= 20 ? "from-amber-400 to-yellow-500" :
-                            hostLevel >= 10 ? "from-purple-400 to-pink-500" :
-                            hostLevel >= 5 ? "from-blue-400 to-cyan-500" :
-                            "from-gray-400 to-gray-500"
+                            hostLevel >= 40 ? "from-danger to-warning" :
+                            hostLevel >= 20 ? "from-warning to-accent" :
+                            hostLevel >= 10 ? "from-secondary to-primary" :
+                            hostLevel >= 5 ? "from-info to-primary" :
+                            "from-muted-foreground to-muted-foreground/70"
                           )}>
-                            <Avatar className="w-6 h-6 border border-white">
+                            <Avatar className="w-6 h-6 border border-card">
                               <AvatarImage src={hostAvatar || undefined} />
-                              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-on-dark text-[8px]">
+                              <AvatarFallback className="bg-gradient-primary text-on-dark text-[8px]">
                                 {room.host?.display_name?.charAt(0) || 'H'}
                               </AvatarFallback>
                             </Avatar>
@@ -571,7 +571,7 @@ const Discover = () => {
                       {/* Entry fee if any */}
                       {room.entry_fee > 0 && (
                         <div className="mt-1">
-                          <Badge variant="outline" className="text-[9px] px-1 py-0 text-amber-500 border-amber-500/30">
+                          <Badge variant="outline" className="text-[9px] px-1 py-0 text-money border-accent/40">
                             💰 {room.entry_fee}
                           </Badge>
                         </div>
