@@ -1863,13 +1863,21 @@ const Recharge = () => {
       if (currentHelperMethod && currentHelperMethod.helper) {
         // Create helper order for instant processing
         const helper = currentHelperMethod.helper as any;
-        
-        // Check if helper has sufficient balance
+
+        // Best-effort pre-flight (real guard is atomic deduct_helper_wallet below).
         if (helper.wallet_balance < selectedPackage.coins) {
           throw new Error("Merchant doesn't have enough diamonds. Please try another payment method.");
         }
 
-        // Create helper order with correct schema
+        // Normalize TXN ID so DB unique index (LOWER(payment_method), LOWER(provider_transaction_id))
+        // catches reuse across helpers/sessions and the user gets a clear error.
+        const normalizedTxnId = transactionId.trim();
+
+        // CRITICAL: insert the order as PENDING first. We only flip to COMPLETED
+        // after both deduct_helper_wallet and helper_add_coins_to_user actually
+        // succeed. Previously we wrote 'completed' up front, so any downstream
+        // failure left the row falsely marked completed even though the helper
+        // was never debited or the user was never credited.
         const { data: helperOrder, error: orderError } = await supabase
           .from('helper_orders')
           .insert({
@@ -1881,19 +1889,26 @@ const Recharge = () => {
             currency_code: currencyRate?.currency_code || 'USD',
             user_country_code: userCountryCode,
             payment_method: currentHelperMethod.method_name,
+            provider_transaction_id: normalizedTxnId || null,
             user_payment_proof: paymentProof,
-            status: 'completed', // Instant approval!
-            processed_at: new Date().toISOString(),
+            status: 'pending',
             payment_details: {
-              transaction_id: transactionId,
+              transaction_id: normalizedTxnId,
               gateway: selectedGateway.name,
-              auto_approved: true
-            }
+              auto_approved: true,
+            },
           })
           .select()
           .single();
 
-        if (orderError) throw orderError;
+        if (orderError) {
+          // Postgres unique-violation = TXN ID has already been used.
+          const isDup = String((orderError as any)?.code) === '23505' || /duplicate key/i.test(orderError.message || '');
+          const msg = isDup
+            ? 'This transaction ID has already been used. Each payment receipt can only be submitted once.'
+            : orderError.message || 'Could not create payment order. Please try again.';
+          throw new Error(msg);
+        }
 
         // ATOMIC: Deduct diamonds from helper (prevents race conditions & negative balance)
         const { data: deductResult, error: deductError } = await supabase
@@ -1903,16 +1918,28 @@ const Recharge = () => {
             _update_total_sold: true
           });
 
-        if (deductError) {
-          console.error('Failed to deduct from helper:', deductError);
-          recordClientError({ label: "Recharge.helper", message: deductError instanceof Error ? deductError.message : String(deductError) });
-          throw new Error('Failed to deduct diamonds from merchant');
-        }
-
-        // Check if deduction was successful (insufficient balance check)
         const deductData = deductResult as any;
-        if (deductData && deductData.success === false) {
-          throw new Error(deductData.error || "Merchant doesn't have enough diamonds");
+        const deductFailed = !!deductError || (deductData && deductData.success === false);
+        if (deductFailed) {
+          const errMsg = deductError?.message || deductData?.error || "Merchant doesn't have enough diamonds";
+          console.error('Failed to deduct from helper:', errMsg);
+          recordClientError({ label: 'Recharge.helper', message: String(errMsg) });
+          // Mark the pending row as failed so it never looks completed in reports.
+          try {
+            await supabase
+              .from('helper_orders')
+              .update({
+                status: 'failed',
+                payment_details: {
+                  ...(helperOrder.payment_details as any || {}),
+                  deduct_failure: String(errMsg),
+                },
+              })
+              .eq('id', helperOrder.id);
+          } catch (flagErr) {
+            console.error('Failed to flag helper_order as failed after deduct error:', flagErr);
+          }
+          throw new Error(errMsg);
         }
 
         const candidateBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
@@ -1952,6 +1979,21 @@ const Recharge = () => {
             console.error('Failed to flag helper_order as failed:', flagErr);
           }
           throw new Error('Diamonds could not be credited. Support has been notified — your payment will be reconciled.');
+        }
+
+        // Both legs succeeded — NOW promote the row to completed.
+        try {
+          await supabase
+            .from('helper_orders')
+            .update({
+              status: 'completed',
+              processed_at: new Date().toISOString(),
+            })
+            .eq('id', helperOrder.id);
+        } catch (promoteErr) {
+          // Non-fatal: money has moved correctly. Log so admin can fix status.
+          console.error('Failed to promote helper_order to completed:', promoteErr);
+          recordClientError({ label: 'Recharge.promoteHelperOrder', message: promoteErr instanceof Error ? promoteErr.message : String(promoteErr) });
         }
 
         if (candidateBonusCoins > 0 && firstRechargeBonusId) {
