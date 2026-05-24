@@ -1245,14 +1245,9 @@ export function usePrivateCall(userId: string | null) {
     };
   }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
 
-  // 🔴 Pkg84: INCOMING CALL LISTENER — FCM-only (Chamet/WhatsApp/Imo standard)
-  // The `incoming-call-${userId}` Supabase Realtime channel + 15s heartbeat
-  // are DELETED. `call-deliver` edge function (caller-side) inserts a
-  // `notifications` row + sends FCM high-priority data push. `useNotifications`
-  // listens on its already-active `notifications` subscription and bridges
-  // type='incoming_call' rows to `window 'incoming-call-notification'`.
-  // This removes one realtime channel + 15s polling tick per logged-in user
-  // ($1400-bill rule win) while gaining background/killed-app delivery.
+  // Incoming call listener: FCM is the wake/delivery path, while the scoped
+  // private_calls realtime listener above is the DB truth path for missed FCM,
+  // caller cancel/timeout, and cross-device state convergence.
   useEffect(() => {
     if (!userId) return;
 
