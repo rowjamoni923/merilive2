@@ -1961,33 +1961,26 @@ const Recharge = () => {
           recordClientError({ label: 'Recharge.addCoinsAfterHelperDeduct', message: String(errMsg) });
           // CRITICAL: helper wallet already debited — flag the order so admin can reconcile,
           // and surface the failure to the user instead of falsely reporting success.
+          // Routed through SECURITY DEFINER RPC (see note above).
           try {
-            await supabase
-              .from('helper_orders')
-              .update({
-                status: 'failed',
-                payment_details: {
-                  ...(helperOrder.payment_details as any || {}),
-                  credit_failure: String(errMsg),
-                  needs_reconciliation: true,
-                },
-              })
-              .eq('id', helperOrder.id);
+            await supabase.rpc('user_finalize_helper_order' as any, {
+              _order_id: helperOrder.id,
+              _new_status: 'failed',
+              _reason: `credit_failure: ${String(errMsg)}`,
+            });
           } catch (flagErr) {
             console.error('Failed to flag helper_order as failed:', flagErr);
           }
           throw new Error('Diamonds could not be credited. Support has been notified — your payment will be reconciled.');
         }
 
-        // Both legs succeeded — NOW promote the row to completed.
+        // Both legs succeeded — NOW promote the row to completed via RPC.
         try {
-          await supabase
-            .from('helper_orders')
-            .update({
-              status: 'completed',
-              processed_at: new Date().toISOString(),
-            })
-            .eq('id', helperOrder.id);
+          await supabase.rpc('user_finalize_helper_order' as any, {
+            _order_id: helperOrder.id,
+            _new_status: 'completed',
+            _reason: null,
+          });
         } catch (promoteErr) {
           // Non-fatal: money has moved correctly. Log so admin can fix status.
           console.error('Failed to promote helper_order to completed:', promoteErr);
