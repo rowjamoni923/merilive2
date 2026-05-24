@@ -436,6 +436,7 @@ const Reels = () => {
     setShowGiftPanel(false);
 
     addFlyingGift({
+      senderId: sendingUserId,
       giftName: gift.name,
       giftIcon: gift.emoji,
       giftImageUrl: gift.icon_url || undefined,
