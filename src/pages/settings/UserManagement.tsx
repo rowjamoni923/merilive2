@@ -28,6 +28,7 @@ const UserManagement = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        setLoading(false);
         navigate("/auth");
         return;
       }
@@ -42,10 +43,11 @@ const UserManagement = () => {
 
       if (data && data.length > 0) {
         const blockedIds = data.map(b => b.blocked_id);
-        const { data: profiles } = await supabase
+        const { data: profiles, error: profilesError } = await supabase
           .from("profiles_public")
           .select("id, display_name, avatar_url")
           .in("id", blockedIds);
+        if (profilesError) throw profilesError;
 
         const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
@@ -77,6 +79,7 @@ const UserManagement = () => {
 
   const handleUnblock = async (blockedUserId: string, name: string) => {
     try {
+      const targetBlock = blockedUsers.find((u) => u.id === blockedUserId);
       const { error } = await supabase
         .from("blocked_users")
         .delete()
@@ -85,6 +88,11 @@ const UserManagement = () => {
       if (error) throw error;
 
       setBlockedUsers(prev => prev.filter(u => u.id !== blockedUserId));
+      if (targetBlock?.blocked_id) {
+        window.dispatchEvent(new CustomEvent("app-sync", {
+          detail: { topic: "blocked_users", eventType: "DELETE", rowId: blockedUserId, payload: { blocked_id: targetBlock.blocked_id } }
+        }));
+      }
       toast({ title: "User Unblocked", description: `${name} has been unblocked.` });
     } catch (error) {
       toast({ title: "Error", description: "Failed to unblock user.", variant: "destructive" });

@@ -23,6 +23,8 @@ const CustomerService = () => {
   })();
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchUserData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -34,19 +36,25 @@ const CustomerService = () => {
             .single();
 
           if (profile) {
-            setUserLevel(profile.user_level || 1);
-            setUserName(profile.display_name || "User");
+            if (!cancelled) {
+              setUserLevel(profile.user_level || 1);
+              setUserName(profile.display_name || "User");
+            }
           }
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
         recordClientError({ label: "CustomerService.fetchUserData", message: error instanceof Error ? error.message : String(error) });
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchUserData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -67,7 +75,7 @@ const CustomerService = () => {
   // Show AI chat interface (which now includes live chat)
   if (showChat) {
     return (
-      <div className="mobile-page bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
+      <div className="mobile-page bg-background">
         <AISupportChat
           onClose={handleCloseChat}
           userLevel={userLevel}
@@ -82,17 +90,17 @@ const CustomerService = () => {
   }
 
   return (
-    <div className="mobile-page bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] min-h-screen">
+    <div className="mobile-page bg-background min-h-screen">
       {/* Header */}
-      <div className="mobile-header bg-white/85 backdrop-blur-xl border-b border-amber-200/60 shadow-sm">
+      <div className="mobile-header bg-background/85 backdrop-blur-xl border-b border-border shadow-sm">
         <div className="flex items-center h-14 px-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-amber-100/60 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-700" />
+            <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-bold text-slate-800 pr-7">Customer Service</h1>
+          <h1 className="flex-1 text-center text-lg font-bold text-foreground pr-7">Customer Service</h1>
         </div>
       </div>
 
@@ -100,11 +108,11 @@ const CustomerService = () => {
         {/* AI Chat Card - Main Feature */}
         <div
           onClick={() => setShowChat(true)}
-          className="relative overflow-hidden bg-gradient-to-br from-fuchsia-50 via-pink-50 to-rose-50 rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all border border-pink-200/70 shadow-md"
+          className="relative overflow-hidden bg-card rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all border border-border shadow-md"
         >
           {isPremium && (
             <div className="absolute top-3 right-3">
-              <span className="px-2.5 py-1 text-[11px] font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full flex items-center gap-1 shadow-md">
+              <span className="px-2.5 py-1 text-[11px] font-bold bg-primary text-primary-foreground rounded-full flex items-center gap-1 shadow-md">
                 <Sparkles className="w-3 h-3" />
                 Priority Support
               </span>
@@ -112,17 +120,17 @@ const CustomerService = () => {
           )}
 
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-pink-500/30">
-              <Bot className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/30">
+              <Bot className="w-7 h-7 text-primary-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-lg mb-1 text-slate-800">Chat with AI Support</h3>
-              <p className="text-sm text-slate-600 mb-3 leading-snug">
+              <h3 className="font-bold text-lg mb-1 text-foreground">Chat with AI Support</h3>
+              <p className="text-sm text-muted-foreground mb-3 leading-snug">
                 Get instant help 24/7 • Type "Live Chat" for human support
               </p>
               <Button
                 size="sm"
-                className="gap-2 bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700 text-white border-0 shadow-md shadow-purple-500/30 rounded-full px-5"
+                className="gap-2 border-0 shadow-md shadow-primary/30 rounded-full px-5"
               >
                 <MessageCircle className="w-4 h-4" />
                 Start Chat
@@ -133,26 +141,26 @@ const CustomerService = () => {
 
         {/* Quick Info Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl p-4 border border-amber-200/60 shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-3">
-              <Mail className="w-5 h-5 text-blue-600" />
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <Mail className="w-5 h-5 text-primary" />
             </div>
-            <h4 className="font-semibold text-sm mb-1 text-slate-800">Email Support</h4>
-            <p className="text-xs text-slate-600 truncate">merilive.us@gmail.com</p>
+            <h4 className="font-semibold text-sm mb-1 text-foreground">Email Support</h4>
+            <p className="text-xs text-muted-foreground truncate">merilive.us@gmail.com</p>
           </div>
 
-          <div className="bg-white rounded-xl p-4 border border-amber-200/60 shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mb-3">
-              <Clock className="w-5 h-5 text-emerald-600" />
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <Clock className="w-5 h-5 text-primary" />
             </div>
-            <h4 className="font-semibold text-sm mb-1 text-slate-800">Response Time</h4>
-            <p className="text-xs text-slate-600">Within 24 hours</p>
+            <h4 className="font-semibold text-sm mb-1 text-foreground">Response Time</h4>
+            <p className="text-xs text-muted-foreground">Within 24 hours</p>
           </div>
         </div>
 
         {/* Common Issues */}
-        <div className="bg-white rounded-2xl p-4 border border-amber-200/60 shadow-sm">
-          <h3 className="font-bold text-base mb-3 text-slate-800">Common Issues</h3>
+        <div className="bg-card rounded-2xl p-4 border border-border shadow-sm">
+          <h3 className="font-bold text-base mb-3 text-foreground">Common Issues</h3>
           <div className="space-y-2.5">
             {[
               { title: "Account Issues", desc: "Login, verification, profile problems" },
@@ -162,21 +170,21 @@ const CustomerService = () => {
               <button
                 key={item.title}
                 onClick={() => setShowChat(true)}
-                className="w-full flex items-center justify-between p-3 bg-amber-50/60 hover:bg-amber-100/70 rounded-xl border border-amber-200/50 transition-colors active:scale-[0.99]"
+                className="w-full flex items-center justify-between p-3 bg-muted/40 hover:bg-muted/70 rounded-xl border border-border transition-colors active:scale-[0.99]"
               >
                 <div className="text-left">
-                  <p className="font-semibold text-sm text-slate-800">{item.title}</p>
-                  <p className="text-xs text-slate-600">{item.desc}</p>
+                  <p className="font-semibold text-sm text-foreground">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </div>
-                <MessageCircle className="w-4 h-4 text-purple-500 shrink-0" />
+                <MessageCircle className="w-4 h-4 text-primary shrink-0" />
               </button>
             ))}
           </div>
         </div>
 
         {/* User Level Info */}
-        <div className="text-center text-xs text-slate-600">
-          <p>Your Level: <span className="font-semibold text-slate-800">{userLevel}</span></p>
+        <div className="text-center text-xs text-muted-foreground">
+          <p>Your Level: <span className="font-semibold text-foreground">{userLevel}</span></p>
           {!isPremium && (
             <p className="mt-1">Reach Level 6 to unlock Priority Support in your Profile</p>
           )}

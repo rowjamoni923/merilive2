@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Gift, Phone, Users, Video, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX, ShieldCheck, ShieldX } from "lucide-react";
+import { ArrowLeft, Bell, Gift, Phone, Users, Video, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX, ShieldCheck, ShieldX, type LucideIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +11,7 @@ interface NotificationCategory {
   key: string;
   label: string;
   description: string;
-  icon: any;
+  icon: LucideIcon;
 }
 
 const CATEGORIES: NotificationCategory[] = [
@@ -44,9 +44,11 @@ export default function NotificationSettings() {
   const [prefs, setPrefs] = useState<Record<string, PrefState>>({});
   const [loading, setLoading] = useState(true);
   const [globalSound, setGlobalSound] = useState(true);
+  const savingRef = useRef(false);
 
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async (showLoading = false) => {
     try {
+      if (showLoading) setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/auth');
@@ -75,14 +77,14 @@ export default function NotificationSettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate, toast]);
 
   useEffect(() => {
-    void loadPreferences();
-  }, []);
+    void loadPreferences(true);
+  }, [loadPreferences]);
 
   useAppSyncEvent(['notification_preferences'], () => {
-    void loadPreferences();
+    if (!savingRef.current) void loadPreferences(false);
   });
 
   const updatePref = async (category: string, field: keyof PrefState, value: boolean) => {
@@ -103,25 +105,32 @@ export default function NotificationSettings() {
 
     setPrefs(prev => ({ ...prev, [category]: updated }));
 
-    const { error } = await supabase
-      .from('notification_preferences')
-      .upsert({
-        user_id: user.id,
-        category,
-        enabled: updated.enabled,
-        push_enabled: updated.push_enabled,
-        sound_enabled: updated.sound_enabled,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,category' });
+    savingRef.current = true;
+    try {
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: user.id,
+          category,
+          enabled: updated.enabled,
+          push_enabled: updated.push_enabled,
+          sound_enabled: updated.sound_enabled,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,category' });
 
-    if (error) {
-      console.error('Failed to update preference:', error);
-      recordClientError({ label: "NotificationSettings.updated", message: error instanceof Error ? error.message : String(error) });
-      toast({ title: 'Error', description: 'Failed to save preference', variant: 'destructive' });
+      if (error) {
+        setPrefs(prev => ({ ...prev, [category]: current }));
+        console.error('Failed to update preference:', error);
+        recordClientError({ label: "NotificationSettings.updated", message: error instanceof Error ? error.message : String(error) });
+        toast({ title: 'Error', description: 'Failed to save preference', variant: 'destructive' });
+      }
+    } finally {
+      savingRef.current = false;
     }
   };
 
   const toggleGlobalSound = async (value: boolean) => {
+    const previousSound = globalSound;
     setGlobalSound(value);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -136,18 +145,25 @@ export default function NotificationSettings() {
       updated_at: new Date().toISOString(),
     }));
 
-    const { error } = await supabase.from('notification_preferences').upsert(updates, { onConflict: 'user_id,category' });
-    if (error) {
-      console.error('Failed to update sound:', error);
-      recordClientError({ label: "NotificationSettings.updates", message: error instanceof Error ? error.message : String(error) });
-    } else {
-      setPrefs(prev => {
-        const next = { ...prev };
-        CATEGORIES.forEach(cat => {
-          next[cat.key] = { ...(next[cat.key] || DEFAULT_PREF), sound_enabled: value };
+    savingRef.current = true;
+    try {
+      const { error } = await supabase.from('notification_preferences').upsert(updates, { onConflict: 'user_id,category' });
+      if (error) {
+        setGlobalSound(previousSound);
+        console.error('Failed to update sound:', error);
+        recordClientError({ label: "NotificationSettings.updates", message: error instanceof Error ? error.message : String(error) });
+        toast({ title: 'Error', description: 'Failed to save sound preference', variant: 'destructive' });
+      } else {
+        setPrefs(prev => {
+          const next = { ...prev };
+          CATEGORIES.forEach(cat => {
+            next[cat.key] = { ...(next[cat.key] || DEFAULT_PREF), sound_enabled: value };
+          });
+          return next;
         });
-        return next;
-      });
+      }
+    } finally {
+      savingRef.current = false;
     }
   };
 

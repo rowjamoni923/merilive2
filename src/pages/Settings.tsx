@@ -24,7 +24,8 @@ import {
   AlertTriangle,
   Calendar,
   Users,
-  BarChart3
+  BarChart3,
+  type LucideIcon
 } from "lucide-react";
 import { getConsent, setConsent, onConsentChange } from "@/lib/privacyConsent";
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,23 @@ const DEFAULT_PERMISSIONS: Record<PermissionKey, boolean> = {
 
 const PERMISSION_CACHE_KEY = 'meri_settings_permissions_v1';
 
+type SettingsItem = {
+  icon: LucideIcon;
+  label: string;
+  value?: string;
+  onClick?: () => void;
+  showArrow?: boolean;
+  danger?: boolean;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => (
+  error instanceof Error ? error.message : fallback
+);
+
+const getErrorName = (error: unknown) => (
+  error instanceof Error ? error.name : ""
+);
+
 const readCachedPermissions = (): Record<PermissionKey, boolean> => {
   if (typeof window === 'undefined') return { ...DEFAULT_PERMISSIONS };
   try {
@@ -127,7 +145,9 @@ const writeCachedPermissions = (next: Record<PermissionKey, boolean>) => {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(PERMISSION_CACHE_KEY, JSON.stringify(next));
-  } catch {}
+  } catch (error) {
+    console.warn('[Settings] Failed to cache permissions:', error);
+  }
 };
 
 const Settings = () => {
@@ -178,15 +198,21 @@ const Settings = () => {
           try {
             const camPerm = await navigator.permissions.query({ name: 'camera' as PermissionName });
             nextPermissions.camera = camPerm.state === 'granted';
-          } catch {}
+          } catch (error) {
+            console.warn('[Settings] Camera permission status unavailable:', error);
+          }
           try {
             const micPerm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
             nextPermissions.microphone = micPerm.state === 'granted';
-          } catch {}
+          } catch (error) {
+            console.warn('[Settings] Microphone permission status unavailable:', error);
+          }
           try {
             const locPerm = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
             nextPermissions.location = locPerm.state === 'granted';
-          } catch {}
+          } catch (error) {
+            console.warn('[Settings] Location permission status unavailable:', error);
+          }
         }
       }
 
@@ -409,7 +435,9 @@ const Settings = () => {
           });
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.warn('[Settings] Camera permission precheck unavailable:', error);
+      }
     }
 
     try {
@@ -432,11 +460,12 @@ const Settings = () => {
       stream.getTracks().forEach(track => track.stop());
       updatePermissions({ camera: true });
       toast({ title: "Camera Enabled", description: "Camera access has been granted." });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Camera permission error:', error);
       recordClientError({ label: "Settings.stream", message: error instanceof Error ? error.message : String(error) });
-      const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
-      const notFound = error?.name === 'NotFoundError';
+      const errorName = getErrorName(error);
+      const denied = errorName === 'NotAllowedError' || errorName === 'SecurityError';
+      const notFound = errorName === 'NotFoundError';
       if (notFound) {
         toast({ title: "No Camera Found", description: "No camera device detected on this device.", variant: "destructive" });
       } else if (denied) {
@@ -481,7 +510,9 @@ const Settings = () => {
           });
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.warn('[Settings] Microphone permission precheck unavailable:', error);
+      }
     }
 
     try {
@@ -504,10 +535,11 @@ const Settings = () => {
       stream.getTracks().forEach(track => track.stop());
       updatePermissions({ microphone: true });
       toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Microphone permission error:', error);
       recordClientError({ label: "Settings.stream", message: error instanceof Error ? error.message : String(error) });
-      const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
+      const errorName = getErrorName(error);
+      const denied = errorName === 'NotAllowedError' || errorName === 'SecurityError';
       if (denied) {
         toast({
           title: "Microphone Blocked",
@@ -550,7 +582,9 @@ const Settings = () => {
           });
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.warn('[Settings] Location permission precheck unavailable:', error);
+      }
     }
 
     try {
@@ -607,7 +641,9 @@ const Settings = () => {
       // Persistent flag so auto-recovery NEVER restores old account
       localStorage.setItem('meri_manual_logout', 'true');
       localStorage.removeItem('meri_device_account');
-    } catch {}
+    } catch (error) {
+      console.warn('[Settings] Failed to write logout marker:', error);
+    }
 
     // Close dialog + navigate IMMEDIATELY
     setShowLogoutDialog(false);
@@ -683,10 +719,10 @@ const Settings = () => {
       
       setShowDeleteConfirmDialog(false);
       setShowDeleteDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to schedule deletion",
+        description: getErrorMessage(error, "Failed to schedule deletion"),
         variant: "destructive",
       });
     } finally {
@@ -716,10 +752,10 @@ const Settings = () => {
       });
       
       setShowDeleteDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to cancel deletion",
+        description: getErrorMessage(error, "Failed to cancel deletion"),
         variant: "destructive",
       });
     } finally {
@@ -735,7 +771,7 @@ const Settings = () => {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 
-  const settingsItems = [
+  const settingsItems: SettingsItem[] = [
     {
       icon: Bell,
       label: t("settings.notifications"),
@@ -852,20 +888,20 @@ const Settings = () => {
             key={index}
             onClick={item.onClick}
             className={`w-full flex items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors ${
-              (item as any).danger ? 'text-destructive' : ''
+              item.danger ? 'text-destructive' : ''
             }`}
             disabled={!item.onClick}
           >
             <div className="flex items-center gap-3">
-              <item.icon className={`w-5 h-5 ${(item as any).danger ? 'text-destructive' : 'text-muted-foreground'}`} />
-              <span className={(item as any).danger ? 'text-destructive' : 'text-foreground'}>{item.label}</span>
+              <item.icon className={`w-5 h-5 ${item.danger ? 'text-destructive' : 'text-muted-foreground'}`} />
+              <span className={item.danger ? 'text-destructive' : 'text-foreground'}>{item.label}</span>
             </div>
             <div className="flex items-center gap-2">
               {item.value && (
-                <span className={`text-sm ${(item as any).danger ? 'text-destructive/70' : 'text-muted-foreground'}`}>{item.value}</span>
+                <span className={`text-sm ${item.danger ? 'text-destructive/70' : 'text-muted-foreground'}`}>{item.value}</span>
               )}
               {item.showArrow !== false && item.onClick && (
-                <ChevronRight className={`w-5 h-5 ${(item as any).danger ? 'text-destructive' : 'text-muted-foreground'}`} />
+                <ChevronRight className={`w-5 h-5 ${item.danger ? 'text-destructive' : 'text-muted-foreground'}`} />
               )}
             </div>
           </button>
@@ -914,8 +950,8 @@ const Settings = () => {
                     </div>
                   </div>
                   {selectedLanguage === lang.code && (
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-4 h-4 text-primary-foreground" />
                     </div>
                   )}
                 </button>
@@ -946,14 +982,14 @@ const Settings = () => {
               </button>
             )}
             {isInIframe && (
-              <div className="rounded-2xl border border-amber-300/70 bg-amber-50 p-3 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-100 dark:border-amber-700/60">
+              <div className="rounded-2xl border border-border bg-muted p-3 text-xs text-foreground">
                 <p className="font-semibold mb-1">⚠️ Preview Mode Limitation</p>
                 <p className="mb-2 opacity-90">
                   Camera, Microphone & Location can't be granted inside this preview frame. Open the app in a full browser tab or in the installed Android app to enable them.
                 </p>
                 <button
                   onClick={() => window.open(window.location.href, '_blank', 'noopener,noreferrer')}
-                  className="w-full h-9 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold"
+                  className="w-full h-9 rounded-lg bg-primary text-primary-foreground text-xs font-semibold"
                 >
                   Open in Full Tab
                 </button>
@@ -965,8 +1001,8 @@ const Settings = () => {
               className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/40 hover:bg-muted/60 border border-border cursor-pointer active:scale-[0.98] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center border border-purple-500/20">
-                  <Bell className="w-5 h-5 text-purple-400" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <Bell className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-foreground">{t("settings.pushNotifications")}</p>
@@ -976,11 +1012,11 @@ const Settings = () => {
               <div
                 className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.notifications
-                    ? "bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/30"
+                    ? "bg-primary shadow-lg shadow-primary/30"
                     : "bg-muted border border-border"
                 }`}
               >
-                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
+                <div className={`absolute top-1 w-6 h-6 rounded-full bg-background shadow-md transition-all duration-300 pointer-events-none ${
                   permissions.notifications ? "left-7" : "left-1"
                 }`} />
               </div>
@@ -992,8 +1028,8 @@ const Settings = () => {
               className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/40 hover:bg-muted/60 border border-border cursor-pointer active:scale-[0.98] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-600/30 to-rose-600/30 flex items-center justify-center border border-pink-500/20">
-                  <Camera className="w-5 h-5 text-pink-400" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <Camera className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-foreground">{t("settings.cameraAccess")}</p>
@@ -1003,11 +1039,11 @@ const Settings = () => {
               <div
                 className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.camera
-                    ? "bg-gradient-to-r from-pink-600 to-rose-600 shadow-lg shadow-pink-500/30"
+                    ? "bg-primary shadow-lg shadow-primary/30"
                     : "bg-muted border border-border"
                 }`}
               >
-                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
+                <div className={`absolute top-1 w-6 h-6 rounded-full bg-background shadow-md transition-all duration-300 pointer-events-none ${
                   permissions.camera ? "left-7" : "left-1"
                 }`} />
               </div>
@@ -1019,8 +1055,8 @@ const Settings = () => {
               className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/40 hover:bg-muted/60 border border-border cursor-pointer active:scale-[0.98] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-600/30 flex items-center justify-center border border-blue-500/20">
-                  <Mic className="w-5 h-5 text-blue-400" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <Mic className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-foreground">{t("settings.microphoneAccess")}</p>
@@ -1030,11 +1066,11 @@ const Settings = () => {
               <div
                 className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.microphone
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 shadow-lg shadow-blue-500/30"
+                    ? "bg-primary shadow-lg shadow-primary/30"
                     : "bg-muted border border-border"
                 }`}
               >
-                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
+                <div className={`absolute top-1 w-6 h-6 rounded-full bg-background shadow-md transition-all duration-300 pointer-events-none ${
                   permissions.microphone ? "left-7" : "left-1"
                 }`} />
               </div>
@@ -1046,8 +1082,8 @@ const Settings = () => {
               className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/40 hover:bg-muted/60 border border-border cursor-pointer active:scale-[0.98] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600/30 to-emerald-600/30 flex items-center justify-center border border-green-500/20">
-                  <MapPin className="w-5 h-5 text-green-400" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <MapPin className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-foreground">{t("settings.locationAccess")}</p>
@@ -1057,11 +1093,11 @@ const Settings = () => {
               <div
                 className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.location
-                    ? "bg-gradient-to-r from-green-600 to-emerald-600 shadow-lg shadow-green-500/30"
+                    ? "bg-primary shadow-lg shadow-primary/30"
                     : "bg-muted border border-border"
                 }`}
               >
-                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
+                <div className={`absolute top-1 w-6 h-6 rounded-full bg-background shadow-md transition-all duration-300 pointer-events-none ${
                   permissions.location ? "left-7" : "left-1"
                 }`} />
               </div>
@@ -1070,7 +1106,7 @@ const Settings = () => {
           <DialogFooter>
             <Button
               onClick={() => setShowPermissionsDialog(false)}
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-semibold"
+              className="w-full h-12 rounded-xl font-semibold"
             >
               {t("common.done")}
             </Button>
@@ -1118,16 +1154,16 @@ const Settings = () => {
             <DialogDescription>
               {deletionInfo?.deletionScheduledAt ? (
                 <div className="space-y-3 mt-2">
-                  <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/40 dark:border-amber-700/60">
-                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-200 mb-1">
+                  <div className="p-3 rounded-lg bg-muted border border-border">
+                    <div className="flex items-center gap-2 text-foreground mb-1">
                       <Calendar className="w-4 h-4" />
                       <span className="font-medium">Deletion Scheduled</span>
                     </div>
-                    <p className="text-sm text-amber-600 dark:text-amber-100">
+                    <p className="text-sm text-muted-foreground">
                       Your account will be permanently deleted on{" "}
                       <strong>{new Date(deletionInfo.deletionScheduledAt).toLocaleDateString()}</strong>
                     </p>
-                    <p className="text-xs text-amber-500 dark:text-amber-300/80 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {getDaysRemaining()} days remaining
                     </p>
                   </div>

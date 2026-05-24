@@ -42,6 +42,7 @@ const Blacklist = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        setLoading(false);
         navigate("/auth");
         return;
       }
@@ -56,10 +57,11 @@ const Blacklist = () => {
 
       if (data && data.length > 0) {
         const blockedIds = data.map(b => b.blocked_id);
-        const { data: profiles } = await supabase
+        const { data: profiles, error: profilesError } = await supabase
           .from("profiles_public")
           .select("id, display_name, avatar_url, username")
           .in("id", blockedIds);
+        if (profilesError) throw profilesError;
 
         const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
@@ -94,6 +96,7 @@ const Blacklist = () => {
 
   const handleUnblock = async (blockId: string) => {
     try {
+      const targetBlock = blockedUsers.find((u) => u.id === blockId);
       const { error } = await supabase
         .from("user_blocks")
         .delete()
@@ -102,14 +105,19 @@ const Blacklist = () => {
       if (error) throw error;
 
       setBlockedUsers(prev => prev.filter(u => u.id !== blockId));
+      if (targetBlock?.blocked_id) {
+        window.dispatchEvent(new CustomEvent("app-sync", {
+          detail: { topic: "user_blocks", eventType: "DELETE", rowId: blockId, payload: { blocked_id: targetBlock.blocked_id } }
+        }));
+      }
       toast({
         title: "Unblocked",
         description: "User has been unblocked successfully.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to unblock user",
+        description: error instanceof Error ? error.message : "Failed to unblock user",
         variant: "destructive",
       });
     } finally {
@@ -128,7 +136,7 @@ const Blacklist = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-              className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
