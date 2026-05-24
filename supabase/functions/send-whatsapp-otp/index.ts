@@ -133,14 +133,22 @@ serve(async (req: Request): Promise<Response> => {
 
       console.log(`[whatsapp-otp] OTP sent to ${cleanPhone}, success: ${messageSent}`);
 
+      if (!messageSent) {
+        await supabase
+          .from("phone_otps")
+          .update({ is_used: true })
+          .eq("phone_number", cleanPhone)
+          .eq("otp_code", otpCode)
+          .eq("is_used", false);
+
+        return new Response(
+          JSON.stringify({ success: false, message_sent: false, error: "Failed to send WhatsApp message. Please try again." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({
-          success: true,
-          message_sent: !!messageSent,
-          message: messageSent
-            ? "Verification code sent to your WhatsApp"
-            : "Failed to send WhatsApp message. Please try again.",
-        }),
+        JSON.stringify({ success: true, message_sent: true, message: "Verification code sent to your WhatsApp" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
 
