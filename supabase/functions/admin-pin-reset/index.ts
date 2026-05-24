@@ -71,9 +71,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const adminToken = req.headers.get("x-admin-token") || "";
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { global: { headers: { "x-admin-token": adminToken } } },
     );
 
     const owner = await getOwnerAdminFromSession(supabase, req);
