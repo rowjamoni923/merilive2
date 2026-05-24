@@ -1513,7 +1513,7 @@ const LiveStream = () => {
       `livestream-host-calls-${hostInfo.id}`,
       ['private_calls'],
       (_table, _event, payload) => {
-        const row = (payload?.new ?? payload?.old) as any;
+        const row = (payload?.new ?? payload?.old ?? payload) as any;
         if (!row || row.host_id !== hostInfo.id) return;
         refreshHostBusyStatus();
       }
