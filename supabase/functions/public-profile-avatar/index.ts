@@ -33,6 +33,8 @@ Deno.serve(async (req) => {
 
     const { data: allowed, error: allowError } = await admin.rpc("is_public_profile_media_key", { _key: key });
     if (allowError || allowed !== true) {
+      if (allowError) console.error("[public-profile-avatar] allow-list rpc failed", allowError.message);
+      else console.warn("[public-profile-avatar] blocked unpublished key", key);
       return json({ error: "not-public-profile-media", key }, 403);
     }
 
