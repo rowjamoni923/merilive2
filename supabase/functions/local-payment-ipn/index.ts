@@ -191,6 +191,14 @@ serve(async (req) => {
       throw new Error("Order not found");
     }
     const returnOrigin = normalizeReturnOrigin((order.payment_details as any)?.origin_url);
+    assertSamePayment(order, {
+      userId,
+      totalCoins,
+      paymentMethodId,
+      txnId,
+      amount: validationData.amount,
+      currency: validationData.currency,
+    });
 
     if (order.status !== "gateway_pending") {
       console.log(`[IPN] Order ${orderId} already processed (status: ${order.status})`);
