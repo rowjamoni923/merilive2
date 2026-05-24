@@ -131,12 +131,12 @@ Deno.serve(async (req) => {
     let externalUserId = `merilive_${user.id}`;
 
     if (target === "helper_wallet") {
-      if (!body.helper_id || !body.custom_coins || !body.custom_price_usd) {
-        return json({ error: "helper_id, custom_coins, custom_price_usd are required" }, 400);
+      if (!body.helper_id || !body.custom_coins) {
+        return json({ error: "helper_id and custom_coins are required" }, 400);
       }
       const { data: helper, error: hErr } = await admin
         .from("topup_helpers")
-        .select("id, user_id, is_active")
+        .select("id, user_id, is_active, trader_level")
         .eq("id", body.helper_id)
         .maybeSingle();
       if (hErr || !helper) return json({ error: "helper_not_found" }, 404);
@@ -144,9 +144,21 @@ Deno.serve(async (req) => {
       if (helper.is_active === false) return json({ error: "helper_inactive" }, 400);
 
       totalCoins = Math.floor(Number(body.custom_coins));
-      priceUsd = Number(body.custom_price_usd);
       if (!Number.isFinite(totalCoins) || totalCoins <= 0) return json({ error: "invalid_custom_coins" }, 400);
-      if (!Number.isFinite(priceUsd) || priceUsd <= 0) return json({ error: "invalid_custom_price_usd" }, 400);
+      const { data: pricingRows, error: pricingErr } = await admin
+        .from("helper_diamond_packages")
+        .select("diamond_amount, price_usd, display_order, description, is_active")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      if (pricingErr || !pricingRows?.length) return json({ error: "helper_pricing_not_configured" }, 500);
+      const level = Number(helper.trader_level || 1);
+      const pricing = (pricingRows as any[]).find((pkg, index) => getHelperPackageLevel(pkg, index) === level) ?? pricingRows[0];
+      const diamondUnit = Number((pricing as any).diamond_amount ?? 0);
+      const usdUnit = Number((pricing as any).price_usd ?? 0);
+      if (!Number.isFinite(diamondUnit) || diamondUnit <= 0 || !Number.isFinite(usdUnit) || usdUnit <= 0) {
+        return json({ error: "invalid_helper_pricing" }, 500);
+      }
+      priceUsd = roundUsd((totalCoins / diamondUnit) * usdUnit);
       targetHelperId = helper.id;
       // Isolated Swift Pay sub-account per helper
       externalUserId = `merilive_helper_${helper.id}`;
