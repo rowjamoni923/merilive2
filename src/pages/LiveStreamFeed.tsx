@@ -65,49 +65,54 @@ export default function LiveStreamFeed() {
 
   // Fetch active live streams
   useEffect(() => {
+    let cancelled = false;
     const fetchStreams = async () => {
-      const { data } = await supabase
-        .from('live_streams')
-        .select(`
-          id,
-          title,
-          host_id,
-          viewer_count,
-          thumbnail_url,
-          profiles:host_id (
-            display_name,
-            avatar_url,
-            user_level
-          )
-        `)
-        .eq('is_active', true)
-        .order('viewer_count', { ascending: false })
-        .limit(50);
-      
-      if (data) {
-        const formattedStreams = data.map((s: any) => ({
+      try {
+        const { data: liveData, error } = await supabase
+          .from('live_streams')
+          .select('id, title, host_id, viewer_count, thumbnail_url')
+          .eq('is_active', true)
+          .order('viewer_count', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+        if (cancelled) return;
+
+        const hostIds = Array.from(new Set((liveData || []).map((s: any) => s.host_id).filter(Boolean)));
+        const hostMap = new Map<string, any>();
+        if (hostIds.length > 0) {
+          const { data: hosts } = await supabase
+            .from('profiles_public')
+            .select('id, display_name, avatar_url, user_level')
+            .in('id', hostIds);
+          (hosts || []).forEach((h: any) => hostMap.set(h.id, h));
+        }
+
+        if (cancelled) return;
+        const formattedStreams: LiveStream[] = (liveData || []).map((s: any) => ({
           id: s.id,
           title: s.title,
           host_id: s.host_id,
           viewer_count: s.viewer_count || 0,
           thumbnail_url: s.thumbnail_url,
-          host: s.profiles
+          host: hostMap.get(s.host_id),
         }));
-        
+
         setStreams(formattedStreams);
-        
-        // Find current stream index
+
         if (currentStreamId) {
           const idx = formattedStreams.findIndex(s => s.id === currentStreamId);
-          if (idx !== -1) {
-            setCurrentIndex(idx);
-          }
+          if (idx !== -1) setCurrentIndex(idx);
         }
+      } catch (e) {
+        console.error('LiveStreamFeed fetch error:', e);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
     };
-    
+
     fetchStreams();
+    return () => { cancelled = true; };
   }, [currentStreamId]);
 
   // Navigate to previous stream (swipe down)
