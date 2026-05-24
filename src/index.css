@@ -3319,6 +3319,16 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
 
 /* Extra small screens (< 400px) */
 @media (max-width: 400px) {
+  .admin-shell [data-admin-scroll-root="true"] {
+    padding-inline: 8px !important;
+    padding-top: 8px !important;
+  }
+
+  .admin-content .grid,
+  .admin-content [class*="grid-cols-"] {
+    grid-template-columns: 1fr !important;
+  }
+
   .admin-content .grid-cols-2,
   .admin-content .md\:grid-cols-2,
   .admin-content .md\:grid-cols-3,
@@ -3333,6 +3343,23 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   .admin-content .p-6,
   .admin-content .p-5 {
     padding: 10px !important;
+  }
+
+  .admin-content button,
+  .admin-content [role="button"] {
+    min-height: 34px;
+  }
+}
+
+@media (min-width: 769px) {
+  .admin-content > [class*="max-w-"] {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .admin-content [class*="overflow-x-auto"],
+  .admin-content [class*="overflow-auto"] {
+    border-radius: 12px;
   }
 }
 
