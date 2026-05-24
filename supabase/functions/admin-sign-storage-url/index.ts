@@ -128,9 +128,39 @@ Deno.serve(async (req) => {
         const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
         const extensionContentType = MIME[ext];
         const extFallback = faceBucketFallback(bucket, path);
+
+        // Read stored metadata so we can detect a wrong/missing mimetype.
+        // Without this, signed URLs for legacy face-angle stills get served
+        // as application/octet-stream and never render in <img>.
+        const { data: objectRow } = await supabase
+          .schema("storage")
+          .from("objects")
+          .select("metadata")
+          .eq("bucket_id", bucket)
+          .eq("name", path)
+          .maybeSingle();
+        const existingMeta = (objectRow?.metadata as Record<string, unknown> | null) || {};
+        const storedContentType = usefulMimeType(existingMeta.mimetype as string | undefined);
+
         const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
         if (error || !data?.signedUrl) return { bucket, path, error: error?.message || "Failed to sign URL" };
-        return { bucket, path, signedUrl: data.signedUrl, contentType: extensionContentType || extFallback || null };
+
+        // Non-destructive backfill: if storage has no/garbage mimetype but we
+        // can infer one from extension or face-bucket folder, persist it so
+        // the NEXT request renders correctly without any client workaround.
+        const backfillType = extensionContentType || extFallback;
+        if (backfillType && !storedContentType) {
+          try {
+            await supabase
+              .schema("storage")
+              .from("objects")
+              .update({ metadata: { ...existingMeta, mimetype: backfillType } as any })
+              .eq("bucket_id", bucket)
+              .eq("name", path);
+          } catch (_) { /* non-fatal */ }
+        }
+
+        return { bucket, path, signedUrl: data.signedUrl, contentType: storedContentType || extensionContentType || extFallback || null };
       }));
 
       return new Response(JSON.stringify({ success: true, results }), {
