@@ -1864,39 +1864,39 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   min-height: 100%;
 }
 
-/* Admin panel scroll safety: let the document own the full admin height so
-   every section remains reachable on mobile and desktop. */
+/* Admin panel scroll safety: keep the admin shell fixed to the viewport and
+   let the page-content pane own vertical scrolling on every admin section. */
 body[data-admin-active="true"] {
   overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow-y: hidden !important;
   overscroll-behavior: contain !important;
   touch-action: pan-y !important;
   background: hsl(230 15% 6%);
 }
 
 body[data-admin-active="true"] #root {
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
-  height: auto !important;
-  overflow: visible !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
   overscroll-behavior: contain !important;
 }
 
 .admin-shell {
-  min-height: 100vh;
-  min-height: 100dvh;
-  height: auto;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   width: 100%;
-  overflow: visible;
+  overflow: hidden;
   touch-action: pan-y;
   overscroll-behavior: contain;
 }
 
 .admin-shell [data-admin-scroll-root="true"] {
-  min-height: calc(100dvh - 56px);
+  min-height: 0;
   height: auto;
   max-height: none;
-  overflow-y: visible !important;
+  overflow-y: auto !important;
   overflow-x: hidden !important;
   touch-action: pan-y !important;
   overscroll-behavior-y: contain;
@@ -1916,9 +1916,10 @@ body[data-admin-active="true"] #root {
 
 @media (max-width: 1023px) {
   .admin-shell {
-    position: relative;
+    position: fixed;
+    inset: 0;
     width: 100vw;
-    min-height: 100dvh;
+    height: 100dvh;
   }
 }
 
