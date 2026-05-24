@@ -1411,20 +1411,35 @@ const ProfileDetail = () => {
                         className="flex-shrink-0 w-24 h-28 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-all bg-white border border-slate-100"
                       >
                         <div className="w-14 h-14 flex items-center justify-center text-3xl">
-                          {gift.icon.startsWith("http") ? (
-                            gift.icon.endsWith(".svga") ? (
-                              <UniversalFramePlayer
-                                src={gift.icon}
-                                type="svga"
-                                className="w-14 h-14"
-                                loop={true}
-                              />
-                            ) : (
-                              <img src={gift.icon} alt={gift.name} className="w-12 h-12 object-contain" />
-                            )
-                          ) : (
-                            <span className="text-4xl">{gift.icon || '🎁'}</span>
-                          )}
+                          {(() => {
+                            const normalized = normalizeGiftMediaUrl(gift.icon);
+                            if (normalized && /\.svga(\?|$)/i.test(normalized)) {
+                              return (
+                                <UniversalFramePlayer
+                                  src={normalized}
+                                  type="svga"
+                                  className="w-14 h-14"
+                                  loop={true}
+                                />
+                              );
+                            }
+                            if (normalized) {
+                              return (
+                                <img
+                                  src={normalized}
+                                  alt={gift.name}
+                                  loading="lazy"
+                                  className="w-12 h-12 object-contain"
+                                  onError={(e) => {
+                                    // Replace broken img with emoji fallback so viewers never see a broken icon.
+                                    const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                                    if (parent) parent.innerHTML = '<span class="text-4xl">🎁</span>';
+                                  }}
+                                />
+                              );
+                            }
+                            return <span className="text-4xl">{gift.icon || '🎁'}</span>;
+                          })()}
                         </div>
                         <span className="text-xs font-bold text-fuchsia-600">×{gift.count}</span>
                       </motion.button>
