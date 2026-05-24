@@ -378,9 +378,9 @@ const PartyRoom = () => {
       if (isHostNow) {
         await publishPartyClosed(targetRoomId, { hostId: user.id, closedAt: leftAt }).catch(() => false);
         await supabase.from('party_rooms').update({ is_active: false, ended_at: leftAt }).eq('id', targetRoomId);
-        await supabase.from('party_room_participants').update({ left_at: leftAt, position: null }).eq('room_id', targetRoomId).is('left_at', null);
+        await supabase.from('party_room_participants').update({ left_at: leftAt, seat_number: null }).eq('room_id', targetRoomId).is('left_at', null);
       } else {
-        await supabase.from('party_room_participants').update({ left_at: leftAt, position: null }).eq('room_id', targetRoomId).eq('user_id', user.id);
+        await supabase.from('party_room_participants').update({ left_at: leftAt, seat_number: null }).eq('room_id', targetRoomId).eq('user_id', user.id);
       }
 
       await supabase.from('seat_requests').update({ status: 'cancelled' }).eq('room_id', targetRoomId).eq('requester_id', user.id).eq('status', 'pending');
@@ -785,7 +785,7 @@ const PartyRoom = () => {
       if (isHostNow && roomId) {
         const leftAt = new Date().toISOString();
         sendPatchBeacon(`party_rooms?id=eq.${encodeURIComponent(roomId)}`, { is_active: false, ended_at: leftAt });
-        sendPatchBeacon(`party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&left_at=is.null`, { left_at: leftAt, position: null });
+        sendPatchBeacon(`party_room_participants?room_id=eq.${encodeURIComponent(roomId)}&left_at=is.null`, { left_at: leftAt, seat_number: null });
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -1074,7 +1074,7 @@ const PartyRoom = () => {
       .select('*')
       .eq('room_id', currentRoomId)
       .is('left_at', null)
-      .order('position', { ascending: true });
+      .order('seat_number', { ascending: true });
 
     if (error) {
       console.error('[PartyRoom] ❌ Error fetching participants:', error);
@@ -1088,7 +1088,7 @@ const PartyRoom = () => {
 
     // Get current user ID from ref to avoid stale closure
     const currentUserId = currentUserRef.current?.id;
-    
+
     if (data) {
       const userIds = [...new Set(data.map((p: any) => p.user_id).filter(Boolean))];
       const { data: publicProfiles } = userIds.length
@@ -1100,20 +1100,22 @@ const PartyRoom = () => {
       const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
       const hydratedParticipants = data.map((participant: any) => ({
         ...participant,
+        // Section #12 pass-2: DB column is seat_number — expose it as `position` for app code.
+        position: participant.seat_number ?? null,
         user: profileMap.get(participant.user_id) || null,
       }));
 
       setParticipants(hydratedParticipants as Participant[]);
-      
+
       // Update my position and role from DB
       if (currentUserId) {
         const myParticipant = data.find(p => p.user_id === currentUserId);
         if (myParticipant) {
-          setMyPosition(myParticipant.position);
+          setMyPosition(myParticipant.seat_number ?? null);
           setMyRole(myParticipant.role);
-          
+
           // If user has a seat position, clear their pending request
-          if (myParticipant.position !== null) {
+          if (myParticipant.seat_number !== null && myParticipant.seat_number !== undefined) {
             setMyPendingRequest(null);
           }
         }
@@ -1196,8 +1198,8 @@ const PartyRoom = () => {
         .upsert({
           room_id: roomId,
           user_id: currentUser.id,
-          role: isHostUser ? 'host' : 'viewer',
-          position: isHostUser ? 0 : null,
+          role: isHostUser ? 'host' : 'listener',
+          seat_number: isHostUser ? 0 : null,
           left_at: null // Reset left_at in case rejoining
         }, { onConflict: 'room_id,user_id' });
       
@@ -1363,7 +1365,7 @@ const PartyRoom = () => {
         // Leave all participants
         await supabase
           .from('party_room_participants')
-          .update({ left_at: closedAt, position: null })
+          .update({ left_at: closedAt, seat_number: null })
           .eq('room_id', roomId)
           .is('left_at', null);
         
@@ -1372,7 +1374,7 @@ const PartyRoom = () => {
         // Regular participant leaving
         await supabase
           .from('party_room_participants')
-          .update({ left_at: new Date().toISOString(), position: null })
+          .update({ left_at: new Date().toISOString(), seat_number: null })
           .eq('room_id', roomId)
           .eq('user_id', currentUser.id);
       }
@@ -1407,7 +1409,7 @@ const PartyRoom = () => {
         // Directly update participant position (host auto-joins)
         const { error: seatError } = await supabase
           .from('party_room_participants')
-          .update({ position: position, role: 'speaker' })
+          .update({ seat_number: position, role: 'speaker' })
           .eq('room_id', roomId)
           .eq('user_id', currentUser.id);
 
@@ -1563,7 +1565,7 @@ const PartyRoom = () => {
       const { error: seatError } = await supabase
         .from('party_room_participants')
         .update({ 
-          position: request.seat_position, 
+          seat_number: request.seat_position, 
           role: 'speaker',
           // Ensure left_at is null so user stays in room
           left_at: null
@@ -1753,7 +1755,7 @@ const PartyRoom = () => {
         .from('party_room_participants')
         .update({ 
           left_at: new Date().toISOString(), 
-          position: null,
+          seat_number: null,
           role: 'audience'
         })
         .eq('room_id', roomId)
