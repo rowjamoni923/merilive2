@@ -47,10 +47,12 @@ const INITIAL_CALL_STATE: CallState = {
   callerRemainingCoins: 0,
 };
 
-// COST-CRITICAL: Incoming-call instant delivery is FCM notifications; this is only
-// a 30s safety-net REST poll for foreground/resume recovery. No Supabase Realtime.
-// Was 800ms (catastrophic: 10k users × 75 reads/min = $$$$).
+// COST-CRITICAL: Incoming-call instant delivery is FCM notifications + a scoped
+// private_calls realtime listener. This is only a 30s safety-net REST poll for
+// foreground/resume recovery. Was 800ms (catastrophic: 10k users × 75 reads/min).
 const FALLBACK_PENDING_CALL_POLL_MS = 30000;
+const DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS = 60;
+const INCOMING_CALL_STALE_BUFFER_MS = 5000;
 
 export function usePrivateCall(userId: string | null) {
   const navigate = useNavigate();
@@ -76,6 +78,62 @@ export function usePrivateCall(userId: string | null) {
   const incomingCallIdRef = useRef<string | null>(null);
   const pendingCallCheckInFlightRef = useRef(false);
   const softEndCallRef = useRef<(() => void) | null>(null);
+
+  const showVerifiedIncomingCall = useCallback(async (callId: string) => {
+    if (!userId || !callId || endedCallIdsRef.current.has(callId)) return false;
+    if (incomingCallIdRef.current === callId) return true;
+
+    const { data: call, error } = await supabase
+      .from('private_calls')
+      .select('id, caller_id, host_id, status, created_at')
+      .eq('id', callId)
+      .maybeSingle();
+
+    if (error || !call) return false;
+    if (call.host_id !== userId) return false;
+
+    if (call.status !== 'pending' && call.status !== 'ringing') {
+      if (incomingCallIdRef.current === callId) {
+        incomingCallIdRef.current = null;
+        setIncomingCall(null);
+      }
+      endedCallIdsRef.current.add(callId);
+      return false;
+    }
+
+    const ageMs = Date.now() - new Date(call.created_at).getTime();
+    if (ageMs > DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS * 1000 + INCOMING_CALL_STALE_BUFFER_MS) return false;
+
+    const activeStatus = callStateRef.current.status;
+    const activeCallId = currentCallIdRef.current;
+    if (activeCallId && activeCallId !== callId && (activeStatus === 'connected' || activeStatus === 'calling' || activeStatus === 'ringing')) {
+      return false;
+    }
+
+    const { data: callerProfile } = await supabase
+      .from('profiles_public')
+      .select('display_name, avatar_url, user_level')
+      .eq('id', call.caller_id)
+      .maybeSingle();
+
+    if (endedCallIdsRef.current.has(callId)) return false;
+    const latestStatus = callStateRef.current.status;
+    const latestActiveCallId = currentCallIdRef.current;
+    if (latestActiveCallId && latestActiveCallId !== callId && (latestStatus === 'connected' || latestStatus === 'calling' || latestStatus === 'ringing')) {
+      return false;
+    }
+
+    callEndedRef.current = false;
+    incomingCallIdRef.current = callId;
+    setIncomingCall({
+      callId,
+      callerId: call.caller_id,
+      callerName: callerProfile?.display_name || 'User',
+      callerAvatar: callerProfile?.avatar_url || null,
+      callerLevel: callerProfile?.user_level || 1,
+    });
+    return true;
+  }, [userId]);
 
   // Track current call ID
   useEffect(() => {
@@ -508,6 +566,9 @@ export function usePrivateCall(userId: string | null) {
 
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
       const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
+      const resolvedTimeoutSeconds = Number(
+        rpcPayload?.timeout_seconds ?? callSettings.call_timeout_seconds ?? DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS,
+      ) || DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS;
 
       // Pkg84: client Supabase broadcast removed. `call-deliver` edge function
       // (invoked just below) is sole delivery path → FCM high-priority data
@@ -599,9 +660,7 @@ export function usePrivateCall(userId: string | null) {
         description: `Calling ${hostProfile?.display_name || 'Host'}`,
       });
 
-      const timeoutSeconds = settingsRes.data?.setting_value 
-        ? ((settingsRes.data.setting_value as any)?.call_timeout_seconds || 30)
-        : 30;
+      const timeoutSeconds = Math.max(15, Math.min(120, resolvedTimeoutSeconds));
       
       const callIdForTimeout = resolvedCallId;
       callTimeoutRef.current = setTimeout(async () => {
@@ -690,7 +749,7 @@ export function usePrivateCall(userId: string | null) {
         }
       }, 5000);
 
-      return data;
+      return resolvedCallId;
     } catch (error: any) {
       console.error('Error starting call:', error);
       setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
@@ -1058,32 +1117,12 @@ export function usePrivateCall(userId: string | null) {
         const callAge = Date.now() - new Date(call.created_at).getTime();
         if (callAge >= 30000) return;
 
-        // ⚡ Fetch caller profile without re-verifying call status; DB query above validated freshness.
-        const { data: callerProfile } = await supabase
-          .from('profiles_public')
-          .select('display_name, avatar_url, user_level')
-          .eq('id', call.caller_id)
-          .single();
-
-        // Quick staleness check - don't override if actively in a call
-        if (endedCallIdsRef.current.has(call.id)) return;
-        const activeStatus = callStateRef.current.status;
-        if (currentCallIdRef.current && (activeStatus === 'connected' || activeStatus === 'calling' || activeStatus === 'ringing')) return;
+        const shown = await showVerifiedIncomingCall(call.id);
+        if (!shown) return;
 
         // ⚡ Pre-warm LiveKit token for faster accept
         import('@/services/livekitService').then(({ warmLiveKitToken }) => {
           warmLiveKitToken(`call_${call.id}`, 'call').catch(() => {});
-        });
-
-        // ✅ CRITICAL: Force-reset callEndedRef for new incoming call
-        callEndedRef.current = false;
-
-        setIncomingCall({
-          callId: call.id,
-          callerId: call.caller_id,
-          callerName: callerProfile?.display_name || 'User',
-          callerAvatar: callerProfile?.avatar_url || null,
-          callerLevel: callerProfile?.user_level || 1,
         });
 
         // 📳 NATIVE: Vibrate phone for incoming call
@@ -1141,16 +1180,74 @@ export function usePrivateCall(userId: string | null) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       appResumeCleanup?.();
     };
-  }, [userId]);
+  }, [userId, showVerifiedIncomingCall]);
 
-  // 🔴 Pkg84: INCOMING CALL LISTENER — FCM-only (Chamet/WhatsApp/Imo standard)
-  // The `incoming-call-${userId}` Supabase Realtime channel + 15s heartbeat
-  // are DELETED. `call-deliver` edge function (caller-side) inserts a
-  // `notifications` row + sends FCM high-priority data push. `useNotifications`
-  // listens on its already-active `notifications` subscription and bridges
-  // type='incoming_call' rows to `window 'incoming-call-notification'`.
-  // This removes one realtime channel + 15s polling tick per logged-in user
-  // ($1400-bill rule win) while gaining background/killed-app delivery.
+  // Supabase Realtime is the authoritative instant DB-status path for private_calls.
+  // FCM delivers the ring; LiveKit DataPackets deliver in-room peer events; this
+  // scoped listener closes the gaps across devices/reconnects without waiting for polls.
+  useEffect(() => {
+    if (!userId) return;
+
+    const isTerminal = (status?: string | null) => status === 'ended' || status === 'declined' || status === 'missed';
+
+    const handleRow = (row: any) => {
+      if (!row?.id) return;
+      const callId = String(row.id);
+      const status = String(row.status || '');
+
+      if (row.host_id === userId && (status === 'pending' || status === 'ringing')) {
+        void showVerifiedIncomingCall(callId);
+        return;
+      }
+
+      if (status === 'connected' && row.caller_id === userId) {
+        activateCallerConnectedState(callId);
+        return;
+      }
+
+      if (!isTerminal(status)) return;
+
+      if (incomingCallIdRef.current === callId) {
+        incomingCallIdRef.current = null;
+        endedCallIdsRef.current.add(callId);
+        setIncomingCall(null);
+        if (isNativeAndroidApp()) {
+          NativeCall.endIncomingUi({ callId, reason: status === 'missed' ? 'timeout' : status }).catch(() => {});
+        }
+      }
+
+      const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
+      if (trackedCallId !== callId || callEndedRef.current || endedCallIdsRef.current.has(callId)) return;
+
+      if (status === 'ended') {
+        softEndCallRef.current?.();
+      } else {
+        resetCallStateRef.current?.();
+        toastRef.current({
+          title: status === 'declined' ? 'Call Declined' : 'Call Missed',
+          description: status === 'declined' ? 'Host declined the call' : 'Host did not answer',
+        });
+      }
+    };
+
+    const privateCallChannel = supabase
+      .channel(`private-call-${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `caller_id=eq.${userId}` }, (payload) => {
+        handleRow((payload as any).new || (payload as any).old);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'private_calls', filter: `host_id=eq.${userId}` }, (payload) => {
+        handleRow((payload as any).new || (payload as any).old);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(privateCallChannel);
+    };
+  }, [userId, showVerifiedIncomingCall, activateCallerConnectedState]);
+
+  // Incoming call listener: FCM is the wake/delivery path, while the scoped
+  // private_calls realtime listener above is the DB truth path for missed FCM,
+  // caller cancel/timeout, and cross-device state convergence.
   useEffect(() => {
     if (!userId) return;
 
@@ -1179,40 +1276,29 @@ export function usePrivateCall(userId: string | null) {
         return;
       }
 
-      callEndedRef.current = false;
-      incomingCallIdRef.current = callId;
+      void (async () => {
+        const shown = await showVerifiedIncomingCall(callId);
+        if (!shown) return;
 
-      const callerId = data.callerId || data.caller_id;
-      const callerName = data.callerName || data.caller_name || 'User';
-      const callerAvatar = data.callerAvatar || data.caller_avatar || null;
-      const callerLevel = Number(data.callerLevel ?? data.caller_level ?? 1) || 1;
+        // ⚡ Pre-warm LiveKit token
+        import('@/services/livekitService').then(({ warmLiveKitToken }) => {
+          warmLiveKitToken(`call_${callId}`, 'call').catch(() => {});
+        });
 
-      setIncomingCall({
-        callId,
-        callerId,
-        callerName,
-        callerAvatar,
-        callerLevel,
-      });
+        // 📳 NATIVE: Vibrate phone for incoming call
+        if (typeof (window as any).Capacitor !== 'undefined') {
+          import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+            Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
+            setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 300);
+            setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 600);
+          }).catch(() => {});
+        }
 
-      // ⚡ Pre-warm LiveKit token
-      import('@/services/livekitService').then(({ warmLiveKitToken }) => {
-        warmLiveKitToken(`call_${callId}`, 'call').catch(() => {});
-      });
-
-      // 📳 NATIVE: Vibrate phone for incoming call
-      if (typeof (window as any).Capacitor !== 'undefined') {
-        import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
-          Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
-          setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 300);
-          setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 600);
-        }).catch(() => {});
-      }
-
-      toastRef.current({
-        title: "Incoming Call",
-        description: `${callerName} is calling you`,
-      });
+        toastRef.current({
+          title: "Incoming Call",
+          description: "Someone is calling you",
+        });
+      })();
     };
 
     window.addEventListener('incoming-call-notification', handleIncomingNotification);
@@ -1221,7 +1307,7 @@ export function usePrivateCall(userId: string | null) {
       isCleanedUp = true;
       window.removeEventListener('incoming-call-notification', handleIncomingNotification);
     };
-  }, [userId]);
+  }, [userId, showVerifiedIncomingCall]);
 
 
   // 🔴 PEER NOTIFICATION LISTENERS — instant call_ended + call_accepted via LiveKit DataPacket
