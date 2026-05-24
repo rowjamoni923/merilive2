@@ -2163,7 +2163,7 @@ const Auth = () => {
           )}
 
         {/* Auth Buttons */}
-        <div className="space-y-3 pb-6">
+        <div className="space-y-2 pb-2">
           {/* Latest Login - Only show if user previously logged in */}
           {lastUser && (
             <div className="relative">
