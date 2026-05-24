@@ -117,13 +117,40 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { message, userId, messageId, conversationId, groupId, contextType } = await req.json();
-
-    if (!message || !userId) {
+    // ── Pkg310 deep-audit: caller MUST be authenticated, and userId is taken
+    // from the JWT — never trusted from the client. Previously, any anon caller
+    // could pass an arbitrary userId to:
+    //   • write fabricated chat_moderation_logs rows attributed to that user
+    //   • trigger 1000-bean auto-deduction from any host by sending toxic text
+    //     under their userId.
+    const authHeader = req.headers.get("Authorization") || "";
+    if (!authHeader.toLowerCase().startsWith("bearer ")) {
       return new Response(
-        JSON.stringify({ error: "Message and userId are required" }),
+        JSON.stringify({ error: "authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userRes, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userRes?.user?.id) {
+      return new Response(
+        JSON.stringify({ error: "invalid session" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const authUserId = userRes.user.id;
+
+    const { message, messageId, conversationId, groupId, contextType } = await req.json();
+    const userId = authUserId; // override any client-supplied value
+
+    if (!message) {
+      return new Response(
+        JSON.stringify({ error: "Message is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
