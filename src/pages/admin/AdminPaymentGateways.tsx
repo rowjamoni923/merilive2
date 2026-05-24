@@ -456,42 +456,31 @@ const AdminPaymentGateways = () => {
 
   const handleUpdateTransactionStatus = async (transactionId: string, newStatus: string) => {
     try {
-      const updateData: any = { status: newStatus };
       if (newStatus === 'completed') {
-        updateData.completed_at = new Date().toISOString();
-        
-        // Get transaction details to add coins
+        const { data, error } = await supabase.rpc('admin_complete_payment_transaction' as any, {
+          _transaction_id: transactionId,
+        });
+        const result = data as any;
+        if (error || !result?.success) throw new Error(result?.error || error?.message || 'Failed to complete transaction');
+
         const transaction = transactions.find(t => t.id === transactionId);
-        if (transaction) {
-          // Add coins to user
-          const { error: coinError } = await supabase.rpc('admin_add_user_coins' as any, {
-            _user_id: transaction.user_id,
-            _amount: transaction.coins_to_receive,
-            _note: `Direct recharge completion (txn ${transactionId})`,
-          });
-
-          if (coinError) {
-            // Surface the real server error instead of silently masking with add_coins
-            // (add_coins bypasses x-admin-token and would fail silently anyway).
-            throw new Error(`Failed to credit diamonds: ${coinError.message ?? 'unknown error'}`);
-          }
-
-          // Send notification to user about direct recharge
-          const coinAmount = transaction.coins_to_receive;
-          const formattedAmount = coinAmount >= 100000 
-            ? `${(coinAmount / 100000).toFixed(1)}L` 
+        if (transaction && !result.alreadyProcessed) {
+          const coinAmount = Number(result.creditedCoins || transaction.diamonds_amount || 0);
+          const formattedAmount = coinAmount >= 100000
+            ? `${(coinAmount / 100000).toFixed(1)}L`
             : coinAmount.toLocaleString();
-          
-          await adminSendNotification(transaction.user_id, '💎 Recharge Complete!', `${formattedAmount} diamonds successfully recharged!`, 'coin_purchase_direct')
+          await adminSendNotification(transaction.user_id, '💎 Recharge Complete!', `${formattedAmount} diamonds successfully recharged!`, 'coin_purchase_direct');
         }
+      } else if (newStatus === 'failed') {
+        const { data, error } = await supabase.rpc('admin_reject_payment_transaction' as any, {
+          _transaction_id: transactionId,
+          _reason: 'Rejected from admin payment gateway panel',
+        });
+        const result = data as any;
+        if (error || !result?.success) throw new Error(result?.error || error?.message || 'Failed to reject transaction');
+      } else {
+        throw new Error('Unsupported transaction status');
       }
-
-      const { error } = await supabase
-        .from('payment_transactions')
-        .update(updateData)
-        .eq('id', transactionId);
-
-      if (error) throw error;
 
       toast({ title: "Success", description: "Transaction status updated" });
       fetchTransactions();
