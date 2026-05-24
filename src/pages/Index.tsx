@@ -462,15 +462,15 @@ const Index = () => {
           {user.isLive && (
             <>
               <div className="absolute top-2.5 left-2">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-[0_2px_12px_rgba(239,68,68,0.5)]">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-danger to-primary shadow-lg shadow-danger/30">
+                  <span className="w-1.5 h-1.5 bg-primary-foreground rounded-full animate-pulse" />
                   <span className="text-[10px] font-extrabold text-on-dark tracking-wider">LIVE</span>
                 </div>
               </div>
               {/* Viewer Count */}
               {(user.viewerCount ?? 0) > 0 && (
                 <div className="absolute top-2.5 right-2">
-                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+                  <div className="flex items-center gap-1 bg-foreground/60 backdrop-blur-sm rounded-full px-2 py-1">
                     <Eye className="w-3 h-3 text-on-dark" />
                     <span className="text-[10px] text-on-dark font-bold">{user.viewerCount}</span>
                   </div>
@@ -485,8 +485,8 @@ const Index = () => {
               <div className={cn(
                 "w-2.5 h-2.5 rounded-full ring-2 ring-white/80 shadow-md",
                 isActuallyBusy
-                  ? "bg-amber-500"
-                  : "bg-emerald-500 animate-pulse"
+                  ? "bg-warning"
+                  : "bg-success animate-pulse"
               )} />
             </div>
           )}
@@ -494,7 +494,7 @@ const Index = () => {
           {/* VIP/Verified Badge */}
           {(user.is_verified || user.is_face_verified) && (
             <div className="absolute top-2.5 right-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center shadow-[0_2px_10px_rgba(59,130,246,0.5)] border border-white/30">
+              <div className="w-6 h-6 bg-gradient-to-br from-info to-primary rounded-full flex items-center justify-center shadow-lg shadow-info/30 border border-primary-foreground/30">
                 <svg className="w-3 h-3 text-on-dark" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
