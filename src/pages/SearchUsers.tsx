@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, Phone, UserPlus, UserCheck, X, Filter, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 
@@ -35,18 +34,6 @@ interface UserProfile {
   tags: string[] | null;
   app_uid: string | null;
 }
-
-// Popular tags for quick filter
-const popularTags = [
-  { name: "Seeking chat friends", icon: "💬", color: "from-pink-400 to-rose-400" },
-  { name: "Emotional", icon: "🥺", color: "from-orange-400 to-amber-400" },
-  { name: "Extrovert", icon: "🎊", color: "from-purple-400 to-violet-400" },
-  { name: "Student", icon: "📚", color: "from-blue-400 to-cyan-400" },
-  { name: "IT", icon: "💻", color: "from-green-400 to-emerald-400" },
-  { name: "Music", icon: "🎵", color: "from-indigo-400 to-purple-400" },
-  { name: "Traveler", icon: "✈️", color: "from-teal-400 to-cyan-400" },
-  { name: "Gourmet", icon: "🍴", color: "from-red-400 to-pink-400" },
-];
 
 // All tag categories for filter sheet
 const tagCategories = [
@@ -306,8 +293,8 @@ const SearchUsers = () => {
             isOnline={!!user.is_online}
           />
           {user.is_verified && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-card">
-              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-info rounded-full flex items-center justify-center border-2 border-card">
+              <svg className="w-2.5 h-2.5 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
@@ -319,7 +306,7 @@ const SearchUsers = () => {
           <div className="flex items-center gap-2">
             <p className="font-semibold truncate">{user.display_name || user.username || 'User'}</p>
             {user.is_host && (
-              <span className="text-xs bg-pink-500/15 text-pink-500 px-2 py-0.5 rounded-full shrink-0">Host</span>
+              <span className="text-xs bg-primary/15 text-primary px-2 py-0.5 rounded-full shrink-0">Host</span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -365,23 +352,23 @@ const SearchUsers = () => {
               {user.is_host && user.is_online && (
                 <Button
                   size="icon"
-                  className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"
+                  className="w-10 h-10 rounded-full bg-success text-primary-foreground hover:bg-success/90"
                   onClick={(e) => handleCall(user.id, e)}
                 >
-                  <Phone className="w-4 h-4 text-white" />
+                  <Phone className="w-4 h-4" />
                 </Button>
               )}
               
               <Button
                 size="icon"
                 variant={isFollowing ? "outline" : "default"}
-                className={`w-10 h-10 rounded-full ${!isFollowing ? 'bg-gradient-to-r from-purple-500 to-pink-500' : ''}`}
+                className="w-10 h-10 rounded-full"
                 onClick={(e) => handleFollow(user.id, e)}
               >
                 {isFollowing ? (
                   <UserCheck className="w-4 h-4" />
                 ) : (
-                  <UserPlus className="w-4 h-4 text-white" />
+                  <UserPlus className="w-4 h-4" />
                 )}
               </Button>
             </>
@@ -432,8 +419,8 @@ const SearchUsers = () => {
           </div>
 
           {/* ID Icon */}
-          <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-sm">ID</span>
+          <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
+            <span className="text-accent-foreground font-bold text-sm">ID</span>
           </div>
           {/* Filter Button */}
           <Sheet open={showFilterSheet} onOpenChange={setShowFilterSheet}>
