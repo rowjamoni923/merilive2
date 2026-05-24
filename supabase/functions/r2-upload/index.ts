@@ -23,6 +23,11 @@ const ALLOWED_MIME_TYPES = new Set([
 
 const MAX_FILE_SIZE = 150 * 1024 * 1024; // 150MB max
 
+type UploadPrincipal = {
+  id: string;
+  kind: 'user' | 'admin';
+};
+
 function isAllowedFileType(mimeType: string): boolean {
   if (!mimeType) return false;
   return ALLOWED_MIME_TYPES.has(mimeType.toLowerCase().split(';')[0].trim());
@@ -32,23 +37,70 @@ function isAllowedFileSize(size: number): boolean {
   return size > 0 && size <= MAX_FILE_SIZE;
 }
 
+function safeSegment(value: unknown, fallback = 'uploads'): string {
+  const clean = String(value || fallback)
+    .replace(/\\/g, '/')
+    .split('/')
+    .map((part) => part.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/^\.+$/, '').slice(0, 80))
+    .filter(Boolean)
+    .join('/');
+  return clean && !clean.includes('..') ? clean : fallback;
+}
+
+function scopedKey(principal: UploadPrincipal, folder: unknown, fileName: unknown): string {
+  const timestamp = Date.now();
+  const cleanFolder = safeSegment(folder, 'uploads');
+  const cleanFileName = safeSegment(fileName, 'file').split('/').pop() || 'file';
+  const prefix = principal.kind === 'admin' ? `admin/${principal.id}` : principal.id;
+  return `${prefix}/${cleanFolder}/${timestamp}_${cleanFileName}`;
+}
+
+function keyBelongsToPrincipal(key: unknown, principal: UploadPrincipal): key is string {
+  if (typeof key !== 'string' || !key || key.includes('..') || key.startsWith('/')) return false;
+  const prefix = principal.kind === 'admin' ? `admin/${principal.id}/` : `${principal.id}/`;
+  return key.startsWith(prefix);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Authentication check
+    // Authentication check: app users via JWT, admin panel via x-admin-token.
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const adminToken = req.headers.get('x-admin-token');
+    let principal: UploadPrincipal | null = null;
+
+    const serviceClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+    if (adminToken && adminToken.length >= 16) {
+      const { data: sessionRow } = await serviceClient
+        .from('admin_sessions')
+        .select('admin_user_id')
+        .eq('session_token', adminToken)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle();
+      if (sessionRow?.admin_user_id) {
+        const { data: adminUser } = await serviceClient
+          .from('admin_users')
+          .select('id')
+          .eq('id', sessionRow.admin_user_id)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (adminUser?.id) principal = { id: adminUser.id, kind: 'admin' };
+      }
     }
-    const authClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } });
-    const { data: { user }, error: authError } = await authClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }),
+
+    if (!principal && authHeader) {
+      const authClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } });
+      const { data: { user }, error: authError } = await authClient.auth.getUser();
+      if (!authError && user) principal = { id: user.id, kind: 'user' };
+    }
+
+    if (!principal) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -90,9 +142,7 @@ serve(async (req) => {
           );
         }
         
-        const timestamp = Date.now();
-        const cleanFileName = (fileName || 'file').replace(/[^a-zA-Z0-9.-]/g, '_');
-        const generatedKey = `${folder || 'uploads'}/${timestamp}_${cleanFileName}`;
+        const generatedKey = scopedKey(principal, folder, fileName || 'file');
         
         const newUploadId = await initiateMultipartUpload(
           generatedKey,
@@ -114,6 +164,13 @@ serve(async (req) => {
           return new Response(
             JSON.stringify({ error: 'Missing uploadId, key, partNumber, or partData' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (!keyBelongsToPrincipal(key, principal)) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid upload key' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
         
@@ -147,6 +204,13 @@ serve(async (req) => {
           return new Response(
             JSON.stringify({ error: 'Missing uploadId, key, or parts array' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (!keyBelongsToPrincipal(key, principal)) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid upload key' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
         
@@ -213,9 +277,7 @@ serve(async (req) => {
 
       console.log(`[Direct] Uploading: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
 
-      const timestamp = Date.now();
-      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const key = `${folder}/${timestamp}_${cleanFileName}`;
+      const key = scopedKey(principal, folder, file.name);
 
       const fileBuffer = await file.arrayBuffer();
       const fileBytes = new Uint8Array(fileBuffer);
