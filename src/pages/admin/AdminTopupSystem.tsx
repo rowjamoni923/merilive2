@@ -674,43 +674,20 @@ const AdminTopupSystem = () => {
 
   const handleProcessOrder = async (order: HelperOrder, action: 'approve' | 'reject') => {
     try {
-       // If approving, first add coins to user
-       if (action === 'approve') {
-         const { error: rpcError } = await supabase.rpc('add_coins_to_user', {
-           _user_id: order.user_id,
-           _amount: order.coin_amount
-         });
-         
-         if (rpcError) {
-           recordAdminError({ kind: "rpc", label: "AdminTopupSystem.RpcError", message: formatAdminError(rpcError)});
-           throw new Error('Failed to add coins to user');
-         }
-         
-         // Deduct from helper wallet
-         const { data: helperData } = await supabase
-           .from('topup_helpers')
-           .select('wallet_balance, total_sold')
-           .eq('id', order.helper_id)
-           .maybeSingle();
-         
-         if (helperData) {
-           await supabase
-             .from('topup_helpers')
-             .update({ 
-               wallet_balance: Math.max(0, (helperData.wallet_balance || 0) - order.coin_amount),
-               total_sold: (helperData.total_sold || 0) + order.coin_amount
-             })
-             .eq('id', order.helper_id);
-         }
-         
-         // Send notification to user
-         await adminSendNotification(order.user_id, '💎 Diamonds Added!', `${order.coin_amount.toLocaleString()} diamonds added to your account!`, 'coin_purchase_helper')
-       }
-       
-      await supabase.from('helper_orders').update({
-        status: action === 'approve' ? 'completed' : 'cancelled',
-        processed_at: new Date().toISOString()
-      }).eq('id', order.id);
+      const { data, error } = await supabase.rpc('process_helper_order_secure' as any, {
+        _order_id: order.id,
+        _action: action === 'approve' ? 'complete' : 'reject',
+        _notes: `Processed from Admin Topup System: ${action}`,
+      });
+      const result = data as any;
+      if (error || !result?.success) {
+        throw new Error(result?.error || error?.message || 'Failed to process order');
+      }
+
+      if (action === 'approve' && !result.alreadyProcessed) {
+        const creditedCoins = Number(result.creditedCoins || order.coin_amount);
+        await adminSendNotification(order.user_id, '💎 Diamonds Added!', `${creditedCoins.toLocaleString()} diamonds added to your account!`, 'coin_purchase_helper')
+      }
        
       toast({ title: "Success", description: `Order ${action === 'approve' ? 'approved' : 'rejected'}` });
       fetchOrders();
