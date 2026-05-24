@@ -13,8 +13,12 @@ serve(async (req) => {
     const payload = await req.json();
     const email = typeof payload?.email === "string" ? payload.email.trim().toLowerCase() : "";
     const verifiedToken = typeof payload?.verified_token === "string" ? payload.verified_token : "";
+    const channel = payload?.channel === "phone" ? "phone" : "email";
+    const tokenIdentifier = channel === "phone"
+      ? String(payload?.identifier || "").replace(/[\s\-\(\)]/g, "").replace(/^\+/, "")
+      : email;
 
-    if (!email || !verifiedToken) {
+    if (!email || !verifiedToken || !tokenIdentifier) {
       return new Response(
         JSON.stringify({ success: false, error: "Email and verified OTP token required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -34,8 +38,8 @@ serve(async (req) => {
       .from("otp_exchange_tokens")
       .select("id, identifier, channel, purpose")
       .eq("token_hash", tokenHashHex)
-      .eq("identifier", email)
-      .eq("channel", "email")
+      .eq("identifier", tokenIdentifier)
+      .eq("channel", channel)
       .eq("purpose", "login")
       .eq("is_used", false)
       .gt("expires_at", new Date().toISOString())
@@ -53,6 +57,12 @@ serve(async (req) => {
       type: "magiclink",
       email,
     });
+    if (linkError && /not found|User not found/i.test(linkError.message || "")) {
+      return new Response(
+        JSON.stringify({ success: false, exists: false, error: "User not found" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     if (linkError) throw linkError;
 
     const tokenHashFromLink = linkData?.properties?.hashed_token;
