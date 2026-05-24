@@ -1904,6 +1904,19 @@ body[data-admin-active="true"] #root {
   scrollbar-gutter: stable;
 }
 
+/* Many legacy admin pages were authored as standalone screens with
+   min-h-screen/h-screen wrappers. Inside AdminLayout those wrappers must not
+   become a second viewport that clips content while the body is locked. */
+.admin-content > [class*="min-h-screen"],
+.admin-content > [class*="h-screen"] {
+  min-height: auto !important;
+  height: auto !important;
+}
+
+.admin-content > [class*="overflow-hidden"] {
+  overflow-y: visible !important;
+}
+
 .admin-shell [data-radix-scroll-area-viewport],
 .admin-shell .overflow-y-auto,
 .admin-shell .overflow-y-scroll,
