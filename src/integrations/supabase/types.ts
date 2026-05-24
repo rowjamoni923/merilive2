@@ -8938,6 +8938,7 @@ export type Database = {
           mood: string | null
           name: string
           password: string | null
+          password_hash: string | null
           room_code: string | null
           room_type: string | null
           total_seats: number | null
@@ -8962,6 +8963,7 @@ export type Database = {
           mood?: string | null
           name: string
           password?: string | null
+          password_hash?: string | null
           room_code?: string | null
           room_type?: string | null
           total_seats?: number | null
@@ -8986,6 +8988,7 @@ export type Database = {
           mood?: string | null
           name?: string
           password?: string | null
+          password_hash?: string | null
           room_code?: string | null
           room_type?: string | null
           total_seats?: number | null
@@ -17828,6 +17831,10 @@ export type Database = {
       }
       enter_live_stream: {
         Args: { p_password?: string; p_stream_id: string }
+        Returns: Json
+      }
+      enter_party_room: {
+        Args: { p_password?: string; p_room_id: string }
         Returns: Json
       }
       exchange_agency_beans_to_diamonds: {
