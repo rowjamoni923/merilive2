@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, ChevronRight, Check, FileText, Diamond, Sparkles, Gem, Crown, Star, Wallet, Copy, Upload, X, Clock, Heart, RefreshCw, ShoppingCart, MessageCircle, AlertTriangle, Info, MapPin, ShieldCheck, Globe, ExternalLink } from "lucide-react";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
@@ -197,6 +197,11 @@ const Recharge = () => {
   const [showGatewayModal, setShowGatewayModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [selectedPaymentType, setSelectedPaymentType] = useState<string | null>(null); // bkash, nagad, etc.
+  // In-flight guards — React state alone is not enough to block fast double-taps
+  // (button re-render lags behind the second click). Refs are synchronous.
+  const submitPaymentRef = useRef(false);
+  const helperSubmitRef = useRef(false);
+  const playStorePurchaseRef = useRef(false);
   // Keep deterministic alternation so auto/manual usage stays balanced across refreshes too
   const [nextLocalRoute, setNextLocalRoute] = useState<LocalRoute>(() => {
     if (typeof window === "undefined") return "auto";
@@ -1625,6 +1630,10 @@ const Recharge = () => {
 
   // Handle Play Store Purchase
   const handlePlayStorePurchase = async () => {
+    if (playStorePurchaseRef.current) {
+      console.warn('[Recharge] Play Store purchase already in flight — ignoring duplicate tap');
+      return;
+    }
     if (!selectedPackage || !userId) {
       toast({
         title: "Select Package",
@@ -1644,6 +1653,7 @@ const Recharge = () => {
       return;
     }
 
+    playStorePurchaseRef.current = true;
     setPlayStoreProcessing(true);
 
     try {
@@ -1678,6 +1688,7 @@ const Recharge = () => {
       });
     } finally {
       setPlayStoreProcessing(false);
+      playStorePurchaseRef.current = false;
     }
   };
 
@@ -1759,6 +1770,10 @@ const Recharge = () => {
   };
 
   const handleSubmitPayment = async () => {
+    if (submitPaymentRef.current) {
+      console.warn('[Recharge] Submit payment already in flight — ignoring duplicate tap');
+      return;
+    }
     if (!selectedPackage || !selectedGateway || !userId) {
       toast({
         title: "Error",
@@ -1777,6 +1792,7 @@ const Recharge = () => {
       return;
     }
 
+    submitPaymentRef.current = true;
     setProcessingPayment(true);
     setPaymentStep("processing");
 
@@ -1853,14 +1869,30 @@ const Recharge = () => {
             _amount: totalCoinsToAdd
           });
 
-        if (addError) {
-          console.error('Failed to add to user:', addError);
-          recordClientError({ label: "Recharge.totalCoinsToAdd", message: addError instanceof Error ? addError.message : String(addError) });
-        }
         const addData = addResult as any;
-        if (addData && addData.success === false) {
-          console.error('Add coins failed:', addData.error);
-          recordClientError({ label: "Recharge.addData", message: addData.error instanceof Error ? addData.error.message : String(addData.error) });
+        const addFailed = !!addError || (addData && addData.success === false);
+        if (addFailed) {
+          const errMsg = addError?.message || addData?.error || 'Unknown error crediting user';
+          console.error('Failed to add coins to user after helper deduction:', errMsg);
+          recordClientError({ label: 'Recharge.addCoinsAfterHelperDeduct', message: String(errMsg) });
+          // CRITICAL: helper wallet already debited — flag the order so admin can reconcile,
+          // and surface the failure to the user instead of falsely reporting success.
+          try {
+            await supabase
+              .from('helper_orders')
+              .update({
+                status: 'failed',
+                payment_details: {
+                  ...(helperOrder.payment_details as any || {}),
+                  credit_failure: String(errMsg),
+                  needs_reconciliation: true,
+                },
+              })
+              .eq('id', helperOrder.id);
+          } catch (flagErr) {
+            console.error('Failed to flag helper_order as failed:', flagErr);
+          }
+          throw new Error('Diamonds could not be credited. Support has been notified — your payment will be reconciled.');
         }
 
         // If first recharge, record the claim
@@ -1983,6 +2015,7 @@ const Recharge = () => {
       setPaymentStep("form");
     } finally {
       setProcessingPayment(false);
+      submitPaymentRef.current = false;
     }
   };
 
@@ -2035,6 +2068,10 @@ const Recharge = () => {
   };
 
   const handleHelperPaymentSubmit = async () => {
+    if (helperSubmitRef.current) {
+      console.warn('[Recharge] Helper payment submit already in flight — ignoring duplicate tap');
+      return;
+    }
     if (!selectedPackage || !selectedHelperMethod || !userId) {
       toast({
         title: "Error",
@@ -2053,6 +2090,7 @@ const Recharge = () => {
       return;
     }
 
+    helperSubmitRef.current = true;
     setHelperPaymentProcessing(true);
     setHelperPaymentStep("processing");
 
@@ -2106,6 +2144,7 @@ const Recharge = () => {
       setHelperPaymentStep("form");
     } finally {
       setHelperPaymentProcessing(false);
+      helperSubmitRef.current = false;
     }
   };
 
