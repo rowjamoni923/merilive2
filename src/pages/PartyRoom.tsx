@@ -1565,7 +1565,7 @@ const PartyRoom = () => {
       const { error: seatError } = await supabase
         .from('party_room_participants')
         .update({ 
-          position: request.seat_position, 
+          seat_number: request.seat_position, 
           role: 'speaker',
           // Ensure left_at is null so user stays in room
           left_at: null
