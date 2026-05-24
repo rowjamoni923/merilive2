@@ -419,8 +419,8 @@ const SearchUsers = () => {
           </div>
 
           {/* ID Icon */}
-          <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-sm">ID</span>
+          <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
+            <span className="text-accent-foreground font-bold text-sm">ID</span>
           </div>
           {/* Filter Button */}
           <Sheet open={showFilterSheet} onOpenChange={setShowFilterSheet}>
