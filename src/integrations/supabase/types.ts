@@ -17827,12 +17827,7 @@ export type Database = {
         }
       }
       exchange_agency_beans_to_diamonds: {
-        Args: {
-          p_agency_id: string
-          p_beans_to_deduct: number
-          p_diamonds_to_add: number
-          p_fee_amount: number
-        }
+        Args: { p_agency_id: string; p_beans_to_deduct: number }
         Returns: Json
       }
       exchange_user_beans_to_diamonds: {
