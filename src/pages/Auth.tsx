@@ -1217,7 +1217,7 @@ const Auth = () => {
       }
 
       // Count a successful send as one "attempt" so spam loops still trip the gate
-      await recordAttempt(`otp:${normalizedEmail}`, true);
+      await recordAttempt(`otp:${normalizedEmail}`, false);
 
       toast({
         title: "📧 Verification Code Sent",
@@ -1536,7 +1536,7 @@ const Auth = () => {
         return;
       }
 
-      await recordAttempt(`otp:${fullPhone}`, true);
+      await recordAttempt(`otp:${fullPhone}`, false);
       toast({
         title: "📱 WhatsApp OTP Sent!",
         description: `Verification code sent to ${fullPhone} via WhatsApp`,
