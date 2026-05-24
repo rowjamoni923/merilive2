@@ -27,14 +27,19 @@ const ContentPageView = () => {
 
   useEffect(() => {
     const fetchContent = async () => {
-      if (!pageKey) return;
+      if (!pageKey) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const { data: rows, error } = await supabase
           .from("app_content")
           .select("title, content")
           .eq("type", pageKey)
+          .eq("page_key", pageKey)
           .eq("is_published", true)
+          .eq("is_active", true)
           .order("created_at", { ascending: false })
           .limit(1);
 
