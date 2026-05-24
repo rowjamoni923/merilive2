@@ -19,6 +19,15 @@ interface ServiceAccountCredentials {
   client_x509_cert_url: string;
 }
 
+const sanitizeFcmData = (input: Record<string, unknown> = {}): Record<string, string> => {
+  const output: Record<string, string> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value === undefined || value === null) continue;
+    output[key] = typeof value === "string" ? value : JSON.stringify(value);
+  }
+  return output;
+};
+
 // Generate JWT for FCM V1 authentication
 async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
@@ -144,7 +153,7 @@ serve(async (req) => {
     }
 
     // Get FCM credentials
-    const serviceAccountJson = Deno.env.get("FCM_SERVICE_ACCOUNT_KEY");
+    const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON") || Deno.env.get("FCM_SERVICE_ACCOUNT_KEY");
     if (!serviceAccountJson) {
       console.log("[PushOnNotif] FCM not configured");
       return new Response(JSON.stringify({ success: false, error: "FCM not configured" }), {
@@ -172,14 +181,14 @@ serve(async (req) => {
                 body: body.substring(0, 200),
                 ...(imageUrl ? { image: imageUrl } : {}),
               },
-              data: {
+              data: sanitizeFcmData({
                 type: notifType,
                 click_action: "FLUTTER_NOTIFICATION_CLICK",
                 ...(linkUrl ? { link_url: linkUrl } : {}),
                 ...(actionUrl ? { action_url: actionUrl } : {}),
                 ...(data?.icon_emoji ? { icon_emoji: String(data.icon_emoji) } : {}),
                 ...(imageUrl ? { image_url: String(imageUrl) } : {}),
-              },
+              }),
               android: {
                 priority: "HIGH",
                 notification: {
