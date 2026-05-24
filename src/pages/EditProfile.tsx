@@ -46,6 +46,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface ProfileData {
   id: string;
@@ -62,6 +63,7 @@ interface ProfileData {
   is_host?: boolean;
   host_status?: string | null;
   hide_location?: boolean;
+  language?: string | null;
 }
 
 const EditProfile = () => {
@@ -105,6 +107,29 @@ const EditProfile = () => {
   const [showCropModal, setShowCropModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const linkOtpCooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const syncProfileState = (nextProfile: ProfileData) => {
+    setProfile(nextProfile);
+    setDisplayName(nextProfile.display_name || "");
+    setBio(nextProfile.bio || "");
+    setAge(nextProfile.age);
+    setGender(nextProfile.gender || "");
+    setTags((nextProfile as any).tags || []);
+    setHideLocation(nextProfile.hide_location || false);
+    setLanguage(nextProfile.language || "English");
+
+    try {
+      const payload = JSON.stringify({ data: nextProfile, ts: Date.now() });
+      [`meri_profile_cache_self`, `meri_profile_cache_${nextProfile.id}`].forEach((key) => {
+        localStorage.setItem(key, payload);
+        sessionStorage.setItem(key, payload);
+      });
+      window.dispatchEvent(new CustomEvent("app-sync", {
+        detail: { topic: "profiles", eventType: "UPDATE", payload: nextProfile },
+      }));
+    } catch {}
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
