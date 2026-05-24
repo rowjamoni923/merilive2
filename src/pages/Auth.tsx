@@ -2078,7 +2078,7 @@ const Auth = () => {
 
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="min-h-full flex flex-col justify-center gap-2 px-5 py-4 safe-area-top safe-area-bottom">
+        <div className="min-h-full flex flex-col justify-end gap-2 px-5 pt-4 pb-8 safe-area-top safe-area-bottom">
         {/* Logo */}
         <div className="pt-2 flex flex-col items-center">
           {branding.logo_image_url ? (
