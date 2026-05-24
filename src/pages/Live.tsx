@@ -7,6 +7,8 @@ import { Plus, Users, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { preloadAllStreams, cleanupAllPreloaded, isStreamPreloaded, markPreloadedStreamForHandoff } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { resolveLevelFromTiers } from "@/utils/levelResolver";
 
 interface LiveStream {
   id: string;
