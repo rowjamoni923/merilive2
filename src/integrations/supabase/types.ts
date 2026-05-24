@@ -18832,6 +18832,10 @@ export type Database = {
             Returns: Json
           }
       update_user_beauty_presets: { Args: { _presets: Json }; Returns: boolean }
+      user_finalize_helper_order: {
+        Args: { _new_status: string; _order_id: string; _reason?: string }
+        Returns: Json
+      }
       validate_admin_access_token: { Args: { _token: string }; Returns: Json }
       validate_session_integrity: {
         Args: {
