@@ -676,7 +676,7 @@ const Index = () => {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[3/4] rounded-2xl bg-slate-200 animate-pulse border border-slate-200"
+                className="aspect-[3/4] rounded-2xl bg-muted animate-pulse border border-border"
               />
             ))}
           </div>
