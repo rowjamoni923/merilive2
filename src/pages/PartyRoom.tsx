@@ -1198,8 +1198,8 @@ const PartyRoom = () => {
         .upsert({
           room_id: roomId,
           user_id: currentUser.id,
-          role: isHostUser ? 'host' : 'viewer',
-          position: isHostUser ? 0 : null,
+          role: isHostUser ? 'host' : 'listener',
+          seat_number: isHostUser ? 0 : null,
           left_at: null // Reset left_at in case rejoining
         }, { onConflict: 'room_id,user_id' });
       
