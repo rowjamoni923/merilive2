@@ -175,6 +175,7 @@ const Recharge = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userAppUid, setUserAppUid] = useState<string | null>(null);
   const [isFirstRecharge, setIsFirstRecharge] = useState(false);
+  const [firstRechargeBonusId, setFirstRechargeBonusId] = useState<string | null>(null);
   const [firstRechargeBonus, setFirstRechargeBonus] = useState<number>(2.0);
   const [rechargeBannerConfig, setRechargeBannerConfig] = useState<{
     banner_image_url?: string | null;
@@ -1435,7 +1436,7 @@ const Recharge = () => {
         const [profileRes, firstRechargeRes, bonusConfigRes] = await Promise.all([
           supabase.from('profiles').select('coins, country_code, app_uid, is_agency_owner').eq('id', user.id).single(),
           supabase.from('first_recharge_claims').select('id').eq('user_id', user.id).maybeSingle(),
-          supabase.from('first_recharge_bonus').select('bonus_multiplier, banner_image_url, banner_title, banner_subtitle, banner_type').eq('is_active', true).maybeSingle(),
+          supabase.from('first_recharge_bonus').select('id, bonus_multiplier, banner_image_url, banner_title, banner_subtitle, banner_type').eq('is_active', true).maybeSingle(),
         ]);
 
         if (profileRes.data) {
@@ -1464,6 +1465,7 @@ const Recharge = () => {
         
         setIsFirstRecharge(!firstRechargeRes.data);
         if (bonusConfigRes.data) {
+          setFirstRechargeBonusId(bonusConfigRes.data.id);
           setFirstRechargeBonus(Number(bonusConfigRes.data.bonus_multiplier) || 2.0);
           setRechargeBannerConfig({
             banner_image_url: bonusConfigRes.data.banner_image_url,
