@@ -197,6 +197,11 @@ const Recharge = () => {
   const [showGatewayModal, setShowGatewayModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [selectedPaymentType, setSelectedPaymentType] = useState<string | null>(null); // bkash, nagad, etc.
+  // In-flight guards — React state alone is not enough to block fast double-taps
+  // (button re-render lags behind the second click). Refs are synchronous.
+  const submitPaymentRef = useRef(false);
+  const helperSubmitRef = useRef(false);
+  const playStorePurchaseRef = useRef(false);
   // Keep deterministic alternation so auto/manual usage stays balanced across refreshes too
   const [nextLocalRoute, setNextLocalRoute] = useState<LocalRoute>(() => {
     if (typeof window === "undefined") return "auto";
