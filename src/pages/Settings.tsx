@@ -24,7 +24,8 @@ import {
   AlertTriangle,
   Calendar,
   Users,
-  BarChart3
+  BarChart3,
+  type LucideIcon
 } from "lucide-react";
 import { getConsent, setConsent, onConsentChange } from "@/lib/privacyConsent";
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,23 @@ const DEFAULT_PERMISSIONS: Record<PermissionKey, boolean> = {
 
 const PERMISSION_CACHE_KEY = 'meri_settings_permissions_v1';
 
+type SettingsItem = {
+  icon: LucideIcon;
+  label: string;
+  value?: string;
+  onClick?: () => void;
+  showArrow?: boolean;
+  danger?: boolean;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => (
+  error instanceof Error ? error.message : fallback
+);
+
+const getErrorName = (error: unknown) => (
+  error instanceof Error ? error.name : ""
+);
+
 const readCachedPermissions = (): Record<PermissionKey, boolean> => {
   if (typeof window === 'undefined') return { ...DEFAULT_PERMISSIONS };
   try {
@@ -127,7 +145,9 @@ const writeCachedPermissions = (next: Record<PermissionKey, boolean>) => {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(PERMISSION_CACHE_KEY, JSON.stringify(next));
-  } catch {}
+  } catch (error) {
+    console.warn('[Settings] Failed to cache permissions:', error);
+  }
 };
 
 const Settings = () => {
