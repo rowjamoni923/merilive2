@@ -1630,6 +1630,10 @@ const Recharge = () => {
 
   // Handle Play Store Purchase
   const handlePlayStorePurchase = async () => {
+    if (playStorePurchaseRef.current) {
+      console.warn('[Recharge] Play Store purchase already in flight — ignoring duplicate tap');
+      return;
+    }
     if (!selectedPackage || !userId) {
       toast({
         title: "Select Package",
@@ -1649,6 +1653,7 @@ const Recharge = () => {
       return;
     }
 
+    playStorePurchaseRef.current = true;
     setPlayStoreProcessing(true);
 
     try {
