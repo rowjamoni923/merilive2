@@ -237,6 +237,11 @@ const EditProfile = () => {
       if (updateError) throw updateError;
 
       syncProfileState({ ...profile, avatar_url: publicUrl });
+      try {
+        window.dispatchEvent(new CustomEvent("app-sync", {
+          detail: { topic: "profiles", eventType: "UPDATE", payload: { id: profile.id, avatar_url: publicUrl } },
+        }));
+      } catch {}
       sonnerToast.success("Profile picture updated!");
     } catch (error) {
       console.error("Upload error:", error);
