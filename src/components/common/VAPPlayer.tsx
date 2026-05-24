@@ -58,6 +58,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<VAPConfig | null>(null);
 
+  // Pkg326 — ref-wrap callbacks (declared early so initWebGL/useEffect can read them).
+  const onLoadRef = useRef(onLoad);
+  const onErrorRef = useRef(onError);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onLoadRef.current = onLoad;
+    onErrorRef.current = onError;
+    onCompleteRef.current = onComplete;
+  }, [onLoad, onError, onComplete]);
+
   // Default config for standard VAP format
   const defaultConfig: VAPConfig = {
     v: 2,
