@@ -17826,6 +17826,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      enter_live_stream: {
+        Args: { p_password?: string; p_stream_id: string }
+        Returns: Json
+      }
       exchange_agency_beans_to_diamonds: {
         Args: { p_agency_id: string; p_beans_to_deduct: number }
         Returns: Json
@@ -18869,6 +18873,10 @@ export type Database = {
         Returns: Json
       }
       verify_admin_token_rpc_access: { Args: never; Returns: Json }
+      verify_live_stream_password: {
+        Args: { p_password: string; p_stream_id: string }
+        Returns: boolean
+      }
       verify_party_room_password: {
         Args: { _password: string; _room_id: string }
         Returns: boolean
