@@ -121,6 +121,7 @@ export default function AdminGifts() {
   const [editingGift, setEditingGift] = useState<GiftItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [migratingGiftMedia, setMigratingGiftMedia] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fullscreenPreviewGift, setFullscreenPreviewGift] = useState<GiftItem | null>(null);
 
@@ -234,6 +235,7 @@ export default function AdminGifts() {
   // R2 requires minimum 5MB per part (except last part) for multipart uploads
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB parts - R2 minimum requirement
   const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
+  const ADMIN_MIGRATE_GIFT_MEDIA_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-migrate-gift-media`;
 
   const uploadToR2Multipart = async (file: File, folder: string, onProgress?: (pct: number) => void): Promise<string> => {
     const totalParts = Math.ceil(file.size / CHUNK_SIZE);
@@ -443,6 +445,25 @@ export default function AdminGifts() {
     } finally {
       setUploading(false);
       setUploadProgress(0);
+    }
+  };
+
+  const migrateLegacyGiftMedia = async () => {
+    if (!confirm("Move legacy gift media from private chat-media/gifts into the public gifts bucket?")) return;
+    setMigratingGiftMedia(true);
+    try {
+      const response = await fetch(ADMIN_MIGRATE_GIFT_MEDIA_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-token": getAdminSessionToken() },
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result.error || "Gift media migration failed");
+      toast.success(`Gift media migrated: ${result.moved_count || 0} files, ${result.updated_gifts || 0} gifts updated`);
+      await fetchGifts();
+    } catch (error: any) {
+      toast.error(error?.message || "Gift media migration failed");
+    } finally {
+      setMigratingGiftMedia(false);
     }
   };
 
@@ -699,6 +720,16 @@ export default function AdminGifts() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               <span className="hidden sm:inline">Refresh</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={migrateLegacyGiftMedia}
+              disabled={migratingGiftMedia}
+              className="bg-white/50 border-slate-200 text-slate-600 hover:bg-white text-xs md:text-sm"
+            >
+              <Upload className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${migratingGiftMedia ? 'animate-pulse' : ''}`} />
+              <span className="hidden sm:inline">Fix Media</span>
             </Button>
             <Button onClick={handleCreate} size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 shadow-lg text-xs md:text-sm px-2 md:px-4">
               <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
