@@ -47,6 +47,26 @@ If you did not request this, ignore this email. Your PIN will remain unchanged.
 </td></tr></table></td></tr></table></body></html>`;
 }
 
+async function getOwnerAdminFromSession(supabase: any, req: Request): Promise<{ id: string } | null> {
+  const token = req.headers.get("x-admin-token") || "";
+  if (!token || token.length < 16) return null;
+  const { data: sessionRow } = await supabase
+    .from("admin_sessions")
+    .select("admin_user_id, expires_at")
+    .eq("session_token", token)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (!sessionRow?.admin_user_id) return null;
+  const { data: adminUser } = await supabase
+    .from("admin_users")
+    .select("id, role, is_active")
+    .eq("id", sessionRow.admin_user_id)
+    .eq("role", "owner")
+    .eq("is_active", true)
+    .maybeSingle();
+  return adminUser?.id ? { id: adminUser.id } : null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -55,6 +75,29 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    const owner = await getOwnerAdminFromSession(supabase, req);
+    if (!owner) {
+      return new Response(JSON.stringify({ success: false, error: "Owner admin session required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    let body: any = {};
+    try { body = await req.json(); } catch { body = {}; }
+    if (body?.action === "confirm") {
+      const { data: resetResult, error: resetError } = await supabase.rpc("admin_pin_reset_with_otp", {
+        _otp: body?.otp,
+        _new_pin: body?.new_pin,
+      });
+      if (resetError) throw resetError;
+      const result = resetResult as any;
+      return new Response(JSON.stringify(result), {
+        status: result?.success ? 200 : 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data, error } = await supabase.rpc("admin_pin_request_reset");
     if (error) throw error;
