@@ -367,7 +367,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
 
   const isVideoOrGif = useCallback((url: string | null) => {
     if (!url) return false;
-    return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.gif');
+    return VIDEO_OR_GIF_PATTERN.test(url);
   }, []);
 
   const hasBalance = selectedGift ? userCoins >= selectedGift.coins * count : false;
