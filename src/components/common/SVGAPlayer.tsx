@@ -137,7 +137,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         console.error('[SVGAPlayer] ❌ Error:', src.split('/').pop(), err);
         if (mountedRef.current) {
           setHasError(true);
-          onError?.(err instanceof Error ? err : new Error('SVGA load failed'));
+          onErrorRef.current?.(err instanceof Error ? err : new Error('SVGA load failed'));
         }
       }
     };
