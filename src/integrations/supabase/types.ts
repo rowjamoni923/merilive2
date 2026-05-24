@@ -17727,6 +17727,10 @@ export type Database = {
         }
         Returns: Json
       }
+      can_read_chat_media_object: {
+        Args: { _object_name: string; _object_owner: string }
+        Returns: boolean
+      }
       can_user_go_live: { Args: never; Returns: Json }
       cancel_account_deletion: { Args: { _user_id: string }; Returns: boolean }
       cancel_agency_request: { Args: { _host_id: string }; Returns: boolean }
