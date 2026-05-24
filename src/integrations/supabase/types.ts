@@ -18820,6 +18820,10 @@ export type Database = {
         Args: { p_submission_id: string }
         Returns: Json
       }
+      service_set_admin_password: {
+        Args: { _admin_user_id: string; _new_password: string }
+        Returns: Json
+      }
       set_signup_country: {
         Args: {
           _city?: string
