@@ -80,11 +80,12 @@ const Live = () => {
         hostMap = new Map(((hostsData || []) as any[]).map(h => [h.id, h]));
       }
 
-      const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
-      const nextStreams = await Promise.all(((streamRows || []) as any[]).map(async (s: any) => {
-        const host = hostMap.get(s.host_id) || null;
-        const resolvedLevel = host
-          ? await resolveLevelFromTiers({
+      // Pkg305: resolve all host levels in parallel (fixes N+1 dynamic-import bug)
+      const hostsArr = Array.from(hostMap.values());
+      const levelEntries = await Promise.all(
+        hostsArr.map(async (host: any) => {
+          try {
+            const result = await resolveLevelFromTiers({
               id: host.id,
               user_level: host.user_level,
               host_level: host.host_level,
@@ -94,11 +95,20 @@ const Live = () => {
               total_earnings: host.total_earnings,
               weekly_earnings: host.weekly_earnings,
               max_user_level: host.max_user_level,
-            }).then(result => result.level).catch(() => Math.max(host.host_level || 0, host.user_level || 1))
-          : 1;
+            });
+            return [host.id, result.level] as const;
+          } catch {
+            return [host.id, Math.max(host.host_level || 0, host.user_level || 1)] as const;
+          }
+        })
+      );
+      const levelByHost = new Map(levelEntries);
 
+      const nextStreams = ((streamRows || []) as any[]).map((s: any) => {
+        const host = hostMap.get(s.host_id) || null;
+        const resolvedLevel = host ? (levelByHost.get(host.id) ?? 1) : 1;
         return { ...s, host: host ? { ...host, user_level: resolvedLevel, host_level: resolvedLevel } : null };
-      })) as LiveStream[];
+      }) as LiveStream[];
 
       setStreams(nextStreams);
       try {
