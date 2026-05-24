@@ -98,33 +98,25 @@ serve(async (req) => {
       case "update_password":
         console.log("[update-sub-admin] Updating password...");
         
-        if (!new_password || new_password.length < 6) {
+        if (!new_password || new_password.length < 8) {
           return new Response(
-          JSON.stringify({ error: "Password must be at least 6 characters" }),
+          JSON.stringify({ error: "Password must be at least 8 characters" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
-        if (adminUser.user_id) {
-          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-            adminUser.user_id,
-            { password: new_password }
-          );
-
-          if (updateError) {
-            console.error("[update-sub-admin] Password update error:", updateError.message);
-            return new Response(
-              JSON.stringify({ error: "Failed to update password: " + updateError.message }),
-              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-          console.log("[update-sub-admin] Password updated successfully");
-        } else {
+        const { data: passwordResult, error: passwordError } = await supabaseAdmin.rpc("service_set_admin_password", {
+          _admin_user_id: adminUser.id,
+          _new_password: new_password,
+        });
+        if (passwordError || !(passwordResult as any)?.success) {
+          console.error("[update-sub-admin] Password update error:", passwordError?.message || (passwordResult as any)?.error);
           return new Response(
-            JSON.stringify({ error: "This admin has no user_id" }),
+            JSON.stringify({ error: (passwordResult as any)?.error || "Failed to update password" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
+        console.log("[update-sub-admin] Password updated successfully");
         result.message = "Password changed successfully";
         break;
 
