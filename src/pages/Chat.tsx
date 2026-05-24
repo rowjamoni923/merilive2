@@ -72,6 +72,7 @@ import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 interface Conversation {
   id: string;
@@ -149,9 +150,9 @@ const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: st
   const soundMatch = content.match(/\|\s*snd:(https?:\/\/[^\s\|\]]+)/i);
 
   return {
-    mediaUrl: mediaMatch?.[1] ?? null,
+    mediaUrl: normalizeGiftMediaUrl(mediaMatch?.[1]) ?? null,
     emoji: emojiMatch?.[1] ?? '🎁',
-    soundUrl: soundMatch?.[1] ?? null,
+    soundUrl: normalizeGiftMediaUrl(soundMatch?.[1]) ?? null,
   };
 };
 
