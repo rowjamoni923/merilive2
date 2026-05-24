@@ -41,10 +41,14 @@ const decodePathSafely = (value: string) => {
 
 const extractGiftPath = (value: string) => {
   const cleaned = decodePathSafely(value).trim().replace(/^\[?Gift:\s*/i, "");
-  const firstToken = (cleaned.match(/https?:\/\/[^\s|\]]+/i)?.[0] || cleaned).split(/[\s|\]]/)[0].replace(/^\/+/, "");
+  const embeddedProxyMatch = cleaned.match(/(?:public-gift-media|chat-media)\/(gifts\/[^\s|\]]+)/i);
+  if (embeddedProxyMatch?.[1]) return decodePathSafely(embeddedProxyMatch[1]);
+
+  const firstToken = (cleaned.match(/https?:\/{1,2}[^\s|\]]+/i)?.[0] || cleaned).split(/[\s|\]]/)[0].replace(/^\/+/, "");
+  const normalizedToken = firstToken.replace(/^https:\/([^/])/i, "https://$1").replace(/^http:\/([^/])/i, "http://$1");
 
   try {
-    const parsed = new URL(firstToken);
+    const parsed = new URL(normalizedToken);
     const proxyMatch = parsed.pathname.match(/\/functions\/v1\/public-gift-media\/(gifts\/[^\s|\]]+)/i);
     if (proxyMatch?.[1]) return decodePathSafely(proxyMatch[1]);
     const chatMatch = parsed.pathname.match(/\/storage\/v1\/object\/public\/chat-media\/(gifts\/[^\s|\]]+)/i);
