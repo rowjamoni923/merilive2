@@ -350,7 +350,7 @@ const Discover = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-on-dark hover:bg-white/20 h-8 w-8"
+              className="rounded-full text-on-dark hover:bg-primary-foreground/20 h-8 w-8"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />
@@ -359,7 +359,7 @@ const Discover = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-on-dark hover:bg-white/20 h-8 w-8"
+              className="rounded-full text-on-dark hover:bg-primary-foreground/20 h-8 w-8"
               disabled={refreshing}
               onClick={async () => {
                 setRefreshing(true);
@@ -380,7 +380,7 @@ const Discover = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search rooms or hosts..."
-                className="w-full pl-9 h-9 bg-white/20 border-white/30 text-on-dark placeholder:text-on-dark-faint rounded-full text-sm"
+                className="w-full pl-9 h-9 bg-primary-foreground/20 border-primary-foreground/30 text-on-dark placeholder:text-on-dark-faint rounded-full text-sm"
               />
             </div>
           </div>
