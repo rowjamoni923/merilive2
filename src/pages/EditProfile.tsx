@@ -729,7 +729,14 @@ const EditProfile = () => {
                               .eq("id", user.id)
                               .select()
                               .single();
-                            if (data) syncProfileState(data as ProfileData);
+                            if (data) {
+                              syncProfileState(data as ProfileData);
+                              try {
+                                window.dispatchEvent(new CustomEvent("app-sync", {
+                                  detail: { topic: "profiles", eventType: "UPDATE", payload: data },
+                                }));
+                              } catch {}
+                            }
                             localStorage.setItem(`gender_selected_${user.id}`, "true");
                             sonnerToast.success("Gender saved! This cannot be changed.");
                           }
@@ -757,7 +764,14 @@ const EditProfile = () => {
                               .eq("id", user.id)
                               .select()
                               .single();
-                            if (data) syncProfileState(data as ProfileData);
+                            if (data) {
+                              syncProfileState(data as ProfileData);
+                              try {
+                                window.dispatchEvent(new CustomEvent("app-sync", {
+                                  detail: { topic: "profiles", eventType: "UPDATE", payload: data },
+                                }));
+                              } catch {}
+                            }
                             localStorage.setItem(`gender_selected_${user.id}`, "true");
                             sonnerToast.success("🎉 You are now a Host! This cannot be changed.");
                           }
