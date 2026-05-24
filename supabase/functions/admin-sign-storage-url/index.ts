@@ -23,6 +23,9 @@ const MIME: Record<string, string> = {
   pdf: "application/pdf",
 };
 
+type BatchStorageItem = { bucket?: string; path?: string; expiresIn?: number };
+type BatchStorageResult = { bucket: string; path: string; signedUrl?: string; contentType?: string | null; error?: string };
+
 const usefulMimeType = (type?: string | null) => {
   const clean = (type || "").split(";")[0].trim().toLowerCase();
   return clean && clean !== "application/octet-stream" && clean !== "application/json" ? clean : "";
@@ -111,6 +114,30 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
+    const batchItems = Array.isArray(body.items) ? body.items.slice(0, 80) as BatchStorageItem[] : null;
+
+    if (batchItems) {
+      const results: BatchStorageResult[] = await Promise.all(batchItems.map(async (item) => {
+        const bucket = String(item.bucket || "").trim();
+        const path = String(item.path || "").replace(/^\/+/, "");
+        const expiresIn = Math.min(Math.max(Number(item.expiresIn || body.expiresIn || 3600), 60), 3600);
+        if (!bucket || DENIED_BUCKETS.has(bucket) || !path || path.includes("..")) {
+          return { bucket, path, error: "Invalid storage path" };
+        }
+
+        const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
+        const extensionContentType = MIME[ext];
+        const extFallback = faceBucketFallback(bucket, path);
+        const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
+        if (error || !data?.signedUrl) return { bucket, path, error: error?.message || "Failed to sign URL" };
+        return { bucket, path, signedUrl: data.signedUrl, contentType: extensionContentType || extFallback || null };
+      }));
+
+      return new Response(JSON.stringify({ success: true, results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const bucket = String(body.bucket || "").trim();
     const path = String(body.path || "").replace(/^\/+/, "");
     const expiresIn = Math.min(Math.max(Number(body.expiresIn || 3600), 60), 3600);
