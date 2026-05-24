@@ -901,10 +901,10 @@ const Settings = () => {
 
       {/* Language Selection Dialog - Premium Dark Theme */}
       <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] bg-white border border-amber-200/40">
+        <DialogContent className="sm:max-w-md max-h-[80vh] bg-background border border-border">
           <DialogHeader>
-            <DialogTitle className="text-slate-800 text-center">{t("settings.selectLanguage")}</DialogTitle>
-            <DialogDescription className="text-slate-700 text-center">
+            <DialogTitle className="text-foreground text-center">{t("settings.selectLanguage")}</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-center">
               {t("settings.chooseLanguage")}
             </DialogDescription>
           </DialogHeader>
@@ -916,20 +916,20 @@ const Settings = () => {
                   onClick={() => handleLanguageChange(lang.code)}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
                     selectedLanguage === lang.code
-                      ? "bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-300 text-slate-800 shadow-sm"
-                      : "bg-white hover:bg-amber-50/60 border border-amber-200/60 text-slate-800"
+                      ? "bg-primary/10 border border-primary/40 text-foreground shadow-sm"
+                      : "bg-muted/40 hover:bg-muted/70 border border-border text-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{lang.flag}</span>
                     <div className="text-left">
-                      <p className="font-semibold text-slate-800">{lang.displayName}</p>
-                      <p className="text-xs text-slate-600">{lang.name}</p>
+                      <p className="font-semibold text-foreground">{lang.displayName}</p>
+                      <p className="text-xs text-muted-foreground">{lang.name}</p>
                     </div>
                   </div>
                   {selectedLanguage === lang.code && (
                     <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-slate-800" />
+                      <Check className="w-4 h-4 text-white" />
                     </div>
                   )}
                 </button>
