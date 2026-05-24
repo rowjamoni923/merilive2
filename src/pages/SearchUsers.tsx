@@ -234,12 +234,13 @@ const SearchUsers = () => {
 
     try {
       if (followingIds.has(userId)) {
-        await supabase
+        const { error } = await supabase
           .from('followers')
           .delete()
           .eq('follower_id', currentUserId)
           .eq('following_id', userId);
-        
+        if (error) throw error;
+
         setFollowingIds(prev => {
           const newSet = new Set(prev);
           newSet.delete(userId);
@@ -247,22 +248,29 @@ const SearchUsers = () => {
         });
         toast.success("Unfollowed");
       } else {
-        await supabase
+        const { error } = await supabase
           .from('followers')
           .insert({
             follower_id: currentUserId,
             following_id: userId
           });
-        
+        if (error) throw error;
+
         setFollowingIds(prev => new Set([...prev, userId]));
         toast.success("Followed");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Follow error:', error);
       recordClientError({ label: "SearchUsers.newSet", message: error instanceof Error ? error.message : String(error) });
-      toast.error("Action failed");
+      const msg = String(error?.message ?? '');
+      if (msg.includes('cannot follow yourself')) toast.error("You can't follow yourself");
+      else if (msg.includes('unavailable user')) toast.error("This user is not available");
+      else if (msg.includes('blocked relationship')) toast.error("Blocked — can't follow");
+      else if (msg.includes('duplicate key')) toast.error("Already following");
+      else toast.error("Action failed");
     }
   };
+
 
   const handleCall = async (hostId: string, e: React.MouseEvent) => {
     e.stopPropagation();
