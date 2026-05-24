@@ -104,12 +104,25 @@ Deno.serve(async (req) => {
     );
 
     const publicGiftPath = `legacy-chat-media/${path.replace(/^gifts\//, "")}`;
-    let { data, error } = await supabase.storage.from("chat-media").download(path);
-    if (error || !data) {
-      const publicDownload = await supabase.storage.from("gifts").download(publicGiftPath);
-      data = publicDownload.data;
-      error = publicDownload.error;
+    const publicGiftUrl = `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${publicGiftPath.split("/").map(encodeURIComponent).join("/")}`;
+
+    // Prefer the real public gifts bucket first. If the asset has already been
+    // copied there, redirect viewers to Supabase Storage CDN instead of proxying
+    // the bytes through this Edge Function on every request.
+    const existingPublic = await supabase.storage.from("gifts").download(publicGiftPath);
+    if (existingPublic.data && !existingPublic.error) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          "Location": publicGiftUrl,
+          "Cache-Control": "public, max-age=604800, immutable",
+          "X-Gift-Public-Url": publicGiftUrl,
+        },
+      });
     }
+
+    const { data, error } = await supabase.storage.from("chat-media").download(path);
     if (error || !data) {
       return new Response(JSON.stringify({ error: "Gift media not found" }), {
         status: 404,
@@ -121,15 +134,26 @@ Deno.serve(async (req) => {
     const contentType = usefulMimeType(data.type) || MIME[ext] || "application/octet-stream";
     const body = req.method === "HEAD" ? null : data;
 
-    // Lazy-copy old chat-media/gifts assets into the real public gifts bucket.
-    // This keeps old messages working while moving toward the main-app model:
-    // public gift/SVGA/icon assets are served from a public asset bucket.
-    if (body && data.size > 0) {
-      supabase.storage.from("gifts").upload(publicGiftPath, data, {
+    // Lazy-copy old chat-media/gifts assets into the real public gifts bucket,
+    // then redirect this same request to the public CDN. If another request won
+    // the race and uploaded first, duplicate errors are harmless; redirect still works.
+    if (data.size > 0) {
+      const uploadResult = await supabase.storage.from("gifts").upload(publicGiftPath, data, {
         upsert: false,
         contentType,
         cacheControl: "31536000",
-      }).then(() => undefined, () => undefined);
+      });
+      if (!uploadResult.error || /already exists|duplicate/i.test(uploadResult.error.message || "")) {
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            "Location": publicGiftUrl,
+            "Cache-Control": "public, max-age=604800, immutable",
+            "X-Gift-Public-Url": publicGiftUrl,
+          },
+        });
+      }
     }
 
     return new Response(body, {
@@ -140,7 +164,7 @@ Deno.serve(async (req) => {
         "Content-Length": String(data.size),
         "Cache-Control": "public, max-age=604800, immutable",
         "Accept-Ranges": "bytes",
-        "X-Gift-Public-Url": `${Deno.env.get("SUPABASE_URL")}/storage/v1/object/public/gifts/${publicGiftPath.split("/").map(encodeURIComponent).join("/")}`,
+        "X-Gift-Public-Url": publicGiftUrl,
       },
     });
   } catch (error) {

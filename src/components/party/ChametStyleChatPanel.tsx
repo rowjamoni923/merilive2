@@ -260,7 +260,14 @@ export const ChametStyleChatPanel = ({
                           {msg.userName}
                         </span>
                         {giftIconUrl && (
-                          <img src={giftIconUrl} alt="" className="w-5 h-5 object-contain relative z-10 drop-shadow" />
+                          <img
+                            src={giftIconUrl}
+                            alt=""
+                            className="w-5 h-5 object-contain relative z-10 drop-shadow"
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                          />
                         )}
                         <span className="text-white/95 text-[12px] relative z-10 truncate">{cleanMessage}</span>
                       </motion.div>
