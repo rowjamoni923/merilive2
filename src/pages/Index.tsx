@@ -5,7 +5,7 @@ import { DynamicBanner } from "@/components/home/DynamicBanner";
 import { FullScreenPromoBanners } from "@/components/home/FullScreenPromoBanners";
 
 
-import { BarChart3, Search, Users, Phone, Bell, Crown, Eye, Trophy } from "lucide-react";
+import { Search, Eye, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -20,7 +20,6 @@ import { getCountryByCode } from "@/data/countryCodes";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { CountryFlag } from "@/components/common/CountryFlag";
 import { CallButton } from "@/features/call";
-import { toast } from "sonner";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { warmLiveKitToken } from "@/services/livekitService";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
@@ -185,8 +184,6 @@ const Index = () => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-
       // ⚡ PARALLEL FETCH: All independent queries at once
       const liveStreamsRes = await supabase
         .from("live_streams")
@@ -456,7 +453,7 @@ const Index = () => {
           />
 
           {/* Lightweight gradient overlay - single layer */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/10 to-transparent" />
 
           {/* Live Badge + Viewer Count */}
           {user.isLive && (
@@ -483,7 +480,7 @@ const Index = () => {
           {!user.isLive && user.is_online && (
             <div className="absolute top-2.5 left-2">
               <div className={cn(
-                "w-2.5 h-2.5 rounded-full ring-2 ring-white/80 shadow-md",
+                "w-2.5 h-2.5 rounded-full ring-2 ring-primary-foreground/80 shadow-md",
                 isActuallyBusy
                   ? "bg-warning"
                   : "bg-success animate-pulse"
@@ -506,7 +503,7 @@ const Index = () => {
           <div className="absolute bottom-0 left-0 right-0 p-2.5">
             <div className="flex items-center gap-2">
               <div className="relative flex-shrink-0">
-                <div className="ring-1 ring-white/30 rounded-full">
+                <div className="ring-1 ring-primary-foreground/30 rounded-full">
                   <AvatarWithFrame
                     userId={user.id}
                     src={resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'))}
