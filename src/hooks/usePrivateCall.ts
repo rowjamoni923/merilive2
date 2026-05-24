@@ -862,6 +862,14 @@ export function usePrivateCall(userId: string | null) {
   // Decline an incoming call
   const declineCall = useCallback(async (callId: string, reason: 'declined' | 'timeout' = 'declined') => {
     try {
+      // Pkg307 audit: mark dead-forever BEFORE network so the 30s pending-call
+      // poll never re-surfaces this row in the brief window before the RPC's
+      // status flip propagates.
+      endedCallIdsRef.current.add(callId);
+      if (incomingCallIdRef.current === callId) {
+        incomingCallIdRef.current = null;
+      }
+
       const { error } = reason === 'timeout'
         ? await supabase.rpc('timeout_private_call', { _call_id: callId })
         : await supabase.rpc('decline_private_call', { _call_id: callId });
