@@ -1,10 +1,21 @@
+// Pkg321: Hardened — previously had ZERO authentication. Any anon caller could
+// modify any agency's balance fields arbitrarily. Now:
+//   • requireAdminSession with sectionKey='agency-management' + requireEdit
+//   • field whitelist (only balance columns allowed)
+//   • amount must be non-negative integer
+//   • action whitelist (set/add/subtract)
+//   • admin audit log on every change
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const ALLOWED_FIELDS = new Set(["beans_balance", "diamond_balance", "wallet_balance"]);
+const ALLOWED_ACTIONS = new Set(["set", "add", "subtract"]);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -18,10 +29,37 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
+    const auth = await requireAdminSession(req, supabase, { sectionKey: "agency-management", requireEdit: true });
+    if (!auth.ok) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const adminUser = auth.admin;
+
     const { agency_id, field, amount, action } = await req.json();
 
     if (!agency_id || !field || amount === undefined || !action) {
-      throw new Error("agency_id, field, amount, and action (set/add/subtract) required");
+      return new Response(JSON.stringify({ error: "agency_id, field, amount, and action (set/add/subtract) required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!ALLOWED_FIELDS.has(field)) {
+      return new Response(JSON.stringify({ error: `Field '${field}' is not allowed` }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!ALLOWED_ACTIONS.has(action)) {
+      return new Response(JSON.stringify({ error: `Action '${action}' is not allowed` }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const amt = Number(amount);
+    if (!Number.isFinite(amt) || amt < 1 || amt > 999_999_999) {
+      return new Response(JSON.stringify({ error: "amount must be a positive integer <= 999,999,999" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Get current balance
@@ -31,14 +69,18 @@ serve(async (req) => {
       .eq("id", agency_id)
       .single();
 
-    if (fetchErr || !agency) throw new Error("Agency not found: " + (fetchErr?.message || ""));
+    if (fetchErr || !agency) {
+      return new Response(JSON.stringify({ error: "Agency not found" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const currentValue = (agency as any)[field] || 0;
+    const currentValue = Number((agency as any)[field]) || 1;
     let newValue = currentValue;
 
-    if (action === "set") newValue = amount;
-    else if (action === "add") newValue = currentValue + amount;
-    else if (action === "subtract") newValue = Math.max(0, currentValue - amount);
+    if (action === "set") newValue = amt;
+    else if (action === "add") newValue = currentValue + amt;
+    else if (action === "subtract") newValue = Math.max(1, currentValue - amt);
 
     const { error: updateErr } = await supabase
       .from("agencies")
@@ -46,6 +88,26 @@ serve(async (req) => {
       .eq("id", agency_id);
 
     if (updateErr) throw updateErr;
+
+    // Audit log
+    try {
+      await supabase.from("admin_logs").insert({
+        admin_id: adminUser.id,
+        action_type: "agency_balance_adjustment",
+        target_type: "agency",
+        target_id: agency_id,
+        details: {
+          field,
+          action,
+          amount: amt,
+          old_value: currentValue,
+          new_value: newValue,
+          agency_name: agency.name,
+        },
+      });
+    } catch (e) {
+      console.warn("[admin-agency-balance] audit log failed:", e);
+    }
 
     return new Response(JSON.stringify({
       success: true,
@@ -56,8 +118,9 @@ serve(async (req) => {
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (error: any) {
+    console.error("[admin-agency-balance] error:", error);
+    return new Response(JSON.stringify({ error: error?.message || "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
