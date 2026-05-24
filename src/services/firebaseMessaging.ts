@@ -32,7 +32,11 @@ type NotificationPayload = {
 
 let firebaseApp: FirebaseApp | null = null;
 let messaging: Messaging | null = null;
-let tokenRegistered = false;
+// Pkg308 deep-audit: track which (userId, token) pair the singleton last saved.
+// Previously a single boolean meant a second login (user A → user B in the
+// same tab) would short-circuit and never re-bind the FCM token to user B.
+let registeredForUserId: string | null = null;
+let lastRegisteredToken: string | null = null;
 
 /**
  * Initialize Firebase & get Messaging instance
