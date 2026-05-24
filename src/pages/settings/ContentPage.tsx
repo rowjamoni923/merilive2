@@ -57,6 +57,13 @@ const ContentPageView = () => {
     return text
       .split("\n")
       .map((line, i) => {
+        const safeBold = (value: string) => value.split(/(\*\*.*?\*\*)/g).map((part, index) => {
+          if (part.startsWith("**") && part.endsWith("**")) {
+            return <strong key={index}>{part.slice(2, -2)}</strong>;
+          }
+          return part;
+        });
+
         // Headers
         if (line.startsWith("## ")) {
           return <h2 key={i} className="text-xl font-bold mt-6 mb-3">{line.slice(3)}</h2>;
@@ -64,13 +71,10 @@ const ContentPageView = () => {
         if (line.startsWith("### ")) {
           return <h3 key={i} className="text-lg font-semibold mt-4 mb-2">{line.slice(4)}</h3>;
         }
-        // Bold text - safely escape HTML first, then apply bold
-        const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const boldedLine = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         // List items
         if (line.startsWith("- ")) {
           return (
-            <li key={i} className="ml-4 mb-1" dangerouslySetInnerHTML={{ __html: boldedLine.slice(2) }} />
+            <li key={i} className="ml-4 mb-1">{safeBold(line.slice(2))}</li>
           );
         }
         // Empty lines
@@ -78,7 +82,7 @@ const ContentPageView = () => {
           return <br key={i} />;
         }
         // Normal paragraphs
-        return <p key={i} className="mb-2" dangerouslySetInnerHTML={{ __html: boldedLine }} />;
+        return <p key={i} className="mb-2">{safeBold(line)}</p>;
       });
   };
 
@@ -93,14 +97,14 @@ const ContentPageView = () => {
           <div className="flex items-center h-14 px-4">
             <button 
               onClick={() => navigate(-1)}
-              className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
+              className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="flex-1 text-center text-lg font-semibold pr-7">Not Found</h1>
           </div>
         </div>
-        <div className="p-4 text-center text-slate-600">
+        <div className="p-4 text-center text-muted-foreground">
           Content not found
         </div>
       </div>
@@ -114,7 +118,7 @@ const ContentPageView = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -124,7 +128,7 @@ const ContentPageView = () => {
 
       {/* Content */}
       <div className="p-4">
-        <div className="prose prose-sm max-w-none">
+        <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
           {renderMarkdown(pageData.content)}
         </div>
       </div>
