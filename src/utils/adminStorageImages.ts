@@ -340,19 +340,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
     //    the service role, backfills correct Content-Type, and works even when
     //    the user app has no Supabase auth session.
     if (adminToken) {
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'x-admin-token': adminToken,
-        },
-        body: JSON.stringify({ bucket: storagePath.bucket, path: storagePath.path, expiresIn: 60 * 60 }),
-      }).catch(() => null);
-      if (!resp?.ok) console.warn('[AdminMedia] Signed URL request failed', { bucket: storagePath.bucket, path: storagePath.path, status: resp?.status || 0 });
-      const signed = resp?.ok ? await resp.json().catch(() => null) : null;
-      const signedUrl = (signed as AdminSignStorageResponse | null)?.signedUrl;
+      const signedUrl = await batchSignAdminStoragePath(storagePath, adminToken);
       if (signedUrl) {
         signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
         return signedUrl;
