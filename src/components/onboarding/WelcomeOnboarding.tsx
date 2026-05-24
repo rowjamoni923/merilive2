@@ -36,23 +36,38 @@ const WelcomeOnboarding = () => {
     const hasSeenOnboarding = localStorage.getItem('meri_onboarding_seen');
     if (hasSeenOnboarding) return;
 
-    // Fetch slides from admin panel
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
     supabase
       .from('onboarding_slides')
       .select('image_url, title, description, gradient')
       .eq('is_active', true)
       .order('display_order')
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setSteps(data.map(s => ({
-            image: s.image_url,
-            title: s.title,
-            description: s.description,
-            gradient: s.gradient,
-          })));
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (!error && data && data.length > 0) {
+          setSteps(
+            data
+              .filter((s) => s.image_url && s.title)
+              .map((s) => ({
+                image: s.image_url as string,
+                title: s.title as string,
+                description: s.description || '',
+                gradient: s.gradient || 'from-primary to-accent',
+              })),
+          );
         }
-        setTimeout(() => setShow(true), 1500);
+        // Fallback steps remain if fetch failed or returned empty.
+        timer = setTimeout(() => {
+          if (!cancelled) setShow(true);
+        }, 1500);
       });
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const handleComplete = () => {
