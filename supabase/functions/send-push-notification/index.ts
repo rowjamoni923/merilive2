@@ -12,8 +12,8 @@ interface PushNotificationRequest {
   title: string;
   body: string;
   imageUrl?: string;
-  data?: Record<string, string>;
-  type?: 'call' | 'message' | 'gift' | 'general' | 'broadcast';
+  data?: Record<string, unknown>;
+  type?: string;
   target?: 'all' | 'android' | 'ios';
 }
 
@@ -29,6 +29,15 @@ interface ServiceAccountCredentials {
   auth_provider_x509_cert_url: string;
   client_x509_cert_url: string;
 }
+
+const sanitizeFcmData = (input: Record<string, unknown> = {}): Record<string, string> => {
+  const output: Record<string, string> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value === undefined || value === null) continue;
+    output[key] = typeof value === "string" ? value : JSON.stringify(value);
+  }
+  return output;
+};
 
 // Generate JWT for FCM V1 authentication
 async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
@@ -119,7 +128,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { userId, userIds, title, body, imageUrl, data = {}, type = 'general', target }: PushNotificationRequest = await req.json();
+    const { userId, userIds, title, body, imageUrl, data: rawData = {}, type = 'general', target }: PushNotificationRequest = await req.json();
+    const data = sanitizeFcmData(rawData);
     const shouldPersistFallback = String(data.persist_fallback ?? 'true') !== 'false';
 
     const isBroadcast = target && ['all', 'android', 'ios'].includes(target);
@@ -170,6 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     let isVerifiedNotificationTrigger = false;
+    let notificationTriggerId: string | null = null;
     if (!isServiceRoleCall && !isAdmin && !callerUserId && data.origin === "notifications_trigger" && data.notification_id && userId) {
       const { data: notificationRow } = await supabase
         .from("notifications")
@@ -182,6 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
         && notificationRow.title === title
         && notificationRow.message === body
         && notificationRow.type === type;
+      notificationTriggerId = isVerifiedNotificationTrigger ? String(data.notification_id) : null;
     }
 
     const needsElevated = isBroadcast || isMultiUser || (!!userId && userId !== callerUserId);
@@ -199,6 +211,20 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ success: false, error: "Authentication required" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
+    }
+    if (isVerifiedNotificationTrigger && notificationTriggerId) {
+      const { error: dispatchError } = await supabase
+        .from("notification_push_dispatches")
+        .insert({ notification_id: notificationTriggerId });
+      if (dispatchError) {
+        if (dispatchError.code === "23505") {
+          return new Response(
+            JSON.stringify({ success: true, skipped: true, reason: "already_dispatched" }),
+            { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+        throw dispatchError;
+      }
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -268,7 +294,7 @@ const handler = async (req: Request): Promise<Response> => {
                       ...(imageUrl ? { image: imageUrl } : {}),
                     },
                   }),
-                  data: {
+                  data: sanitizeFcmData({
                     ...data,
                     type: isCallType ? 'incoming_call' : type,
                     title,
@@ -283,7 +309,7 @@ const handler = async (req: Request): Promise<Response> => {
                       caller_avatar: data.caller_avatar || '',
                       call_type: data.call_type || 'video',
                     }),
-                  },
+                  }),
                   android: {
                     priority: isCallType ? 'high' : 'high',
                     ...(isCallType ? {

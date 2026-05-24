@@ -8520,6 +8520,21 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_push_dispatches: {
+        Row: {
+          created_at: string
+          notification_id: string
+        }
+        Insert: {
+          created_at?: string
+          notification_id: string
+        }
+        Update: {
+          created_at?: string
+          notification_id?: string
+        }
+        Relationships: []
+      }
       notification_templates: {
         Row: {
           action_data: Json | null
