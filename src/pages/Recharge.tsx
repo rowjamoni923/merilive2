@@ -2205,7 +2205,10 @@ const Recharge = () => {
       const localAmount = selectedPackage.price_usd * (currencyRate?.rate_to_usd || 1);
 
       {
-        // Manual helper order (ZiniPay removed)
+        // Manual helper order (ZiniPay removed). Normalized TXN ID is also
+        // written to the dedicated `provider_transaction_id` column so the DB
+        // unique index blocks the same receipt being submitted twice.
+        const normalizedHelperTxnId = helperTransactionId.trim();
         const { data: order, error: orderError } = await supabase
           .from('helper_orders')
           .insert({
@@ -2219,19 +2222,26 @@ const Recharge = () => {
             user_country_code: userCountryCode,
             package_id: selectedPackage.id,
             user_payment_proof: helperPaymentProof,
+            provider_transaction_id: normalizedHelperTxnId || null,
             payment_details: {
-              transaction_id: helperTransactionId,
+              transaction_id: normalizedHelperTxnId,
               message: helperMessage || null,
               method_type: selectedHelperMethod.method_type,
               account_name: selectedHelperMethod.account_name,
-              account_number: selectedHelperMethod.account_number
+              account_number: selectedHelperMethod.account_number,
             },
-            status: 'pending'
+            status: 'pending',
           })
           .select()
           .single();
 
-        if (orderError) throw orderError;
+        if (orderError) {
+          const isDup = String((orderError as any)?.code) === '23505' || /duplicate key/i.test(orderError.message || '');
+          if (isDup) {
+            throw new Error('This transaction ID has already been used. Each payment receipt can only be submitted once.');
+          }
+          throw orderError;
+        }
 
         setHelperPaymentStep("pending");
         toast({
