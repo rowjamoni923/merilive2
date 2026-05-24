@@ -278,7 +278,6 @@ export function ActiveCallScreen({
         const normalizedPhotos = photos
           .map((photo) => normalizeProfileMediaUrl(photo) || photo)
           .filter(Boolean);
-        setHostPhotos(photos);
         setHostPhotos(normalizedPhotos);
       }
     };
