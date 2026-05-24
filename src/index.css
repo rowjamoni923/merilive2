@@ -3014,11 +3014,59 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
    Comprehensive responsive styles for all admin pages
    ============================================ */
 
+/* Tables and dense data: professional scroll instead of clipping on every admin page */
+.admin-content :where(table) {
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+}
+
+.admin-content :where(th, td) {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.admin-content :where(img, video, canvas, svg) {
+  max-width: 100%;
+}
+
 /* Tables: horizontal scroll wrapper on mobile */
 @media (max-width: 768px) {
+  .admin-shell [data-admin-scroll-root="true"] {
+    padding-inline: 10px !important;
+    padding-top: 10px !important;
+    padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 96px), 96px) !important;
+    scrollbar-gutter: auto;
+  }
+
+  .admin-content {
+    overflow-x: hidden !important;
+  }
+
+  .admin-content > [class*="fixed"][class*="inset-0"],
+  .admin-content [class*="h-\[100vh\]"],
+  .admin-content [class*="min-h-\[100vh\]"] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .admin-content [class*="min-w-"] {
+    min-width: 0 !important;
+  }
+
+  .admin-content [class*="max-w-"] {
+    max-width: 100% !important;
+  }
+
+  .admin-content [class*="whitespace-nowrap"] {
+    white-space: normal !important;
+  }
+
   .admin-content table {
     display: block;
-    width: 100%;
+    width: max-content !important;
+    min-width: 100% !important;
+    max-width: none !important;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
@@ -3030,10 +3078,6 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
     display: table;
     width: 100%;
     table-layout: fixed;
-  }
-
-  .admin-content table {
-    min-width: 600px;
   }
 
   .admin-content table th,
