@@ -35,6 +35,7 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
+  let createdOrderId: string | null = null;
 
   try {
     // Authenticate user
@@ -142,6 +143,7 @@ serve(async (req) => {
       .single();
 
     if (orderError) throw orderError;
+    createdOrderId = order.id;
 
     const successUrl = `${returnOrigin}/payment-success?order_id=${order.id}&gateway=${gatewayType}`;
     const failUrl = `${returnOrigin}/recharge?payment=failed`;
@@ -200,7 +202,7 @@ serve(async (req) => {
       paymentUrl = sslData.GatewayPageURL;
       
       // Update order with session ID
-      await supabaseClient
+      const { error: sessionUpdateError } = await supabaseAdmin
         .from("helper_orders")
         .update({ 
           payment_details: {
@@ -209,6 +211,7 @@ serve(async (req) => {
           }
         })
         .eq("id", order.id);
+      if (sessionUpdateError) console.error("[LocalPayment] Failed to store SSL session:", sessionUpdateError.message);
 
     } else if (gatewayType === "aamarpay") {
       // ═══ AAMARPAY PAYMENT INITIATION ═══
