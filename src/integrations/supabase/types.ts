@@ -15421,8 +15421,6 @@ export type Database = {
           app_uid: string | null
           avatar_url: string | null
           bio: string | null
-          blocked_at: string | null
-          blocked_reason: string | null
           call_rate_per_minute: number | null
           city: string | null
           country_code: string | null
@@ -15452,9 +15450,6 @@ export type Database = {
           host_verified_at: string | null
           id: string | null
           is_agency_owner: boolean | null
-          is_banned: boolean | null
-          is_blocked: boolean | null
-          is_deleted: boolean | null
           is_face_verified: boolean | null
           is_host: boolean | null
           is_in_call: boolean | null
@@ -15469,13 +15464,11 @@ export type Database = {
           tags: string[] | null
           total_call_minutes: number | null
           total_calls_received: number | null
-          total_earnings: number | null
           user_level: number | null
           username: string | null
           verification_type: string | null
           vip_expires_at: string | null
           vip_tier: number | null
-          weekly_earnings: number | null
         }
         Insert: {
           age?: number | null
@@ -15483,10 +15476,8 @@ export type Database = {
           app_uid?: string | null
           avatar_url?: string | null
           bio?: string | null
-          blocked_at?: string | null
-          blocked_reason?: string | null
           call_rate_per_minute?: number | null
-          city?: string | null
+          city?: never
           country_code?: string | null
           country_flag?: string | null
           country_name?: string | null
@@ -15514,9 +15505,6 @@ export type Database = {
           host_verified_at?: string | null
           id?: string | null
           is_agency_owner?: boolean | null
-          is_banned?: boolean | null
-          is_blocked?: boolean | null
-          is_deleted?: boolean | null
           is_face_verified?: boolean | null
           is_host?: boolean | null
           is_in_call?: boolean | null
@@ -15527,17 +15515,15 @@ export type Database = {
           last_seen_at?: string | null
           max_user_level?: number | null
           profile_photo_url?: string | null
-          region?: string | null
+          region?: never
           tags?: string[] | null
           total_call_minutes?: number | null
           total_calls_received?: number | null
-          total_earnings?: number | null
           user_level?: number | null
           username?: string | null
           verification_type?: string | null
           vip_expires_at?: string | null
           vip_tier?: number | null
-          weekly_earnings?: number | null
         }
         Update: {
           age?: number | null
@@ -15545,10 +15531,8 @@ export type Database = {
           app_uid?: string | null
           avatar_url?: string | null
           bio?: string | null
-          blocked_at?: string | null
-          blocked_reason?: string | null
           call_rate_per_minute?: number | null
-          city?: string | null
+          city?: never
           country_code?: string | null
           country_flag?: string | null
           country_name?: string | null
@@ -15576,9 +15560,6 @@ export type Database = {
           host_verified_at?: string | null
           id?: string | null
           is_agency_owner?: boolean | null
-          is_banned?: boolean | null
-          is_blocked?: boolean | null
-          is_deleted?: boolean | null
           is_face_verified?: boolean | null
           is_host?: boolean | null
           is_in_call?: boolean | null
@@ -15589,17 +15570,15 @@ export type Database = {
           last_seen_at?: string | null
           max_user_level?: number | null
           profile_photo_url?: string | null
-          region?: string | null
+          region?: never
           tags?: string[] | null
           total_call_minutes?: number | null
           total_calls_received?: number | null
-          total_earnings?: number | null
           user_level?: number | null
           username?: string | null
           verification_type?: string | null
           vip_expires_at?: string | null
           vip_tier?: number | null
-          weekly_earnings?: number | null
         }
         Relationships: [
           {
