@@ -244,10 +244,20 @@ const Chat = () => {
   }, [groupMessages]);
 
   useEffect(() => {
+    const isPlainStorageKey = (value: string) => {
+      if (!value) return false;
+      if (/^https?:|^blob:|^data:/i.test(value)) return false;
+      // Exclude chat payload wrappers like "[Gift: ...]" and anything with
+      // whitespace, pipes, brackets, or other characters Storage rejects.
+      if (/^\[/.test(value)) return false;
+      if (/[\s|\[\]\\<>"'`]/.test(value)) return false;
+      if (!value.includes('/')) return false;
+      return /^[A-Za-z0-9._~!$&'()+,;=:@/-]+$/.test(value);
+    };
     const paths = [...messages, ...groupMessages]
       .map((m) => m.content || '')
       .concat(pendingMedia?.url || '')
-      .filter((value) => value && !/^https?:|^blob:|^data:/i.test(value) && value.includes('/'));
+      .filter(isPlainStorageKey);
     const missing = [...new Set(paths)].filter((path) => !signedChatMediaUrls[path]);
     if (missing.length === 0) return;
     let cancelled = false;
