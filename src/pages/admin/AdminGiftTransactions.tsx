@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
