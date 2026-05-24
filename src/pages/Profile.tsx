@@ -1401,10 +1401,16 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     } catch (error: any) {
       console.error('Error saving call rate:', error);
       recordClientError({ label: "Profile.beansAmount", message: error instanceof Error ? error.message : String(error) });
-      toast({ title: "Failed to save", description: error.message, variant: "destructive" });
+      const raw = String(error?.message || "").toLowerCase();
+      let friendly = error?.message || "Failed to save";
+      if (raw.includes("only approved hosts")) friendly = "Only approved hosts can set call price.";
+      else if (raw.includes("out of allowed range")) friendly = "Call price is outside the allowed range.";
+      else if (raw.includes("requires host_level")) friendly = "Your host level is too low for a custom price.";
+      toast({ title: "Failed to save", description: friendly, variant: "destructive" });
     } finally {
       setSavingCallRate(false);
     }
+
   };
 
   // Get level-based suggested rate
