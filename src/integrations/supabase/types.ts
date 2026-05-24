@@ -17109,6 +17109,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_session_role: { Args: never; Returns: string }
       admin_session_unban_live: {
         Args: { _admin_id: string; _ban_id: string; _reason?: string }
         Returns: Json
@@ -18817,6 +18818,10 @@ export type Database = {
       }
       service_auto_finalize_face_verification: {
         Args: { p_submission_id: string }
+        Returns: Json
+      }
+      service_set_admin_password: {
+        Args: { _admin_user_id: string; _new_password: string }
         Returns: Json
       }
       set_signup_country: {

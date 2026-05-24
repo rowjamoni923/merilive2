@@ -17,6 +17,11 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  return new Response(
+    JSON.stringify({ error: "Legacy auth sync is disabled" }),
+    { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+
   try {
     const { email, password } = await req.json();
 

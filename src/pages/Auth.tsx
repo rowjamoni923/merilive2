@@ -678,27 +678,6 @@ const Auth = () => {
         password,
       });
 
-      if (error?.message === "Invalid login credentials") {
-        const { data: syncResult, error: syncError } = await supabase.functions.invoke("admin-sync-auth", {
-          body: { email: normalizedEmail, password },
-        });
-
-        if (syncError) {
-          console.error("[Auth] legacy auth sync failed:", syncError);
-          recordClientError({ label: "Auth.normalizedEmail", message: syncError instanceof Error ? syncError.message : String(syncError) });
-        }
-
-        if (syncResult?.success) {
-          const retry = await supabase.auth.signInWithPassword({
-            email: normalizedEmail,
-            password,
-          });
-          error = retry.error;
-        } else if (syncResult?.reason === "weak_password") {
-          throw new Error(syncResult.error || "Password too weak. Please choose a stronger password.");
-        }
-      }
-
       if (error) {
         await recordAttempt(normalizedEmail, false);
         throw error;

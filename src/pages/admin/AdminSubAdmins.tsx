@@ -44,7 +44,6 @@ import {
   Smartphone,
   Lock
 } from "lucide-react";
-import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
@@ -57,6 +56,8 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminActorId } from "@/utils/adminActionMeta";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+const supabase = adminSupabase;
+
 interface AdminUser {
   id: string;
   user_id: string | null;
@@ -181,15 +182,15 @@ const AdminSubAdmins = () => {
   };
 
   const handleCreateSubAdmin = async () => {
-    if (!newEmail.trim() || !newPassword || newPassword.length < 6) {
-      toast.error("Please enter email and password (minimum 6 characters)");
+    if (!newEmail.trim() || !newPassword || newPassword.length < 8) {
+      toast.error("Please enter email and password (minimum 8 characters)");
       return;
     }
 
     setIsCreating(true);
 
     try {
-      const response = await supabase.functions.invoke("create-sub-admin", {
+      const response = await adminSupabase.functions.invoke("create-sub-admin", {
         body: {
           email: newEmail.trim().toLowerCase(),
           password: newPassword,
@@ -222,7 +223,7 @@ const AdminSubAdmins = () => {
 
   const handleToggleBlock = async (admin: AdminUser) => {
     try {
-      const response = await supabase.functions.invoke("update-sub-admin", {
+      const response = await adminSupabase.functions.invoke("update-sub-admin", {
         body: {
           admin_user_id: admin.id,
           action: "toggle_block",
@@ -242,13 +243,13 @@ const AdminSubAdmins = () => {
   };
 
   const handleChangePassword = async () => {
-    if (!selectedAdmin || !changePassword || changePassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    if (!selectedAdmin || !changePassword || changePassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
       return;
     }
 
     try {
-      const response = await supabase.functions.invoke("update-sub-admin", {
+      const response = await adminSupabase.functions.invoke("update-sub-admin", {
         body: {
           admin_user_id: selectedAdmin.id,
           action: "update_password",
@@ -273,7 +274,7 @@ const AdminSubAdmins = () => {
     if (!confirm(`Delete ${admin.email}? This sub-admin will no longer be able to log in.`)) return;
 
     try {
-      const response = await supabase.functions.invoke("update-sub-admin", {
+      const response = await adminSupabase.functions.invoke("update-sub-admin", {
         body: {
           admin_user_id: admin.id,
           action: "delete",
