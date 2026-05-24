@@ -160,7 +160,12 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         playerRef.current = null;
       }
     };
-  }, [src, loop, autoPlay, muted, handleComplete, resumeLoopingAnimation, onLoad, onError]);
+    // CRITICAL: only re-run for actual media inputs. Callback identity changes
+    // (parent re-renders) must NEVER tear down + rebuild the player — that was
+    // causing the same SVGA to replay over and over.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, loop, autoPlay, muted]);
+
 
   if (hasError) {
     return (
