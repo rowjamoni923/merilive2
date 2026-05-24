@@ -1,8 +1,7 @@
-import { useEffect, useState, Suspense, lazy } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 interface FlyingGiftBannerProps {
   senderName: string;
@@ -94,14 +93,16 @@ export const PremiumFlyingGiftBanner = ({
   const renderGiftIcon = () => {
     if (giftAnimationUrl?.toLowerCase().endsWith('.svga')) {
       return (
-        <Suspense fallback={<div className="w-10 h-10 animate-pulse bg-white/20 rounded-lg" />}>
-          <SVGAPlayer
+        <div className="w-10 h-10">
+          <FixedAnimationFrame
             src={giftAnimationUrl}
-            className="w-10 h-10"
+            type="svga"
+            size="fill"
             loop={true}
             autoPlay={true}
+            muted
           />
-        </Suspense>
+        </div>
       );
     }
 
