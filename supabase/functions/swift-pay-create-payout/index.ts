@@ -104,6 +104,40 @@ Deno.serve(async (req) => {
       return json({ error: "invalid_net_amount" }, 400);
     }
 
+    const initiatingDetails = {
+      ...details,
+      swift_pay_payout: {
+        ...(typeof details.swift_pay_payout === "object" && details.swift_pay_payout !== null
+          ? details.swift_pay_payout as Record<string, unknown>
+          : {}),
+        status: "initiating",
+        pay_currency: payCurrency,
+        pay_address: payAddress,
+        pay_network: payNetwork,
+        amount_usd: netUsd,
+        at: new Date().toISOString(),
+      },
+    };
+
+    const { data: reserved, error: reserveErr } = await admin
+      .from("agency_withdrawals")
+      .update({
+        status: "processing",
+        payment_details: initiatingDetails,
+      })
+      .eq("id", w.id)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
+
+    if (reserveErr) {
+      console.error("[swift-pay-create-payout] reserve error", reserveErr);
+      return json({ error: "payout_reservation_failed" }, 500);
+    }
+    if (!reserved) {
+      return json({ error: "withdrawal_not_payable", status: "changed" }, 409);
+    }
+
     const externalUserId = `merilive_agency_${w.agency_id}`;
 
     // 🔒 IDEMPOTENCY HEADER — prevents accidental double-payouts even if
@@ -136,7 +170,7 @@ Deno.serve(async (req) => {
       console.error("[swift-pay-create-payout] gateway error", payoutRes.status, parsed);
       // Stamp the failure but don't roll back the withdrawal (admin can retry / process manually)
       await admin.from("agency_withdrawals").update({
-        payment_details: { ...details, swift_pay_payout: { error: parsed, status: "failed", at: new Date().toISOString() } },
+        payment_details: { ...initiatingDetails, swift_pay_payout: { ...initiatingDetails.swift_pay_payout, error: parsed, status: "failed", at: new Date().toISOString() } },
       }).eq("id", w.id);
       return json({ error: parsed?.error ?? "gateway_error", details: parsed }, 502);
     }
@@ -147,7 +181,7 @@ Deno.serve(async (req) => {
     await admin.from("agency_withdrawals").update({
       status: status === "completed" ? "approved" : "pending",
       payment_details: {
-        ...details,
+        ...initiatingDetails,
         swift_pay_payout: {
           payment_id: paymentId,
           status,
