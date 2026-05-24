@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface MessageNotificationRequest {
   conversationId: string;
+  messageId: string;
   senderId: string;
   recipientId: string;
   messageContent: string;
@@ -98,7 +99,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { conversationId, senderId, recipientId, messageContent, messageType = 'text' }: MessageNotificationRequest = await req.json();
+    const { conversationId, messageId, senderId, recipientId, messageContent, messageType = 'text' }: MessageNotificationRequest = await req.json();
 
     // ── Pkg308 deep-audit: caller must be the sender ────────────────────────
     // Previously any authenticated client could call with arbitrary
@@ -126,6 +127,30 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+    if (!conversationId || !messageId || !senderId || !recipientId) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing required message notification fields" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { data: verifiedMessage, error: verifyError } = await supabase
+      .from("messages")
+      .select("id, conversation_id, sender_id, content, message_type, conversations!inner(participant_1, participant_2)")
+      .eq("id", messageId)
+      .eq("conversation_id", conversationId)
+      .eq("sender_id", senderId)
+      .maybeSingle();
+
+    const conversation = verifiedMessage?.conversations as { participant_1?: string; participant_2?: string } | undefined;
+    const participants = [conversation?.participant_1, conversation?.participant_2];
+    if (verifyError || !verifiedMessage || !participants.includes(senderId) || !participants.includes(recipientId)) {
+      console.warn("[MsgPush] Message/conversation verification rejected", { conversationId, messageId, senderId, recipientId });
+      return new Response(
+        JSON.stringify({ success: false, error: "Message verification failed" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
     // ────────────────────────────────────────────────────────────────────────
 
     console.log(`[MsgPush] New message from ${senderId} to ${recipientId}`);
@@ -149,7 +174,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Build notification content based on message type
-    let body = messageContent;
+    let body = String(verifiedMessage.content || messageContent || "");
     if (messageType === 'voice') body = "🎤 Voice message";
     else if (messageType === 'image') body = "📷 Photo";
     else if (messageType === 'video') body = "🎥 Video";
