@@ -13,6 +13,7 @@ import {
   ensureValidLevel,
   formatLevel 
 } from "@/features/shared/level";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 // ============= TYPES =============
 export interface JoinNotification {
@@ -121,7 +122,7 @@ const PremiumChatMessage = memo(({ message }: PremiumChatMessageProps) => {
   
   // Extract gift icon URL from message format: [GIFT:url] sent GiftName x count
   const giftIconMatch = message.message.match(/\[GIFT:([^\]]*)\]/);
-  const giftIconUrl = giftIconMatch ? giftIconMatch[1] : null;
+  const giftIconUrl = normalizeGiftMediaUrl(giftIconMatch?.[1]);
   // Clean message text - remove the [GIFT:url] prefix
   const cleanMessage = message.message.replace(/\[GIFT:[^\]]*\]\s*/, '');
   
