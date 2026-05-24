@@ -175,6 +175,7 @@ const Recharge = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userAppUid, setUserAppUid] = useState<string | null>(null);
   const [isFirstRecharge, setIsFirstRecharge] = useState(false);
+  const [firstRechargeBonusId, setFirstRechargeBonusId] = useState<string | null>(null);
   const [firstRechargeBonus, setFirstRechargeBonus] = useState<number>(2.0);
   const [rechargeBannerConfig, setRechargeBannerConfig] = useState<{
     banner_image_url?: string | null;
@@ -1435,7 +1436,7 @@ const Recharge = () => {
         const [profileRes, firstRechargeRes, bonusConfigRes] = await Promise.all([
           supabase.from('profiles').select('coins, country_code, app_uid, is_agency_owner').eq('id', user.id).single(),
           supabase.from('first_recharge_claims').select('id').eq('user_id', user.id).maybeSingle(),
-          supabase.from('first_recharge_bonus').select('bonus_multiplier, banner_image_url, banner_title, banner_subtitle, banner_type').eq('is_active', true).maybeSingle(),
+          supabase.from('first_recharge_bonus').select('id, bonus_multiplier, banner_image_url, banner_title, banner_subtitle, banner_type').eq('is_active', true).maybeSingle(),
         ]);
 
         if (profileRes.data) {
@@ -1464,6 +1465,7 @@ const Recharge = () => {
         
         setIsFirstRecharge(!firstRechargeRes.data);
         if (bonusConfigRes.data) {
+          setFirstRechargeBonusId(bonusConfigRes.data.id);
           setFirstRechargeBonus(Number(bonusConfigRes.data.bonus_multiplier) || 2.0);
           setRechargeBannerConfig({
             banner_image_url: bonusConfigRes.data.banner_image_url,
@@ -1913,17 +1915,17 @@ const Recharge = () => {
           throw new Error(deductData.error || "Merchant doesn't have enough diamonds");
         }
 
-        // Calculate total coins with first recharge bonus
-        const bonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
+        const candidateBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
           ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
           : 0;
-        const totalCoinsToAdd = selectedPackage.coins + bonusCoins;
+        let bonusCoins = 0;
+        let totalCoinsToAdd = selectedPackage.coins;
 
-        // ATOMIC: Add diamonds to user (base + bonus) - helper-safe RPC
+        // ATOMIC: Add base diamonds first. Bonus claim/credit happens only after base credit succeeds.
         const { data: addResult, error: addError } = await supabase
           .rpc('helper_add_coins_to_user', {
             _user_id: userId,
-            _amount: totalCoinsToAdd
+            _amount: selectedPackage.coins
           });
 
         const addData = addResult as any;
@@ -1952,15 +1954,21 @@ const Recharge = () => {
           throw new Error('Diamonds could not be credited. Support has been notified — your payment will be reconciled.');
         }
 
-        // If first recharge, record the claim
-        if (isFirstRecharge && bonusCoins > 0) {
-          await supabase.from('first_recharge_claims').insert({
-            user_id: userId,
-            package_id: selectedPackage.id,
-            original_coins: selectedPackage.coins,
-            bonus_coins: bonusCoins,
-            total_coins: totalCoinsToAdd,
-          }).then(() => setIsFirstRecharge(false));
+        if (candidateBonusCoins > 0 && firstRechargeBonusId) {
+          const { data: bonusResult, error: bonusError } = await supabase.rpc('claim_first_recharge_bonus_and_credit' as any, {
+            _user_id: userId,
+            _bonus_id: firstRechargeBonusId,
+            _original_amount: selectedPackage.coins,
+            _bonus_amount: candidateBonusCoins,
+          });
+          const bonusData = bonusResult as any;
+          if (!bonusError && bonusData?.success && !bonusData?.already_claimed) {
+            bonusCoins = Number(bonusData.bonus_amount || candidateBonusCoins);
+            totalCoinsToAdd += bonusCoins;
+          } else if (bonusError) {
+            console.warn('[Recharge] First recharge bonus credit skipped:', bonusError.message);
+          }
+          setIsFirstRecharge(false);
         }
 
         // Notify user
