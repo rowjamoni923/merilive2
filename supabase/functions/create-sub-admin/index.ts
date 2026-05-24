@@ -241,8 +241,14 @@ serve(async (req) => {
     // Format: gala-noir-onyx-<YEAR>-prism-<8-hex>
     const BASE_SECRET =
       Deno.env.get('ADMIN_TOKEN_BASE_SECRET') ||
-      Deno.env.get('ADMIN_OWNER_TOKEN') ||
-      'merilive-secret-base-2026-fallback';
+      Deno.env.get('ADMIN_OWNER_TOKEN');
+    if (!BASE_SECRET || BASE_SECRET.length < 16) {
+      console.error('[create-sub-admin] ADMIN_TOKEN_BASE_SECRET missing or too short — refusing to mint sub-admin login link');
+      return new Response(
+        JSON.stringify({ error: 'Admin token secret not configured on server' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const year = new Date().getUTCFullYear();
     const enc = new TextEncoder();
     const cryptoKey = await crypto.subtle.importKey(
