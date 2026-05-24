@@ -5,6 +5,7 @@
 // payouts + notification spam (the underlying RPCs were SECURITY DEFINER and
 // publicly grantable).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { requireAdminSession } from '../_shared/adminAuth.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,7 +19,7 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-function isAuthorized(req: Request): boolean {
+async function isAuthorized(req: Request, supabaseAdmin: ReturnType<typeof createClient>): Promise<boolean> {
   const serviceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const internalSecret =
     Deno.env.get('CRON_SECRET') ?? Deno.env.get('INTERNAL_FUNCTION_SECRET');
@@ -32,6 +33,8 @@ function isAuthorized(req: Request): boolean {
     if (req.headers.get('x-internal-secret') === internalSecret) return true;
     if (bearer === internalSecret) return true;
   }
+  const adminAuth = await requireAdminSession(req, supabaseAdmin, { sectionKey: 'leaderboards', requireEdit: true });
+  if (adminAuth.ok) return true;
   return false;
 }
 
@@ -40,14 +43,14 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  if (!isAuthorized(req)) {
-    return jsonResponse({ success: false, error: 'Forbidden: cron-only endpoint' }, 403);
-  }
-
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
+
+    if (!(await isAuthorized(req, supabase))) {
+      return jsonResponse({ success: false, error: 'Forbidden: admin or cron access required' }, 403);
+    }
 
     // Parse optional parameters
     let category: string | null = null
