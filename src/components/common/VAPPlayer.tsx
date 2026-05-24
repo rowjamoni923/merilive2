@@ -304,19 +304,11 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     render();
     setLoading(false);
-    onLoad?.();
+    onLoadRef.current?.();
 
-  }, [createShaders, onLoad, onError]);
+  }, [createShaders]);
 
-  // Pkg326 — ref-wrap callbacks so parent re-renders don't re-init WebGL/video.
-  const onLoadRef = useRef(onLoad);
-  const onErrorRef = useRef(onError);
-  const onCompleteRef = useRef(onComplete);
-  useEffect(() => {
-    onLoadRef.current = onLoad;
-    onErrorRef.current = onError;
-    onCompleteRef.current = onComplete;
-  }, [onLoad, onError, onComplete]);
+
 
   // Initialize video and WebGL
   useEffect(() => {
