@@ -146,7 +146,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
         player.setVideoItem(videoItemToUse);
         setLoading(false);
-        onLoad?.();
+        onLoadRef.current?.();
 
         if (autoPlay) {
           startTimeRef.current = Date.now();
