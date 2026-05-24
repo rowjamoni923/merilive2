@@ -299,6 +299,11 @@ const EditProfile = () => {
       
       if (data) {
         syncProfileState(data as ProfileData);
+        try {
+          window.dispatchEvent(new CustomEvent("app-sync", {
+            detail: { topic: "profiles", eventType: "UPDATE", payload: data },
+          }));
+        } catch {}
       }
       
       if (gender.toLowerCase() === "female" && profile.gender?.toLowerCase() !== "female") {
