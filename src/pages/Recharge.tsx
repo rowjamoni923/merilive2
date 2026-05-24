@@ -1915,10 +1915,27 @@ const Recharge = () => {
           throw new Error(deductData.error || "Merchant doesn't have enough diamonds");
         }
 
-        // Calculate total coins with first recharge bonus
-        const bonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
-          ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
-          : 0;
+        // Claim first-recharge bonus BEFORE crediting so DB unique(user_id)
+        // prevents repeat bonus if two payment flows race.
+        let bonusCoins = 0;
+        if (isFirstRecharge && selectedPackage.bonus_percentage > 0 && firstRechargeBonusId) {
+          const candidateBonus = Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100);
+          if (candidateBonus > 0) {
+            const { error: claimError } = await supabase.from('first_recharge_claims').insert({
+              user_id: userId,
+              bonus_id: firstRechargeBonusId,
+              original_amount: selectedPackage.coins,
+              bonus_amount: candidateBonus,
+            });
+            if (!claimError) {
+              bonusCoins = candidateBonus;
+              setIsFirstRecharge(false);
+            } else {
+              console.warn('[Recharge] First recharge bonus claim skipped:', claimError.message);
+              setIsFirstRecharge(false);
+            }
+          }
+        }
         const totalCoinsToAdd = selectedPackage.coins + bonusCoins;
 
         // ATOMIC: Add diamonds to user (base + bonus) - helper-safe RPC
@@ -1952,17 +1969,6 @@ const Recharge = () => {
             console.error('Failed to flag helper_order as failed:', flagErr);
           }
           throw new Error('Diamonds could not be credited. Support has been notified — your payment will be reconciled.');
-        }
-
-        // If first recharge, record the claim
-        if (isFirstRecharge && bonusCoins > 0) {
-          await supabase.from('first_recharge_claims').insert({
-            user_id: userId,
-            package_id: selectedPackage.id,
-            original_coins: selectedPackage.coins,
-            bonus_coins: bonusCoins,
-            total_coins: totalCoinsToAdd,
-          }).then(() => setIsFirstRecharge(false));
         }
 
         // Notify user
