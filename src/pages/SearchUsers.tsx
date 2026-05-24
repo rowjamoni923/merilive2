@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, Phone, UserPlus, UserCheck, X, Filter, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,18 +34,6 @@ interface UserProfile {
   tags: string[] | null;
   app_uid: string | null;
 }
-
-// Popular tags for quick filter
-const popularTags = [
-  { name: "Seeking chat friends", icon: "💬", color: "from-pink-400 to-rose-400" },
-  { name: "Emotional", icon: "🥺", color: "from-orange-400 to-amber-400" },
-  { name: "Extrovert", icon: "🎊", color: "from-purple-400 to-violet-400" },
-  { name: "Student", icon: "📚", color: "from-blue-400 to-cyan-400" },
-  { name: "IT", icon: "💻", color: "from-green-400 to-emerald-400" },
-  { name: "Music", icon: "🎵", color: "from-indigo-400 to-purple-400" },
-  { name: "Traveler", icon: "✈️", color: "from-teal-400 to-cyan-400" },
-  { name: "Gourmet", icon: "🍴", color: "from-red-400 to-pink-400" },
-];
 
 // All tag categories for filter sheet
 const tagCategories = [
