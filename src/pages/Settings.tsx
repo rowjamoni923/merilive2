@@ -435,7 +435,9 @@ const Settings = () => {
           });
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.warn('[Settings] Camera permission precheck unavailable:', error);
+      }
     }
 
     try {
@@ -580,7 +582,9 @@ const Settings = () => {
           });
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.warn('[Settings] Location permission precheck unavailable:', error);
+      }
     }
 
     try {
@@ -637,7 +641,9 @@ const Settings = () => {
       // Persistent flag so auto-recovery NEVER restores old account
       localStorage.setItem('meri_manual_logout', 'true');
       localStorage.removeItem('meri_device_account');
-    } catch {}
+    } catch (error) {
+      console.warn('[Settings] Failed to write logout marker:', error);
+    }
 
     // Close dialog + navigate IMMEDIATELY
     setShowLogoutDialog(false);
@@ -713,10 +719,10 @@ const Settings = () => {
       
       setShowDeleteConfirmDialog(false);
       setShowDeleteDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to schedule deletion",
+        description: getErrorMessage(error, "Failed to schedule deletion"),
         variant: "destructive",
       });
     } finally {
@@ -746,10 +752,10 @@ const Settings = () => {
       });
       
       setShowDeleteDialog(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to cancel deletion",
+        description: getErrorMessage(error, "Failed to cancel deletion"),
         variant: "destructive",
       });
     } finally {
@@ -765,7 +771,7 @@ const Settings = () => {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 
-  const settingsItems = [
+  const settingsItems: SettingsItem[] = [
     {
       icon: Bell,
       label: t("settings.notifications"),
@@ -882,20 +888,20 @@ const Settings = () => {
             key={index}
             onClick={item.onClick}
             className={`w-full flex items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors ${
-              (item as any).danger ? 'text-destructive' : ''
+              item.danger ? 'text-destructive' : ''
             }`}
             disabled={!item.onClick}
           >
             <div className="flex items-center gap-3">
-              <item.icon className={`w-5 h-5 ${(item as any).danger ? 'text-destructive' : 'text-muted-foreground'}`} />
-              <span className={(item as any).danger ? 'text-destructive' : 'text-foreground'}>{item.label}</span>
+              <item.icon className={`w-5 h-5 ${item.danger ? 'text-destructive' : 'text-muted-foreground'}`} />
+              <span className={item.danger ? 'text-destructive' : 'text-foreground'}>{item.label}</span>
             </div>
             <div className="flex items-center gap-2">
               {item.value && (
-                <span className={`text-sm ${(item as any).danger ? 'text-destructive/70' : 'text-muted-foreground'}`}>{item.value}</span>
+                <span className={`text-sm ${item.danger ? 'text-destructive/70' : 'text-muted-foreground'}`}>{item.value}</span>
               )}
               {item.showArrow !== false && item.onClick && (
-                <ChevronRight className={`w-5 h-5 ${(item as any).danger ? 'text-destructive' : 'text-muted-foreground'}`} />
+                <ChevronRight className={`w-5 h-5 ${item.danger ? 'text-destructive' : 'text-muted-foreground'}`} />
               )}
             </div>
           </button>
