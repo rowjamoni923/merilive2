@@ -13,8 +13,7 @@ import {
   Mic,
   Search,
   Sparkles,
-  RefreshCw,
-  Globe
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,8 +72,8 @@ const Discover = () => {
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fetchRoomsRef = useRef<(isInitialLoad?: boolean) => Promise<void>>(() => Promise.resolve());
   const { checkFeatureAccess } = useFeatureLevelCheck();
 
   // Debounced fetch to prevent too many calls - reduced delay for faster response
@@ -83,28 +82,9 @@ const Discover = () => {
       clearTimeout(fetchTimeoutRef.current);
     }
     fetchTimeoutRef.current = setTimeout(() => {
-      fetchRooms(false);
+      void fetchRoomsRef.current(false);
     }, 100);
   }, []);
-
-  useEffect(() => {
-    fetchCurrentUser();
-    fetchRooms(true); // Initial load with loading indicator
-
-    // Use universal realtime system instead of manual channels
-    const unsubscribe = subscribeToTables(
-      `discover-rooms-${Date.now()}`,
-      ['party_rooms', 'party_room_participants'],
-      () => debouncedFetch()
-    );
-
-    return () => {
-      unsubscribe();
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
-    };
-  }, [debouncedFetch]);
 
   const fetchCurrentUser = async () => {
     const { getCachedUser } = await import('@/utils/cachedAuth');
@@ -181,7 +161,6 @@ const Discover = () => {
       if (activeRoomIds.size === 0) {
         setRooms([]);
         setLoading(false);
-        setLastUpdate(new Date());
         return;
       }
 
@@ -231,7 +210,6 @@ const Discover = () => {
 
       setRooms(visibleRooms);
       setSessionCache('discover-rooms', visibleRooms);
-      setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching rooms:', error);
       recordClientError({ label: "Discover.visibleRooms", message: error instanceof Error ? error.message : String(error) });
@@ -242,6 +220,29 @@ const Discover = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchRoomsRef.current = fetchRooms;
+  });
+
+  useEffect(() => {
+    fetchCurrentUser();
+    void fetchRoomsRef.current(true); // Initial load with loading indicator
+
+    // Use universal realtime system instead of manual channels
+    const unsubscribe = subscribeToTables(
+      `discover-rooms-${Date.now()}`,
+      ['party_rooms', 'party_room_participants'],
+      () => debouncedFetch()
+    );
+
+    return () => {
+      unsubscribe();
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [debouncedFetch]);
 
   const joinRoom = async (room: PartyRoom) => {
     if (!currentUser) {
