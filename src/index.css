@@ -1864,8 +1864,8 @@ video::-webkit-media-controls-toggle-closed-captions-button {
   min-height: 100%;
 }
 
-/* Admin shell owns scrolling. Keep body/root locked so mobile gestures do not
-   get stolen by the document after the first scroll. */
+/* Admin panel scroll safety: let the document own the full admin height so
+   every section remains reachable on mobile and desktop. */
 body[data-admin-active="true"] {
   overflow-x: hidden !important;
   overflow-y: auto !important;
