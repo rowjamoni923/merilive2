@@ -1,0 +1,49 @@
+create or replace function public.is_public_profile_media_key(_key text)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_key text := nullif(btrim(_key), '');
+  v_like text;
+begin
+  if v_key is null or length(v_key) > 1024 or position('..' in v_key) > 0 or position(chr(0) in v_key) > 0 then
+    return false;
+  end if;
+
+  v_like := '%' || v_key || '%';
+
+  return exists (
+    select 1
+    from public.profiles p
+    where p.avatar_url like v_like
+       or p.cover_url like v_like
+       or (p.host_photos is not null and exists (select 1 from unnest(p.host_photos) hp where hp like v_like))
+  )
+  or exists (
+    select 1
+    from public.poster_images pi
+    where pi.image_url like v_like
+  )
+  or exists (
+    select 1
+    from public.live_streams ls
+    where ls.thumbnail_url like v_like
+  )
+  or exists (
+    select 1
+    from public.face_verification_submissions fvs
+    where fvs.status = 'approved'
+      and (
+        fvs.profile_photo_url like v_like
+        or fvs.video_url like v_like
+        or (fvs.host_photos is not null and exists (select 1 from unnest(fvs.host_photos) hp where hp like v_like))
+      )
+  );
+end;
+$$;
+
+revoke all on function public.is_public_profile_media_key(text) from public;
+grant execute on function public.is_public_profile_media_key(text) to anon, authenticated, service_role;

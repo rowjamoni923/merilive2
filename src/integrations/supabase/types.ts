@@ -18651,6 +18651,7 @@ export type Database = {
       is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
       is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_owner_email: { Args: { _email: string }; Returns: boolean }
+      is_public_profile_media_key: { Args: { _key: string }; Returns: boolean }
       is_real_user: { Args: never; Returns: boolean }
       is_user_live_banned: { Args: { p_user_id: string }; Returns: boolean }
       join_agency: {
