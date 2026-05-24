@@ -2015,6 +2015,7 @@ const Recharge = () => {
       setPaymentStep("form");
     } finally {
       setProcessingPayment(false);
+      submitPaymentRef.current = false;
     }
   };
 
