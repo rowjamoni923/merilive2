@@ -21,6 +21,23 @@ function normalizeReturnOrigin(raw: unknown): string {
   }
 }
 
+function asMoney(value: unknown): number | null {
+  const n = Number(String(value ?? "").replace(/,/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+function assertSamePayment(order: any, bodyFields: { userId?: string; totalCoins?: number; paymentMethodId?: string; txnId?: string; amount?: unknown; currency?: string }) {
+  const details = (order.payment_details || {}) as Record<string, unknown>;
+  if (bodyFields.userId && bodyFields.userId !== order.user_id) throw new Error("IPN user mismatch");
+  if (bodyFields.paymentMethodId && bodyFields.paymentMethodId !== details.payment_method_id) throw new Error("IPN payment method mismatch");
+  if (bodyFields.txnId && details.txn_id && bodyFields.txnId !== details.txn_id) throw new Error("IPN transaction mismatch");
+  if (bodyFields.totalCoins && Number(order.coin_amount || 0) !== bodyFields.totalCoins) throw new Error("IPN coin amount mismatch");
+
+  const paidAmount = asMoney(bodyFields.amount);
+  if (paidAmount !== null && Math.abs(paidAmount - Number(order.amount_local || 0)) > 0.01) throw new Error("IPN amount mismatch");
+  if (bodyFields.currency && String(bodyFields.currency).toUpperCase() !== String(order.currency_code || "").toUpperCase()) throw new Error("IPN currency mismatch");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
