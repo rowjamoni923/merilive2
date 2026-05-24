@@ -19,6 +19,10 @@ const hasKey = (value: unknown, key: string) => typeof value === "string" && val
 const arrayHasKey = (value: unknown, key: string) => Array.isArray(value) && value.some((item) => hasKey(item, key));
 
 const isPublishedProfileMedia = async (key: string): Promise<boolean> => {
+  const { data: rpcAllowed, error: rpcError } = await admin.rpc("is_public_profile_media_key", { _key: key });
+  if (!rpcError && rpcAllowed === true) return true;
+  if (rpcError) console.error("[public-profile-avatar] allow-list rpc failed", rpcError.message);
+
   const [profiles, posters, streams, submissions] = await Promise.all([
     admin.from("profiles").select("avatar_url, cover_url, host_photos").or(`avatar_url.ilike.%${key}%,cover_url.ilike.%${key}%`).limit(20),
     admin.from("poster_images").select("image_url").ilike("image_url", `%${key}%`).limit(20),
