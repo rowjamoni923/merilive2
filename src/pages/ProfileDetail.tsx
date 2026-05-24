@@ -29,6 +29,7 @@ import {
 import { ProfileReelsSection } from "@/components/profile/ProfileReelsSection";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 
 import { Button } from "@/components/ui/button";
@@ -398,7 +399,10 @@ const ProfileDetail = () => {
       setHostAvailability(profileData.host_availability);
     }
     // Set poster images
-    setPosterImages(postersResult?.data || []);
+    setPosterImages((postersResult?.data || []).map((poster: any) => ({
+      ...poster,
+      image_url: normalizeProfileMediaUrl(poster.image_url) || poster.image_url,
+    })));
 
     // Set followers/following counts
     setFollowersCount(followersResult?.count || 0);
@@ -676,12 +680,13 @@ const ProfileDetail = () => {
   // Get current cover image (from poster images or default)
   const getCurrentCoverImage = useCallback(() => {
     if (posterImages.length > 0) {
-      return posterImages[currentSlideIndex]?.image_url;
+      const posterUrl = posterImages[currentSlideIndex]?.image_url;
+      return normalizeProfileMediaUrl(posterUrl) || posterUrl;
     }
     // Cover priority: cover_url → avatar_url → AI placeholder (gender-aware,
     // owner sees blank/default so they're nudged to upload).
     const real = profile?.cover_url || profile?.avatar_url;
-    if (real) return real;
+    if (real) return normalizeProfileMediaUrl(real) || real;
     if (isOwnProfile) return "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=800";
     const gender: 'female' | 'male' = ((profile as any)?.is_host || profile?.gender === 'female' || profile?.gender === 'Female')
       ? 'female'
