@@ -1818,50 +1818,15 @@ const Level5HelperDashboard = () => {
                           onClick={async () => {
                             setProcessing(true);
                             try {
-                              // 1) Atomically deduct from helper wallet first
-                              const { data: deductResult, error: deductError } = await supabase
-                                .rpc('deduct_helper_wallet', {
-                                  _helper_id: order.helper_id,
-                                  _amount: order.coin_amount,
-                                  _update_total_sold: true,
-                                });
-
-                              if (deductError) {
-                                console.error('Deduct RPC Error:', deductError);
-                                recordClientError({ label: "Level5HelperDashboard.nameMap", message: deductError instanceof Error ? deductError.message : String(deductError) });
-                                throw new Error('Failed to deduct helper wallet');
-                              }
-
-                              const deductData = deductResult as any;
-                              if (deductData && deductData.success === false) {
-                                throw new Error(deductData.error || 'Insufficient helper wallet balance');
-                              }
-
-                              // 2) Add diamonds to user
-                              const { data: rpcResult, error: rpcError } = await supabase.rpc('helper_add_coins_to_user', {
-                                _user_id: order.user_id,
-                                _amount: order.coin_amount,
+                              const { data: processResult, error: processError } = await supabase.rpc('process_helper_order_secure' as any, {
+                                _order_id: order.id,
+                                _action: 'complete',
+                                _notes: 'Processed from Level 5 Helper Dashboard',
                               });
-
-                              if (rpcError) {
-                                console.error('Add Coins RPC Error:', rpcError);
-                                recordClientError({ label: "Level5HelperDashboard.deductData", message: rpcError instanceof Error ? rpcError.message : String(rpcError) });
-                                throw new Error('Failed to add diamonds to user');
-                              }
-
-                              const rpcData = rpcResult as any;
-                              if (rpcData && rpcData.success === false) {
-                                throw new Error(rpcData.error || 'Failed to add diamonds');
-                              }
-
-                              // 3) Mark order completed only after successful transfer
-                              const { error: orderUpdateError } = await supabase
-                                .from('helper_orders')
-                                .update({ status: 'completed', processed_at: new Date().toISOString() })
-                                .eq('id', order.id);
-
-                              if (orderUpdateError) {
-                                throw orderUpdateError;
+                              const processData = processResult as any;
+                              if (processError || !processData?.success) {
+                                recordClientError({ label: "Level5HelperDashboard.processHelperOrder", message: processError?.message || processData?.error || 'unknown' });
+                                throw new Error(processData?.error || processError?.message || 'Failed to process order');
                               }
 
                                // Send notification
@@ -1894,10 +1859,15 @@ const Level5HelperDashboard = () => {
                           onClick={async () => {
                             setProcessing(true);
                             try {
-                              await supabase
-                                .from('helper_orders')
-                                .update({ status: 'cancelled', processed_at: new Date().toISOString() })
-                                .eq('id', order.id);
+                              const { data: processResult, error: processError } = await supabase.rpc('process_helper_order_secure' as any, {
+                                _order_id: order.id,
+                                _action: 'reject',
+                                _notes: 'Rejected from Level 5 Helper Dashboard',
+                              });
+                              const processData = processResult as any;
+                              if (processError || !processData?.success) {
+                                throw new Error(processData?.error || processError?.message || 'Failed to reject order');
+                              }
 
                               // Send notification
                               await supabase.rpc('send_notification', {

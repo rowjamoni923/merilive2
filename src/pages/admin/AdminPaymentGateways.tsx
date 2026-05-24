@@ -102,15 +102,17 @@ const ADMIN_COUNTRY_OPTIONS: { code: string; name: string }[] = [
 interface Transaction {
   id: string;
   user_id: string;
-  gateway_id: string;
+  gateway_id: string | null;
   transaction_ref: string | null;
-  amount_usd: number;
-  amount_local: number;
-  currency_code: string;
-  coins_to_receive: number;
+  amount: number;
+  amount_usd: number | null;
+  currency: string | null;
+  diamonds_amount: number | null;
+  external_transaction_id: string | null;
+  payment_method: string | null;
   status: string | null;
   created_at: string | null;
-  completed_at: string | null;
+  updated_at: string | null;
   gateway?: {
     id: string;
     name: string;
@@ -454,42 +456,31 @@ const AdminPaymentGateways = () => {
 
   const handleUpdateTransactionStatus = async (transactionId: string, newStatus: string) => {
     try {
-      const updateData: any = { status: newStatus };
       if (newStatus === 'completed') {
-        updateData.completed_at = new Date().toISOString();
-        
-        // Get transaction details to add coins
+        const { data, error } = await supabase.rpc('admin_complete_payment_transaction' as any, {
+          _transaction_id: transactionId,
+        });
+        const result = data as any;
+        if (error || !result?.success) throw new Error(result?.error || error?.message || 'Failed to complete transaction');
+
         const transaction = transactions.find(t => t.id === transactionId);
-        if (transaction) {
-          // Add coins to user
-          const { error: coinError } = await supabase.rpc('admin_add_user_coins' as any, {
-            _user_id: transaction.user_id,
-            _amount: transaction.coins_to_receive,
-            _note: `Direct recharge completion (txn ${transactionId})`,
-          });
-
-          if (coinError) {
-            // Surface the real server error instead of silently masking with add_coins
-            // (add_coins bypasses x-admin-token and would fail silently anyway).
-            throw new Error(`Failed to credit diamonds: ${coinError.message ?? 'unknown error'}`);
-          }
-
-          // Send notification to user about direct recharge
-          const coinAmount = transaction.coins_to_receive;
-          const formattedAmount = coinAmount >= 100000 
-            ? `${(coinAmount / 100000).toFixed(1)}L` 
+        if (transaction && !result.alreadyProcessed) {
+          const coinAmount = Number(result.creditedCoins || transaction.diamonds_amount || 0);
+          const formattedAmount = coinAmount >= 100000
+            ? `${(coinAmount / 100000).toFixed(1)}L`
             : coinAmount.toLocaleString();
-          
-          await adminSendNotification(transaction.user_id, '💎 Recharge Complete!', `${formattedAmount} diamonds successfully recharged!`, 'coin_purchase_direct')
+          await adminSendNotification(transaction.user_id, '💎 Recharge Complete!', `${formattedAmount} diamonds successfully recharged!`, 'coin_purchase_direct');
         }
+      } else if (newStatus === 'failed') {
+        const { data, error } = await supabase.rpc('admin_reject_payment_transaction' as any, {
+          _transaction_id: transactionId,
+          _reason: 'Rejected from admin payment gateway panel',
+        });
+        const result = data as any;
+        if (error || !result?.success) throw new Error(result?.error || error?.message || 'Failed to reject transaction');
+      } else {
+        throw new Error('Unsupported transaction status');
       }
-
-      const { error } = await supabase
-        .from('payment_transactions')
-        .update(updateData)
-        .eq('id', transactionId);
-
-      if (error) throw error;
 
       toast({ title: "Success", description: "Transaction status updated" });
       fetchTransactions();
@@ -902,10 +893,10 @@ const AdminPaymentGateways = () => {
                           
                           <div className="flex items-center gap-4 text-sm text-white/70 mb-2">
                             <span className="font-medium text-pink-400">
-                              💎 {txn.coins_to_receive.toLocaleString()} coins
+                              💎 {Number(txn.diamonds_amount || 0).toLocaleString()} coins
                             </span>
-                            <span>${txn.amount_usd.toFixed(2)}</span>
-                            <span>{txn.currency_code} {txn.amount_local.toFixed(2)}</span>
+                            <span>${Number(txn.amount_usd || 0).toFixed(2)}</span>
+                            <span>{txn.currency || 'USD'} {Number(txn.amount || 0).toFixed(2)}</span>
                           </div>
                           
                           <div className="flex items-center justify-between">

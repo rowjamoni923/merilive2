@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/CampaignTemplates';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
-import playStoreBilling, { PLAY_STORE_PRODUCTS } from '@/sdk/PlayStoreBillingSDK';
+import playStoreBilling, { loadPlayStoreProducts } from '@/sdk/PlayStoreBillingSDK';
 import { useAppState } from '@/hooks/useAppState';
 import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
 
@@ -506,8 +506,8 @@ function CampaignFloatingButton() {
       }
       try {
         const diamonds = campaign.diamonds_amount;
-        const product = PLAY_STORE_PRODUCTS[diamonds];
-        const productId = product?.productId || Object.values(PLAY_STORE_PRODUCTS)[0]?.productId;
+        await loadPlayStoreProducts();
+        const productId = playStoreBilling.getProductIdForCoins(diamonds);
         if (!productId) { toast({ title: 'Product not found', variant: 'destructive' }); return; }
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { toast({ title: 'Please login first', variant: 'destructive' }); return; }

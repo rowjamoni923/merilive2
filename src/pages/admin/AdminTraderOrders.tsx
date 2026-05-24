@@ -119,47 +119,25 @@ const AdminTraderOrders = () => {
 
   const handleProcessOrder = async (order: HelperOrder, action: 'complete' | 'cancel') => {
     try {
-      // Update order status
-      const { error } = await supabase
-        .from('helper_orders')
-        .update({ 
-          status: action === 'complete' ? 'completed' : 'cancelled',
-          processed_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
+      const { data, error } = await supabase.rpc('process_helper_order_secure' as any, {
+        _order_id: order.id,
+        _action: action,
+        _notes: `Processed from Admin Trader Orders: ${action}`,
+      });
+      const result = data as any;
+      if (error || !result?.success) {
+        throw new Error(result?.error || error?.message || 'Failed to process order');
+      }
 
-      if (error) throw error;
-
-      // If completing, add coins to user and deduct from helper
       if (action === 'complete') {
-         // Add coins to user using atomic RPC function (bypasses RLS safely)
-         const { error: rpcError } = await supabase.rpc('add_coins_to_user', {
-           _user_id: order.user_id,
-           _amount: order.coin_amount
-         });
-         
-         if (rpcError) {
-           recordAdminError({ kind: "rpc", label: "AdminTraderOrders.RpcError", message: formatAdminError(rpcError)});
-           throw new Error('Failed to add coins to user');
-         }
-
-        // Get current helper data with user info
         const { data: helperData } = await supabase
           .from('topup_helpers')
-          .select('wallet_balance, total_sold, user:profiles!topup_helpers_user_id_fkey(display_name, avatar_url)')
+          .select('user:profiles!topup_helpers_user_id_fkey(display_name, avatar_url)')
           .eq('id', order.helper_id)
           .maybeSingle();
 
-        await supabase
-          .from('topup_helpers')
-          .update({ 
-            wallet_balance: (helperData?.wallet_balance || 0) - order.coin_amount,
-            total_sold: (helperData?.total_sold || 0) + order.coin_amount
-          })
-          .eq('id', order.helper_id);
-
         // Send notification to user
-        const coinAmount = order.coin_amount;
+        const coinAmount = Number(result.creditedCoins || order.coin_amount);
         const formattedAmount = coinAmount >= 100000 
           ? `${(coinAmount / 100000).toFixed(1)}L` 
         : coinAmount.toLocaleString();
