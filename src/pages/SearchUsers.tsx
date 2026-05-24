@@ -234,12 +234,13 @@ const SearchUsers = () => {
 
     try {
       if (followingIds.has(userId)) {
-        await supabase
+        const { error } = await supabase
           .from('followers')
           .delete()
           .eq('follower_id', currentUserId)
           .eq('following_id', userId);
-        
+        if (error) throw error;
+
         setFollowingIds(prev => {
           const newSet = new Set(prev);
           newSet.delete(userId);
@@ -247,22 +248,29 @@ const SearchUsers = () => {
         });
         toast.success("Unfollowed");
       } else {
-        await supabase
+        const { error } = await supabase
           .from('followers')
           .insert({
             follower_id: currentUserId,
             following_id: userId
           });
-        
+        if (error) throw error;
+
         setFollowingIds(prev => new Set([...prev, userId]));
         toast.success("Followed");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Follow error:', error);
       recordClientError({ label: "SearchUsers.newSet", message: error instanceof Error ? error.message : String(error) });
-      toast.error("Action failed");
+      const msg = String(error?.message ?? '');
+      if (msg.includes('cannot follow yourself')) toast.error("You can't follow yourself");
+      else if (msg.includes('unavailable user')) toast.error("This user is not available");
+      else if (msg.includes('blocked relationship')) toast.error("Blocked — can't follow");
+      else if (msg.includes('duplicate key')) toast.error("Already following");
+      else toast.error("Action failed");
     }
   };
+
 
   const handleCall = async (hostId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -281,7 +289,7 @@ const SearchUsers = () => {
     return (
       <div
         key={user.id}
-        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-slate-900"
+        className="flex items-center gap-3 p-4 bg-card text-card-foreground rounded-xl border border-border cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={() => handleUserClick(user)}
       >
         {/* Avatar */}
@@ -298,7 +306,7 @@ const SearchUsers = () => {
             isOnline={!!user.is_online}
           />
           {user.is_verified && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-card">
               <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
@@ -311,17 +319,18 @@ const SearchUsers = () => {
           <div className="flex items-center gap-2">
             <p className="font-semibold truncate">{user.display_name || user.username || 'User'}</p>
             {user.is_host && (
-              <span className="text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full shrink-0">Host</span>
+              <span className="text-xs bg-pink-500/15 text-pink-500 px-2 py-0.5 rounded-full shrink-0">Host</span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm text-slate-500 truncate">
+            <p className="text-sm text-muted-foreground truncate">
               {user.country_flag} {user.bio || (user.is_online ? 'Online' : 'Offline')}
             </p>
             {user.app_uid && (
-              <span className="text-xs font-mono bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded">{user.app_uid}</span>
+              <span className="text-xs font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">{user.app_uid}</span>
             )}
           </div>
+
           {/* User Tags */}
           {user.tags && user.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
@@ -383,20 +392,20 @@ const SearchUsers = () => {
   };
 
   return (
-    <div className="mobile-page bg-[#F7F8FA]">
+    <div className="mobile-page bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200/70 safe-area-top">
+      <header className="sticky top-0 z-40 bg-card border-b border-border safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
-            className="text-slate-700 hover:bg-slate-100"
+            className="text-foreground hover:bg-muted"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Enter App ID (10 digits)..."
               value={searchQuery}
@@ -405,7 +414,7 @@ const SearchUsers = () => {
                 const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                 setSearchQuery(value);
               }}
-              className="pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-300"
+              className="pl-10 pr-10 rounded-full bg-muted border border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring"
               autoFocus
               inputMode="numeric"
               maxLength={10}
@@ -417,10 +426,11 @@ const SearchUsers = () => {
                 className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8"
                 onClick={() => setSearchQuery("")}
               >
-                <X className="w-4 h-4 text-slate-500" />
+                <X className="w-4 h-4 text-muted-foreground" />
               </Button>
             )}
           </div>
+
           {/* ID Icon */}
           <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
             <span className="text-white font-bold text-sm">ID</span>
@@ -502,15 +512,15 @@ const SearchUsers = () => {
         )}
       </header>
 
-      <main className="mobile-page-scrollable px-4 py-4 bg-[#F7F8FA]">
+      <main className="mobile-page-scrollable px-4 py-4 bg-background">
         {searchQuery || selectedTags.length > 0 ? (
           // Search Results
           <div className="space-y-3">
             {results.length === 0 ? (
               <div className="text-center py-16">
-                <Tag className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold mb-2 text-slate-900">No users found</h3>
-                <p className="text-slate-500 text-sm">
+                <Tag className="w-16 h-16 mx-auto mb-4 text-muted-foreground/40" />
+                <h3 className="text-lg font-semibold mb-2 text-foreground">No users found</h3>
+                <p className="text-muted-foreground text-sm">
                   {selectedTags.length > 0 
                     ? "Try selecting different tags or removing some filters"
                     : "Try searching with a different name or ID"
@@ -519,7 +529,7 @@ const SearchUsers = () => {
               </div>
             ) : (
               <>
-                <p className="text-sm text-slate-500 mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   {results.length} user{results.length !== 1 ? 's' : ''} found
                   {selectedTags.length > 0 && ` with ${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}`}
                 </p>
@@ -533,8 +543,8 @@ const SearchUsers = () => {
             {recentSearches.length > 0 && (
               <>
                 <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-slate-600">Recent Searches</h2>
-                  <Button variant="ghost" size="sm" onClick={clearRecentSearches} className="text-slate-600 hover:bg-slate-100">
+                  <h2 className="font-semibold text-foreground">Recent Searches</h2>
+                  <Button variant="ghost" size="sm" onClick={clearRecentSearches} className="text-muted-foreground hover:bg-muted">
                     Clear all
                   </Button>
                 </div>
@@ -546,15 +556,16 @@ const SearchUsers = () => {
 
             {recentSearches.length === 0 && (
               <div className="text-center py-16">
-                <Search className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold mb-2 text-slate-900">Search for users</h3>
-                <p className="text-slate-500 text-sm max-w-xs mx-auto">
+                <Search className="w-16 h-16 mx-auto mb-4 text-muted-foreground/40" />
+                <h3 className="text-lg font-semibold mb-2 text-foreground">Search for users</h3>
+                <p className="text-muted-foreground text-sm max-w-xs mx-auto">
                   Find users by their display name, user ID, or filter by tags
                 </p>
               </div>
             )}
           </div>
         )}
+
       </main>
 
       <BottomNavigation activeTab={activeTab} onTabChange={(path) => {
