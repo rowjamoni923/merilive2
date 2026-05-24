@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-import { useNavigate } from "react-router-dom";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Gift, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -156,6 +155,13 @@ const Reels = () => {
     fetchReels(reels.length === 0);
   }, [selectedCategory, currentUserId]);
 
+  useEffect(() => {
+    const startId = searchParams.get('start') || searchParams.get('id');
+    if (!startId || reels.length === 0) return;
+    const index = reels.findIndex((reel) => reel.id === startId);
+    if (index >= 0) setCurrentIndex(index);
+  }, [searchParams, reels]);
+
   const fetchReels = async (isInitial = false) => {
     // Only show loading on initial load, not on category/filter change
     if (isInitial || reels.length === 0) setLoading(true);
@@ -220,20 +226,22 @@ const Reels = () => {
     const reel = reels.find(r => r.id === reelId);
     if (!reel) return;
 
-    if (reel.is_liked) {
-      // Unlike
-      const { error } = await supabase.from('reel_likes').delete().eq('reel_id', reelId).eq('user_id', currentUserId);
-      if (error) throw error;
-      setReels(prev => prev.map(r => 
-        r.id === reelId ? { ...r, is_liked: false, like_count: Math.max(0, r.like_count - 1) } : r
-      ));
-    } else {
-      // Like
-      const { error } = await supabase.from('reel_likes').insert({ reel_id: reelId, user_id: currentUserId });
-      if (error) throw error;
-      setReels(prev => prev.map(r => 
-        r.id === reelId ? { ...r, is_liked: true, like_count: r.like_count + 1 } : r
-      ));
+    try {
+      if (reel.is_liked) {
+        const { error } = await supabase.from('reel_likes').delete().eq('reel_id', reelId).eq('user_id', currentUserId);
+        if (error) throw error;
+        setReels(prev => prev.map(r => 
+          r.id === reelId ? { ...r, is_liked: false, like_count: Math.max(0, r.like_count - 1) } : r
+        ));
+      } else {
+        const { error } = await supabase.from('reel_likes').insert({ reel_id: reelId, user_id: currentUserId });
+        if (error) throw error;
+        setReels(prev => prev.map(r => 
+          r.id === reelId ? { ...r, is_liked: true, like_count: r.like_count + 1 } : r
+        ));
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update like");
     }
   };
 
