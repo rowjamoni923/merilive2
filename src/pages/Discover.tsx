@@ -284,15 +284,17 @@ const Discover = () => {
     if (selectedCountry !== "all") {
       if (!room.host?.country_code || room.host.country_code !== selectedCountry) return false;
     }
-    // Search filter
-    if (searchQuery) {
-      return room.name.toLowerCase().includes(searchQuery.toLowerCase());
-    }
     // Tab filter
-    if (activeTab === "all") return true;
-    if (activeTab === "video") return room.room_type === "video";
-    if (activeTab === "audio") return room.room_type === "audio";
-    if (activeTab === "game") return room.room_type === "game";
+    if (activeTab === "video" && room.room_type !== "video") return false;
+    if (activeTab === "audio" && room.room_type !== "audio") return false;
+    if (activeTab === "game" && room.room_type !== "game") return false;
+    // Search filter (AND, not OR)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const name = room.name?.toLowerCase() || "";
+      const host = room.host?.display_name?.toLowerCase() || "";
+      if (!name.includes(q) && !host.includes(q)) return false;
+    }
     return true;
   });
 
