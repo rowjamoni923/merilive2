@@ -11115,6 +11115,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_approved: boolean | null
+          is_featured: boolean | null
           is_original_sound: boolean | null
           is_public: boolean | null
           like_count: number | null
@@ -11146,6 +11147,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_approved?: boolean | null
+          is_featured?: boolean | null
           is_original_sound?: boolean | null
           is_public?: boolean | null
           like_count?: number | null
@@ -11177,6 +11179,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_approved?: boolean | null
+          is_featured?: boolean | null
           is_original_sound?: boolean | null
           is_public?: boolean | null
           like_count?: number | null
@@ -16745,6 +16748,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_approved: boolean | null
+          is_featured: boolean | null
           is_original_sound: boolean | null
           is_public: boolean | null
           like_count: number | null
@@ -17308,46 +17312,98 @@ export type Database = {
         Args: { _name: string }
         Returns: string
       }
-      admin_update_reel_status: {
-        Args: { _is_active?: boolean; _is_approved?: boolean; _reel_id: string }
-        Returns: {
-          beans_earned: number | null
-          caption: string | null
-          category_id: string | null
-          comment_count: number
-          comments_count: number | null
-          created_at: string
-          duration_seconds: number | null
-          id: string
-          is_active: boolean | null
-          is_approved: boolean | null
-          is_original_sound: boolean | null
-          is_public: boolean | null
-          like_count: number | null
-          likes_count: number | null
-          music_artist: string | null
-          music_id: string | null
-          music_title: string | null
-          share_count: number
-          shares_count: number | null
-          sound_artist: string | null
-          sound_audio_url: string | null
-          sound_id: string | null
-          sound_title: string | null
-          thumbnail_url: string | null
-          updated_at: string
-          user_id: string
-          video_url: string
-          view_count: number | null
-          views_count: number | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "reels"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      admin_update_reel_status:
+        | {
+            Args: {
+              _is_active?: boolean
+              _is_approved?: boolean
+              _reel_id: string
+            }
+            Returns: {
+              beans_earned: number | null
+              caption: string | null
+              category_id: string | null
+              comment_count: number
+              comments_count: number | null
+              created_at: string
+              duration_seconds: number | null
+              id: string
+              is_active: boolean | null
+              is_approved: boolean | null
+              is_featured: boolean | null
+              is_original_sound: boolean | null
+              is_public: boolean | null
+              like_count: number | null
+              likes_count: number | null
+              music_artist: string | null
+              music_id: string | null
+              music_title: string | null
+              share_count: number
+              shares_count: number | null
+              sound_artist: string | null
+              sound_audio_url: string | null
+              sound_id: string | null
+              sound_title: string | null
+              thumbnail_url: string | null
+              updated_at: string
+              user_id: string
+              video_url: string
+              view_count: number | null
+              views_count: number | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "reels"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              _is_active?: boolean
+              _is_approved?: boolean
+              _is_featured?: boolean
+              _reel_id: string
+            }
+            Returns: {
+              beans_earned: number | null
+              caption: string | null
+              category_id: string | null
+              comment_count: number
+              comments_count: number | null
+              created_at: string
+              duration_seconds: number | null
+              id: string
+              is_active: boolean | null
+              is_approved: boolean | null
+              is_featured: boolean | null
+              is_original_sound: boolean | null
+              is_public: boolean | null
+              like_count: number | null
+              likes_count: number | null
+              music_artist: string | null
+              music_id: string | null
+              music_title: string | null
+              share_count: number
+              shares_count: number | null
+              sound_artist: string | null
+              sound_audio_url: string | null
+              sound_id: string | null
+              sound_title: string | null
+              thumbnail_url: string | null
+              updated_at: string
+              user_id: string
+              video_url: string
+              view_count: number | null
+              views_count: number | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "reels"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       admin_update_support_report: {
         Args: { _notes?: string; _report_id: string; _status: string }
         Returns: undefined
