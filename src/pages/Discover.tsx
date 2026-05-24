@@ -355,7 +355,7 @@ const Discover = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-bold text-heading">Party Rooms</h1>
+            <h1 className="text-lg font-bold text-on-dark">Party Rooms</h1>
             <Button
               variant="ghost"
               size="icon"
