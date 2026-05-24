@@ -1,10 +1,20 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
 
-const LEGACY_CHAT_MEDIA_GIFT_PUBLIC_PATTERN = /\/storage\/v1\/object\/public\/chat-media\/(gifts\/[^?#]+)/i;
+// Stop at first whitespace, pipe, closing bracket, query, or hash so callers
+// that accidentally pass a full chat-message string (e.g. "[Gift: <url>|...]")
+// don't end up with the descriptive text glued onto the storage key.
+const LEGACY_CHAT_MEDIA_GIFT_PUBLIC_PATTERN = /\/storage\/v1\/object\/public\/chat-media\/(gifts\/[^\s|?#\]]+)/i;
+
+const extractFirstUrl = (value: string): string => {
+  // If the input looks like a wrapped chat payload (e.g. "[Gift: https://...|emoji name]"),
+  // pull out the first http(s) URL fragment that stops at whitespace / pipe / bracket.
+  const match = value.match(/https?:\/\/[^\s|\]]+/i);
+  return match ? match[0] : value;
+};
 
 export const normalizeGiftMediaUrl = (url?: string | null): string | null => {
   if (!url) return null;
-  const trimmed = url.trim();
+  const trimmed = extractFirstUrl(url.trim());
   if (!trimmed) return null;
 
   const legacyMatch = trimmed.match(LEGACY_CHAT_MEDIA_GIFT_PUBLIC_PATTERN);
