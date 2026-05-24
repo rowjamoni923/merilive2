@@ -199,7 +199,7 @@ export function AdminAlertBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-[380px] h-[520px] bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden z-[100] flex flex-col"
+            className="absolute right-0 top-full mt-2 w-[calc(100vw-16px)] max-w-[380px] h-[min(520px,calc(100dvh-96px))] bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden z-[100] flex flex-col"
           >
             {/* Header */}
              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-red-600/90 to-orange-500/90 border-b border-slate-700/50">
