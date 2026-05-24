@@ -383,82 +383,42 @@ const Shop = () => {
         return;
       }
 
-      const { data: deductData, error: updateError } = await supabase.rpc('deduct_coins', {
-        p_user_id: user.id,
-        p_amount: item.price_diamonds,
-      });
-      const deductResult = deductData as any;
-      if (updateError || !deductResult?.success) throw new Error(deductResult?.error || 'Failed to deduct coins');
-
-      const expiresAt = item.duration_days ? new Date(Date.now() + item.duration_days * 24 * 60 * 60 * 1000).toISOString() : null;
       const isPartyBackground = item.id.startsWith('bg_');
       const actualItemId = isPartyBackground ? item.id.replace('bg_', '') : item.id;
-      const purchaseItemType = item.category || item.file_type || item.animation_type || 'shop_item';
 
       if (isPartyBackground) {
+        const { data: deductData, error: updateError } = await supabase.rpc('deduct_coins', {
+          p_user_id: user.id,
+          p_amount: item.price_diamonds,
+        });
+        const deductResult = deductData as any;
+        if (updateError || !deductResult?.success) throw new Error(deductResult?.error || 'Failed to deduct coins');
+
         const { error: bgPurchaseError } = await (supabase.from("user_purchased_backgrounds" as any).insert({ user_id: user.id, background_id: actualItemId, price_paid: item.price_diamonds }) as any);
-        if (bgPurchaseError) {
-          console.error('[Shop] Background purchase error:', bgPurchaseError);
-          recordClientError({ label: "Shop.purchaseItemType", message: bgPurchaseError instanceof Error ? bgPurchaseError.message : String(bgPurchaseError) });
-          toast({ title: "Purchase Successful!", description: `You now own ${item.name}` });
-          setUserDiamonds(prev => prev - item.price_diamonds);
-          setPurchases(prev => [...prev, { id: crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: null }]);
-          setSelectedItem(null);
-          setPurchasing(false);
-          return;
-        }
+        if (bgPurchaseError) throw bgPurchaseError;
+
+        setUserDiamonds(deductResult.new_balance ?? deductResult.balance ?? (userDiamonds - item.price_diamonds));
+        setPurchases(prev => [...prev, { id: crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: null }]);
       } else {
-        const { error: purchaseError } = await supabase.from("user_purchases").insert({
-          user_id: user.id,
-          item_id: actualItemId,
-          item_type: purchaseItemType,
-          price_paid: item.price_diamonds,
-          expires_at: expiresAt,
-          is_equipped: true,
+        const { data: purchaseData, error: purchaseError } = await (supabase as any).rpc("purchase_shop_item", {
+          _item_id: actualItemId,
+          _equip: true,
         });
         if (purchaseError) throw purchaseError;
-      }
-
-      await supabase.from("shop_items").update({ total_sold: (item as any).total_sold + 1 }).eq("id", item.id);
-
-      const { data: currentProfile } = await supabase
-        .from("profiles")
-        .select("equipped_frame_id, equipped_entrance_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id, equipped_entry_banner_id")
-        .eq("id", user.id)
-        .single();
-
-      const updateData: Record<string, string | null> = {};
-      if (item.category === 'frame' || item.category === 'portrait_frame') {
-        if (currentProfile?.equipped_frame_id && currentProfile.equipped_frame_id !== item.id) updateData.previous_frame_id = currentProfile.equipped_frame_id;
-        updateData.equipped_frame_id = item.id;
-      } else if (item.category === 'entrance' || item.category === 'entrance_effect') {
-        if (currentProfile?.equipped_entrance_id && currentProfile.equipped_entrance_id !== item.id) updateData.previous_entrance_id = currentProfile.equipped_entrance_id;
-        updateData.equipped_entrance_id = item.id;
-      } else if (item.category === 'entry_bar') {
-        if (currentProfile?.equipped_entry_name_bar_id && currentProfile.equipped_entry_name_bar_id !== item.id) updateData.previous_entry_name_bar_id = currentProfile.equipped_entry_name_bar_id;
-        updateData.equipped_entry_name_bar_id = item.id;
-      } else if (item.category === 'bubble') {
-        if (currentProfile?.equipped_bubble_id && currentProfile.equipped_bubble_id !== item.id) updateData.previous_bubble_id = currentProfile.equipped_bubble_id;
-        updateData.equipped_bubble_id = item.id;
-      } else if (item.category === 'vehicle') {
-        if (currentProfile?.equipped_vehicle_id && currentProfile.equipped_vehicle_id !== item.id) updateData.previous_vehicle_id = currentProfile.equipped_vehicle_id;
-        updateData.equipped_vehicle_id = item.id;
-      }
-
-      if (Object.keys(updateData).length > 0) {
-        await supabase.from("profiles").update(updateData).eq("id", user.id);
-        console.log('[Shop] Profile updated with previous items saved:', updateData);
+        const purchaseResult = purchaseData as any;
+        if (!purchaseResult?.success) throw new Error(purchaseResult?.error || 'Purchase failed');
+        setUserDiamonds(purchaseResult.balance_after ?? (userDiamonds - item.price_diamonds));
+        setPurchases(prev => [...prev, { id: purchaseResult.purchase_id || crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: purchaseResult.expires_at || null }]);
         if (item.category === 'frame' || item.category === 'portrait_frame') {
           clearFrameCache();
-          console.log('[Shop] Frame cache cleared for instant update');
         }
       }
 
-      setUserDiamonds(prev => prev - item.price_diamonds);
-      setPurchases(prev => [...prev, { id: crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: expiresAt }]);
       toast({ title: "Purchase Successful!", description: `You now own ${item.name}` });
       setSelectedItem(null);
+      void fetchData();
     } catch (error: any) {
+      recordClientError({ label: "Shop.handlePurchase", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Purchase Failed", description: error.message, variant: "destructive" });
     } finally {
       setPurchasing(false);
