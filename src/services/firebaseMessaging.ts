@@ -397,16 +397,27 @@ function handleNotificationTap(data?: NotificationData) {
 }
 
 /**
- * Deactivate FCM token (on logout)
+ * Deactivate FCM token (on logout).
+ *
+ * Pkg308 deep-audit: previously deactivated ALL device tokens for the user
+ * across every device they were logged in on, which silenced push on phones
+ * the user never logged out of. Now only deactivates the CURRENT device's
+ * token (the one this tab/install registered), leaving other devices intact.
  */
 export async function deactivateFCMToken(userId: string) {
-  tokenRegistered = false;
+  const currentToken = lastRegisteredToken;
+  registeredForUserId = null;
+  lastRegisteredToken = null;
   try {
-    await supabase
+    let query = supabase
       .from('device_tokens')
       .update({ is_active: false })
       .eq('user_id', userId);
-    console.log('[FCM] Tokens deactivated for user');
+    if (currentToken) {
+      query = query.eq('token', currentToken);
+    }
+    await query;
+    console.log('[FCM] Token deactivated for current device');
   } catch (e) {
     console.error('[FCM] Deactivation error:', e);
   }
