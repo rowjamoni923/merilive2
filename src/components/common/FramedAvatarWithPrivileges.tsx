@@ -5,6 +5,7 @@ import { getEquippedPrivilegesForUser, EquippedPrivileges } from "@/hooks/useUse
 import { motion } from "framer-motion";
 import Premium3DFrame from "./Premium3DFrame";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import {
   getCachedGender,
   getCachedViewerId,
@@ -152,7 +153,7 @@ const FramedAvatarWithPrivileges = ({
     : !!(userId && viewerId && userId === viewerId);
 
   const effectiveSrc = useMemo(() => {
-    if (hasRealSrc) return src!;
+    if (hasRealSrc) return normalizeProfileMediaUrl(src) || src!;
     if (!userId) return undefined;
     if (isOwner) return undefined;
     return getDisplayAvatar(userId, null, { gender: resolvedGender ?? 'female' });
