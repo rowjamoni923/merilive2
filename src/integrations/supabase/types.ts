@@ -17470,6 +17470,15 @@ export type Database = {
         Args: { _reset_date?: string; _task_id: string; _user_id: string }
         Returns: Json
       }
+      claim_first_recharge_bonus_and_credit: {
+        Args: {
+          _bonus_amount: number
+          _bonus_id: string
+          _original_amount: number
+          _user_id: string
+        }
+        Returns: Json
+      }
       claim_host_live_hour_bonus: {
         Args: { _host_id: string; _hour_number: number }
         Returns: Json
