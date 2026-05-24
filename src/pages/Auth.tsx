@@ -2096,14 +2096,14 @@ const Auth = () => {
 
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="min-h-full flex flex-col justify-center gap-4 px-5 py-8 safe-area-top safe-area-bottom">
+        <div className="min-h-full flex flex-col justify-center gap-2 px-5 py-4 safe-area-top safe-area-bottom">
         {/* Logo */}
-        <div className="pt-8 flex flex-col items-center">
+        <div className="pt-2 flex flex-col items-center">
           {branding.logo_image_url ? (
             <img 
               src={branding.logo_image_url} 
               alt="Logo" 
-              className="w-40 h-40 object-contain"
+              className="w-28 h-28 object-contain"
               onError={(e) => {
                 (e.target as HTMLImageElement).onerror = null;
                 (e.target as HTMLImageElement).src = '/logo.png';
@@ -2114,7 +2114,7 @@ const Auth = () => {
               <div className="relative">
                {/* Premium MERI text with metallic shine effect */}
                <h1 
-                 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-pink-200 to-pink-400 text-center tracking-wide"
+                 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-pink-200 to-pink-400 text-center tracking-wide"
                  style={{ 
                    fontFamily: "'Pacifico', cursive",
                    WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.2)',
@@ -2125,10 +2125,10 @@ const Auth = () => {
                 </div>
              
              {/* LIVE badge with elegant underline */}
-             <div className="flex items-center gap-3 mt-1">
-               <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+             <div className="flex items-center gap-2 mt-0.5">
+               <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                <h2 
-                 className="text-3xl font-bold text-white uppercase" /* dark-ok */
+                 className="text-xl font-bold text-white uppercase" /* dark-ok */
                  style={{ 
                    fontFamily: "'Montserrat', sans-serif",
                    letterSpacing: '0.5em',
@@ -2136,7 +2136,7 @@ const Auth = () => {
                >
                   {branding.logo_text_secondary}
                 </h2>
-               <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+               <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
              </div>
             </>
           )}
@@ -2163,7 +2163,7 @@ const Auth = () => {
           )}
 
         {/* Auth Buttons */}
-        <div className="space-y-3 pb-6">
+        <div className="space-y-2 pb-2">
           {/* Latest Login - Only show if user previously logged in */}
           {lastUser && (
             <div className="relative">
@@ -2198,7 +2198,7 @@ const Auth = () => {
           {/* Start Button - Premium Mobile Design */}
           <Button
             onClick={handleStartClick}
-  className="w-full h-11 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
+  className="w-full h-10 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
             disabled={loading}
           >
             {loading ? (
@@ -2226,7 +2226,7 @@ const Auth = () => {
               setPhoneOtpCode("");
               setAuthStep("phone_input");
             }}
-  className="w-full h-11 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
+  className="w-full h-10 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
           >
             <Phone className="w-5 h-5 mr-2" />
             <span>Continue with Phone</span>
@@ -2248,7 +2248,7 @@ const Auth = () => {
               setEmail("");
               setAuthStep("email");
             }}
-  className="w-full h-11 rounded-2xl bg-gradient-to-r from-indigo-700 via-blue-600 to-sky-600 hover:from-indigo-800 hover:via-blue-700 hover:to-sky-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(37,99,235,0.55)] border border-indigo-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
+  className="w-full h-10 rounded-2xl bg-gradient-to-r from-indigo-700 via-blue-600 to-sky-600 hover:from-indigo-800 hover:via-blue-700 hover:to-sky-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(37,99,235,0.55)] border border-indigo-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
           >
             <Mail className="w-5 h-5 mr-2 text-white" />
             <span className="drop-shadow-md tracking-wide">Continue with Email</span>
