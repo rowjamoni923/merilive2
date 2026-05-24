@@ -1476,14 +1476,23 @@ const LiveStream = () => {
     fetchHostPhotos();
     refreshHostBusyStatus();
 
-    // Pkg82c: Supabase `host-call-status-${hostId}` postgres_changes channel DELETED.
-    // Per LiveKit-Purist policy + Pkg35 (live auto-ends on host accept-call),
-    // viewer's "Host Busy" overlay only matters during the brief ringing window.
-    // 30s safety-net REST poll (≥30s Pkg57 floor, $1400-rule safe) replaces realtime.
+    // Pkg305: Restore Supabase Realtime on private_calls for instant host-busy
+    // detection (Core rule — polling cannot replace realtime). 30s poll kept
+    // as safety-net only.
+    const unsubscribeCalls = subscribeToTables(
+      `livestream-host-calls-${hostInfo.id}`,
+      ['private_calls'],
+      (_table, _event, payload) => {
+        const row = (payload?.new ?? payload?.old) as any;
+        if (!row || row.host_id !== hostInfo.id) return;
+        refreshHostBusyStatus();
+      }
+    );
     const busyPollTimer = setInterval(refreshHostBusyStatus, 30000);
 
     return () => {
       clearInterval(busyPollTimer);
+      unsubscribeCalls?.();
     };
   }, [id, isHost, hostInfo?.id]);
 
