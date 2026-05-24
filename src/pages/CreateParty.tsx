@@ -286,24 +286,17 @@ const CreateParty = () => {
         .eq("id", user.id)
         .single();
 
-      const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const defaultName = `${profileData?.display_name || 'User'}'s Party`;
 
-      const { data: partyRoom, error } = await supabase
-        .from("party_rooms")
-        .insert({
-          host_id: user.id,
-          name: defaultName,
-          room_type: mode,
-          room_code: roomCode,
-          is_active: true,
-          max_participants: seatConfig[mode],
-          total_seats: seatConfig[mode]
-        })
-        .select()
-        .single();
+      const { data: partyRoomId, error } = await supabase.rpc('create_party_room', {
+        p_name: defaultName,
+        p_room_type: mode,
+        p_game_mode: mode === 'game' ? selectedGame : null,
+        p_password: null,
+      });
 
       if (error) throw error;
+      if (!partyRoomId) throw new Error('Party room was not created');
 
       // Preserve the camera stream for seamless handoff to PartyRoom
       if (stream) {
@@ -311,7 +304,7 @@ const CreateParty = () => {
         setPreparedHostPreviewStream(stream);
       }
 
-      navigate(`/party/${partyRoom.id}`);
+      navigate(`/party/${partyRoomId}`);
     } catch (error) {
       console.error("Error creating party:", error);
       recordClientError({ label: "CreateParty.defaultName", message: error instanceof Error ? error.message : String(error) });
