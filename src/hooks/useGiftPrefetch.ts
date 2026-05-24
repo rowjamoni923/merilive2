@@ -18,6 +18,7 @@ interface GiftCacheItem {
   category: string;
   icon_url: string | null;
   animation_url: string | null;
+  sound_url: string | null;
   display_order: number;
 }
 

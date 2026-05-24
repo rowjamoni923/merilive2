@@ -73,8 +73,12 @@ const getAssetPathWithoutQuery = (url?: string | null) =>
 
 const normalizeGiftAssetUrl = (url?: string | null) => {
   if (!url) return null;
-  if (url.startsWith('http') || url.startsWith('/')) return url;
-  if (url.includes('/storage/v1/object/public/')) return url.startsWith('http') ? url : `https://${window.location.host}${url.startsWith('/') ? '' : '/'}${url}`;
+  if (url.startsWith('http')) return url;
+  if (url.includes('/storage/v1/object/public/')) {
+    const path = url.startsWith('/') ? url : `/${url}`;
+    return `${import.meta.env.VITE_SUPABASE_URL}${path}`;
+  }
+  if (url.startsWith('/')) return url;
   return null;
 };
 
@@ -131,6 +135,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   // value captured on mount until the balance subscription fires.
   useEffect(() => {
     if (typeof propUserCoins === 'number' && propUserCoins >= 0) {
+      userCoinsRef.current = propUserCoins;
       setUserCoins(propUserCoins);
       setDisplayCoins(propUserCoins);
     }
@@ -143,18 +148,21 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     // Use cached balance immediately for instant UI
     const cachedBalance = getCachedBalance();
     if (cachedBalance > 0) {
+      userCoinsRef.current = cachedBalance;
       setUserCoins(cachedBalance);
       setDisplayCoins(cachedBalance);
     }
 
     // Subscribe to balance updates
     const unsubscribe = subscribeToBalance((newBalance) => {
+      userCoinsRef.current = newBalance;
       setUserCoins(newBalance);
     });
 
     // Fetch fresh balance in background (only if cache is empty)
     if (cachedBalance === 0) {
       getBalanceWithFetch().then((balance) => {
+        userCoinsRef.current = balance;
         setUserCoins(balance);
         setDisplayCoins(balance);
       });
@@ -181,6 +189,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         animationType: getAnimationType(gift.coin_value),
         icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),
         animation_url: normalizeGiftAssetUrl(gift.animation_url),
+        sound_url: normalizeGiftAssetUrl(gift.sound_url),
       }));
       setGifts(transformedGifts);
     };

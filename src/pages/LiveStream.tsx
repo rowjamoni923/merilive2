@@ -232,6 +232,8 @@ const LiveStream = () => {
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
+  const userCoinsRef = useRef(0);
+  const pendingGiftCostRef = useRef(0);
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
   const [streamStartTime, setStreamStartTime] = useState(Date.now());
   const [streamData, setStreamData] = useState<any>(null);
@@ -239,6 +241,12 @@ const LiveStream = () => {
   
   // ✅ REAL-TIME ADMIN SETTINGS - Gift Commission from Admin Panel
   const [adminGiftCommission, setAdminGiftCommission] = useState<number>(55);
+
+  useEffect(() => {
+    if (pendingGiftCostRef.current === 0) {
+      userCoinsRef.current = userCoins;
+    }
+  }, [userCoins]);
   
   // PK Battle States
   const [showPKPanel, setShowPKPanel] = useState(false);
@@ -804,17 +812,21 @@ const LiveStream = () => {
       // Process user profile
       if (userProfileRes.data && mountedRef.current) {
         const profile = userProfileRes.data;
+        const profileCoins = profile.coins || 0;
         setCurrentUser({
           gender: profile.gender || "male",
           id: cachedUser!.id,
-          coins: profile.coins || 0,
+          coins: profileCoins,
           is_host: profile.is_host === true,
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           user_level: profile.user_level || 1,
           country_flag: profile.country_flag,
         });
-        setUserCoins(profile.coins || 0);
+        if (pendingGiftCostRef.current === 0) {
+          userCoinsRef.current = profileCoins;
+          setUserCoins(profileCoins);
+        }
       }
       
       // Process stream data
@@ -3543,7 +3555,8 @@ const LiveStream = () => {
           }
           
           const totalCost = gift.coins * count;
-          if (userCoins < totalCost) {
+          const availableCoins = userCoinsRef.current;
+          if (availableCoins < totalCost) {
             toast.error("Not enough diamonds!");
             return;
           }
@@ -3552,7 +3565,9 @@ const LiveStream = () => {
           // NOTE: Do NOT close panel — keeping it open enables professional combo gifting
           
           // Optimistic coin deduction (instant visual feedback)
-          setUserCoins(prev => prev - totalCost);
+          userCoinsRef.current = Math.max(0, availableCoins - totalCost);
+          pendingGiftCostRef.current += totalCost;
+          setUserCoins(userCoinsRef.current);
           
           // Play gift sound IMMEDIATELY
           playSound('gift');
@@ -3616,6 +3631,13 @@ const LiveStream = () => {
           
           // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
           (async () => {
+            let transactionSucceeded = false;
+            let pendingReleased = false;
+            const releasePendingCost = () => {
+              if (pendingReleased) return;
+              pendingGiftCostRef.current = Math.max(0, pendingGiftCostRef.current - totalCost);
+              pendingReleased = true;
+            };
             try {
               const result = await sendGift({
                 giftId: gift.id,
@@ -3626,11 +3648,14 @@ const LiveStream = () => {
                 streamId: id,
               });
 
+              releasePendingCost();
               if (!result.success) {
-                setUserCoins(prev => prev + totalCost);
+                userCoinsRef.current += totalCost;
+                setUserCoins(userCoinsRef.current);
                 toast.error(result.error || "Gift failed - diamonds refunded");
                 return;
               }
+              transactionSucceeded = true;
               
               // Refresh actual balance from server
               const { data: updatedProfile } = await supabase
@@ -3639,11 +3664,12 @@ const LiveStream = () => {
                 .eq("id", currentUserId)
                 .single();
               
-              if (updatedProfile) {
-                setUserCoins(updatedProfile.coins || 0);
+              if (updatedProfile && pendingGiftCostRef.current === 0) {
+                userCoinsRef.current = updatedProfile.coins || 0;
+                setUserCoins(userCoinsRef.current);
                 // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
                 const { updateCachedBalance } = await import("@/hooks/useUserBalance");
-                updateCachedBalance(updatedProfile.coins || 0);
+                updateCachedBalance(userCoinsRef.current);
               }
               
               // Save gift message to database for other participants
@@ -3689,10 +3715,13 @@ const LiveStream = () => {
               }
 
             } catch (err) {
+              releasePendingCost();
               console.error('[Gift] Background processing error:', err);
               recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });
+              if (transactionSucceeded) return;
               // Refund coins on complete failure
-              setUserCoins(prev => prev + totalCost);
+              userCoinsRef.current += totalCost;
+              setUserCoins(userCoinsRef.current);
               toast.error(`Gift failed: ${err instanceof Error ? err.message : String(err)}`);
             }
           })();

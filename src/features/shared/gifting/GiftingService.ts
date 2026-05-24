@@ -54,6 +54,17 @@ let giftsCache: GiftItem[] | null = null;
 let cacheTimestamp: number = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+const normalizeGiftAssetUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined;
+  if (url.startsWith('http')) return url;
+  if (url.includes('/storage/v1/object/public/')) {
+    const path = url.startsWith('/') ? url : `/${url}`;
+    return `${import.meta.env.VITE_SUPABASE_URL}${path}`;
+  }
+  if (url.startsWith('/')) return url;
+  return url;
+};
+
 /**
  * Fetch all active gifts from database
  */
@@ -79,9 +90,9 @@ export async function fetchGifts(): Promise<GiftItem[]> {
     name: g.name,
     coins: g.coin_value, // Use coin_value from DB
     category: g.category || 'popular',
-    icon_url: g.icon_url || g.animation_url,
-    animation_url: g.animation_url,
-    sound_url: g.sound_url,
+    icon_url: normalizeGiftAssetUrl(g.icon_url || g.animation_url),
+    animation_url: normalizeGiftAssetUrl(g.animation_url),
+    sound_url: normalizeGiftAssetUrl(g.sound_url),
     animation_type: g.animation_type,
   }));
   
