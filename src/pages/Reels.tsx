@@ -1051,11 +1051,9 @@ const Reels = () => {
                             setSubmittingReport(true);
                             setReportReason(reason);
                             try {
-                              const { error } = await supabase.from("reports" as any).insert({
-                                reporter_id: currentUserId,
-                                reported_user_id: currentReel.user_id,
-                                content_type: "reel",
-                                content_id: currentReel.id,
+                              const { error } = await supabase.from("reel_reports").insert({
+                                user_id: currentUserId,
+                                reel_id: currentReel.id,
                                 reason,
                               });
                               if (error) throw error;
