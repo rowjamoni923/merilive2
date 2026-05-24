@@ -1910,82 +1910,39 @@ const Recharge = () => {
           throw new Error(msg);
         }
 
-        // ATOMIC: Deduct diamonds from helper (prevents race conditions & negative balance)
-        const { data: deductResult, error: deductError } = await supabase
-          .rpc('deduct_helper_wallet', {
-            _helper_id: helper.id,
-            _amount: selectedPackage.coins,
-            _update_total_sold: true
-          });
-
-        const deductData = deductResult as any;
-        const deductFailed = !!deductError || (deductData && deductData.success === false);
-        if (deductFailed) {
-          const errMsg = deductError?.message || deductData?.error || "Merchant doesn't have enough diamonds";
-          console.error('Failed to deduct from helper:', errMsg);
-          recordClientError({ label: 'Recharge.helper', message: String(errMsg) });
-          // Mark the pending row as failed via SECURITY DEFINER RPC (users have
-          // no direct UPDATE policy on helper_orders, so a raw .update() would
-          // silently no-op under user JWT).
-          try {
-            await supabase.rpc('user_finalize_helper_order' as any, {
-              _order_id: helperOrder.id,
-              _new_status: 'failed',
-              _reason: `deduct_failure: ${String(errMsg)}`,
-            });
-          } catch (flagErr) {
-            console.error('Failed to flag helper_order as failed after deduct error:', flagErr);
-          }
-
-          throw new Error(errMsg);
-        }
-
+        // ATOMIC: single SECURITY DEFINER RPC does deduct(helper+agency fallback)
+        // + credit(buyer) + promote(order→completed) under one DB transaction.
+        // Replaces the broken pair-of-RPCs flow: helper_add_coins_to_user
+        // required an admin/helper JWT and was always returning "Not authorized"
+        // for the END USER, leaving every order stuck. The new RPC checks
+        // user_id = auth.uid() and only finalizes 'pending' orders.
         const candidateBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
           ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
           : 0;
         let bonusCoins = 0;
         let totalCoinsToAdd = selectedPackage.coins;
 
-        // ATOMIC: Add base diamonds first. Bonus claim/credit happens only after base credit succeeds.
-        const { data: addResult, error: addError } = await supabase
-          .rpc('helper_add_coins_to_user', {
-            _user_id: userId,
-            _amount: selectedPackage.coins
-          });
-
-        const addData = addResult as any;
-        const addFailed = !!addError || (addData && addData.success === false);
-        if (addFailed) {
-          const errMsg = addError?.message || addData?.error || 'Unknown error crediting user';
-          console.error('Failed to add coins to user after helper deduction:', errMsg);
-          recordClientError({ label: 'Recharge.addCoinsAfterHelperDeduct', message: String(errMsg) });
-          // CRITICAL: helper wallet already debited — flag the order so admin can reconcile,
-          // and surface the failure to the user instead of falsely reporting success.
-          // Routed through SECURITY DEFINER RPC (see note above).
-          try {
-            await supabase.rpc('user_finalize_helper_order' as any, {
-              _order_id: helperOrder.id,
-              _new_status: 'failed',
-              _reason: `credit_failure: ${String(errMsg)}`,
-            });
-          } catch (flagErr) {
-            console.error('Failed to flag helper_order as failed:', flagErr);
-          }
-          throw new Error('Diamonds could not be credited. Support has been notified — your payment will be reconciled.');
-        }
-
-        // Both legs succeeded — NOW promote the row to completed via RPC.
-        try {
-          await supabase.rpc('user_finalize_helper_order' as any, {
+        const { data: finalizeResult, error: finalizeError } = await supabase
+          .rpc('user_complete_instant_helper_topup' as any, {
             _order_id: helperOrder.id,
-            _new_status: 'completed',
-            _reason: null,
           });
-        } catch (promoteErr) {
-          // Non-fatal: money has moved correctly. Log so admin can fix status.
-          console.error('Failed to promote helper_order to completed:', promoteErr);
-          recordClientError({ label: 'Recharge.promoteHelperOrder', message: promoteErr instanceof Error ? promoteErr.message : String(promoteErr) });
+
+        const finalizeData = finalizeResult as any;
+        if (finalizeError || !finalizeData?.success) {
+          const errCode = finalizeData?.error || finalizeError?.message || 'unknown';
+          const userMsg =
+            errCode === 'helper_insufficient_balance'
+              ? "Merchant doesn't have enough diamonds. Please try another payment method."
+              : errCode === 'forbidden'
+              ? 'You are not allowed to finalize this order.'
+              : errCode === 'order_not_found'
+              ? 'Order not found. Please try again.'
+              : `Diamonds could not be credited (${errCode}). Support has been notified — your payment will be reconciled.`;
+          console.error('Failed to finalize instant helper topup:', errCode, finalizeData, finalizeError);
+          recordClientError({ label: 'Recharge.userCompleteInstantHelperTopup', message: String(errCode) });
+          throw new Error(userMsg);
         }
+
 
         if (candidateBonusCoins > 0 && firstRechargeBonusId) {
           const { data: bonusResult, error: bonusError } = await supabase.rpc('claim_first_recharge_bonus_and_credit' as any, {
