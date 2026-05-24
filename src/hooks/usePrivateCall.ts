@@ -824,6 +824,10 @@ export function usePrivateCall(userId: string | null) {
         throw acceptRes.error;
       }
 
+      if (acceptRes.data !== true) {
+        throw new Error('Call is no longer available');
+      }
+
       const callData = callDataRes.data;
 
       // Apply exact caller/rate info when ready
