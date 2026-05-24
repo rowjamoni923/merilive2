@@ -1194,15 +1194,11 @@ const PartyRoom = () => {
         .is('left_at', null)
         .neq('room_id', roomId);
       
-      await supabase
-        .from('party_room_participants')
-        .upsert({
-          room_id: roomId,
-          user_id: currentUser.id,
-          role: isHostUser ? 'host' : 'listener',
-          seat_number: isHostUser ? 0 : null,
-          left_at: null // Reset left_at in case rejoining
-        }, { onConflict: 'room_id,user_id' });
+      const { error: enterError } = await supabase.rpc('enter_party_room', {
+        p_room_id: roomId,
+        p_password: null,
+      });
+      if (enterError) throw enterError;
       
       // 🎯 HOST RULE: Host opening their OWN room should NOT see/trigger an entry effect.
       // Only viewers (and other participants) see entry banners + animations.
