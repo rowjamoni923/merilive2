@@ -36,6 +36,7 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
   // Fetch active live streams on mount
   useEffect(() => {
     mountedRef.current = true;
+    let cancelled = false;
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
     const fetchStreams = async () => {
@@ -46,7 +47,7 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
         .order('viewer_count', { ascending: false })
         .limit(100);
       
-      if (data && mountedRef.current) {
+      if (data && mountedRef.current && !cancelled) {
         setStreams(data);
         
         // Find current stream index
@@ -68,6 +69,7 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
     });
 
     return () => {
+      cancelled = true;
       mountedRef.current = false;
       if (refreshTimer) clearTimeout(refreshTimer);
       if (navigationTimerRef.current) {
