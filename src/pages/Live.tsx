@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { PremiumLiveStreamCard } from "@/components/home/PremiumLiveStreamCard";
@@ -45,6 +45,7 @@ const Live = () => {
     }
   });
   const [loading, setLoading] = useState(streams.length === 0);
+  const mountedRef = useRef(false);
 
   const fetchLiveStreams = async () => {
     try {
@@ -110,6 +111,7 @@ const Live = () => {
         return { ...s, host: host ? { ...host, user_level: resolvedLevel, host_level: resolvedLevel } : null };
       }) as LiveStream[];
 
+      if (!mountedRef.current) return;
       setStreams(nextStreams);
       try {
         window.sessionStorage.setItem("live-streams-cache-v1", JSON.stringify(nextStreams));
@@ -121,6 +123,7 @@ const Live = () => {
       const allStreamIds = nextStreams.map(s => s.id);
       if (allStreamIds.length > 0) {
         const startPreload = () => {
+          if (!mountedRef.current) return;
           preloadAllStreams(allStreamIds);
         };
 
@@ -134,11 +137,12 @@ const Live = () => {
       console.error('Error fetching live streams:', error);
       recordClientError({ label: "Live.startPreload", message: error instanceof Error ? error.message : String(error) });
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   };
 
   useEffect(() => {
+    mountedRef.current = true;
     fetchLiveStreams();
 
     // Pkg305: Supabase Realtime on live_streams — instant list refresh on
@@ -165,6 +169,7 @@ const Live = () => {
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
+      mountedRef.current = false;
       if (pendingRefresh) clearTimeout(pendingRefresh);
       unsubscribe?.();
       window.removeEventListener('online', handleOnline);
