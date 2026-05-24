@@ -616,7 +616,7 @@ const Chat = () => {
       
       // Send voice message
       if (selectedConversation) {
-        await persistDirectMessage(
+        const sentMessage = await persistDirectMessage(
           selectedConversation.id,
           currentUserId,
           urlData.publicUrl,
@@ -629,6 +629,7 @@ const Chat = () => {
           supabase.functions.invoke('notify-new-message', {
             body: {
               conversationId: selectedConversation.id,
+              messageId: sentMessage.id,
               senderId: currentUserId,
               recipientId,
               messageContent: '',
@@ -1631,7 +1632,7 @@ const Chat = () => {
 
     try {
       if (selectedConversation) {
-        await persistDirectMessage(
+        const sentMessage = await persistDirectMessage(
           selectedConversation.id,
           currentUserId,
           contentToSend,
@@ -1647,6 +1648,7 @@ const Chat = () => {
           supabase.functions.invoke('notify-new-message', {
             body: {
               conversationId: selectedConversation.id,
+              messageId: sentMessage.id,
               senderId: currentUserId,
               recipientId,
               messageContent: contentToSend,
@@ -2610,13 +2612,13 @@ const Chat = () => {
                             currentUserId!,
                             content,
                             'text'
-                          ).then(() => {
+                          ).then((sentMessage) => {
                             setSending(false);
                             // 🔔 Push notification for quick reply
                             const recipientId = selectedConversation.other_user?.id;
                             if (recipientId && currentUserId) {
                               supabase.functions.invoke('notify-new-message', {
-                                body: { conversationId: selectedConversation.id, senderId: currentUserId, recipientId, messageContent: content, messageType: 'text' }
+                                body: { conversationId: selectedConversation.id, messageId: sentMessage.id, senderId: currentUserId, recipientId, messageContent: content, messageType: 'text' }
                               }).catch(() => {});
                             }
                           }).catch(() => setSending(false));
