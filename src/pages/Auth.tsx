@@ -2098,7 +2098,7 @@ const Auth = () => {
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="min-h-full flex flex-col justify-center gap-2 px-5 py-4 safe-area-top safe-area-bottom">
         {/* Logo */}
-        <div className="pt-8 flex flex-col items-center">
+        <div className="pt-2 flex flex-col items-center">
           {branding.logo_image_url ? (
             <img 
               src={branding.logo_image_url} 
