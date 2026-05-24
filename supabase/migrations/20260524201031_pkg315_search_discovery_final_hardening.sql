@@ -77,7 +77,7 @@ STABLE SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  _clean_uid text := regexp_replace(COALESCE(_app_uid, ''), '\D', '', 'g');
+  _clean_uid text := regexp_replace(COALESCE(_app_uid, ''), '[^0-9]', '', 'g');
 BEGIN
   IF length(_clean_uid) = 0 THEN
     RETURN;
@@ -110,7 +110,7 @@ SET search_path = public
 AS $$
 DECLARE
   _raw text := btrim(COALESCE(_search_id, ''));
-  _clean_uid text := regexp_replace(COALESCE(_search_id, ''), '\D', '', 'g');
+  _clean_uid text := regexp_replace(COALESCE(_search_id, ''), '[^0-9]', '', 'g');
   _uuid uuid := NULL;
 BEGIN
   IF _raw ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
