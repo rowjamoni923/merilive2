@@ -289,7 +289,7 @@ const SearchUsers = () => {
     return (
       <div
         key={user.id}
-        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-slate-900"
+        className="flex items-center gap-3 p-4 bg-card text-card-foreground rounded-xl border border-border cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={() => handleUserClick(user)}
       >
         {/* Avatar */}
@@ -306,7 +306,7 @@ const SearchUsers = () => {
             isOnline={!!user.is_online}
           />
           {user.is_verified && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-card">
               <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
@@ -319,17 +319,18 @@ const SearchUsers = () => {
           <div className="flex items-center gap-2">
             <p className="font-semibold truncate">{user.display_name || user.username || 'User'}</p>
             {user.is_host && (
-              <span className="text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full shrink-0">Host</span>
+              <span className="text-xs bg-pink-500/15 text-pink-500 px-2 py-0.5 rounded-full shrink-0">Host</span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm text-slate-500 truncate">
+            <p className="text-sm text-muted-foreground truncate">
               {user.country_flag} {user.bio || (user.is_online ? 'Online' : 'Offline')}
             </p>
             {user.app_uid && (
-              <span className="text-xs font-mono bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded">{user.app_uid}</span>
+              <span className="text-xs font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">{user.app_uid}</span>
             )}
           </div>
+
           {/* User Tags */}
           {user.tags && user.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
