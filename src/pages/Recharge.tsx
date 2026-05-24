@@ -1688,6 +1688,7 @@ const Recharge = () => {
       });
     } finally {
       setPlayStoreProcessing(false);
+      playStorePurchaseRef.current = false;
     }
   };
 
