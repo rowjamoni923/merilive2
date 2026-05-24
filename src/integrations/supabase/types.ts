@@ -15023,7 +15023,7 @@ export type Database = {
         Insert: {
           agency_code?: string | null
           created_at?: string | null
-          diamond_balance?: number | null
+          diamond_balance?: never
           id?: string | null
           is_active?: boolean | null
           level?: string | null
@@ -15037,7 +15037,7 @@ export type Database = {
         Update: {
           agency_code?: string | null
           created_at?: string | null
-          diamond_balance?: number | null
+          diamond_balance?: never
           id?: string | null
           is_active?: boolean | null
           level?: string | null
@@ -18346,6 +18346,10 @@ export type Database = {
       leave_live_stream_viewer: {
         Args: { p_stream_id: string }
         Returns: number
+      }
+      link_agency_to_parent: {
+        Args: { _child_agency_id: string; _parent_agency_id: string }
+        Returns: Json
       }
       log_admin_action: {
         Args: {
