@@ -47,10 +47,12 @@ const INITIAL_CALL_STATE: CallState = {
   callerRemainingCoins: 0,
 };
 
-// COST-CRITICAL: Incoming-call instant delivery is FCM notifications; this is only
-// a 30s safety-net REST poll for foreground/resume recovery. No Supabase Realtime.
-// Was 800ms (catastrophic: 10k users × 75 reads/min = $$$$).
+// COST-CRITICAL: Incoming-call instant delivery is FCM notifications + a scoped
+// private_calls realtime listener. This is only a 30s safety-net REST poll for
+// foreground/resume recovery. Was 800ms (catastrophic: 10k users × 75 reads/min).
 const FALLBACK_PENDING_CALL_POLL_MS = 30000;
+const DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS = 30;
+const INCOMING_CALL_STALE_BUFFER_MS = 5000;
 
 export function usePrivateCall(userId: string | null) {
   const navigate = useNavigate();
@@ -76,6 +78,61 @@ export function usePrivateCall(userId: string | null) {
   const incomingCallIdRef = useRef<string | null>(null);
   const pendingCallCheckInFlightRef = useRef(false);
   const softEndCallRef = useRef<(() => void) | null>(null);
+
+  const showVerifiedIncomingCall = useCallback(async (callId: string) => {
+    if (!userId || !callId || endedCallIdsRef.current.has(callId)) return false;
+
+    const { data: call, error } = await supabase
+      .from('private_calls')
+      .select('id, caller_id, host_id, status, created_at')
+      .eq('id', callId)
+      .maybeSingle();
+
+    if (error || !call) return false;
+    if (call.host_id !== userId) return false;
+
+    if (call.status !== 'pending' && call.status !== 'ringing') {
+      if (incomingCallIdRef.current === callId) {
+        incomingCallIdRef.current = null;
+        setIncomingCall(null);
+      }
+      endedCallIdsRef.current.add(callId);
+      return false;
+    }
+
+    const ageMs = Date.now() - new Date(call.created_at).getTime();
+    if (ageMs > DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS * 1000 + INCOMING_CALL_STALE_BUFFER_MS) return false;
+
+    const activeStatus = callStateRef.current.status;
+    const activeCallId = currentCallIdRef.current;
+    if (activeCallId && activeCallId !== callId && (activeStatus === 'connected' || activeStatus === 'calling' || activeStatus === 'ringing')) {
+      return false;
+    }
+
+    const { data: callerProfile } = await supabase
+      .from('profiles_public')
+      .select('display_name, avatar_url, user_level')
+      .eq('id', call.caller_id)
+      .maybeSingle();
+
+    if (endedCallIdsRef.current.has(callId)) return false;
+    const latestStatus = callStateRef.current.status;
+    const latestActiveCallId = currentCallIdRef.current;
+    if (latestActiveCallId && latestActiveCallId !== callId && (latestStatus === 'connected' || latestStatus === 'calling' || latestStatus === 'ringing')) {
+      return false;
+    }
+
+    callEndedRef.current = false;
+    incomingCallIdRef.current = callId;
+    setIncomingCall({
+      callId,
+      callerId: call.caller_id,
+      callerName: callerProfile?.display_name || 'User',
+      callerAvatar: callerProfile?.avatar_url || null,
+      callerLevel: callerProfile?.user_level || 1,
+    });
+    return true;
+  }, [userId]);
 
   // Track current call ID
   useEffect(() => {
