@@ -17835,7 +17835,7 @@ export type Database = {
       cleanup_old_security_alerts: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_stale_data: { Args: never; Returns: undefined }
-      cleanup_stale_in_call_flags: { Args: never; Returns: undefined }
+      cleanup_stale_in_call_flags: { Args: never; Returns: Json }
       cleanup_stale_live_streams: { Args: never; Returns: number }
       cleanup_stale_online_users: { Args: never; Returns: undefined }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
