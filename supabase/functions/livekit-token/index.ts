@@ -113,6 +113,77 @@ Deno.serve(async (req) => {
 
     if (!identity) return json(401, { error: "unauthorized" });
 
+    // ---- Server-side roomName ↔ caller binding (Section #11 Pass-1) ----
+    // Admins bypass binding (subscribe-only/hidden anyway).
+    if (!isAdmin) {
+      const svc = SUPABASE_SERVICE_ROLE_KEY
+        ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        : null;
+      if (!svc) return json(500, { error: "service_role_not_configured" });
+
+      try {
+        if (roomType === "host_stream") {
+          const m = /^live_([0-9a-f-]{36})$/i.exec(roomName);
+          if (!m) return json(400, { error: "invalid_host_room_name" });
+          const { data } = await svc
+            .from("live_streams")
+            .select("host_id,is_active,ended_at")
+            .eq("id", m[1])
+            .maybeSingle();
+          if (!data || data.host_id !== identity) return json(403, { error: "not_stream_host" });
+          if (data.ended_at) return json(403, { error: "stream_ended" });
+        } else if (roomType === "viewer_stream") {
+          const m = /^live_([0-9a-f-]{36})$/i.exec(roomName);
+          if (!m) return json(400, { error: "invalid_viewer_room_name" });
+          // Must be an active, non-left viewer row (created via enter_live_stream
+          // for non-public rooms; trivially insertable for public rooms).
+          const { data: ls } = await svc
+            .from("live_streams")
+            .select("host_id,is_active,ended_at,live_privacy")
+            .eq("id", m[1])
+            .maybeSingle();
+          if (!ls || !ls.is_active || ls.ended_at) return json(403, { error: "stream_inactive" });
+          if (ls.host_id !== identity) {
+            const { data: ban } = await svc.rpc("is_user_live_banned", { p_user_id: identity });
+            if (ban === true) return json(403, { error: "live_banned" });
+            const { data: sv } = await svc
+              .from("stream_viewers")
+              .select("viewer_id")
+              .eq("stream_id", m[1])
+              .eq("viewer_id", identity)
+              .is("left_at", null)
+              .maybeSingle();
+            if (!sv) return json(403, { error: "must_enter_stream_first" });
+          }
+        } else if (roomType === "call") {
+          const m = /^call_([0-9a-f-]{36})$/i.exec(roomName);
+          if (!m) return json(400, { error: "invalid_call_room_name" });
+          const { data } = await svc
+            .from("private_calls")
+            .select("caller_id,host_id,ended_at")
+            .eq("id", m[1])
+            .maybeSingle();
+          if (!data) return json(403, { error: "call_not_found" });
+          if (data.ended_at) return json(403, { error: "call_ended" });
+          if (data.caller_id !== identity && data.host_id !== identity) {
+            return json(403, { error: "not_call_participant" });
+          }
+        } else if (roomType === "party") {
+          const m = /^party_([0-9a-f-]{36})$/i.exec(roomName);
+          if (!m) return json(400, { error: "invalid_party_room_name" });
+          const { data } = await svc.rpc("can_access_party_room", {
+            p_user_id: identity,
+            p_room_id: m[1],
+          });
+          if (data !== true) return json(403, { error: "not_party_participant" });
+        }
+      } catch (e) {
+        console.error("[livekit-token] binding check failed:", e);
+        return json(500, { error: "binding_check_failed" });
+      }
+    }
+
+
     // ---- Permissions by roomType ----
     // host_stream → publisher; viewer_stream → subscriber-only;
     // call → publisher (1:1); party → publisher unless partyCanPublish=false.
