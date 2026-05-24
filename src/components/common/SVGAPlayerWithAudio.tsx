@@ -53,6 +53,19 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const startTimeRef = useRef<number>(0);
   const expectedDurationRef = useRef<number>(0);
 
+  // Stable refs for callbacks — prevents parent re-renders from re-running the
+  // load effect (which would tear down + rebuild the SVGA player and replay it).
+  const onLoadRef = useRef(onLoad);
+  const onErrorRef = useRef(onError);
+  const onCompleteRef = useRef(onComplete);
+  const onCompleteDebugRef = useRef(onCompleteDebug);
+  const onAudioExtractedRef = useRef(onAudioExtracted);
+  useEffect(() => { onLoadRef.current = onLoad; }, [onLoad]);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  useEffect(() => { onCompleteDebugRef.current = onCompleteDebug; }, [onCompleteDebug]);
+  useEffect(() => { onAudioExtractedRef.current = onAudioExtracted; }, [onAudioExtracted]);
+
   const resumeLoopingAnimation = useCallback(() => {
     if (!loop || !autoPlay || !mountedRef.current || !playerRef.current) return;
     try {
@@ -74,7 +87,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
     const elapsed = startTimeRef.current > 0 ? Date.now() - startTimeRef.current : 0;
     const expected = expectedDurationRef.current;
     logAnimationCompletion('SVGAPlayerWithAudio', source, { elapsed, expected, src });
-    onCompleteDebug?.(source);
+    onCompleteDebugRef.current?.(source);
 
     if (completionTimerRef.current) {
       clearTimeout(completionTimerRef.current);
@@ -87,10 +100,11 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         playerRef.current.clear();
       } catch (e) {}
     }
-    
+
     setTimeout(() => cleanupAudio(), 500);
-    onComplete?.();
-  }, [onComplete, onCompleteDebug, cleanupAudio, src]);
+    onCompleteRef.current?.();
+  }, [cleanupAudio, src]);
+
 
 
   useEffect(() => {
@@ -132,7 +146,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
         player.setVideoItem(videoItemToUse);
         setLoading(false);
-        onLoad?.();
+        onLoadRef.current?.();
 
         if (autoPlay) {
           startTimeRef.current = Date.now();
@@ -158,7 +172,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
             } catch (e) {
               console.warn('[SVGAPlayerWithAudio] Audio resolved after visual start failed:', e);
             }
-            onAudioExtracted?.(audioFound ? 'embedded' : null);
+            onAudioExtractedRef.current?.(audioFound ? 'embedded' : null);
           })();
         }
 
@@ -194,7 +208,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         if (mountedRef.current) {
           setError('Failed to load animation');
           setLoading(false);
-          onError?.(err instanceof Error ? err : new Error('Failed to load SVGA'));
+          onErrorRef.current?.(err instanceof Error ? err : new Error('Failed to load SVGA'));
         }
       }
     };
@@ -222,7 +236,12 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         playerRef.current = null;
       }
     };
-  }, [src, loop, autoPlay, volume, soundUrl, handleAnimationComplete, cleanupAudio, resumeLoopingAnimation, onLoad, onError, onAudioExtracted]);
+    // CRITICAL: only re-run for actual media inputs. Callback identity changes
+    // (parent re-renders) must NEVER tear down + rebuild the player — that was
+    // causing the same SVGA to replay over and over.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, loop, autoPlay, volume, soundUrl]);
+
 
   if (error) {
     return (

@@ -31,14 +31,23 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   const playerRef = useRef<any>(null);
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
-  
+
   const [ready, setReady] = useState(false);
   const [hasError, setHasError] = useState(false);
+
+  // Stable refs for callbacks — prevents parent re-renders from re-running the
+  // load effect (which would rebuild the SVGA player and replay it from frame 0).
+  const onLoadRef = useRef(onLoad);
+  const onErrorRef = useRef(onError);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onLoadRef.current = onLoad; }, [onLoad]);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
   const handleComplete = useCallback(() => {
     if (!mountedRef.current || completedRef.current) return;
     completedRef.current = true;
-    
+
     if (playerRef.current) {
       try {
         playerRef.current.stopAnimation();
@@ -46,9 +55,9 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         playerRef.current = null;
       } catch (e) {}
     }
-    
-    onComplete?.();
-  }, [src, onComplete]);
+
+    onCompleteRef.current?.();
+  }, []);
 
   const resumeLoopingAnimation = useCallback(() => {
     if (!loop || !autoPlay || !mountedRef.current || !playerRef.current) return;
@@ -56,6 +65,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
       playerRef.current.startAnimation();
     } catch (e) {}
   }, [loop, autoPlay]);
+
 
   useEffect(() => {
     mountedRef.current = true;
@@ -95,7 +105,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
 
         player.setVideoItem(videoItemToUse);
         setReady(true);
-        onLoad?.();
+        onLoadRef.current?.();
 
         if (autoPlay) {
           player.startAnimation();
@@ -127,7 +137,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         console.error('[SVGAPlayer] ❌ Error:', src.split('/').pop(), err);
         if (mountedRef.current) {
           setHasError(true);
-          onError?.(err instanceof Error ? err : new Error('SVGA load failed'));
+          onErrorRef.current?.(err instanceof Error ? err : new Error('SVGA load failed'));
         }
       }
     };
@@ -150,7 +160,12 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         playerRef.current = null;
       }
     };
-  }, [src, loop, autoPlay, muted, handleComplete, resumeLoopingAnimation, onLoad, onError]);
+    // CRITICAL: only re-run for actual media inputs. Callback identity changes
+    // (parent re-renders) must NEVER tear down + rebuild the player — that was
+    // causing the same SVGA to replay over and over.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, loop, autoPlay, muted]);
+
 
   if (hasError) {
     return (
