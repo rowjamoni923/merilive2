@@ -6,6 +6,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const ALLOWED_RETURN_ORIGINS = new Set([
+  "https://merilive.top",
+  "https://merilive2.lovable.app",
+  "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
+]);
+
+function normalizeReturnOrigin(raw: unknown): string {
+  try {
+    const origin = new URL(String(raw || "")).origin;
+    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.top";
+  } catch {
+    return "https://merilive.top";
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -158,12 +173,13 @@ serve(async (req) => {
       console.error("[IPN] Order not found:", orderId);
       throw new Error("Order not found");
     }
+    const returnOrigin = normalizeReturnOrigin((order.payment_details as any)?.origin_url);
 
     if (order.status !== "gateway_pending") {
       console.log(`[IPN] Order ${orderId} already processed (status: ${order.status})`);
       const redirectUrl = status === "VALID"
-        ? `https://merilive.lovable.app/payment-success?order_id=${orderId}&gateway=${gatewayType}`
-        : `https://merilive.lovable.app/recharge?payment=failed`;
+        ? `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}`
+        : `${returnOrigin}/recharge?payment=failed`;
       return Response.redirect(redirectUrl, 302);
     }
 
