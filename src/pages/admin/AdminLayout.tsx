@@ -1368,6 +1368,8 @@ export default function AdminLayout() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
   const sidebarSearchRef = useRef<HTMLInputElement>(null);
+  const adminScrollRootRef = useRef<HTMLElement | null>(null);
+  const adminTouchStartRef = useRef<{ x: number; y: number } | null>(null);
   // Owner emails for hardcoded check
   const OWNER_EMAILS = ["smtv923@gmail.com", "sazzadshifa776@gmail.com"];
   
