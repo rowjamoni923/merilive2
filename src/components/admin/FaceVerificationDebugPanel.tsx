@@ -50,7 +50,7 @@ export const FaceVerificationDebugPanel = ({ items }: { items: MediaInput[] }) =
         let signed = "";
         let error: string | undefined;
         try {
-          signed = (await resolveAdminStorageSignedUrl(raw, "face-verification")) || "";
+          signed = (await resolveAdminStorageObjectUrl(raw, "face-verification")) || "";
         } catch (e: unknown) {
           error = e instanceof Error ? e.message : String(e);
         }
