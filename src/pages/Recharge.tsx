@@ -1694,6 +1694,61 @@ const Recharge = () => {
     }
   };
 
+  const purchasePlayStorePackage = async (pkg: typeof selectedPackage) => {
+    if (playStorePurchaseRef.current) {
+      console.warn('[Recharge] Play Store purchase already in flight — ignoring duplicate package tap');
+      return;
+    }
+    if (!pkg || !userId) {
+      toast({
+        title: "Product Not Available",
+        description: "This package is not available for Play Store purchase",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const productId = playStoreBilling.getProductIdForCoins(pkg.coins);
+    if (!productId) {
+      toast({
+        title: "Product Not Available",
+        description: "This package is not available for Play Store purchase",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    playStorePurchaseRef.current = true;
+    setPlayStoreProcessing(true);
+    try {
+      const result = await playStoreBilling.purchase(productId, userId);
+      if (result.success) {
+        await fetchUserData();
+        toast({
+          title: "🎉 Purchase Successful!",
+          description: `${formatNumber(pkg.coins)} diamonds added to your account`,
+        });
+      } else {
+        toast({
+          title: "Purchase Failed",
+          description: result.error || "Could not complete purchase. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (err: any) {
+      console.error('[Recharge] Play Store purchase error:', err);
+      recordClientError({ label: "Recharge.packagePlayStorePurchase", message: err instanceof Error ? err.message : String(err) });
+      toast({
+        title: "Purchase Error",
+        description: err?.message || "An error occurred during purchase",
+        variant: "destructive"
+      });
+    } finally {
+      setPlayStoreProcessing(false);
+      playStorePurchaseRef.current = false;
+    }
+  };
+
   // Stripe payment removed.
 
   const handleStartPayment = () => {
