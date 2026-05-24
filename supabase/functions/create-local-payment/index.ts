@@ -36,6 +36,7 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
   let createdOrderId: string | null = null;
+  let createdOrderDetails: Record<string, unknown> | null = null;
 
   try {
     // Authenticate user
@@ -53,13 +54,16 @@ serve(async (req) => {
     // Fetch payment method with gateway credentials
     const { data: paymentMethod, error: pmError } = await supabaseAdmin
       .from("helper_country_payment_methods")
-      .select("*, helper:topup_helpers!helper_country_payment_methods_helper_id_fkey(id, user_id, wallet_balance, is_active)")
+      .select("*, helper:topup_helpers!helper_country_payment_methods_helper_id_fkey(id, user_id, wallet_balance, country_code, trader_level, payroll_enabled, is_active, is_verified)")
       .eq("id", payment_method_id)
       .eq("is_active", true)
       .single();
 
     if (pmError || !paymentMethod) throw new Error("Payment method not found");
     if (!paymentMethod.helper?.is_active) throw new Error("Payment helper is not active");
+    if (!paymentMethod.helper?.is_verified || paymentMethod.helper?.trader_level !== 5 || paymentMethod.helper?.payroll_enabled !== true) {
+      throw new Error("Payment helper is not eligible for automatic payments");
+    }
 
     const { data: profile } = await supabaseAdmin
       .from("profiles")
@@ -69,6 +73,13 @@ serve(async (req) => {
     if (!profile?.country_code || String(profile.country_code).toUpperCase() !== String(paymentMethod.country_code).toUpperCase()) {
       throw new Error("This payment method is not available in your country");
     }
+    if (String(paymentMethod.helper.country_code || "").toUpperCase() !== String(paymentMethod.country_code || "").toUpperCase()) {
+      throw new Error("Payment helper country mismatch");
+    }
+
+    const { data: agencyBalance } = await supabaseAdmin.rpc("get_agency_diamond_balance", { owner_user_id: paymentMethod.helper.user_id });
+    const combinedHelperBalance = Number(paymentMethod.helper.wallet_balance || 0) + Number(agencyBalance || 0);
+    if (combinedHelperBalance < 300000) throw new Error("Payment helper is not available right now");
     
     const gatewayInfo = paymentMethod.additional_info as any;
     if (!gatewayInfo?.gateway_type) throw new Error("Invalid gateway configuration");
