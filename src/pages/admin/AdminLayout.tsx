@@ -2862,7 +2862,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ━━━ MAIN CONTENT ━━━ */}
-      <div className={cn("transition-all duration-300 min-h-dvh flex flex-col", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")}>
+      <div className={cn("transition-all duration-300 min-h-screen flex flex-col", isSidebarOpen ? "lg:ml-72" : "lg:ml-20")} style={{ minHeight: '100dvh' }}>
         
         {/* ━━━ TOP HEADER ━━━ */}
         <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top">
