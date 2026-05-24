@@ -139,55 +139,77 @@ let storedVerificationId: string | null = null;
          throw new Error('Verification failed');
        }
        
-       // Sign in with Supabase using the Firebase token
-       const phoneNumber = confirmResult.user.phoneNumber || pendingPhoneNumber || '';
-       
-       // Create anonymous Supabase session and link phone
-       const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
-       
-       if (anonError) {
-         throw anonError;
-       }
-       
-       if (anonData.user) {
-         // Update profile with phone number and details
-         const isHost = gender === 'female';
-         
-         const { data: existingProfile } = await supabase
-           .from('profiles')
-           .select('id')
-           .eq('id', anonData.user.id)
-           .maybeSingle();
-         
-         if (existingProfile) {
-           await supabase
-             .from('profiles')
-             .update({
-               phone_number: phoneNumber,
-               display_name: displayName,
-               gender: gender,
-             })
-             .eq('id', anonData.user.id);
-         } else {
-           await supabase
-             .from('profiles')
-             .insert({
-               id: anonData.user.id,
-               phone_number: phoneNumber,
-               display_name: displayName,
-               gender: gender,
-             });
-         }
-         
-         toast({
-           title: "Welcome! 🎉",
-           description: `${displayName}, your account has been created!`,
-         });
-         
-         return { success: true };
-       }
-       
-       throw new Error('Session creation failed');
+      // Sign in with Supabase using the Firebase-verified phone number
+      const phoneNumber = confirmResult.user.phoneNumber || pendingPhoneNumber || '';
+
+      if (!phoneNumber) {
+        throw new Error('Phone number missing after verification');
+      }
+
+      // Step 1: Check if a profile already exists for this phone number.
+      // If yes → this is a returning user. We CANNOT create another anonymous
+      // account or the user would lose their wallet, history, gifts, etc.
+      // We surface a clear error so they can use their original sign-in method.
+      const { data: existingByPhone } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .eq('phone_number', phoneNumber)
+        .eq('is_deleted', false)
+        .maybeSingle();
+
+      if (existingByPhone) {
+        toast({
+          title: 'Account already exists',
+          description: `This phone number is already linked to "${existingByPhone.display_name}". Please use Google sign-in or contact support to recover access.`,
+          variant: 'destructive',
+        });
+        return { success: false, error: 'phone_already_registered' };
+      }
+
+      // Step 2: Fresh account → create anonymous Supabase session
+      const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+
+      if (anonError) {
+        throw anonError;
+      }
+
+      if (anonData.user) {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', anonData.user.id)
+          .maybeSingle();
+
+        if (existingProfile) {
+          await supabase
+            .from('profiles')
+            .update({
+              phone_number: phoneNumber,
+              display_name: displayName,
+              gender: gender,
+            })
+            .eq('id', anonData.user.id);
+        } else {
+          await supabase
+            .from('profiles')
+            .insert({
+              id: anonData.user.id,
+              phone_number: phoneNumber,
+              display_name: displayName,
+              gender: gender,
+            });
+        }
+
+        toast({
+          title: "Welcome! 🎉",
+          description: `${displayName}, your account has been created!`,
+        });
+
+        return { success: true };
+      }
+
+      throw new Error('Session creation failed');
+
        
      } catch (error: any) {
        console.error('[PhoneAuth] Verify error:', error);

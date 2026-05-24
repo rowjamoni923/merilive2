@@ -1,18 +1,19 @@
- import { useState, useEffect } from "react";
- import { Button } from "@/components/ui/button";
- import { Input } from "@/components/ui/input";
- import { Phone, ArrowRight, Check, Search, ChevronDown } from "lucide-react";
- import { useToast } from "@/hooks/use-toast";
- import { useFirebasePhoneAuth } from "@/hooks/useFirebasePhoneAuth";
- import {
-   Dialog,
-   DialogContent,
-   DialogHeader,
-   DialogTitle,
-   DialogDescription,
- } from "@/components/ui/dialog";
- import { ScrollArea } from "@/components/ui/scroll-area";
- import { COUNTRY_CODES, getCountryByCode, CountryCode } from "@/data/countryCodes";
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Phone, ArrowRight, Check, Search, ChevronDown } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useFirebasePhoneAuth } from "@/hooks/useFirebasePhoneAuth";
+import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { COUNTRY_CODES, getCountryByCode, CountryCode } from "@/data/countryCodes";
  
  interface PhoneSignInButtonProps {
    agreed: boolean;
@@ -26,20 +27,35 @@
 // Initial placeholder - uses first country in list, will be replaced by IP detection
 const DEFAULT_COUNTRY = COUNTRY_CODES[0];
  
- export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSignInButtonProps) => {
-   const { toast } = useToast();
-   const { sendOtp, verifyOtp, loading, reset } = useFirebasePhoneAuth();
-   
-   const [showDialog, setShowDialog] = useState(false);
-   const [step, setStep] = useState<PhoneStep>("phone");
-   const [selectedCountry, setSelectedCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
-   const [phoneNumber, setPhoneNumber] = useState("");
-   const [otpCode, setOtpCode] = useState("");
-   const [displayName, setDisplayName] = useState("");
-   const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
-   const [showCountryPicker, setShowCountryPicker] = useState(false);
-   const [searchQuery, setSearchQuery] = useState("");
-   const [countryDetected, setCountryDetected] = useState(false);
+export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSignInButtonProps) => {
+  const { toast } = useToast();
+  const { sendOtp, verifyOtp, loading, reset } = useFirebasePhoneAuth();
+  const { checkBeforeLogin, recordAttempt } = useBruteForceProtection();
+  
+  const [showDialog, setShowDialog] = useState(false);
+  const [step, setStep] = useState<PhoneStep>("phone");
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [countryDetected, setCountryDetected] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const cooldownTimerRef = useRef<number | null>(null);
+
+  // Resend cooldown countdown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    cooldownTimerRef.current = window.setTimeout(() => {
+      setResendCooldown((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => {
+      if (cooldownTimerRef.current) window.clearTimeout(cooldownTimerRef.current);
+    };
+  }, [resendCooldown]);
+
  
    // Auto-detect user's country on mount with multiple fallback APIs
    useEffect(() => {
@@ -133,23 +149,44 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
      setStep("phone");
    };
  
-   const handleSendOtp = async () => {
-     if (!phoneNumber || phoneNumber.length < 6) {
-       toast({
-         title: "Error",
-         description: "Please enter a valid phone number",
-         variant: "destructive",
-       });
-       return;
-     }
- 
-     const fullNumber = selectedCountry.code + phoneNumber.replace(/^0+/, '');
-     const result = await sendOtp(fullNumber);
-     
-     if (result.success) {
-       setStep("gender");
-     }
-   };
+  const handleSendOtp = async () => {
+    if (!phoneNumber || phoneNumber.length < 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const fullNumber = selectedCountry.code + phoneNumber.replace(/^0+/, '');
+    const bfKey = `phone-otp:${fullNumber}`;
+    const allowed = await checkBeforeLogin(bfKey);
+    if (!allowed) return;
+
+    const result = await sendOtp(fullNumber);
+    await recordAttempt(bfKey, result.success);
+
+    if (result.success) {
+      setResendCooldown(30);
+      setStep("gender");
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    const fullNumber = selectedCountry.code + phoneNumber.replace(/^0+/, '');
+    const bfKey = `phone-otp:${fullNumber}`;
+    const allowed = await checkBeforeLogin(bfKey);
+    if (!allowed) return;
+    const result = await sendOtp(fullNumber);
+    await recordAttempt(bfKey, result.success);
+    if (result.success) {
+      setOtpCode("");
+      setResendCooldown(30);
+    }
+  };
+
  
    const handleGenderSelect = (gender: Gender) => {
      setSelectedGender(gender);
@@ -228,7 +265,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
  
        {/* Phone Auth Dialog */}
        <Dialog open={showDialog} onOpenChange={closeDialog}>
-         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border border-amber-200/70 rounded-3xl shadow-2xl shadow-amber-900/10">
+         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto max-h-[88vh] overflow-y-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border border-amber-200/70 rounded-3xl shadow-2xl shadow-amber-900/10">
            
            {/* Step 1: Phone Number */}
            {step === "phone" && (
@@ -459,14 +496,20 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                    )}
                  </Button>
                  
-                 <div className="text-center">
-                   <button
-                     onClick={() => setStep("phone")}
-                     className="text-slate-600 text-sm hover:text-slate-800 transition-colors"
-                   >
-                     Didn't receive code? <span className="text-emerald-600 font-semibold">Resend</span>
-                   </button>
-                 </div>
+                  <div className="text-center">
+                    <button
+                      onClick={handleResendOtp}
+                      disabled={loading || resendCooldown > 0}
+                      className="text-slate-600 text-sm hover:text-slate-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {resendCooldown > 0 ? (
+                        <>Resend in <span className="text-emerald-600 font-semibold">{resendCooldown}s</span></>
+                      ) : (
+                        <>Didn't receive code? <span className="text-emerald-600 font-semibold">Resend</span></>
+                      )}
+                    </button>
+                  </div>
+
                </div>
              </>
            )}
