@@ -17109,6 +17109,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_session_role: { Args: never; Returns: string }
       admin_session_unban_live: {
         Args: { _admin_id: string; _ban_id: string; _reason?: string }
         Returns: Json
