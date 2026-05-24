@@ -184,7 +184,7 @@ serve(async (req) => {
         display_name: display_name || normalizedEmail.split('@')[0],
         role: "sub_admin",
         is_active: true,
-        invited_by: requestingUser.id,
+        invited_by: requestingAdmin.user_id,
         accepted_at: new Date().toISOString(),
       })
       .select()
@@ -210,7 +210,7 @@ serve(async (req) => {
         can_view: true,
         can_edit: true,
         can_delete: false,
-        granted_by: requestingUser.id,
+        granted_by: requestingAdmin.user_id,
       }));
 
       const { error: permError } = await supabaseAdmin
