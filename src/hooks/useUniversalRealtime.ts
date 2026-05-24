@@ -56,7 +56,7 @@ const HIGH_FREQ_DEBOUNCE_MS = 120;
 const HIGH_FREQUENCY_TABLES = new Set<string>();
 
 // ⚡ COST-OPTIMISED: Only tables in the Supabase Realtime publication may bind.
-// Room/call/live/party/PK/gift/chat fanout is LiveKit/FCM + REST snapshots only.
+// Room media/chat/gift fanout is LiveKit/FCM; live_streams stays realtime for list/end state.
 // Each postgres_changes subscription generates realtime messages that cost $2.50/million.
 const BASE_MONITORED_TABLES: TableSubscription[] = [];
 
@@ -67,6 +67,7 @@ const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'profiles',
   'followers',
   'gift_transactions',
+  'live_streams',
   'private_calls',
   'agencies',
   'topup_helpers',
@@ -592,7 +593,7 @@ export const useLiveStreamRealtime = (
   onUpdate: (stream: any) => void
 ) => {
   useEffect(() => {
-    // Live stream realtime state is LiveKit/FCM + REST snapshots only.
+  // Prefer direct subscribeToTables('live_streams') at call sites that need list/end-state sync.
     return;
   }, [streamId, onUpdate]);
 };

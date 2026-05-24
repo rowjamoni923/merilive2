@@ -12,6 +12,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface LiveStreamInfo {
   id: string;
@@ -29,9 +30,15 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
   // Touch tracking
   const touchStartY = useRef(0);
   const touchStartTime = useRef(0);
+  const mountedRef = useRef(false);
+  const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Fetch active live streams on mount
   useEffect(() => {
+    mountedRef.current = true;
+    let cancelled = false;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
     const fetchStreams = async () => {
       const { data } = await supabase
         .from('live_streams')
@@ -40,7 +47,7 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
         .order('viewer_count', { ascending: false })
         .limit(100);
       
-      if (data) {
+      if (data && mountedRef.current && !cancelled) {
         setStreams(data);
         
         // Find current stream index
@@ -52,9 +59,25 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
     };
     
     fetchStreams();
-    
-    // No polling - realtime handles live stream updates
-    return () => {};
+
+    const unsubscribe = subscribeToTables(`live-swipe-${currentStreamId || 'none'}`, ['live_streams'], () => {
+      if (refreshTimer) return;
+      refreshTimer = setTimeout(() => {
+        refreshTimer = null;
+        fetchStreams();
+      }, 250);
+    });
+
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+      if (refreshTimer) clearTimeout(refreshTimer);
+      if (navigationTimerRef.current) {
+        clearTimeout(navigationTimerRef.current);
+        navigationTimerRef.current = null;
+      }
+      unsubscribe?.();
+    };
   }, [currentStreamId]);
 
   // Navigate to next stream (swipe up)
@@ -71,8 +94,10 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
       console.log('[LiveSwipe] Navigating to next stream:', nextStream.id);
       navigate(`/live/${nextStream.id}`, { replace: true });
       
-      setTimeout(() => {
-        setIsNavigating(false);
+      if (navigationTimerRef.current) clearTimeout(navigationTimerRef.current);
+      navigationTimerRef.current = setTimeout(() => {
+        if (mountedRef.current) setIsNavigating(false);
+        navigationTimerRef.current = null;
       }, 500);
       return true;
     }
@@ -95,8 +120,10 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
       console.log('[LiveSwipe] Navigating to previous stream:', prevStream.id);
       navigate(`/live/${prevStream.id}`, { replace: true });
       
-      setTimeout(() => {
-        setIsNavigating(false);
+      if (navigationTimerRef.current) clearTimeout(navigationTimerRef.current);
+      navigationTimerRef.current = setTimeout(() => {
+        if (mountedRef.current) setIsNavigating(false);
+        navigationTimerRef.current = null;
       }, 500);
       return true;
     }

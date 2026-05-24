@@ -376,8 +376,8 @@ const LiveStream = () => {
 
   // Deduplicate optimistic/broadcast gift counters against DB realtime confirmation
   const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
-  const giftBroadcastChannelRef = useRef<any>(null);
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
+  const streamEndRedirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
     return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
@@ -1358,8 +1358,8 @@ const LiveStream = () => {
 
   // Pkg78: LiveKit-ONLY stream-ended + viewer-count signaling.
   // Removed: Supabase `live-stream-close-${id}` broadcast + `stream_viewer_count_${id}` postgres_changes.
-  // Safety net: 30s stale-stream check (separate useEffect below) covers
-  // the rare LiveKit disconnect case via DB poll (no realtime cost).
+  // Safety net: live_streams row realtime + 30s stale-stream poll covers
+  // the rare LiveKit disconnect case.
   useEffect(() => {
     if (!id) return;
 
@@ -1369,9 +1369,12 @@ const LiveStream = () => {
       if (detail.streamId !== id) return;
       if (isHost) return;
       console.log('[LiveStream] ⚡ Pkg74 livekit-stream-ended received');
+      if (streamEndedRef.current) return;
+      streamEndedRef.current = true;
       setStreamEndedBy(detail.hostName || hostInfo?.name || 'Host');
       setShowStreamEndedModal(true);
-      setTimeout(async () => {
+      if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
+      streamEndRedirectTimerRef.current = setTimeout(async () => {
         await leaveChannel();
         navigate('/');
       }, 3000);
@@ -1393,6 +1396,10 @@ const LiveStream = () => {
     window.addEventListener('livekit-viewer-count', handleLiveKitViewerCount);
 
     return () => {
+      if (streamEndRedirectTimerRef.current) {
+        clearTimeout(streamEndRedirectTimerRef.current);
+        streamEndRedirectTimerRef.current = null;
+      }
       window.removeEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
       window.removeEventListener('livekit-viewer-count', handleLiveKitViewerCount);
     };
@@ -1402,6 +1409,19 @@ const LiveStream = () => {
   // If host crashed/exited and heartbeat stopped, server marks stream inactive
   useEffect(() => {
     if (!id || isHost) return;
+
+    const showEndedFromDb = () => {
+      if (streamEndedRef.current) return;
+      streamEndedRef.current = true;
+      console.log('[LiveStream] Stream detected as ended by live_streams update');
+      setStreamEndedBy(hostInfo?.name || "Host");
+      setShowStreamEndedModal(true);
+      if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
+      streamEndRedirectTimerRef.current = setTimeout(async () => {
+        await leaveChannel();
+        navigate('/');
+      }, 3000);
+    };
 
     const checkStaleStream = async () => {
       try {
@@ -1415,23 +1435,33 @@ const LiveStream = () => {
           .eq('id', id)
           .single();
         
-        if (data && !data.is_active) {
-          console.log('[LiveStream] Stream detected as stale/ended by heartbeat check');
-          setStreamEndedBy(hostInfo?.name || "Host");
-          setShowStreamEndedModal(true);
-          setTimeout(async () => {
-            await leaveChannel();
-            navigate('/');
-          }, 3000);
-        }
+        if (data && !data.is_active) showEndedFromDb();
       } catch (e) {
         console.error('[LiveStream] Stale check error:', e);
         recordClientError({ label: "LiveStream.checkStaleStream", message: e instanceof Error ? e.message : String(e) });
       }
     };
 
+    // Pkg305 pass-2: row-level realtime detects host/admin end instantly;
+    // 30s poll remains only as stale-heartbeat safety net.
+    const unsubscribeStream = subscribeToTables(
+      `livestream-row-${id}`,
+      ['live_streams'],
+      (_table, _event, payload) => {
+        const row = payload as any;
+        if (row?.id === id && row.is_active === false) showEndedFromDb();
+      }
+    );
+
     const interval = setInterval(checkStaleStream, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      unsubscribeStream?.();
+      if (streamEndRedirectTimerRef.current) {
+        clearTimeout(streamEndRedirectTimerRef.current);
+        streamEndRedirectTimerRef.current = null;
+      }
+    };
   }, [id, isHost, hostInfo?.name, leaveChannel, navigate]);
 
   // ========== VIEWER: Detect host busy on call ==========
@@ -1483,7 +1513,7 @@ const LiveStream = () => {
       `livestream-host-calls-${hostInfo.id}`,
       ['private_calls'],
       (_table, _event, payload) => {
-        const row = (payload?.new ?? payload?.old) as any;
+        const row = (payload?.new ?? payload?.old ?? payload) as any;
         if (!row || row.host_id !== hostInfo.id) return;
         refreshHostBusyStatus();
       }
