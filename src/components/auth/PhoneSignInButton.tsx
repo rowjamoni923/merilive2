@@ -27,20 +27,35 @@ import { COUNTRY_CODES, getCountryByCode, CountryCode } from "@/data/countryCode
 // Initial placeholder - uses first country in list, will be replaced by IP detection
 const DEFAULT_COUNTRY = COUNTRY_CODES[0];
  
- export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSignInButtonProps) => {
-   const { toast } = useToast();
-   const { sendOtp, verifyOtp, loading, reset } = useFirebasePhoneAuth();
-   
-   const [showDialog, setShowDialog] = useState(false);
-   const [step, setStep] = useState<PhoneStep>("phone");
-   const [selectedCountry, setSelectedCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
-   const [phoneNumber, setPhoneNumber] = useState("");
-   const [otpCode, setOtpCode] = useState("");
-   const [displayName, setDisplayName] = useState("");
-   const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
-   const [showCountryPicker, setShowCountryPicker] = useState(false);
-   const [searchQuery, setSearchQuery] = useState("");
-   const [countryDetected, setCountryDetected] = useState(false);
+export const PhoneSignInButton = ({ agreed, referralCode, onSuccess }: PhoneSignInButtonProps) => {
+  const { toast } = useToast();
+  const { sendOtp, verifyOtp, loading, reset } = useFirebasePhoneAuth();
+  const { checkBeforeLogin, recordAttempt } = useBruteForceProtection();
+  
+  const [showDialog, setShowDialog] = useState(false);
+  const [step, setStep] = useState<PhoneStep>("phone");
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [countryDetected, setCountryDetected] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const cooldownTimerRef = useRef<number | null>(null);
+
+  // Resend cooldown countdown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    cooldownTimerRef.current = window.setTimeout(() => {
+      setResendCooldown((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => {
+      if (cooldownTimerRef.current) window.clearTimeout(cooldownTimerRef.current);
+    };
+  }, [resendCooldown]);
+
  
    // Auto-detect user's country on mount with multiple fallback APIs
    useEffect(() => {
