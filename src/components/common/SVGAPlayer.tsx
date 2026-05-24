@@ -31,6 +31,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   const playerRef = useRef<any>(null);
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [ready, setReady] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -47,6 +48,11 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   const handleComplete = useCallback(() => {
     if (!mountedRef.current || completedRef.current) return;
     completedRef.current = true;
+
+    if (completionTimerRef.current) {
+      clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = null;
+    }
 
     if (playerRef.current) {
       try {
@@ -107,30 +113,27 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         setReady(true);
         onLoadRef.current?.();
 
-        if (autoPlay) {
-          player.startAnimation();
-        }
-
         if (!loop) {
           player.onFinished(() => {
             if (mountedRef.current && !completedRef.current) {
               handleComplete();
             }
           });
-
-          // Safety timeout as fallback
-          if (exactDuration > 0) {
-            const safetyBuffer = Math.min(2000, exactDuration * 0.2);
-            setTimeout(() => {
-              if (mountedRef.current && !completedRef.current) {
-                handleComplete();
-              }
-            }, exactDuration + safetyBuffer);
-          }
         } else {
           player.onFinished(() => {
             requestAnimationFrame(resumeLoopingAnimation);
           });
+        }
+
+        if (autoPlay) {
+          player.startAnimation();
+          if (!loop && exactDuration > 0) {
+            completionTimerRef.current = setTimeout(() => {
+              if (mountedRef.current && !completedRef.current) {
+                handleComplete();
+              }
+            }, Math.ceil(exactDuration));
+          }
         }
         
       } catch (err) {
@@ -152,6 +155,10 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
       mountedRef.current = false;
       document.removeEventListener('visibilitychange', handleResume);
       window.removeEventListener('focus', handleResume);
+      if (completionTimerRef.current) {
+        clearTimeout(completionTimerRef.current);
+        completionTimerRef.current = null;
+      }
       if (playerRef.current) {
         try {
           playerRef.current.stopAnimation();
