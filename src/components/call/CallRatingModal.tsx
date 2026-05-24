@@ -113,25 +113,16 @@ export function CallRatingModal({
 
     setIsSubmitting(true);
     try {
-      const updateField = isHost ? 'caller_rating' : 'host_rating';
-      const { error } = await supabase
-        .from('private_calls')
-        .update({ [updateField]: rating })
-        .eq('id', callId);
+      const { data, error } = await supabase.rpc('submit_private_call_rating', {
+        p_call_id: callId,
+        p_rating: rating,
+        p_review: review.trim() || null,
+      });
 
       if (error) throw error;
-
-      await supabase
-        .from('call_events')
-        .insert({
-          call_id: callId,
-          event_type: 'rating_submitted',
-          event_data: {
-            rating,
-            review: review.trim() || null,
-            rated_by: isHost ? 'host' : 'caller',
-          },
-        });
+      if (data && typeof data === 'object' && (data as any).success === false) {
+        throw new Error((data as any).error || 'Failed to submit rating');
+      }
 
       toast({
         title: "Thank you! 🎉",
