@@ -1770,6 +1770,10 @@ const Recharge = () => {
   };
 
   const handleSubmitPayment = async () => {
+    if (submitPaymentRef.current) {
+      console.warn('[Recharge] Submit payment already in flight — ignoring duplicate tap');
+      return;
+    }
     if (!selectedPackage || !selectedGateway || !userId) {
       toast({
         title: "Error",
@@ -1788,6 +1792,7 @@ const Recharge = () => {
       return;
     }
 
+    submitPaymentRef.current = true;
     setProcessingPayment(true);
     setPaymentStep("processing");
 
