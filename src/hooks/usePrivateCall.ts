@@ -1217,40 +1217,29 @@ export function usePrivateCall(userId: string | null) {
         return;
       }
 
-      callEndedRef.current = false;
-      incomingCallIdRef.current = callId;
+      void (async () => {
+        const shown = await showVerifiedIncomingCall(callId);
+        if (!shown) return;
 
-      const callerId = data.callerId || data.caller_id;
-      const callerName = data.callerName || data.caller_name || 'User';
-      const callerAvatar = data.callerAvatar || data.caller_avatar || null;
-      const callerLevel = Number(data.callerLevel ?? data.caller_level ?? 1) || 1;
+        // ⚡ Pre-warm LiveKit token
+        import('@/services/livekitService').then(({ warmLiveKitToken }) => {
+          warmLiveKitToken(`call_${callId}`, 'call').catch(() => {});
+        });
 
-      setIncomingCall({
-        callId,
-        callerId,
-        callerName,
-        callerAvatar,
-        callerLevel,
-      });
+        // 📳 NATIVE: Vibrate phone for incoming call
+        if (typeof (window as any).Capacitor !== 'undefined') {
+          import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+            Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
+            setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 300);
+            setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 600);
+          }).catch(() => {});
+        }
 
-      // ⚡ Pre-warm LiveKit token
-      import('@/services/livekitService').then(({ warmLiveKitToken }) => {
-        warmLiveKitToken(`call_${callId}`, 'call').catch(() => {});
-      });
-
-      // 📳 NATIVE: Vibrate phone for incoming call
-      if (typeof (window as any).Capacitor !== 'undefined') {
-        import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
-          Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
-          setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 300);
-          setTimeout(() => Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {}), 600);
-        }).catch(() => {});
-      }
-
-      toastRef.current({
-        title: "Incoming Call",
-        description: `${callerName} is calling you`,
-      });
+        toastRef.current({
+          title: "Incoming Call",
+          description: "Someone is calling you",
+        });
+      })();
     };
 
     window.addEventListener('incoming-call-notification', handleIncomingNotification);
@@ -1259,7 +1248,7 @@ export function usePrivateCall(userId: string | null) {
       isCleanedUp = true;
       window.removeEventListener('incoming-call-notification', handleIncomingNotification);
     };
-  }, [userId]);
+  }, [userId, showVerifiedIncomingCall]);
 
 
   // 🔴 PEER NOTIFICATION LISTENERS — instant call_ended + call_accepted via LiveKit DataPacket
