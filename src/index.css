@@ -1893,9 +1893,13 @@ body[data-admin-active="true"] #root {
 }
 
 .admin-shell [data-admin-scroll-root="true"] {
-  min-height: 0;
-  height: auto;
-  max-height: none;
+  /* Stay as a proper flex child of the shell so the parent's bounded height
+     (100dvh) constrains us and our own overflow-y becomes the scroller.
+     Do NOT use height:auto here — it lets the pane grow past the viewport
+     and the bottom gets clipped by the shell's overflow:hidden. */
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   touch-action: pan-y !important;
@@ -1906,15 +1910,26 @@ body[data-admin-active="true"] #root {
 
 /* Many legacy admin pages were authored as standalone screens with
    min-h-screen/h-screen wrappers. Inside AdminLayout those wrappers must not
-   become a second viewport that clips content while the body is locked. */
+   become a second viewport that clips content while the scroll pane owns
+   scrolling. Force them to flow naturally. */
 .admin-content > [class*="min-h-screen"],
-.admin-content > [class*="h-screen"] {
-  min-height: auto !important;
+.admin-content > [class*="h-screen"],
+.admin-content [class*="min-h-screen"],
+.admin-content [class*="h-screen"] {
+  min-height: 0 !important;
   height: auto !important;
 }
 
 .admin-content > [class*="overflow-hidden"] {
   overflow-y: visible !important;
+}
+
+/* Legacy admin pages sometimes pin themselves with `fixed inset-0` which
+   escapes the scroll pane entirely and clips on mobile. Neutralize that
+   inside the admin shell. */
+.admin-content [class*="fixed"][class*="inset-0"] {
+  position: relative !important;
+  inset: auto !important;
 }
 
 .admin-shell [data-radix-scroll-area-viewport],
