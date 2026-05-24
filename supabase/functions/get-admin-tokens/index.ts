@@ -36,26 +36,40 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const adminId: string | undefined = body?.admin_id;
-
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Path A — custom admin session caller (preferred, fully decoupled from auth.users)
+    // ────────────────────────────────────────────────────────────────
+    // AUTH: caller MUST present a valid admin session via x-admin-token
+    // (server-issued, stored in admin_sessions and bound to admin_user_id)
+    // OR a Supabase auth JWT belonging to an active owner in admin_users.
+    // We do NOT trust any client-supplied admin_id any more — that was an
+    // owner-takeover vector (anyone knowing an owner uuid could fetch the
+    // live login tokens).
+    // ────────────────────────────────────────────────────────────────
     let isOwner = false;
-    if (adminId) {
-      const { data: row } = await adminClient
-        .from('admin_users')
-        .select('role, is_active')
-        .eq('id', adminId)
+
+    const adminTokenHeader = req.headers.get('x-admin-token');
+    if (adminTokenHeader && adminTokenHeader.length >= 16) {
+      const { data: sessionRow } = await adminClient
+        .from('admin_sessions')
+        .select('admin_user_id, expires_at')
+        .eq('session_token', adminTokenHeader)
+        .gt('expires_at', new Date().toISOString())
         .maybeSingle();
-      if (row?.role === 'owner' && row?.is_active) isOwner = true;
+      if (sessionRow?.admin_user_id) {
+        const { data: row } = await adminClient
+          .from('admin_users')
+          .select('role, is_active')
+          .eq('id', sessionRow.admin_user_id)
+          .maybeSingle();
+        if (row?.role === 'owner' && row?.is_active) isOwner = true;
+      }
     }
 
-    // Path B — legacy auth header
+    // Legacy fallback — Supabase JWT mapped to admin_users.user_id
     if (!isOwner) {
       const authHeader = req.headers.get('Authorization');
       if (authHeader) {
@@ -85,8 +99,14 @@ Deno.serve(async (req) => {
 
     const BASE_SECRET =
       Deno.env.get('ADMIN_TOKEN_BASE_SECRET') ||
-      Deno.env.get('ADMIN_OWNER_TOKEN') ||
-      'merilive-secret-base-2026-fallback';
+      Deno.env.get('ADMIN_OWNER_TOKEN');
+    if (!BASE_SECRET || BASE_SECRET.length < 16) {
+      console.error('[get-admin-tokens] ADMIN_TOKEN_BASE_SECRET missing or too short');
+      return new Response(
+        JSON.stringify({ error: 'Admin token secret not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const year = new Date().getUTCFullYear();
     const ownerHash = await deriveHash(BASE_SECRET, `owner:${year}`);
     const subHash = await deriveHash(BASE_SECRET, `sub_admin:${year}`);
