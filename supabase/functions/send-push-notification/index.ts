@@ -169,8 +169,23 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    let isVerifiedNotificationTrigger = false;
+    if (!isServiceRoleCall && !isAdmin && !callerUserId && data.origin === "notifications_trigger" && data.notification_id && userId) {
+      const { data: notificationRow } = await supabase
+        .from("notifications")
+        .select("id,user_id,title,message,type")
+        .eq("id", data.notification_id)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      isVerifiedNotificationTrigger = !!notificationRow
+        && notificationRow.title === title
+        && notificationRow.message === body
+        && notificationRow.type === type;
+    }
+
     const needsElevated = isBroadcast || isMultiUser || (!!userId && userId !== callerUserId);
-    if (!isServiceRoleCall && !isAdmin && needsElevated) {
+    if (!isServiceRoleCall && !isAdmin && !isVerifiedNotificationTrigger && needsElevated) {
       console.warn("[Push] Unauthorized cross-user/broadcast push attempted", {
         callerUserId, userId, isMultiUser, target,
       });
@@ -179,7 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
-    if (!isServiceRoleCall && !isAdmin && !callerUserId) {
+    if (!isServiceRoleCall && !isAdmin && !isVerifiedNotificationTrigger && !callerUserId) {
       return new Response(
         JSON.stringify({ success: false, error: "Authentication required" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
