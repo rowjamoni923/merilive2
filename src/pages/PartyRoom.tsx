@@ -1365,7 +1365,7 @@ const PartyRoom = () => {
         // Leave all participants
         await supabase
           .from('party_room_participants')
-          .update({ left_at: closedAt, position: null })
+          .update({ left_at: closedAt, seat_number: null })
           .eq('room_id', roomId)
           .is('left_at', null);
         
@@ -1374,7 +1374,7 @@ const PartyRoom = () => {
         // Regular participant leaving
         await supabase
           .from('party_room_participants')
-          .update({ left_at: new Date().toISOString(), position: null })
+          .update({ left_at: new Date().toISOString(), seat_number: null })
           .eq('room_id', roomId)
           .eq('user_id', currentUser.id);
       }
