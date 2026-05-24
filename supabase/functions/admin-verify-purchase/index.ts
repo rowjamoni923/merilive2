@@ -7,12 +7,12 @@ const corsHeaders = {
 
 /**
  * Admin Manual Purchase Verification & Credit
- * 
+ *
  * When a user reports "I paid but didn't get diamonds", admin can:
  * 1. Enter the user_id and coin amount
  * 2. This function credits the coins and records it as admin_manual
- * 
- * Only accessible by admin users (verified via admin_users table)
+ *
+ * Pkg321: Added section permission check (user-management with edit right).
  */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -77,6 +77,30 @@ Deno.serve(async (req) => {
         JSON.stringify({ success: false, error: "Admin access required" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Section permission check (user-management edit)
+    if (adminUser.role !== "owner") {
+      const { data: section } = await adminSupabase
+        .from("admin_sections")
+        .select("id")
+        .eq("section_key", "user-management")
+        .eq("is_active", true)
+        .maybeSingle();
+      if (section?.id) {
+        const { data: perm } = await adminSupabase
+          .from("admin_section_permissions")
+          .select("can_edit")
+          .eq("admin_user_id", adminUser.id)
+          .eq("section_id", section.id)
+          .maybeSingle();
+        if (!perm?.can_edit) {
+          return new Response(
+            JSON.stringify({ success: false, error: "Insufficient permission for user-management" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
     }
 
     const { userId, coinAmount, reason, googleOrderId } = await req.json();
