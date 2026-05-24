@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify admin
+    // Verify admin + section permission (user-management with edit right)
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
 
     const { data: adminUser } = await adminClient
       .from('admin_users')
-      .select('role')
+      .select('id, role')
       .eq('user_id', user.id)
       .eq('is_active', true)
       .maybeSingle();
@@ -92,6 +92,28 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
+    }
+
+    if (adminUser.role !== 'owner') {
+      const { data: section } = await adminClient
+        .from('admin_sections')
+        .select('id')
+        .eq('section_key', 'user-management')
+        .eq('is_active', true)
+        .maybeSingle();
+      if (section?.id) {
+        const { data: perm } = await adminClient
+          .from('admin_section_permissions')
+          .select('can_edit')
+          .eq('admin_user_id', adminUser.id)
+          .eq('section_id', section.id)
+          .maybeSingle();
+        if (!perm?.can_edit) {
+          return new Response(JSON.stringify({ error: 'Insufficient permission for user-management' }), {
+            status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+      }
     }
 
     const { subject, htmlContent, targetAudience, customEmails } = await req.json() as BulkEmailRequest;
