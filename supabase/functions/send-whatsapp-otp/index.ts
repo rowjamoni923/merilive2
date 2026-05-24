@@ -7,8 +7,28 @@ const corsHeaders = {
 };
 
 const generateOTP = (): string => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => String(b % 10)).join("");
 };
+
+async function createPhoneExchangeToken(supabase: any, identifier: string): Promise<string> {
+  const rawBytes = new Uint8Array(32);
+  crypto.getRandomValues(rawBytes);
+  const token = Array.from(rawBytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  const tokenHash = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  const { error } = await supabase.from("otp_exchange_tokens").insert({
+    token_hash: tokenHash,
+    identifier,
+    channel: "phone",
+    purpose: "login",
+    expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+  });
+  if (error) throw error;
+  return token;
+}
 
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -113,14 +133,22 @@ serve(async (req: Request): Promise<Response> => {
 
       console.log(`[whatsapp-otp] OTP sent to ${cleanPhone}, success: ${messageSent}`);
 
+      if (!messageSent) {
+        await supabase
+          .from("phone_otps")
+          .update({ is_used: true })
+          .eq("phone_number", cleanPhone)
+          .eq("otp_code", otpCode)
+          .eq("is_used", false);
+
+        return new Response(
+          JSON.stringify({ success: false, message_sent: false, error: "Failed to send WhatsApp message. Please try again." }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({
-          success: true,
-          message_sent: !!messageSent,
-          message: messageSent
-            ? "Verification code sent to your WhatsApp"
-            : "Failed to send WhatsApp message. Please try again.",
-        }),
+        JSON.stringify({ success: true, message_sent: true, message: "Verification code sent to your WhatsApp" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
 
@@ -136,13 +164,37 @@ serve(async (req: Request): Promise<Response> => {
         .from("phone_otps")
         .select("*")
         .eq("phone_number", cleanPhone)
-        .eq("otp_code", otp)
         .eq("is_used", false)
         .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (findError || !otpRecord) {
         console.warn(`[whatsapp-otp] Failed verification for ${cleanPhone}`);
+        return new Response(
+          JSON.stringify({ error: "Invalid or expired verification code" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if ((otpRecord.attempts ?? 0) >= 5) {
+        await supabase
+          .from("phone_otps")
+          .update({ is_used: true })
+          .eq("id", otpRecord.id);
+        return new Response(
+          JSON.stringify({ error: "Too many failed attempts. Please request a new OTP" }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      await supabase
+        .from("phone_otps")
+        .update({ attempts: (otpRecord.attempts ?? 0) + 1 })
+        .eq("id", otpRecord.id);
+
+      if (otpRecord.otp_code !== otp) {
         return new Response(
           JSON.stringify({ error: "Invalid or expired verification code" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -157,8 +209,10 @@ serve(async (req: Request): Promise<Response> => {
 
       console.log(`[whatsapp-otp] OTP verified for ${cleanPhone}`);
 
+      const verifiedToken = await createPhoneExchangeToken(supabase, cleanPhone);
+
       return new Response(
-        JSON.stringify({ success: true, verified: true }),
+        JSON.stringify({ success: true, verified: true, verified_token: verifiedToken }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

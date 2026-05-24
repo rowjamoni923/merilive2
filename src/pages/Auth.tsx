@@ -262,7 +262,7 @@ const Auth = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneOtpCode, setPhoneOtpCode] = useState("");
   const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
-  const [selectedCountryCode, setSelectedCountryCode] = useState("");
+  const [selectedCountryCode, setSelectedCountryCode] = useState(COUNTRY_CODES[0]?.code ?? "+1");
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
 
@@ -1265,13 +1265,13 @@ const Auth = () => {
       if (verifyError) {
         throw new Error(await getFunctionErrorMessage(verifyError, "Invalid verification code"));
       }
-      if (!verifyData?.success) {
+      if (!verifyData?.success || !verifyData?.verified_token) {
         throw new Error(verifyData?.error || "Invalid verification code");
       }
 
       const { data: signInData, error: signInError } = await supabase.functions.invoke(
         "otp-direct-signin",
-        { body: { email: normalizedEmail, otp_verified: true } }
+        { body: { email: normalizedEmail, verified_token: verifyData.verified_token } }
       );
 
       if (signInError) {
@@ -1575,7 +1575,7 @@ const Auth = () => {
       });
 
       if (error) throw error;
-      if (!data?.verified) {
+      if (!data?.verified || !data?.verified_token) {
         toast({
           title: "Invalid Code",
           description: data?.error || "The verification code is incorrect",
@@ -1601,13 +1601,13 @@ const Auth = () => {
       if (existingProfile) {
         // Existing account found — auto-login via edge function
         const { data: signInResult, error: signInError } = await supabase.functions.invoke('otp-direct-signin', {
-          body: { email: phoneEmail }
+          body: { email: phoneEmail, channel: "phone", identifier: fullPhone, verified_token: data.verified_token }
         });
 
-        if (!signInError && signInResult?.session) {
+        if (!signInError && signInResult?.access_token && signInResult?.refresh_token) {
           await supabase.auth.setSession({
-            access_token: signInResult.session.access_token,
-            refresh_token: signInResult.session.refresh_token,
+            access_token: signInResult.access_token,
+            refresh_token: signInResult.refresh_token,
           });
 
           localStorage.removeItem('meri_manual_logout');
