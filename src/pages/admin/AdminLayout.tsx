@@ -2431,7 +2431,7 @@ export default function AdminLayout() {
     };
 
     const canAncestorScrollVertically = (target: EventTarget | null, deltaY: number) => {
-      let el = target instanceof Element ? target.parentElement : null;
+      let el = target instanceof Element ? target : null;
       while (el && el !== root) {
         const style = window.getComputedStyle(el);
         const canScroll = /(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight + 1;
