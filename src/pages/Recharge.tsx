@@ -2144,6 +2144,7 @@ const Recharge = () => {
       setHelperPaymentStep("form");
     } finally {
       setHelperPaymentProcessing(false);
+      helperSubmitRef.current = false;
     }
   };
 
