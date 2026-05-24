@@ -3021,6 +3021,14 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   max-width: 100%;
 }
 
+.admin-content [class*="overflow-x-auto"] > table,
+.admin-content [class*="overflow-auto"] > table,
+.admin-content [data-radix-scroll-area-viewport] > table {
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+}
+
 .admin-content :where(th, td) {
   overflow-wrap: anywhere;
   word-break: normal;
