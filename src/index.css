@@ -1870,7 +1870,7 @@ body[data-admin-active="true"] {
   overflow-x: hidden !important;
   overflow-y: hidden !important;
   overscroll-behavior: contain !important;
-  touch-action: pan-y !important;
+  touch-action: pan-y pinch-zoom !important;
   background: hsl(230 15% 6%);
 }
 
@@ -1888,7 +1888,7 @@ body[data-admin-active="true"] #root {
   min-height: 0;
   width: 100%;
   overflow: hidden;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
   overscroll-behavior: contain;
 }
 
@@ -1902,10 +1902,31 @@ body[data-admin-active="true"] #root {
   max-height: 100% !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  touch-action: pan-y !important;
+  touch-action: pan-y pinch-zoom !important;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
+}
+
+.admin-shell,
+.admin-shell *:not(input):not(textarea):not([contenteditable="true"]):not([role="textbox"]) {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+.admin-content,
+.admin-content *:not(button):not(a):not(input):not(textarea):not(select):not([role="button"]):not([role="menuitem"]):not([role="option"]):not([role="checkbox"]):not([role="switch"]):not([contenteditable="true"]) {
+  touch-action: pan-y pinch-zoom !important;
+}
+
+.admin-content button,
+.admin-content a,
+.admin-content [role="button"],
+.admin-content [role="menuitem"],
+.admin-content [role="option"],
+.admin-content [data-radix-collection-item] {
+  touch-action: manipulation !important;
 }
 
 .admin-content,
@@ -1967,7 +1988,7 @@ body[data-admin-active="true"] #root {
 .admin-shell .overflow-y-scroll,
 .admin-shell .overflow-auto,
 .admin-shell .overflow-scroll {
-  touch-action: pan-y !important;
+  touch-action: pan-y pinch-zoom !important;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
@@ -2179,7 +2200,7 @@ body[data-admin-active="true"] #root {
 .admin-content [role="option"],
 .admin-content [role="menuitem"],
 .admin-content [data-radix-collection-item] {
-  touch-action: manipulation;
+  touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -3034,6 +3055,20 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   word-break: normal;
 }
 
+.admin-content :where(table, thead, tbody, tr, th, td),
+.admin-content :where(p, span, label, small, strong, em, h1, h2, h3, h4, h5, h6),
+.admin-content :where([class*="Badge"], .badge) {
+  touch-action: pan-y pinch-zoom !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+.admin-content :where(input, textarea, [contenteditable="true"], [role="textbox"]) {
+  touch-action: auto !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
 .admin-content :where(img, video, canvas, svg) {
   max-width: 100%;
 }
@@ -3382,6 +3417,13 @@ html, body {
   overscroll-behavior: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+body[data-admin-active="true"],
+body[data-admin-active="true"] #root,
+body[data-admin-active="true"] .admin-shell,
+body[data-admin-active="true"] .admin-content {
+  touch-action: pan-y pinch-zoom !important;
 }
 a, img, button {
   -webkit-user-drag: none;
