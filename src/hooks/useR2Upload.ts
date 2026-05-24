@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getAdminSessionToken } from '@/utils/adminSession';
 
 interface UploadOptions {
   bucket: string;
@@ -26,6 +27,18 @@ interface UploadResult {
 const R2_THRESHOLD = 50 * 1024 * 1024; // 50MB
 const SUPABASE_THRESHOLD = 50 * 1024 * 1024; // 50MB - use Supabase for smaller files
 const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
+
+const buildR2Headers = async (contentType?: string) => {
+  const headers: Record<string, string> = contentType ? { 'Content-Type': contentType } : {};
+  const adminToken = getAdminSessionToken();
+  if (adminToken) {
+    headers['x-admin-token'] = adminToken;
+    return headers;
+  }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+  return headers;
+};
 
 export function useR2Upload() {
   const [uploading, setUploading] = useState(false);
@@ -51,7 +64,7 @@ export function useR2Upload() {
     // Step 1: Initialize multipart upload
     const initResponse = await fetch(R2_FUNCTION_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await buildR2Headers('application/json'),
       body: JSON.stringify({
         action: 'init-multipart',
         folder,
@@ -89,7 +102,7 @@ export function useR2Upload() {
       // Upload part via edge function proxy
       const uploadResponse = await fetch(R2_FUNCTION_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await buildR2Headers('application/json'),
         body: JSON.stringify({
           action: 'upload-part',
           uploadId,
@@ -118,7 +131,7 @@ export function useR2Upload() {
     
     const completeResponse = await fetch(R2_FUNCTION_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await buildR2Headers('application/json'),
       body: JSON.stringify({
         action: 'complete-multipart',
         uploadId,
@@ -148,6 +161,7 @@ export function useR2Upload() {
 
     const response = await fetch(R2_FUNCTION_URL, {
       method: 'POST',
+      headers: await buildR2Headers(),
       body: formData,
     });
 

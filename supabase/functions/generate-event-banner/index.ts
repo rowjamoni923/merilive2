@@ -35,6 +35,28 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    const adminToken = req.headers.get("x-admin-token");
+    if (!adminToken || adminToken.length < 16) {
+      return new Response(JSON.stringify({ error: "Admin session required" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supa = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const { data: sessionRow } = await supa
+      .from("admin_sessions")
+      .select("admin_user_id")
+      .eq("session_token", adminToken)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+    if (!sessionRow?.admin_user_id) {
+      return new Response(JSON.stringify({ error: "Invalid admin session" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { eventName, customPrompt, style, sizeKey } = body ?? {};
     if (!eventName || typeof eventName !== "string") {
@@ -106,7 +128,6 @@ Deno.serve(async (req) => {
       console.warn("[generate-event-banner] resize failed, using original", resizeErr);
     }
 
-    const supa = createClient(SUPABASE_URL, SERVICE_ROLE);
     const path = `ai-events/${slug(eventName)}-${preset.w}x${preset.h}-${Date.now()}.png`;
     const { error: upErr } = await supa.storage
       .from(BUCKET)
