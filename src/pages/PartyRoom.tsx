@@ -1409,7 +1409,7 @@ const PartyRoom = () => {
         // Directly update participant position (host auto-joins)
         const { error: seatError } = await supabase
           .from('party_room_participants')
-          .update({ position: position, role: 'speaker' })
+          .update({ seat_number: position, role: 'speaker' })
           .eq('room_id', roomId)
           .eq('user_id', currentUser.id);
 
