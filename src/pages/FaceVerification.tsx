@@ -1583,8 +1583,25 @@ const FaceVerification = () => {
     setLoading(true);
     
     try {
-      // Upload profile photo first
-      const profilePhotoUrl = await uploadFile(userPhotoFile, 'profile-photos');
+      // Upload profile photo to PUBLIC avatars bucket so every viewer can render it.
+      // (Historically this went to private face-verification bucket → invisible to viewers.)
+      let profilePhotoUrl: string | null = null;
+      try {
+        const ext = (userPhotoFile.type || '').includes('png') ? 'png'
+          : (userPhotoFile.type || '').includes('webp') ? 'webp' : 'jpg';
+        const avatarKey = `${userId}/${Date.now()}.${ext}`;
+        const up = await supabase.storage.from('avatars').upload(avatarKey, userPhotoFile, {
+          upsert: true,
+          contentType: userPhotoFile.type || 'image/jpeg',
+        });
+        if (!up.error) {
+          profilePhotoUrl = supabase.storage.from('avatars').getPublicUrl(avatarKey).data.publicUrl;
+        }
+      } catch (e) {
+        console.warn('[FaceVerification] public avatar upload failed, falling back', e);
+      }
+      // Fallback only if public upload failed (keeps existing flow alive)
+      if (!profilePhotoUrl) profilePhotoUrl = await uploadFile(userPhotoFile, 'profile-photos');
       if (profilePhotoUrl) {
         await supabase.from('profiles').update({ avatar_url: profilePhotoUrl }).eq('id', userId);
       }
