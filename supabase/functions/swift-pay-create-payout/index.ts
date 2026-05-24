@@ -71,17 +71,32 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Load withdrawal + verify owner
+    // Load withdrawal + verify owner. Never trust the client for method/address;
+    // the withdrawal row was created by the secure RPC and is the source of truth.
     const { data: w, error: werr } = await admin
       .from("agency_withdrawals")
-      .select("id, agency_id, status, payment_details, net_amount_money, agencies!inner(owner_id, name)")
+      .select("id, agency_id, status, payment_method, payment_details, net_amount_money, agencies!inner(owner_id, name)")
       .eq("id", body.withdrawal_id)
       .maybeSingle();
     if (werr || !w) return json({ error: "withdrawal_not_found" }, 404);
     if ((w as any).agencies.owner_id !== user.id) return json({ error: "forbidden" }, 403);
 
+    if (w.status !== "pending") {
+      return json({ error: "withdrawal_not_payable", status: w.status }, 409);
+    }
+
+    if (w.payment_method !== "crypto_auto") {
+      return json({ error: "withdrawal_method_not_auto" }, 400);
+    }
+
+    const details = (w.payment_details as Record<string, unknown> | null) ?? {};
+    const recordedAddress = String(details.account_number ?? "").trim();
+    if (!recordedAddress || recordedAddress !== payAddress) {
+      return json({ error: "pay_address_mismatch" }, 400);
+    }
+
     // Idempotency
-    const existing = (w.payment_details as any)?.swift_pay_payout;
+    const existing = details.swift_pay_payout as { payment_id?: string } | undefined;
     if (existing?.payment_id) {
       return json({ ok: true, already_initiated: true, payment_id: existing.payment_id });
     }
@@ -123,7 +138,7 @@ Deno.serve(async (req) => {
       console.error("[swift-pay-create-payout] gateway error", payoutRes.status, parsed);
       // Stamp the failure but don't roll back the withdrawal (admin can retry / process manually)
       await admin.from("agency_withdrawals").update({
-        payment_details: { ...(w.payment_details as any), swift_pay_payout: { error: parsed, status: "failed", at: new Date().toISOString() } },
+        payment_details: { ...details, swift_pay_payout: { error: parsed, status: "failed", at: new Date().toISOString() } },
       }).eq("id", w.id);
       return json({ error: parsed?.error ?? "gateway_error", details: parsed }, 502);
     }
@@ -134,7 +149,7 @@ Deno.serve(async (req) => {
     await admin.from("agency_withdrawals").update({
       status: status === "completed" ? "approved" : "pending",
       payment_details: {
-        ...(w.payment_details as any),
+        ...details,
         swift_pay_payout: {
           payment_id: paymentId,
           status,
