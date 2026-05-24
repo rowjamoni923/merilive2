@@ -46,6 +46,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface ProfileData {
   id: string;
@@ -62,6 +63,7 @@ interface ProfileData {
   is_host?: boolean;
   host_status?: string | null;
   hide_location?: boolean;
+  language?: string | null;
 }
 
 const EditProfile = () => {
@@ -105,8 +107,34 @@ const EditProfile = () => {
   const [showCropModal, setShowCropModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const linkOtpCooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const syncProfileState = (nextProfile: ProfileData) => {
+    setProfile(nextProfile);
+    setDisplayName(nextProfile.display_name || "");
+    setBio(nextProfile.bio || "");
+    setAge(nextProfile.age);
+    setGender(nextProfile.gender || "");
+    setTags((nextProfile as any).tags || []);
+    setHideLocation(nextProfile.hide_location || false);
+    setLanguage(nextProfile.language || "English");
+
+    try {
+      const payload = JSON.stringify({ data: nextProfile, ts: Date.now() });
+      [`meri_profile_cache_self`, `meri_profile_cache_${nextProfile.id}`].forEach((key) => {
+        localStorage.setItem(key, payload);
+        sessionStorage.setItem(key, payload);
+      });
+      window.dispatchEvent(new CustomEvent("app-sync", {
+        detail: { topic: "profiles", eventType: "UPDATE", payload: nextProfile },
+      }));
+    } catch {}
+  };
 
   useEffect(() => {
+    let cancelled = false;
+    let unsubscribeRealtime: (() => void) | null = null;
+
     const fetchProfile = async () => {
       const { getCachedUser } = await import('@/utils/cachedAuth');
       const user = await getCachedUser();
@@ -115,21 +143,32 @@ const EditProfile = () => {
         return;
       }
 
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (profileData) {
-        setProfile(profileData);
-        setDisplayName(profileData.display_name || "");
-        setBio(profileData.bio || "");
-        setAge(profileData.age);
-        setGender(profileData.gender || "");
-        setTags((profileData as any).tags || []);
-        setHideLocation(profileData.hide_location || false);
+      if (cancelled) return;
+
+      if (profileError) {
+        recordClientError({ label: "EditProfile.fetchProfile", message: profileError.message });
+        sonnerToast.error("Failed to load profile");
       }
+
+      if (profileData) {
+        syncProfileState(profileData as ProfileData);
+      }
+
+      unsubscribeRealtime = subscribeToTables(
+        `edit-profile-${user.id}`,
+        ["profiles"],
+        (table, _event, payload) => {
+          if (table === "profiles" && payload?.id === user.id) {
+            syncProfileState(payload as ProfileData);
+          }
+        }
+      );
 
       setUserEmail(user.email || "");
       setPhone((user as any).phone || "");
@@ -137,6 +176,12 @@ const EditProfile = () => {
     };
 
     fetchProfile();
+
+    return () => {
+      cancelled = true;
+      if (linkOtpCooldownTimerRef.current) clearInterval(linkOtpCooldownTimerRef.current);
+      if (unsubscribeRealtime) unsubscribeRealtime();
+    };
   }, [navigate]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,7 +239,7 @@ const EditProfile = () => {
 
       if (updateError) throw updateError;
 
-      setProfile({ ...profile, avatar_url: publicUrl });
+      syncProfileState({ ...profile, avatar_url: publicUrl });
       sonnerToast.success("Profile picture updated!");
     } catch (error) {
       console.error("Upload error:", error);
@@ -244,6 +289,8 @@ const EditProfile = () => {
         // by the auto_convert_account_by_gender database trigger (SECURITY DEFINER)
       }
 
+      updateData.language = language;
+
       const { data, error } = await supabase
         .from("profiles")
         .update(updateData)
@@ -254,7 +301,7 @@ const EditProfile = () => {
       if (error) throw error;
       
       if (data) {
-        setProfile(data as ProfileData);
+        syncProfileState(data as ProfileData);
       }
       
       if (gender.toLowerCase() === "female" && profile.gender?.toLowerCase() !== "female") {
@@ -368,9 +415,14 @@ const EditProfile = () => {
       sonnerToast.success("Verification code sent to your email");
       setLinkStep("otp");
       setLinkOtpCooldown(60);
-      const t = setInterval(() => {
+      if (linkOtpCooldownTimerRef.current) clearInterval(linkOtpCooldownTimerRef.current);
+      linkOtpCooldownTimerRef.current = setInterval(() => {
         setLinkOtpCooldown((s) => {
-          if (s <= 1) { clearInterval(t); return 0; }
+          if (s <= 1) {
+            if (linkOtpCooldownTimerRef.current) clearInterval(linkOtpCooldownTimerRef.current);
+            linkOtpCooldownTimerRef.current = null;
+            return 0;
+          }
           return s - 1;
         });
       }, 1000);
@@ -670,7 +722,7 @@ const EditProfile = () => {
                               .eq("id", user.id)
                               .select()
                               .single();
-                            if (data) setProfile(data as ProfileData);
+                            if (data) syncProfileState(data as ProfileData);
                             localStorage.setItem(`gender_selected_${user.id}`, "true");
                             sonnerToast.success("Gender saved! This cannot be changed.");
                           }
@@ -698,7 +750,7 @@ const EditProfile = () => {
                               .eq("id", user.id)
                               .select()
                               .single();
-                            if (data) setProfile(data as ProfileData);
+                            if (data) syncProfileState(data as ProfileData);
                             localStorage.setItem(`gender_selected_${user.id}`, "true");
                             sonnerToast.success("🎉 You are now a Host! This cannot be changed.");
                           }
