@@ -209,6 +209,7 @@ const Chat = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
 
   // 🛡️ DM dedup guard: enforce one row per message id at all times. Catches
   // any race between optimistic insert, REST fetch, realtime INSERT,
@@ -239,6 +240,23 @@ const Chat = () => {
       return out.length === prev.length ? prev : out;
     });
   }, [groupMessages]);
+
+  useEffect(() => {
+    const paths = [...messages, ...groupMessages]
+      .map((m) => m.content || '')
+      .concat(pendingMedia?.url || '')
+      .filter((value) => value && !/^https?:|^blob:|^data:/i.test(value) && value.includes('/'));
+    const missing = [...new Set(paths)].filter((path) => !signedChatMediaUrls[path]);
+    if (missing.length === 0) return;
+    let cancelled = false;
+    Promise.all(missing.map(async (path) => {
+      const { data } = await supabase.storage.from('chat-media').createSignedUrl(path, 60 * 60);
+      return [path, data?.signedUrl || path] as const;
+    })).then((entries) => {
+      if (!cancelled) setSignedChatMediaUrls(prev => ({ ...prev, ...Object.fromEntries(entries) }));
+    });
+    return () => { cancelled = true; };
+  }, [messages, groupMessages, pendingMedia?.url, signedChatMediaUrls]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
