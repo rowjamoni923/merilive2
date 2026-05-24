@@ -1689,18 +1689,34 @@ const LiveStream = () => {
       ? hostTransitionPreviewStream?.getAudioTracks().find((track) => track.readyState === 'live')
       : undefined;
 
-    joinChannel({
+    const enterBeforeJoin = async () => {
+      if (!initialHostRole) {
+        const { data, error } = await supabase.rpc('enter_live_stream', {
+          p_stream_id: id,
+          p_password: null,
+        });
+        const result = data as any;
+        if (error || result?.success === false) {
+          throw new Error(error?.message || result?.reason || 'Unable to enter live stream');
+        }
+      }
+
+      return joinChannel({
       channelName,
       role: initialHostRole ? 'host' : 'audience',
       preloadedVideoTrack,
       preloadedAudioTrack,
       preloadedRoom: preloaded?.room || undefined,
-    }).then(() => {
+      });
+    };
+
+    enterBeforeJoin().then(() => {
       const elapsed = performance.now() - startTime;
       console.log(`⚡ Connected in ${elapsed.toFixed(0)}ms${preloaded ? ' (PRELOADED!)' : ''}`);
     }).catch(err => {
       console.error('Join failed:', err);
       recordClientError({ label: "LiveStream.elapsed", message: err instanceof Error ? err.message : String(err) });
+      toast.error(err instanceof Error ? err.message : 'Unable to join live stream');
       connectionInitiated.current = false;
     });
 
