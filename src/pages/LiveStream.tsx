@@ -232,6 +232,8 @@ const LiveStream = () => {
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
+  const userCoinsRef = useRef(0);
+  const pendingGiftCostRef = useRef(0);
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
   const [streamStartTime, setStreamStartTime] = useState(Date.now());
   const [streamData, setStreamData] = useState<any>(null);
@@ -239,6 +241,12 @@ const LiveStream = () => {
   
   // ✅ REAL-TIME ADMIN SETTINGS - Gift Commission from Admin Panel
   const [adminGiftCommission, setAdminGiftCommission] = useState<number>(55);
+
+  useEffect(() => {
+    if (pendingGiftCostRef.current === 0) {
+      userCoinsRef.current = userCoins;
+    }
+  }, [userCoins]);
   
   // PK Battle States
   const [showPKPanel, setShowPKPanel] = useState(false);
