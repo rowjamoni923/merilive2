@@ -1466,20 +1466,29 @@ const ProfileDetail = () => {
  <DialogContent className="max-w-sm mx-auto max-h-[80vh] bg-[#141428] border-slate-200/10">
           <DialogHeader>
  <DialogTitle className="flex items-center gap-2 text-slate-900">
-              {selectedGift?.icon.startsWith("http") ? (
-                selectedGift.icon.endsWith(".svga") ? (
-                  <UniversalFramePlayer
-                    src={selectedGift.icon}
-                    type="svga"
-                    className="w-8 h-8"
-                    loop={true}
-                  />
-                ) : (
-                  <img src={selectedGift.icon} alt={selectedGift.name} className="w-8 h-8 object-contain" />
-                )
-              ) : (
-                <span className="text-2xl">{selectedGift?.icon || '🎁'}</span>
-              )}
+              {(() => {
+                const normalized = normalizeGiftMediaUrl(selectedGift?.icon);
+                if (normalized && /\.svga(\?|$)/i.test(normalized)) {
+                  return (
+                    <UniversalFramePlayer src={normalized} type="svga" className="w-8 h-8" loop={true} />
+                  );
+                }
+                if (normalized) {
+                  return (
+                    <img
+                      src={normalized}
+                      alt={selectedGift?.name || 'Gift'}
+                      loading="lazy"
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => {
+                        const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                        if (parent) parent.innerHTML = '<span class="text-2xl">🎁</span>';
+                      }}
+                    />
+                  );
+                }
+                return <span className="text-2xl">{selectedGift?.icon || '🎁'}</span>;
+              })()}
               <span>{selectedGift?.name || "Gift"} Senders</span>
             </DialogTitle>
  <DialogDescription className="text-slate-700/75">
