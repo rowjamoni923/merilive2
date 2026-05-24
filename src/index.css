@@ -1925,9 +1925,9 @@ body[data-admin-active="true"] #root {
 }
 
 /* Legacy admin pages sometimes pin themselves with `fixed inset-0` which
-   escapes the scroll pane entirely and clips on mobile. Neutralize that
-   inside the admin shell. */
-.admin-content [class*="fixed"][class*="inset-0"] {
+   escapes the scroll pane entirely and clips on mobile. Neutralize ONLY
+   direct-child wrappers (don't break modals/overlays inside the page). */
+.admin-content > [class*="fixed"][class*="inset-0"] {
   position: relative !important;
   inset: auto !important;
 }
