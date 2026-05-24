@@ -18291,6 +18291,10 @@ export type Database = {
         Returns: Json
       }
       host_weekly_contribution: { Args: { _uid?: string }; Returns: number }
+      increment_agency_agents: {
+        Args: { agency_uuid: string }
+        Returns: undefined
+      }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_active_admin_owner_session: { Args: never; Returns: boolean }
       is_active_admin_session: { Args: never; Returns: boolean }
