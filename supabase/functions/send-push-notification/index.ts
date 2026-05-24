@@ -128,7 +128,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { userId, userIds, title, body, imageUrl, data = {}, type = 'general', target }: PushNotificationRequest = await req.json();
+    const { userId, userIds, title, body, imageUrl, data: rawData = {}, type = 'general', target }: PushNotificationRequest = await req.json();
+    const data = sanitizeFcmData(rawData);
     const shouldPersistFallback = String(data.persist_fallback ?? 'true') !== 'false';
 
     const isBroadcast = target && ['all', 'android', 'ios'].includes(target);
@@ -277,7 +278,7 @@ const handler = async (req: Request): Promise<Response> => {
                       ...(imageUrl ? { image: imageUrl } : {}),
                     },
                   }),
-                  data: {
+                  data: sanitizeFcmData({
                     ...data,
                     type: isCallType ? 'incoming_call' : type,
                     title,
@@ -292,7 +293,7 @@ const handler = async (req: Request): Promise<Response> => {
                       caller_avatar: data.caller_avatar || '',
                       call_type: data.call_type || 'video',
                     }),
-                  },
+                  }),
                   android: {
                     priority: isCallType ? 'high' : 'high',
                     ...(isCallType ? {
