@@ -606,6 +606,10 @@ function CampaignFloatingButton() {
       const localAmount = userCountryCode === 'BD' ? campaign.original_price_usd * 120 : campaign.original_price_usd;
       // ZiniPay removed — falls straight through to manual helper order below.
 
+      // Populate the dedicated provider_transaction_id column so the DB unique
+      // index blocks the same TXN ID being reused (across helpers or sessions)
+      // and the user gets a clean message instead of a Postgres 23505 string.
+      const normalizedTxnId = helperTransactionId.trim();
 
       const { error: orderError } = await supabase
         .from('helper_orders')
@@ -625,8 +629,9 @@ function CampaignFloatingButton() {
           user_country_code: userCountryCode,
           package_id: matchedPackage.id,
           user_payment_proof: helperPaymentProof,
+          provider_transaction_id: normalizedTxnId || null,
           payment_details: {
-            transaction_id: helperTransactionId,
+            transaction_id: normalizedTxnId,
             method_type: currentMethod.method_type,
             account_name: currentMethod.account_name,
             account_number: currentMethod.account_number,
@@ -635,7 +640,13 @@ function CampaignFloatingButton() {
           status: 'pending',
         });
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        const isDup = String((orderError as any)?.code) === '23505' || /duplicate key/i.test(orderError.message || '');
+        if (isDup) {
+          throw new Error('This transaction ID has already been used. Each payment receipt can only be submitted once.');
+        }
+        throw orderError;
+      }
 
       localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
       sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
