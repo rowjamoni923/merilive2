@@ -1197,6 +1197,7 @@ const LiveStream = () => {
       console.log('[LiveStream] ⚡ Pkg76 livekit-gift-sent received:', data.giftName, 'from', data.senderName);
 
       addFlyingGift({
+        senderId: data.senderId,
         senderName: data.senderName || 'User',
         senderAvatar: data.senderAvatar || undefined,
         giftName: data.giftName,
@@ -1352,16 +1353,16 @@ const LiveStream = () => {
     const reconcile = async () => {
       const { data } = await supabase
         .from('gift_transactions')
-        .select('coin_amount')
+        .select('coin_amount, receiver_beans')
         .eq('stream_id', id)
         .eq('receiver_id', streamData.host_id);
       if (!data || !mountedRef.current) return;
-      const totalFromDb = data.reduce((s: number, tx: any) => s + (tx.coin_amount || 0), 0);
+      const totalFromDb = data.reduce((s: number, tx: any) => s + Number(tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * adminGiftCommission / 100)), 0);
       setTotalBeans((prev) => (totalFromDb > prev ? totalFromDb : prev));
     };
     const timer = setInterval(reconcile, 30000); // safety-net poll: 30s (Pkg57 floor)
     return () => clearInterval(timer);
-  }, [id, isHost, streamData?.host_id]);
+  }, [id, isHost, streamData?.host_id, adminGiftCommission]);
 
 
   // State for stream ended modal (for viewers)

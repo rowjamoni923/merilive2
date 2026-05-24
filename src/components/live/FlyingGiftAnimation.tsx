@@ -7,6 +7,7 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
 export interface FlyingGift {
   id: string;
+  senderId?: string;
   senderName: string;
   senderAvatar?: string;
   receiverName?: string;

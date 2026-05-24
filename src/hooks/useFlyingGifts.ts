@@ -20,11 +20,13 @@ type ComboTrack = {
 
 export function useFlyingGifts() {
   const [gifts, setGifts] = useState<FlyingGift[]>([]);
-  // sender|gift -> active banner id and expiry
+  // sender|gift -> active banner id and expiry. Prefer stable senderId;
+  // display names are not unique, so name-only merging can incorrectly combine
+  // two different users who send the same gift within the combo window.
   const comboRef = useRef<Map<string, ComboTrack>>(new Map());
 
   const addGift = useCallback((gift: Omit<FlyingGift, 'id'>) => {
-    const senderKey = `${gift.senderName}__${gift.giftName}__${gift.coins}`;
+    const senderKey = `${gift.senderId || gift.senderName}__${gift.giftName}__${gift.coins}`;
     const now = Date.now();
     const existing = comboRef.current.get(senderKey);
 
