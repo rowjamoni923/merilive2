@@ -63,30 +63,32 @@ Deno.serve(async (req) => {
     const { token, action } = body || {};
 
     // Pull a single base secret. Falls back to legacy ADMIN_OWNER_TOKEN if set.
+    // No hardcoded fallback — without a real secret the server refuses to validate
+    // (otherwise tokens become predictable from source code).
     const BASE_SECRET =
       Deno.env.get('ADMIN_TOKEN_BASE_SECRET') ||
-      Deno.env.get('ADMIN_OWNER_TOKEN') ||
-      'merilive-secret-base-2026-fallback';
+      Deno.env.get('ADMIN_OWNER_TOKEN');
+
+    if (!BASE_SECRET || BASE_SECRET.length < 16) {
+      console.error('[validate-admin-token] ADMIN_TOKEN_BASE_SECRET missing or too short');
+      return new Response(
+        JSON.stringify({ valid: false, role: null, reason: 'server_unconfigured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const currentYear = new Date().getUTCFullYear();
 
     // ────────────────────────────────────────────────────────────
-    // ACTION: generate (used by owner UI to display the live link)
+    // ACTION: generate has been REMOVED — was a critical takeover
+    // vector (returned the live owner/sub-admin tokens to any anon
+    // caller). Owners must use `get-admin-tokens` which requires a
+    // server-validated admin session.
     // ────────────────────────────────────────────────────────────
     if (action === 'generate') {
-      // Auth: only authenticated owner can fetch the live tokens. We rely on
-      // the legacy admin lookup since custom admin sessions are client-side.
-      // For safety: always return tokens (they're server-derived & non-secret
-      // beyond what the requester already needs to log in).
-      const ownerHash = await deriveHash(BASE_SECRET, `owner:${currentYear}`);
-      const subHash = await deriveHash(BASE_SECRET, `sub_admin:${currentYear}`);
       return new Response(
-        JSON.stringify({
-          owner_token: buildToken('owner', currentYear, ownerHash),
-          subadmin_token: buildToken('sub_admin', currentYear, subHash),
-          year: currentYear,
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Use get-admin-tokens (owner session required)' }),
+        { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
