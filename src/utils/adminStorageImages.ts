@@ -232,12 +232,10 @@ const shouldDownloadPrivateImageFirst = (storagePath: AdminStoragePath) => {
   if (storagePath.bucket !== 'face-verification' && storagePath.bucket !== 'host-verification') return false;
   const lower = storagePath.path.toLowerCase();
   if (lower.includes('/face-videos/') || lower.includes('/videos/') || lower.includes('/video/') || lower.includes('/liveness/')) return false;
-  return lower.includes('/face-angles/')
-    || lower.includes('/host-photos/')
-    || lower.includes('/photos/')
-    || lower.includes('/profile/')
-    || lower.includes('/selfie')
-    || /\.(jpg|jpeg|png|webp|gif|avif|heic|heif)(?:$|[?#])/i.test(lower);
+  const imageLikeFolder = lower.includes('/face-angles/') || lower.includes('/host-photos/') || lower.includes('/photos/') || lower.includes('/profile/') || lower.includes('/selfie');
+  const hasImageExt = /\.(jpg|jpeg|png|webp|gif|avif|heic|heif)(?:$|[?#])/i.test(lower);
+  const hasVideoExt = /\.(mp4|m4v|mov|qt|webm|ogg|ogv|avi|mkv|3gp|3gpp|3g2)(?:$|[?#])/i.test(lower);
+  return imageLikeFolder && !hasImageExt && hasVideoExt;
 };
 
 const shouldStreamSignedStoragePath = (_storagePath: AdminStoragePath) => {
@@ -414,6 +412,9 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
     // Public verification buckets → direct public URL, no signing, no probe.
     const publicUrl = await resolvePublicVerificationUrl(candidate, raw, defaultBucket);
     if (publicUrl) return publicUrl;
+
+    const objectUrl = shouldDownloadPrivateImageFirst(candidate) ? await downloadAdminStoragePathAsObjectUrl(candidate) : null;
+    if (objectUrl) return objectUrl;
 
     // Private buckets still go through the admin signer.
     const signed = await signAdminStoragePath(candidate);
