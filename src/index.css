@@ -3418,6 +3418,13 @@ html, body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
+body[data-admin-active="true"],
+body[data-admin-active="true"] #root,
+body[data-admin-active="true"] .admin-shell,
+body[data-admin-active="true"] .admin-content {
+  touch-action: pan-y pinch-zoom !important;
+}
 a, img, button {
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
