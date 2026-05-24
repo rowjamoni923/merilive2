@@ -107,45 +107,5 @@ export const useDebouncedSearch = <T>(
   };
 };
 
-/**
- * A simplified hook for UID-based user search with exact match priority.
- * This is optimized for the admin panel search patterns.
- */
-export const useAdminUserSearch = (delay: number = 300) => {
-  return useDebouncedSearch(async (query: string) => {
-    const { supabase } = await import("@/integrations/supabase/client");
-    
-    // First try exact match on app_uid
-    const { data: exactMatch, error: exactError } = await supabase
-      .from('profiles')
-      .select('id, display_name, avatar_url, app_uid, coins, is_host, is_verified, is_blocked')
-      .eq('app_uid', query)
-      .limit(1);
-    
-    if (!exactError && exactMatch && exactMatch.length > 0) {
-      return exactMatch;
-    }
-    
-    // Try partial match on app_uid
-    const { data: uidMatch } = await supabase
-      .from('profiles')
-      .select('id, display_name, avatar_url, app_uid, coins, is_host, is_verified, is_blocked')
-      .ilike('app_uid', `%${query}%`)
-      .limit(10);
-    
-    if (uidMatch && uidMatch.length > 0) {
-      return uidMatch;
-    }
-    
-    // Finally try name search
-    const { data: nameMatch } = await supabase
-      .from('profiles')
-      .select('id, display_name, avatar_url, app_uid, coins, is_host, is_verified, is_blocked')
-      .ilike('display_name', `%${query}%`)
-      .limit(10);
-    
-    return nameMatch || [];
-  }, delay);
-};
-
 export default useDebouncedSearch;
+
