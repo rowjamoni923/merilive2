@@ -17,6 +17,7 @@ const json = (body: unknown, status: number) => new Response(JSON.stringify(body
 
 const hasKey = (value: unknown, key: string) => typeof value === "string" && value.includes(key);
 const arrayHasKey = (value: unknown, key: string) => Array.isArray(value) && value.some((item) => hasKey(item, key));
+const PUBLIC_MEDIA_KEY_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[A-Za-z0-9._~%+\-/ ]+\.(?:jpg|jpeg|png|webp|gif|avif|mp4|webm|mov)$/i;
 
 const isPublishedProfileMedia = async (key: string): Promise<boolean> => {
   const { data: rpcAllowed, error: rpcError } = await admin.rpc("is_public_profile_media_key", { _key: key });
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
     const idx = url.pathname.indexOf("/public-profile-avatar/");
     if (idx === -1) return new Response("Not Found", { status: 404, headers: corsHeaders });
     const key = decodeURIComponent(url.pathname.slice(idx + "/public-profile-avatar/".length));
-    if (!key || key.includes("..")) {
+    if (!key || key.includes("..") || !PUBLIC_MEDIA_KEY_PATTERN.test(key)) {
       return new Response("Bad key", { status: 400, headers: corsHeaders });
     }
 
