@@ -39,6 +39,7 @@ interface PaymentGateway {
   gateway_code: string;
   description: string;
   logo_url: string | null;
+  country_codes: string[];
   supported_currencies: string[];
   fee_percentage: number;
   fee_fixed: number;
@@ -1512,6 +1513,7 @@ const Recharge = () => {
         gateway_code: g.gateway_type,
         description: (g.config as any)?.description || '',
         logo_url: g.logo_url || (g.config as any)?.logo_url || null,
+        country_codes: Array.isArray(g.country_codes) ? g.country_codes : [],
         supported_currencies: g.supported_currencies || [],
         fee_percentage: Number((g.config as any)?.fee_percentage) || 0,
         fee_fixed: Number((g.config as any)?.fee_fixed) || 0,
@@ -1684,6 +1686,61 @@ const Recharge = () => {
       toast({
         title: "Purchase Error",
         description: error.message || "An error occurred during purchase",
+        variant: "destructive"
+      });
+    } finally {
+      setPlayStoreProcessing(false);
+      playStorePurchaseRef.current = false;
+    }
+  };
+
+  const purchasePlayStorePackage = async (pkg: typeof selectedPackage) => {
+    if (playStorePurchaseRef.current) {
+      console.warn('[Recharge] Play Store purchase already in flight — ignoring duplicate package tap');
+      return;
+    }
+    if (!pkg || !userId) {
+      toast({
+        title: "Product Not Available",
+        description: "This package is not available for Play Store purchase",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const productId = playStoreBilling.getProductIdForCoins(pkg.coins);
+    if (!productId) {
+      toast({
+        title: "Product Not Available",
+        description: "This package is not available for Play Store purchase",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    playStorePurchaseRef.current = true;
+    setPlayStoreProcessing(true);
+    try {
+      const result = await playStoreBilling.purchase(productId, userId);
+      if (result.success) {
+        await fetchUserData();
+        toast({
+          title: "🎉 Purchase Successful!",
+          description: `${formatNumber(pkg.coins)} diamonds added to your account`,
+        });
+      } else {
+        toast({
+          title: "Purchase Failed",
+          description: result.error || "Could not complete purchase. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (err: any) {
+      console.error('[Recharge] Play Store purchase error:', err);
+      recordClientError({ label: "Recharge.packagePlayStorePurchase", message: err instanceof Error ? err.message : String(err) });
+      toast({
+        title: "Purchase Error",
+        description: err?.message || "An error occurred during purchase",
         variant: "destructive"
       });
     } finally {
@@ -3202,43 +3259,8 @@ const Recharge = () => {
                   if (selectedPaymentMethod === 'playstore') {
                       const isAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
                       if (isPlayStoreAvailable || isAndroid) {
-                      // For Play Store, directly initiate purchase
-                      setPlayStoreProcessing(true);
-                      const productId = playStoreBilling.getProductIdForCoins(pkg.coins);
-                      if (productId && userId) {
-                        playStoreBilling.purchase(productId, userId).then(result => {
-                          if (result.success) {
-                            fetchUserData();
-                            toast({
-                              title: "🎉 Purchase Successful!",
-                              description: `${formatNumber(pkg.coins)} diamonds added to your account`,
-                            });
-                          } else {
-                            toast({
-                              title: "Purchase Failed",
-                              description: result.error || "Could not complete purchase. Please try again.",
-                              variant: "destructive"
-                            });
-                          }
-                          setPlayStoreProcessing(false);
-                        }).catch(err => {
-                          console.error('[Recharge] Play Store purchase error:', err);
-                          recordClientError({ label: "Recharge.productId", message: err instanceof Error ? err.message : String(err) });
-                          toast({
-                            title: "Purchase Error",
-                            description: err.message || "An error occurred during purchase",
-                            variant: "destructive"
-                          });
-                          setPlayStoreProcessing(false);
-                        });
-                      } else {
-                        toast({
-                          title: "Product Not Available",
-                          description: "This package is not available for Play Store purchase",
-                          variant: "destructive"
-                        });
-                        setPlayStoreProcessing(false);
-                      }
+                      // For Play Store, directly initiate purchase through the same guarded path
+                      purchasePlayStorePackage(pkg);
                     } else {
                       // Play Store not available - show appropriate message
                       if (isAndroid) {

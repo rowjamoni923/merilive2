@@ -6,6 +6,38 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const ALLOWED_RETURN_ORIGINS = new Set([
+  "https://merilive.top",
+  "https://merilive2.lovable.app",
+  "https://id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b.lovable.app",
+]);
+
+function normalizeReturnOrigin(raw: unknown): string {
+  try {
+    const origin = new URL(String(raw || "")).origin;
+    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : "https://merilive.top";
+  } catch {
+    return "https://merilive.top";
+  }
+}
+
+function asMoney(value: unknown): number | null {
+  const n = Number(String(value ?? "").replace(/,/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+function assertSamePayment(order: any, bodyFields: { userId?: string; totalCoins?: number; paymentMethodId?: string; txnId?: string; amount?: unknown; currency?: string }) {
+  const details = (order.payment_details || {}) as Record<string, unknown>;
+  if (bodyFields.userId && bodyFields.userId !== order.user_id) throw new Error("IPN user mismatch");
+  if (bodyFields.paymentMethodId && bodyFields.paymentMethodId !== details.payment_method_id) throw new Error("IPN payment method mismatch");
+  if (bodyFields.txnId && details.txn_id && bodyFields.txnId !== details.txn_id) throw new Error("IPN transaction mismatch");
+  if (bodyFields.totalCoins && Number(order.coin_amount || 0) !== bodyFields.totalCoins) throw new Error("IPN coin amount mismatch");
+
+  const paidAmount = asMoney(bodyFields.amount);
+  if (paidAmount !== null && Math.abs(paidAmount - Number(order.amount_local || 0)) > 0.01) throw new Error("IPN amount mismatch");
+  if (bodyFields.currency && String(bodyFields.currency).toUpperCase() !== String(order.currency_code || "").toUpperCase()) throw new Error("IPN currency mismatch");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -141,6 +173,54 @@ serve(async (req) => {
 
       console.log(`[IPN] AamarPay: status=${status}, txn=${txnId}, order=${orderId}`);
 
+      // 🛡️ REQUIRED: verify AamarPay status against their transaction-check API.
+      if (status === "VALID" && txnId) {
+        const { data: pm } = await supabaseAdmin
+          .from("helper_country_payment_methods")
+          .select("additional_info")
+          .eq("id", paymentMethodId)
+          .single();
+
+        const gatewayInfo = pm?.additional_info as any;
+        if (gatewayInfo?.store_id && gatewayInfo?.signature_key) {
+          const isSandbox = gatewayInfo.is_sandbox ?? false;
+          const checkBase = isSandbox
+            ? "https://sandbox.aamarpay.com/api/v1/trxcheck/request.php"
+            : "https://secure.aamarpay.com/api/v1/trxcheck/request.php";
+          const checkUrl = `${checkBase}?request_id=${encodeURIComponent(txnId)}&store_id=${encodeURIComponent(gatewayInfo.store_id)}&signature_key=${encodeURIComponent(gatewayInfo.signature_key)}&type=json`;
+          const checkRes = await fetch(checkUrl);
+          const checkData = await checkRes.json();
+          const verified = checkData?.pay_status === "Successful" || String(checkData?.status_code || "") === "2";
+          if (!verified) {
+            console.error("[IPN] AamarPay validation FAILED:", checkData);
+            status = "FAILED";
+            await supabaseAdmin.from("payment_reconciliation_log").insert({
+              event_type: "credit_failed",
+              gateway: "aamarpay",
+              user_id: userId,
+              order_id: orderId,
+              transaction_id: txnId,
+              amount_coins: totalCoins,
+              metadata: { reason: "AamarPay API validation failed", check_response: checkData },
+            });
+          } else {
+            validationData = { ...validationData, gateway_validation: checkData };
+          }
+        } else {
+          console.error("[IPN] AamarPay: No gateway credentials for payment method:", paymentMethodId);
+          status = "FAILED";
+          await supabaseAdmin.from("payment_reconciliation_log").insert({
+            event_type: "credit_failed",
+            gateway: "aamarpay",
+            user_id: userId,
+            order_id: orderId,
+            transaction_id: txnId,
+            amount_coins: totalCoins,
+            metadata: { reason: "Gateway credentials not found for AamarPay verification" },
+          });
+        }
+      }
+
     } else {
       throw new Error("Unknown IPN format");
     }
@@ -158,12 +238,21 @@ serve(async (req) => {
       console.error("[IPN] Order not found:", orderId);
       throw new Error("Order not found");
     }
+    const returnOrigin = normalizeReturnOrigin((order.payment_details as any)?.origin_url);
+    assertSamePayment(order, {
+      userId,
+      totalCoins,
+      paymentMethodId,
+      txnId,
+      amount: validationData.amount,
+      currency: validationData.currency,
+    });
 
     if (order.status !== "gateway_pending") {
       console.log(`[IPN] Order ${orderId} already processed (status: ${order.status})`);
       const redirectUrl = status === "VALID"
-        ? `https://merilive.lovable.app/payment-success?order_id=${orderId}&gateway=${gatewayType}`
-        : `https://merilive.lovable.app/recharge?payment=failed`;
+        ? `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}`
+        : `${returnOrigin}/recharge?payment=failed`;
       return Response.redirect(redirectUrl, 302);
     }
 
@@ -188,10 +277,23 @@ serve(async (req) => {
 
       const result = creditResult as any;
 
-      if (result?.error === "duplicate") {
+      if (result?.error === "duplicate" || result?.already_credited === true) {
         console.log(`[IPN] Duplicate credit blocked for order ${orderId}`);
+        await supabaseAdmin
+          .from("helper_orders")
+          .update({
+            status: "completed",
+            processed_at: new Date().toISOString(),
+            payment_details: {
+              ...(order.payment_details as any),
+              ipn_status: status,
+              duplicate_credit_blocked: true,
+              ...validationData,
+            },
+          })
+          .eq("id", orderId);
         return Response.redirect(
-          `https://merilive.lovable.app/payment-success?order_id=${orderId}&gateway=${gatewayType}&already=true`,
+          `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&already=true`,
           302
         );
       }
@@ -274,7 +376,7 @@ serve(async (req) => {
       console.log(`[IPN] ✅ SUCCESS: ${totalCoins} diamonds → user ${userId} (${result.balance_before} → ${result.balance_after})`);
 
       return Response.redirect(
-        `https://merilive.lovable.app/payment-success?order_id=${orderId}&gateway=${gatewayType}&coins=${totalCoins}`,
+        `${returnOrigin}/payment-success?order_id=${orderId}&gateway=${gatewayType}&coins=${totalCoins}`,
         302
       );
 
@@ -295,7 +397,7 @@ serve(async (req) => {
         .eq("id", orderId);
 
       return Response.redirect(
-        `https://merilive.lovable.app/recharge?payment=failed&order_id=${orderId}`,
+        `${returnOrigin}/recharge?payment=failed&order_id=${orderId}`,
         302
       );
     }
