@@ -102,15 +102,17 @@ const ADMIN_COUNTRY_OPTIONS: { code: string; name: string }[] = [
 interface Transaction {
   id: string;
   user_id: string;
-  gateway_id: string;
+  gateway_id: string | null;
   transaction_ref: string | null;
-  amount_usd: number;
-  amount_local: number;
-  currency_code: string;
-  coins_to_receive: number;
+  amount: number;
+  amount_usd: number | null;
+  currency: string | null;
+  diamonds_amount: number | null;
+  external_transaction_id: string | null;
+  payment_method: string | null;
   status: string | null;
   created_at: string | null;
-  completed_at: string | null;
+  updated_at: string | null;
   gateway?: {
     id: string;
     name: string;
