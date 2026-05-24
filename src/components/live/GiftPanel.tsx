@@ -62,7 +62,11 @@ interface GiftPanelProps {
   userCoins?: number; // Optional - will fetch from DB if not provided
 }
 
-const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)$/i;
+// Pkg306 audit: accept URLs with query strings (cache-busters, signed Supabase URLs).
+// Previously `/\.(svga|json)$/i` mis-routed SVGA gifts with `?token=` into the <img> branch.
+const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
+const VIDEO_OR_GIF_PATTERN = /\.(mp4|webm|gif)(\?|$)/i;
+const GIF_PATTERN = /\.gif(\?|$)/i;
 
 const getAssetPathWithoutQuery = (url?: string | null) =>
   url?.split('?')[0] ?? '';
@@ -106,6 +110,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const comboDeadlineRef = useRef<number>(0);
   const COMBO_WINDOW_MS = 3000;
   const containerRef = useRef<HTMLDivElement>(null);
+  // Pkg306 audit: synchronous balance mirror so rapid combo taps cannot overdraw
+  // between renders. Closure `userCoins` lags by one render in combo bursts.
+  const userCoinsRef = useRef<number>(propUserCoins || 0);
 
   // Animation state for panel open/close (CSS-based for performance)
   useEffect(() => {
@@ -300,29 +307,35 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     }
   }, [selectedGift, resetCombo]);
 
+  // Keep ref in sync with userCoins (mirror, not state-source).
+  useEffect(() => { userCoinsRef.current = userCoins; }, [userCoins]);
+
   // Combo-aware send: each tap fires the currently-selected `count` and bumps combo.
   // Optimistically deduct the cost from local balance so that rapid combo taps
   // can't overdraw — the real balance reconciles via subscribeToBalance.
+  // Guard via ref so back-to-back taps within one render still see deducted balance.
   const handleSend = useCallback(() => {
     if (!selectedGift) return;
     const cost = selectedGift.coins * count;
-    if (userCoins < cost) return;
+    if (userCoinsRef.current < cost) return;
+    userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
     onSendGift(selectedGift, count);
-    setUserCoins((prev) => Math.max(0, prev - cost));
+    setUserCoins(userCoinsRef.current);
     setComboCount(prev => prev + count);
     startComboTimer();
-  }, [selectedGift, userCoins, count, onSendGift, startComboTimer]);
+  }, [selectedGift, count, onSendGift, startComboTimer]);
 
   const handleQuickSend = useCallback((quickCount: number) => {
     if (!selectedGift) return;
     const cost = selectedGift.coins * quickCount;
-    if (userCoins < cost) return;
+    if (userCoinsRef.current < cost) return;
+    userCoinsRef.current = Math.max(0, userCoinsRef.current - cost);
     setCount(quickCount);
     onSendGift(selectedGift, quickCount);
-    setUserCoins((prev) => Math.max(0, prev - cost));
+    setUserCoins(userCoinsRef.current);
     setComboCount(prev => prev + quickCount);
     startComboTimer();
-  }, [selectedGift, userCoins, onSendGift, startComboTimer]);
+  }, [selectedGift, onSendGift, startComboTimer]);
 
 
   // Reset combo on close / category switch / unmount
@@ -363,7 +376,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
 
   const isVideoOrGif = useCallback((url: string | null) => {
     if (!url) return false;
-    return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.gif');
+    return VIDEO_OR_GIF_PATTERN.test(url);
   }, []);
 
   const hasBalance = selectedGift ? userCoins >= selectedGift.coins * count : false;
@@ -551,7 +564,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
                   {selectedGift.animation_url && isVideoOrGif(selectedGift.animation_url) ? (
-                    selectedGift.animation_url.endsWith('.gif') ? (
+                    GIF_PATTERN.test(selectedGift.animation_url) ? (
                       <img src={selectedGift.animation_url} alt={selectedGift.name} className="w-full h-full object-cover" />
                     ) : (
                       <video 
@@ -570,7 +583,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                     )
                   ) : selectedGift.animation_url && HEAVY_ANIMATION_ASSET_PATTERN.test(selectedGift.animation_url) ? (
                     <Suspense fallback={<div className="w-6 h-6 rounded-full bg-white/10 animate-pulse" />}>
-                      {selectedGift.animation_url.toLowerCase().endsWith('.svga') ? (
+                      {/\.svga(\?|$)/i.test(selectedGift.animation_url) ? (
                         <SVGAPlayer
                           src={selectedGift.animation_url}
                           className="w-6 h-6"

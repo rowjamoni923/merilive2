@@ -106,8 +106,14 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   };
 
   // Load Lottie JSON data
+  // Pkg306 audit: drop onLoad/onError from deps — unstable callbacks made
+  // the fetch retrigger on every parent render, hammering Lottie URLs.
+  const onLoadRef = useRef(onLoad);
+  const onErrorRef = useRef(onError);
+  useEffect(() => { onLoadRef.current = onLoad; onErrorRef.current = onError; }, [onLoad, onError]);
   useEffect(() => {
     if (animationType === 'lottie' && src) {
+      let cancelled = false;
       setLottieLoading(true);
       setHasError(false);
       fetch(src)
@@ -116,18 +122,21 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           return res.json();
         })
         .then(data => {
+          if (cancelled) return;
           setLottieData(data);
           setLottieLoading(false);
-          onLoad?.();
+          onLoadRef.current?.();
         })
         .catch(err => {
+          if (cancelled) return;
           console.error('[UniversalAnimationPlayer] Failed to load Lottie:', err);
           setLottieLoading(false);
           setHasError(true);
-          onError?.(err);
+          onErrorRef.current?.(err);
         });
+      return () => { cancelled = true; };
     }
-  }, [src, animationType, onLoad, onError]);
+  }, [src, animationType]);
 
   // Error fallback
   if (hasError) {
