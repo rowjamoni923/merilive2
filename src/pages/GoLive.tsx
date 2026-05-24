@@ -921,26 +921,27 @@ const GoLive = () => {
         ]);
       }
 
-      // Create live stream record and prefetch LiveKit token IN PARALLEL for instant connection
+      // Create live stream record through the server RPC so title moderation,
+      // host eligibility, one-active-stream cleanup, privacy defaults, and
+      // server-managed counters all stay in one DB-controlled path.
       const streamTitle = title.trim() || `${userProfile?.display_name || 'User'}'s Live`;
-      
-      // Start creating stream record
-      const createStreamPromise = supabase
-        .from("live_streams")
-        .insert({
-          host_id: user.id,
-          title: streamTitle,
-          is_active: true,
-          started_at: new Date().toISOString(),
-          viewer_count: 0,
-          total_coins_earned: 0
-        })
-        .select()
-        .single();
 
-      // Wait for stream creation (we need the ID for navigation)
-      const { data: liveStream, error } = await createStreamPromise;
+      const { data: startResult, error } = await supabase.rpc('start_live_stream', {
+        p_title: streamTitle,
+        p_thumbnail_url: null,
+        p_display_name: userProfile?.display_name || 'User',
+        p_category_id: null,
+        p_live_privacy: 'public',
+        p_password: null,
+      });
       if (error) throw error;
+
+      const parsedStart = startResult as any;
+      if (!parsedStart?.success || !parsedStart?.stream?.id) {
+        throw new Error(parsedStart?.reason || parsedStart?.error || 'Failed to start live stream');
+      }
+
+      const liveStream = parsedStart.stream;
 
       // Track first live task progress (non-blocking)
       trackTaskProgress('first_live');
