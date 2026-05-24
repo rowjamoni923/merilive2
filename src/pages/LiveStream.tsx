@@ -812,17 +812,21 @@ const LiveStream = () => {
       // Process user profile
       if (userProfileRes.data && mountedRef.current) {
         const profile = userProfileRes.data;
+        const profileCoins = profile.coins || 0;
         setCurrentUser({
           gender: profile.gender || "male",
           id: cachedUser!.id,
-          coins: profile.coins || 0,
+          coins: profileCoins,
           is_host: profile.is_host === true,
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           user_level: profile.user_level || 1,
           country_flag: profile.country_flag,
         });
-        setUserCoins(profile.coins || 0);
+        if (pendingGiftCostRef.current === 0) {
+          userCoinsRef.current = profileCoins;
+          setUserCoins(profileCoins);
+        }
       }
       
       // Process stream data
