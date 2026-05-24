@@ -110,6 +110,9 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const comboDeadlineRef = useRef<number>(0);
   const COMBO_WINDOW_MS = 3000;
   const containerRef = useRef<HTMLDivElement>(null);
+  // Pkg306 audit: synchronous balance mirror so rapid combo taps cannot overdraw
+  // between renders. Closure `userCoins` lags by one render in combo bursts.
+  const userCoinsRef = useRef<number>(propUserCoins || 0);
 
   // Animation state for panel open/close (CSS-based for performance)
   useEffect(() => {
