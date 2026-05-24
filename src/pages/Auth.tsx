@@ -370,41 +370,23 @@ const Auth = () => {
       if (!inviterRef) return;
       localStorage.removeItem("meri_pending_invitation_ref");
 
-      // Look up inviter by app_uid
-      const { data: inviter } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('app_uid', inviterRef)
-        .maybeSingle();
-
-      if (!inviter || inviter.id === newUserId) return; // Don't self-invite
-
-      // Check if already tracked
-      const { data: existing } = await supabase
-        .from('user_invitations')
-        .select('id')
-        .eq('inviter_id', inviter.id)
-        .eq('invitee_id', newUserId)
-        .maybeSingle();
-
-      if (existing) return; // Already tracked
-
-      // Insert invitation record
-      await supabase
-        .from('user_invitations')
-        .insert({
-          inviter_id: inviter.id,
-          invitee_id: newUserId,
-          invitation_code: inviterRef,
-          status: 'verified',
-        });
-
-      console.log('[Invitation] Tracked: inviter', inviter.id, '-> new user', newUserId);
+      // Pkg317: server-side attribution (RLS no longer allows direct invitee insert)
+      const { data, error } = await supabase.rpc('record_invitation', {
+        _inviter_app_uid: inviterRef,
+      } as any);
+      if (error) throw error;
+      const result = data as any;
+      if (!result?.success) {
+        console.log('[Invitation] Not recorded:', result?.error);
+        return;
+      }
+      console.log('[Invitation] Tracked for new user', newUserId);
     } catch (error) {
       console.error('[Invitation] Error tracking invitation:', error);
       recordClientError({ label: "Auth.inviterRef", message: error instanceof Error ? error.message : String(error) });
     }
   };
+
 
   // Load device account and last user from localStorage
   useEffect(() => {

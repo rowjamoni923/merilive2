@@ -140,41 +140,21 @@ const AuthCallback = () => {
                   });
               }
 
-              // Handle invitation tracking
+              // Handle invitation tracking (Pkg317: server-side RPC)
               const inviterRef = localStorage.getItem("meri_pending_invitation_ref");
               if (inviterRef) {
                 localStorage.removeItem("meri_pending_invitation_ref");
                 try {
-                  const { data: inviter } = await supabase
-                    .from('profiles')
-                    .select('id')
-                    .eq('app_uid', inviterRef)
-                    .maybeSingle();
-
-                  if (inviter && inviter.id !== session.user.id) {
-                    const { data: existingInvite } = await supabase
-                      .from('user_invitations')
-                      .select('id')
-                      .eq('inviter_id', inviter.id)
-                      .eq('invited_user_id', session.user.id)
-                      .maybeSingle();
-
-                    if (!existingInvite) {
-                      await supabase.from('user_invitations').insert({
-                        inviter_id: inviter.id,
-                        invited_user_id: session.user.id,
-                        invitation_code: inviterRef,
-                        status: 'verified',
-                        verified_at: new Date().toISOString(),
-                      });
-                      console.log('[AuthCallback] Invitation tracked:', inviter.id, '->', session.user.id);
-                    }
-                  }
+                  const { data: invRes } = await supabase.rpc('record_invitation', {
+                    _inviter_app_uid: inviterRef,
+                  } as any);
+                  console.log('[AuthCallback] Invitation result:', invRes);
                 } catch (invErr) {
                   console.error('[AuthCallback] Error tracking invitation:', invErr);
                   recordClientError({ label: "AuthCallback.inviterRef", message: invErr instanceof Error ? invErr.message : String(invErr) });
                 }
               }
+
 
               // Handle agency referral
               const pendingReferral = localStorage.getItem("meri_pending_referral");

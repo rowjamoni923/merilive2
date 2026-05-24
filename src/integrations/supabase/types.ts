@@ -18907,6 +18907,7 @@ export type Database = {
       }
       recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
       record_host_live_minute: { Args: { _host_id: string }; Returns: Json }
+      record_invitation: { Args: { _inviter_app_uid: string }; Returns: Json }
       record_live_violation: {
         Args: {
           p_auto_detected?: boolean
