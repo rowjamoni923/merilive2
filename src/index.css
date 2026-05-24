@@ -1988,7 +1988,7 @@ body[data-admin-active="true"] #root {
 .admin-shell .overflow-y-scroll,
 .admin-shell .overflow-auto,
 .admin-shell .overflow-scroll {
-  touch-action: pan-y !important;
+  touch-action: pan-y pinch-zoom !important;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
@@ -2200,7 +2200,7 @@ body[data-admin-active="true"] #root {
 .admin-content [role="option"],
 .admin-content [role="menuitem"],
 .admin-content [data-radix-collection-item] {
-  touch-action: manipulation;
+  touch-action: manipulation !important;
   -webkit-tap-highlight-color: transparent;
 }
 
