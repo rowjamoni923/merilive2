@@ -13,8 +13,7 @@ import {
   Mic,
   Search,
   Sparkles,
-  RefreshCw,
-  Globe
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,7 +72,6 @@ const Discover = () => {
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { checkFeatureAccess } = useFeatureLevelCheck();
 
@@ -85,7 +83,7 @@ const Discover = () => {
     fetchTimeoutRef.current = setTimeout(() => {
       fetchRooms(false);
     }, 100);
-  }, []);
+  }, [fetchRooms]);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -181,7 +179,6 @@ const Discover = () => {
       if (activeRoomIds.size === 0) {
         setRooms([]);
         setLoading(false);
-        setLastUpdate(new Date());
         return;
       }
 
@@ -231,7 +228,6 @@ const Discover = () => {
 
       setRooms(visibleRooms);
       setSessionCache('discover-rooms', visibleRooms);
-      setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching rooms:', error);
       recordClientError({ label: "Discover.visibleRooms", message: error instanceof Error ? error.message : String(error) });
