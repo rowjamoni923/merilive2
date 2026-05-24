@@ -198,15 +198,21 @@ const Settings = () => {
           try {
             const camPerm = await navigator.permissions.query({ name: 'camera' as PermissionName });
             nextPermissions.camera = camPerm.state === 'granted';
-          } catch {}
+          } catch (error) {
+            console.warn('[Settings] Camera permission status unavailable:', error);
+          }
           try {
             const micPerm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
             nextPermissions.microphone = micPerm.state === 'granted';
-          } catch {}
+          } catch (error) {
+            console.warn('[Settings] Microphone permission status unavailable:', error);
+          }
           try {
             const locPerm = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
             nextPermissions.location = locPerm.state === 'granted';
-          } catch {}
+          } catch (error) {
+            console.warn('[Settings] Location permission status unavailable:', error);
+          }
         }
       }
 
@@ -452,11 +458,12 @@ const Settings = () => {
       stream.getTracks().forEach(track => track.stop());
       updatePermissions({ camera: true });
       toast({ title: "Camera Enabled", description: "Camera access has been granted." });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Camera permission error:', error);
       recordClientError({ label: "Settings.stream", message: error instanceof Error ? error.message : String(error) });
-      const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
-      const notFound = error?.name === 'NotFoundError';
+      const errorName = getErrorName(error);
+      const denied = errorName === 'NotAllowedError' || errorName === 'SecurityError';
+      const notFound = errorName === 'NotFoundError';
       if (notFound) {
         toast({ title: "No Camera Found", description: "No camera device detected on this device.", variant: "destructive" });
       } else if (denied) {
@@ -501,7 +508,9 @@ const Settings = () => {
           });
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.warn('[Settings] Microphone permission precheck unavailable:', error);
+      }
     }
 
     try {
@@ -524,10 +533,11 @@ const Settings = () => {
       stream.getTracks().forEach(track => track.stop());
       updatePermissions({ microphone: true });
       toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Microphone permission error:', error);
       recordClientError({ label: "Settings.stream", message: error instanceof Error ? error.message : String(error) });
-      const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
+      const errorName = getErrorName(error);
+      const denied = errorName === 'NotAllowedError' || errorName === 'SecurityError';
       if (denied) {
         toast({
           title: "Microphone Blocked",
