@@ -10036,6 +10036,7 @@ export type Database = {
           registration_device_info: Json | null
           registration_ip: string | null
           registration_user_agent: string | null
+          secondary_language: string | null
           signup_country_code: string | null
           signup_country_flag: string | null
           signup_country_name: string | null
@@ -10153,6 +10154,7 @@ export type Database = {
           registration_device_info?: Json | null
           registration_ip?: string | null
           registration_user_agent?: string | null
+          secondary_language?: string | null
           signup_country_code?: string | null
           signup_country_flag?: string | null
           signup_country_name?: string | null
@@ -10270,6 +10272,7 @@ export type Database = {
           registration_device_info?: Json | null
           registration_ip?: string | null
           registration_user_agent?: string | null
+          secondary_language?: string | null
           signup_country_code?: string | null
           signup_country_flag?: string | null
           signup_country_name?: string | null
@@ -17839,6 +17842,7 @@ export type Database = {
           registration_device_info: Json | null
           registration_ip: string | null
           registration_user_agent: string | null
+          secondary_language: string | null
           signup_country_code: string | null
           signup_country_flag: string | null
           signup_country_name: string | null

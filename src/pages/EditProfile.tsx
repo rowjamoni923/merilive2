@@ -64,6 +64,7 @@ interface ProfileData {
   host_status?: string | null;
   hide_location?: boolean;
   language?: string | null;
+  secondary_language?: string | null;
 }
 
 const EditProfile = () => {
@@ -118,6 +119,7 @@ const EditProfile = () => {
     setTags((nextProfile as any).tags || []);
     setHideLocation(nextProfile.hide_location || false);
     setLanguage(nextProfile.language || "English");
+    setSecondLanguage(nextProfile.secondary_language || "");
 
     try {
       const payload = JSON.stringify({ data: nextProfile, ts: Date.now() });
@@ -125,9 +127,6 @@ const EditProfile = () => {
         localStorage.setItem(key, payload);
         sessionStorage.setItem(key, payload);
       });
-      window.dispatchEvent(new CustomEvent("app-sync", {
-        detail: { topic: "profiles", eventType: "UPDATE", payload: nextProfile },
-      }));
     } catch {}
   };
 
@@ -240,6 +239,11 @@ const EditProfile = () => {
       if (updateError) throw updateError;
 
       syncProfileState({ ...profile, avatar_url: publicUrl });
+      try {
+        window.dispatchEvent(new CustomEvent("app-sync", {
+          detail: { topic: "profiles", eventType: "UPDATE", payload: { id: profile.id, avatar_url: publicUrl } },
+        }));
+      } catch {}
       sonnerToast.success("Profile picture updated!");
     } catch (error) {
       console.error("Upload error:", error);
@@ -290,6 +294,7 @@ const EditProfile = () => {
       }
 
       updateData.language = language;
+      updateData.secondary_language = secondLanguage || null;
 
       const { data, error } = await supabase
         .from("profiles")
@@ -302,6 +307,11 @@ const EditProfile = () => {
       
       if (data) {
         syncProfileState(data as ProfileData);
+        try {
+          window.dispatchEvent(new CustomEvent("app-sync", {
+            detail: { topic: "profiles", eventType: "UPDATE", payload: data },
+          }));
+        } catch {}
       }
       
       if (gender.toLowerCase() === "female" && profile.gender?.toLowerCase() !== "female") {
@@ -722,7 +732,14 @@ const EditProfile = () => {
                               .eq("id", user.id)
                               .select()
                               .single();
-                            if (data) syncProfileState(data as ProfileData);
+                            if (data) {
+                              syncProfileState(data as ProfileData);
+                              try {
+                                window.dispatchEvent(new CustomEvent("app-sync", {
+                                  detail: { topic: "profiles", eventType: "UPDATE", payload: data },
+                                }));
+                              } catch {}
+                            }
                             localStorage.setItem(`gender_selected_${user.id}`, "true");
                             sonnerToast.success("Gender saved! This cannot be changed.");
                           }
@@ -750,7 +767,14 @@ const EditProfile = () => {
                               .eq("id", user.id)
                               .select()
                               .single();
-                            if (data) syncProfileState(data as ProfileData);
+                            if (data) {
+                              syncProfileState(data as ProfileData);
+                              try {
+                                window.dispatchEvent(new CustomEvent("app-sync", {
+                                  detail: { topic: "profiles", eventType: "UPDATE", payload: data },
+                                }));
+                              } catch {}
+                            }
                             localStorage.setItem(`gender_selected_${user.id}`, "true");
                             sonnerToast.success("🎉 You are now a Host! This cannot be changed.");
                           }

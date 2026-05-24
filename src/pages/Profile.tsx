@@ -695,12 +695,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       }
     };
 
-    // Debounced real-time refetch — 3s delay to prevent excessive API calls on high-frequency events
+    // Debounced real-time refetch — short delay prevents duplicate bursts without making profile stale.
     const debouncedRefetch = () => {
       if (refetchTimer) clearTimeout(refetchTimer);
       refetchTimer = setTimeout(() => {
         void fetchData();
-      }, 3000);
+      }, 250);
     };
 
     const init = async () => {
@@ -723,7 +723,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       // Use universal realtime system instead of manual channel
       unsubscribeRealtime = subscribeToTables(
         `profile-${activeProfileId}`,
-        ['profiles', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions'],
+        ['profiles', 'followers', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions'],
         (table, event, payload) => {
           // Profile updates — including admin approval of verification/host
           if (table === 'profiles' && payload?.id === activeProfileId) {
@@ -756,6 +756,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             } else if (payload?.status === 'rejected') {
               setFaceVerificationPending(false);
             }
+          }
+
+          if (table === 'followers' && (payload?.following_id === activeProfileId || payload?.follower_id === activeProfileId)) {
+            debouncedRefetch();
           }
           
           // Gift transactions
