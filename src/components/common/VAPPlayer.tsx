@@ -298,6 +298,16 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   }, [createShaders, onLoad, onError]);
 
+  // Pkg326 — ref-wrap callbacks so parent re-renders don't re-init WebGL/video.
+  const onLoadRef = useRef(onLoad);
+  const onErrorRef = useRef(onError);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onLoadRef.current = onLoad;
+    onErrorRef.current = onError;
+    onCompleteRef.current = onComplete;
+  }, [onLoad, onError, onComplete]);
+
   // Initialize video and WebGL
   useEffect(() => {
     if (!src) return;
@@ -318,14 +328,14 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
     video.onended = () => {
       if (!loop) {
-        onComplete?.();
+        onCompleteRef.current?.();
       }
     };
 
     video.onerror = () => {
       setError('Video load failed');
       setLoading(false);
-      onError?.(new Error('Video load failed'));
+      onErrorRef.current?.(new Error('Video load failed'));
     };
 
     video.src = src;
@@ -344,7 +354,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       video.src = '';
       videoRef.current = null;
     };
-  }, [src, config, loop, autoPlay, muted, volume, initWebGL, onComplete, onError]);
+  }, [src, config, loop, autoPlay, muted, volume, initWebGL]);
 
   if (error) {
     return (
