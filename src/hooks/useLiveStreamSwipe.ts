@@ -38,6 +38,7 @@ export function useLiveStreamSwipe(currentStreamId: string | undefined) {
     mountedRef.current = true;
     let cancelled = false;
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    setIsNavigating(false);
 
     const fetchStreams = async () => {
       const { data } = await supabase
