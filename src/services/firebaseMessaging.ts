@@ -180,7 +180,8 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
           
           const platform = Capacitor.getPlatform() === 'ios' ? 'ios' : 'android';
           await saveTokenToDatabase(userId, token, platform);
-          tokenRegistered = true;
+          registeredForUserId = userId;
+          lastRegisteredToken = token;
           await finish(token);
         });
 
