@@ -120,9 +120,10 @@ const WelcomeOnboarding = () => {
           {!isLast && (
             <button
               onClick={handleSkip}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 hover:bg-white/80 transition-colors"
+              aria-label="Skip onboarding"
+              className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/90 hover:bg-background text-foreground shadow-md transition-colors"
             >
-              <X className="w-4 h-4 text-white" />
+              <X className="w-4 h-4" />
             </button>
           )}
 
