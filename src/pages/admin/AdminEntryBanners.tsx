@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSessionToken } from "@/utils/adminSession";
 import SVGAPreviewWithMuteToggle from '@/components/admin/SVGAPreviewWithMuteToggle';
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { EntryBannerAnimation } from "@/components/live/EntryBannerAnimation";
@@ -110,6 +111,7 @@ export default function AdminEntryBanners() {
 
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`, {
       method: 'POST',
+      headers: { 'x-admin-token': getAdminSessionToken() },
       body: formData,
     });
 

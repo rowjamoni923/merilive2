@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
+import { getAdminSessionToken } from "@/utils/adminSession";
 import { 
   Crown, Plus, Edit2, Trash2, Upload, Save, Search, 
   RefreshCw, UserCog, Building2, Briefcase, Shield,
@@ -143,6 +144,7 @@ const AdminRoleFrames = () => {
 
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`, {
       method: 'POST',
+      headers: { 'x-admin-token': getAdminSessionToken() },
       body: formData,
     });
 

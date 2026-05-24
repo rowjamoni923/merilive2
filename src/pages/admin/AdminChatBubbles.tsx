@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Play, Eye, MessageCircle } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { getAdminSessionToken } from "@/utils/adminSession";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface ChatBubbleItem {
@@ -85,6 +86,7 @@ const AdminChatBubbles = () => {
 
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`, {
       method: 'POST',
+      headers: { 'x-admin-token': getAdminSessionToken() },
       body: formData,
     });
 
