@@ -2008,7 +2008,15 @@ const Recharge = () => {
         return;
       }
 
-      // Standard payment flow - create transaction record
+      const standardGatewayCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
+        ? Math.floor(selectedPackage.coins + (selectedPackage.coins * selectedPackage.bonus_percentage / 100))
+        : selectedPackage.coins;
+      const standardGatewayBonusCoins = isFirstRecharge && selectedPackage.bonus_percentage > 0
+        ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
+        : 0;
+
+      // Standard payment flow - create transaction record using the live schema.
+      // Admin approval re-validates package price/diamonds server-side before credit.
       const { data: transaction, error } = await supabase
         .from('payment_transactions')
         .insert({
@@ -2016,31 +2024,33 @@ const Recharge = () => {
           gateway_id: selectedGateway.id,
           package_id: selectedPackage.id,
           transaction_ref: transactionRef,
-          gateway_transaction_id: transactionId,
+          external_transaction_id: transactionId.trim(),
+          payment_method: selectedGateway.gateway_code,
+          amount: localAmount,
+          currency: currencyRate?.currency_code || 'USD',
           amount_usd: selectedPackage.price_usd,
-          amount_local: localAmount,
-          currency_code: currencyRate?.currency_code || 'USD',
-          coins_to_receive: isFirstRecharge && selectedPackage.bonus_percentage > 0
-            ? Math.floor(selectedPackage.coins + (selectedPackage.coins * selectedPackage.bonus_percentage / 100))
-            : selectedPackage.coins,
+          diamonds_amount: standardGatewayCoins,
           status: 'pending',
-          payment_data: {
+          gateway_response: {
             gateway_code: selectedGateway.gateway_code,
             package_coins: selectedPackage.coins,
             bonus_percentage: selectedPackage.bonus_percentage,
             is_first_recharge: isFirstRecharge,
-            bonus_coins: isFirstRecharge && selectedPackage.bonus_percentage > 0
-              ? Math.floor(selectedPackage.coins * selectedPackage.bonus_percentage / 100)
-              : 0,
+            bonus_coins: standardGatewayBonusCoins,
             sender_number: senderNumber,
             payment_proof_url: paymentProof,
             user_transaction_id: transactionId
-          }
+          },
+          notes: JSON.stringify({ source: 'recharge_standard_gateway', user_transaction_id: transactionId.trim() }),
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        const isDup = String((error as any)?.code) === '23505' || /duplicate key/i.test(error.message || '');
+        if (isDup) throw new Error('This transaction ID has already been used. Each payment receipt can only be submitted once.');
+        throw error;
+      }
 
       // Create notification for admin about new payment
       await supabase.from('notifications').insert({
@@ -2051,7 +2061,7 @@ const Recharge = () => {
         data: {
           transaction_id: transaction.id,
           amount: localAmount,
-          coins: selectedPackage.coins,
+          coins: standardGatewayCoins,
           gateway: selectedGateway.name
         }
       });
