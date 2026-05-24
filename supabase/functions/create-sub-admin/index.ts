@@ -198,6 +198,19 @@ serve(async (req) => {
       );
     }
 
+    const { data: passwordResult, error: passwordError } = await supabaseAdmin.rpc("service_set_admin_password", {
+      _admin_user_id: adminUser.id,
+      _new_password: password,
+    });
+    if (passwordError || !(passwordResult as any)?.success) {
+      console.error("[create-sub-admin] Error setting admin password:", passwordError?.message || (passwordResult as any)?.error);
+      await supabaseAdmin.from("admin_users").delete().eq("id", adminUser.id);
+      return new Response(
+        JSON.stringify({ error: "Failed to set admin password" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     console.log("[create-sub-admin] Admin record created:", adminUser.id);
 
     // Add section permissions
