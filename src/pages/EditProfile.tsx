@@ -418,7 +418,7 @@ const EditProfile = () => {
     setLinkOtpSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-email-otp", {
-        body: { email, purpose: "verify" },
+        body: { email, purpose: "verify", context: "account_email" },
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Failed to send code");
