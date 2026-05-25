@@ -14,6 +14,12 @@ import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { loadPlayStoreProducts } from '@/sdk/PlayStoreBillingSDK';
 import { useAppState } from '@/hooks/useAppState';
 import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
+import { toSupabaseCdnUrl } from '@/lib/cdnImage';
+
+// Tiny gateway / payment-method logos (24-32px) — ask CDN for 96px WebP.
+const logoCdn = (url: string | null | undefined) => toSupabaseCdnUrl(url, { width: 96, quality: 75 }) || url || '';
+// Helper payment proof preview (~120px wide).
+const proofCdn = (url: string | null | undefined) => toSupabaseCdnUrl(url, { width: 320, quality: 70 }) || url || '';
 
 interface AutoGateway {
   id: string;
@@ -1003,7 +1009,7 @@ function CampaignFloatingButton() {
                             <div className="flex items-center gap-2">
                               <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base overflow-hidden ${isSelected ? 'bg-white/20' : 'bg-indigo-50'}`}>
                                 {gw.logo_url ? (
-                                  <img src={gw.logo_url} alt="" className="w-full h-full object-cover" />
+                                  <img src={logoCdn(gw.logo_url)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (gw.logo_url && t.src !== gw.logo_url) t.src = gw.logo_url; }} />
                                 ) : (
                                   gatewayIcon(gw)
                                 )}
@@ -1209,7 +1215,7 @@ function CampaignFloatingButton() {
                           <div className="flex items-center gap-2">
                             <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center overflow-hidden">
                               {currentMethod.logo_url ? (
-                                <img src={currentMethod.logo_url} alt={currentMethod.method_name} className="h-6 w-6 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                <img src={logoCdn(currentMethod.logo_url)} alt={currentMethod.method_name} loading="lazy" decoding="async" className="h-6 w-6 object-contain" onError={(e) => { const t = e.target as HTMLImageElement; if (currentMethod.logo_url && t.src !== currentMethod.logo_url) { t.src = currentMethod.logo_url; return; } t.style.display = 'none'; }} />
                               ) : (
                                 <span className="text-lg">{currentMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : currentMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
                               )}
@@ -1298,7 +1304,7 @@ function CampaignFloatingButton() {
                           <div className="mt-1">
                             {helperPaymentProof ? (
                               <div className="relative rounded-xl overflow-hidden border border-white/10">
-                                <img src={helperPaymentProof} alt="Proof" className="w-full h-20 object-cover" />
+                                <img src={proofCdn(helperPaymentProof)} alt="Proof" loading="lazy" decoding="async" className="w-full h-20 object-cover" onError={(e) => { const t = e.currentTarget; if (helperPaymentProof && t.src !== helperPaymentProof) t.src = helperPaymentProof; }} />
                                 <button onClick={() => setHelperPaymentProof(null)} className="absolute top-1 right-1 bg-red-500/80 text-white p-0.5 rounded-full">
                                   <X className="w-3 h-3" />
                                 </button>
