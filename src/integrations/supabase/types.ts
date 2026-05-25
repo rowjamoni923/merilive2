@@ -15953,6 +15953,15 @@ export type Database = {
         Args: { _action: string; _new: Json; _old: Json; _table: string }
         Returns: string
       }
+      _p341_assert_admin_can_target_user: {
+        Args: {
+          _protect_owner?: boolean
+          _require_edit?: boolean
+          _sections: string[]
+          _user_id: string
+        }
+        Returns: Json
+      }
       _pkg311_can_recalculate_level: {
         Args: { _target_user_id?: string }
         Returns: boolean
@@ -17208,7 +17217,7 @@ export type Database = {
       admin_process_host_application: {
         Args: {
           _application_id: string
-          _processed_by: string
+          _processed_by?: string
           _status: string
         }
         Returns: Json
