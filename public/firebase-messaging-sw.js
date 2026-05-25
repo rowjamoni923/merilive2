@@ -159,9 +159,11 @@ self.addEventListener('notificationclick', function(event) {
 // =============================================
 // 🚀 ASSET CACHE — Stale-while-revalidate for JS/CSS/images
 // Makes repeat page loads near-instant (<100ms)
+// Pkg B pass-2: + HTML navigation cache with offline fallback
 // =============================================
 var ASSET_CACHE = 'meri-assets-v1';
-var ASSET_REGEX = /\.(?:js|css|woff2?|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
+var HTML_CACHE = 'meri-html-v1';
+var ASSET_REGEX = /\.(?:js|css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
 
 self.addEventListener('install', function(event) {
   // Activate new SW immediately
