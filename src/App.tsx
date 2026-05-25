@@ -1116,7 +1116,7 @@ const App = () => {
               {session ? <MandatoryPermissionsGate /> : null}
               <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>
               <Suspense fallback={null}><AppLockGate /></Suspense>
-              <PrivacyConsentDialog />
+              {!isAdminRoute && <PrivacyConsentDialog />}
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               {/* Pkg201 — iOS Safari audio-playback unlock overlay (M2). No-op until a Room reports blocked. */}
