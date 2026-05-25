@@ -21,6 +21,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
   const [popupUrl, setPopupUrl] = useState("");
   const [popupTitle, setPopupTitle] = useState("");
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
+  const [bannerRatios, setBannerRatios] = useState<Record<string, number>>({});
 
   // Preload every banner image into the browser cache so the swap is instant
   // and the user never sees a half-rendered / progressively painted image.
@@ -30,7 +31,12 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
       const img = new Image();
       try { (img as any).fetchPriority = 'high'; } catch {}
       img.decoding = 'async';
-      img.onload = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
+      img.onload = () => {
+        setLoadedImages((s) => ({ ...s, [b.id]: true }));
+        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+          setBannerRatios((s) => ({ ...s, [b.id]: img.naturalWidth / img.naturalHeight }));
+        }
+      };
       img.onerror = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
       img.src = bannerCdn(b.image_url);
     });
@@ -98,8 +104,8 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
           <div
             key={banner.id}
             onClick={() => handleBannerClick(banner)}
-            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative mt-1 aspect-[343/128]' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
-            style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
+            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative mt-1' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
+            style={banner.image_url ? { aspectRatio: String(bannerRatios[banner.id] || 343 / 128) } : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
               <img
