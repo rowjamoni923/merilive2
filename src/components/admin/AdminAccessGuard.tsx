@@ -25,10 +25,10 @@ const VALIDATE_RETRY_DELAY_MS = 800;
  * Now uses the dedicated admin session (independent from user app auth).
  *
  * Logic:
- * 1. URL has `?access=<token>` → validate token via edge function, set tab-scoped flag, allow login page
+ * 1. Fresh URL has `?access=<token>` → validate token via edge function, set tab-scoped flag, allow login page
  * 2. Has admin session AND this tab came from a secret link → allow admin panel
- * 3. Direct /admin/auth or /admin/login without a secret link → send to main app auth
- * 4. Otherwise → send to main app auth
+ * 3. Direct /admin or /admin/auth without a valid secret-link tab unlock → show public page
+ * 4. Never show the "Verifying access" loader unless a fresh `?access=` token is actually in the URL
  */
 
 interface AdminAccessGuardProps {
@@ -56,7 +56,17 @@ const sessionMatchesLinkRole = (session: ReturnType<typeof getAdminSession>, rol
 };
 
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(() => {
+    if (typeof window === 'undefined') return null;
+
+    // Only a fresh secret link in the URL should put the guard into the
+    // async "verifying" state. Direct /admin opens must resolve immediately.
+    if (getAccessTokenFromURL()) {
+      return null;
+    }
+
+    return hasAdminAccessFlag() && !!getAdminLinkToken();
+  });
   const [hasValidToken, setHasValidToken] = useState<boolean>(false);
   const location = useLocation();
 
@@ -113,8 +123,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       }
 
       // No secret link, no tab unlock → deny. Even if a stale local admin
-      // session exists, it cannot grant access without a fresh link.
-      if (session || storedLinkToken) {
+      // session exists, it cannot grant access without a secret-link unlock.
+      if (session || storedLinkToken || tabAlreadyUnlocked) {
         clearAdminSession();
         revokeAdminAccess();
       }
@@ -127,7 +137,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     // Background: validate URL access token (15s timeout) before rendering login.
     // After retries, deny access so invalid/rotated links cannot keep a stale
     // tab-scoped unlock flag alive.
-    const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
+    const accessToken = getAccessTokenFromURL();
     if (accessToken) {
       safetyTimer = window.setTimeout(() => {
         console.warn('[AdminAccessGuard] validation safety timeout');
@@ -209,7 +219,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
   // Loading
   if (isAuthorized === null) {
-    if (getAccessTokenFromURL() || getAdminSession() || hasAdminAccessFlag() || getAdminLinkToken()) {
+    if (getAccessTokenFromURL()) {
       return (
         <div className="min-h-screen bg-slate-950 flex items-center justify-center">
           <div className="text-center">
