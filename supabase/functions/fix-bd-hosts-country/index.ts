@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { requireAdminSession } from '../_shared/adminAuth.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -203,6 +204,17 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    const adminAuth = await requireAdminSession(req, supabase, {
+      sectionKey: 'all-hosts',
+      requireEdit: true,
+    });
+    if (!adminAuth.ok) {
+      return new Response(JSON.stringify({ error: adminAuth.error }), {
+        status: adminAuth.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Get all BD hosts
     const { data: bdHosts, error } = await supabase
