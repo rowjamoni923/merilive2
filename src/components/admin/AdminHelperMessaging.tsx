@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
@@ -508,7 +509,7 @@ const AdminHelperMessaging = () => {
                   <div className="flex flex-wrap gap-2">
                     {attachments.map((url, i) => (
                       <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-border group">
-                        <img src={url} alt="" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        <SmartImage src={url} alt="" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                         <button
                           onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
                           className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-bl-lg p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -641,10 +642,10 @@ const AdminHelperMessaging = () => {
                             <Image className="w-3 h-3" />
                             View Screenshot
                           </a>
-                          <img 
+                          <SmartImage 
                             src={reply.screenshot_url} 
                             alt="Screenshot" 
-                            className="mt-1 max-w-full h-auto max-h-40 rounded-lg border" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                            className="mt-1 max-w-full h-auto max-h-40 rounded-lg border" fallbackSrc="/placeholder.svg" />
                         </div>
                       )}
                     </div>

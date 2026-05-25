@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   ArrowLeft, 
   Search, 
@@ -425,10 +426,10 @@ const AdminHelperOrders = () => {
               {selectedOrder.user_payment_proof && (
                 <div>
                   <p className="text-muted-foreground text-sm mb-2">Payment Proof</p>
-                  <img 
+                  <SmartImage 
                     src={selectedOrder.user_payment_proof} 
                     alt="Payment proof"
-                    className="w-full rounded-lg border" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    className="w-full rounded-lg border" fallbackSrc="/placeholder.svg" />
                 </div>
               )}
 

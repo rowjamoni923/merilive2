@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import {
   Plus, Edit2, Trash2, RefreshCw, Diamond, Clock, Image as ImageIcon,
@@ -440,7 +441,7 @@ export default function AdminRechargeCampaigns() {
               <Card key={c.id} className={`relative overflow-hidden transition-all ${!c.is_active ? "opacity-60" : ""}`}>
                 {c.banner_image_url && (
                   <div className="h-32 bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden">
-                    <img src={c.banner_image_url} alt={c.campaign_name} className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <SmartImage src={c.banner_image_url} alt={c.campaign_name} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                   </div>
                 )}
 
@@ -870,7 +871,7 @@ export default function AdminRechargeCampaigns() {
                 </h3>
                 {form.banner_image_url && (
                   <div className="rounded-lg overflow-hidden border h-32 relative group">
-                    <img src={form.banner_image_url} alt="Banner" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <SmartImage src={form.banner_image_url} alt="Banner" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                     <Button
                       variant="destructive"
                       size="sm"

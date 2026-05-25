@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   ArrowLeft, Package, Clock, Check, X, Search, 
   Eye, RefreshCw, Globe, Image, ExternalLink, Copy,
@@ -786,10 +787,10 @@ const AdminPayrollOrders = () => {
                       className="relative rounded-lg overflow-hidden cursor-pointer group"
                       onClick={() => setShowProofImage(true)}
                     >
-                      <img 
+                      <SmartImage 
                         src={selectedOrder.user_payment_proof} 
                         alt="Payment Proof" 
-                        className="w-full h-48 object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        className="w-full h-48 object-cover" fallbackSrc="/placeholder.svg" />
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Eye className="w-8 h-8 text-white" />
                       </div>
@@ -884,10 +885,10 @@ const AdminPayrollOrders = () => {
       <Dialog open={showProofImage} onOpenChange={setShowProofImage}>
         <DialogContent className="max-w-4xl p-0">
           {selectedOrder?.user_payment_proof && (
-            <img 
+            <SmartImage 
               src={selectedOrder.user_payment_proof} 
               alt="Payment Proof Full" 
-              className="w-full h-auto" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+              className="w-full h-auto" fallbackSrc="/placeholder.svg" />
           )}
         </DialogContent>
       </Dialog>

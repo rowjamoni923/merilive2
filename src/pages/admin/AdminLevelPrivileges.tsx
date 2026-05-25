@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Sparkles, Crown, Star, Gift, Car, Image, Headphones, 
   Upload, Pencil, Trash2, RefreshCw, Play,
@@ -717,10 +718,10 @@ const AdminLevelPrivileges = () => {
                   {/* Preview */}
                   <div className="w-20 h-20 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden">
                     {editingAnimation.icon_url ? (
-                      <img 
+                      <SmartImage 
                         src={editingAnimation.icon_url} 
                         alt={`Level ${editingAnimation.level}`}
-                        className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                     ) : (
                       <span className="text-3xl font-bold text-white/40">
                         {editingAnimation.level}
