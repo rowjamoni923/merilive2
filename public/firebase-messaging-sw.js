@@ -166,8 +166,16 @@ var HTML_CACHE = 'meri-html-v1';
 var ASSET_REGEX = /\.(?:js|css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
 
 self.addEventListener('install', function(event) {
-  // Activate new SW immediately
-  self.skipWaiting();
+  // Pkg B pass-3: do NOT auto-skipWaiting; wait for SKIP_WAITING message from
+  // client so the user can be prompted before reload (avoids interrupting
+  // active sessions with mid-session chunk-hash mismatches).
+  // Clients that want immediate activation send: reg.waiting.postMessage({type:'SKIP_WAITING'})
+});
+
+self.addEventListener('message', function(event) {
+  if (event && event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', function(event) {
@@ -184,6 +192,7 @@ self.addEventListener('activate', function(event) {
     ])
   );
 });
+
 
 self.addEventListener('fetch', function(event) {
   var req = event.request;
