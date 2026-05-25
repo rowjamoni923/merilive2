@@ -1995,7 +1995,7 @@ const Chat = () => {
             {/* Back Button */}
             <button
               type="button"
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white active:scale-95 transition-all duration-150 shrink-0 border border-amber-200/60 shadow-sm"
+              className="flex items-center justify-center w-9 h-9 rounded-full profile-home-icon-button active:scale-95 transition-all duration-150 shrink-0"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -2007,7 +2007,7 @@ const Chat = () => {
                 fetchGroups();
               }}
             >
-              <ArrowLeft className="w-5 h-5 text-slate-800" />
+              <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
             
             {/* User Avatar with Premium Frame */}
@@ -2058,11 +2058,11 @@ const Chat = () => {
               }}
             >
               <div className="flex items-center gap-1.5">
-                <h2 className="font-semibold text-slate-900 text-[15px] leading-tight truncate max-w-[150px]">
+                <h2 className="font-semibold text-foreground text-[15px] leading-tight truncate max-w-[150px]">
                   {chatName}
                 </h2>
                 {!isGroup && (
-                  <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
+                  <div className="flex items-center gap-0.5 bg-gradient-gold text-accent-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
                     <Crown className="w-2.5 h-2.5" />
                     <span>Lv.{userLevel}</span>
                   </div>
@@ -2088,13 +2088,13 @@ const Chat = () => {
                   selectedConversation?.other_user?.is_online ? (
                     <span className="text-[11px] text-emerald-600 font-medium">online</span>
                   ) : (
-                    <span className="text-[11px] text-slate-500 font-medium truncate">
+                    <span className="text-[11px] text-muted-foreground font-medium truncate">
                       last seen {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false).toLowerCase()}
                     </span>
                   )
                 )}
                 {isGroup && (
-                  <span className="text-[11px] text-slate-500 font-medium">{selectedGroup?.member_count || 0} members</span>
+                  <span className="text-[11px] text-muted-foreground font-medium">{selectedGroup?.member_count || 0} members</span>
                 )}
               </div>
             </div>
@@ -2106,7 +2106,7 @@ const Chat = () => {
                 onClick={() => {
                   if (selectedConversation?.other_user?.id) startCall(selectedConversation.other_user.id);
                 }}
-                className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 border border-amber-200/60 shadow-sm hover:bg-white active:scale-95 transition-all"
+                className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 active:scale-95 transition-all"
                 aria-label="Video call"
               >
                 <VideoCallIcon className="w-[18px] h-[18px] text-emerald-600" />
@@ -2117,7 +2117,7 @@ const Chat = () => {
             {isGroup && (
               <button
                 type="button"
-                className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60 shadow-sm"
+                className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 relative z-20"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -2125,7 +2125,7 @@ const Chat = () => {
                   setShowGroupSettings(true);
                 }}
               >
-                <Settings className="w-5 h-5 text-slate-700 pointer-events-none" />
+                <Settings className="w-5 h-5 text-foreground pointer-events-none" />
               </button>
             )}
 
@@ -2135,9 +2135,9 @@ const Chat = () => {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60 shadow-sm backdrop-blur-xl"
+                    className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 relative z-20 backdrop-blur-xl"
                   >
-                    <MoreVertical className="w-5 h-5 text-slate-700 pointer-events-none" />
+                    <MoreVertical className="w-5 h-5 text-foreground pointer-events-none" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-white border border-amber-200/60 rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
