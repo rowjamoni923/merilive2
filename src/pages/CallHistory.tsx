@@ -17,6 +17,9 @@ interface CallRecord {
   status: string;
   duration_seconds: number | null;
   coins_spent: number | null;
+  total_coins_deducted?: number | null;
+  host_earned?: number | null;
+  host_earnings_amount?: number | null;
   caller_rating: number | null;
   host_rating: number | null;
   started_at: string | null;
@@ -31,6 +34,7 @@ interface CallRecord {
   } | null;
   is_outgoing: boolean;
   host_earnings?: number;
+  charged_coins?: number;
 }
 
 const CallHistory = () => {
@@ -39,7 +43,6 @@ const CallHistory = () => {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("/profile");
-  const [commissionPercent, setCommissionPercent] = useState<number | null>(null);
   const [isHost, setIsHost] = useState(false);
 
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,27 +108,17 @@ const CallHistory = () => {
         
         setIsHost(profileData?.is_host || false);
 
-        // Fetch commission percentage from settings
+        // Fetch commission percentage only as a legacy fallback for very old rows
+        // that do not have stored host_earned / host_earnings_amount values.
         const { data: settingsData } = await supabase
           .from('app_settings')
           .select('setting_value')
           .eq('setting_key', 'call_rates')
           .single();
 
-        if (settingsData?.setting_value) {
-          const callRates = settingsData.setting_value as any;
-          // NO DEFAULT - must be configured in Admin Panel
-          if (callRates.host_commission_percent !== undefined) {
-            setCommissionPercent(callRates.host_commission_percent);
-          } else {
-            console.error('CRITICAL: host_commission_percent not configured in Admin Panel!');
-            recordClientError({ label: "CallHistory.callRates", message: 'CRITICAL: host_commission_percent not configured in Admin Panel!' });
-            setCommissionPercent(0); // Safe fallback until configured
-          }
-        } else {
+        if (!settingsData?.setting_value) {
           console.error('CRITICAL: call_rates not found in app_settings!');
           recordClientError({ label: "CallHistory.callRates", message: 'CRITICAL: call_rates not found in app_settings!' });
-          setCommissionPercent(0);
         }
 
         // Fetch calls where user is either caller or host
@@ -152,7 +145,7 @@ const CallHistory = () => {
 
         // Fetch profiles for other users
         const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('id, display_name, avatar_url, is_verified')
           .in('id', uniqueUserIds);
 
@@ -173,20 +166,24 @@ const CallHistory = () => {
           }
         }
 
-        // Merge calls with profile data and calculate host earnings
-        // Host earnings = coins_spent * commission_rate / 100
-        // coins_spent is already the total deducted (coins_per_minute * minutes_charged)
+        // Merge calls with profile data and use the stored historical earning.
+        // Pkg337 pass-2: never recalculate old history from the current admin
+        // commission, because commission settings can change after a call.
         const callsWithProfiles: CallRecord[] = callsData.map(call => {
           const isOutgoing = call.caller_id === user.id;
           const otherUserId = isOutgoing ? call.host_id : call.caller_id;
-          // coins_spent already contains the total diamonds deducted for all minutes
-          const hostEarnings = Math.floor((call.coins_spent || 0) * commRate / 100);
+          const chargedCoins = Number(call.total_coins_deducted ?? call.coins_spent ?? 0);
+          const storedHostEarnings = Number(call.host_earned ?? call.host_earnings_amount ?? 0);
+          const hostEarnings = storedHostEarnings > 0
+            ? storedHostEarnings
+            : Math.floor(chargedCoins * commRate / 100);
           
           return {
             ...call,
             other_user: profilesMap.get(otherUserId) || null,
             is_outgoing: isOutgoing,
-            host_earnings: hostEarnings
+            host_earnings: hostEarnings,
+            charged_coins: chargedCoins,
           };
         });
 
@@ -344,11 +341,11 @@ const CallHistory = () => {
                     )}
                     
                     {/* Diamonds Spent (for caller) or Earned (for host) */}
-                    {call.coins_spent && call.coins_spent > 0 && (
+                    {call.charged_coins && call.charged_coins > 0 && (
                       call.is_outgoing ? (
                         <span className="flex items-center gap-1 text-red-400">
                           <Coins className="w-3 h-3" />
-                          -{call.coins_spent}
+                          -{call.charged_coins}
                         </span>
                       ) : (
                         <span className="flex items-center gap-1 text-green-400">

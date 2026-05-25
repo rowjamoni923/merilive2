@@ -1375,7 +1375,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       
       // Use the selected callRate directly - level rates are pre-validated by admin
       // Only apply min/max limits if it's a custom rate, not a level-based rate
-      let finalRate = callRate;
+      let finalRate = Math.floor(Number(callRate) || 0);
+      if (finalRate <= 0) {
+        throw new Error('invalid_rate');
+      }
       
       // Check if this is a level-based rate (should not be clamped)
       const levelRates = callRateSettings?.level_rates || [];
@@ -1387,12 +1390,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         if (finalRate > maxRate) finalRate = maxRate;
       }
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ call_rate_per_minute: finalRate })
-        .eq('id', profile.id);
-      
+      const { data, error } = await supabase.rpc('update_host_call_rate', { p_rate: finalRate });
+
       if (error) throw error;
+      const result = data as any;
+      if (!result?.success) {
+        const code = result?.error || 'Failed to save';
+        throw new Error(String(code).replace(/_/g, ' '));
+      }
+      finalRate = Number(result.rate || finalRate);
       
       // Update local profile state
       setProfile({ ...profile, call_rate_per_minute: finalRate });
@@ -1410,8 +1416,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       const raw = String(error?.message || "").toLowerCase();
       let friendly = error?.message || "Failed to save";
       if (raw.includes("only approved hosts")) friendly = "Only approved hosts can set call price.";
-      else if (raw.includes("out of allowed range")) friendly = "Call price is outside the allowed range.";
-      else if (raw.includes("requires host_level")) friendly = "Your host level is too low for a custom price.";
+      else if (raw.includes("out of allowed range") || raw.includes("rate out of bounds")) friendly = "Call price is outside the allowed range.";
+      else if (raw.includes("requires host_level") || raw.includes("level too low")) friendly = "Your host level is too low for a custom price.";
+      else if (raw.includes("invalid rate")) friendly = "Please select a valid call price.";
       toast({ title: "Failed to save", description: friendly, variant: "destructive" });
     } finally {
       setSavingCallRate(false);
@@ -2920,6 +2927,35 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                           );
                         })()}
                       </div>
+                    </div>
+
+                    <div className="space-y-3 rounded-xl border border-border bg-card p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-foreground text-sm font-semibold">Custom price</p>
+                          <p className="text-muted-foreground text-xs">
+                            {callRateSettings?.min_rate || 30}–{callRateSettings?.max_rate || 10000} 💎/min
+                          </p>
+                        </div>
+                        <div className="w-28">
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            min={callRateSettings?.min_rate || 30}
+                            max={callRateSettings?.max_rate || 10000}
+                            value={callRate || ''}
+                            onChange={(event) => setCallRate(Math.max(0, Math.floor(Number(event.target.value) || 0)))}
+                            className="h-9 text-right"
+                          />
+                        </div>
+                      </div>
+                      <Slider
+                        value={[Math.min(Math.max(callRate || 0, callRateSettings?.min_rate || 30), callRateSettings?.max_rate || 10000)]}
+                        min={callRateSettings?.min_rate || 30}
+                        max={callRateSettings?.max_rate || 10000}
+                        step={50}
+                        onValueChange={(value) => setCallRate(value[0] || 0)}
+                      />
                     </div>
                   </>
                 )}
