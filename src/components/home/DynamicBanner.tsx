@@ -8,7 +8,7 @@ import { toSupabaseCdnUrl } from "@/lib/cdnImage";
 
 // Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
 const bannerCdn = (url: string | null | undefined) =>
-  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "contain" }) || url || "";
+  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "cover" }) || url || "";
 
 interface DynamicBannerProps {
   position?: 'top' | 'middle';
@@ -21,7 +21,6 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
   const [popupUrl, setPopupUrl] = useState("");
   const [popupTitle, setPopupTitle] = useState("");
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
-  const [bannerRatios, setBannerRatios] = useState<Record<string, number>>({});
 
   // Preload every banner image into the browser cache so the swap is instant
   // and the user never sees a half-rendered / progressively painted image.
@@ -31,12 +30,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
       const img = new Image();
       try { (img as any).fetchPriority = 'high'; } catch {}
       img.decoding = 'async';
-      img.onload = () => {
-        setLoadedImages((s) => ({ ...s, [b.id]: true }));
-        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-          setBannerRatios((s) => ({ ...s, [b.id]: img.naturalWidth / img.naturalHeight }));
-        }
-      };
+      img.onload = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
       img.onerror = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
       img.src = bannerCdn(b.image_url);
     });
@@ -49,15 +43,10 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
     return true;
   });
 
-  // Split: first banner goes top, rest go middle (12:57 behavior)
+  // Split: last banner goes top (original first banner), rest go middle (after hosts)
   const banners = position === 'top'
-    ? activeBanners.slice(0, 1)
-    : activeBanners.slice(1);
-
-  const getBannerAspectRatio = (bannerId: string) => {
-    if (position === 'top') return 343 / 128;
-    return bannerRatios[bannerId] || 343 / 128;
-  };
+    ? activeBanners.slice(-1)
+    : activeBanners.slice(0, -1);
 
   const handleBannerClick = async (banner: Banner) => {
     if (!banner.link_url) return;
@@ -104,13 +93,13 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
 
   return (
     <>
-      <div className="space-y-1.5 pt-1">
+      <div className="space-y-2">
         {banners.map((banner) => (
           <div
             key={banner.id}
             onClick={() => handleBannerClick(banner)}
-            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative mt-1' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
-            style={banner.image_url ? { aspectRatio: String(getBannerAspectRatio(banner.id)) } : { backgroundColor: banner.background_color }}
+            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative aspect-[343/105] bg-transparent' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
+            style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
               <img
@@ -120,7 +109,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                 decoding="async"
                 // @ts-expect-error – fetchpriority is a standard HTML hint
                 fetchpriority="high"
-                className={`absolute inset-0 block h-full w-full rounded-2xl object-contain transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute inset-0 block h-full w-full rounded-2xl object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                 onError={(e) => {
                   const t = e.currentTarget;

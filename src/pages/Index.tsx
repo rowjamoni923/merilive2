@@ -635,7 +635,7 @@ const Index = () => {
       {/* Main Content - ONLY this part scrolls */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
       <NativePullToRefresh onRefresh={handlePullRefresh} className="min-h-full">
-      <main className="px-2 py-1.5" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
+      <main className="px-2 py-2" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
 
         {/* Top Banner (first banner) */}
         <DynamicBanner position="top" />
