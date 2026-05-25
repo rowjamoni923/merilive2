@@ -50,6 +50,7 @@ type AdminMediaResolverWindow = Window & { __adminMediaAutoResolverInstalled?: b
 
 let batchSignQueue: Array<{ storagePath: AdminStoragePath; adminToken: string; resolve: (url: string | null) => void }> = [];
 let batchSignTimer: number | null = null;
+const ADMIN_SIGN_BATCH_SIZE = 80;
 
 export const extractAdminStoragePath = (value: string, defaultBucket?: string): AdminStoragePath | null => {
   const raw = value.trim();
@@ -325,8 +326,10 @@ const flushBatchSignQueue = () => {
 
   const adminToken = queue[0]?.adminToken || '';
   const uniqueItems = Array.from(new Map(queue.map(({ storagePath }) => [`${storagePath.bucket}/${storagePath.path}`, storagePath])).values());
+  const chunks: AdminStoragePath[][] = [];
+  for (let i = 0; i < uniqueItems.length; i += ADMIN_SIGN_BATCH_SIZE) chunks.push(uniqueItems.slice(i, i + ADMIN_SIGN_BATCH_SIZE));
 
-  fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
+  Promise.all(chunks.map((chunk) => fetch(`${SUPABASE_URL}/functions/v1/admin-sign-storage-url`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -334,13 +337,14 @@ const flushBatchSignQueue = () => {
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       'x-admin-token': adminToken,
     },
-    body: JSON.stringify({ items: uniqueItems.map((item) => ({ bucket: item.bucket, path: item.path, expiresIn: 60 * 60 })) }),
-  })
-    .then((resp) => resp.ok ? resp.json() : null)
-    .then((payload: AdminBatchSignResponse | null) => {
+    body: JSON.stringify({ items: chunk.map((item) => ({ bucket: item.bucket, path: item.path, expiresIn: 60 * 60 })) }),
+  }).then((resp) => resp.ok ? resp.json() : null).catch(() => null)))
+    .then((payloads: Array<AdminBatchSignResponse | null>) => {
       const signedByKey = new Map<string, string>();
-      (payload?.results || []).forEach((item) => {
-        if (item.bucket && item.path && item.signedUrl) signedByKey.set(`${item.bucket}/${item.path}`, item.signedUrl);
+      payloads.forEach((payload) => {
+        (payload?.results || []).forEach((item) => {
+          if (item.bucket && item.path && item.signedUrl) signedByKey.set(`${item.bucket}/${item.path}`, item.signedUrl);
+        });
       });
       queue.forEach(({ storagePath, resolve }) => resolve(signedByKey.get(`${storagePath.bucket}/${storagePath.path}`) || null));
     })

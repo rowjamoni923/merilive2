@@ -27,7 +27,7 @@ const isRenderableFaceMediaUrl = (url?: string | null): url is string => {
  * for a face_verification_submissions row. AdminMediaFrame does ALL signed-URL
  * resolution internally (single source of truth, no double-resolve race).
  */
-export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSubmission }) {
+export function FaceSubmissionMediaBlocks({ submission, priority = true }: { submission: MediaSubmission; priority?: boolean }) {
   const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
   const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
@@ -42,7 +42,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
       {profilePhoto && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">📷 Profile Photo</p>
-          <AdminMediaFrame src={profilePhoto} alt="Profile" kind="image" bucket="face-verification" className="w-24 h-24 rounded-xl border-2 border-purple-300" mediaClassName="object-cover" />
+          <AdminMediaFrame src={profilePhoto} alt="Profile" kind="image" bucket="face-verification" priority={priority} className="w-24 h-24 rounded-xl border-2 border-purple-300" mediaClassName="object-cover" />
         </div>
       )}
 
@@ -50,7 +50,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🔍 Face Verification</p>
           <div className="max-w-xs mx-auto">
-            <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+            <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
           </div>
         </div>
       )}
@@ -59,7 +59,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎬 Face Liveness Recording</p>
           <div className="max-w-xs mx-auto">
-            <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+            <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
           </div>
         </div>
       )}
@@ -68,7 +68,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
           <div className="max-w-xs mx-auto">
-            <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+            <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
           </div>
         </div>
       )}
@@ -78,7 +78,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
           <p className="text-xs font-semibold text-purple-600 mb-2">🔐 Manual Face Angles ({angleMedia.length})</p>
           <div className="grid grid-cols-3 gap-2">
             {angleMedia.map((url, idx) => (
-              <AdminMediaFrame key={idx} src={url} alt={`Face angle ${idx + 1}`} kind="auto" bucket="face-verification" className="aspect-square bg-background" mediaClassName="object-cover" />
+              <AdminMediaFrame key={idx} src={url} alt={`Face angle ${idx + 1}`} kind="auto" bucket="face-verification" priority={priority && idx < 3} className="aspect-square bg-background" mediaClassName="object-cover" />
             ))}
           </div>
         </div>
@@ -89,7 +89,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
           <p className="text-xs font-semibold text-purple-600 mb-2">🖼️ Host Photos ({hostPhotos.length})</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {hostPhotos.map((photo, idx) => (
-              <AdminMediaFrame key={idx} src={photo} alt={`Host ${idx + 1}`} kind="image" bucket="face-verification" className="w-20 h-20 rounded-lg border-2 border-slate-300 flex-shrink-0" mediaClassName="object-cover" />
+              <AdminMediaFrame key={idx} src={photo} alt={`Host ${idx + 1}`} kind="image" bucket="face-verification" priority={priority && idx < 3} className="w-20 h-20 rounded-lg border-2 border-slate-300 flex-shrink-0" mediaClassName="object-cover" />
             ))}
           </div>
         </div>
@@ -99,7 +99,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
 }
 
 /** Compact face media renderer for the modal view (bigger frames). */
-export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubmission }) {
+export function FaceSubmissionModalMedia({ submission, priority = true }: { submission: MediaSubmission; priority?: boolean }) {
   const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
   const faceAngles = [submission.front_url, submission.left_url, submission.right_url].filter(isRenderableFaceMediaUrl);
   const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
@@ -111,15 +111,15 @@ export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubm
   return (
     <>
       {faceMedia && (
-        <AdminMediaFrame src={faceMedia} alt="Face" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
+        <AdminMediaFrame src={faceMedia} alt="Face" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
       )}
 
       {livenessClip && (
-        <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="h-64" />
+        <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName="h-64" />
       )}
 
       {introVideo && introVideo !== faceMedia && introVideo !== livenessClip && (
-        <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" className="bg-background" mediaClassName="h-64" />
+        <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" priority={priority} className="bg-background" mediaClassName="h-64" />
       )}
     </>
   );
