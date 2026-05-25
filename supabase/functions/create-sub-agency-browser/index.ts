@@ -22,9 +22,27 @@ serve(async (req) => {
   try {
     console.log("[create-sub-agency-browser] Starting request...");
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const authHeader = req.headers.get("authorization") || "";
+
+    const supabaseUser = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Please log in before creating a sub-agency" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      supabaseUrl,
+      serviceRoleKey,
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
@@ -41,10 +59,10 @@ serve(async (req) => {
       );
     }
 
-    if (!userId) {
+    if (!userId || userId !== user.id) {
       return new Response(
-        JSON.stringify({ error: "User ID is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "You can only create a sub-agency for your own account" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -94,6 +112,15 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "User already owns an agency" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const authEmail = (user.email || "").trim().toLowerCase();
+    if (authEmail && normalizedEmail !== authEmail) {
+      return new Response(
+        JSON.stringify({ error: "Email must match your logged-in account" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
