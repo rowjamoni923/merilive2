@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
+import { PRODUCTION_DOMAIN } from "@/utils/shareLinks";
 
 interface OwnerRow {
   email: string;
@@ -36,7 +37,7 @@ interface OwnerRow {
 
 export default function OwnerAccessLinkGenerator() {
   const session = getAdminSession();
-  const adminLinkOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://merilive.top';
+  const adminLinkOrigin = PRODUCTION_DOMAIN;
   const [copiedOwner, setCopiedOwner] = useState(false);
   const [copiedSubAdmin, setCopiedSubAdmin] = useState(false);
   const [showOwnerSecret, setShowOwnerSecret] = useState(false);
