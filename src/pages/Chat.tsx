@@ -3439,17 +3439,17 @@ const Chat = () => {
       <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
         <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
-            <DialogTitle className="text-slate-800">Create a group</DialogTitle>
+            <DialogTitle className="text-foreground">Create a group</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName" className="text-slate-700 font-medium">Group Name</Label>
+              <Label htmlFor="groupName" className="text-foreground font-medium">Group Name</Label>
               <Input
                 id="groupName"
                 placeholder="Enter group name"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
               />
             </div>
 
@@ -3486,7 +3486,7 @@ const Chat = () => {
                   <Label htmlFor="basic" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5 text-purple-400" />
-                      <span className="font-medium text-slate-700">Basic Group</span>
+                      <span className="font-medium text-foreground">Basic Group</span>
                     </div>
                   </Label>
                 </div>
@@ -3495,9 +3495,9 @@ const Chat = () => {
                   <Label htmlFor="family" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5 text-pink-400" />
-                      <span className="font-medium text-slate-700">Family Group</span>
+                      <span className="font-medium text-foreground">Family Group</span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       One user can join one family group only
                     </p>
                   </Label>
@@ -3506,8 +3506,7 @@ const Chat = () => {
             </div>
 
             <Button
- className="w-full rounded-full font-bold text-slate-900"
-              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)', boxShadow: '0 4px 20px rgba(168,85,247,0.4)' }}
+ className="w-full rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
               onClick={handleCreateGroup}
               disabled={!newGroupName.trim() || creatingGroup}
             >
@@ -3521,7 +3520,7 @@ const Chat = () => {
       <Dialog open={showSearchGroup} onOpenChange={setShowSearchGroup}>
         <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
-            <DialogTitle className="text-slate-800">Search Group</DialogTitle>
+            <DialogTitle className="text-foreground">Search Group</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="relative">
@@ -3530,12 +3529,12 @@ const Chat = () => {
                 value={groupSearchQuery}
                 onChange={(e) => setGroupSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchGroup()}
- className="pr-12 bg-white/[0.06] border-slate-200/[0.08] text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+ className="pr-12 bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
               />
               <Button
                 size="icon"
                 variant="ghost"
- className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-700 hover:text-slate-900 hover:bg-white/[0.08]"
+ className="absolute right-1 top-1/2 -translate-y-1/2 text-foreground hover:text-foreground hover:bg-muted"
                 onClick={handleSearchGroup}
               >
                 <Search className="w-5 h-5" />
@@ -3556,15 +3555,14 @@ const Chat = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold truncate text-slate-900">{group.name}</h4>
-                      <p className="text-xs text-white/80">
+                      <h4 className="font-semibold truncate text-foreground">{group.name}</h4>
+                      <p className="text-xs text-muted-foreground">
                         {group.member_count} members • {group.group_type}
                       </p>
                     </div>
                     <Button
                       size="sm"
- className="rounded-full font-bold text-slate-900"
-                      style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 2px 10px rgba(168,85,247,0.3)' }}
+ className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
                       onClick={() => handleJoinGroup(group.id)}
                     >
                       Join
@@ -3575,7 +3573,7 @@ const Chat = () => {
             )}
 
             {groupSearchQuery && groupSearchResults.length === 0 && (
-              <p className="text-center text-slate-600 py-8">No groups found</p>
+              <p className="text-center text-muted-foreground py-8">No groups found</p>
             )}
           </div>
         </DialogContent>
