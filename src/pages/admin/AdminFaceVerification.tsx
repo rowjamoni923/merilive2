@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
-import { resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
 import { FaceVerificationDebugPanel } from "@/components/admin/FaceVerificationDebugPanel";
 import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
 import { 
@@ -1129,13 +1128,13 @@ const AdminFaceVerification = () => {
 
                 {/* Face Verification */}
                 {selectedSubmission.face_image_url && !selectedSubmission.face_image_url.startsWith('admin-approved://') && (() => {
-                  const url = resolvedMedia.face_image_url || selectedSubmission.face_image_url;
+                  const url = selectedSubmission.face_image_url;
                   return (
                     <div className="space-y-3 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-purple-500/5 to-transparent p-4 shadow-[0_8px_32px_-12px_rgba(168,85,247,0.35)]">
                       <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
                         <ScanFace className="w-5 h-5 text-amber-300" /> Face Verification
                       </h4>
-                      <AdminMediaFrame src={url} alt="Face verification" poster={resolvedMedia.profile_photo_url || selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_24px_rgba(251,191,36,0.15)]" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
+                      <AdminMediaFrame src={url} alt="Face verification" poster={selectedSubmission.profile_photo_url} className="rounded-xl border-2 border-amber-500/30 bg-black/40 shadow-[0_0_24px_rgba(251,191,36,0.15)]" mediaClassName="max-h-80" onOpen={!isVideoUrl(url) ? () => setExpandedPhoto(url) : undefined} />
                     </div>
                   );
                 })()}
