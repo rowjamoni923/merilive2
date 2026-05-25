@@ -597,30 +597,20 @@ export default function AdminUserManagement() {
     if (!startSingleFlight(actionKey)) return;
     setActionLoading(true);
     try {
-      const { data: genderData, error: rpcError } = await supabase.rpc('admin_update_user_gender', {
-        _user_id: userId,
-        _gender: toHost ? 'female' : 'male',
+      const { data, error } = await supabase.rpc('admin_process_face_verification', {
+        _submission_id: submissionId,
+        _action: 'approve',
+        _reason: `Manually converted to ${toHost ? 'Host' : 'User'} by admin from Auto Rejected.`,
+        _approve_as: toHost ? 'host' : 'user',
+        _set_gender: toHost ? 'female' : 'male',
       });
-      if (rpcError) throw rpcError;
-      if ((genderData as any)?.pending) {
+      if (error) throw error;
+      if ((data as any)?.pending) {
         toast.success('⏳ Submitted for Owner Approval — conversion queued.');
         fetchFaceSubmissions();
         return;
       }
-      if ((genderData as any)?.success === false) {
-        throw new Error((genderData as any)?.error || 'Gender update failed');
-      }
-      await supabase.from('face_verification_submissions').update({
-        status: 'approved',
-        verification_type: toHost ? 'host' : 'face',
-        admin_notes: `Manually converted to ${toHost ? 'Host' : 'User'} by admin from Auto Rejected.`,
-        reviewed_at: new Date().toISOString(),
-      }).eq('id', submissionId);
-      const { error: verifyFaceError } = await supabase.rpc('admin_toggle_face_verification', {
-        _user_id: userId,
-        _verified: true,
-      });
-      if (verifyFaceError) throw verifyFaceError;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Conversion failed');
       // Send notification when converted to Host from rejected
       if (toHost) {
         await adminSendNotification(userId, '🌟 Host Account Activated! 🎤✨', '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟', 'system')
@@ -644,18 +634,21 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       const newVerified = !isVerified;
-      
-      // Update is_verified
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          is_verified: newVerified,
-          is_face_verified: newVerified,
-          face_verified_at: newVerified ? new Date().toISOString() : null,
-        })
-        .eq("id", userId);
+
+      const { data, error } = await supabase.rpc('admin_set_user_verification', {
+        _user_id: userId,
+        _verified: newVerified,
+      });
       if (error) throw error;
-      
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Verification update failed');
+
+      const { data: faceData, error: faceError } = await supabase.rpc('admin_toggle_face_verification', {
+        _user_id: userId,
+        _verified: newVerified,
+      });
+      if (faceError) throw faceError;
+      if ((faceData as any)?.success === false) throw new Error((faceData as any)?.error || 'Face verification update failed');
+
       toast.success(isVerified ? "Verification removed (face + profile)" : "User fully verified");
       fetchUsers();
     } catch (error) {
