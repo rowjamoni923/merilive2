@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
+import React, { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
 
 
 import { useContentModeration } from "@/hooks/useContentModeration";
