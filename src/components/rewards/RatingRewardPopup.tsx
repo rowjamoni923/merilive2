@@ -4,6 +4,7 @@ import { Gift, X, Upload, CheckCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { getAppSetting } from '@/utils/appSettingsCache';
 import { useAppSyncEvent } from '@/hooks/useAppSyncEvent';
 import { toast } from 'sonner';
 import { PLAY_STORE_URL } from '@/utils/shareLinks';
