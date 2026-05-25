@@ -12,6 +12,7 @@ interface HelperPaymentMethodsCardProps {
   onManage?: () => void;
   /** Bump this number from the parent after add/delete to force the list to refresh. */
   refreshKey?: number;
+  showManage?: boolean;
 }
 
 interface Row {
@@ -36,6 +37,7 @@ export default function HelperPaymentMethodsCard({
   manageHref = "/level5-helper-dashboard?tab=country-methods&action=add",
   onManage,
   refreshKey = 0,
+  showManage = true,
 }: HelperPaymentMethodsCardProps) {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
@@ -103,27 +105,35 @@ export default function HelperPaymentMethodsCard({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleManage}
-            className="text-[11px] font-bold text-amber-700 hover:text-amber-900 px-2 py-1 rounded-lg hover:bg-amber-100/60 transition-colors"
-          >
-            Manage
-          </button>
+          {showManage && (
+            <button
+              type="button"
+              onClick={handleManage}
+              className="text-[11px] font-bold text-amber-700 hover:text-amber-900 px-2 py-1 rounded-lg hover:bg-amber-100/60 transition-colors"
+            >
+              Manage
+            </button>
+          )}
         </div>
 
         {/* Body */}
         {loading ? (
           <div className="h-16 rounded-xl bg-amber-100/40 animate-pulse" />
         ) : countries.length === 0 ? (
-          <button
-            type="button"
-            onClick={handleManage}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-amber-300 text-amber-700 text-xs font-semibold hover:bg-amber-50 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add your first payment method
-          </button>
+          showManage ? (
+            <button
+              type="button"
+              onClick={handleManage}
+              className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-amber-300 text-amber-700 text-xs font-semibold hover:bg-amber-50 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add your first payment method
+            </button>
+          ) : (
+            <div className="w-full py-4 rounded-xl border-2 border-dashed border-amber-200 text-center text-amber-700/70 text-xs font-semibold">
+              No country payment methods yet
+            </div>
+          )
         ) : (
           <div className="space-y-3">
             {countries.map((cc) => (

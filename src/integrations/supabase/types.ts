@@ -17899,6 +17899,15 @@ export type Database = {
         Args: { _proof: Json; _withdrawal_id: string }
         Returns: Json
       }
+      complete_gateway_helper_topup: {
+        Args: {
+          p_gateway: string
+          p_order_id: string
+          p_transaction_id: string
+          p_validation_data?: Json
+        }
+        Returns: Json
+      }
       create_agency_for_user: {
         Args: {
           _agency_code: string

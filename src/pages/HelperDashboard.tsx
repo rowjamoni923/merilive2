@@ -978,6 +978,7 @@ const HelperDashboard = () => {
 
   const levelBadge = getLevelBadge(helperData?.trader_level || 1);
   const LevelIcon = levelBadge.icon;
+  const canManageCountryPaymentMethods = (helperData?.trader_level || 1) >= 5 && helperData?.payroll_enabled === true;
 
   if (loading) {
     return (
@@ -1097,7 +1098,7 @@ const HelperDashboard = () => {
             type="button"
             onClick={() => {
               setActiveTab('methods');
-              setShowAddPaymentMethodDialog(true);
+              if (canManageCountryPaymentMethods) setShowAddPaymentMethodDialog(true);
             }}
             className="bg-white/80 backdrop-blur-md rounded-2xl px-2 py-2.5 text-center border border-amber-200/60 shadow-[0_2px_10px_rgba(146,64,14,0.06)] active:scale-95 transition-transform"
           >
@@ -1502,7 +1503,8 @@ const HelperDashboard = () => {
               <HelperPaymentMethodsCard
                 helperId={helperData.id}
                 refreshKey={paymentMethodsRefreshKey}
-                onManage={() => setShowAddPaymentMethodDialog(true)}
+                showManage={canManageCountryPaymentMethods}
+                onManage={canManageCountryPaymentMethods ? () => setShowAddPaymentMethodDialog(true) : undefined}
               />
             )}
 

@@ -257,21 +257,18 @@ serve(async (req) => {
     }
 
     if (status === "VALID") {
-      // ═══ PAYMENT VERIFIED — USE SAFE CREDIT ═══
-      console.log(`[IPN] ✅ Payment verified! Using safe_credit_diamonds for ${totalCoins} → user ${userId}`);
+      // ═══ PAYMENT VERIFIED — ATOMIC HELPER CREDIT ═══
+      console.log(`[IPN] ✅ Payment verified! Completing helper-backed top-up for ${totalCoins} → user ${userId}`);
 
-      const { data: creditResult, error: creditError } = await supabaseAdmin.rpc("safe_credit_diamonds", {
-        p_user_id: userId,
-        p_amount: totalCoins,
-        p_gateway: gatewayType,
+      const { data: creditResult, error: creditError } = await supabaseAdmin.rpc("complete_gateway_helper_topup", {
         p_order_id: orderId,
+        p_gateway: gatewayType,
         p_transaction_id: txnId,
-        p_amount_usd: order.amount_usd || 0,
-        p_metadata: { ...validationData, helper_id: order.helper_id },
+        p_validation_data: validationData,
       });
 
       if (creditError) {
-        console.error("[IPN] safe_credit_diamonds RPC error:", creditError);
+        console.error("[IPN] complete_gateway_helper_topup RPC error:", creditError);
         throw new Error("Failed to credit diamonds");
       }
 
@@ -327,22 +324,6 @@ serve(async (req) => {
         }),
       });
       if (txErr) console.error("[IPN] recharge_transactions insert error:", txErr);
-
-      // Update order status
-      await supabaseAdmin
-        .from("helper_orders")
-        .update({
-          status: "completed",
-          processed_at: new Date().toISOString(),
-          payment_details: {
-            ...(order.payment_details as any),
-            ipn_status: status,
-            ...validationData,
-            balance_before: result.balance_before,
-            balance_after: result.balance_after,
-          },
-        })
-        .eq("id", orderId);
 
       // First recharge bonus (schema-aligned)
       const orderDetails = order.payment_details as any;
