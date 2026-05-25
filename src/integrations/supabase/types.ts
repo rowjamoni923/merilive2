@@ -4292,6 +4292,27 @@ export type Database = {
         }
         Relationships: []
       }
+      followers_unfollow_audit: {
+        Row: {
+          created_at: string
+          follower_id: string
+          id: string
+          unfollowed_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          id?: string
+          unfollowed_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          id?: string
+          unfollowed_id?: string
+        }
+        Relationships: []
+      }
       game_bets: {
         Row: {
           bet_amount: number
