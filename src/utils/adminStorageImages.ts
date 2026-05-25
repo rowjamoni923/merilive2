@@ -489,16 +489,30 @@ export const tryResolvePublicAdminStorageUrlSync = (
     if (parsed && PUBLIC_VERIFICATION_BUCKETS.has(parsed.bucket) && !isAlreadySignedStorageUrl(raw)) {
       return raw;
     }
+    // Already signed and still valid? Return as-is for instant render.
+    if (isAlreadySignedStorageUrl(raw)) return raw;
     return null;
   }
   const candidates = buildStorageCandidates(raw, defaultBucket);
+  // Public bucket fast-path.
   for (const candidate of candidates) {
     if (PUBLIC_VERIFICATION_BUCKETS.has(candidate.bucket)) {
       return getPublicStorageUrl(candidate);
     }
   }
+  // Cached signed URL fast-path — survives across page refreshes via
+  // sessionStorage rehydration, so verification tiles render INSTANTLY on
+  // re-mount without waiting for a fresh sign round-trip.
+  const adminToken = resolveStoredAdminToken();
+  const now = Date.now();
+  for (const candidate of candidates) {
+    const key = `${adminToken || 'anon'}::${candidate.bucket}/${candidate.path}`;
+    const cached = signedUrlCache.get(key);
+    if (cached && cached.expiresAt > now + 30_000) return cached.url;
+  }
   return null;
 };
+
 
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
