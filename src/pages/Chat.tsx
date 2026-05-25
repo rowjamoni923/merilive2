@@ -1649,6 +1649,7 @@ const Chat = () => {
         is_read: false,
         message_type: 'text',
         status: 'sending',
+        reply_to_id: replyingTo?.messageId || null,
         _optimistic: true,
       };
       setMessages(prev => [...prev, optimisticMsg]);
