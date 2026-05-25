@@ -117,6 +117,9 @@ Deno.serve(async (req) => {
     const batchItems = Array.isArray(body.items) ? body.items.slice(0, 80) as BatchStorageItem[] : null;
 
     if (batchItems) {
+      // FAST PATH: only sign URLs (no per-item storage.objects read, no UPDATE).
+      // Signed URL alone is enough for the browser to render. Content-Type
+      // backfill is moved to a fire-and-forget background task AFTER response.
       const results: BatchStorageResult[] = await Promise.all(batchItems.map(async (item) => {
         const bucket = String(item.bucket || "").trim();
         const path = String(item.path || "").replace(/^\/+/, "");
@@ -124,49 +127,42 @@ Deno.serve(async (req) => {
         if (!bucket || DENIED_BUCKETS.has(bucket) || !path || path.includes("..")) {
           return { bucket, path, error: "Invalid storage path" };
         }
-
-        const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
-        const extensionContentType = MIME[ext];
-        const extFallback = faceBucketFallback(bucket, path);
-
-        // Read stored metadata so we can detect a wrong/missing mimetype.
-        // Without this, signed URLs for legacy face-angle stills get served
-        // as application/octet-stream and never render in <img>.
-        const { data: objectRow } = await supabase
-          .schema("storage")
-          .from("objects")
-          .select("metadata")
-          .eq("bucket_id", bucket)
-          .eq("name", path)
-          .maybeSingle();
-        const existingMeta = (objectRow?.metadata as Record<string, unknown> | null) || {};
-        const storedContentType = usefulMimeType(existingMeta.mimetype as string | undefined);
-
         const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
         if (error || !data?.signedUrl) return { bucket, path, error: error?.message || "Failed to sign URL" };
-
-        // Non-destructive backfill: if storage has no/garbage mimetype but we
-        // can infer one from extension or face-bucket folder, persist it so
-        // the NEXT request renders correctly without any client workaround.
-        const backfillType = extensionContentType || extFallback;
-        if (backfillType && !storedContentType) {
-          try {
-            await supabase
-              .schema("storage")
-              .from("objects")
-              .update({ metadata: { ...existingMeta, mimetype: backfillType } as any })
-              .eq("bucket_id", bucket)
-              .eq("name", path);
-          } catch (_) { /* non-fatal */ }
-        }
-
-        return { bucket, path, signedUrl: data.signedUrl, contentType: storedContentType || extensionContentType || extFallback || null };
+        const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
+        return { bucket, path, signedUrl: data.signedUrl, contentType: MIME[ext] || faceBucketFallback(bucket, path) || null };
       }));
 
-      return new Response(JSON.stringify({ success: true, results }), {
+      const response = new Response(JSON.stringify({ success: true, results }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+
+      // Background mimetype backfill — runs after response is sent.
+      const backfillPromise = (async () => {
+        for (const item of batchItems) {
+          try {
+            const bucket = String(item.bucket || "").trim();
+            const path = String(item.path || "").replace(/^\/+/, "");
+            if (!bucket || !path) continue;
+            const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
+            const backfillType = MIME[ext] || faceBucketFallback(bucket, path);
+            if (!backfillType) continue;
+            const { data: objectRow } = await supabase
+              .schema("storage").from("objects")
+              .select("metadata").eq("bucket_id", bucket).eq("name", path).maybeSingle();
+            const existingMeta = (objectRow?.metadata as Record<string, unknown> | null) || {};
+            if (usefulMimeType(existingMeta.mimetype as string | undefined)) continue;
+            await supabase.schema("storage").from("objects")
+              .update({ metadata: { ...existingMeta, mimetype: backfillType } as any })
+              .eq("bucket_id", bucket).eq("name", path);
+          } catch (_) { /* non-fatal */ }
+        }
+      })();
+      try { (globalThis as any).EdgeRuntime?.waitUntil?.(backfillPromise); } catch (_) { /* ignore */ }
+
+      return response;
     }
+
 
     const bucket = String(body.bucket || "").trim();
     const path = String(body.path || "").replace(/^\/+/, "");
