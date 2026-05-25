@@ -2607,11 +2607,11 @@ const Chat = () => {
                       className={`shrink-0 inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all duration-200 border ${ // dark-ok
                         active
                           ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-fuchsia-600 text-white border-white shadow-[0_4px_14px_rgba(244,114,182,0.45)] ring-2 ring-amber-300/70 scale-[1.04]'
-                          : 'bg-white text-slate-700 border-slate-200 shadow-sm hover:border-amber-300 hover:shadow-md hover:-translate-y-px'
+                          : 'bg-card text-card-foreground border-border shadow-sm hover:border-accent hover:shadow-md hover:-translate-y-px'
                       }`}
                     >
                       <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[13px] leading-none ${
-                        active ? 'bg-white/25' : 'bg-slate-50'
+                        active ? 'bg-primary-foreground/25' : 'bg-muted'
                       }`}>
                         {lang.flag}
                       </span>
@@ -2627,7 +2627,7 @@ const Chat = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-2 rounded-xl px-3 py-2 bg-gradient-to-br from-white via-purple-50/70 to-rose-50/70 border border-purple-200/60 shadow-inner"
+                  className="mt-2 rounded-xl px-3 py-2 bg-gradient-to-br from-card via-primary/5 to-secondary/5 border border-primary/20 shadow-inner"
                 >
                   <div className="flex items-center gap-1.5 mb-1">
                     <span className="text-[10px] font-bold text-purple-700">
@@ -2641,7 +2641,7 @@ const Chat = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-800 font-medium leading-snug">
+                  <p className="text-sm text-card-foreground font-medium leading-snug">
                     {inlineTranslation || "Translating…"}
                   </p>
                 </motion.div>
@@ -2714,9 +2714,9 @@ const Chat = () => {
                         }
                       }, 50);
                     }}
- className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white/[0.06] border border-slate-200/[0.1] backdrop-blur-xl"
+ className="flex-shrink-0 px-3 py-1.5 rounded-full bg-card/70 border border-border backdrop-blur-xl"
                   >
-                    <span className="text-xs text-slate-900 whitespace-nowrap">{quickMsg}</span>
+                    <span className="text-xs text-card-foreground whitespace-nowrap">{quickMsg}</span>
                   </motion.button>
                 ))}
               </div>
