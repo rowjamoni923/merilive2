@@ -995,6 +995,20 @@ export default function AdminUserManagement() {
   };
 
   // === FACE VERIFICATION TAB FUNCTIONS ===
+  const fetchFaceStats = async () => {
+    try {
+      const stats = await fetchFilteredStatusCounts(supabase as any, {
+        table: 'face_verification_submissions',
+        searchColumn: 'full_name',
+        searchQuery: '',
+        globalStatsRpc: 'admin_face_verification_stats',
+      });
+      setFaceServerStats(stats);
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingFaceStats", message: formatAdminError(error)});
+    }
+  };
+
   const fetchFaceSubmissions = async () => {
     const requestId = ++faceFetchRequestIdRef.current;
     setLoading(true);
