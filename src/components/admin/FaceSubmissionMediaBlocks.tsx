@@ -27,7 +27,7 @@ const isRenderableFaceMediaUrl = (url?: string | null): url is string => {
  * for a face_verification_submissions row. AdminMediaFrame does ALL signed-URL
  * resolution internally (single source of truth, no double-resolve race).
  */
-export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSubmission }) {
+export function FaceSubmissionMediaBlocks({ submission, priority = true }: { submission: MediaSubmission; priority?: boolean }) {
   const profilePhoto = isRenderableFaceMediaUrl(submission.profile_photo_url) ? submission.profile_photo_url : null;
   const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
   const introVideo = isRenderableFaceMediaUrl(submission.video_url) ? submission.video_url : null;
@@ -42,7 +42,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
       {profilePhoto && (
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">📷 Profile Photo</p>
-          <AdminMediaFrame src={profilePhoto} alt="Profile" kind="image" bucket="face-verification" className="w-24 h-24 rounded-xl border-2 border-purple-300" mediaClassName="object-cover" />
+          <AdminMediaFrame src={profilePhoto} alt="Profile" kind="image" bucket="face-verification" priority={priority} className="w-24 h-24 rounded-xl border-2 border-purple-300" mediaClassName="object-cover" />
         </div>
       )}
 
@@ -50,7 +50,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🔍 Face Verification</p>
           <div className="max-w-xs mx-auto">
-            <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+            <AdminMediaFrame src={faceMedia} alt="Face" kind="auto" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
           </div>
         </div>
       )}
@@ -59,7 +59,7 @@ export function FaceSubmissionMediaBlocks({ submission }: { submission: MediaSub
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎬 Face Liveness Recording</p>
           <div className="max-w-xs mx-auto">
-            <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+            <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
           </div>
         </div>
       )}
