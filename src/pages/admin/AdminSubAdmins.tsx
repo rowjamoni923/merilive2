@@ -399,7 +399,8 @@ const AdminSubAdmins = () => {
   
   const getLoginLink = (email: string) => {
     const token = subAdminTokenForLinks || '';
-    return `https://merilive.com/admin/auth?access=${token}&email=${encodeURIComponent(email)}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://merilive.top';
+    return `${origin}/admin/auth?access=${token}&email=${encodeURIComponent(email)}`;
   };
 
   const resetCreateForm = () => {
