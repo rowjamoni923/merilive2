@@ -1,6 +1,5 @@
 import { useState, useEffect, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
-import BlogPage from "@/pages/BlogPage";
 import { Navigate, useLocation } from "react-router-dom";
 import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
 import {
@@ -26,8 +25,8 @@ const VALIDATE_RETRY_DELAY_MS = 800;
  * Logic:
  * 1. URL has `?access=<token>` → validate token via edge function, set tab-scoped flag, allow login page
  * 2. Has admin session AND this tab came from a secret link → allow admin panel
- * 3. Direct /admin/auth or /admin/login without a secret link → show BlogPage
- * 4. Otherwise → show BlogPage (no admin panel hint)
+ * 3. Direct /admin/auth or /admin/login without a secret link → send to main app auth
+ * 4. Otherwise → send to main app auth
  */
 
 interface AdminAccessGuardProps {
@@ -218,7 +217,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         </div>
       );
     }
-    return <BlogPage />;
+    return <Navigate to="/auth" replace />;
   }
 
   // Authorized: render admin panel / login page
@@ -240,5 +239,5 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   }
 
   // Not authorized
-  return <BlogPage />;
+  return <Navigate to="/auth" replace />;
 }
