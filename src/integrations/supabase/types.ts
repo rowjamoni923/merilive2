@@ -18568,11 +18568,16 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: {
           created_at: string
+          created_by: string
+          expires_at: string
           id: string
           image_url: string
+          is_active: boolean
           is_read: boolean
           message: string
           priority: string
+          read_by: string[]
+          target_audience: string[]
           title: string
         }[]
       }
