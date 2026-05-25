@@ -68,7 +68,7 @@ export function FaceSubmissionMediaBlocks({ submission, priority = true }: { sub
         <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
           <p className="text-xs font-semibold text-purple-600 mb-2">🎥 Verification Video</p>
           <div className="max-w-xs mx-auto">
-            <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
+            <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName="max-h-48 w-auto mx-auto" />
           </div>
         </div>
       )}
@@ -78,7 +78,7 @@ export function FaceSubmissionMediaBlocks({ submission, priority = true }: { sub
           <p className="text-xs font-semibold text-purple-600 mb-2">🔐 Manual Face Angles ({angleMedia.length})</p>
           <div className="grid grid-cols-3 gap-2">
             {angleMedia.map((url, idx) => (
-              <AdminMediaFrame key={idx} src={url} alt={`Face angle ${idx + 1}`} kind="auto" bucket="face-verification" className="aspect-square bg-background" mediaClassName="object-cover" />
+              <AdminMediaFrame key={idx} src={url} alt={`Face angle ${idx + 1}`} kind="auto" bucket="face-verification" priority={priority && idx < 3} className="aspect-square bg-background" mediaClassName="object-cover" />
             ))}
           </div>
         </div>
@@ -89,7 +89,7 @@ export function FaceSubmissionMediaBlocks({ submission, priority = true }: { sub
           <p className="text-xs font-semibold text-purple-600 mb-2">🖼️ Host Photos ({hostPhotos.length})</p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {hostPhotos.map((photo, idx) => (
-              <AdminMediaFrame key={idx} src={photo} alt={`Host ${idx + 1}`} kind="image" bucket="face-verification" className="w-20 h-20 rounded-lg border-2 border-slate-300 flex-shrink-0" mediaClassName="object-cover" />
+              <AdminMediaFrame key={idx} src={photo} alt={`Host ${idx + 1}`} kind="image" bucket="face-verification" priority={priority && idx < 3} className="w-20 h-20 rounded-lg border-2 border-slate-300 flex-shrink-0" mediaClassName="object-cover" />
             ))}
           </div>
         </div>
