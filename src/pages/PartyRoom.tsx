@@ -339,6 +339,13 @@ const PartyRoom = () => {
   // Track joins already processed by broadcast to deduplicate with postgres_changes
   const processedBroadcastJoinsRef = useRef(new Set<string>());
   const joinedRoomKeyRef = useRef<string | null>(null);
+  const explicitLeaveRef = useRef(false);
+  const [mediaReady, setMediaReady] = useState(false);
+
+  useEffect(() => {
+    explicitLeaveRef.current = false;
+    setMediaReady(false);
+  }, [roomId]);
 
   // Calculate if current user is host for room protection
   const isHostForProtection = room?.host_id === currentUser?.id;
@@ -348,22 +355,7 @@ const PartyRoom = () => {
     roomType: 'party',
     enabled: !!roomId,
     onNetworkClose: async () => {
-      console.log('[PartyRoom] Network lost - closing room');
-      if (isHostForProtection && roomId) {
-        // Mark room as inactive
-        await supabase
-          .from('party_rooms')
-          .update({ is_active: false })
-          .eq('id', roomId);
-      }
-      // Remove participant record
-      if (currentUser?.id && roomId) {
-        await supabase
-          .from('party_room_participants')
-          .delete()
-          .eq('room_id', roomId)
-          .eq('user_id', currentUser.id);
-      }
+      console.log('[PartyRoom] Network lost - keeping room open while LiveKit reconnects');
     },
   });
 
@@ -591,7 +583,7 @@ const PartyRoom = () => {
     cleanup: cleanupWebRTC,
     getPeerStream,
   } = usePartyRoomWebRTC(
-    roomId || null,
+    mediaReady ? roomId || null : null,
     currentUser?.id || null,
     room?.room_type || 'video',
     isHost,
