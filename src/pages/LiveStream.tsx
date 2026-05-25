@@ -10,7 +10,6 @@ import { ReactionsQuickBar } from "@/components/livekit/ReactionsQuickBar";
 import { raiseHand, lowerHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
-import { SimulcastDialog } from "@/components/livekit/SimulcastDialog";
 import { AgentDispatchDialog } from "@/components/livekit/AgentDispatchDialog";
 import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { useLiveKitRpcHandlers } from "@/hooks/useLiveKitRpcHandlers";
@@ -43,7 +42,6 @@ import {
   Layers,
   Radio,
   PhoneCall,
-  Cast,
   Gamepad2,
   Swords,
   MessageCircle,
@@ -221,7 +219,6 @@ const LiveStream = () => {
   const [showNoiseCancellation, setShowNoiseCancellation] = useState(false);
   const [showIngress, setShowIngress] = useState(false);
   const [showSipDial, setShowSipDial] = useState(false);
-  const [showSimulcast, setShowSimulcast] = useState(false);
   // Pkg152: Publish-layer (simulcast tier) picker — host only, portrait 9:16 enforced.
   const [showPublishLayers, setShowPublishLayers] = useState(false);
   const [showAgentDispatch, setShowAgentDispatch] = useState(false);
@@ -580,11 +577,6 @@ const LiveStream = () => {
     toggleRemoteAudio,
     toggleAudio,
     retrySubscription,
-    startScreenShare,
-    stopScreenShare,
-    isScreenSharing,
-    screenTrack,
-    remoteScreenTracks,
   } = useLiveKitClient({
     liveSignalingStreamId: id,
     giftSignalingStreamId: id,
