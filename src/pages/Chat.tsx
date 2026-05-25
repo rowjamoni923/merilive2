@@ -1470,7 +1470,7 @@ const Chat = () => {
     // Replace the queued optimistic bubble with a "sent" one — realtime
     // upsertLiveMessage will replace it with the canonical row shortly.
     setMessages(prev => prev.map(m =>
-      m.id === item.id ? { ...m, status: 'sent' as any } : m
+      m.id === item.id ? { ...m, status: 'sent' } : m
     ));
   });
 
@@ -1675,6 +1675,7 @@ const Chat = () => {
 
   const handleSend = async () => {
     if (!message.trim() || sending) return;
+    if (!currentUserId || (!selectedConversation && !selectedGroup)) return;
 
     setSending(true);
     const originalContent = message.trim();
@@ -1723,6 +1724,12 @@ const Chat = () => {
           })
           .catch(err => console.error('[ContactDetection] Chat error:', err));
       }
+    }
+
+    if (contentToSend !== originalContent) {
+      setMessages(prev => prev.map(m =>
+        m.id === optimisticId ? { ...m, content: contentToSend } : m
+      ));
     }
 
     try {
