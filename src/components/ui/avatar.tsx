@@ -114,7 +114,7 @@ const AvatarImage = React.forwardRef<
     >
       <AvatarPrimitive.Image
         ref={ref}
-        className={cn("aspect-square h-full w-full", className)}
+        className={cn("h-full w-full object-contain", className)}
         src={renderSrc}
         loading="lazy"
         decoding="async"
