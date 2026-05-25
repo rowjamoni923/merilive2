@@ -2438,7 +2438,7 @@ const Chat = () => {
                                 : "bg-muted rounded-bl-sm"
                             )}>
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
                                   <Mic className="w-4 h-4" />
                                 </div>
                                 <audio 
@@ -2779,9 +2779,9 @@ const Chat = () => {
                   )}
                 >
                   {sendingVoice ? (
- <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                   ) : isRecording ? (
-                    <div className="w-4 h-4 bg-white rounded-sm" />
+                    <div className="w-4 h-4 bg-primary-foreground rounded-sm" />
                   ) : (
  <Send className="w-5 h-5 text-primary-foreground" />
                   )}
@@ -3322,7 +3322,7 @@ const Chat = () => {
                     </Avatar>
                   )}
                   {conv.other_user?.is_online && (
- <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-slate-200 rounded-full z-10 shadow-lg shadow-green-500/30" />
+ <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-online border-2 border-card rounded-full z-10 shadow-lg shadow-green-500/30" />
                   )}
                 </div>
                 <div className="flex-1 text-left min-w-0">
@@ -3455,7 +3455,7 @@ const Chat = () => {
 
             <div className="flex justify-center">
               <button 
-                className="w-20 h-20 rounded-full border-2 border-dashed border-amber-300/60 flex items-center justify-center hover:bg-white/[0.06] transition-colors overflow-hidden"
+                className="w-20 h-20 rounded-full border-2 border-dashed border-accent/60 flex items-center justify-center hover:bg-muted transition-colors overflow-hidden"
                 onClick={() => groupPhotoInputRef.current?.click()}
               >
                 {newGroupPhotoPreview ? (
@@ -3481,7 +3481,7 @@ const Chat = () => {
 
             <div className="space-y-3">
               <RadioGroup value={newGroupType} onValueChange={setNewGroupType}>
-                <div className="flex items-center space-x-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]">
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-border bg-card/60">
                   <RadioGroupItem value="basic" id="basic" />
                   <Label htmlFor="basic" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
@@ -3490,7 +3490,7 @@ const Chat = () => {
                     </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]">
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-border bg-card/60">
                   <RadioGroupItem value="family" id="family" />
                   <Label htmlFor="family" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
@@ -3546,7 +3546,7 @@ const Chat = () => {
                 {groupSearchResults.map((group) => (
                   <div
                     key={group.id}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]"
+                    className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card/60"
                   >
                     <Avatar className="w-12 h-12 ring-2 ring-purple-500/20">
                       <AvatarImage src={group.avatar_url || undefined} />
