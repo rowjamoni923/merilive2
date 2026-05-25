@@ -1153,7 +1153,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         tokenRefreshDetachRef.current = null;
       }
       remoteAudioElementsRef.current.forEach(els => {
-        els.forEach(el => el.remove());
+        els.forEach(el => {
+          const key = el.dataset.livekitAudioKey;
+          if (key) detachLiveKitRemoteAudio(key);
+        });
       });
       remoteAudioElementsRef.current.clear();
       remoteAudioTrackKeysRef.current.clear();
