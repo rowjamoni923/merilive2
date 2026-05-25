@@ -97,6 +97,10 @@ const AdminAppSettingsHub = () => {
             <Shield className="h-4 w-4" />
             Links
           </TabsTrigger>
+          <TabsTrigger value="secret-links" className={tabTriggerClass}>
+            <KeyRound className="h-4 w-4" />
+            Secret Links
+          </TabsTrigger>
           <TabsTrigger value="settings" className={tabTriggerClass}>
             <Settings className="h-4 w-4" />
             Settings
