@@ -138,7 +138,7 @@ const AdminSubAdmins = () => {
   const fetchAdmins = async () => {
     const { data, error } = await supabase
       .from("admin_users")
-      .select("*")
+      .select("id, user_id, email, display_name, role, is_active, invited_at, accepted_at, last_login_at")
       .order("role", { ascending: true })
       .order("created_at", { ascending: false });
 
@@ -295,37 +295,25 @@ const AdminSubAdmins = () => {
 
   const handleSavePermissions = async () => {
     if (!selectedAdmin) return;
-    const adminActorId = getAdminActorId();
-
-    // Delete existing permissions
-    await supabase
-      .from("admin_section_permissions")
-      .delete()
-      .eq("admin_user_id", selectedAdmin.id);
-
-    // Insert new permissions
-    const permissionsToInsert = selectedSections
+    const permissionsPayload = selectedSections
       .filter(s => s.can_view)
       .map(s => ({
-        admin_user_id: selectedAdmin.id,
         section_id: s.section_id,
         can_view: s.can_view,
         can_edit: s.can_edit,
         can_delete: s.can_delete,
-        granted_by: adminActorId,
       }));
 
-    if (permissionsToInsert.length > 0) {
-      const { error } = await supabase
-        .from("admin_section_permissions")
-        .insert(permissionsToInsert);
+    const { error } = await supabase.rpc('admin_set_section_permissions' as any, {
+      p_admin_user_id: selectedAdmin.id,
+      p_permissions: permissionsPayload,
+    });
 
-      if (error) {
-        toast.error("Failed to save permissions");
-        console.error(error);
-        recordAdminError({ kind: "rpc", label: "AdminSubAdmins.permissionsToInsert", message: error?.message ?? String(error) });
-        return;
-      }
+    if (error) {
+      toast.error("Failed to save permissions");
+      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.admin_set_section_permissions", message: error?.message ?? String(error) });
+      return;
     }
 
     toast.success("Permissions updated!");
