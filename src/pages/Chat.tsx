@@ -2912,69 +2912,53 @@ const Chat = () => {
               </>
             ) : (
               <>
-                {/* Camera Button - Left - Opens Gallery Directly */}
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => {
-                    setShowMediaUploader(true);
-                    setShowEmojiPicker(false);
-                  }}
-                  className="w-10 h-10 rounded-full bg-white/[0.06] border border-amber-200/60 flex items-center justify-center hover:bg-white/[0.1] transition-colors backdrop-blur-xl"
-                >
-                  <Camera className="w-5 h-5 text-slate-700" />
-                </motion.button>
-                
-                {/* Text Input */}
-                <div className="flex-1 relative">
+                {/* WhatsApp-style single pill: emoji • input • attach • camera */}
+                <div className={cn(
+                  "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-white/95 border border-amber-200/70 shadow-sm backdrop-blur-xl transition-colors",
+                  inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-300/70"
+                )}>
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
+                    aria-label="Emoji"
+                  >
+                    <Smile className="w-[20px] h-[20px] text-slate-500" />
+                  </motion.button>
                   <Input
                     value={message}
                     onChange={(e) => handleMessageChange(e.target.value)}
-                    placeholder="Type something..."
-                    className={cn(
-"rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-amber-300/60 backdrop-blur-xl",
-                      inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-amber-300/60"
-                    )}
+                    placeholder="Message"
+                    className="flex-1 h-9 border-0 bg-transparent px-1 text-[14px] text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     disabled={sending}
-                    onFocus={() => {
-                      setShowEmojiPicker(false);
-                    }}
+                    onFocus={() => setShowEmojiPicker(false)}
                   />
-                  {/* Right side buttons inside input */}
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => {
-                        setShowEmojiPicker(!showEmojiPicker);
-                      }}
-                      className="p-1.5 rounded-full hover:bg-white/[0.08] transition-colors"
-                    >
-                      <Smile className="w-5 h-5 text-slate-600" />
-                    </motion.button>
-                    {/* Voice Recording Button */}
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={handleVoiceRecord}
-                      className="p-1.5 rounded-full hover:bg-white/[0.08] transition-colors"
-                    >
-                      <Mic className="w-5 h-5 text-slate-600" />
-                    </motion.button>
-                  </div>
-                </div>
-                
-                {/* Send Button */}
-                {message.trim() && (
                   <motion.button
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={handleSend}
-                    disabled={sending}
-                    className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+                    onClick={() => { setShowMediaUploader(true); setShowEmojiPicker(false); }}
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
+                    aria-label="Gallery"
                   >
- <Send className="w-5 h-5 text-slate-900" />
+                    <Camera className="w-[18px] h-[18px] text-slate-500" />
                   </motion.button>
-                )}
+                </div>
+
+                {/* Right-side circular action: mic when empty, send when typing */}
+                <motion.button
+                  initial={false}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={message.trim() ? handleSend : handleVoiceRecord}
+                  disabled={sending}
+                  className="shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 flex items-center justify-center shadow-md shadow-purple-500/30"
+                  aria-label={message.trim() ? "Send" : "Record voice"}
+                >
+                  {message.trim() ? (
+                    <Send className="w-5 h-5 text-white" />
+                  ) : (
+                    <Mic className="w-5 h-5 text-white" />
+                  )}
+                </motion.button>
               </>
             )}
           </div>
