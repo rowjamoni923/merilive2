@@ -591,52 +591,29 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify admin authorization via custom admin session token (x-admin-token)
-    const adminToken = req.headers.get('x-admin-token');
-    if (!adminToken) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized: missing admin session' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+    const { requireAdminSession } = await import("../_shared/adminAuth.ts");
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Look up active admin session by token
-    const { data: sessionRow, error: sessionErr } = await adminClient
-      .from('admin_sessions')
-      .select('admin_user_id, expires_at')
-      .eq('session_token', adminToken)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle();
-
-    if (sessionErr || !sessionRow) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized: invalid or expired admin session' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verify admin status is active
-    const { data: adminUser } = await adminClient
-      .from('admin_users')
-      .select('id, role, is_active')
-      .eq('id', sessionRow.admin_user_id)
-      .eq('is_active', true)
-      .maybeSingle();
-
-    if (!adminUser) {
-      return new Response(
-        JSON.stringify({ error: 'Admin access required' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const { action, ...params } = await req.json();
+
+    // Read-only actions only require an active admin session.
+    // Mutating / outbound actions additionally require moderation-hub edit permission.
+    const mutatingActions = new Set(['send_reply', 'auto_reply', 'mark_read']);
+    const adminAuth = await requireAdminSession(req, adminClient, {
+      sectionKey: mutatingActions.has(action) ? 'moderation-hub' : undefined,
+      requireEdit: mutatingActions.has(action),
+    });
+    if (!adminAuth.ok) {
+      return new Response(
+        JSON.stringify({ error: adminAuth.error || 'Unauthorized' }),
+        { status: adminAuth.status || 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const accessToken = await getAccessToken();
 
     let result: any;
