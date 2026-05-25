@@ -2084,7 +2084,7 @@ const LiveStream = () => {
         setSelectedProfile({
           id: profile.id,
           name: profile.display_name || "User",
-          avatar: profile.avatar_url || "",
+          avatar: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || "",
           level: profile.user_level || 1,
           coins: 0,
           beans: 0,
