@@ -74,7 +74,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
         style={{ borderRadius: 0, borderLeft: "none", borderRight: "none", borderTop: "none" }}
       >
         <div className="px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-fuchsia-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-xl font-bold text-foreground">
             Messages
           </h1>
           <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
               >
                 Messages
                 {globalUnread.messages > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
                     {formatBadgeCount(globalUnread.messages)}
                   </span>
                 )}
@@ -129,7 +129,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
               >
                 Notifications
                 {globalUnread.notifications > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
                     {formatBadgeCount(globalUnread.notifications)}
                   </span>
                 )}
@@ -139,7 +139,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                 className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground"
               >
                 Groups
-                {groups.length > 0 && <span className="ml-1 text-xs text-white/80">({groups.length})</span>}
+                {groups.length > 0 && <span className="ml-1 text-xs text-current/80">({groups.length})</span>}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -183,11 +183,8 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
           ) : chatTab === "messages" ? (
             filteredConversations.length === 0 ? (
               <div className="text-center py-16">
-                <div
-                  className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)" }}
-                >
-                  <MessageCircle className="w-10 h-10 text-purple-400" />
+                <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10 border border-primary/20">
+                  <MessageCircle className="w-10 h-10 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2 text-foreground">No conversations yet</h3>
                 <p className="text-muted-foreground text-sm mb-4">Start a conversation with someone!</p>
@@ -199,16 +196,16 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                 </Button>
               </div>
             ) : (
-              <div className="divide-y divide-amber-100/60">
+              <div className="divide-y divide-border">
                 {filteredConversations.map((conv) => (
                   <motion.button
                     key={conv.id}
                     onClick={() => onSelectConversation(conv)}
-                    className="w-full flex items-center gap-3 p-4 hover:bg-amber-50/60 transition-all duration-200 relative"
+                    className="w-full flex items-center gap-3 p-4 hover:bg-muted/60 transition-all duration-200 relative"
                     whileTap={{ scale: 0.98 }}
                   >
                     {conv.unread_count > 0 && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-fuchsia-500 to-purple-500 shadow-lg shadow-fuchsia-500/30" />
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-primary shadow-lg" />
                     )}
                     <div className="relative">
                       {conv.other_user?.id ? (
@@ -221,9 +218,9 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                           showAnimation={false}
                         />
                       ) : (
-                        <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
+                        <Avatar className="w-14 h-14 ring-2 ring-primary/20">
                           <AvatarImage src={conv.other_user?.avatar_url || undefined} />
-                          <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
                             {conv.other_user?.display_name?.[0] || "?"}
                           </AvatarFallback>
                         </Avatar>
@@ -250,7 +247,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                           {conv.last_message || "No messages yet"}
                         </p>
                         {conv.unread_count > 0 && (
-                          <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
+                          <Badge className="bg-destructive text-destructive-foreground border-0 rounded-full ml-2 shrink-0 shadow-lg text-[10px] px-2">
                             {conv.unread_count}
                           </Badge>
                         )}
@@ -264,11 +261,8 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
             // Groups Tab
             filteredGroups.length === 0 ? (
               <div className="text-center py-16">
-                <div
-                  className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)" }}
-                >
-                  <Users className="w-10 h-10 text-purple-400" />
+                <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10 border border-primary/20">
+                  <Users className="w-10 h-10 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2 text-foreground">No groups yet</h3>
                 <p className="text-muted-foreground text-sm mb-4">Create or join a group!</p>
@@ -280,17 +274,17 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
                 </Button>
               </div>
             ) : (
-              <div className="divide-y divide-amber-100/60">
+              <div className="divide-y divide-border">
                 {filteredGroups.map((group) => (
                   <motion.button
                     key={group.id}
                     onClick={() => onSelectGroup(group)}
-                    className="w-full flex items-center gap-3 p-4 hover:bg-amber-50/60 transition-all duration-200"
+                    className="w-full flex items-center gap-3 p-4 hover:bg-muted/60 transition-all duration-200"
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
+                    <Avatar className="w-14 h-14 ring-2 ring-primary/20">
                       <AvatarImage src={group.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
                         <Users className="w-6 h-6" />
                       </AvatarFallback>
                     </Avatar>

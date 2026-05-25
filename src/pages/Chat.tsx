@@ -111,7 +111,7 @@ interface Message {
   created_at: string;
   is_read: boolean;
   message_type: string;
-  status?: 'sending' | 'sent' | 'delivered' | 'read';
+  status?: 'sending' | 'queued' | 'sent' | 'delivered' | 'read';
   delivered_at?: string | null;
   read_at?: string | null;
   reply_to_id?: string | null;
@@ -898,6 +898,9 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, groupMessages, isOtherTyping]);
 
+  const upsertLiveMessageRef = useRef(upsertLiveMessage);
+  upsertLiveMessageRef.current = upsertLiveMessage;
+
   // Subscribe to real-time messages via DEDICATED direct channel
   // (bypasses universal system to avoid gaps during channel rebuild loops)
   useEffect(() => {
@@ -911,7 +914,7 @@ const Chat = () => {
         { event: 'message' },
         (payload: any) => {
           if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.message) return;
-          upsertLiveMessage(payload.payload.message);
+          upsertLiveMessageRef.current(payload.payload.message);
         }
       )
       .on(
@@ -940,7 +943,7 @@ const Chat = () => {
       supabase.removeChannel(channel);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedConversation, currentUserId, upsertLiveMessage]);
+  }, [selectedConversation?.id, currentUserId]);
 
   // 📩 Read/Delivered receipt listener via Supabase broadcast
   useEffect(() => {
@@ -1769,7 +1772,7 @@ const Chat = () => {
           });
           // Mark the optimistic message as queued (waiting to send)
           setMessages(prev => prev.map(m =>
-            m.id === optimisticId ? { ...m, status: 'queued' as any } : m
+            m.id === optimisticId ? { ...m, status: 'queued' } : m
           ));
           toast.message("You're offline — message will send when reconnected");
         } catch {
@@ -2238,21 +2241,21 @@ const Chat = () => {
                               
                               {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
                               {isMine && diamondsAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full shadow-md shadow-rose-500/30">
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-destructive rounded-full shadow-md">
                                   <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
  <span className="text-[9px] font-bold text-primary-foreground">
                                     -{Number(diamondsAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : !isMine && beansAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md shadow-amber-500/30">
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-gold rounded-full shadow-md">
                                   <Beans3DIcon size={12} />
  <span className="text-[9px] font-bold text-accent-foreground">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : beansAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md">
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-gold rounded-full shadow-md">
                                   <Beans3DIcon size={12} />
  <span className="text-[9px] font-bold text-accent-foreground">
                                     +{Number(beansAmount).toLocaleString()}
@@ -2332,14 +2335,10 @@ const Chat = () => {
                             className={cn(
                               "rounded-2xl px-2.5 py-1.5 max-w-full text-[13px] leading-[1.35]",
                               isMine
- ?"bg-gradient-primary text-primary-foreground rounded-br-sm shadow-md shadow-purple-500/20"
-                                : "rounded-bl-sm text-card-foreground shadow-sm",
+ ?"bg-gradient-primary text-primary-foreground rounded-br-sm shadow-md shadow-primary/20"
+                                : "bg-card border border-border rounded-bl-sm text-card-foreground shadow-sm",
                               msg._optimistic && "opacity-70"
                             )}
-                            style={!isMine ? {
-                              background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(40 40% 99%) 100%)',
-                              border: '1px solid hsl(40 35% 88% / 0.7)',
-                            } : undefined}
                           >
                             <span className="break-words">{content}</span>
                             <span className={cn(
@@ -2398,14 +2397,14 @@ const Chat = () => {
                           });
                           toast.success('Reacted ❤️');
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
-                          <SmilePlus className="w-4 h-4 text-amber-500" />
+                          <SmilePlus className="w-4 h-4 text-warning-600" />
                           <span className="font-medium text-sm">React</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
                           setMessageInfoMessage(msg);
                           setShowMessageInfo(true);
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
-                          <Info className="w-4 h-4 text-blue-400" />
+                          <Info className="w-4 h-4 text-primary" />
                           <span className="font-medium text-sm">Info</span>
                         </DropdownMenuItem>
                         <div className="h-px bg-border my-1" />
@@ -2442,11 +2441,11 @@ const Chat = () => {
                     showAnimation={false}
                   />
                 </div>
-                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm" style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(40 40% 99%) 100%)', border: '1px solid hsl(var(--border) / 0.7)' }}>
+                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm bg-card border border-border">
                   <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -2456,7 +2455,7 @@ const Chat = () => {
         </div>
 
         {/* Message Input - Ultra Premium Dark Glass */}
-        <div className="flex-shrink-0 pt-2 safe-area-bottom" style={{ background: 'linear-gradient(to top, hsl(40 40% 98%) 0%, hsl(40 40% 98% / 0.92) 70%, transparent 100%)', borderTop: '1px solid hsl(40 35% 88% / 0.5)' }}>
+        <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border">
           {/* Media Uploader (direct gallery) */}
           <MediaUploader
             isOpen={showMediaUploader}
@@ -2483,7 +2482,7 @@ const Chat = () => {
               {/* Header row */}
               <div className="flex items-center justify-between mb-2 px-1">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-[11px] font-semibold tracking-wide bg-gradient-to-r from-amber-700 via-rose-600 to-purple-700 bg-clip-text text-transparent whitespace-nowrap">
+                  <span className="text-[11px] font-semibold tracking-wide text-primary whitespace-nowrap">
                     ✨ Auto-Translate
                   </span>
                   <span className="text-[10px] text-muted-foreground">→</span>
@@ -2518,7 +2517,7 @@ const Chat = () => {
                       onClick={() => handleInlineLangChange(lang.code)}
                       className={`shrink-0 inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all duration-200 border ${ // dark-ok
                         active
-                          ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-fuchsia-600 text-white border-white shadow-[0_4px_14px_rgba(244,114,182,0.45)] ring-2 ring-amber-300/70 scale-[1.04]'
+                          ? 'bg-gradient-primary text-primary-foreground border-primary-foreground/40 shadow-lg ring-2 ring-primary/30 scale-[1.04]'
                           : 'bg-card text-card-foreground border-border shadow-sm hover:border-accent hover:shadow-md hover:-translate-y-px'
                       }`}
                     >
@@ -2542,14 +2541,14 @@ const Chat = () => {
                   className="mt-2 rounded-xl px-3 py-2 bg-gradient-to-br from-card via-primary/5 to-secondary/5 border border-primary/20 shadow-inner"
                 >
                   <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-[10px] font-bold text-purple-700">
+                    <span className="text-[10px] font-bold text-primary">
                       {languageOptions.find(l => l.code === inlineTargetLang)?.flag} {inlineTargetLang}
                     </span>
                     {isInlineTranslating && (
                       <span className="inline-flex gap-0.5">
-                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce" />
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce" />
                       </span>
                     )}
                   </div>
@@ -2675,20 +2674,20 @@ const Chat = () => {
                 <div className="flex-1 relative">
                   <div className={cn(
                     "w-full h-11 rounded-full flex items-center justify-center gap-2",
-                    isRecording ? "bg-red-500/10" : "bg-green-500/10"
+                    isRecording ? "bg-destructive/10" : "bg-success/10"
                   )}>
                     {isRecording ? (
                       <>
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-red-500 font-semibold text-lg">
+                        <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
+                        <span className="text-destructive font-semibold text-lg">
                           {formatRecordingTime(recordingDuration)}
                         </span>
-                        <span className="text-red-500/70 text-sm">Recording...</span>
+                        <span className="text-destructive/70 text-sm">Recording...</span>
                       </>
                     ) : (
                       <>
-                        <Mic className="w-5 h-5 text-green-600" />
-                        <span className="text-green-600 font-medium">
+                        <Mic className="w-5 h-5 text-success-600" />
+                        <span className="text-success-600 font-medium">
                           {formatRecordingTime(recordingDuration)} Ready to send
                         </span>
                       </>
@@ -2706,8 +2705,8 @@ const Chat = () => {
                   className={cn(
                     "w-11 h-11 rounded-full flex items-center justify-center shadow-lg",
                     isRecording 
-                      ? "bg-red-500" 
-                      : "bg-gradient-to-r from-purple-500 to-pink-500"
+                      ? "bg-destructive" 
+                      : "bg-gradient-primary"
                   )}
                 >
                   {sendingVoice ? (
@@ -2735,7 +2734,7 @@ const Chat = () => {
                 
                 {/* Media Preview */}
                 <div className="flex-1 relative">
-                  <div className="w-full h-11 rounded-full bg-blue-500/10 flex items-center justify-center gap-2 px-4">
+                  <div className="w-full h-11 rounded-full bg-primary/10 flex items-center justify-center gap-2 px-4">
                     {pendingMedia.type === 'image' ? (
                       <>
                         <img 
@@ -2743,21 +2742,21 @@ const Chat = () => {
                           alt="Preview" 
                           className="w-8 h-8 rounded-lg object-cover"
                         />
-                        <span className="text-blue-600 font-medium text-sm truncate">
+                        <span className="text-primary font-medium text-sm truncate">
                           📷 Image ready to send
                         </span>
                       </>
                     ) : pendingMedia.type === 'video' ? (
                       <>
-                        <ImageIcon className="w-5 h-5 text-purple-600" />
-                        <span className="text-purple-600 font-medium text-sm">
+                        <ImageIcon className="w-5 h-5 text-primary" />
+                        <span className="text-primary font-medium text-sm">
                           🎥 Video ready to send
                         </span>
                       </>
                     ) : (
                       <>
-                        <Mic className="w-5 h-5 text-orange-600" />
-                        <span className="text-orange-600 font-medium text-sm">
+                        <Mic className="w-5 h-5 text-warning-600" />
+                        <span className="text-warning-600 font-medium text-sm">
                           🎵 Audio ready to send
                         </span>
                       </>
@@ -2837,7 +2836,7 @@ const Chat = () => {
                     }
                   }}
                   disabled={sending}
-                  className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+                    className="w-11 h-11 rounded-full bg-gradient-primary flex items-center justify-center shadow-lg"
                 >
  <Send className="w-5 h-5 text-primary-foreground" />
                 </motion.button>
@@ -2847,12 +2846,12 @@ const Chat = () => {
                 {/* WhatsApp-style single pill: emoji • input • attach • camera */}
                 <div className={cn(
                   "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-card/95 border border-border shadow-sm backdrop-blur-xl transition-colors",
-                  inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-300/70"
+                  inlineTranslateEnabled && "ring-1 ring-primary/40 border-primary/70"
                 )}>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
                     aria-label="Emoji"
                   >
                     <Smile className="w-[20px] h-[20px] text-muted-foreground" />
@@ -2869,7 +2868,7 @@ const Chat = () => {
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => { setShowMediaUploader(true); setShowEmojiPicker(false); }}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
                     aria-label="Gallery"
                   >
                     <Camera className="w-[18px] h-[18px] text-muted-foreground" />
@@ -2882,13 +2881,13 @@ const Chat = () => {
                   whileTap={{ scale: 0.9 }}
                   onClick={message.trim() ? handleSend : handleVoiceRecord}
                   disabled={sending}
-                  className="shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 flex items-center justify-center shadow-md shadow-purple-500/30"
+                  className="shrink-0 w-11 h-11 rounded-full bg-gradient-primary flex items-center justify-center shadow-md shadow-primary/30"
                   aria-label={message.trim() ? "Send" : "Record voice"}
                 >
                   {message.trim() ? (
-                    <Send className="w-5 h-5 text-white" />
+                    <Send className="w-5 h-5 text-primary-foreground" />
                   ) : (
-                    <Mic className="w-5 h-5 text-white" />
+                    <Mic className="w-5 h-5 text-primary-foreground" />
                   )}
                 </motion.button>
               </>
@@ -2913,7 +2912,7 @@ const Chat = () => {
                   <div className={cn(
                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border backdrop-blur-xl",
                     inlineTranslateEnabled 
-                      ? "bg-gradient-to-br from-primary/30 to-secondary/30 border-primary/40 shadow-lg shadow-purple-500/20" 
+                      ? "bg-gradient-primary border-primary/40 shadow-lg shadow-primary/20" 
  :"bg-card/70 border-border hover:bg-muted"
                   )}>
                     <Languages className={cn(
@@ -2935,8 +2934,8 @@ const Chat = () => {
                   onClick={() => setShowGiftPanel(true)}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/25 backdrop-blur-xl hover:from-pink-500/30 hover:to-rose-500/30 transition-all duration-300">
-                    <Gift className="w-5 h-5 text-pink-400" />
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-primary/10 border border-primary/20 backdrop-blur-xl hover:bg-primary/15 transition-all duration-300">
+                    <Gift className="w-5 h-5 text-primary" />
                   </div>
                   <span className="text-[9px] font-semibold text-muted-foreground">Gift</span>
                 </motion.button>
@@ -2947,8 +2946,8 @@ const Chat = () => {
                   onClick={() => setShowGamePanel(true)}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/25 backdrop-blur-xl hover:from-indigo-500/30 hover:to-blue-500/30 transition-all duration-300">
-                    <Gamepad2 className="w-5 h-5 text-indigo-400" />
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-secondary/70 border border-border backdrop-blur-xl hover:bg-secondary transition-all duration-300">
+                    <Gamepad2 className="w-5 h-5 text-primary" />
                   </div>
                   <span className="text-[9px] font-semibold text-muted-foreground">Games</span>
                 </motion.button>
@@ -2964,14 +2963,14 @@ const Chat = () => {
                     }}
                     className="flex flex-col items-center gap-1.5 group"
                   >
-                    <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-rose-500/20 to-red-500/20 border border-rose-500/25 backdrop-blur-xl hover:from-rose-500/30 hover:to-red-500/30 transition-all duration-300">
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-rose-500/10 to-pink-500/10 animate-pulse" />
-                      <VideoCallIcon className="w-5 h-5 text-rose-400 relative z-10" />
+                    <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center bg-destructive/10 border border-destructive/20 backdrop-blur-xl hover:bg-destructive/15 transition-all duration-300">
+                      <div className="absolute inset-0 rounded-2xl bg-destructive/10 animate-pulse" />
+                      <VideoCallIcon className="w-5 h-5 text-destructive relative z-10" />
                     </div>
                     <div className="flex flex-col items-center">
                       <span className="text-[9px] font-semibold text-muted-foreground">Video Call</span>
                       {selectedConversation.other_user.call_rate_per_minute && selectedConversation.other_user.call_rate_per_minute > 0 && (
-                        <span className="text-[8px] text-amber-400/70 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
+                        <span className="text-[8px] text-warning-600/80 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
                       )}
                     </div>
                   </motion.button>
@@ -2991,7 +2990,7 @@ const Chat = () => {
             <DialogContent className="max-w-sm">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <Languages className="w-5 h-5 text-purple-500" />
+                  <Languages className="w-5 h-5 text-primary" />
                   Translator
                 </DialogTitle>
               </DialogHeader>
@@ -3024,24 +3023,24 @@ const Chat = () => {
                     value={translateText}
                     onChange={(e) => handleTranslateTextChange(e.target.value)}
                     placeholder="Type here... auto-translates as you type"
-                    className="w-full mt-2 p-3 rounded-xl border border-border min-h-[80px] resize-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                    className="w-full mt-2 p-3 rounded-xl border border-border min-h-[80px] resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
 
                 {/* Translation Result - Shows below input */}
                 <div className={`rounded-xl border-2 border-dashed transition-all ${
                   translatedResult 
-                    ? 'border-amber-300/60 bg-purple-500/10' 
+                    ? 'border-primary/40 bg-primary/10' 
  :'border-border bg-muted/30'
                 }`}>
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-purple-300">
+                      <span className="text-xs font-medium text-primary">
                         {languageOptions.find(l => l.code === selectedLanguage)?.flag} {selectedLanguage}
                       </span>
                       {isTranslating && (
                         <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                          <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                           Translating...
                         </span>
                       )}
@@ -3054,7 +3053,7 @@ const Chat = () => {
 
                 {/* Action Button */}
                 <Button
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  className="w-full bg-gradient-primary text-primary-foreground"
                   onClick={() => {
                     if (translatedResult) {
                       setMessage(prev => prev + translatedResult);

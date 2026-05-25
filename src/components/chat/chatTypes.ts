@@ -44,7 +44,7 @@ export interface Message {
   created_at: string;
   is_read: boolean;
   message_type: string;
-  status?: 'sending' | 'sent' | 'delivered' | 'read';
+  status?: 'sending' | 'queued' | 'sent' | 'delivered' | 'read';
   delivered_at?: string | null;
   read_at?: string | null;
   reply_to_id?: string | null;
