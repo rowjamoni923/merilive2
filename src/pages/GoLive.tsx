@@ -35,7 +35,7 @@ import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 import { runPreflightProbe } from "@/lib/livekitPreflightProbe";
 
-const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_image";
+const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_status, face_verification_image";
 
 const isApprovedLiveHost = (profile?: {
   is_host?: boolean | null;
@@ -310,9 +310,9 @@ const GoLive = () => {
           p_user_id: userProfile.id,
         });
         const banInfo = banData?.[0];
-        if (banInfo?.ban_end) {
+        if (banInfo) {
           setIsBanned(true);
-          setBanEndTime(new Date(banInfo.ban_end));
+          setBanEndTime(banInfo.ban_end ? new Date(banInfo.ban_end) : null);
           setBanReason(banInfo.ban_reason || 'Policy violation');
         }
       } else {
@@ -886,11 +886,12 @@ const GoLive = () => {
         });
 
         const banInfo = banData?.[0];
-        const remainingHours = banInfo?.remaining_hours || 0;
+        const banEnd = banInfo?.ban_end ? new Date(banInfo.ban_end) : null;
+        const remainingHours = banEnd ? Math.max(0, Math.ceil((banEnd.getTime() - Date.now()) / (1000 * 60 * 60))) : null;
         const reason = banInfo?.ban_reason || 'Policy violation';
 
         toast.error(
-          `🚫 Your live has been banned!\n\nReason: ${reason}\nRemaining: ${remainingHours > 24 ? Math.ceil(remainingHours / 24) + ' days' : Math.ceil(remainingHours) + ' hours'}`,
+          `🚫 Your live has been banned!\n\nReason: ${reason}\nRemaining: ${remainingHours === null ? 'Permanent' : (remainingHours > 24 ? Math.ceil(remainingHours / 24) + ' days' : remainingHours + ' hours')}`,
           { duration: 8000 }
         );
         setIsStarting(false);
