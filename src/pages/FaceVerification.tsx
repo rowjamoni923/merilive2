@@ -1657,8 +1657,12 @@ const FaceVerification = () => {
           user_id: userId,
           verification_type: 'face',
           status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
-          admin_notes: faceManualReviewRequired ? 'Manual review required: liveness captured but AI/pose detection could not safely auto-approve.' : null,
-          ai_analysis: faceManualReviewRequired ? { manual_review_required: true, reason: 'client_pose_partial_or_antispoof_uncertain' } : null,
+          // ★ DO NOT pre-flag manual_review_required — let face-verification-analyze
+          //   run the full 3-API pipeline (AWS Rekognition + liveness + duplicate) and
+          //   let service_auto_finalize_face_verification decide. Pre-flagging caused
+          //   100% of submissions to bypass auto-approve (Pkg358).
+          admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
+          ai_analysis: faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : null,
           face_image_url: videoUrl,
           selfie_url: angleUrls.front_url || videoUrl || 'pending://no-image',
           front_url: angleUrls.front_url ?? null,
