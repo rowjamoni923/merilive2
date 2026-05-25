@@ -15,7 +15,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { clearAdminSession, getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
 import { recordAdminError } from '@/utils/adminErrorLog';
-import { revokeAdminAccess } from '@/utils/adminAccessStorage';
+import { getAdminLinkToken, revokeAdminAccess } from '@/utils/adminAccessStorage';
 import { clearInstantRestCache, fetchWithInstantRestCache } from '@/utils/instantRestCache';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
@@ -64,11 +64,15 @@ function forceAdminLogout(): void {
   if (typeof window === 'undefined') return;
   if (adminLogoutInProgress) return;
   adminLogoutInProgress = true;
+  const linkToken = getAdminLinkToken();
   clearAdminSession();
   revokeAdminAccess();
   window.dispatchEvent(new CustomEvent('admin-session-change'));
   if (window.location.pathname.startsWith('/admin')) {
-    window.history.replaceState(null, '', '/');
+    const fallbackPath = linkToken
+      ? `/admin/auth?access=${encodeURIComponent(linkToken)}`
+      : '/admin/auth';
+    window.history.replaceState(null, '', fallbackPath);
     window.dispatchEvent(new PopStateEvent('popstate'));
   }
 }
