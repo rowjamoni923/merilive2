@@ -114,14 +114,8 @@ export function ActiveCallScreen({
   // ✅ REAL-TIME: Fetch and subscribe to gift commission
   useEffect(() => {
     const fetchCommission = async () => {
-      const { data } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'gift_commission')
-        .maybeSingle();
-      
-      if (data?.setting_value) {
-        const settings = data.setting_value as any;
+      const settings = await getAppSetting<Record<string, any>>('gift_commission');
+      if (settings) {
         const rate = settings.host_percent ?? (100 - (settings.company_percent ?? 45));
         setAdminGiftCommission(rate);
       }
