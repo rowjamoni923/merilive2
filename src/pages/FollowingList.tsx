@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, Heart, Users, UserPlus, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface UserProfile {
   id: string;
@@ -27,6 +28,16 @@ interface FollowRecord {
   profile: UserProfile;
 }
 
+// Pkg335: map guard_followers_insert ERRCODE 22023 raises → friendly toasts.
+const mapFollowError = (err: unknown): string => {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  if (/cannot follow yourself/i.test(msg)) return "You can't follow yourself";
+  if (/unavailable user/i.test(msg)) return "This user is no longer available";
+  if (/blocked relationship/i.test(msg)) return "You can't follow due to a block";
+  if (/duplicate key|unique/i.test(msg)) return "You already follow this user";
+  return "Failed to follow";
+};
+
 const FollowingList = () => {
   const navigate = useNavigate();
   const { startCall } = useCall();
@@ -39,55 +50,37 @@ const FollowingList = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    fetchData();
-    
-    // Pkg83-ext: removed static `following-profiles-sync` channel (profiles
-    // is NOT in supabase_realtime publication — was silent no-op anyway).
-    // Online-status updates now refresh on tab visibility.
-    const onVisible = () => { if (document.visibilityState === 'visible') fetchData(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+  const cancelledRef = useRef(false);
+  const userIdRef = useRef<string | null>(null);
+  const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      if (cancelledRef.current) return;
       if (!user) {
         navigate('/auth');
         return;
       }
+      userIdRef.current = user.id;
       setUserId(user.id);
 
-      // Fetch users I'm following
-      const { data: followingData, error: followingError } = await supabase
-        .from('followers')
-        .select('id, created_at, following_id')
-        .eq('follower_id', user.id)
-        .order('created_at', { ascending: false });
+      const [{ data: followingData, error: followingError }, { data: followersData, error: followersError }] = await Promise.all([
+        supabase.from('followers').select('id, created_at, following_id').eq('follower_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('followers').select('id, created_at, follower_id').eq('following_id', user.id).order('created_at', { ascending: false }),
+      ]);
 
       if (followingError) throw followingError;
-
-      // Fetch my followers
-      const { data: followersData, error: followersError } = await supabase
-        .from('followers')
-        .select('id, created_at, follower_id')
-        .eq('following_id', user.id)
-        .order('created_at', { ascending: false });
-
       if (followersError) throw followersError;
+      if (cancelledRef.current) return;
 
-      // Get all unique user IDs
       const followingUserIds = followingData?.map(f => f.following_id) || [];
       const followerUserIds = followersData?.map(f => f.follower_id) || [];
       const allUserIds = [...new Set([...followingUserIds, ...followerUserIds])];
 
-      // Set of users I'm following for quick lookup
       const followingSet = new Set(followingUserIds);
       setFollowingIds(followingSet);
 
-      // Fetch profiles for all users
       if (allUserIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles_public')
@@ -95,48 +88,92 @@ const FollowingList = () => {
           .in('id', allUserIds);
 
         if (profilesError) throw profilesError;
+        if (cancelledRef.current) return;
 
         const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
-        // Map following with profiles
         const followingWithProfiles: FollowRecord[] = followingData?.map(f => ({
           id: f.id,
           created_at: f.created_at,
           profile: profilesMap.get(f.following_id) as UserProfile
         })).filter(f => f.profile) || [];
 
-        // Map followers with profiles
         const followersWithProfiles: FollowRecord[] = followersData?.map(f => ({
           id: f.id,
           created_at: f.created_at,
           profile: profilesMap.get(f.follower_id) as UserProfile
         })).filter(f => f.profile) || [];
 
-        // Find mutual follows (friends)
         const followerIdsSet = new Set(followerUserIds);
-        const friendsWithProfiles = followingWithProfiles.filter(f => 
-          followerIdsSet.has(f.profile.id)
-        );
+        const friendsWithProfiles = followingWithProfiles.filter(f => followerIdsSet.has(f.profile.id));
 
         setFollowing(followingWithProfiles);
         setFollowers(followersWithProfiles);
         setFriends(friendsWithProfiles);
+      } else {
+        setFollowing([]);
+        setFollowers([]);
+        setFriends([]);
       }
     } catch (error) {
+      if (cancelledRef.current) return;
       console.error('Error fetching follow data:', error);
-      recordClientError({ label: "FollowingList.friendsWithProfiles", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "FollowingList.fetchData", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to load data");
     } finally {
-      setLoading(false);
+      if (!cancelledRef.current) setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  const scheduleRefetch = useCallback(() => {
+    if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
+    refetchTimerRef.current = setTimeout(() => {
+      refetchTimerRef.current = null;
+      void fetchData();
+    }, 400);
+  }, [fetchData]);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    void fetchData();
+
+    // Pkg335: Honor Core rule — restore Supabase Realtime on `followers`+`profiles`
+    // (both in supabase_realtime publication). Drops prior visibility-refresh fallback.
+    const unsub = subscribeToTables('following-list', ['followers', 'profiles'], (table, _event, payload) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
+      if (table === 'followers') {
+        const row = (payload?.new ?? payload?.old) as { follower_id?: string; following_id?: string } | null;
+        if (!row) return;
+        if (row.follower_id === uid || row.following_id === uid) scheduleRefetch();
+      } else if (table === 'profiles') {
+        const row = (payload?.new ?? payload?.old) as { id?: string } | null;
+        if (!row?.id) return;
+        // Only refresh if it's a profile we are currently showing.
+        if (followingIds.has(row.id) || following.some(f => f.profile.id === row.id) || followers.some(f => f.profile.id === row.id)) {
+          scheduleRefetch();
+        }
+      }
+    });
+
+    return () => {
+      cancelledRef.current = true;
+      if (refetchTimerRef.current) { clearTimeout(refetchTimerRef.current); refetchTimerRef.current = null; }
+      unsub();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleUnfollow = async (followId: string, profileId: string) => {
+    if (!userIdRef.current) return;
     try {
-      await supabase
+      const { error } = await supabase
         .from('followers')
         .delete()
-        .eq('id', followId);
+        .eq('id', followId)
+        .eq('follower_id', userIdRef.current); // defense-in-depth (RLS already enforces)
+
+      if (error) throw error;
 
       setFollowing(prev => prev.filter(f => f.id !== followId));
       setFriends(prev => prev.filter(f => f.profile.id !== profileId));
@@ -145,30 +182,27 @@ const FollowingList = () => {
         newSet.delete(profileId);
         return newSet;
       });
-      toast.success("Unfollowed successfully");
+      toast.success("Unfollowed");
     } catch (error) {
       console.error('Unfollow error:', error);
-      recordClientError({ label: "FollowingList.newSet", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "FollowingList.handleUnfollow", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to unfollow");
     }
   };
 
   const handleFollow = async (profileId: string) => {
     if (!userId) return;
+    if (profileId === userId) { toast.error("You can't follow yourself"); return; }
 
     try {
       const { data, error } = await supabase
         .from('followers')
-        .insert({
-          follower_id: userId,
-          following_id: profileId
-        })
+        .insert({ follower_id: userId, following_id: profileId })
         .select()
         .single();
 
       if (error) throw error;
 
-      // Find the profile in followers list
       const followerRecord = followers.find(f => f.profile.id === profileId);
       if (followerRecord) {
         const newFollowRecord: FollowRecord = {
@@ -186,11 +220,11 @@ const FollowingList = () => {
         return newSet;
       });
 
-      toast.success("Followed successfully");
+      toast.success("Followed");
     } catch (error) {
       console.error('Follow error:', error);
-      recordClientError({ label: "FollowingList.newSet", message: error instanceof Error ? error.message : String(error) });
-      toast.error("Failed to follow");
+      recordClientError({ label: "FollowingList.handleFollow", message: error instanceof Error ? error.message : String(error) });
+      toast.error(mapFollowError(error));
     }
   };
 
@@ -211,25 +245,25 @@ const FollowingList = () => {
     return (
       <div
         key={record.id}
-        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-amber-200/60 shadow-sm"
+        className="flex items-center gap-3 p-4 bg-card text-card-foreground rounded-xl border border-border shadow-sm"
       >
         {/* Avatar */}
-        <div 
+        <div
           className="relative cursor-pointer"
           onClick={() => navigate(`/profile/${profile.id}`)}
         >
           <Avatar className="w-14 h-14">
             <AvatarImage src={profile.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-primary-foreground">
               {profile.display_name?.[0] || '?'}
             </AvatarFallback>
           </Avatar>
           {profile.is_online && (
-            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-card" />
           )}
           {profile.is_verified && (
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-              <svg className="w-2.5 h-2.5 text-slate-800" fill="currentColor" viewBox="0 0 20 20">
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-card">
+              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
@@ -237,17 +271,17 @@ const FollowingList = () => {
         </div>
 
         {/* Info */}
-        <div 
+        <div
           className="flex-1 min-w-0 cursor-pointer"
           onClick={() => navigate(`/profile/${profile.id}`)}
         >
           <div className="flex items-center gap-2">
-            <p className="font-semibold truncate text-slate-800">{profile.display_name || 'User'}</p>
+            <p className="font-semibold truncate text-foreground">{profile.display_name || 'User'}</p>
             {profile.is_host && (
               <span className="text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full">Host</span>
             )}
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             {profile.country_flag} {profile.is_online ? 'Online' : 'Offline'}
           </p>
         </div>
@@ -257,17 +291,17 @@ const FollowingList = () => {
           {profile.is_host && profile.is_online && (
             <Button
               size="icon"
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"
+              className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white"
               onClick={() => handleCall(profile.id)}
             >
-              <Phone className="w-4 h-4 text-slate-800" />
+              <Phone className="w-4 h-4" />
             </Button>
           )}
-          
+
           {showFollowBack && !isFollowingUser ? (
             <Button
               size="sm"
-              className="bg-gradient-to-r from-purple-500 to-pink-500"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
               onClick={() => handleFollow(profile.id)}
             >
               <UserPlus className="w-4 h-4 mr-1" />
@@ -293,27 +327,27 @@ const FollowingList = () => {
 
   const renderEmptyState = (type: string) => (
     <div className="text-center py-16">
-      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center">
+      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted border border-border flex items-center justify-center">
         {type === 'following' ? (
-          <Heart className="w-10 h-10 text-amber-500" />
+          <Heart className="w-10 h-10 text-primary" />
         ) : type === 'friends' ? (
-          <Users className="w-10 h-10 text-amber-500" />
+          <Users className="w-10 h-10 text-primary" />
         ) : (
-          <UserPlus className="w-10 h-10 text-amber-500" />
+          <UserPlus className="w-10 h-10 text-primary" />
         )}
       </div>
-      <h3 className="text-lg font-semibold mb-2 text-slate-800">
+      <h3 className="text-lg font-semibold mb-2 text-foreground">
         {type === 'following' ? 'Not following anyone yet' :
          type === 'friends' ? 'No friends yet' :
          'No followers yet'}
       </h3>
-      <p className="text-slate-500 text-sm max-w-xs mx-auto">
+      <p className="text-muted-foreground text-sm max-w-xs mx-auto">
         {type === 'following' ? 'Discover and follow hosts you like!' :
          type === 'friends' ? 'Friends are people you follow who also follow you back.' :
          'Share your profile to get more followers!'}
       </p>
       {type === 'following' && (
-        <Button 
+        <Button
           className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
           onClick={() => navigate('/discover')}
         >
@@ -324,19 +358,19 @@ const FollowingList = () => {
   );
 
   return (
-    <div className="mobile-page bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
+    <div className="mobile-page bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-amber-200/60 safe-area-top">
+      <header className="sticky top-0 z-40 bg-card/85 backdrop-blur-xl border-b border-border safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
-            className="text-slate-700 hover:bg-amber-100/60"
+            className="text-foreground hover:bg-muted"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-xl font-bold text-slate-800">Following & Friends</h1>
+          <h1 className="text-xl font-bold text-foreground">Following & Friends</h1>
         </div>
       </header>
 
@@ -351,7 +385,7 @@ const FollowingList = () => {
               <TabsTrigger value="following" className="relative">
                 Following
                 {following.length > 0 && (
-                  <span className="ml-1 text-xs bg-purple-500 text-slate-800 px-1.5 rounded-full">
+                  <span className="ml-1 text-xs bg-purple-500 text-white px-1.5 rounded-full">
                     {following.length}
                   </span>
                 )}
@@ -359,7 +393,7 @@ const FollowingList = () => {
               <TabsTrigger value="followers" className="relative">
                 Followers
                 {followers.length > 0 && (
-                  <span className="ml-1 text-xs bg-purple-500 text-slate-800 px-1.5 rounded-full">
+                  <span className="ml-1 text-xs bg-purple-500 text-white px-1.5 rounded-full">
                     {followers.length}
                   </span>
                 )}
@@ -367,7 +401,7 @@ const FollowingList = () => {
               <TabsTrigger value="friends" className="relative">
                 Friends
                 {friends.length > 0 && (
-                  <span className="ml-1 text-xs bg-pink-500 text-slate-800 px-1.5 rounded-full">
+                  <span className="ml-1 text-xs bg-pink-500 text-white px-1.5 rounded-full">
                     {friends.length}
                   </span>
                 )}
