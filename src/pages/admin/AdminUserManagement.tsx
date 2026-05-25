@@ -874,45 +874,15 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error: appError } = await supabase
-        .from("host_applications")
-        .update({
-          status: "approved",
-          reviewed_at: new Date().toISOString(),
-          admin_notes: adminNotes || null,
-        })
-        .eq("id", selectedApplication.id);
-
-      if (appError) throw appError;
-
-      const { data: genderData, error: profileError } = await supabase.rpc('admin_update_user_gender', {
-        _user_id: selectedApplication.user_id,
-        _gender: 'female',
+      const { data, error } = await supabase.rpc('admin_review_host_application', {
+        _application_id: selectedApplication.id,
+        _status: 'approved',
+        _admin_notes: adminNotes || null,
+        _rejection_reason: null,
       });
-      if (profileError) throw profileError;
+      if (error) throw error;
 
-      if ((genderData as any)?.pending) {
-        toast.success('⏳ Submitted for Owner Approval — host application queued.');
-        setShowAppDetailDialog(false);
-        setAdminNotes("");
-        fetchApplications();
-        return;
-      }
-      if ((genderData as any)?.success === false) {
-        throw new Error((genderData as any)?.error || 'Gender update failed');
-      }
-
-      const { error: faceVerifyError } = await supabase.rpc('admin_toggle_face_verification', {
-        _user_id: selectedApplication.user_id,
-        _verified: true,
-      });
-      if (faceVerifyError) throw faceVerifyError;
-
-      const { error: verifyError } = await supabase
-        .from("profiles")
-        .update({ is_verified: true })
-        .eq("id", selectedApplication.user_id);
-      if (verifyError) throw verifyError;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application approval failed');
 
       toast.success("Application approved!");
       setShowAppDetailDialog(false);
@@ -938,17 +908,15 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error } = await supabase
-        .from("host_applications")
-        .update({
-          status: "rejected",
-          rejection_reason: rejectionReason,
-          reviewed_at: new Date().toISOString(),
-          admin_notes: adminNotes || null,
-        })
-        .eq("id", selectedApplication.id);
+      const { data, error } = await supabase.rpc('admin_review_host_application', {
+        _application_id: selectedApplication.id,
+        _status: 'rejected',
+        _admin_notes: adminNotes || null,
+        _rejection_reason: rejectionReason,
+      });
 
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application rejection failed');
 
       toast.success("Application rejected");
       setShowRejectDialog(false);
