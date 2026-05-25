@@ -10,8 +10,6 @@ import { ReactionsQuickBar } from "@/components/livekit/ReactionsQuickBar";
 import { raiseHand, lowerHand, useRaisedHands } from "@/lib/livekitRaiseHand";
 import { IngressDialog } from "@/components/livekit/IngressDialog";
 import { SipDialDialog } from "@/components/livekit/SipDialDialog";
-import { RecordingDialog } from "@/components/livekit/RecordingDialog";
-import { SimulcastDialog } from "@/components/livekit/SimulcastDialog";
 import { AgentDispatchDialog } from "@/components/livekit/AgentDispatchDialog";
 import { CaptionOverlay } from "@/components/livekit/CaptionOverlay";
 import { useLiveKitRpcHandlers } from "@/hooks/useLiveKitRpcHandlers";
@@ -40,13 +38,10 @@ import {
   Smile,
   Sparkles,
   RotateCcw,
-  MonitorUp,
   ShieldCheck,
   Layers,
   Radio,
   PhoneCall,
-  Video,
-  Cast,
   Gamepad2,
   Swords,
   MessageCircle,
@@ -224,8 +219,6 @@ const LiveStream = () => {
   const [showNoiseCancellation, setShowNoiseCancellation] = useState(false);
   const [showIngress, setShowIngress] = useState(false);
   const [showSipDial, setShowSipDial] = useState(false);
-  const [showRecording, setShowRecording] = useState(false);
-  const [showSimulcast, setShowSimulcast] = useState(false);
   // Pkg152: Publish-layer (simulcast tier) picker — host only, portrait 9:16 enforced.
   const [showPublishLayers, setShowPublishLayers] = useState(false);
   const [showAgentDispatch, setShowAgentDispatch] = useState(false);
@@ -421,67 +414,6 @@ const LiveStream = () => {
     onStreamEnd: handleStreamEndCallback,
   });
 
-  // ========== AUTO-START LIVEKIT EGRESS RECORDING FOR HOST (7-day retention) ==========
-  const egressIdRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!isHost || !isHostVerified || !id) return;
-    
-    const startRecording = async () => {
-      try {
-        const roomName = `live_${id}`;
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-        
-        // Wait 3s for initial setup, then let the edge function handle room-ready checks
-        console.log('[LiveStream] ⏳ Waiting 3s before requesting recording...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        // Check if component is still mounted and stream is still active
-        if (!mountedRef.current) return;
-        
-        console.log('[LiveStream] 🎬 Requesting egress recording for room:', roomName);
-        
-        const { data, error } = await supabase.functions.invoke('livekit-egress', {
-          body: {
-            action: 'start',
-            streamId: id,
-            roomName,
-            hostId: session.user.id,
-          },
-        });
-        
-        if (error) {
-          console.warn('[LiveStream] ⚠️ Egress recording failed (non-blocking):', error);
-          return;
-        }
-        
-        if (data?.success && data?.egressId) {
-          egressIdRef.current = data.egressId;
-          console.log('[LiveStream] ✅ Egress recording started:', data.egressId);
-        } else {
-          console.log('[LiveStream] ℹ️ Recording skipped or not ready:', data?.error || 'unknown');
-        }
-      } catch (error) {
-        // Silent fail - recording is non-critical
-        console.warn('[LiveStream] Recording error (non-blocking):', error);
-      }
-    };
-    
-    startRecording();
-    
-    return () => {
-      if (egressIdRef.current) {
-        const egressId = egressIdRef.current;
-        
-        supabase.functions.invoke('livekit-egress', {
-          body: { action: 'stop', egressId, streamId: id },
-        }).catch(e => console.error('[LiveStream] Failed to stop egress:', e));
-        
-        egressIdRef.current = null;
-      }
-    };
-  }, [isHost, isHostVerified, id]);
-
   // ========== PERIODIC LIVE MINUTES TRACKER (every 60 seconds) ==========
   // ⚠️ CRITICAL: Do NOT add `streamData` to deps — it re-fetches on viewer/gift/music
   // changes and would reset the interval + lastTrackedMinuteRef, breaking task progress.
@@ -645,11 +577,6 @@ const LiveStream = () => {
     toggleRemoteAudio,
     toggleAudio,
     retrySubscription,
-    startScreenShare,
-    stopScreenShare,
-    isScreenSharing,
-    screenTrack,
-    remoteScreenTracks,
   } = useLiveKitClient({
     liveSignalingStreamId: id,
     giftSignalingStreamId: id,
