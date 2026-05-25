@@ -14,6 +14,12 @@ import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { loadPlayStoreProducts } from '@/sdk/PlayStoreBillingSDK';
 import { useAppState } from '@/hooks/useAppState';
 import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
+import { toSupabaseCdnUrl } from '@/lib/cdnImage';
+
+// Tiny gateway / payment-method logos (24-32px) — ask CDN for 96px WebP.
+const logoCdn = (url: string | null | undefined) => toSupabaseCdnUrl(url, { width: 96, quality: 75 }) || url || '';
+// Helper payment proof preview (~120px wide).
+const proofCdn = (url: string | null | undefined) => toSupabaseCdnUrl(url, { width: 320, quality: 70 }) || url || '';
 
 interface AutoGateway {
   id: string;
@@ -1003,7 +1009,7 @@ function CampaignFloatingButton() {
                             <div className="flex items-center gap-2">
                               <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base overflow-hidden ${isSelected ? 'bg-white/20' : 'bg-indigo-50'}`}>
                                 {gw.logo_url ? (
-                                  <img src={gw.logo_url} alt="" className="w-full h-full object-cover" />
+                                  <img src={logoCdn(gw.logo_url)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (gw.logo_url && t.src !== gw.logo_url) t.src = gw.logo_url; }} />
                                 ) : (
                                   gatewayIcon(gw)
                                 )}
