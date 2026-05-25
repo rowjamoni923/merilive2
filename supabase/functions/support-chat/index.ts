@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,35 +24,6 @@ You are the first and main line of support. Solve everything you can with clear,
 - ALWAYS try to solve the problem yourself first.
 - If you genuinely cannot solve something (like balance adjustments), explain what the user needs to do and mention they can type "live chat" if they want human assistance.
 
-## App Features You Can Help With:
-
-### Account & Profile
-- Creating and editing profiles
-- Verification process for hosts
-- Level system (users gain levels by spending coins)
-- VIP membership benefits
-
-### Coins & Recharge
-- How to buy coins (Play Store, local payment methods like bKash/Nagad)
-- Using Helper/Trader system for local payments
-- Coin packages and bonuses
-
-### Live Streaming
-- Going live (requirements: must be verified host)
-- Viewing live streams, sending/receiving gifts
-- Private calls with hosts
-
-### Agencies
-- What agencies are, how to join/create
-- Agency earnings and commissions
-
-### Withdrawals & Earnings (Hosts)
-- How earnings work (gifts → beans)
-- Withdrawal process and payment methods
-
-### Helper/Trader System
-- Level 5 Helpers can process local payments
-
 ## Response Guidelines:
 1. Be friendly, concise, and helpful
 2. Use simple language (respond in user's language - Bengali/English)
@@ -59,20 +31,88 @@ You are the first and main line of support. Solve everything you can with clear,
 4. Keep responses under 300 words
 5. ALWAYS ask clarifying questions on the FIRST message before jumping to solutions`;
 
+// In-memory per-user rate limit (per edge instance). Best-effort spam guard.
+const RATE_BUCKET = new Map<string, { count: number; resetAt: number }>();
+const MAX_REQ_PER_MIN = 20;
+
+function rateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = RATE_BUCKET.get(userId);
+  if (!entry || now > entry.resetAt) {
+    RATE_BUCKET.set(userId, { count: 1, resetAt: now + 60_000 });
+    return true;
+  }
+  if (entry.count >= MAX_REQ_PER_MIN) return false;
+  entry.count += 1;
+  return true;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, userLevel, isPremium } = await req.json();
+    // ----- AUTH: require a real user JWT -----
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.toLowerCase().startsWith("bearer ")
+      ? authHeader.slice(7).trim()
+      : "";
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    const { data: userResult, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userResult?.user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid session" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const userId = userResult.user.id;
+
+    if (!rateLimit(userId)) {
+      return new Response(
+        JSON.stringify({ error: "Too many messages, please slow down." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const messages = Array.isArray(body?.messages) ? body.messages : [];
+    if (messages.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "messages required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ----- Server-derived user context (do NOT trust client) -----
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("user_level")
+      .eq("id", userId)
+      .maybeSingle();
+    const userLevel = profile?.user_level ?? 1;
+    const isPremium = userLevel >= 6;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const contextMessage = `[User Context: Level ${userLevel || 1}, ${isPremium ? "Premium Support" : "Standard Support"}]`;
+    const contextMessage = `[User Context: Level ${userLevel}, ${isPremium ? "Premium Support" : "Standard Support"}]`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
