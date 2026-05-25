@@ -504,52 +504,91 @@ serve(async (req) => {
       return await rejectWithReason({ reasonCode: "face_occluded" });
     }
 
-    // Determine gender with STRICT confidence threshold
-    // ≥85% = high confidence (trusted for auto-routing)
-    // 70-84% = medium confidence (trusted for mismatch detection only)
-    // <70% = unknown (too low to rely on)
+    // Determine gender with TIERED confidence thresholds
+    // ≥80% = high confidence (trusted for auto-approval routing)
+    // ≥60% = medium confidence (trusted for HOST male-rejection — strict policy)
+    // <60% = low / unknown
     const genderConfidence = gender?.Confidence || 0;
     const rawGenderValue = gender?.Value === "Female" ? "female" : "male";
-    
+
     let detectedGender: string;
     let genderTrustLevel: "high" | "medium" | "low";
-    
-    if (genderConfidence >= 85) {
+
+    if (genderConfidence >= 80) {
       detectedGender = rawGenderValue;
       genderTrustLevel = "high";
-    } else if (genderConfidence >= 70) {
+    } else if (genderConfidence >= 60) {
       detectedGender = rawGenderValue;
       genderTrustLevel = "medium";
     } else {
       detectedGender = "unknown";
       genderTrustLevel = "low";
     }
-    
+
     const isFemaleDetected = detectedGender === "female";
-    
+    const isMaleDetected = detectedGender === "male";
+
     console.log(`[auto-face-verify] Gender: ${detectedGender} (${genderConfidence.toFixed(1)}%, trust=${genderTrustLevel}), Raw: ${gender?.Value}`);
 
-    // ★ GENDER MISMATCH DETECTION — only with HIGH trust (≥85%) ★
+    // ★ HOST STRICT POLICY ★
+    // Host accounts are female-only. ANY male detection at medium+ confidence on a
+    // host submission → INSTANT REJECT (no manual review). This is the user's mandate.
+    if (hostSubmissionRequested && isMaleDetected && genderTrustLevel !== "low") {
+      console.log(`[auto-face-verify] ⛔ HOST REJECT: male face detected on host submission (${genderConfidence.toFixed(1)}%)`);
+
+      if (submissionId) {
+        await supabaseAdmin
+          .from("face_verification_submissions")
+          .update({
+            status: "rejected",
+            rejection_reason: `Host accounts are for female users only. Verification detected a male face (${genderConfidence.toFixed(1)}% confidence). Please apply with a female account.`,
+            admin_notes: `AUTO-REJECTED (host strict): male face on host submission. Rekognition=Male ${genderConfidence.toFixed(1)}%.`,
+            reviewed_at: new Date().toISOString(),
+          })
+          .eq("id", submissionId);
+
+        await supabaseAdmin
+          .from("notifications")
+          .insert({
+            user_id: userId,
+            type: "verification_rejected",
+            title: "⚠️ Host Verification Rejected",
+            message: `Host accounts are for female users only. Your face was detected as male (${genderConfidence.toFixed(1)}% confidence).`,
+            data: { reason_code: "host_male_face", detected_gender: "male", confidence: genderConfidence },
+          });
+      }
+
+      return new Response(JSON.stringify({
+        approved: false,
+        rejected: true,
+        reason: "host_male_face",
+        message: `Host accounts are for female users only. Verification detected a male face (${genderConfidence.toFixed(1)}% confidence).`,
+        detectedGender: "male",
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ★ NON-HOST GENDER MISMATCH (profile gender vs detected) ★
     const profileGender = profileRow?.gender?.toLowerCase?.() || null;
-    if (profileGender && detectedGender !== "unknown" && genderTrustLevel === "high") {
+    if (!hostSubmissionRequested && profileGender && detectedGender !== "unknown" && genderTrustLevel === "high") {
       const profileIsMale = profileGender === "male";
-      const profileIsFemale = profileGender === "female";
-      
+
       if (profileIsMale && isFemaleDetected) {
-        // Male account but female face detected → flag & reject
         console.log(`[auto-face-verify] ⚠️ GENDER MISMATCH: Profile=Male, Detected=Female (${genderConfidence.toFixed(1)}%)`);
-        
+
         if (submissionId) {
           await supabaseAdmin
             .from("face_verification_submissions")
             .update({
               status: "rejected",
               rejection_reason: `Gender mismatch detected. Your profile is set to Male but face verification detected Female (${genderConfidence.toFixed(1)}% confidence). If this is incorrect, please contact Support Chat to convert your account.`,
-              admin_notes: `AUTO-REJECTED: Gender mismatch. Profile=Male, Rekognition=Female (${genderConfidence.toFixed(1)}%). User may need gender conversion via admin.`,
+              admin_notes: `AUTO-REJECTED: Gender mismatch. Profile=Male, Rekognition=Female (${genderConfidence.toFixed(1)}%).`,
               reviewed_at: new Date().toISOString(),
             })
             .eq("id", submissionId);
-          
+
           await supabaseAdmin
             .from("notifications")
             .insert({
@@ -560,7 +599,7 @@ serve(async (req) => {
               data: { reason_code: "gender_mismatch", detected_gender: "female", profile_gender: "male" },
             });
         }
-        
+
         return new Response(JSON.stringify({
           approved: false,
           rejected: true,
@@ -573,51 +612,13 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      
-      if (profileIsFemale && !isFemaleDetected && detectedGender === "male") {
-        // Female account but male face detected → flag & reject
-        console.log(`[auto-face-verify] ⚠️ GENDER MISMATCH: Profile=Female, Detected=Male (${genderConfidence.toFixed(1)}%)`);
-        
-        if (submissionId) {
-          await supabaseAdmin
-            .from("face_verification_submissions")
-            .update({
-              status: "rejected",
-              rejection_reason: `Gender mismatch detected. Your profile is set to Female/Host but face verification detected Male (${genderConfidence.toFixed(1)}% confidence). Host accounts are for female users only.`,
-              admin_notes: `AUTO-REJECTED: Gender mismatch. Profile=Female, Rekognition=Male (${genderConfidence.toFixed(1)}%). Possible fraud attempt.`,
-              reviewed_at: new Date().toISOString(),
-            })
-            .eq("id", submissionId);
-          
-          await supabaseAdmin
-            .from("notifications")
-            .insert({
-              user_id: userId,
-              type: "verification_rejected",
-              title: "⚠️ Verification Rejected",
-              message: "Face verification detected a male face on a female/host account. Host accounts are for female users only.",
-              data: { reason_code: "gender_mismatch", detected_gender: "male", profile_gender: "female" },
-            });
-        }
-        
-        return new Response(JSON.stringify({
-          approved: false,
-          rejected: true,
-          reason: "gender_mismatch",
-          message: `Gender mismatch: Your profile is Female but verification detected Male face (${genderConfidence.toFixed(1)}% confidence). Host accounts are for female users only.`,
-          detectedGender: "male",
-          profileGender: "female",
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
     }
 
-    // If gender is "unknown" (low confidence), log warning but continue with profile gender
+    // If gender is "unknown" (low confidence), log warning but continue
     if (detectedGender === "unknown") {
       console.log(`[auto-face-verify] ⚠️ Gender detection low confidence (${genderConfidence.toFixed(1)}%), using profile gender: ${profileGender || 'male'}`);
     }
+
 
     let faceMatchPercentage = 0;
     let borderlineMatchWarning: string | null = null;
