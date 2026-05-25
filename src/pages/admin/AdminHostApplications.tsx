@@ -563,7 +563,7 @@ export default function AdminHostApplications() {
                     {/* Avatar with status ring */}
                     <div className="relative shrink-0">
                       <Avatar className="w-14 h-14 md:w-16 md:h-16 ring-2 ring-white/10 group-hover:ring-pink-500/30 transition-all">
-                        <AvatarImage src={app.profile_photo_url || app.profile?.avatar_url || undefined} className="object-cover" />
+                        <AvatarImage src={app.profile_photo_url || app.profile?.avatar_url || undefined} className="object-contain" />
                         <AvatarFallback className="bg-gradient-to-br from-pink-500/30 to-rose-500/30 text-pink-300 text-lg font-bold">
                           {app.full_name?.charAt(0) || "?"}
                         </AvatarFallback>
@@ -711,7 +711,7 @@ export default function AdminHostApplications() {
                 <CardContent className="p-3">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12 ring-2 ring-orange-500/30">
-                      <AvatarImage src={host.avatar_url || undefined} className="object-cover" />
+                      <AvatarImage src={host.avatar_url || undefined} className="object-contain" />
                       <AvatarFallback className="bg-gradient-to-br from-orange-500/30 to-amber-500/30 text-orange-300 font-bold">
                         {host.display_name?.charAt(0) || "?"}
                       </AvatarFallback>
