@@ -85,23 +85,59 @@ export const isPrivateAdminStorageReference = (value?: string | null, defaultBuc
   return !!storagePath && PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket);
 };
 
+const SIGNED_URL_SESSION_STORAGE_KEY = 'merilive-admin-signed-url-cache-v1';
+
+// Hydrate signed-URL cache from sessionStorage on module load so a page
+// refresh / re-mount renders verification media INSTANTLY (no signing round-
+// trip until cached URLs expire).
+const hydrateSignedUrlCacheFromSession = () => {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.sessionStorage.getItem(SIGNED_URL_SESSION_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Array<[string, { url: string; expiresAt: number }]>;
+    const now = Date.now();
+    for (const [key, entry] of parsed) {
+      if (entry?.url && entry.expiresAt > now + 60_000) signedUrlCache.set(key, entry);
+    }
+  } catch (_) { /* ignore */ }
+};
+hydrateSignedUrlCacheFromSession();
+
+let persistTimer: number | null = null;
+const persistSignedUrlCacheToSession = () => {
+  if (typeof window === "undefined") return;
+  if (persistTimer !== null) return;
+  persistTimer = window.setTimeout(() => {
+    persistTimer = null;
+    try {
+      const now = Date.now();
+      const entries: Array<[string, { url: string; expiresAt: number }]> = [];
+      signedUrlCache.forEach((v, k) => { if (v.expiresAt > now + 60_000) entries.push([k, v]); });
+      window.sessionStorage.setItem(SIGNED_URL_SESSION_STORAGE_KEY, JSON.stringify(entries.slice(-200)));
+    } catch (_) { /* quota / private mode */ }
+  }, 300);
+};
+
 export const clearAdminStorageImageCache = () => {
   signedUrlCache.clear();
   failedSignedUrlCache.clear();
   inFlightSignedUrls.clear();
   objectUrlCache.forEach((url) => URL.revokeObjectURL(url));
   objectUrlCache.clear();
+  try { window?.sessionStorage?.removeItem(SIGNED_URL_SESSION_STORAGE_KEY); } catch (_) { /* ignore */ }
 };
 
-// Clear caches whenever the admin session is established/refreshed, so any
-// prior "no admin token" failures don't poison subsequent image loads.
+// Clear caches whenever the admin session is established/refreshed.
 if (typeof window !== "undefined") {
   window.addEventListener("admin-session-change", () => {
     signedUrlCache.clear();
     failedSignedUrlCache.clear();
     inFlightSignedUrls.clear();
+    try { window.sessionStorage.removeItem(SIGNED_URL_SESSION_STORAGE_KEY); } catch (_) { /* ignore */ }
   });
 }
+
 
 
 const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
