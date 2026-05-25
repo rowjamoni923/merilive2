@@ -3,6 +3,11 @@ import { useState, useEffect, useCallback } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { toSupabaseCdnUrl } from "@/lib/cdnImage";
+
+// Full-screen popup banner — usually shown at viewport size; ask CDN for ~1080w WebP.
+const popupCdn = (url: string | null | undefined) =>
+  toSupabaseCdnUrl(url, { width: 1080, quality: 75, resize: "cover" }) || url || "";
 
 interface PopupBanner {
   id: string;
@@ -69,7 +74,7 @@ const EventPopupBanner = () => {
         //   user never sees the black-frame + ticking countdown without art.
         setBanner(data);
         setImageReady(false);
-        await preloadImage(data.image_url);
+        await preloadImage(popupCdn(data.image_url));
         setImageReady(true);
         setElapsed(0);
         setVisible(true);
@@ -153,8 +158,16 @@ const EventPopupBanner = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={banner.image_url}
+              src={popupCdn(banner.image_url)}
               alt={banner.title}
+              onClick={handleBannerClick}
+              loading="eager"
+              decoding="sync"
+              fetchPriority="high"
+              className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+              draggable={false}
+              onError={(e) => { const t = e.currentTarget; if (banner.image_url && t.src !== banner.image_url) t.src = banner.image_url; }}
+            />
               onClick={handleBannerClick}
               loading="eager"
               decoding="sync"
