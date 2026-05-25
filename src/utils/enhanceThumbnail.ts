@@ -8,7 +8,7 @@
  * AI cost or latency.
  *
  * Cards still render INSTANTLY because the CDN is edge-cached globally and we
- * keep `loading="eager"` + `fetchpriority="high"` on the <img loading="eager"> tag.
+ * keep `loading="eager"` + `fetchpriority="high"` on the <img> tag.
  */
 
 const WESERV = "https://images.weserv.nl/";

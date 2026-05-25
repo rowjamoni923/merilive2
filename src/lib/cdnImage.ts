@@ -9,7 +9,7 @@
  *
  * Requires Supabase Pro plan (image transformations). If transform is
  * disabled on the project, the endpoint 400s — callers should fall back
- * to the original URL via <img onError loading="eager">.
+ * to the original URL via <img onError>.
  *
  * Returns the original URL unchanged for:
  *  - non-Supabase URLs (R2, Google, gravatar, data:, etc.)

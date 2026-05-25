@@ -1,10 +1,10 @@
 /**
- * Single-source guard: ensures every <video preload="auto"> element in the
+ * Single-source guard: ensures every <video> element in the
  * private-call / live-streaming / video-party / game-party surfaces
  * is 100% hardened — no controls, no fullscreen icon, no PiP, no
  * remote-playback, no tap-to-play overlay (both host and visitor side).
  *
- * If a new <video preload="auto"> is added in any of these paths without going through
+ * If a new <video> is added in any of these paths without going through
  * `hardenVideoElementForNative` (or inlining all 4 guards), this test fails.
  */
 import { describe, it, expect } from 'vitest';
@@ -61,16 +61,16 @@ describe('Realtime video surfaces — host + visitor must have ZERO native video
     expect(css).toMatch(/display:\s*none\s*!important/);
   });
 
-  it('every in-scope <video preload="auto"> goes through the hardener OR inlines all 4 guards', () => {
+  it('every in-scope <video> goes through the hardener OR inlines all 4 guards', () => {
     const offenders: string[] = [];
     for (const f of collect()) {
-      // Strip block + line comments so `<video preload="auto">` mentioned in JSDoc isn't a false positive
+      // Strip block + line comments so `<video>` mentioned in JSDoc isn't a false positive
       const src = fs.readFileSync(f, 'utf8')
         .replace(/\/\*[\s\S]*?\*\//g, '')
         .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
       const fileUsesHardener = /hardenVideoElementForNative/.test(src);
 
-      const re = /<video \b([^ preload="auto">]*?)(?:\/>|>)/gms;
+      const re = /<video \b([^>]*?)(?:\/>|>)/gms;
       let m: RegExpExecArray | null;
       while ((m = re.exec(src))) {
         const attrs = m[1];
@@ -84,6 +84,6 @@ describe('Realtime video surfaces — host + visitor must have ZERO native video
         }
       }
     }
-    expect(offenders, `Unhardened <video preload="auto"> tags:\n${offenders.join('\n')}`).toEqual([]);
+    expect(offenders, `Unhardened <video> tags:\n${offenders.join('\n')}`).toEqual([]);
   });
 });
