@@ -99,13 +99,11 @@ const FollowingList = () => {
       userIdRef.current = user.id;
       setUserId(user.id);
 
-      const [{ data: followingData, error: followingError }, { data: followersData, error: followersError }] = await Promise.all([
-        supabase.from('followers').select('id, created_at, following_id').eq('follower_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('followers').select('id, created_at, follower_id').eq('following_id', user.id).order('created_at', { ascending: false }),
+      const [followingData, followersData] = await Promise.all([
+        fetchAllFollowRows('follower_id', user.id),
+        fetchAllFollowRows('following_id', user.id),
       ]);
 
-      if (followingError) throw followingError;
-      if (followersError) throw followersError;
       if (cancelledRef.current) return;
 
       const followingUserIds = followingData?.map(f => f.following_id) || [];
