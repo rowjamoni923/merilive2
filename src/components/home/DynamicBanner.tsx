@@ -8,7 +8,7 @@ import { toSupabaseCdnUrl } from "@/lib/cdnImage";
 
 // Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
 const bannerCdn = (url: string | null | undefined) =>
-  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "cover" }) || url || "";
+  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "contain" }) || url || "";
 
 interface DynamicBannerProps {
   position?: 'top' | 'middle';
@@ -98,7 +98,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
           <div
             key={banner.id}
             onClick={() => handleBannerClick(banner)}
-            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative aspect-[343/105] bg-transparent' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
+            className={`rounded-2xl overflow-hidden ${banner.image_url ? '' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
             style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
@@ -109,7 +109,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                 decoding="async"
                 // @ts-expect-error – fetchpriority is a standard HTML hint
                 fetchpriority="high"
-                className={`absolute inset-0 block h-full w-full rounded-2xl object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                className={`block w-full h-auto rounded-2xl transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                 onError={(e) => {
                   const t = e.currentTarget;
