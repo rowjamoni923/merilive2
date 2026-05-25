@@ -809,7 +809,7 @@ const AdminFaceVerification = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredSubmissions.map((submission) => {
+              {filteredSubmissions.map((submission, rowIndex) => {
                 const { completed, total, percentage } = getCompletionData(submission);
                 const faceMatch = extractFaceMatchPercentage(submission.admin_notes);
                 const mediaStatus = getSubmissionMediaStatus(submission);
@@ -922,7 +922,7 @@ const AdminFaceVerification = () => {
                                     alt={t.label}
                                     kind="image"
                                     bucket="face-verification"
-                                    priority={idx < 6}
+                                    priority={rowIndex < 6 && idx < 6}
                                     className="w-full h-full"
                                     mediaClassName="object-cover w-full h-full"
                                   />
@@ -950,7 +950,7 @@ const AdminFaceVerification = () => {
                                   alt={t.label}
                                   kind={t.kind}
                                   bucket="face-verification"
-                                  priority={idx < 6}
+                                  priority={rowIndex < 6 && idx < 6}
                                   className="w-full h-full"
                                   mediaClassName="object-cover w-full h-full"
                                 />
