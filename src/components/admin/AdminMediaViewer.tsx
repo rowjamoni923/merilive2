@@ -91,6 +91,7 @@ interface AdminMediaFrameProps {
   mediaClassName?: string;
   onOpen?: () => void;
   autoPlay?: boolean;
+  priority?: boolean;
 }
 
 export function AdminMediaFrame({
@@ -103,6 +104,7 @@ export function AdminMediaFrame({
   mediaClassName,
   onOpen,
   autoPlay = false,
+  priority = true,
 }: AdminMediaFrameProps) {
   const [failed, setFailed] = useState(false);
   const [failReason, setFailReason] = useState<string>("");
@@ -235,10 +237,10 @@ export function AdminMediaFrame({
             key={`image-fallback-${displaySrc}`}
             src={displaySrc}
             alt={alt}
-            loading="eager"
+            loading={priority ? "eager" : "lazy"}
             decoding="async"
             // @ts-expect-error – fetchpriority is valid HTML, React typings lag.
-            fetchpriority="high"
+            fetchpriority={priority ? "high" : "low"}
             referrerPolicy="no-referrer"
             className={cn("h-full w-full object-contain", mediaClassName)}
             onError={() => setImageFallbackFailed(true)}
@@ -311,10 +313,10 @@ export function AdminMediaFrame({
       key={displaySrc}
       src={displaySrc}
       alt={alt}
-      loading="eager"
+      loading={priority ? "eager" : "lazy"}
       decoding="async"
       // @ts-expect-error – fetchpriority is valid HTML, React typings lag.
-      fetchpriority="high"
+      fetchpriority={priority ? "high" : "low"}
       referrerPolicy="no-referrer"
       className={cn("h-full w-full object-contain", mediaClassName)}
       onError={() => setFailed(true)}
