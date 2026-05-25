@@ -92,8 +92,9 @@ const HostDashboard = () => {
     const onAdmin = async (e: Event) => {
       const detail = (e as CustomEvent<{ table?: string }>).detail;
       if (detail?.table !== 'app_settings') return;
-      const { data } = await supabase.from('app_settings').select('setting_value').eq('setting_key', 'call_rates').maybeSingle();
-      const nextSettings = parseCallRateSettings(data?.setting_value);
+      invalidateAppSetting('call_rates');
+      const settingValue = await getAppSetting<unknown>('call_rates');
+      const nextSettings = parseCallRateSettings(settingValue);
       if (nextSettings) {
         setCommissionPercent(nextSettings.host_commission_percent ?? 50);
         setMinRate(nextSettings.min_rate ?? 1000);
