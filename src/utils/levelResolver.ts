@@ -1,4 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedQuery } from "@/utils/queryCache";
+
+
 
 export type ResolvedLevelType = "user" | "host";
 
