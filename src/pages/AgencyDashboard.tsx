@@ -433,10 +433,11 @@ const AgencyDashboard = () => {
           subAgentUserIds.length > 0
             ? supabase.from("profiles").select("id, display_name, avatar_url").in("id", subAgentUserIds)
             : Promise.resolve({ data: [] }),
-          // Currency rate
+          // Currency rate — Pkg D pass-3 shared cache (deduped across agency tabs)
           countryCode
-            ? supabase.from('currency_rates').select('*').eq('country_code', countryCode).eq('is_active', true).single()
+            ? getCurrencyRateForCountry(countryCode).then((row) => ({ data: row })).catch(() => ({ data: null }))
             : Promise.resolve({ data: null }),
+
           // Helper pending topup count
           helperData?.is_verified
             ? supabase.from("helper_orders").select("*", { count: 'exact', head: true }).eq("helper_id", helperData.id).eq("status", "pending")

@@ -2196,19 +2196,18 @@ const AgencyWithdrawal = () => {
         }
       }
 
-      // Fetch currency exchange rates from database
-      const { data: currencyRatesData } = await supabase
-        .from('currency_rates')
-        .select('currency_code, rate_to_usd')
-        .eq('is_active', true);
-
-      if (currencyRatesData && currencyRatesData.length > 0) {
-        const dbRates: Record<string, number> = {};
-        currencyRatesData.forEach(rate => {
-          dbRates[rate.currency_code] = rate.rate_to_usd;
-        });
-        setExchangeRates({...DEFAULT_EXCHANGE_RATES, ...dbRates});
+      // Pkg D pass-3: shared cache (deduped with AgencyDashboard / Level5Helper /
+      // any other tab reading currency_rates this session). Admin edits
+      // invalidate via `admin-table-update` broadcast.
+      try {
+        const dbRates = await getCurrencyRateMap();
+        if (Object.keys(dbRates).length > 0) {
+          setExchangeRates({ ...DEFAULT_EXCHANGE_RATES, ...dbRates });
+        }
+      } catch (err) {
+        console.warn('[AgencyWithdrawal] currency_rates cache fetch failed:', err);
       }
+
 
       // Tiered withdrawal fees
       if (wsValue) {
