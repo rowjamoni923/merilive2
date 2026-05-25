@@ -698,7 +698,6 @@ const AdminNoticeBroadcast = () => {
                       src={aiPreview.url}
                       alt={aiPreview.prompt}
                       className="w-full h-auto max-h-[420px] object-contain"
-                      loading="eager"
                     />
                   </div>
                   <div className="flex flex-wrap gap-2 justify-end">

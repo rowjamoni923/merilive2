@@ -560,7 +560,6 @@ export default function AdminGameSettings() {
                                 src={game.logo_url} 
                                 alt={game.game_name}
                                 className="w-full h-full object-contain absolute inset-0"
-                                loading="lazy"
                                 onLoad={(e) => {
                                   // Show image once loaded
                                   (e.target as HTMLImageElement).style.opacity = '1';

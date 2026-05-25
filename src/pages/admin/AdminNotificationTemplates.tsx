@@ -376,7 +376,7 @@ const AdminNotificationTemplates = () => {
           <CardContent className="grid grid-cols-5 gap-3">
             {premiumIcons.map((icon) => (
               <div key={icon.url} className="rounded-xl bg-white/[0.04] border border-white/10 p-2 text-center">
-                <SmartImage src={icon.url} alt={icon.label} className="w-full aspect-square object-contain" loading="lazy" />
+                <SmartImage src={icon.url} alt={icon.label} className="w-full aspect-square object-contain" />
                 <p className="mt-1 text-[10px] text-white/70 truncate">{icon.label}</p>
               </div>
             ))}
@@ -391,7 +391,7 @@ const AdminNotificationTemplates = () => {
           <CardContent className="grid gap-3">
             {eventBanners.map((banner) => (
               <div key={banner.url} className="rounded-xl overflow-hidden border border-white/10 bg-white/[0.04]">
-                <SmartImage src={banner.url} alt={banner.title} className="w-full aspect-[4/1.8] object-cover" loading="lazy" />
+                <SmartImage src={banner.url} alt={banner.title} className="w-full aspect-[4/1.8] object-cover" />
               </div>
             ))}
           </CardContent>
@@ -513,7 +513,7 @@ const AdminNotificationTemplates = () => {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   {template.image_url ? (
-                      <SmartImage src={template.image_url} alt={getTemplateLabel(template.template_key)} className="w-11 h-11 rounded-xl object-cover bg-white/10" loading="lazy" />
+                      <SmartImage src={template.image_url} alt={getTemplateLabel(template.template_key)} className="w-11 h-11 rounded-xl object-cover bg-white/10" />
                     ) : (
                       <span className="text-2xl">{template.icon_emoji || getTemplateIcon(template.template_key)}</span>
                     )}

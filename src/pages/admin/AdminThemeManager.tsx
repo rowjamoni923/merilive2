@@ -196,8 +196,7 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                 <SmartImage 
                   src={MOCK_COVERS[i]} 
                   alt="" 
-                  className="absolute inset-0 w-full h-full object-cover"
-                  loading="lazy" fallbackSrc="/placeholder.svg" />
+                  className="absolute inset-0 w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                 {/* Dark gradient overlay */}
                 <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 30%, ${navBg}ee 85%, ${navBg} 100%)` }} />
                 {/* Theme tint overlay */}
@@ -232,8 +231,7 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                         src={MOCK_AVATARS[i]} 
                         alt="" 
                         className="w-7 h-7 rounded-full object-cover"
-                        style={{ border: `2px solid ${primary}`, boxShadow: `0 0 8px ${primary}50` }}
-                        loading="lazy" fallbackSrc="/placeholder.svg" />
+                        style={{ border: `2px solid ${primary}`, boxShadow: `0 0 8px ${primary}50` }} fallbackSrc="/placeholder.svg" />
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border border-black flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}>
                         <span className="text-[5px] font-bold text-white">✓</span>
                       </div>
@@ -285,7 +283,7 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
               {/* Avatar with frame */}
               <div className="relative shrink-0">
                 <div className="w-14 h-14 rounded-full p-[2px]" style={{ background: `linear-gradient(135deg, ${primary}, ${accent}, ${secondary})` }}>
-                  <SmartImage src={MOCK_AVATARS[4]} alt="" className="w-full h-full rounded-full object-cover border-2 border-black" loading="lazy" fallbackSrc="/placeholder.svg" />
+                  <SmartImage src={MOCK_AVATARS[4]} alt="" className="w-full h-full rounded-full object-cover border-2 border-black" fallbackSrc="/placeholder.svg" />
                 </div>
                 {/* VIP badge */}
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-[1px] rounded-full text-[7px] font-extrabold text-white whitespace-nowrap" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})`, boxShadow: `0 2px 8px ${primary}60` }}>
