@@ -255,6 +255,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           muted={muted}
           playsInline
+          preload="auto"
           controls={showControls}
           className={cn(
             "w-full h-full object-contain",
