@@ -110,6 +110,7 @@ interface Message {
   status?: 'sending' | 'sent' | 'delivered' | 'read';
   delivered_at?: string | null;
   read_at?: string | null;
+  reply_to_id?: string | null;
   _optimistic?: boolean; // client-only flag for optimistic messages
 }
 
