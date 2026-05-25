@@ -3074,7 +3074,7 @@ const Chat = () => {
                         onClick={() => handleLanguageChange(lang.code)}
                         className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                           selectedLanguage === lang.code
- ?'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 shadow-md'
+ ?'bg-gradient-primary text-primary-foreground shadow-md'
                             : 'bg-muted hover:bg-muted/80 text-foreground'
                         }`}
                       >
@@ -3100,7 +3100,7 @@ const Chat = () => {
                 <div className={`rounded-xl border-2 border-dashed transition-all ${
                   translatedResult 
                     ? 'border-amber-300/60 bg-purple-500/10' 
- :'border-slate-200/[0.08] bg-white/[0.04]'
+ :'border-border bg-muted/30'
                 }`}>
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-1">
@@ -3108,13 +3108,13 @@ const Chat = () => {
                         {languageOptions.find(l => l.code === selectedLanguage)?.flag} {selectedLanguage}
                       </span>
                       {isTranslating && (
-                        <span className="text-[10px] text-slate-600 flex items-center gap-1">
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                           <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
                           Translating...
                         </span>
                       )}
                     </div>
-                    <p className={`min-h-[40px] ${translatedResult ? 'text-slate-900' : 'text-slate-600 text-sm'}`}>
+                    <p className={`min-h-[40px] ${translatedResult ? 'text-foreground' : 'text-muted-foreground text-sm'}`}>
                       {translatedResult || "Translation will appear here..."}
                     </p>
                   </div>
