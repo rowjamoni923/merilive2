@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Phone, PhoneOff, Star, Clock, Coins, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface CallRecord {
   id: string;
@@ -41,19 +42,36 @@ const CallHistory = () => {
   const [commissionPercent, setCommissionPercent] = useState<number | null>(null);
   const [isHost, setIsHost] = useState(false);
 
+  const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const userIdRef = useRef<string | null>(null);
+
+  const scheduleRefetch = useCallback(() => {
+    if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
+    refetchTimerRef.current = setTimeout(() => {
+      void fetchCallHistory();
+    }, 400);
+  }, []);
+
   useEffect(() => {
     fetchCallHistory();
 
-    // ============= Pkg90 audit: CRITICAL $1400-rule fix =============
-    // REMOVED: `call-history-realtime` Supabase channel that subscribed to
-    // postgres_changes on `private_calls` with `event:'*'` and NO filter.
-    // This meant EVERY call INSERT/UPDATE/DELETE system-wide triggered a
-    // refetch on every mounted CallHistory page across all users —
-    // exactly the $1400-bill amplification pattern. Also violated:
-    //   • LiveKit-Purist Policy (postgres_changes on private_calls forbidden)
-    //   • Pkg62 G3 (static channel name without ${userId} suffix)
-    // CallHistory is a history page — refetching on tab focus is plenty.
-    // Manual pull-to-refresh / route revisit covers in-session updates.
+    // ============= Pkg337 audit fix =============
+    // Restored Supabase Realtime on `private_calls` (Core memory rule:
+    // NEVER use polling/visibility-refresh in place of realtime). Pkg90
+    // removal of the unfiltered channel was correct; the proper fix is a
+    // user-scoped subscription, not visibility-only refetch. The universal
+    // channel callback receives every private_calls event — we filter
+    // client-side to rows where the current user is caller or host before
+    // scheduling a debounced refetch. Visibility-change kept as backup.
+    const offRealtime = subscribeToTables('call-history', ['private_calls'], (_table, _event, payload) => {
+      const uid = userIdRef.current;
+      if (!uid) return;
+      const row: any = payload?.new || payload?.old || {};
+      if (row.caller_id === uid || row.host_id === uid) {
+        scheduleRefetch();
+      }
+    });
+
     const onFocus = () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
         fetchCallHistory();
@@ -61,9 +79,11 @@ const CallHistory = () => {
     };
     document.addEventListener('visibilitychange', onFocus);
     return () => {
+      offRealtime();
       document.removeEventListener('visibilitychange', onFocus);
+      if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
     };
-  }, []);
+  }, [scheduleRefetch]);
 
   const fetchCallHistory = async () => {
       try {
@@ -74,6 +94,7 @@ const CallHistory = () => {
           return;
         }
         setUserId(user.id);
+        userIdRef.current = user.id;
 
         // Fetch user profile to check if host
         const { data: profileData } = await supabase
