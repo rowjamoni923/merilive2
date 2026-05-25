@@ -670,18 +670,75 @@ serve(async (req) => {
     if (eyesOpen?.Value === false && (eyesOpen?.Confidence || 0) > 90) warnings.push("eyes_closed");
     if (sunglasses?.Value === true && (sunglasses?.Confidence || 0) > 90) warnings.push("wearing_sunglasses");
 
-    // ★ AUTO-APPROVE (Pkg40) — user explicitly wants 100% auto-verify:
-    // Only the borderline / undetectable cases should go to manual admin review.
-    // All hard rejects (no_face, multiple_faces, gender_mismatch, occluded, underage,
-    // borderline match) are already handled above. If we reach here AND face match
-    // cleared the threshold AND face confidence ≥ 80, instantly approve.
+    // ★ HOST CROSS-PHOTO IDENTITY CHECK ★
+    // For host submissions, the selfie must also match each of the 3 host_photos.
+    // If any photo fails the match threshold → instant reject (identity fraud).
+    let hostPhotoMismatchInfo: string | null = null;
+    if (hostSubmissionRequested && Array.isArray(submissionRow?.host_photos) && submissionRow!.host_photos!.length > 0) {
+      for (let i = 0; i < submissionRow!.host_photos!.length; i++) {
+        const photoUrl = submissionRow!.host_photos![i];
+        if (!photoUrl) continue;
+        try {
+          const photoBytes = await fetchImageBytes(photoUrl);
+          const cmp = await callRekognitionCompareFaces(
+            imageBytes, photoBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+          );
+          const pct = Math.max(...((cmp?.FaceMatches || []).map((m: any) => Number(m?.Similarity || 0))), 0);
+          console.log(`[auto-face-verify] host_photo[${i}] match: ${pct.toFixed(1)}%`);
+          if (pct < MIN_FACE_MATCH_PERCENTAGE) {
+            hostPhotoMismatchInfo = `Host photo #${i + 1} does not match your selfie (${pct.toFixed(1)}%, min ${MIN_FACE_MATCH_PERCENTAGE}%).`;
+            break;
+          }
+        } catch (e) {
+          console.error(`[auto-face-verify] host_photo[${i}] compare failed:`, e);
+          // Comparison error → defer to manual rather than blocking, but mark as borderline
+          borderlineMatchWarning = `⚠️ Host photo #${i + 1} compare failed: ${(e as Error)?.message || "unknown"}`;
+        }
+      }
+    }
+
+    if (hostSubmissionRequested && hostPhotoMismatchInfo) {
+      if (submissionId) {
+        await supabaseAdmin
+          .from("face_verification_submissions")
+          .update({
+            status: "rejected",
+            rejection_reason: `${hostPhotoMismatchInfo} All host photos must show the same person as your live verification.`,
+            admin_notes: `AUTO-REJECTED (host cross-check): ${hostPhotoMismatchInfo}`,
+            reviewed_at: new Date().toISOString(),
+          })
+          .eq("id", submissionId);
+
+        await supabaseAdmin
+          .from("notifications")
+          .insert({
+            user_id: userId,
+            type: "verification_rejected",
+            title: "⚠️ Host Verification Rejected",
+            message: hostPhotoMismatchInfo,
+            data: { reason_code: "host_photo_mismatch" },
+          });
+      }
+      return new Response(JSON.stringify({
+        approved: false,
+        rejected: true,
+        reason: "host_photo_mismatch",
+        message: hostPhotoMismatchInfo,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ★ AUTO-APPROVE — decisive 100% auto-verify path ★
+    // Hard rejects (no_face, multiple_faces, gender mismatch, host male face,
+    // host photo mismatch, occluded, underage) are already handled above.
+    // For hosts we now allow medium gender trust (male already filtered out above,
+    // so medium-confidence female is safe).
     const detectedGenderLabel = detectedGender === "female" ? "Female" : detectedGender === "male" ? "Male" : "Unknown";
     const passesAutoApprove =
       !borderlineMatchWarning &&
       faceMatchPercentage >= MIN_FACE_MATCH_PERCENTAGE &&
       confidence >= 80 &&
-      // For host submissions require HIGH gender trust + female.
-      (!hostSubmissionRequested || (genderTrustLevel === "high" && isFemaleDetected));
+      (!hostSubmissionRequested || (isFemaleDetected && genderTrustLevel !== "low"));
+
 
     if (submissionId && passesAutoApprove) {
       // Final gender: prefer high-trust detection, else profile, else default.
