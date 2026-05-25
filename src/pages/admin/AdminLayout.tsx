@@ -2542,7 +2542,29 @@ export default function AdminLayout() {
         return;
       }
 
-      const { data: verifiedAdminId, error: verifyError } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+      let { data: verifiedAdminId, error: verifyError } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+
+      // Self-heal: legacy/null device_fingerprint on admin_sessions row blocks
+      // current_admin_id_from_header. Re-run device-access RPC (owner = auto-approve;
+      // approved sub-admin = re-link) to backfill session.device_fingerprint, then retry.
+      if ((verifyError || !verifiedAdminId) && adminSession.device_fingerprint) {
+        try {
+          await adminSupabase.rpc('admin_request_device_access' as any, {
+            _admin_id: adminSession.admin_id,
+            _device_fingerprint: adminSession.device_fingerprint,
+            _device_name: adminSession.display_name || null,
+            _device_info: { ua: typeof navigator !== 'undefined' ? navigator.userAgent : null },
+            _ip_address: null,
+            _user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+          });
+          const retry = await adminSupabase.rpc('current_admin_id_from_header' as any);
+          verifiedAdminId = retry.data as any;
+          verifyError = retry.error as any;
+        } catch (healErr) {
+          console.warn('[AdminLayout] device-access self-heal failed', healErr);
+        }
+      }
+
       if (verifyError || !verifiedAdminId || String(verifiedAdminId) !== adminSession.admin_id) {
         console.warn('[AdminLayout] Server-verified admin session mismatch - revoking local access', verifyError);
         revokeAdminAccess();
