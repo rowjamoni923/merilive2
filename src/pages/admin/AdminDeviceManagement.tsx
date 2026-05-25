@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
+import useAdminAccess from "@/hooks/useAdminAccess";
 import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import {
@@ -60,9 +61,9 @@ interface DeviceRecord {
 
 export default function AdminDeviceManagement() {
   const navigate = useNavigate();
+  const { isOwner, isLoading: accessLoading } = useAdminAccess();
   const [loading, setLoading] = useState(false);
   const [devices, setDevices] = useState<DeviceRecord[]>([]);
-  const [isOwner, setIsOwner] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<DeviceRecord | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'block' | 'delete' | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -77,13 +78,11 @@ export default function AdminDeviceManagement() {
 
     setLoading(true);
     try {
-      if (!session.is_owner) {
+      if (!isOwner) {
         toast.error('Only owner can access device management');
         navigate('/admin');
         return;
       }
-
-      setIsOwner(true);
 
       const { data, error } = await adminSupabase.rpc('admin_list_pending_devices' as any, {
         _owner_admin_id: session.admin_id,
@@ -105,15 +104,16 @@ export default function AdminDeviceManagement() {
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, isOwner]);
 
   useAdminRealtime(['admin_allowed_devices'], () => {
     void loadDevices();
   });
 
   useEffect(() => {
+    if (accessLoading) return;
     void loadDevices();
-  }, [loadDevices]);
+  }, [loadDevices, accessLoading]);
 
   const handleDeviceAction = async () => {
     const session = getAdminSession();
@@ -197,7 +197,7 @@ export default function AdminDeviceManagement() {
   const approvedCount = devices.filter(d => d.status === 'approved').length;
   const blockedCount = devices.filter(d => d.status === 'blocked').length;
 
-  if (loading) {
+  if (loading || accessLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
