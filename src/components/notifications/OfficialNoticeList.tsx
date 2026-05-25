@@ -133,15 +133,23 @@ export const OfficialNoticeList = () => {
   // notices refresh instantly without visibility-refresh/polling fallback.
   useEffect(() => {
     if (!currentUserId) return;
-    return subscribeToTables(`official-notices-${currentUserId}`, ['admin_notices', 'notifications'], (table, _event, payload) => {
-      if (table === 'notifications') {
-        const noticeId = payload?.data?.notice_id;
-        if (payload?.user_id !== currentUserId || !noticeId) return;
-        if (!['admin_message', 'admin_notice'].includes(String(payload?.type || ''))) return;
-      }
-
+    const unsubscribe = subscribeToTables(`official-notices-${currentUserId}`, ['admin_notices'], () => {
       void fetchNotices();
     });
+
+    const onNotificationChange = (event: Event) => {
+      const notification = (event as CustomEvent<any>).detail?.notification;
+      const noticeId = notification?.data?.notice_id;
+      if (notification?.user_id !== currentUserId || !noticeId) return;
+      if (!['admin_message', 'admin_notice'].includes(String(notification?.type || ''))) return;
+      void fetchNotices();
+    };
+
+    window.addEventListener('notifications:change', onNotificationChange as EventListener);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('notifications:change', onNotificationChange as EventListener);
+    };
   }, [currentUserId, fetchNotices]);
 
 
