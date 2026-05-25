@@ -102,7 +102,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                 style={{ aspectRatio: '16 / 6' }}
               >
                 <img
-                  src={banner.image_url}
+                  src={(() => { try { const u = new URL(banner.image_url); return u.pathname.includes('/object/public/') ? `${u.origin}${u.pathname.replace('/object/public/', '/render/image/public/')}?width=900&quality=72&resize=cover` : banner.image_url; } catch { return banner.image_url; } })()}
                   alt={banner.title}
                   loading="eager"
                   decoding="async"
@@ -111,7 +111,10 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                   className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
                   onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                   onError={(e) => {
-                    (e.currentTarget.parentElement?.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
+                    // CDN transform may be off (Pro plan) — retry original URL once, else hide.
+                    const t = e.currentTarget;
+                    if (t.src !== banner.image_url) { t.src = banner.image_url; return; }
+                    (t.parentElement?.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
                   }}
                 />
               </div>
