@@ -202,7 +202,7 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                       src={reel.video_url}
                       className="w-full h-full object-cover"
                       muted
-                      preload="metadata"
+                      preload="auto"
                     />
                   )}
 

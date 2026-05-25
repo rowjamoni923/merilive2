@@ -162,7 +162,7 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
                 src={reel.video_url}
                 className="w-full h-full object-cover"
                 muted
-                preload="metadata"
+                preload="auto"
               />
             )}
 
@@ -208,7 +208,7 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
                   src={reel.video_url}
                   className="w-full h-full object-cover"
                   muted
-                  preload="metadata"
+                  preload="auto"
                 />
               )}
             </div>

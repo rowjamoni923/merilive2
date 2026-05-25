@@ -487,6 +487,7 @@ export default function AdminRecordings() {
                 src={selectedRecording.recording_url}
                 controls
                 autoPlay
+                preload="auto"
                 crossOrigin="anonymous"
                 className="w-full h-full"
                 onError={(e) => {

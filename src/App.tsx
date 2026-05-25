@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense, memo } from "react";
+import { useEffect, useRef, useState, lazy, Suspense, memo } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -460,11 +460,23 @@ import PrivacyConsentDialog from "./components/privacy/PrivacyConsentDialog";
 
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
+  const hasSeenFirstRouteRef = useRef(false);
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isPublicPage = ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/google-library-order-rules', '/join-agency', '/account-deletion', '/delete-account'].some(r => location.pathname.startsWith(r));
   const showPopups = !isAdminRoute && !isPublicPage && hasSession;
 
   useUserBalancePrefetch();
+
+  useEffect(() => {
+    if (!hasSeenFirstRouteRef.current) {
+      hasSeenFirstRouteRef.current = true;
+      return;
+    }
+
+    import('@/utils/globalVideoLifecycle')
+      .then((m) => m.pauseAllVideosNow())
+      .catch(() => {});
+  }, [location.pathname]);
 
   return (
     <>
