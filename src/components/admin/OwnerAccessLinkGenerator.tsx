@@ -26,7 +26,7 @@ import {
 import { toast } from "sonner";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
-import { PRODUCTION_DOMAIN } from "@/utils/shareLinks";
+import { getAdminLinkOrigin } from "@/utils/adminLinkOrigin";
 
 interface OwnerRow {
   email: string;
@@ -37,7 +37,7 @@ interface OwnerRow {
 
 export default function OwnerAccessLinkGenerator() {
   const session = getAdminSession();
-  const adminLinkOrigin = PRODUCTION_DOMAIN;
+  const adminLinkOrigin = getAdminLinkOrigin();
   const [copiedOwner, setCopiedOwner] = useState(false);
   const [copiedSubAdmin, setCopiedSubAdmin] = useState(false);
   const [showOwnerSecret, setShowOwnerSecret] = useState(false);
