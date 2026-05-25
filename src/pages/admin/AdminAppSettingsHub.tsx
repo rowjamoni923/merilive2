@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Smartphone, Sparkles, Bell, Sliders, Shield, Wand2, Antenna, KeyRound } from "lucide-react";
-import OwnerAccessLinkGenerator from "@/components/admin/OwnerAccessLinkGenerator";
+import { Settings, Smartphone, Sparkles, Bell, Sliders, Shield, Wand2, Antenna } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
