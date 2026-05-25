@@ -302,12 +302,13 @@ export default function AdminAgencyDetail() {
     
     setActionLoading(true);
     try {
-      const { error } = await supabase.rpc("admin_update_agency_level", {
+      const { data, error } = await supabase.rpc("admin_update_agency_level", {
         _agency_id: agency.id,
         _level: newLevel
       });
 
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || "Agency level update failed");
 
       toast.success("Level updated successfully");
       setShowChangeLevelDialog(false);
