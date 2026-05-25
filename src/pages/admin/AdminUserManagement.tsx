@@ -1198,20 +1198,20 @@ export default function AdminUserManagement() {
 
   const handleUnbanModUser = async (userId: string) => {
     try {
-      const { error } = await supabase.rpc("admin_block_user", {
+      const { error: unblockError } = await supabase.rpc("admin_block_user", {
         _user_id: userId,
         _block: false,
         _reason: null,
       });
 
-      if (error) throw error;
+      if (unblockError) throw unblockError;
 
-      const { error: resetError } = await supabase
-        .from("profiles")
-        .update({ phone_violation_count: 0 })
-        .eq("id", userId);
+      const { data: resetData, error: resetError } = await supabase.rpc('admin_reset_phone_violation_count', {
+        _user_id: userId,
+      });
 
       if (resetError) throw resetError;
+      if ((resetData as any)?.success === false) throw new Error((resetData as any)?.error || 'Phone violation reset failed');
       toast.success("User unbanned");
       fetchModerationLogs();
     } catch (error) {
