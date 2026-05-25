@@ -737,14 +737,53 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
                 type="email"
                 placeholder="example@gmail.com"
                 value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, email: e.target.value }));
+                  setEmailVerified(false);
+                  setEmailVerifiedToken("");
+                  setEmailOtpSent(false);
+                  setEmailOtp("");
+                }}
                 className="mt-1.5"
+                disabled={emailVerified}
               />
               {formData.email && !isValidEmail(formData.email) && (
                 <p className="text-xs text-danger-500 mt-1">Please enter a valid email</p>
               )}
               {formData.email && isValidEmail(formData.email) && (
                 <p className="text-xs text-success-500 mt-1">✓ Valid email</p>
+              )}
+              {formData.email && isValidEmail(formData.email) && !emailVerified && (
+                <div className="mt-3 rounded-xl border border-brand-200 bg-brand-50 p-3 space-y-3">
+                  {!emailOtpSent ? (
+                    <Button onClick={sendEmailOtp} disabled={sendingEmailOtp} className="w-full bg-brand-600 hover:bg-brand-700">
+                      {sendingEmailOtp ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+                      Send Email OTP
+                    </Button>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between text-sm text-brand-700">
+                        <span>Enter the 6-digit email code</span>
+                        <span className="flex items-center gap-1 text-warning-600"><Timer className="w-3 h-3" />{Math.floor(emailOtpTimer / 60)}:{(emailOtpTimer % 60).toString().padStart(2, '0')}</span>
+                      </div>
+                      <InputOTP maxLength={6} value={emailOtp} onChange={setEmailOtp}>
+                        <InputOTPGroup className="justify-center w-full">
+                          {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} className="w-11 h-11 bg-white text-gray-900 border-gray-300" />)}
+                        </InputOTPGroup>
+                      </InputOTP>
+                      <Button onClick={verifyEmailOtp} disabled={emailOtp.length !== 6 || verifyingEmailOtp || emailOtpTimer <= 0} className="w-full bg-success-600 hover:bg-success-700">
+                        {verifyingEmailOtp ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                        Verify Email OTP
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+              {emailVerified && (
+                <div className="mt-2 p-3 bg-success-50 border border-success-200 rounded-xl flex items-center gap-2 text-success-700">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="font-medium">Email verified!</span>
+                </div>
               )}
             </div>
 
