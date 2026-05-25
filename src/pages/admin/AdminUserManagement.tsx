@@ -1476,7 +1476,7 @@ export default function AdminUserManagement() {
   const isFacePendingBucket = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'pending';
   const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || s.review_source === 'auto' || isAutoFaceReview(s.status, s.admin_notes);
 
-  const faceQueryRaw = faceSearchQuery.trim();
+  const faceQueryRaw = debouncedFaceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
   const faceSearchMatches = faceSubmissions.filter(sub => {
     if (!faceQuery) return true;
@@ -1502,7 +1502,9 @@ export default function AdminUserManagement() {
     return false;
   });
 
-  const faceCounts = countFaceReviewBuckets(faceVisiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes);
+  const faceCounts = faceMismatchOnly
+    ? countFaceReviewBuckets(faceVisiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes)
+    : faceServerStats;
   const pendingFaceCount = faceCounts.pending;
   const approvedFaceCount = faceCounts.approved;
   const rejectedFaceCount = faceCounts.rejected;
