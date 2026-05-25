@@ -461,7 +461,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         style={{ ...containerStyle, overflow: 'hidden', borderRadius: '9999px' }}>
         <Avatar className={cn('border-2 border-white/30', avatarClassName)}
           style={{ width: sizeConfig.container, height: sizeConfig.container }}>
-          <AvatarImage src={effectiveSrc || undefined} className="object-cover" loading={avatarImageLoading} decoding="async" />
+          <AvatarImage src={effectiveSrc || undefined} className="object-contain" loading={avatarImageLoading} decoding="async" />
 
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold shadow-inner', sizeConfig.text)}>
             {displayName}
@@ -519,7 +519,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
             width: sizeConfig.avatar, height: sizeConfig.avatar,
             border: '2.5px solid rgba(255,255,255,0.15)',
           }}>
-          <AvatarImage src={effectiveSrc || undefined} className="object-cover" loading={avatarImageLoading} decoding="async" />
+          <AvatarImage src={effectiveSrc || undefined} className="object-contain" loading={avatarImageLoading} decoding="async" />
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold', sizeConfig.text)}>
             {displayName}
           </AvatarFallback>
