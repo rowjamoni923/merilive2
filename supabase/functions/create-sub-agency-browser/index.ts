@@ -10,6 +10,8 @@ interface CreateSubAgencyRequest {
   name: string;
   userId: string;
   email: string;
+  emailVerifiedToken?: string;
+  appVerifiedToken?: string;
   phone: string;
   parentAgencyCode: string;
 }
@@ -47,7 +49,7 @@ serve(async (req) => {
     );
 
     const body = await req.json();
-    const { name, userId, email, phone, parentAgencyCode }: CreateSubAgencyRequest = body;
+    const { name, userId, email, emailVerifiedToken, appVerifiedToken, phone, parentAgencyCode }: CreateSubAgencyRequest = body;
 
     console.log("[create-sub-agency-browser] Creating sub-agency:", { name, userId, parentAgencyCode });
 
@@ -70,6 +72,48 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Please enter a valid email" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!emailVerifiedToken) {
+      return new Response(
+        JSON.stringify({ error: "Please verify your email OTP first" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: emailOtpOk, error: emailOtpError } = await supabaseAdmin.rpc("consume_otp_exchange_token", {
+      p_verified_token: emailVerifiedToken,
+      p_identifier: normalizedEmail,
+      p_channel: "email",
+      p_purpose: "verify",
+    });
+    if (emailOtpError) throw emailOtpError;
+    if (!emailOtpOk) {
+      return new Response(
+        JSON.stringify({ error: "Email OTP expired. Please request a new code." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!appVerifiedToken) {
+      return new Response(
+        JSON.stringify({ error: "Please verify your app notification OTP first" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: appOtpOk, error: appOtpError } = await supabaseAdmin.rpc("consume_agency_app_otp_token", {
+      p_user_id: userId,
+      p_verified_token: appVerifiedToken,
+      p_purpose: "sub_agency_verification",
+    });
+    if (appOtpError) throw appOtpError;
+    if (!appOtpOk) {
+      return new Response(
+        JSON.stringify({ error: "App OTP expired. Please request a new code." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -115,7 +159,6 @@ serve(async (req) => {
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
     const authEmail = (user.email || "").trim().toLowerCase();
     if (authEmail && normalizedEmail !== authEmail) {
       return new Response(
