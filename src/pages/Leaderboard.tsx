@@ -544,7 +544,7 @@ const Leaderboard = () => {
                       {/* Shield Banner Card */}
                       <div className="relative w-full">
                         {/* Avatar area with ornate circle */}
-                        <div className="relative mx-auto w-[72px] h-[72px] mb-1">
+                        <div className="relative mx-auto w-[60px] h-[60px] mb-1">
                           {/* Ornate ring */}
                           <div className="absolute inset-[-6px] rounded-full pointer-events-none" style={{ background: 'linear-gradient(135deg, #7c3aed, #a78bfa, #7c3aed)', padding: '2px' }}>
                             <div className="w-full h-full rounded-full bg-transparent" />
@@ -620,7 +620,7 @@ const Leaderboard = () => {
                       
                       <div className="relative w-full">
                         {/* Avatar area with ornate gold circle */}
-                        <div className="relative mx-auto w-[88px] h-[88px] mb-1">
+                        <div className="relative mx-auto w-[80px] h-[80px] mb-1">
                           <div className="absolute inset-[-8px] rounded-full pointer-events-none" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #d97706, #f59e0b, #fbbf24)', padding: '3px', boxShadow: '0 0 30px rgba(251,191,36,0.4)' }}>
                             <div className="w-full h-full rounded-full bg-transparent" />
                           </div>
@@ -684,7 +684,7 @@ const Leaderboard = () => {
                       className="flex flex-col items-center w-[32%] mt-8"
                     >
                       <div className="relative w-full">
-                        <div className="relative mx-auto w-[72px] h-[72px] mb-1">
+                        <div className="relative mx-auto w-[60px] h-[60px] mb-1">
                           <div className="absolute inset-[-6px] rounded-full pointer-events-none" style={{ background: 'linear-gradient(135deg, #2563eb, #60a5fa, #2563eb)', padding: '2px' }}>
                             <div className="w-full h-full rounded-full bg-transparent" />
                           </div>
