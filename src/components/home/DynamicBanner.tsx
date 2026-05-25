@@ -8,7 +8,7 @@ import { toSupabaseCdnUrl } from "@/lib/cdnImage";
 
 // Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
 const bannerCdn = (url: string | null | undefined) =>
-  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "cover" }) || url || "";
+  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "contain" }) || url || "";
 
 interface DynamicBannerProps {
   position?: 'top' | 'middle';
@@ -44,9 +44,9 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
   });
 
   // Split: last banner goes top, rest go middle (after hosts)
-  const banners = position === 'top' 
-    ? activeBanners.slice(-1) 
-    : activeBanners.slice(0, -1);
+  const banners = position === 'top'
+    ? activeBanners.slice(0, 1)
+    : activeBanners.slice(1);
 
   const handleBannerClick = async (banner: Banner) => {
     if (!banner.link_url) return;

@@ -7,7 +7,7 @@ import { toSupabaseCdnUrl } from "@/lib/cdnImage";
 
 // Full-screen popup banner — usually shown at viewport size; ask CDN for ~1080w WebP.
 const popupCdn = (url: string | null | undefined) =>
-  toSupabaseCdnUrl(url, { width: 1080, quality: 75, resize: "cover" }) || url || "";
+  toSupabaseCdnUrl(url, { width: 1080, quality: 75, resize: "contain" }) || url || "";
 
 interface PopupBanner {
   id: string;
