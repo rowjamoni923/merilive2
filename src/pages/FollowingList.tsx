@@ -34,9 +34,43 @@ const mapFollowError = (err: unknown): string => {
   if (/cannot follow yourself/i.test(msg)) return "You can't follow yourself";
   if (/unavailable user/i.test(msg)) return "This user is no longer available";
   if (/blocked relationship/i.test(msg)) return "You can't follow due to a block";
+  if (/follow rate limit/i.test(msg)) return "You're following too fast, please slow down";
   if (/duplicate key|unique/i.test(msg)) return "You already follow this user";
   return "Failed to follow";
 };
+
+// Pkg335 pass-2: map unfollow rate-limit error → friendly toast.
+const mapUnfollowError = (err: unknown): string => {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  if (/unfollow rate limit/i.test(msg)) return "You're unfollowing too fast, please slow down";
+  return "Failed to unfollow";
+};
+
+// Pkg335 pass-2: page through Supabase 1000-row cap so power users with
+// 1000+ following/followers aren't silently truncated.
+const PAGE_SIZE = 1000;
+async function fetchAllFollowRows(
+  column: 'follower_id' | 'following_id',
+  uid: string,
+): Promise<Array<{ id: string; created_at: string; follower_id: string; following_id: string }>> {
+  const all: Array<{ id: string; created_at: string; follower_id: string; following_id: string }> = [];
+  let from = 0;
+  // Hard safety cap: 20 pages = 20k rows. Anyone past that is abuse / not a real user.
+  for (let i = 0; i < 20; i++) {
+    const { data, error } = await supabase
+      .from('followers')
+      .select('id, created_at, follower_id, following_id')
+      .eq(column, uid)
+      .order('created_at', { ascending: false })
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const rows = data ?? [];
+    all.push(...rows);
+    if (rows.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
+}
 
 const FollowingList = () => {
   const navigate = useNavigate();
