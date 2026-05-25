@@ -172,9 +172,9 @@ const Tasks = () => {
 
     return () => {
       unsubscribe();
-      document.removeEventListener('visibilitychange', onVisible);
       clearTimeout(resetTimer);
     };
+  // eslint-disable-next-line
 
   }, []);
 
