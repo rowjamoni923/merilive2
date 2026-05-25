@@ -570,7 +570,7 @@ const Leaderboard = () => {
                             </div>
                           )}
                           <div className="relative z-[1]">
-                            <AvatarWithFrame userId={top3[1].id} src={top3[1].avatar_url || undefined} name={top3[1].display_name || "U"} level={getLevel(top3[1])} size="md" showFrame={true} showAnimation={true} />
+                            <AvatarWithFrame userId={top3[1].id} src={top3[1].avatar_url || undefined} name={top3[1].display_name || "U"} level={getLevel(top3[1])} size="md" showFrame={true} showAnimation={true} avatarImageClassName="object-cover scale-[1.06]" />
                           </div>
                         </div>
                         {/* Shield banner body */}
@@ -645,7 +645,7 @@ const Leaderboard = () => {
                             </div>
                           )}
                           <div className="relative z-[1]">
-                            <AvatarWithFrame userId={top3[0].id} src={top3[0].avatar_url || undefined} name={top3[0].display_name || "U"} level={getLevel(top3[0])} size="lg" showFrame={true} showAnimation={true} showGlow={true} />
+                            <AvatarWithFrame userId={top3[0].id} src={top3[0].avatar_url || undefined} name={top3[0].display_name || "U"} level={getLevel(top3[0])} size="lg" showFrame={true} showAnimation={true} showGlow={true} avatarImageClassName="object-cover scale-[1.06]" />
                           </div>
                         </div>
                         {/* Shield banner body - Red/Gold */}
@@ -708,7 +708,7 @@ const Leaderboard = () => {
                             </div>
                           )}
                           <div className="relative z-[1]">
-                            <AvatarWithFrame userId={top3[2].id} src={top3[2].avatar_url || undefined} name={top3[2].display_name || "U"} level={getLevel(top3[2])} size="md" showFrame={true} showAnimation={true} />
+                            <AvatarWithFrame userId={top3[2].id} src={top3[2].avatar_url || undefined} name={top3[2].display_name || "U"} level={getLevel(top3[2])} size="md" showFrame={true} showAnimation={true} avatarImageClassName="object-cover scale-[1.06]" />
                           </div>
                         </div>
                         {/* Blue Shield banner */}
