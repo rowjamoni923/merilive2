@@ -6,8 +6,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function normalizePhoneIdentifier(value: unknown): string {
+  return String(value || "").replace(/[\s\-\(\)]/g, "").replace(/^\+/, "");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
 
   try {
     const payload = await req.json();
@@ -15,14 +27,23 @@ serve(async (req) => {
     const verifiedToken = typeof payload?.verified_token === "string" ? payload.verified_token : "";
     const channel = payload?.channel === "phone" ? "phone" : "email";
     const tokenIdentifier = channel === "phone"
-      ? String(payload?.identifier || "").replace(/[\s\-\(\)]/g, "").replace(/^\+/, "")
+      ? normalizePhoneIdentifier(payload?.identifier)
       : email;
 
-    if (!email || !verifiedToken || !tokenIdentifier) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Email and verified OTP token required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+    if (!email || !verifiedToken || !tokenIdentifier || verifiedToken.length > 128) {
+      return json({ success: false, error: "Email and verified OTP token required" }, 400);
+    }
+    if (channel === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json({ success: false, error: "Invalid email" }, 400);
+    }
+    if (channel === "phone") {
+      if (!/^\d{7,15}$/.test(tokenIdentifier)) {
+        return json({ success: false, error: "Invalid phone identifier" }, 400);
+      }
+      const expectedPhoneEmail = `phone_${tokenIdentifier}@meri.local`;
+      if (email !== expectedPhoneEmail) {
+        return json({ success: false, error: "OTP token does not match this account" }, 403);
+      }
     }
 
     const supabaseAdmin = createClient(
@@ -47,10 +68,7 @@ serve(async (req) => {
 
     if (tokenError) throw tokenError;
     if (!tokenRow) {
-      return new Response(
-        JSON.stringify({ success: false, error: "OTP verification expired. Please request a new code." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return json({ success: false, error: "OTP verification expired. Please request a new code." }, 401);
     }
 
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -58,10 +76,7 @@ serve(async (req) => {
       email,
     });
     if (linkError && /not found|User not found/i.test(linkError.message || "")) {
-      return new Response(
-        JSON.stringify({ success: false, exists: false, error: "User not found" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return json({ success: false, exists: false, error: "User not found" }, 200);
     }
     if (linkError) throw linkError;
 
@@ -76,13 +91,20 @@ serve(async (req) => {
       throw verifyError || new Error("Failed to create session");
     }
 
-    await supabaseAdmin
+    const { data: consumedToken, error: consumeError } = await supabaseAdmin
       .from("otp_exchange_tokens")
       .update({ is_used: true, used_at: new Date().toISOString() })
-      .eq("id", tokenRow.id);
+      .eq("id", tokenRow.id)
+      .eq("is_used", false)
+      .select("id")
+      .maybeSingle();
+    if (consumeError) throw consumeError;
+    if (!consumedToken) {
+      return json({ success: false, error: "OTP verification expired. Please request a new code." }, 401);
+    }
 
-    return new Response(
-      JSON.stringify({
+    return json(
+      {
         success: true,
         exists: true,
         access_token: verifiedData.session.access_token,
@@ -90,14 +112,11 @@ serve(async (req) => {
         token_type: verifiedData.session.token_type ?? "bearer",
         expires_in: verifiedData.session.expires_in,
         user: { id: verifiedData.user?.id, email: verifiedData.user?.email },
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      },
+      200,
     );
   } catch (error: any) {
     console.error("OTP direct sign-in error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return json({ success: false, error: "Internal server error" }, 500);
   }
 });
