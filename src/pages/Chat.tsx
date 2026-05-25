@@ -2204,7 +2204,7 @@ const Chat = () => {
               <p className="text-slate-500 font-medium">No messages yet. Say hello! 👋</p>
             </div>
           ) : (
-            currentMessages.map((msg: any) => {
+            currentMessages.map((msg: any, idx: number, arr: any[]) => {
               const isMine = msg.sender_id === currentUserId;
               const otherUserId = isGroup ? msg.sender_id : selectedConversation?.other_user?.id;
               const senderName = isMine 
@@ -2217,46 +2217,70 @@ const Chat = () => {
                 ? pickDisplayLevel(myProfile as any)
                 : pickDisplayLevel((isGroup ? msg.sender : selectedConversation?.other_user) as any);
               const senderUserId = isMine ? currentUserId : otherUserId;
-              
+
+              // WhatsApp-style clustering: hide avatar/name on consecutive same-sender msgs within 3min
+              const prev = idx > 0 ? arr[idx - 1] : null;
+              const next = idx < arr.length - 1 ? arr[idx + 1] : null;
+              const sameAsPrev = prev && prev.sender_id === msg.sender_id &&
+                (new Date(msg.created_at).getTime() - new Date(prev.created_at).getTime()) < 3 * 60 * 1000;
+              const sameAsNext = next && next.sender_id === msg.sender_id &&
+                (new Date(next.created_at).getTime() - new Date(msg.created_at).getTime()) < 3 * 60 * 1000;
+              const showAvatar = !sameAsNext; // anchor at last of cluster
+              const showName = isGroup && !sameAsPrev; // only group needs name, only on first of cluster
+              const showDaySeparator = !prev || !sameDay(prev.created_at, msg.created_at);
+
               return (
-                <div
-                  key={msg.id}
-                  className={cn("flex gap-2", isMine ? "justify-end" : "justify-start")}
-                >
-                    <div className={cn("flex gap-2 max-w-[75%]", isMine && "flex-row-reverse")}>
-                    {/* Avatar - both sides */}
-                    <button
-                      onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
-                      className="shrink-0 self-end mb-0.5"
-                    >
-                      {senderUserId ? (
-                        <AvatarWithFrame
-                          userId={senderUserId}
-                          src={senderAvatar || undefined}
-                          name={senderName}
-                          level={senderLevel}
-                          size="xs"
-                          showAnimation={false}
-                        />
-                      ) : (
-                        <Avatar className="w-7 h-7 border border-purple-200/30">
-                          <AvatarImage src={senderAvatar || undefined} className="object-cover" />
- <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-900 text-[10px]">
-                            {senderName[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                    </button>
-                    <div className="flex flex-col">
-                      {/* Sender Name - always show in DM and group */}
+                <React.Fragment key={msg.id}>
+                  {showDaySeparator && (
+                    <div className="flex items-center justify-center my-2">
+                      <span className="px-3 py-0.5 rounded-full text-[10.5px] font-semibold text-slate-600 bg-white/85 border border-amber-200/50 shadow-sm backdrop-blur-sm">
+                        {formatDayLabel(msg.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className={cn("flex gap-2 group", isMine ? "justify-end" : "justify-start", sameAsPrev ? "mt-0.5" : "mt-2")}
+                  >
+                    <div className={cn("flex gap-2 max-w-[78%]", isMine && "flex-row-reverse")}>
+                    {/* Avatar slot — only shows on last of cluster; otherwise reserved spacer keeps alignment */}
+                    {showAvatar ? (
                       <button
                         onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
-                        className={cn("mb-0.5", isMine ? "text-right" : "text-left")}
+                        className="shrink-0 self-end mb-0.5"
                       >
-                        <p className="font-semibold text-[11px] text-slate-700">
-                          {senderName}
-                        </p>
+                        {senderUserId ? (
+                          <AvatarWithFrame
+                            userId={senderUserId}
+                            src={senderAvatar || undefined}
+                            name={senderName}
+                            level={senderLevel}
+                            size="xs"
+                            showAnimation={false}
+                          />
+                        ) : (
+                          <Avatar className="w-7 h-7 border border-purple-200/30">
+                            <AvatarImage src={senderAvatar || undefined} className="object-cover" />
+                            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-900 text-[10px]">
+                              {senderName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                       </button>
+                    ) : (
+                      <div className="shrink-0 w-7" aria-hidden />
+                    )}
+                    <div className="flex flex-col min-w-0">
+                      {/* Sender Name — group chat only, first of cluster only */}
+                      {showName && (
+                        <button
+                          onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
+                          className={cn("mb-0.5 px-1", isMine ? "text-right" : "text-left")}
+                        >
+                          <p className="font-semibold text-[11px] text-slate-700">
+                            {senderName}
+                          </p>
+                        </button>
+                      )}
                       {/* Message Bubble - No background for gifts */}
                       {(() => {
                         const content = msg.content || '';
