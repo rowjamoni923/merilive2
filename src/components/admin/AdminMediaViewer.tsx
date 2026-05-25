@@ -175,7 +175,7 @@ export function AdminMediaFrame({
     // have a usable URL from the previous render.
     const syncSrc = tryResolvePublicAdminStorageUrlSync(src, bucket);
     const syncPoster = tryResolvePublicAdminStorageUrlSync(poster, bucket);
-    setDisplaySrc(syncSrc);
+    setDisplaySrc(syncSrc || (isPrivateStorage ? null : src));
     setDisplayPoster(syncPoster || poster || null);
     (async () => {
       const resolver = bucket === "face-verification" || bucket === "host-verification" || isPrivateStorage
