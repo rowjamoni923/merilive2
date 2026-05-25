@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { saveAdminSession, clearAdminSession, getAdminSession, setAdminSessionToken } from "@/utils/adminSession";
 import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
-import { grantAdminAccess, revokeAdminAccess, getAdminLinkKind } from "@/utils/adminAccessStorage";
+import { grantAdminAccess, revokeAdminAccess, getAdminLinkKind, getAdminLinkChallenge } from "@/utils/adminAccessStorage";
 import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -109,6 +109,7 @@ export default function AdminAuth() {
     const { data, error } = await adminSupabase.rpc('admin_authenticate' as any, {
       _email: email.trim().toLowerCase(),
       _password: password,
+      _link_challenge: getAdminLinkChallenge(),
     });
     if (error || !(data as any)?.success) {
       toast.error('Login failed after approval');
@@ -180,6 +181,7 @@ export default function AdminAuth() {
       const { data: authData, error: authError } = await adminSupabase.rpc('admin_authenticate' as any, {
         _email: email.trim().toLowerCase(),
         _password: password,
+        _link_challenge: getAdminLinkChallenge(),
       });
 
       if (authError) throw authError;
