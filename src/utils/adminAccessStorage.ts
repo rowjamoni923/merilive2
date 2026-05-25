@@ -2,6 +2,7 @@ const ADMIN_ACCESS_KEY = 'meri_admin_access';
 const OWNER_ACCESS_KEY = 'meri_owner_access';
 const ADMIN_LINK_TOKEN_KEY = 'meri_admin_link_token';
 const ADMIN_LINK_KIND_KEY = 'meri_admin_link_kind'; // 'owner' | 'sub_admin'
+const ADMIN_LINK_CHALLENGE_KEY = 'meri_admin_link_challenge';
 
 export type AdminLinkKind = 'owner' | 'sub_admin';
 
@@ -49,6 +50,23 @@ export const getAdminLinkKind = (): AdminLinkKind | null => {
   return v === 'owner' || v === 'sub_admin' ? v : null;
 };
 
+export const setAdminLinkChallenge = (challenge: string | null | undefined) => {
+  if (!hasWindow()) return;
+  const normalized = String(challenge || '').trim();
+  if (normalized.length >= 32) {
+    window.sessionStorage.setItem(ADMIN_LINK_CHALLENGE_KEY, normalized);
+  } else {
+    window.sessionStorage.removeItem(ADMIN_LINK_CHALLENGE_KEY);
+  }
+  window.localStorage.removeItem(ADMIN_LINK_CHALLENGE_KEY);
+};
+
+export const getAdminLinkChallenge = (): string | null => {
+  if (!hasWindow()) return null;
+  const v = window.sessionStorage.getItem(ADMIN_LINK_CHALLENGE_KEY);
+  return v && v.length >= 32 ? v : null;
+};
+
 /**
  * Keep sessionStorage in sync from persistent localStorage on fresh tabs/reloads.
  */
@@ -60,6 +78,7 @@ export const syncAdminAccessToSession = () => {
   window.localStorage.removeItem(OWNER_ACCESS_KEY);
   window.localStorage.removeItem(ADMIN_LINK_TOKEN_KEY);
   window.localStorage.removeItem(ADMIN_LINK_KIND_KEY);
+  window.localStorage.removeItem(ADMIN_LINK_CHALLENGE_KEY);
 };
 
 export const hasAdminAccessFlag = (): boolean => {
@@ -87,5 +106,6 @@ export const revokeAdminAccess = () => {
   removeFlag(OWNER_ACCESS_KEY);
   removeFlag(ADMIN_LINK_TOKEN_KEY);
   removeFlag(ADMIN_LINK_KIND_KEY);
+  removeFlag(ADMIN_LINK_CHALLENGE_KEY);
 };
 
