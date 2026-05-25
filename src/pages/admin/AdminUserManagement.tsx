@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FaceSubmissionMediaBlocks, FaceSubmissionModalMedia } from "@/components/admin/FaceSubmissionMediaBlocks";
 import { AdminMediaFrame } from "@/components/admin/AdminMediaViewer";
 import { useAdminSignedUrl } from "@/hooks/useAdminSignedUrl";
@@ -87,7 +88,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
-import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, isAutoFaceReview, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -100,6 +101,8 @@ const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission
   if (['pending', 'submitted', 'under_review'].includes(normalized)) return normalized as FaceVerificationSubmission['status'];
   return 'pending';
 };
+const FACE_VERIFICATION_FETCH_LIMIT = 30;
+const EMPTY_FACE_STATS: StatusCounts = { pending: 0, under_review: 0, approved: 0, rejected: 0, total: 0, auto_approved: 0, auto_rejected: 0, auto_host: 0, auto_user: 0 };
 
 const inferFaceReviewSource = (s: any): 'auto' | 'manual' => {
   const status = String(s?.status || '').trim().toLowerCase();
