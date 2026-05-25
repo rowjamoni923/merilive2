@@ -1162,6 +1162,9 @@ const Level5HelperDashboard = () => {
 
     setProcessing(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const { data: claimResult, error: claimError } = await supabase.rpc('claim_agency_withdrawal' as any, {
         _withdrawal_id: selectedAgencyWithdrawal.id,
         _helper_id: helperData.id,
@@ -1181,23 +1184,20 @@ const Level5HelperDashboard = () => {
       }
       
       const fileExt = screenshotFile.name.split('.').pop() || 'jpg';
-      const fileName = `agency-withdrawal-${selectedAgencyWithdrawal.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/agency-withdrawal-${selectedAgencyWithdrawal.id}-${Date.now()}.${fileExt}`;
+      const proofPath = `payment-proofs/${fileName}`;
       const { error: uploadError } = await supabase.storage
         .from('payment-proofs')
         .upload(fileName, screenshotFile, { upsert: false });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('payment-proofs')
-        .getPublicUrl(fileName);
-
       const safeNotes = helperNotes.trim().slice(0, 500) || null;
 
       const { data: processResult, error: processError } = await supabase.rpc('helper_process_agency_withdrawal' as any, {
         _withdrawal_id: selectedAgencyWithdrawal.id,
         _helper_id: helperData.id,
-        _screenshot_url: publicUrl,
+        _screenshot_url: proofPath,
         _transaction_id: trimmedTx,
         _notes: safeNotes,
       });
