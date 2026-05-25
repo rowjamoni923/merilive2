@@ -1995,7 +1995,7 @@ const Chat = () => {
             {/* Back Button */}
             <button
               type="button"
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white active:scale-95 transition-all duration-150 shrink-0 border border-amber-200/60 shadow-sm"
+              className="flex items-center justify-center w-9 h-9 rounded-full profile-home-icon-button active:scale-95 transition-all duration-150 shrink-0"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -2007,7 +2007,7 @@ const Chat = () => {
                 fetchGroups();
               }}
             >
-              <ArrowLeft className="w-5 h-5 text-slate-800" />
+              <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
             
             {/* User Avatar with Premium Frame */}
@@ -2058,11 +2058,11 @@ const Chat = () => {
               }}
             >
               <div className="flex items-center gap-1.5">
-                <h2 className="font-semibold text-slate-900 text-[15px] leading-tight truncate max-w-[150px]">
+                <h2 className="font-semibold text-foreground text-[15px] leading-tight truncate max-w-[150px]">
                   {chatName}
                 </h2>
                 {!isGroup && (
-                  <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
+                  <div className="flex items-center gap-0.5 bg-gradient-gold text-accent-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
                     <Crown className="w-2.5 h-2.5" />
                     <span>Lv.{userLevel}</span>
                   </div>
@@ -2088,13 +2088,13 @@ const Chat = () => {
                   selectedConversation?.other_user?.is_online ? (
                     <span className="text-[11px] text-emerald-600 font-medium">online</span>
                   ) : (
-                    <span className="text-[11px] text-slate-500 font-medium truncate">
+                    <span className="text-[11px] text-muted-foreground font-medium truncate">
                       last seen {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false).toLowerCase()}
                     </span>
                   )
                 )}
                 {isGroup && (
-                  <span className="text-[11px] text-slate-500 font-medium">{selectedGroup?.member_count || 0} members</span>
+                  <span className="text-[11px] text-muted-foreground font-medium">{selectedGroup?.member_count || 0} members</span>
                 )}
               </div>
             </div>
@@ -2106,7 +2106,7 @@ const Chat = () => {
                 onClick={() => {
                   if (selectedConversation?.other_user?.id) startCall(selectedConversation.other_user.id);
                 }}
-                className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 border border-amber-200/60 shadow-sm hover:bg-white active:scale-95 transition-all"
+                className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 active:scale-95 transition-all"
                 aria-label="Video call"
               >
                 <VideoCallIcon className="w-[18px] h-[18px] text-emerald-600" />
@@ -2117,7 +2117,7 @@ const Chat = () => {
             {isGroup && (
               <button
                 type="button"
-                className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60 shadow-sm"
+                className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 relative z-20"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -2125,7 +2125,7 @@ const Chat = () => {
                   setShowGroupSettings(true);
                 }}
               >
-                <Settings className="w-5 h-5 text-slate-700 pointer-events-none" />
+                <Settings className="w-5 h-5 text-foreground pointer-events-none" />
               </button>
             )}
 
@@ -2135,12 +2135,12 @@ const Chat = () => {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60 shadow-sm backdrop-blur-xl"
+                    className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 relative z-20 backdrop-blur-xl"
                   >
-                    <MoreVertical className="w-5 h-5 text-slate-700 pointer-events-none" />
+                    <MoreVertical className="w-5 h-5 text-foreground pointer-events-none" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white border border-amber-200/60 rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
+                <DropdownMenuContent align="end" className="bg-popover text-popover-foreground border border-border rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
                   {/* Decorative top glow */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
                   
@@ -2149,7 +2149,7 @@ const Chat = () => {
                       const otherId = selectedConversation?.other_user?.id;
                       if (otherId) navigate(`/profile-detail/${otherId}`);
                     }}
-                    className="text-slate-700 hover:text-slate-900 hover:bg-amber-50 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                    className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
                   >
                     <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
                       <Users className="w-4 h-4 text-purple-400" />
@@ -2201,7 +2201,7 @@ const Chat = () => {
         <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain" style={{ background: 'linear-gradient(180deg, hsl(40 40% 98% / 0.6) 0%, transparent 15%, transparent 85%, hsl(40 40% 98% / 0.6) 100%)', WebkitOverflowScrolling: 'touch' }}>
           {currentMessages.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-slate-500 font-medium">No messages yet. Say hello! 👋</p>
+              <p className="text-muted-foreground font-medium">No messages yet. Say hello! 👋</p>
             </div>
           ) : (
             currentMessages.map((msg: any, idx: number, arr: any[]) => {
@@ -2233,7 +2233,7 @@ const Chat = () => {
                 <React.Fragment key={msg.id}>
                   {showDaySeparator && (
                     <div className="flex items-center justify-center my-2">
-                      <span className="px-3 py-0.5 rounded-full text-[10.5px] font-semibold text-slate-600 bg-white/85 border border-amber-200/50 shadow-sm backdrop-blur-sm">
+                      <span className="px-3 py-0.5 rounded-full text-[10.5px] font-semibold text-muted-foreground profile-home-pill shadow-sm backdrop-blur-sm">
                         {formatDayLabel(msg.created_at)}
                       </span>
                     </div>
@@ -2260,7 +2260,7 @@ const Chat = () => {
                         ) : (
                           <Avatar className="w-7 h-7 border border-purple-200/30">
                             <AvatarImage src={senderAvatar || undefined} className="object-cover" />
-                            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-900 text-[10px]">
+                            <AvatarFallback className="bg-gradient-primary text-primary-foreground text-[10px]">
                               {senderName[0]}
                             </AvatarFallback>
                           </Avatar>
@@ -2276,7 +2276,7 @@ const Chat = () => {
                           onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
                           className={cn("mb-0.5 px-1", isMine ? "text-right" : "text-left")}
                         >
-                          <p className="font-semibold text-[11px] text-slate-700">
+                          <p className="font-semibold text-[11px] text-muted-foreground">
                             {senderName}
                           </p>
                         </button>
@@ -2315,7 +2315,7 @@ const Chat = () => {
                           
                           return (
                             <motion.div 
-                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-[#FFFBF2] to-[#F5EFDF]/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
+                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-accent/15 to-card rounded-lg border border-accent/25 shadow-md backdrop-blur-sm"
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.2 }}
@@ -2361,21 +2361,21 @@ const Chat = () => {
                               {isMine && diamondsAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full shadow-md shadow-rose-500/30">
                                   <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
- <span className="text-[9px] font-bold text-slate-900">
+ <span className="text-[9px] font-bold text-primary-foreground">
                                     -{Number(diamondsAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : !isMine && beansAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md shadow-amber-500/30">
                                   <Beans3DIcon size={12} />
- <span className="text-[9px] font-bold text-slate-900">
+ <span className="text-[9px] font-bold text-accent-foreground">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : beansAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md">
                                   <Beans3DIcon size={12} />
- <span className="text-[9px] font-bold text-slate-900">
+ <span className="text-[9px] font-bold text-accent-foreground">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
@@ -2434,11 +2434,11 @@ const Chat = () => {
                             <div className={cn(
                               "rounded-2xl px-3 py-2",
                               isMine
- ?"bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 rounded-br-sm"
+ ?"bg-gradient-primary text-primary-foreground rounded-br-sm"
                                 : "bg-muted rounded-bl-sm"
                             )}>
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
                                   <Mic className="w-4 h-4" />
                                 </div>
                                 <audio 
@@ -2449,7 +2449,7 @@ const Chat = () => {
                               </div>
                               <p className={cn(
                                 "text-[10px] mt-1 flex items-center gap-0.5",
-                                isMine ? "text-slate-900" : "text-muted-foreground"
+                                isMine ? "text-primary-foreground/85" : "text-muted-foreground"
                               )}>
                                 {formatTime(msg.created_at)}
                                 <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
@@ -2464,19 +2464,19 @@ const Chat = () => {
                             className={cn(
                               "rounded-2xl px-2.5 py-1.5 max-w-full text-[13px] leading-[1.35]",
                               isMine
- ?"bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 text-slate-900 rounded-br-sm shadow-md shadow-purple-500/20"
-                                : "rounded-bl-sm text-slate-800 shadow-sm",
+ ?"bg-gradient-primary text-primary-foreground rounded-br-sm shadow-md shadow-purple-500/20"
+                                : "rounded-bl-sm text-card-foreground shadow-sm",
                               msg._optimistic && "opacity-70"
                             )}
                             style={!isMine ? {
-                              background: 'linear-gradient(135deg, #ffffff 0%, hsl(40 40% 99%) 100%)',
+                              background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(40 40% 99%) 100%)',
                               border: '1px solid hsl(40 35% 88% / 0.7)',
                             } : undefined}
                           >
                             <span className="break-words">{content}</span>
                             <span className={cn(
                               "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",
-                              isMine ? "text-slate-600" : "text-slate-500"
+                              isMine ? "text-primary-foreground/80" : "text-muted-foreground"
                             )}>
                               {formatTime(msg.created_at)}
                               <MessageStatusIndicator 
@@ -2530,7 +2530,7 @@ const Chat = () => {
                     showAnimation={false}
                   />
                 </div>
-                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm" style={{ background: 'linear-gradient(135deg, #ffffff 0%, hsl(40 40% 99%) 100%)', border: '1px solid hsl(40 35% 88% / 0.7)' }}>
+                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm" style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(40 40% 99%) 100%)', border: '1px solid hsl(var(--border) / 0.7)' }}>
                   <div className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -2567,19 +2567,19 @@ const Chat = () => {
           
           {/* Inline Translation Bar — premium luxury redesign */}
           {inlineTranslateEnabled && !isGroup && (
-            <div className="px-3 pt-2.5 pb-2 border-t border-amber-200/40 bg-gradient-to-b from-amber-50/60 via-white to-rose-50/40">
+              <div className="px-3 pt-2.5 pb-2 border-t border-border/60 bg-gradient-to-b from-accent/10 via-card to-primary/5">
               {/* Header row */}
               <div className="flex items-center justify-between mb-2 px-1">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-[11px] font-semibold tracking-wide bg-gradient-to-r from-amber-700 via-rose-600 to-purple-700 bg-clip-text text-transparent whitespace-nowrap">
                     ✨ Auto-Translate
                   </span>
-                  <span className="text-[10px] text-slate-500">→</span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white shadow-sm border border-amber-300/60 min-w-0">
+                  <span className="text-[10px] text-muted-foreground">→</span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-card shadow-sm border border-border min-w-0">
                     <span className="text-xs leading-none">
                       {languageOptions.find(l => l.code === inlineTargetLang)?.flag}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-800 truncate">
+                    <span className="text-[10px] font-bold text-card-foreground truncate">
                       {languageOptions.find(l => l.code === inlineTargetLang)?.name}
                     </span>
                   </span>
@@ -2589,7 +2589,7 @@ const Chat = () => {
                     setInlineTranslateEnabled(false);
                     setInlineTranslation("");
                   }}
-                  className="p-1 rounded-full bg-white/80 hover:bg-rose-100 text-slate-500 hover:text-rose-600 border border-slate-200/60 transition-colors shrink-0 ml-2"
+                  className="p-1 rounded-full bg-card/80 hover:bg-muted text-muted-foreground hover:text-destructive border border-border transition-colors shrink-0 ml-2"
                   aria-label="Close translator"
                 >
                   <X className="w-3 h-3" />
@@ -2607,11 +2607,11 @@ const Chat = () => {
                       className={`shrink-0 inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all duration-200 border ${ // dark-ok
                         active
                           ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-fuchsia-600 text-white border-white shadow-[0_4px_14px_rgba(244,114,182,0.45)] ring-2 ring-amber-300/70 scale-[1.04]'
-                          : 'bg-white text-slate-700 border-slate-200 shadow-sm hover:border-amber-300 hover:shadow-md hover:-translate-y-px'
+                          : 'bg-card text-card-foreground border-border shadow-sm hover:border-accent hover:shadow-md hover:-translate-y-px'
                       }`}
                     >
                       <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[13px] leading-none ${
-                        active ? 'bg-white/25' : 'bg-slate-50'
+                        active ? 'bg-primary-foreground/25' : 'bg-muted'
                       }`}>
                         {lang.flag}
                       </span>
@@ -2627,7 +2627,7 @@ const Chat = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-2 rounded-xl px-3 py-2 bg-gradient-to-br from-white via-purple-50/70 to-rose-50/70 border border-purple-200/60 shadow-inner"
+                  className="mt-2 rounded-xl px-3 py-2 bg-gradient-to-br from-card via-primary/5 to-secondary/5 border border-primary/20 shadow-inner"
                 >
                   <div className="flex items-center gap-1.5 mb-1">
                     <span className="text-[10px] font-bold text-purple-700">
@@ -2641,7 +2641,7 @@ const Chat = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-800 font-medium leading-snug">
+                  <p className="text-sm text-card-foreground font-medium leading-snug">
                     {inlineTranslation || "Translating…"}
                   </p>
                 </motion.div>
@@ -2714,9 +2714,9 @@ const Chat = () => {
                         }
                       }, 50);
                     }}
- className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white/[0.06] border border-slate-200/[0.1] backdrop-blur-xl"
+ className="flex-shrink-0 px-3 py-1.5 rounded-full bg-card/70 border border-border backdrop-blur-xl"
                   >
-                    <span className="text-xs text-slate-900 whitespace-nowrap">{quickMsg}</span>
+                    <span className="text-xs text-card-foreground whitespace-nowrap">{quickMsg}</span>
                   </motion.button>
                 ))}
               </div>
@@ -2779,11 +2779,11 @@ const Chat = () => {
                   )}
                 >
                   {sendingVoice ? (
- <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                   ) : isRecording ? (
-                    <div className="w-4 h-4 bg-white rounded-sm" />
+                    <div className="w-4 h-4 bg-primary-foreground rounded-sm" />
                   ) : (
- <Send className="w-5 h-5 text-slate-900" />
+ <Send className="w-5 h-5 text-primary-foreground" />
                   )}
                 </motion.button>
               </>
@@ -2907,14 +2907,14 @@ const Chat = () => {
                   disabled={sending}
                   className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
                 >
- <Send className="w-5 h-5 text-slate-900" />
+ <Send className="w-5 h-5 text-primary-foreground" />
                 </motion.button>
               </>
             ) : (
               <>
                 {/* WhatsApp-style single pill: emoji • input • attach • camera */}
                 <div className={cn(
-                  "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-white/95 border border-amber-200/70 shadow-sm backdrop-blur-xl transition-colors",
+                  "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-card/95 border border-border shadow-sm backdrop-blur-xl transition-colors",
                   inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-300/70"
                 )}>
                   <motion.button
@@ -2923,13 +2923,13 @@ const Chat = () => {
                     className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
                     aria-label="Emoji"
                   >
-                    <Smile className="w-[20px] h-[20px] text-slate-500" />
+                    <Smile className="w-[20px] h-[20px] text-muted-foreground" />
                   </motion.button>
                   <Input
                     value={message}
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Message"
-                    className="flex-1 h-9 border-0 bg-transparent px-1 text-[14px] text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                    className="flex-1 h-9 border-0 bg-transparent px-1 text-[14px] text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     disabled={sending}
                     onFocus={() => setShowEmojiPicker(false)}
@@ -2940,7 +2940,7 @@ const Chat = () => {
                     className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
                     aria-label="Gallery"
                   >
-                    <Camera className="w-[18px] h-[18px] text-slate-500" />
+                    <Camera className="w-[18px] h-[18px] text-muted-foreground" />
                   </motion.button>
                 </div>
 
@@ -2981,17 +2981,17 @@ const Chat = () => {
                   <div className={cn(
                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border backdrop-blur-xl",
                     inlineTranslateEnabled 
-                      ? "bg-gradient-to-br from-purple-500/30 to-violet-500/30 border-purple-400/40 shadow-lg shadow-purple-500/20" 
- :"bg-white/[0.06] border-slate-200/[0.08] hover:bg-white/[0.1]"
+                      ? "bg-gradient-to-br from-primary/30 to-secondary/30 border-primary/40 shadow-lg shadow-purple-500/20" 
+ :"bg-card/70 border-border hover:bg-muted"
                   )}>
                     <Languages className={cn(
                       "w-5 h-5",
-                      inlineTranslateEnabled ? "text-purple-300" : "text-slate-700"
+                      inlineTranslateEnabled ? "text-primary" : "text-foreground"
                     )} />
                   </div>
                   <span className={cn(
                     "text-[9px] font-semibold",
-                    inlineTranslateEnabled ? "text-purple-300" : "text-slate-600"
+                    inlineTranslateEnabled ? "text-primary" : "text-muted-foreground"
                   )}>
                     {inlineTranslateEnabled ? "ON" : "Translate"}
                   </span>
@@ -3006,7 +3006,7 @@ const Chat = () => {
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/25 backdrop-blur-xl hover:from-pink-500/30 hover:to-rose-500/30 transition-all duration-300">
                     <Gift className="w-5 h-5 text-pink-400" />
                   </div>
-                  <span className="text-[9px] font-semibold text-slate-600">Gift</span>
+                  <span className="text-[9px] font-semibold text-muted-foreground">Gift</span>
                 </motion.button>
                 
                 {/* Games */}
@@ -3018,7 +3018,7 @@ const Chat = () => {
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/25 backdrop-blur-xl hover:from-indigo-500/30 hover:to-blue-500/30 transition-all duration-300">
                     <Gamepad2 className="w-5 h-5 text-indigo-400" />
                   </div>
-                  <span className="text-[9px] font-semibold text-slate-600">Games</span>
+                  <span className="text-[9px] font-semibold text-muted-foreground">Games</span>
                 </motion.button>
                 
                 {/* Video Call */}
@@ -3037,7 +3037,7 @@ const Chat = () => {
                       <VideoCallIcon className="w-5 h-5 text-rose-400 relative z-10" />
                     </div>
                     <div className="flex flex-col items-center">
-                      <span className="text-[9px] font-semibold text-slate-600">Video Call</span>
+                      <span className="text-[9px] font-semibold text-muted-foreground">Video Call</span>
                       {selectedConversation.other_user.call_rate_per_minute && selectedConversation.other_user.call_rate_per_minute > 0 && (
                         <span className="text-[8px] text-amber-400/70 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
                       )}
@@ -3074,7 +3074,7 @@ const Chat = () => {
                         onClick={() => handleLanguageChange(lang.code)}
                         className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                           selectedLanguage === lang.code
- ?'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 shadow-md'
+ ?'bg-gradient-primary text-primary-foreground shadow-md'
                             : 'bg-muted hover:bg-muted/80 text-foreground'
                         }`}
                       >
@@ -3100,7 +3100,7 @@ const Chat = () => {
                 <div className={`rounded-xl border-2 border-dashed transition-all ${
                   translatedResult 
                     ? 'border-amber-300/60 bg-purple-500/10' 
- :'border-slate-200/[0.08] bg-white/[0.04]'
+ :'border-border bg-muted/30'
                 }`}>
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-1">
@@ -3108,13 +3108,13 @@ const Chat = () => {
                         {languageOptions.find(l => l.code === selectedLanguage)?.flag} {selectedLanguage}
                       </span>
                       {isTranslating && (
-                        <span className="text-[10px] text-slate-600 flex items-center gap-1">
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                           <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
                           Translating...
                         </span>
                       )}
                     </div>
-                    <p className={`min-h-[40px] ${translatedResult ? 'text-slate-900' : 'text-slate-600 text-sm'}`}>
+                    <p className={`min-h-[40px] ${translatedResult ? 'text-foreground' : 'text-muted-foreground text-sm'}`}>
                       {translatedResult || "Translation will appear here..."}
                     </p>
                   </div>
@@ -3185,7 +3185,7 @@ const Chat = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full bg-white/80 border border-amber-200/60 hover:bg-white text-slate-700 shadow-sm"
+              className="rounded-full profile-home-icon-button text-foreground shadow-sm"
               onClick={() => navigate('/search')}
             >
               <MessageCircle className="w-5 h-5" />
@@ -3193,7 +3193,7 @@ const Chat = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full bg-white/80 border border-amber-200/60 hover:bg-white text-slate-700 shadow-sm"
+              className="rounded-full profile-home-icon-button text-foreground shadow-sm"
               onClick={() => setShowGroupActions(true)}
             >
               <Users className="w-5 h-5" />
@@ -3204,8 +3204,8 @@ const Chat = () => {
         {/* Tabs - Premium Light */}
         <div className="px-4">
           <Tabs value={chatTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white/70 border border-amber-200/50 rounded-xl p-1 shadow-inner">
- <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
+            <TabsList className="grid w-full grid-cols-4 bg-card/70 border border-border rounded-xl p-1 shadow-inner">
+ <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground">
                 Messages
                 {globalUnread.messages > 0 && (
  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
@@ -3213,15 +3213,15 @@ const Chat = () => {
                   </span>
                 )}
               </TabsTrigger>
- <TabsTrigger value="official" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
+ <TabsTrigger value="official" className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground">
                 Official
                 {globalUnread.official > 0 && (
- <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
+ <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-gold text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
                     {formatBadgeCount(globalUnread.official)}
                   </span>
                 )}
               </TabsTrigger>
- <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
+ <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground">
                 Notifications
                 {globalUnread.notifications > 0 && (
  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
@@ -3229,7 +3229,7 @@ const Chat = () => {
                   </span>
                 )}
               </TabsTrigger>
- <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
+ <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground">
                 Groups
                 {groups.length > 0 && (
                   <span className="ml-1 text-xs text-white/80">({groups.length})</span>
@@ -3241,12 +3241,12 @@ const Chat = () => {
 
         <div className="px-4 py-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder={chatTab === 'messages' ? "Search conversations..." : "Search groups..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-full bg-white/90 border border-amber-200/60 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-purple-400/40 shadow-sm"
+              className="pl-10 rounded-full bg-card/90 border border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm"
             />
           </div>
         </div>
@@ -3281,11 +3281,10 @@ const Chat = () => {
             <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
               <MessageCircle className="w-10 h-10 text-purple-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2 text-slate-700">No conversations yet</h3>
-            <p className="text-slate-600 text-sm mb-4">Start a conversation with someone!</p>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">No conversations yet</h3>
+            <p className="text-muted-foreground text-sm mb-4">Start a conversation with someone!</p>
             <Button
- className="rounded-full font-bold text-slate-900"
-              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
+ className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
               onClick={() => navigate('/')}
             >
               Find Hosts
@@ -3323,22 +3322,22 @@ const Chat = () => {
                     </Avatar>
                   )}
                   {conv.other_user?.is_online && (
- <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-slate-200 rounded-full z-10 shadow-lg shadow-green-500/30" />
+ <span className="absolute bottom-0 right-0 w-4 h-4 gradient-online border-2 border-card rounded-full z-10 shadow-lg shadow-green-500/30" />
                   )}
                 </div>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate text-slate-900">{conv.other_user?.display_name || 'User'}</h3>
+                    <h3 className="font-semibold truncate text-foreground">{conv.other_user?.display_name || 'User'}</h3>
                     {conv.other_user?.country_flag && (
                       <span className="text-xs">{conv.other_user.country_flag}</span>
                     )}
                     <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
-                    <span className="text-[10px] text-slate-600 shrink-0 ml-auto font-medium">
+                    <span className="text-[10px] text-muted-foreground shrink-0 ml-auto font-medium">
                       {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-0.5">
-                    <p className="text-sm text-slate-600 truncate">{conv.last_message || 'No messages yet'}</p>
+                    <p className="text-sm text-muted-foreground truncate">{conv.last_message || 'No messages yet'}</p>
                     {conv.unread_count > 0 && (
  <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
                         {conv.unread_count}
@@ -3357,11 +3356,10 @@ const Chat = () => {
             <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
               <Users className="w-10 h-10 text-purple-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2 text-slate-700">No groups yet</h3>
-            <p className="text-slate-600 text-sm mb-4">Create or join a group!</p>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">No groups yet</h3>
+            <p className="text-muted-foreground text-sm mb-4">Create or join a group!</p>
             <Button
- className="rounded-full font-bold text-slate-900"
-              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
+ className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
               onClick={() => setShowGroupActions(true)}
             >
               Get Started
@@ -3384,11 +3382,11 @@ const Chat = () => {
                 </Avatar>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate text-slate-900">{group.name}</h3>
-                    <span className="text-xs text-white/80">({group.member_count})</span>
+                    <h3 className="font-semibold truncate text-foreground">{group.name}</h3>
+                    <span className="text-xs text-muted-foreground">({group.member_count})</span>
                   </div>
                   {group.is_owner && (
- <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border-0 text-xs mt-1">
+ <Badge className="bg-gradient-gold text-accent-foreground border-0 text-xs mt-1">
                       <Crown className="w-3 h-3 mr-1" />
                       Owner
                     </Badge>
@@ -3419,7 +3417,7 @@ const Chat = () => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 border border-fuchsia-500/25 flex items-center justify-center backdrop-blur-xl">
                 <Users className="w-8 h-8 text-fuchsia-400" />
               </div>
-              <span className="text-sm font-medium text-slate-700">Create</span>
+              <span className="text-sm font-medium text-foreground">Create</span>
             </button>
             <button
               className="flex flex-col items-center gap-2"
@@ -3431,7 +3429,7 @@ const Chat = () => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/25 flex items-center justify-center backdrop-blur-xl">
                 <Search className="w-8 h-8 text-purple-400" />
               </div>
-              <span className="text-sm font-medium text-slate-700">Search</span>
+              <span className="text-sm font-medium text-foreground">Search</span>
             </button>
           </div>
         </SheetContent>
@@ -3441,23 +3439,23 @@ const Chat = () => {
       <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
         <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
-            <DialogTitle className="text-slate-800">Create a group</DialogTitle>
+            <DialogTitle className="text-foreground">Create a group</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName" className="text-slate-700 font-medium">Group Name</Label>
+              <Label htmlFor="groupName" className="text-foreground font-medium">Group Name</Label>
               <Input
                 id="groupName"
                 placeholder="Enter group name"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
               />
             </div>
 
             <div className="flex justify-center">
               <button 
-                className="w-20 h-20 rounded-full border-2 border-dashed border-amber-300/60 flex items-center justify-center hover:bg-white/[0.06] transition-colors overflow-hidden"
+                className="w-20 h-20 rounded-full border-2 border-dashed border-accent/60 flex items-center justify-center hover:bg-muted transition-colors overflow-hidden"
                 onClick={() => groupPhotoInputRef.current?.click()}
               >
                 {newGroupPhotoPreview ? (
@@ -3483,23 +3481,23 @@ const Chat = () => {
 
             <div className="space-y-3">
               <RadioGroup value={newGroupType} onValueChange={setNewGroupType}>
-                <div className="flex items-center space-x-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]">
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-border bg-card/60">
                   <RadioGroupItem value="basic" id="basic" />
                   <Label htmlFor="basic" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5 text-purple-400" />
-                      <span className="font-medium text-slate-700">Basic Group</span>
+                      <span className="font-medium text-foreground">Basic Group</span>
                     </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]">
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-border bg-card/60">
                   <RadioGroupItem value="family" id="family" />
                   <Label htmlFor="family" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5 text-pink-400" />
-                      <span className="font-medium text-slate-700">Family Group</span>
+                      <span className="font-medium text-foreground">Family Group</span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       One user can join one family group only
                     </p>
                   </Label>
@@ -3508,8 +3506,7 @@ const Chat = () => {
             </div>
 
             <Button
- className="w-full rounded-full font-bold text-slate-900"
-              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)', boxShadow: '0 4px 20px rgba(168,85,247,0.4)' }}
+ className="w-full rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
               onClick={handleCreateGroup}
               disabled={!newGroupName.trim() || creatingGroup}
             >
@@ -3523,7 +3520,7 @@ const Chat = () => {
       <Dialog open={showSearchGroup} onOpenChange={setShowSearchGroup}>
         <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
-            <DialogTitle className="text-slate-800">Search Group</DialogTitle>
+            <DialogTitle className="text-foreground">Search Group</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="relative">
@@ -3532,12 +3529,12 @@ const Chat = () => {
                 value={groupSearchQuery}
                 onChange={(e) => setGroupSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchGroup()}
- className="pr-12 bg-white/[0.06] border-slate-200/[0.08] text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+ className="pr-12 bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
               />
               <Button
                 size="icon"
                 variant="ghost"
- className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-700 hover:text-slate-900 hover:bg-white/[0.08]"
+ className="absolute right-1 top-1/2 -translate-y-1/2 text-foreground hover:text-foreground hover:bg-muted"
                 onClick={handleSearchGroup}
               >
                 <Search className="w-5 h-5" />
@@ -3549,7 +3546,7 @@ const Chat = () => {
                 {groupSearchResults.map((group) => (
                   <div
                     key={group.id}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]"
+                    className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card/60"
                   >
                     <Avatar className="w-12 h-12 ring-2 ring-purple-500/20">
                       <AvatarImage src={group.avatar_url || undefined} />
@@ -3558,15 +3555,14 @@ const Chat = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold truncate text-slate-900">{group.name}</h4>
-                      <p className="text-xs text-white/80">
+                      <h4 className="font-semibold truncate text-foreground">{group.name}</h4>
+                      <p className="text-xs text-muted-foreground">
                         {group.member_count} members • {group.group_type}
                       </p>
                     </div>
                     <Button
                       size="sm"
- className="rounded-full font-bold text-slate-900"
-                      style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 2px 10px rgba(168,85,247,0.3)' }}
+ className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
                       onClick={() => handleJoinGroup(group.id)}
                     >
                       Join
@@ -3577,7 +3573,7 @@ const Chat = () => {
             )}
 
             {groupSearchQuery && groupSearchResults.length === 0 && (
-              <p className="text-center text-slate-600 py-8">No groups found</p>
+              <p className="text-center text-muted-foreground py-8">No groups found</p>
             )}
           </div>
         </DialogContent>
