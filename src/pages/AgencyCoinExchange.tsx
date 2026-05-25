@@ -144,9 +144,8 @@ const AgencyCoinExchange = () => {
       if (a) setAgency(prev => prev ? { ...prev, beans_balance: a.beans_balance || 0, diamond_balance: a.diamond_balance || 0, wallet_balance: a.wallet_balance || 0 } : null);
       if (p) setOwnerBeans(Math.max(0, Number((p as any).beans || 0)));
     };
-    const onVisible = () => { if (document.visibilityState === 'visible') refreshOwn(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    // No-auto-refresh: removed visibility refetch. Realtime / own-beans-updated push changes.
+    return () => { /* noop */ };
   }, [agency?.id, ownerId]);
 
   // Exchange settings — Pkg37 admin_broadcast push

@@ -188,11 +188,9 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
     // refresh via REST on visibility change as safety net.
     const onOwnUpdate = () => { void fetchUserCoins(); };
     window.addEventListener('own-beans-updated', onOwnUpdate);
-    const onVis = () => { if (document.visibilityState === 'visible') void fetchUserCoins(); };
-    document.addEventListener('visibilitychange', onVis);
+    // No-auto-refresh: own-beans-updated push is sole trigger.
     return () => {
       window.removeEventListener('own-beans-updated', onOwnUpdate);
-      document.removeEventListener('visibilitychange', onVis);
     };
   }, []);
 

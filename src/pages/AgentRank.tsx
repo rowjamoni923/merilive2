@@ -168,17 +168,10 @@ const AgentRank = () => {
       if (detail.table === 'agencies') fetchRankings();
       else if (detail.table === 'ranking_rewards') fetchRewards();
     };
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') {
-        fetchRankings();
-        fetchRewards();
-      }
-    };
+    // No-auto-refresh: removed visibility refetch; admin-table-update push is sole trigger.
     window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
     return () => {
       window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [fetchRankings, fetchRewards]);
 
