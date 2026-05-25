@@ -322,6 +322,11 @@ const AdminFaceVerification = () => {
 
   useAdminRealtime(['face_verification_submissions'], fetchSubmissions);
 
+  useEffect(() => {
+    fetchSubmissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, debouncedSearchQuery]);
+
   const handleRefresh = () => { setRefreshing(true); fetchSubmissions(); };
 
   type SubmissionActionParams = {
@@ -613,7 +618,7 @@ const AdminFaceVerification = () => {
   // Single source of truth for what the user can currently see (after search).
   // Counters are derived from the SAME pool the list uses, so badges always
   // match the visible rows regardless of search input.
-  const qRaw = searchQuery.trim();
+  const qRaw = debouncedSearchQuery.trim();
   const q = qRaw.toLowerCase();
   const matchesSearch = (sub: Submission) => {
     if (!q) return true;
@@ -650,7 +655,9 @@ const AdminFaceVerification = () => {
   });
 
   // Shared counter — guaranteed to be in sync with server bucket rules.
-  const visibleCounts = countFaceReviewBuckets(visiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes);
+  const visibleCounts = mismatchOnly
+    ? countFaceReviewBuckets(visiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes)
+    : serverStats;
   const pendingCount = visibleCounts.pending;
   const approvedCount = visibleCounts.approved;
   const autoApprovedCount = visibleCounts.auto_approved;
