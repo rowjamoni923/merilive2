@@ -203,16 +203,10 @@ const AgencyCoinExchange = () => {
       // CRITICAL FIX: My Beans = profiles.beans (personal), NOT agency wallet_balance (Total Beans)
       setOwnerBeans(Math.max(0, Number(profileData?.beans || 0)));
 
-      // Fetch exchange settings
-      const { data: settingsData } = await supabase
-        .from("app_settings")
-        .select("setting_value")
-        .eq("setting_key", "coin_exchange")
-        .maybeSingle();
-
-      if (settingsData?.setting_value) {
-        const settings = settingsData.setting_value as Record<string, unknown>;
-        setExchangeSettings(normalizeExchangeSettings(settings));
+      // Fetch exchange settings (shared cache — dedupes with the admin-broadcast listener)
+      const settingsValue = await getAppSetting<Record<string, unknown>>('coin_exchange');
+      if (settingsValue) {
+        setExchangeSettings(normalizeExchangeSettings(settingsValue));
       }
 
       // Fetch recent transactions
