@@ -91,7 +91,13 @@ export function usePartyRoomWebRTC(
     const audioEl = track.attach() as HTMLAudioElement;
     audioEl.autoplay = true;
     audioEl.dataset.partyAudioKey = key;
+    audioEl.dataset.livekitRemoteAudio = 'party';
     try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
+    try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
+    audioEl.style.display = 'none';
+    // CRITICAL: must be in DOM for mobile WebViews (Android/iOS) to actually
+    // start playback. Detached <audio> nodes silently fail on many platforms.
+    try { document.body.appendChild(audioEl); } catch { /* ignore */ }
     audioEl.play().catch(() => {});
 
     const existing = audioElementsRef.current.get(identity) || [];
