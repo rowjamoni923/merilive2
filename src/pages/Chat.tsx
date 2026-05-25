@@ -2315,7 +2315,7 @@ const Chat = () => {
                           
                           return (
                             <motion.div 
-                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-[#FFFBF2] to-[#F5EFDF]/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
+                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-accent/15 to-card rounded-lg border border-accent/25 shadow-md backdrop-blur-sm"
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.2 }}
@@ -2361,21 +2361,21 @@ const Chat = () => {
                               {isMine && diamondsAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full shadow-md shadow-rose-500/30">
                                   <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
- <span className="text-[9px] font-bold text-slate-900">
+ <span className="text-[9px] font-bold text-primary-foreground">
                                     -{Number(diamondsAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : !isMine && beansAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md shadow-amber-500/30">
                                   <Beans3DIcon size={12} />
- <span className="text-[9px] font-bold text-slate-900">
+ <span className="text-[9px] font-bold text-accent-foreground">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : beansAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md">
                                   <Beans3DIcon size={12} />
- <span className="text-[9px] font-bold text-slate-900">
+ <span className="text-[9px] font-bold text-accent-foreground">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
@@ -2434,7 +2434,7 @@ const Chat = () => {
                             <div className={cn(
                               "rounded-2xl px-3 py-2",
                               isMine
- ?"bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 rounded-br-sm"
+ ?"bg-gradient-primary text-primary-foreground rounded-br-sm"
                                 : "bg-muted rounded-bl-sm"
                             )}>
                               <div className="flex items-center gap-2">
@@ -2449,7 +2449,7 @@ const Chat = () => {
                               </div>
                               <p className={cn(
                                 "text-[10px] mt-1 flex items-center gap-0.5",
-                                isMine ? "text-slate-900" : "text-muted-foreground"
+                                isMine ? "text-primary-foreground/85" : "text-muted-foreground"
                               )}>
                                 {formatTime(msg.created_at)}
                                 <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
@@ -2464,19 +2464,19 @@ const Chat = () => {
                             className={cn(
                               "rounded-2xl px-2.5 py-1.5 max-w-full text-[13px] leading-[1.35]",
                               isMine
- ?"bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 text-slate-900 rounded-br-sm shadow-md shadow-purple-500/20"
-                                : "rounded-bl-sm text-slate-800 shadow-sm",
+ ?"bg-gradient-primary text-primary-foreground rounded-br-sm shadow-md shadow-purple-500/20"
+                                : "rounded-bl-sm text-card-foreground shadow-sm",
                               msg._optimistic && "opacity-70"
                             )}
                             style={!isMine ? {
-                              background: 'linear-gradient(135deg, #ffffff 0%, hsl(40 40% 99%) 100%)',
+                              background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(40 40% 99%) 100%)',
                               border: '1px solid hsl(40 35% 88% / 0.7)',
                             } : undefined}
                           >
                             <span className="break-words">{content}</span>
                             <span className={cn(
                               "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",
-                              isMine ? "text-slate-600" : "text-slate-500"
+                              isMine ? "text-primary-foreground/80" : "text-muted-foreground"
                             )}>
                               {formatTime(msg.created_at)}
                               <MessageStatusIndicator 
