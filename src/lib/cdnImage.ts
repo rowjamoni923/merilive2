@@ -2,7 +2,7 @@
  * Supabase Storage Image Transformation helper.
  *
  * Rewrites `…/storage/v1/object/public/<bucket>/<path>` →
- *         `…/storage/v1/render/image/public/<bucket>/<path>?width=…&quality=…&resize=cover`
+ *         `…/storage/v1/render/image/public/<bucket>/<path>?width=…&quality=…&resize=contain`
  *
  * Why: a 2-3 MB raw avatar becomes a 10-30 KB WebP at e.g. 96x96, so
  * admin tables with 50+ rows go from 100 MB transfer → ~1 MB.
@@ -24,7 +24,7 @@ export interface CdnImageOptions {
   height?: number;
   /** 20-100, default 70. */
   quality?: number;
-  /** 'cover' (default) | 'contain' | 'fill'. */
+  /** 'contain' (default) | 'cover' | 'fill'. */
   resize?: "cover" | "contain" | "fill";
 }
 
@@ -56,7 +56,7 @@ export function toSupabaseCdnUrl(
   if (w) params.set("width", String(w));
   if (h) params.set("height", String(h));
   params.set("quality", String(q));
-  params.set("resize", opts.resize ?? "cover");
+  params.set("resize", opts.resize ?? "contain");
   // Strip any existing query on the original (rare)
   const cleanRest = rest.split("?")[0];
   return `${base}${cleanRest}?${params.toString()}`;
@@ -72,5 +72,5 @@ export function cdnAvatar(
   quality = 70
 ): string | undefined {
   const dpr = typeof window !== "undefined" ? Math.min(2, window.devicePixelRatio || 1) : 2;
-  return toSupabaseCdnUrl(url, { width: Math.round(cssSize * dpr), quality });
+  return toSupabaseCdnUrl(url, { width: Math.round(cssSize * dpr), quality, resize: "contain" });
 }
