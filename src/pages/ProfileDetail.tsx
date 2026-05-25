@@ -789,7 +789,7 @@ const ProfileDetail = () => {
               {isV ? (
                 <video
                   src={url}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-black"
                   autoPlay={active}
                   muted
                   loop
@@ -800,7 +800,7 @@ const ProfileDetail = () => {
                 <img
                   src={url}
                   alt=""
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-black"
                   loading="eager"
                   decoding="async"
                   fetchPriority={active ? 'high' : 'low'}
@@ -810,7 +810,7 @@ const ProfileDetail = () => {
           );
         })}
         {posterImages.length === 0 && (
-          <img src={getCurrentCoverImage()} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={getCurrentCoverImage()} alt="" className="absolute inset-0 w-full h-full object-contain bg-black" />
         )}
         {/* Premium gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-[#f7f8fa]" /> {/* dark-ok: intentional photo→footer overlay, no text inside */}
