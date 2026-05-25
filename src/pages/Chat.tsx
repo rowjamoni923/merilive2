@@ -1987,8 +1987,15 @@ const Chat = () => {
       setGroupSearchQuery("");
       setGroupSearchResults([]);
       fetchGroups();
-    } catch (error) {
-      toast.error("Failed to join group");
+    } catch (error: any) {
+      const msg = String(error?.message || error || '');
+      if (msg.includes('group_full')) toast.error("This group is full");
+      else if (msg.includes('family_limit_reached')) toast.error("You can only be in 1 family group");
+      else if (msg.includes('basic_limit_reached')) toast.error("You can join max 20 general groups");
+      else if (msg.includes('group_inactive')) toast.error("This group is no longer active");
+      else if (msg.includes('user_blocked')) toast.error("Your account is restricted");
+      else if (msg.includes('cannot_add_others')) toast.error("Only group admins can add members");
+      else toast.error("Failed to join group");
     }
   };
 
