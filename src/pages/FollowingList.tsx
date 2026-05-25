@@ -218,7 +218,7 @@ const FollowingList = () => {
     } catch (error) {
       console.error('Unfollow error:', error);
       recordClientError({ label: "FollowingList.handleUnfollow", message: error instanceof Error ? error.message : String(error) });
-      toast.error("Failed to unfollow");
+      toast.error(mapUnfollowError(error));
     }
   };
 
