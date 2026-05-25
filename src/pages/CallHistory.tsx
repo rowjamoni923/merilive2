@@ -95,6 +95,7 @@ const CallHistory = () => {
           return;
         }
         setUserId(user.id);
+        userIdRef.current = user.id;
 
         // Fetch user profile to check if host
         const { data: profileData } = await supabase
