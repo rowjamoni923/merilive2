@@ -26,7 +26,7 @@ export async function requireAdminSession(
 
   const { data: session, error: sessionError } = await supabase
     .from("admin_sessions")
-    .select("admin_user_id, expires_at")
+    .select("admin_user_id, expires_at, device_fingerprint")
     .eq("session_token", token)
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
@@ -41,6 +41,22 @@ export async function requireAdminSession(
     .maybeSingle();
 
   if (adminError || !admin?.is_active) return { ok: false, status: 403, error: "Admin access required" };
+
+  if (!session.device_fingerprint || session.device_fingerprint.length < 16) {
+    return { ok: false, status: 403, error: "Approved admin device required" };
+  }
+
+  const { data: device, error: deviceError } = await supabase
+    .from("admin_allowed_devices")
+    .select("id")
+    .eq("admin_user_id", admin.id)
+    .eq("device_fingerprint", session.device_fingerprint)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  if (deviceError) return { ok: false, status: 500, error: "Admin device lookup failed" };
+  if (!device?.id) return { ok: false, status: 403, error: "Approved admin device required" };
+
   if (requirement.ownerOnly && admin.role !== "owner") return { ok: false, status: 403, error: "Owner access required" };
 
   if (requirement.sectionKey && admin.role !== "owner") {
