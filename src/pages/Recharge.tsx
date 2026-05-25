@@ -1417,14 +1417,7 @@ const Recharge = () => {
   // Pkg83-ext: removed static `helpers-online-status-realtime` channel
   // (profiles/topup_helpers/coin_transfers/helper_accepted_payment_methods not
   // in publication — was silent no-op). Visibility refetch on tab return.
-  useEffect(() => {
-    if (selectedTab !== "helper") return;
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchTopUpHelpers();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [selectedTab, fetchTopUpHelpers]);
+  // No-auto-refresh: helper list refreshes on tab switch only.
 
 
   const fetchUserData = async () => {

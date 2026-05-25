@@ -554,13 +554,10 @@ const LiveStream = () => {
       if (detail?.table === 'blocked_users') refresh();
     };
     window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
-    const onVis = () => { if (document.visibilityState === 'visible') refresh(); };
-    document.addEventListener('visibilitychange', onVis);
-
+    // No-auto-refresh: admin-table-update event pushes blocklist changes; no visibility refetch.
     return () => {
       cancelled = true;
       window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
-      document.removeEventListener('visibilitychange', onVis);
     };
   }, [isHost, isHostVerified, id, currentUserId]);
 
@@ -1532,10 +1529,8 @@ const LiveStream = () => {
         refreshHostBusyStatus();
       }
     );
-    const busyPollTimer = setInterval(refreshHostBusyStatus, 30000);
-
+    // No-auto-refresh policy: rely on private_calls realtime above; removed 30s poll.
     return () => {
-      clearInterval(busyPollTimer);
       unsubscribeCalls?.();
     };
   }, [id, isHost, hostInfo?.id]);

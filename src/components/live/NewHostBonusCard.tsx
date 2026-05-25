@@ -49,15 +49,8 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
     fetchState();
   }, [fetchState]);
 
-  // LiveKit-purist: no Supabase Realtime channel for live bonus progress.
-  // Refresh from REST snapshot on a bounded 30s safety interval.
-  useEffect(() => {
-    if (!hostId) return;
-    const id = window.setInterval(fetchState, 30_000);
-    return () => {
-      window.clearInterval(id);
-    };
-  }, [hostId, fetchState]);
+  // No-auto-refresh: removed 30s polling. Per-minute heartbeat below updates server state;
+  // claim mutations refetch inline. Pull-to-refresh for manual reload.
 
   // Server-side per-minute heartbeat (only when actively live)
   useEffect(() => {

@@ -65,9 +65,7 @@ const TransferHistory = () => {
         setTotalTransferred(typed.reduce((sum, t) => sum + t.amount, 0));
       }
     };
-    const onVisible = () => { if (document.visibilityState === 'visible') refetch(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    // No-auto-refresh: initial fetch only.
 
   }, [navigate]);
 

@@ -528,9 +528,8 @@ const ProfileDetail = () => {
     const onOwnBeans = () => {
       if (currentUser?.id && targetId === currentUser.id) void fetchData(true);
     };
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') void fetchData(true);
-    };
+    // No-auto-refresh: removed visibility refetch; rely on app-sync / own-beans-updated / realtime.
+    const onVisible = () => { /* noop */ };
     // Realtime live_streams subscription (replaces 30s poll — Core rule: no polling in place of realtime).
     const refetchLiveStatus = async () => {
       try {

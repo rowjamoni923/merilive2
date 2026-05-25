@@ -42,11 +42,7 @@ const HostTransferHistory = () => {
   useEffect(() => {
     fetchEarnings();
     
-    // Pkg83-ext: removed static `host-earnings` channel
-    // (agency_earnings_transfers not in publication). Visibility refetch.
-    const onVisible = () => { if (document.visibilityState === 'visible') fetchEarnings(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    // No-auto-refresh: initial fetch only. Pull-to-refresh for manual reload.
 
   }, []);
 

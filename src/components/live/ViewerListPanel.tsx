@@ -87,15 +87,11 @@ export const ViewerListPanel = ({
     // LiveKit is the in-room realtime path. This panel uses a REST snapshot
     // when opened and refreshes on foreground/online only — no stream_viewers
     // Supabase Realtime subscription.
-    const handleRefresh = () => {
-      if (document.visibilityState !== 'hidden') void fetchViewers();
-    };
-    window.addEventListener('online', handleRefresh);
-    document.addEventListener('visibilitychange', handleRefresh);
-
+    // No-auto-refresh: snapshot taken once on open; LiveKit handles in-room updates.
+    const handleOnline = () => { void fetchViewers(); };
+    window.addEventListener('online', handleOnline);
     return () => {
-      window.removeEventListener('online', handleRefresh);
-      document.removeEventListener('visibilitychange', handleRefresh);
+      window.removeEventListener('online', handleOnline);
     };
   }, [isOpen, streamId]);
 

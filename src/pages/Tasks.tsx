@@ -158,11 +158,8 @@ const Tasks = () => {
       }
     );
 
-    // Pkg83-ext: removed static `tasks-progress-sync` channel
-    // (user_task_progress not in publication). Mutations refresh inline;
-    // visibility refetch covers tab return.
-    const onVisible = () => { if (document.visibilityState === 'visible') fetchTasks(); };
-    document.addEventListener('visibilitychange', onVisible);
+    // No-auto-refresh: task mutations refresh inline; no visibility refetch.
+
 
 
     // Auto-refresh at 12:30 AM local time when tasks reset

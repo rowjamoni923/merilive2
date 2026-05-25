@@ -339,9 +339,8 @@ export const useNotifications = () => {
                 fetchNotificationsRef.current();
                 emitGlobalUnreadRefresh();
               }
-              // Pkg86 audit: also fire visibilitychange so react-query stale watchers
-              // refetch immediately (parity with the now-removed RealtimeProvider path).
-              try { document.dispatchEvent(new Event('visibilitychange')); } catch {}
+              // No-auto-refresh policy: realtime channels push their own updates;
+              // do not dispatch a synthetic visibilitychange (was causing global refetch).
             }
             return;
           }

@@ -76,15 +76,9 @@ const CallHistory = () => {
       }
     });
 
-    const onFocus = () => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        fetchCallHistory();
-      }
-    };
-    document.addEventListener('visibilitychange', onFocus);
+    // No-auto-refresh: private_calls realtime (above) is the sole refresh trigger.
     return () => {
       offRealtime();
-      document.removeEventListener('visibilitychange', onFocus);
       if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
     };
   }, [scheduleRefetch]);
