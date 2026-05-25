@@ -663,7 +663,7 @@ const CreateParty = () => {
                 >
                   <div className="w-full h-full rounded-xl flex items-center justify-center overflow-hidden">
                     {game.logoUrl ? (
-                      <img src={getProxiedUrl(game.logoUrl)} alt={game.name} className="w-full h-full rounded-xl object-contain" loading="lazy" decoding="async" draggable={false} />
+                      <img src={getProxiedUrl(game.logoUrl)} alt={game.name} className="w-full h-full rounded-xl object-contain" loading="eager" decoding="async" draggable={false} />
                     ) : (
                       <span className="text-6xl">{game.emoji}</span>
                     )}

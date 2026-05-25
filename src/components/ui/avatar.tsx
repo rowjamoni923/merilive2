@@ -116,8 +116,9 @@ const AvatarImage = React.forwardRef<
         ref={ref}
         className={cn("h-full w-full object-contain", className)}
         src={renderSrc}
-        loading="lazy"
+        loading="eager"
         decoding="async"
+        fetchPriority="high"
         onError={handleError}
         {...props}
       />

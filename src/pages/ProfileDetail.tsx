@@ -1380,7 +1380,7 @@ const ProfileDetail = () => {
                                 <img
                                   src={normalized}
                                   alt={gift.name}
-                                  loading="lazy"
+                                  loading="eager"
                                   className="w-12 h-12 object-contain"
                                   onError={(e) => {
                                     // Replace broken img with emoji fallback so viewers never see a broken icon.
@@ -1430,7 +1430,7 @@ const ProfileDetail = () => {
                     <img
                       src={normalized}
                       alt={selectedGift?.name || 'Gift'}
-                      loading="lazy"
+                      loading="eager"
                       className="w-8 h-8 object-contain"
                       onError={(e) => {
                         const parent = (e.currentTarget as HTMLImageElement).parentElement;

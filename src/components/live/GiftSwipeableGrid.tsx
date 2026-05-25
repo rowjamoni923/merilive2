@@ -126,7 +126,7 @@ const GiftItem = memo(({
             src={url} 
             alt={gift.name} 
             className="w-10 h-10 object-contain" 
-            loading="lazy"
+            loading="eager"
             decoding="async"
           />
         ) : (

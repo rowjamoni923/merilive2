@@ -499,7 +499,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                     src={getProxiedUrl(currentGame.logo_url)}
                     alt={currentGame.game_name}
                     className="w-full h-full object-contain rounded-lg"
-                    loading="lazy"
+                    loading="eager"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
@@ -631,7 +631,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                         src={getProxiedUrl(game.logo_url)} 
                         alt={game.game_name}
                         className="w-14 h-14 object-contain rounded-xl"
-                        loading="lazy"
+                        loading="eager"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                           const parent = (e.target as HTMLImageElement).parentElement;

@@ -215,7 +215,7 @@ export default function GamesHub() {
                           <img
                             src={logo}
                             alt={game.game_name}
-                            loading="lazy"
+                            loading="eager"
                             width={40}
                             height={40}
                             className="absolute top-2 left-2 w-10 h-10 rounded-lg object-contain bg-white/10 backdrop-blur-sm p-1"
@@ -264,7 +264,7 @@ export default function GamesHub() {
                           <img
                             src={logo}
                             alt={game.game_name}
-                            loading="lazy"
+                            loading="eager"
                             width={40}
                             height={40}
                             className="w-10 h-10 rounded-lg object-contain"

@@ -128,7 +128,7 @@ const Game3DCard = ({
               src={getProxiedUrl(game.logo_url)} 
               alt={game.name}
               className="w-full h-full object-contain drop-shadow-2xl rounded-xl"
-              loading="lazy"
+              loading="eager"
               onError={(e) => {
                 // Hide image and show emoji fallback
                 (e.target as HTMLImageElement).style.display = 'none';

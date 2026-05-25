@@ -52,7 +52,9 @@ export function toSupabaseCdnUrl(
   const params = new URLSearchParams();
   const w = opts.width ? Math.max(16, Math.min(2000, Math.round(opts.width))) : undefined;
   const h = opts.height ? Math.max(16, Math.min(2000, Math.round(opts.height))) : undefined;
-  const q = Math.max(20, Math.min(100, Math.round(opts.quality ?? 70)));
+  // Bumped default 70 → 88: at 70 WebP shows visible blocky/"broken-up" decode
+  // on avatars + banners; 88 keeps file size reasonable but renders clean.
+  const q = Math.max(20, Math.min(100, Math.round(opts.quality ?? 88)));
   if (w) params.set("width", String(w));
   if (h) params.set("height", String(h));
   params.set("quality", String(q));
@@ -69,7 +71,7 @@ export function toSupabaseCdnUrl(
 export function cdnAvatar(
   url: string | null | undefined,
   cssSize: number,
-  quality = 70
+  quality = 88
 ): string | undefined {
   const dpr = typeof window !== "undefined" ? Math.min(2, window.devicePixelRatio || 1) : 2;
   return toSupabaseCdnUrl(url, { width: Math.round(cssSize * dpr), quality, resize: "contain" });

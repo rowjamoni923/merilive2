@@ -2545,7 +2545,7 @@ const Recharge = () => {
                                               src={resolved}
                                               alt={m.name}
                                               className="w-full h-full object-contain"
-                                              loading="lazy"
+                                              loading="eager"
                                               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                                             />
                                           ) : (
