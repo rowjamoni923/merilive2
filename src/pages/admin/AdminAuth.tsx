@@ -34,6 +34,7 @@ export default function AdminAuth() {
   const [pendingDeviceId, setPendingDeviceId] = useState<string | null>(null);
   const [pendingAdminId, setPendingAdminId] = useState<string | null>(null);
   const [pendingFingerprint, setPendingFingerprint] = useState<string | null>(null);
+  const [pendingSessionToken, setPendingSessionToken] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
 
   // Pre-fill email from URL
@@ -54,11 +55,12 @@ export default function AdminAuth() {
 
   // Poll device status while in pending state — auto-redirect when owner approves
   useEffect(() => {
-    if (flow !== 'pending_approval' || !pendingAdminId || !pendingFingerprint) return;
+    if (flow !== 'pending_approval' || !pendingAdminId || !pendingFingerprint || !pendingSessionToken) return;
 
     let cancelled = false;
     const checkStatus = async () => {
       try {
+        setAdminSessionToken(pendingSessionToken);
         const { data } = await adminSupabase.rpc('admin_check_device_status' as any, {
           _admin_id: pendingAdminId,
           _device_fingerprint: pendingFingerprint,
@@ -69,10 +71,15 @@ export default function AdminAuth() {
           // Auto-complete login
           await completeLoginAfterApproval();
         } else if (result?.status === 'rejected') {
+          setAdminSessionToken(null);
+          setPendingSessionToken(null);
           setRejectionReason(result.rejection_reason || 'Device access rejected by owner');
           setFlow('rejected');
+        } else {
+          setAdminSessionToken(null);
         }
       } catch (e) {
+        setAdminSessionToken(null);
         console.warn('[AdminAuth] poll error', e);
       }
     };
@@ -90,7 +97,7 @@ export default function AdminAuth() {
       cancelled = true;
       window.removeEventListener(ADMIN_REALTIME_EVENT, handleDeviceApprovalSync);
     };
-  }, [flow, pendingAdminId, pendingFingerprint]);
+  }, [flow, pendingAdminId, pendingFingerprint, pendingSessionToken]);
 
   const completeLoginAfterApproval = async () => {
     // Re-authenticate to retrieve full admin info & save session
@@ -110,6 +117,22 @@ export default function AdminAuth() {
     }
     const result = data as any;
     const fp = getDeviceFingerprint();
+    setAdminSessionToken(result.session_token);
+    const { data: deviceData, error: deviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
+      _admin_id: result.admin_id,
+      _device_fingerprint: fp.fingerprint,
+      _device_name: fp.deviceName,
+      _device_info: fp.details,
+      _ip_address: null,
+      _user_agent: navigator.userAgent,
+    });
+    if (deviceError || (deviceData as any)?.status !== 'approved') {
+      clearAdminSession();
+      setAdminSessionToken(null);
+      toast.error('Device approval could not be confirmed. Please log in again.');
+      setFlow('login');
+      return;
+    }
     saveAdminSession({
       admin_id: result.admin_id,
       email: result.email,
@@ -120,7 +143,6 @@ export default function AdminAuth() {
       device_fingerprint: fp.fingerprint,
       session_token: result.session_token,
     });
-    setAdminSessionToken(result.session_token);
     grantAdminAccess(!!result.is_owner);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('admin-session-change'));
@@ -151,6 +173,7 @@ export default function AdminAuth() {
         toast.error(auth?.error || 'Invalid credentials');
         return;
       }
+      setAdminSessionToken(auth.session_token);
 
       // Step 2: Device approval check
       const fp = getDeviceFingerprint();
@@ -189,16 +212,21 @@ export default function AdminAuth() {
         // Sub-admin needs owner approval
         setPendingAdminId(auth.admin_id);
         setPendingFingerprint(fp.fingerprint);
+        setPendingSessionToken(auth.session_token);
         setPendingDeviceId(device.device_id);
+        setAdminSessionToken(null);
         setFlow('pending_approval');
         toast.info('Waiting for owner approval...');
       } else if (device?.status === 'rejected') {
+        setAdminSessionToken(null);
         setRejectionReason(device.error || 'Device access rejected by owner');
         setFlow('rejected');
       } else {
+        setAdminSessionToken(null);
         toast.error('Unexpected device status');
       }
     } catch (err: any) {
+      setAdminSessionToken(null);
       console.error('[AdminAuth] login error', err);
       recordAdminError({ kind: "rpc", label: "AdminAuth.device", message: formatAdminError(err) });
       toast.error(err?.message || 'Login failed');
@@ -212,6 +240,8 @@ export default function AdminAuth() {
     setPendingAdminId(null);
     setPendingDeviceId(null);
     setPendingFingerprint(null);
+    setPendingSessionToken(null);
+    setAdminSessionToken(null);
     setPassword('');
   };
 
