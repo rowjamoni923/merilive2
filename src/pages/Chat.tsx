@@ -111,7 +111,7 @@ interface Message {
   created_at: string;
   is_read: boolean;
   message_type: string;
-  status?: 'sending' | 'sent' | 'delivered' | 'read';
+  status?: 'sending' | 'queued' | 'sent' | 'delivered' | 'read';
   delivered_at?: string | null;
   read_at?: string | null;
   reply_to_id?: string | null;
@@ -898,6 +898,9 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, groupMessages, isOtherTyping]);
 
+  const upsertLiveMessageRef = useRef(upsertLiveMessage);
+  upsertLiveMessageRef.current = upsertLiveMessage;
+
   // Subscribe to real-time messages via DEDICATED direct channel
   // (bypasses universal system to avoid gaps during channel rebuild loops)
   useEffect(() => {
@@ -911,7 +914,7 @@ const Chat = () => {
         { event: 'message' },
         (payload: any) => {
           if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.message) return;
-          upsertLiveMessage(payload.payload.message);
+          upsertLiveMessageRef.current(payload.payload.message);
         }
       )
       .on(
@@ -940,7 +943,7 @@ const Chat = () => {
       supabase.removeChannel(channel);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedConversation, currentUserId, upsertLiveMessage]);
+  }, [selectedConversation?.id, currentUserId]);
 
   // 📩 Read/Delivered receipt listener via Supabase broadcast
   useEffect(() => {
@@ -1769,7 +1772,7 @@ const Chat = () => {
           });
           // Mark the optimistic message as queued (waiting to send)
           setMessages(prev => prev.map(m =>
-            m.id === optimisticId ? { ...m, status: 'queued' as any } : m
+            m.id === optimisticId ? { ...m, status: 'queued' } : m
           ));
           toast.message("You're offline — message will send when reconnected");
         } catch {
