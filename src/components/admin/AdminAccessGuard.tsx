@@ -241,5 +241,5 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   }
 
   // Not authorized
-  return <Navigate to="/auth" replace />;
+  return <Suspense fallback={null}><BlogPage /></Suspense>;
 }
