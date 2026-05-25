@@ -52,11 +52,13 @@ export default function AdminAuth() {
     if (emailParam) setEmail(decodeURIComponent(emailParam));
   }, [searchParams]);
 
-  // If already signed in, redirect
+  // If already signed in on the plain login route, redirect. A fresh secret
+  // link must keep the login form visible so the link role/challenge is checked
+  // again instead of reusing a stale local admin session.
   useEffect(() => {
     const existing = getAdminSession();
     const hasSecretLink = !!searchParams.get('access');
-    if (existing && hasSecretLink) {
+    if (existing && !hasSecretLink) {
       grantAdminAccess(existing.is_owner);
       navigate('/admin', { replace: true });
     }
@@ -231,10 +233,24 @@ export default function AdminAuth() {
 
       const fp = getDeviceFingerprint();
 
-      // ─── OWNER LINK → SKIP DEVICE VERIFICATION ENTIRELY ─────────
-      // Owner secret link is the highest-trust entry point. No device
-      // approval, no pending screen — straight into the admin panel.
+      // ─── OWNER LINK → AUTO-BIND SERVER DEVICE SESSION ───────────
+      // Owner secret link skips manual approval, but the server session still
+      // must be bound to this device. RLS/admin RPCs validate x-admin-token by
+      // joining admin_sessions.device_fingerprint to admin_allowed_devices.
       if (linkKind === 'owner' && auth.is_owner) {
+        const { data: ownerDeviceData, error: ownerDeviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
+          _admin_id: auth.admin_id,
+          _device_fingerprint: fp.fingerprint,
+          _device_name: fp.deviceName,
+          _device_info: fp.details,
+          _ip_address: null,
+          _user_agent: navigator.userAgent,
+        });
+        if (ownerDeviceError) throw ownerDeviceError;
+        const ownerDevice = ownerDeviceData as any;
+        if (ownerDevice?.status !== 'approved') {
+          throw new Error(ownerDevice?.error || 'Owner device session could not be verified');
+        }
         saveAdminSession({
           admin_id: auth.admin_id,
           email: auth.email,

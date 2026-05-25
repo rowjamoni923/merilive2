@@ -222,8 +222,11 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   // Authorized: render admin panel / login page
   if (isAuthorized) {
     const session = getAdminSession();
-    // If the user has a session but is on the login route, redirect to admin home
-    if (isLoginRoute() && session) {
+    // If the user has a session and opens the plain login route, redirect to
+    // admin home. But a fresh ?access= secret link must always render AdminAuth
+    // so stale/expired local sessions cannot bypass re-authentication and then
+    // get kicked to the public app by protected admin requests.
+    if (isLoginRoute() && session && !getAccessTokenFromURL()) {
       return <Navigate to="/admin" replace />;
     }
     // If NO session and NOT on login route → redirect to login (preserve token in URL is unnecessary, flag is stored)
