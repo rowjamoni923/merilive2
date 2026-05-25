@@ -252,6 +252,7 @@ const AdminFaceVerification = () => {
   const [processing, setProcessing] = useState(false);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
   const actionInFlightRef = useRef(false);
+  const didRunFilterFetchRef = useRef(false);
   const fetchRequestIdRef = useRef(0);
 
   const fetchSubmissions = async () => {
@@ -323,6 +324,11 @@ const AdminFaceVerification = () => {
   useAdminRealtime(['face_verification_submissions'], fetchSubmissions);
 
   useEffect(() => {
+    if (!didRunFilterFetchRef.current) {
+      didRunFilterFetchRef.current = true;
+      return;
+    }
+    if (!getAdminSessionToken()) return;
     fetchSubmissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, debouncedSearchQuery]);
