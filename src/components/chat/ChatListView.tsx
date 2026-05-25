@@ -183,10 +183,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
           ) : chatTab === "messages" ? (
             filteredConversations.length === 0 ? (
               <div className="text-center py-16">
-                <div
-                  className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center"
-                  className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10 border border-primary/20"
-                >
+                <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10 border border-primary/20">
                   <MessageCircle className="w-10 h-10 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2 text-foreground">No conversations yet</h3>
@@ -264,10 +261,7 @@ export const ChatListView: React.FC<ChatListViewProps> = ({
             // Groups Tab
             filteredGroups.length === 0 ? (
               <div className="text-center py-16">
-                <div
-                  className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center"
-                  className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10 border border-primary/20"
-                >
+                <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-primary/10 border border-primary/20">
                   <Users className="w-10 h-10 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2 text-foreground">No groups yet</h3>
