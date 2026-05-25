@@ -173,7 +173,35 @@ export default function AdminAuth() {
         toast.error(auth?.error || 'Invalid credentials');
         return;
       }
+
+      // ─── STRICT LINK-ROLE ENFORCEMENT ───────────────────────────
+      // Owner secret link → only owners may sign in.
+      // Sub-admin secret link → only sub-admins may sign in.
+      // This is independent of credentials: even with a valid password,
+      // wrong-link logins are rejected before any session is created.
+      const linkKind = getAdminLinkKind();
+      if (!linkKind) {
+        toast.error('Access link missing or expired. Please use a valid secret link.');
+        revokeAdminAccess();
+        clearAdminSession();
+        navigate('/', { replace: true });
+        return;
+      }
+      if (linkKind === 'owner' && !auth.is_owner) {
+        toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
+        revokeAdminAccess();
+        clearAdminSession();
+        return;
+      }
+      if (linkKind === 'sub_admin' && auth.is_owner) {
+        toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
+        revokeAdminAccess();
+        clearAdminSession();
+        return;
+      }
+
       setAdminSessionToken(auth.session_token);
+
 
       // Step 2: Device approval check
       const fp = getDeviceFingerprint();
