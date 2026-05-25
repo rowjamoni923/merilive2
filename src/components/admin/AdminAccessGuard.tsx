@@ -78,23 +78,19 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         return;
       }
 
-      // No session. Tab was previously unlocked via secret link → keep allowing
-      // /admin/auth so refresh / back-nav after entering email still works.
-      if (tabAlreadyUnlocked) {
-        setIsAuthorized(true);
-        setHasValidToken(true);
+      // No session. A previously unlocked tab or a fresh link must still be
+      // validated before rendering AdminAuth, so rotated/invalid secret links
+      // stop working immediately instead of relying on a stale session flag.
+      if (tabAlreadyUnlocked && getAdminLinkToken()) {
+        setIsAuthorized(null);
         return;
       }
 
-      // Fresh secret-link entry — OPTIMISTIC grant (Pkg191):
-      // Persist link token + tab flag immediately so user lands on AdminAuth
-      // instantly with NO loader/white flash. Background validation below will
-      // revoke the flag if the token is actually invalid.
+      // Fresh secret-link entry — persist only the candidate token and wait for
+      // server validation before granting access to the admin login page.
       if (accessToken) {
         setAdminLinkToken(accessToken);
-        grantAdminAccess(false);
-        setHasValidToken(true);
-        setIsAuthorized(true);
+        setIsAuthorized(null);
         return;
       }
 
@@ -103,9 +99,9 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
     decideSync();
 
-    // Background: validate URL access token (15s timeout) and persist flag.
-    // CRITICAL: timeout / network error must NOT flip the user to BlogPage —
-    // we keep them on the loader and let the retry below resolve.
+    // Background: validate URL access token (15s timeout) before rendering login.
+    // After retries, deny access so invalid/rotated links cannot keep a stale
+    // tab-scoped unlock flag alive.
     const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
     if (accessToken) {
       const validateOnce = async (attempt: number): Promise<boolean> => {
@@ -142,15 +138,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
       (async () => {
         // Up to 3 attempts (15s each) before giving up; if all fail and no
-        // session/flag exists, fall back to BlogPage. Network blips no longer
-        // kick a valid secret link to the block page.
+        // admin session exists, fall back to BlogPage.
         for (let i = 1; i <= 3; i++) {
           if (!mounted) return;
           const resolved = await validateOnce(i);
           if (resolved) return;
           if (i < 3) await new Promise((r) => setTimeout(r, 1500));
         }
-        if (mounted && !getAdminSession() && !hasAdminAccessFlag()) {
+        if (mounted && !getAdminSession()) {
+          revokeAdminAccess();
           setIsAuthorized(false);
         }
       })();

@@ -57,6 +57,12 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
   try {
     const body = await req.json().catch(() => ({}));
@@ -78,6 +84,7 @@ Deno.serve(async (req) => {
     }
 
     const currentYear = new Date().getUTCFullYear();
+    const overriddenKinds = new Set<'owner' | 'sub_admin'>();
 
     // ────────────────────────────────────────────────────────────
     // ACTION: generate has been REMOVED — was a critical takeover
@@ -102,22 +109,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Legacy fallback: env-based static tokens still accepted
-    const LEGACY_OWNER = Deno.env.get('ADMIN_OWNER_TOKEN');
-    const LEGACY_SUB = Deno.env.get('ADMIN_SUBADMIN_TOKEN');
-    if (LEGACY_OWNER && token === LEGACY_OWNER) {
-      return new Response(
-        JSON.stringify({ valid: true, role: 'owner' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    if (LEGACY_SUB && token === LEGACY_SUB) {
-      return new Response(
-        JSON.stringify({ valid: true, role: 'sub_admin' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Check owner-rotated overrides first (current year)
     try {
       const adminClient = createClient(
@@ -130,6 +121,7 @@ Deno.serve(async (req) => {
       if (Array.isArray(overrides)) {
         for (const o of overrides) {
           if (o.rotated_year !== currentYear) continue;
+          if (o.kind === 'owner' || o.kind === 'sub_admin') overriddenKinds.add(o.kind);
           if (o.token === token.trim()) {
             const role = o.kind === 'owner' ? 'owner' : 'sub_admin';
             return new Response(
@@ -162,6 +154,13 @@ Deno.serve(async (req) => {
     if (!allowedYears.includes(parsed.year)) {
       return new Response(
         JSON.stringify({ valid: false, role: null, reason: 'year_expired' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (parsed.year === currentYear && overriddenKinds.has(parsed.role)) {
+      return new Response(
+        JSON.stringify({ valid: false, role: null, reason: 'token_rotated' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
