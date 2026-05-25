@@ -15953,6 +15953,15 @@ export type Database = {
         Args: { _action: string; _new: Json; _old: Json; _table: string }
         Returns: string
       }
+      _p341_assert_admin_can_target_agency: {
+        Args: {
+          _agency_id: string
+          _protect_owner?: boolean
+          _require_edit?: boolean
+          _sections: string[]
+        }
+        Returns: Json
+      }
       _p341_assert_admin_can_target_user: {
         Args: {
           _protect_owner?: boolean
@@ -17230,6 +17239,10 @@ export type Database = {
         Args: { _notes?: string; _status: string; _withdrawal_id: string }
         Returns: Json
       }
+      admin_promote_agency_owner_to_payroll_helper: {
+        Args: { _agency_id: string }
+        Returns: Json
+      }
       admin_realtime_publication_status: {
         Args: never
         Returns: {
@@ -17370,6 +17383,10 @@ export type Database = {
         Args: { _admin_id: string; _ban_id: string; _reason?: string }
         Returns: Json
       }
+      admin_set_agency_active_status: {
+        Args: { _active: boolean; _agency_id: string; _reason?: string }
+        Returns: Json
+      }
       admin_set_host_status: {
         Args: { _make_host: boolean; _user_id: string }
         Returns: undefined
@@ -17395,10 +17412,9 @@ export type Database = {
         Args: { _user_id: string; _verified: boolean }
         Returns: Json
       }
-      admin_update_agency_level: {
-        Args: { _agency_id: string; _level: number }
-        Returns: Json
-      }
+      admin_update_agency_level:
+        | { Args: { _agency_id: string; _level: number }; Returns: Json }
+        | { Args: { _agency_id: string; _level: string }; Returns: Json }
       admin_update_face_violation: {
         Args: { _admin_id: string; _status: string; _violation_id: string }
         Returns: Json
