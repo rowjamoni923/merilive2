@@ -153,8 +153,8 @@ const CallHistory = () => {
         // Get commission rate for calculations - NO DEFAULTS
         // CRITICAL: Must be configured in Admin Panel
         let commRate = 0;
-        if (settingsData?.setting_value) {
-          const callRates = settingsData.setting_value as any;
+        if (callRatesValue) {
+          const callRates = callRatesValue as any;
           if (callRates.host_commission_percent !== undefined) {
             commRate = callRates.host_commission_percent;
           } else {
