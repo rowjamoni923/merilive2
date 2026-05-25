@@ -76,7 +76,6 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
 
   // App verification
   const [appCode, setAppCode] = useState("");
-  const [generatedAppCode, setGeneratedAppCode] = useState("");
   const [appVerifiedToken, setAppVerifiedToken] = useState("");
   const [appVerified, setAppVerified] = useState(false);
   const [sendingAppCode, setSendingAppCode] = useState(false);
@@ -158,11 +157,6 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     if (emailOtpTimer > 0) interval = setInterval(() => setEmailOtpTimer(prev => prev - 1), 1000);
     return () => clearInterval(interval);
   }, [emailOtpTimer]);
-
-  // Generate 4-digit code
-  const generateVerificationCode = () => {
-    return Math.floor(1000 + Math.random() * 9000).toString();
-  };
 
   const getFunctionErrorMessage = async (error: any, fallback: string) => {
     try {
