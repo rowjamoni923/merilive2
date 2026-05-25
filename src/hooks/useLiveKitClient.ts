@@ -322,10 +322,17 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     if (remoteAudioTrackKeysRef.current.has(trackKey)) return;
     remoteAudioTrackKeysRef.current.add(trackKey);
 
-    const audioEl = track.attach();
+    const audioEl = track.attach() as HTMLAudioElement;
     audioEl.dataset.livekitAudioKey = trackKey;
+    audioEl.dataset.livekitRemoteAudio = 'live';
+    audioEl.autoplay = true;
     audioEl.muted = isRemoteAudioMutedRef.current;
     audioEl.volume = 1;
+    try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
+    try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
+    audioEl.style.display = 'none';
+    // CRITICAL: must be in DOM for mobile WebViews to actually start playback.
+    try { document.body.appendChild(audioEl); } catch { /* ignore */ }
     audioEl.play().catch(() => {});
     const existing = remoteAudioElementsRef.current.get(participantIdentity) || [];
     existing.push(audioEl);
