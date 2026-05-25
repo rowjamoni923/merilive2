@@ -280,8 +280,8 @@ export function FullScreenPromoBanners() {
             height={currentBanner.fullScreen ? 1920 : 1080}
             className={
               currentBanner.fullScreen
-                ? "h-full w-full object-cover"
-                : "h-auto w-full rounded-3xl object-cover"
+                ? "h-full w-full object-contain"
+                : "h-auto w-full rounded-3xl object-contain"
             }
           />
 
