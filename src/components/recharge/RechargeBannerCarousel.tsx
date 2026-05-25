@@ -94,8 +94,8 @@ export default function RechargeBannerCarousel({
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-2xl shadow-xl shadow-amber-500/10 mt-3 mb-3"
-      style={{ aspectRatio: "4 / 1" }}
+      className="relative w-full overflow-hidden rounded-2xl shadow-xl shadow-amber-500/10"
+      style={{ aspectRatio: "3 / 1" }}
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
       onTouchStart={() => (pausedRef.current = true)}
