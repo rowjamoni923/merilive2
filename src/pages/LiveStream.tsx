@@ -3789,16 +3789,7 @@ const LiveStream = () => {
             onClose={() => setShowSipDial(false)}
             streamId={id}
           />
-          <RecordingDialog
-            open={showRecording}
-            onClose={() => setShowRecording(false)}
-            streamId={id}
-          />
-          <SimulcastDialog
-            open={showSimulcast}
-            onClose={() => setShowSimulcast(false)}
-            streamId={id}
-          />
+          {/* Recording & Simulcast dialogs removed for privacy */}
           <PublishLayersDialog
             open={showPublishLayers}
             onClose={() => setShowPublishLayers(false)}
