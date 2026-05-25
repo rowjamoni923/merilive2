@@ -98,7 +98,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
           <div
             key={banner.id}
             onClick={() => handleBannerClick(banner)}
-            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative aspect-[343/128] bg-muted' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
+            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative aspect-[343/105] bg-transparent' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
             style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
