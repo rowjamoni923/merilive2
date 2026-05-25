@@ -1967,6 +1967,7 @@ const PartyRoom = () => {
           }
         }}
         onClose={async () => {
+          explicitLeaveRef.current = true;
           await leaveRoom();
           cleanupWebRTC();
           navigate('/');
