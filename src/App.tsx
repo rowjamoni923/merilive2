@@ -53,7 +53,6 @@ import EventPopupBanner from "./components/common/EventPopupBanner";
 import DailyLoginPopup from "./components/rewards/DailyLoginPopup";
 import WelcomeOnboarding from "./components/onboarding/WelcomeOnboarding";
 import RatingRewardPopup from "./components/rewards/RatingRewardPopup";
-const LandingPage = lazy(lazyRetry(() => import("./pages/LandingPage")));
 const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // =============================================
 // LAZY LOADED PAGES - Load on demand
@@ -1012,8 +1011,6 @@ const App = () => {
   const isNative = Capacitor.isNativePlatform();
   const hostname = window.location.hostname;
   const currentPath = window.location.pathname;
-  const currentSearch = window.location.search;
-  const currentHash = window.location.hash;
   
   // Allow Lovable preview/development environments
   const isLovablePreview = hostname.includes('lovable.app') || 
@@ -1032,39 +1029,6 @@ const App = () => {
   ];
   
   const isBrowserAllowedRoute = BROWSER_ALLOWED_ROUTES.some(route => currentPath.startsWith(route));
-
-  const publicLandingHosts = ['merilive.top', 'www.merilive.top'];
-  const isPublicLandingHost = publicLandingHosts.includes(hostname);
-  const adminDomainRedirectUrl = (() => {
-    if (!isPublicLandingHost || !currentPath.startsWith('/admin')) return null;
-
-    const params = new URLSearchParams(currentSearch);
-    const hasAccessToken = !!params.get('access')?.trim();
-
-    // Only forward to the .com main domain when an actual admin secret link is
-    // present. Plain /admin (no token) stays on the current host and falls
-    // through to AdminAccessGuard, which renders BlogPage as the public face.
-    if (!hasAccessToken) return null;
-
-    let normalizedPath = currentPath;
-    if (currentPath === '/admin') {
-      normalizedPath = '/admin/auth';
-    } else if (currentPath === '/admin/login') {
-      normalizedPath = '/admin/auth';
-    }
-
-    return `https://merilive.com${normalizedPath}${currentSearch}${currentHash}`;
-  })();
-
-  useEffect(() => {
-    if (!adminDomainRedirectUrl) return;
-    if (window.location.href === adminDomainRedirectUrl) return;
-    window.location.replace(adminDomainRedirectUrl);
-  }, [adminDomainRedirectUrl]);
-
-  if (adminDomainRedirectUrl) {
-    return null;
-  }
 
   if (loading) {
     // No full-screen "Checking your session…" loader — render nothing so the
@@ -1100,19 +1064,6 @@ const App = () => {
           <p className="text-xs text-muted-foreground/60">MeriLive</p>
         </div>
       </div>
-    );
-  }
-
-  // Domain-based routing: ONLY .top domain shows the public landing page.
-  // merilive.com is the MAIN APP/admin domain — must load the full app, NOT landing.
-  const publicLandingAllowedPaths = ['/admin', '/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact', '/account-deletion', '/delete-account'];
-  const isPublicLandingSubRoute = isPublicLandingHost && publicLandingAllowedPaths.some(p => currentPath.startsWith(p));
-  
-  if (isPublicLandingHost && !isPublicLandingSubRoute) {
-    return (
-      <Suspense fallback={null}>
-        <LandingPage />
-      </Suspense>
     );
   }
 
