@@ -324,7 +324,9 @@ export default function AdminBanners() {
                     <SmartImage 
                       src={banner.image_url} 
                       alt={banner.title}
+                      cdnWidth={600}
                       className="w-full h-auto object-contain rounded-lg" fallbackSrc="/placeholder.svg" />
+
                   ) : (
                     <div className="flex items-center justify-between px-4 h-16">
                       <div>
@@ -436,7 +438,9 @@ export default function AdminBanners() {
                   <SmartImage 
                     src={formData.image_url} 
                     alt="Banner Preview"
+                    cdnWidth={600}
                     className="w-full h-auto object-contain rounded-xl" fallbackSrc="/placeholder.svg" />
+
                 </div>
               ) : (
                 <div 
