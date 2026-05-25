@@ -1417,7 +1417,7 @@ const Chat = () => {
 
   // Pkg212 — offline DM outbox: drain queued messages on reconnect/resume/tick.
   useMessageOutboxDrain(!!currentUserId, currentUserId, async (item: OutboxItem) => {
-    await persistDirectMessage(item.conversationId, item.senderId, item.content, item.messageType);
+    await persistDirectMessage(item.conversationId, item.senderId, item.content, item.messageType, item.replyToId);
     // Replace the queued optimistic bubble with a "sent" one — realtime
     // upsertLiveMessage will replace it with the canonical row shortly.
     setMessages(prev => prev.map(m =>
