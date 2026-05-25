@@ -109,19 +109,8 @@ export const OfficialNoticeList = () => {
         setUnreadCount(0);
         emitGlobalUnreadRefresh({ officialSetZero: true });
 
-        void Promise.all(
-          unreadNotices.map((notice) => {
-            const nextReadBy = notice.read_by?.includes(currentUserId)
-              ? notice.read_by
-              : [...(notice.read_by || []), currentUserId];
-
-            return supabase
-              .from('admin_notices')
-              .update({ read_by: nextReadBy })
-              .eq('id', notice.id);
-          })
-        ).catch((error) => {
-          console.warn('Official notice backend read sync failed, using local read state:', error);
+        void supabase.rpc('mark_all_notices_read').then(({ error }) => {
+          if (error) console.warn('Official notice backend read sync failed, using local read state:', error);
         });
         return;
       }
@@ -179,11 +168,7 @@ export const OfficialNoticeList = () => {
     emitGlobalUnreadRefresh({ officialDecrement: 1 });
 
     try {
-      const currentReadBy = (targetNotice?.read_by as string[]) || [];
-      await supabase
-        .from('admin_notices')
-        .update({ read_by: [...currentReadBy, currentUserId] })
-        .eq('id', noticeId);
+      await supabase.rpc('mark_notice_read', { _notice_id: noticeId });
     } catch (error) {
       console.error('Error marking notice as read:', error);
       fetchNotices();
@@ -211,14 +196,7 @@ export const OfficialNoticeList = () => {
     emitGlobalUnreadRefresh({ officialSetZero: true });
 
     try {
-      await Promise.all(
-        unreadNotices.map((notice) =>
-          supabase
-            .from('admin_notices')
-            .update({ read_by: [...(notice.read_by || []), currentUserId] })
-            .eq('id', notice.id)
-        )
-      );
+      await supabase.rpc('mark_all_notices_read');
     } catch (error) {
       console.error('Error marking all official notices as read:', error);
       fetchNotices();
