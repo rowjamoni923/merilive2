@@ -4,6 +4,11 @@ import { useBannersRealtime, Banner } from "@/hooks/useAdminSettingsRealtime";
 import { X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isNativeApp } from "@/utils/nativeUtils";
+import { toSupabaseCdnUrl } from "@/lib/cdnImage";
+
+// Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
+const bannerCdn = (url: string | null | undefined) =>
+  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "cover" }) || url || "";
 
 interface DynamicBannerProps {
   position?: 'top' | 'middle';
@@ -27,7 +32,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
       img.decoding = 'async';
       img.onload = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
       img.onerror = () => setLoadedImages((s) => ({ ...s, [b.id]: true }));
-      img.src = b.image_url;
+      img.src = bannerCdn(b.image_url);
     });
   }, [allBanners]);
 
@@ -102,7 +107,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                 style={{ aspectRatio: '16 / 6' }}
               >
                 <img
-                  src={(() => { try { const u = new URL(banner.image_url); return u.pathname.includes('/object/public/') ? `${u.origin}${u.pathname.replace('/object/public/', '/render/image/public/')}?width=900&quality=72&resize=cover` : banner.image_url; } catch { return banner.image_url; } })()}
+                  src={bannerCdn(banner.image_url)}
                   alt={banner.title}
                   loading="eager"
                   decoding="async"
@@ -111,9 +116,9 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                   className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
                   onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                   onError={(e) => {
-                    // CDN transform may be off (Pro plan) — retry original URL once, else hide.
+                    // CDN transform may be off (Pro plan) — retry original once, else hide.
                     const t = e.currentTarget;
-                    if (t.src !== banner.image_url) { t.src = banner.image_url; return; }
+                    if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
                     (t.parentElement?.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
                   }}
                 />
