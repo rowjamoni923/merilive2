@@ -1410,38 +1410,39 @@ const Auth = () => {
         return;
       }
 
-      // Create account
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: displayName,
-            gender: selectedGender,
-            email_confirmed: true,
-            device_id: deviceId,
-          },
+      if (!emailVerifiedToken) {
+        toast({ title: "Verify Email", description: "Please request a fresh code and verify again.", variant: "destructive" });
+        setAuthStep("email_otp");
+        return;
+      }
+
+      const { data: signInData, error: signInError } = await supabase.functions.invoke("otp-direct-signin", {
+        body: {
+          email,
+          verified_token: emailVerifiedToken,
+          mode: "create",
+          password,
+          display_name: displayName,
+          device_id: deviceId,
+          gender: selectedGender,
         },
       });
 
-      if (error) {
-        // If user already exists, try to login
-        if (error.message?.includes("already registered")) {
-          toast({
-            title: "Account Exists",
-            description: "This email is already registered. Please login.",
-            variant: "destructive",
-          });
-          setAuthStep("login");
-          setIsEmailFlow(false);
-          return;
-        }
-        throw error;
+      if (signInError) throw new Error(await getFunctionErrorMessage(signInError, "Failed to create account"));
+      if (!signInData?.success || !signInData?.access_token || !signInData?.refresh_token) {
+        throw new Error(signInData?.error || "Failed to create account");
       }
 
-      if (data.user) {
+      const { error: setErr } = await supabase.auth.setSession({
+        access_token: signInData.access_token,
+        refresh_token: signInData.refresh_token,
+      });
+      if (setErr) throw setErr;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         const readyProfile = await ensureProfileReady(
-          data.user.id,
+          user.id,
           {
             display_name: displayName,
             is_verified: true,
@@ -1456,12 +1457,10 @@ const Auth = () => {
           throw new Error('Profile setup is still processing. Please try again.');
         }
 
-        if (selectedGender) {
-          localStorage.setItem(`gender_selected_${data.user.id}`, 'true');
-        }
+        if (selectedGender) localStorage.setItem(`gender_selected_${user.id}`, 'true');
 
         // Instant country detection (non-blocking)
-        detectAndSaveLocation(data.user.id);
+        detectAndSaveLocation(user.id);
 
         // Note: Agency join will happen after gender selection on home page
 
