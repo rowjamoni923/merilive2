@@ -685,8 +685,8 @@ const Leaderboard = () => {
                     >
                       <div className="relative w-full">
                         <div className="relative mx-auto w-[72px] h-[72px] mb-1">
-                          <div className="absolute inset-[-6px] rounded-full" style={{ background: 'linear-gradient(135deg, #2563eb, #60a5fa, #2563eb)', padding: '2px' }}>
-                            <div className="w-full h-full rounded-full" style={{ background: '#1a0f08' }} />
+                          <div className="absolute inset-[-6px] rounded-full pointer-events-none" style={{ background: 'linear-gradient(135deg, #2563eb, #60a5fa, #2563eb)', padding: '2px' }}>
+                            <div className="w-full h-full rounded-full bg-transparent" />
                           </div>
                           <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #2563eb, #60a5fa)', boxShadow: '0 2px 10px rgba(37,99,235,0.5)', border: '2px solid rgba(255,255,255,0.3)' }}>
                             <span className="text-[10px] font-black text-white">3</span>
