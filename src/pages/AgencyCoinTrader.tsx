@@ -101,6 +101,7 @@ const AgencyCoinTrader = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showHelperUpgradeDialog, setShowHelperUpgradeDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Trader Wallet gate: agency must own at least Level 1 Helper (verified topup_helper)
   const hasLevel1Helper = !!helperData && helperData.is_verified === true;
@@ -116,6 +117,8 @@ const AgencyCoinTrader = () => {
         navigate('/auth');
         return;
       }
+
+      setCurrentUserId(user.id);
 
       // Fetch agency
       const { data: agencyData, error: agencyError } = await supabase
@@ -317,31 +320,25 @@ const AgencyCoinTrader = () => {
         toast({ title: "Diamonds purchased successfully" });
 
       } else {
-        // Agency sells coins to user - ATOMIC two-tier deduction
-        // 1. ATOMIC: Deduct from agency wallet (agency first, then helper if needed)
-        const { data: deductResult, error: deductError } = await supabase
-          .rpc('deduct_agency_wallet', {
-            p_agency_id: agency.id,
-            p_amount: Math.floor(amount)
-          });
-
-        if (deductError) throw deductError;
-        const deductData = deductResult as { success: boolean; error?: string };
-        if (!deductData.success) {
-          throw new Error(deductData.error || 'Failed to deduct from wallet');
+        if (!currentUserId) {
+          throw new Error('Not authenticated');
         }
 
-        // 2. ATOMIC: Add to user's coins (helper-safe)
-        const { data: addUserResult, error: addUserError } = await supabase
-          .rpc('helper_add_coins_to_user', {
-            _user_id: selectedUser.id,
-            _amount: Math.floor(amount)
+        // Agency sells diamonds to user through the locked transfer RPC.
+        // This deducts agency/helper/user balance and credits the receiver atomically.
+        const senderType = (agency?.diamond_balance ?? 0) >= amount ? 'agency_to_user' : 'trader_to_user';
+        const { data: transferResult, error: transferError } = await supabase
+          .rpc('helper_transfer_coins_to_user', {
+            _sender_id: currentUserId,
+            _receiver_id: selectedUser.id,
+            _amount: Math.floor(amount),
+            _sender_type: senderType
           });
 
-        if (addUserError) throw addUserError;
-        const addUserData = addUserResult as any;
-        if (addUserData && addUserData.success === false) {
-          throw new Error(addUserData.error || 'Failed to add coins to user');
+        if (transferError) throw transferError;
+        const transferData = transferResult as any;
+        if (!transferData?.success) {
+          throw new Error(transferData?.error || 'Failed to transfer diamonds to user');
         }
 
         // 3. Record transaction
