@@ -51,7 +51,7 @@ const DEBOUNCE_MS = 80;
 // Notifications: ZERO debounce for instant delivery.
 // Room/call/live/gift/chat fanout is LiveKit/FCM + REST snapshots only.
 // Other high-frequency tables get a slight debounce to prevent render thrash
-const INSTANT_TABLES = new Set(['notifications']);
+const INSTANT_TABLES = new Set(['notifications', 'admin_notices']);
 const HIGH_FREQ_DEBOUNCE_MS = 120;
 const HIGH_FREQUENCY_TABLES = new Set<string>();
 
@@ -62,6 +62,7 @@ const BASE_MONITORED_TABLES: TableSubscription[] = [];
 
 const REALTIME_PUBLICATION_TABLES = new Set<string>([
   'notifications',
+  'admin_notices',
   'admin_broadcast',
   'user_active_sessions',
   'profiles',
