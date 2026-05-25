@@ -1260,6 +1260,7 @@ const Auth = () => {
       if (!verifyData?.success || !verifyData?.verified_token) {
         throw new Error(verifyData?.error || "Invalid verification code");
       }
+      setEmailVerifiedToken(verifyData.verified_token);
 
       const { data: signInData, error: signInError } = await supabase.functions.invoke(
         "otp-direct-signin",
@@ -1341,6 +1342,7 @@ const Auth = () => {
     } catch (error: any) {
       console.error("Email OTP verify error:", error);
       recordClientError({ label: "Auth.readyProfile", message: error instanceof Error ? error.message : String(error) });
+      if (isExpiredOtpMessage(error?.message)) setOtpCode("");
       toast({
         title: "Invalid Code",
         description: error.message || "Invalid verification code",
