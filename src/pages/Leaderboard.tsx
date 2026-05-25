@@ -546,8 +546,8 @@ const Leaderboard = () => {
                         {/* Avatar area with ornate circle */}
                         <div className="relative mx-auto w-[72px] h-[72px] mb-1">
                           {/* Ornate ring */}
-                          <div className="absolute inset-[-6px] rounded-full" style={{ background: 'linear-gradient(135deg, #7c3aed, #a78bfa, #7c3aed)', padding: '2px' }}>
-                            <div className="w-full h-full rounded-full" style={{ background: '#1a0f08' }} />
+                          <div className="absolute inset-[-6px] rounded-full pointer-events-none" style={{ background: 'linear-gradient(135deg, #7c3aed, #a78bfa, #7c3aed)', padding: '2px' }}>
+                            <div className="w-full h-full rounded-full bg-transparent" />
                           </div>
                           {/* Rank badge */}
                           <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #7c3aed, #a78bfa)', boxShadow: '0 2px 10px rgba(124,58,237,0.5)', border: '2px solid rgba(255,255,255,0.3)' }}>
