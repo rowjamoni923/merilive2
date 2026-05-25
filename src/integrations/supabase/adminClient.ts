@@ -68,7 +68,7 @@ function forceAdminLogout(): void {
   revokeAdminAccess();
   window.dispatchEvent(new CustomEvent('admin-session-change'));
   if (window.location.pathname.startsWith('/admin')) {
-    window.history.replaceState(null, '', '/');
+    window.history.replaceState(null, '', '/admin/auth');
     window.dispatchEvent(new PopStateEvent('popstate'));
   }
 }
