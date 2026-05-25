@@ -1883,6 +1883,7 @@ const Recharge = () => {
           .insert({
             helper_id: helper.id,
             user_id: userId,
+            package_id: selectedPackage.id,
             coin_amount: selectedPackage.coins,
             amount_usd: selectedPackage.price_usd,
             amount_local: localAmount,
