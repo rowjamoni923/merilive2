@@ -1934,6 +1934,23 @@ const Chat = () => {
     }
   };
 
+  // WhatsApp-style day separator label: Today / Yesterday / Day name / Full date
+  const formatDayLabel = (dateString: string) => {
+    const d = new Date(dateString);
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfMsg = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const diffDays = Math.round((startOfToday - startOfMsg) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return d.toLocaleDateString([], { weekday: 'long' });
+    return d.toLocaleDateString([], { day: 'numeric', month: 'short', year: now.getFullYear() === d.getFullYear() ? undefined : 'numeric' });
+  };
+  const sameDay = (a: string, b: string) => {
+    const da = new Date(a), db = new Date(b);
+    return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+  };
+
   const filteredConversations = conversations.filter(conv =>
     conv.other_user?.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
