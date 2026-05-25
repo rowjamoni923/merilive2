@@ -67,7 +67,7 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
       // Fetch profiles for all members
       const userIds = data.map(m => m.user_id);
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('profiles_public')
         .select('id, display_name, avatar_url, user_level, app_uid')
         .in('id', userIds);
 
@@ -95,12 +95,6 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
 
       if (error) throw error;
 
-      // Update member count
-      await supabase
-        .from('groups')
-        .update({ member_count: Math.max(0, (group.member_count || 1) - 1) })
-        .eq('id', group.id);
-
       toast.success("Member removed");
       setConfirmRemove(null);
       fetchMembers();
@@ -119,11 +113,6 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
         .eq('user_id', currentUserId);
 
       if (error) throw error;
-
-      await supabase
-        .from('groups')
-        .update({ member_count: Math.max(0, (group.member_count || 1) - 1) })
-        .eq('id', group.id);
 
       toast.success("Left group");
       onLeaveGroup();

@@ -1872,7 +1872,8 @@ const Chat = () => {
         .insert({
           name: newGroupName.trim(),
           group_type: newGroupType,
-          owner_id: currentUserId
+          owner_id: currentUserId,
+          created_by: currentUserId,
         })
         .select()
         .single();
@@ -1980,14 +1981,6 @@ const Chat = () => {
           user_id: currentUserId,
           role: 'member'
         });
-
-      // Update member count
-      const { count } = await supabase
-        .from('group_members')
-        .select('id', { count: 'exact', head: true })
-        .eq('group_id', groupId);
-      
-      await supabase.from('groups').update({ member_count: count || 1 }).eq('id', groupId);
 
       toast.success("Joined group successfully!");
       setShowSearchGroup(false);
@@ -2847,12 +2840,25 @@ const Chat = () => {
                       }
 
                       if (selectedConversation) {
-                        await persistDirectMessage(
+                        const sentMessage = await persistDirectMessage(
                           selectedConversation.id,
                           currentUserId,
                           pendingMedia.url,
                           pendingMedia.type
                         );
+                        const recipientId = selectedConversation.other_user?.id;
+                        if (recipientId) {
+                          supabase.functions.invoke('notify-new-message', {
+                            body: {
+                              conversationId: selectedConversation.id,
+                              messageId: sentMessage.id,
+                              senderId: currentUserId,
+                              recipientId,
+                              messageContent: '',
+                              messageType: pendingMedia.type,
+                            }
+                          }).catch(() => {});
+                        }
                       } else if (selectedGroup) {
                         const { data: newMsg, error } = await supabase
                           .from('group_messages')
@@ -2865,7 +2871,9 @@ const Chat = () => {
                           .select()
                           .single();
 
-                        if (!error && newMsg) {
+                        if (error) throw error;
+
+                        if (newMsg) {
                           setGroupMessages(prev => {
                             if (prev.find(m => m.id === newMsg.id)) return prev;
                             return [...prev, { ...newMsg, sender: null }];
