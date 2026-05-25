@@ -17155,6 +17155,10 @@ export type Database = {
         Returns: Json
       }
       admin_logout: { Args: { _token: string }; Returns: undefined }
+      admin_mark_face_submission_under_review: {
+        Args: { _submission_id: string }
+        Returns: Json
+      }
       admin_moderation_audit_stats: { Args: never; Returns: Json }
       admin_moderation_overview_stats: { Args: never; Returns: Json }
       admin_party_management_stats: { Args: never; Returns: Json }
@@ -17265,6 +17269,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_reset_phone_violation_count: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
       admin_resolve_permanent_ban_targets: {
         Args: { _lookback_days?: number; _target_user_id: string }
         Returns: {
@@ -17295,6 +17303,15 @@ export type Database = {
       }
       admin_reverse_auto_action: {
         Args: { _action_id: string; _action_type: string; _reason: string }
+        Returns: Json
+      }
+      admin_review_host_application: {
+        Args: {
+          _admin_notes?: string
+          _application_id: string
+          _rejection_reason?: string
+          _status: string
+        }
         Returns: Json
       }
       admin_revoke_device: {
@@ -17368,6 +17385,10 @@ export type Database = {
           _reason?: string
           _trader_level?: number
         }
+        Returns: Json
+      }
+      admin_set_user_verification: {
+        Args: { _user_id: string; _verified: boolean }
         Returns: Json
       }
       admin_toggle_face_verification: {
