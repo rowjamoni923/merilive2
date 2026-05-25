@@ -987,7 +987,7 @@ export default function AdminUserManagement() {
     setLoading(true);
     try {
       const rows: any[] = [];
-      const pageSize = 500;
+      const pageSize = 120;
       let offset = 0;
       let total = Number.POSITIVE_INFINITY;
       for (let page = 0; page < 50 && rows.length < total; page += 1) {
@@ -2229,7 +2229,7 @@ export default function AdminUserManagement() {
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {autoApproved.map((sub) => (
+                {autoApproved.map((sub, index) => (
                   <Card key={sub.id} className="bg-gradient-to-br from-cyan-50 to-white border-cyan-200 hover:bg-cyan-50/80 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
@@ -2309,7 +2309,7 @@ export default function AdminUserManagement() {
                         </div>
                       </div>
                       <div className="mt-3 space-y-3" data-admin-media-bucket="face-verification">
-                        <FaceSubmissionMediaBlocks submission={sub} />
+                        <FaceSubmissionMediaBlocks submission={sub} priority={index < 6} />
                       </div>
                     </CardContent>
                   </Card>
@@ -2388,7 +2388,7 @@ export default function AdminUserManagement() {
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {autoRejected.map((sub) => (
+                {autoRejected.map((sub, index) => (
                   <Card key={sub.id} className="bg-gradient-to-br from-orange-50 to-white border-orange-200 hover:bg-orange-50/80 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
@@ -2488,7 +2488,7 @@ export default function AdminUserManagement() {
                             </Button>
                           </div>
                           <div className="mt-3 space-y-3" data-admin-media-bucket="face-verification">
-                            <FaceSubmissionMediaBlocks submission={sub} />
+                            <FaceSubmissionMediaBlocks submission={sub} priority={index < 6} />
                           </div>
                         </div>
                       </div>
@@ -2626,7 +2626,7 @@ export default function AdminUserManagement() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredFaceSubmissions.map((submission) => (
+                  {filteredFaceSubmissions.map((submission, index) => (
                     <Card 
                       key={submission.id}
                       className="bg-white border-slate-200 overflow-hidden"
@@ -2701,7 +2701,7 @@ export default function AdminUserManagement() {
                           </div>
                         </div>
 
-                        <FaceSubmissionMediaBlocks submission={submission} />
+                        <FaceSubmissionMediaBlocks submission={submission} priority={index < 6} />
 
 
                         {/* Inline Approve/Reject Buttons */}
