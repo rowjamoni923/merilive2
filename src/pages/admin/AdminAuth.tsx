@@ -217,9 +217,33 @@ export default function AdminAuth() {
 
       setAdminSessionToken(auth.session_token);
 
-
-      // Step 2: Device approval check
       const fp = getDeviceFingerprint();
+
+      // ─── OWNER LINK → SKIP DEVICE VERIFICATION ENTIRELY ─────────
+      // Owner secret link is the highest-trust entry point. No device
+      // approval, no pending screen — straight into the admin panel.
+      if (linkKind === 'owner' && auth.is_owner) {
+        saveAdminSession({
+          admin_id: auth.admin_id,
+          email: auth.email,
+          display_name: auth.display_name,
+          role: auth.role,
+          is_owner: true,
+          must_change_password: !!auth.must_change_password,
+          device_fingerprint: fp.fingerprint,
+          session_token: auth.session_token,
+        });
+        setAdminSessionToken(auth.session_token);
+        grantAdminAccess(true);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('admin-session-change'));
+        }
+        toast.success(`Welcome ${auth.display_name || auth.email}!`);
+        navigate('/admin', { replace: true });
+        return;
+      }
+
+      // ─── SUB-ADMIN LINK → DEVICE VERIFICATION REQUIRED ──────────
       const { data: deviceData, error: deviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
         _admin_id: auth.admin_id,
         _device_fingerprint: fp.fingerprint,
@@ -233,7 +257,6 @@ export default function AdminAuth() {
       const device = deviceData as any;
 
       if (device?.status === 'approved') {
-        // Owner OR previously approved sub-admin → straight in
         saveAdminSession({
           admin_id: auth.admin_id,
           email: auth.email,

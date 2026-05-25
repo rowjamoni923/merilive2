@@ -121,11 +121,12 @@ export const getAdminSession = (): AdminSession | null => {
       clearAdminSession();
       return null;
     }
-    // Secret-link access is mandatory to create a new admin session, but once
-    // the server has issued a real session token it must survive hard refreshes
-    // and new tabs. Otherwise admin-only media signing breaks in Lovable preview
-    // even though the admin is still logged in.
-    if (!window.sessionStorage.getItem(ADMIN_SECRET_LINK_SESSION_KEY) && !parsed.session_token) {
+    // STRICT: secret-link access is mandatory in EVERY tab. The secret-link
+    // token is stored in sessionStorage (tab-scoped). Without it, the admin
+    // session is invisible — a bookmarked /admin or a freshly-opened tab must
+    // re-enter via the secret link. This is the owner's explicit requirement:
+    // "only secret link grants admin access, ever".
+    if (!window.sessionStorage.getItem(ADMIN_SECRET_LINK_SESSION_KEY)) {
       return null;
     }
     // Sync to sessionStorage if only in localStorage
