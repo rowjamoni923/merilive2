@@ -110,6 +110,22 @@ export default function AdminAuth() {
     }
     const result = data as any;
     const fp = getDeviceFingerprint();
+    setAdminSessionToken(result.session_token);
+    const { data: deviceData, error: deviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
+      _admin_id: result.admin_id,
+      _device_fingerprint: fp.fingerprint,
+      _device_name: fp.deviceName,
+      _device_info: fp.details,
+      _ip_address: null,
+      _user_agent: navigator.userAgent,
+    });
+    if (deviceError || (deviceData as any)?.status !== 'approved') {
+      clearAdminSession();
+      setAdminSessionToken(null);
+      toast.error('Device approval could not be confirmed. Please log in again.');
+      setFlow('login');
+      return;
+    }
     saveAdminSession({
       admin_id: result.admin_id,
       email: result.email,
@@ -120,7 +136,6 @@ export default function AdminAuth() {
       device_fingerprint: fp.fingerprint,
       session_token: result.session_token,
     });
-    setAdminSessionToken(result.session_token);
     grantAdminAccess(!!result.is_owner);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('admin-session-change'));
@@ -151,6 +166,7 @@ export default function AdminAuth() {
         toast.error(auth?.error || 'Invalid credentials');
         return;
       }
+      setAdminSessionToken(auth.session_token);
 
       // Step 2: Device approval check
       const fp = getDeviceFingerprint();
@@ -212,6 +228,7 @@ export default function AdminAuth() {
     setPendingAdminId(null);
     setPendingDeviceId(null);
     setPendingFingerprint(null);
+    setAdminSessionToken(null);
     setPassword('');
   };
 
