@@ -74,6 +74,9 @@ import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { ChatListView } from "@/components/chat/ChatListView";
+import { ChatDialogs } from "@/components/chat/ChatDialogs";
+import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
 
 interface Conversation {
   id: string;
