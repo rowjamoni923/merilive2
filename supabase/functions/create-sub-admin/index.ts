@@ -22,6 +22,13 @@ const json = (body: unknown, status = 200) =>
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const getAdminPanelOrigin = (req: Request): string => {
+  const origin = req.headers.get("origin")?.trim();
+  if (origin && /^https:\/\/(merilive\.top|merilive2\.lovable\.app|id-preview--1c59f8d2-75bb-4fc1-a074-3c08560dd44b\.lovable\.app)$/i.test(origin)) {
+    return origin.replace(/\/$/, "");
+  }
+  return Deno.env.get("ADMIN_PANEL_ORIGIN")?.replace(/\/$/, "") || "https://merilive.top";
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -252,7 +259,7 @@ serve(async (req) => {
     if (overrideToken?.token) {
       subAdminToken = overrideToken.token;
     }
-    const loginLink = `https://merilive.com/admin/auth?access=${subAdminToken}&email=${encodeURIComponent(normalizedEmail)}`;
+    const loginLink = `${getAdminPanelOrigin(req)}/admin/auth?access=${subAdminToken}&email=${encodeURIComponent(normalizedEmail)}`;
 
     console.log("[create-sub-admin] Sub-admin created successfully!");
 
