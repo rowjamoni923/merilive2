@@ -690,21 +690,18 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
                       </div>
                       
                       <InputOTP
-                        maxLength={4}
+                        maxLength={6}
                         value={appCode}
                         onChange={(value) => setAppCode(value)}
                       >
                         <InputOTPGroup className="gap-2 justify-center w-full">
-                          <InputOTPSlot index={0} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={1} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={2} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={3} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} className="w-10 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />)}
                         </InputOTPGroup>
                       </InputOTP>
                       
                       <Button
                         onClick={verifyAppCode}
-                        disabled={appCode.length < 4}
+                        disabled={appCode.length !== 6}
                         className="w-full bg-success-600 hover:bg-success-700"
                       >
                         <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -820,7 +817,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
             {/* Submit Button */}
             <Button
               onClick={handleSubmit}
-              disabled={formState === 'submitting' || !appVerified}
+              disabled={formState === 'submitting' || !appVerified || !emailVerified}
               className="w-full h-12 bg-gradient-to-r from-brand-600 to-info-600 hover:from-brand-700 hover:to-info-700 text-white font-semibold rounded-xl mt-2"
             >
               {formState === 'submitting' ? (
