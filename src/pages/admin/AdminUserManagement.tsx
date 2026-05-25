@@ -751,24 +751,12 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      // Set gender to female (host convention)
-      const { error: genderErr } = await supabase.rpc('admin_update_user_gender', {
+      const { data, error } = await supabase.rpc('admin_set_host_status', {
         _user_id: hostId,
-        _gender: 'female',
+        _make_host: true,
       });
-      if (genderErr) throw genderErr;
-
-      // Set host_status = approved, is_face_verified = true, is_verified = true
-      const { error: profileErr } = await supabase
-        .from("profiles")
-        .update({
-          host_status: 'approved',
-          is_face_verified: true,
-          is_verified: true,
-          face_verified_at: new Date().toISOString(),
-        })
-        .eq("id", hostId);
-      if (profileErr) throw profileErr;
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Host approval failed');
 
       toast.success("Host approved successfully");
       fetchHosts();
@@ -788,22 +776,12 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error: genderErr } = await supabase.rpc('admin_update_user_gender', {
+      const { data, error } = await supabase.rpc('admin_set_host_status', {
         _user_id: hostId,
-        _gender: 'male',
+        _make_host: false,
       });
-      if (genderErr) throw genderErr;
-
-      // Also reject host_status and clear face verification
-      const { error: profileErr } = await supabase
-        .from("profiles")
-        .update({
-          host_status: 'rejected',
-          is_face_verified: false,
-          face_verified_at: null,
-        })
-        .eq("id", hostId);
-      if (profileErr) throw profileErr;
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Host rejection failed');
 
       toast.success("Host rejected successfully");
       fetchHosts();
