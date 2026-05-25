@@ -14,6 +14,7 @@ import { ShieldCheck, ShieldX, RefreshCw, Search, History, Crown } from "lucide-
 import { toast } from "sonner";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { useTopupTraderTierMin } from "@/hooks/useTopupTraderTierMin";
+import { SmartImage } from "@/components/ui/smart-image";
 
 interface TraderRow {
   helper_id: string;
@@ -200,7 +201,7 @@ export default function AdminTopupTraderApprovals() {
                     <TableRow key={r.helper_id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <img src={r.avatar_url || "/placeholder.svg"} className="w-8 h-8 rounded-full object-cover ring-1 ring-border" alt="" />
+                          <SmartImage src={r.avatar_url || "/placeholder.svg"} className="w-8 h-8 rounded-full object-cover ring-1 ring-border" alt="" />
                           <div className="min-w-0">
                             <div className="font-semibold text-sm truncate">{r.display_name || "Helper"}</div>
                             <div className="text-[10px] text-muted-foreground">UID: {r.app_uid || "—"}</div>
@@ -305,7 +306,7 @@ export default function AdminTopupTraderApprovals() {
           {dialog && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                <img src={dialog.row.avatar_url || "/placeholder.svg"} className="w-9 h-9 rounded-full object-cover" alt="" />
+                <SmartImage src={dialog.row.avatar_url || "/placeholder.svg"} className="w-9 h-9 rounded-full object-cover" alt="" />
                 <div>
                   <div className="font-semibold text-sm">{dialog.row.display_name || "Helper"}</div>
                   <div className="text-[10px] text-muted-foreground">UID {dialog.row.app_uid || "—"} · {dialog.row.country_flag} {dialog.row.country_code}</div>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Trophy, Upload, Trash2, Save, Crown, Medal, Award, RefreshCw, 
   Gift, Image, Loader2, Zap, Plus, Settings
@@ -352,7 +353,7 @@ const AdminLeaderboardManagement = () => {
                   {/* Preview */}
                   <div className="w-16 h-16 mx-auto bg-black/30 rounded-lg border border-white/10 flex items-center justify-center overflow-hidden">
                     {iconUrls[entry.key] ? (
-                      <img
+                      <SmartImage
                         src={iconUrls[entry.key].replace(/^"|"$/g, '')}
                         alt={entry.label}
                         className="w-12 h-12 object-contain"
@@ -431,7 +432,7 @@ const AdminLeaderboardManagement = () => {
                   <CardContent className="space-y-3">
                     <div className="w-24 h-24 mx-auto bg-black/30 rounded-full border-2 border-white/10 flex items-center justify-center overflow-hidden">
                       {frame?.frame_url ? (
-                        <img src={frame.frame_url} alt={`Rank ${rank}`} className="w-full h-full object-contain"
+                        <SmartImage src={frame.frame_url} alt={`Rank ${rank}`} className="w-full h-full object-contain"
                           onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                       ) : (
                         <span className="text-white/30 text-xs">No frame</span>

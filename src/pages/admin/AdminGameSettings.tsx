@@ -556,7 +556,7 @@ export default function AdminGameSettings() {
                         )}>
                           {game.logo_url ? (
                             <>
-                              <img 
+                              <SmartImage 
                                 src={game.logo_url} 
                                 alt={game.game_name}
                                 className="w-full h-full object-contain absolute inset-0"

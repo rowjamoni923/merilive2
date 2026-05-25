@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Bell, 
   Send, 
@@ -499,7 +500,7 @@ export function AdminPushNotificationBroadcast() {
                     {/* Image Preview */}
                     {formData.imageUrl && (
                       <div className="mt-2 rounded-lg overflow-hidden">
-                        <img 
+                        <SmartImage 
                           src={formData.imageUrl} 
                           alt="Preview" 
                           className="w-full h-20 object-cover"
