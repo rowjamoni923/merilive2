@@ -2530,7 +2530,7 @@ const Chat = () => {
                     showAnimation={false}
                   />
                 </div>
-                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm" style={{ background: 'linear-gradient(135deg, #ffffff 0%, hsl(40 40% 99%) 100%)', border: '1px solid hsl(40 35% 88% / 0.7)' }}>
+                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm" style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(40 40% 99%) 100%)', border: '1px solid hsl(var(--border) / 0.7)' }}>
                   <div className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -2567,19 +2567,19 @@ const Chat = () => {
           
           {/* Inline Translation Bar — premium luxury redesign */}
           {inlineTranslateEnabled && !isGroup && (
-            <div className="px-3 pt-2.5 pb-2 border-t border-amber-200/40 bg-gradient-to-b from-amber-50/60 via-white to-rose-50/40">
+              <div className="px-3 pt-2.5 pb-2 border-t border-border/60 bg-gradient-to-b from-accent/10 via-card to-primary/5">
               {/* Header row */}
               <div className="flex items-center justify-between mb-2 px-1">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-[11px] font-semibold tracking-wide bg-gradient-to-r from-amber-700 via-rose-600 to-purple-700 bg-clip-text text-transparent whitespace-nowrap">
                     ✨ Auto-Translate
                   </span>
-                  <span className="text-[10px] text-slate-500">→</span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white shadow-sm border border-amber-300/60 min-w-0">
+                  <span className="text-[10px] text-muted-foreground">→</span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-card shadow-sm border border-border min-w-0">
                     <span className="text-xs leading-none">
                       {languageOptions.find(l => l.code === inlineTargetLang)?.flag}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-800 truncate">
+                    <span className="text-[10px] font-bold text-card-foreground truncate">
                       {languageOptions.find(l => l.code === inlineTargetLang)?.name}
                     </span>
                   </span>
@@ -2589,7 +2589,7 @@ const Chat = () => {
                     setInlineTranslateEnabled(false);
                     setInlineTranslation("");
                   }}
-                  className="p-1 rounded-full bg-white/80 hover:bg-rose-100 text-slate-500 hover:text-rose-600 border border-slate-200/60 transition-colors shrink-0 ml-2"
+                  className="p-1 rounded-full bg-card/80 hover:bg-muted text-muted-foreground hover:text-destructive border border-border transition-colors shrink-0 ml-2"
                   aria-label="Close translator"
                 >
                   <X className="w-3 h-3" />
