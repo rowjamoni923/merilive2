@@ -565,15 +565,29 @@ const Auth = () => {
         const guestEmail = existingForDevice.recoveryEmail;
         const guestPassword = existingForDevice.recoveryPassword;
 
-        // Try conversion (anonymous → guest) if applicable, ignore failure
+        // Force-sync deterministic credentials first (covers anonymous-legacy
+        // accounts AND cases where the guest password drifted). The function
+        // is idempotent when credentials are already correct.
         try {
           await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
-        } catch (e) { /* ignore */ }
+        } catch (e) { /* ignore — we'll still try signin */ }
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        let { error: signInError } = await supabase.auth.signInWithPassword({
           email: guestEmail,
           password: guestPassword,
         });
+
+        // If first attempt failed (rare race), try convert + signin once more
+        if (signInError) {
+          try {
+            await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
+          } catch (e) { /* ignore */ }
+          const retry = await supabase.auth.signInWithPassword({
+            email: guestEmail,
+            password: guestPassword,
+          });
+          signInError = retry.error;
+        }
 
         if (!signInError) {
           await ensureProfileReady(
