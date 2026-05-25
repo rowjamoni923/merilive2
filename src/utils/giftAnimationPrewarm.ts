@@ -47,7 +47,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
 
     const { data, error } = await supabase
       .from('gifts')
-      .select('image_url')
+      .select('icon_url, animation_url, svga_url, lottie_url, preview_url')
       .eq('is_active', true)
       .order('display_order', { ascending: true, nullsFirst: false })
       .limit(MAX_GIFTS);
@@ -56,14 +56,15 @@ export async function prewarmGiftAnimations(): Promise<void> {
     const imageUrls: string[] = [];
     const svgaUrls: string[] = [];
     const lottieUrls: string[] = [];
-    for (const row of data) {
-      const url = (row as any).image_url as string | undefined;
-      if (!url) continue;
-      switch (classify(url)) {
-        case 'svga': svgaUrls.push(url); break;
-        case 'lottie': lottieUrls.push(url); break;
-        case 'image': imageUrls.push(url); break;
-        default: break;
+    for (const row of data as any[]) {
+      const candidates = [row.svga_url, row.lottie_url, row.animation_url, row.icon_url, row.preview_url].filter(Boolean) as string[];
+      for (const url of candidates) {
+        switch (classify(url)) {
+          case 'svga': svgaUrls.push(url); break;
+          case 'lottie': lottieUrls.push(url); break;
+          case 'image': imageUrls.push(url); break;
+          default: break;
+        }
       }
     }
 
