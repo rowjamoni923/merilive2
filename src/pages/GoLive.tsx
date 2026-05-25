@@ -981,7 +981,14 @@ const GoLive = () => {
         } 
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const rawMessage = error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : (error as any)?.message || (error as any)?.details || (error as any)?.hint || 'Failed to start live stream';
+      const message = String(rawMessage).includes('ban_expires_at')
+        ? 'Live ban check was out of sync. Please try Go Live again.'
+        : String(rawMessage);
       console.error("Error starting live:", error);
       recordClientError({ label: "GoLive.createStreamPromise", message });
       toast.error(message || "Failed to start live stream");
