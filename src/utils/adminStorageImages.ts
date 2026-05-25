@@ -381,6 +381,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       const signedUrl = await batchSignAdminStoragePath(storagePath, adminToken);
       if (signedUrl) {
         signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+        persistSignedUrlCacheToSession();
         return signedUrl;
       }
     }
@@ -393,8 +394,10 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
 
     if (!error && data?.signedUrl) {
       signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+      persistSignedUrlCacheToSession();
       return data.signedUrl;
     }
+
 
     // Without an admin token the failure is "session not loaded yet" — cache
     // briefly so the next attempt after login retries immediately.
