@@ -741,10 +741,11 @@ serve(async (req) => {
 
 
     if (submissionId && passesAutoApprove) {
-      // Final gender: prefer high-trust detection, else profile, else default.
-      const finalGender = genderTrustLevel === "high"
+      // Final gender: trust medium+ detection (low/unknown falls back to profile/host default).
+      const finalGender = genderTrustLevel !== "low"
         ? detectedGender
         : (profileRow?.gender?.toLowerCase?.() || (hostSubmissionRequested ? "female" : "male"));
+
       const finalRole = finalGender === "female" ? "host" : "user";
 
       const { data: approveData, error: approveError } = await supabaseAdmin.rpc("auto_approve_face_verification", {
