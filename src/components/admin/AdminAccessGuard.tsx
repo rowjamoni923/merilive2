@@ -8,6 +8,7 @@ import {
   revokeAdminAccess,
   setAdminLinkToken,
   setAdminLinkKind,
+  setAdminLinkChallenge,
   hasAdminAccessFlag,
   getAdminLinkToken,
 } from "@/utils/adminAccessStorage";
@@ -48,6 +49,11 @@ const isLoginRoute = (): boolean => {
   return p === '/admin/auth' || p === '/admin/login';
 };
 
+const sessionMatchesLinkRole = (session: ReturnType<typeof getAdminSession>, role: 'owner' | 'sub_admin'): boolean => {
+  if (!session) return true;
+  return role === 'owner' ? session.is_owner === true : session.is_owner === false;
+};
+
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [hasValidToken, setHasValidToken] = useState<boolean>(false);
@@ -59,7 +65,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     let safetyTimer: number | undefined;
 
     const denyAccess = () => {
-      if (!mounted || validationSettled || getAdminSession()) return;
+      if (!mounted || validationSettled) return;
       validationSettled = true;
       clearAdminSession();
       revokeAdminAccess();
@@ -68,15 +74,32 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
     // Synchronous decision FIRST so we never spin forever if the edge fn is slow.
     // PRIORITY ORDER (instant grant — no flash of BlogPage):
-    //   1. Active admin session                → authorized
-    //   2. Tab already validated (sessionStorage flag) → authorized
-    //   3. URL ?access=<token>                 → wait for validation (loader, never BlogPage)
-    //   4. Nothing                             → BlogPage
+    //   1. URL ?access=<token> OR stored tab token → validate first (prevents cross-role/stale-token entry)
+    //   2. Active admin session with no link token → denied by getAdminSession()
+    //   3. Nothing → BlogPage
     const decideSync = () => {
       if (!mounted) return;
       const session = getAdminSession();
       const accessToken = getAccessTokenFromURL();
       const tabAlreadyUnlocked = hasAdminAccessFlag();
+
+      // A fresh owner/sub-admin secret link always wins over any existing
+      // local admin session. This closes the cross-link bug where a logged-in
+      // sub-admin could open the Owner link (or owner could open sub-admin link)
+      // and keep the old session without being role-checked against that link.
+      if (accessToken) {
+        setAdminLinkToken(accessToken);
+        setIsAuthorized(null);
+        return;
+      }
+
+      // Even with an active local session, the tab-scoped secret link must be
+      // revalidated before rendering admin UI. A forged/stale sessionStorage
+      // token must never unlock the panel for even one render.
+      if ((session || tabAlreadyUnlocked) && getAdminLinkToken()) {
+        setIsAuthorized(null);
+        return;
+      }
 
       if (session) {
         // Session present — make sure header token is usable.
@@ -90,22 +113,6 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
           }
         }
         setIsAuthorized(true);
-        return;
-      }
-
-      // No session. A previously unlocked tab or a fresh link must still be
-      // validated before rendering AdminAuth, so rotated/invalid secret links
-      // stop working immediately instead of relying on a stale session flag.
-      if (tabAlreadyUnlocked && getAdminLinkToken()) {
-        setIsAuthorized(null);
-        return;
-      }
-
-      // Fresh secret-link entry — persist only the candidate token and wait for
-      // server validation before granting access to the admin login page.
-      if (accessToken) {
-        setAdminLinkToken(accessToken);
-        setIsAuthorized(null);
         return;
       }
 
@@ -137,9 +144,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
           if (data?.valid) {
             validationSettled = true;
             if (safetyTimer) window.clearTimeout(safetyTimer);
+            const role = data.role === 'owner' ? 'owner' : 'sub_admin';
+            const existingSession = getAdminSession();
+            if (!sessionMatchesLinkRole(existingSession, role)) {
+              clearAdminSession();
+            }
             setAdminLinkToken(accessToken);
-            setAdminLinkKind(data.role === 'owner' ? 'owner' : 'sub_admin');
-            grantAdminAccess(data.role === 'owner');
+            setAdminLinkKind(role);
+            setAdminLinkChallenge(typeof data.challenge === 'string' ? data.challenge : null);
+            grantAdminAccess(role === 'owner');
             if (mounted) {
               setHasValidToken(true);
               setIsAuthorized(true);

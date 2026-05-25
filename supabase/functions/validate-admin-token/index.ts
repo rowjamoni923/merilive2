@@ -53,6 +53,25 @@ function parseToken(token: string): { role: 'owner' | 'sub_admin'; year: number;
   return null;
 }
 
+function makeChallenge(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function issueLoginChallenge(adminClient: ReturnType<typeof createClient>, role: 'owner' | 'sub_admin'): Promise<string> {
+  const challenge = makeChallenge();
+  const { error } = await adminClient
+    .from('admin_login_challenges')
+    .insert({
+      challenge,
+      role,
+      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    });
+  if (error) throw error;
+  return challenge;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -85,6 +104,10 @@ Deno.serve(async (req) => {
 
     const currentYear = new Date().getUTCFullYear();
     const overriddenKinds = new Set<'owner' | 'sub_admin'>();
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
 
     // ────────────────────────────────────────────────────────────
     // ACTION: generate has been REMOVED — was a critical takeover
@@ -111,10 +134,6 @@ Deno.serve(async (req) => {
 
     // Check owner-rotated overrides first (current year)
     try {
-      const adminClient = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      );
       const { data: overrides } = await adminClient
         .from('admin_token_overrides')
         .select('kind, token, rotated_year');
@@ -124,8 +143,9 @@ Deno.serve(async (req) => {
           if (o.kind === 'owner' || o.kind === 'sub_admin') overriddenKinds.add(o.kind);
           if (o.token === token.trim()) {
             const role = o.kind === 'owner' ? 'owner' : 'sub_admin';
+            const challenge = await issueLoginChallenge(adminClient, role);
             return new Response(
-              JSON.stringify({ valid: true, role, year: currentYear, source: 'override' }),
+              JSON.stringify({ valid: true, role, year: currentYear, source: 'override', challenge }),
               { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
@@ -173,8 +193,9 @@ Deno.serve(async (req) => {
       );
     }
 
+    const challenge = await issueLoginChallenge(adminClient, parsed.role);
     return new Response(
-      JSON.stringify({ valid: true, role: parsed.role, year: parsed.year }),
+      JSON.stringify({ valid: true, role: parsed.role, year: parsed.year, challenge }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
