@@ -1586,10 +1586,9 @@ const Auth = () => {
 
     setPhoneOtpLoading(true);
     try {
-      const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
-      const fullPhone = selectedCountryCode + cleanPhone;
+      const { phoneDigits, displayPhone, phoneEmail } = getPhoneIdentity();
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
-        body: { phone_number: fullPhone, action: "verify", otp: phoneOtpCode }
+        body: { phone_number: displayPhone, action: "verify", otp: phoneOtpCode }
       });
 
       if (error) throw error;
@@ -1603,15 +1602,13 @@ const Auth = () => {
       }
 
       // OTP verified — check if account already exists
-      const phoneEmail = `phone_${fullPhone}@meri.local`;
-      
       // Check if account already exists for this phone number
       let existingProfile: any = null;
       try {
         const { data } = await (supabase as any)
           .from("profiles")
           .select("id, display_name")
-          .eq("phone_number", fullPhone)
+          .eq("phone_number", phoneDigits)
           .maybeSingle();
         existingProfile = data;
       } catch {}
@@ -1619,7 +1616,7 @@ const Auth = () => {
       if (existingProfile) {
         // Existing account found — auto-login via edge function
         const { data: signInResult, error: signInError } = await supabase.functions.invoke('otp-direct-signin', {
-          body: { email: phoneEmail, channel: "phone", identifier: fullPhone, verified_token: data.verified_token }
+          body: { email: phoneEmail, channel: "phone", identifier: phoneDigits, verified_token: data.verified_token }
         });
 
         if (!signInError && signInResult?.access_token && signInResult?.refresh_token) {
@@ -1673,9 +1670,7 @@ const Auth = () => {
 
     setLoading(true);
     const deviceId = await generateDeviceId();
-    const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
-    const fullPhone = selectedCountryCode + cleanPhone;
-    const phoneEmail = `phone_${fullPhone}@meri.local`;
+    const { phoneDigits, phoneEmail } = getPhoneIdentity();
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -1684,7 +1679,7 @@ const Auth = () => {
         options: {
           data: {
             full_name: displayName,
-            phone_number: cleanPhone,
+            phone_number: phoneDigits,
             device_id: deviceId,
             phone_verified: true,
           },
@@ -1716,7 +1711,7 @@ const Auth = () => {
           data.user.id,
           {
             display_name: displayName,
-            phone_number: fullPhone,
+            phone_number: phoneDigits,
             phone_verified: true,
             device_id: deviceId,
             is_verified: true,
@@ -1755,23 +1750,22 @@ const Auth = () => {
 
   // Resend WhatsApp OTP — rate-limited via brute-force gate
   const handleResendPhoneOtp = async () => {
-    const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
-    const fullPhone = selectedCountryCode + cleanPhone;
+    const { phoneDigits, displayPhone } = getPhoneIdentity();
 
-    const canProceed = await checkBeforeLogin(`otp:${fullPhone}`);
+    const canProceed = await checkBeforeLogin(`otp:${phoneDigits}`);
     if (!canProceed) return;
 
     setPhoneOtpLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
-        body: { phone_number: fullPhone, action: "send" }
+        body: { phone_number: displayPhone, action: "send" }
       });
       if (error) throw error;
-      await recordAttempt(`otp:${fullPhone}`, false);
-      toast({ title: "Code Resent", description: `New code sent to ${fullPhone} via WhatsApp` });
+      await recordAttempt(`otp:${phoneDigits}`, false);
+      toast({ title: "Code Resent", description: `New code sent to ${displayPhone} via WhatsApp` });
     } catch (error: any) {
       recordClientError({ label: "Auth.handleResendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
-      await recordAttempt(`otp:${fullPhone}`, false);
+      await recordAttempt(`otp:${phoneDigits}`, false);
       toast({ title: "Error", description: "Failed to resend. Please wait a moment.", variant: "destructive" });
     } finally {
       setPhoneOtpLoading(false);
