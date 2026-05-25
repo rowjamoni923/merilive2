@@ -410,7 +410,14 @@ export function useLiveKitCall(
           }
 
           if (track.kind === Track.Kind.Audio) {
-            const audioElement = track.attach();
+            const audioElement = track.attach() as HTMLAudioElement;
+            audioElement.autoplay = true;
+            audioElement.dataset.livekitRemoteAudio = 'call';
+            try { audioElement.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
+            try { (audioElement as any).webkitPlaysInline = true; } catch { /* ignore */ }
+            audioElement.style.display = 'none';
+            // CRITICAL: must be in DOM for mobile WebViews to start playback.
+            try { document.body.appendChild(audioElement); } catch { /* ignore */ }
             audioElement.play().catch(() => {});
           }
 
