@@ -305,7 +305,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     setErrorMessage("");
     try {
       const { data, error } = await supabase.functions.invoke('send-email-otp', {
-        body: { email: normalizedEmail, purpose: 'verify' }
+        body: { email: normalizedEmail, purpose: 'verify', context: 'sub_agency_signup' }
       });
       if (error) throw new Error(await getFunctionErrorMessage(error, "Failed to send email OTP"));
       if (!data?.success) throw new Error(data?.error || "Failed to send email OTP");
