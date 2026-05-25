@@ -342,7 +342,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           opacity: 0,
           transition: 'opacity 160ms linear',
           zIndex: 1,
-        } as CSSProperties} preload="auto"/>
+        } as CSSProperties}/>
       {/* Pkg167: subtle edge vignette overlay (cinematic depth) */}
       <div
         aria-hidden

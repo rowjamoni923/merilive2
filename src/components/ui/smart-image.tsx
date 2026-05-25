@@ -21,7 +21,7 @@ export interface SmartImageProps
 }
 
 /**
- * SmartImage — drop-in <img loading="eager"> replacement for dynamic Supabase Storage URLs.
+ * SmartImage — drop-in <img> replacement for dynamic Supabase Storage URLs.
  *
  * - Auto-rewrites `…/object/public/<bucket>/<path>` → Supabase Image Transform
  *   (`/render/image/public/<bucket>/<path>?width=&quality=&resize=contain`)

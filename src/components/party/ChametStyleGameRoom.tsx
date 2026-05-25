@@ -530,7 +530,7 @@ export function ChametStyleGameRoom({
                     {/* Video Feed */}
                     {streamToUse && !participant.isVideoOff ? (
                       <video 
-                        ref={(el) = preload="auto"> {
+                        ref={(el) => {
                           if (el && streamToUse && el.srcObject !== streamToUse) {
                             hardenVideoElementForNative(el, { muted: isMyself });
                             el.srcObject = streamToUse;

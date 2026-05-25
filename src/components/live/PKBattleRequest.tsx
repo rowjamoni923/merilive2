@@ -191,7 +191,7 @@ export const PKBattleRequest = ({
                       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
                     }
                     alt={challengerName}
-                    className="w-full h-full object-cover" loading="eager"/>
+                    className="w-full h-full object-cover"/>
                 </div>
                 <div
                   className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full"

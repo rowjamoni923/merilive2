@@ -255,7 +255,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           muted={muted}
           playsInline
-          preload="auto"
+         
           controls={showControls}
           className={cn(
             "w-full h-full object-contain",
@@ -288,7 +288,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           "w-full h-full object-contain pointer-events-none",
           !mediaLoaded && "opacity-0"
         )}
-        onLoad={() = loading="eager"> {
+        onLoad={() => {
           setMediaLoaded(true);
           onLoad?.();
         }}

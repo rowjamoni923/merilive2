@@ -424,7 +424,7 @@ const DailyLoginPopup = () => {
                         alt=""
                         width={96}
                         height={96}
-                        loading="eager"
+                       
                         className="w-12 h-12 object-contain"
                         style={{
                           filter:

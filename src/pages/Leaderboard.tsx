@@ -367,7 +367,7 @@ const Leaderboard = () => {
           </button>
           <h1 className="text-base font-bold flex items-center gap-1.5 text-slate-900">
             {customIcons?.leaderboard_header_icon ? (
-              <img src={customIcons.leaderboard_header_icon} alt="" className="w-5 h-5 object-contain" loading="eager"/>
+              <img src={customIcons.leaderboard_header_icon} alt="" className="w-5 h-5 object-contain"/>
             ) : (
               <Crown className="w-4 h-4 text-amber-500" />
             )}
@@ -408,7 +408,7 @@ const Leaderboard = () => {
                 }}
               >
                 {customIcons?.[`leaderboard_${cat.id}_icon`] ? (
-                  <img src={customIcons[`leaderboard_${cat.id}_icon`]} alt="" className="w-3 h-3 object-contain" loading="eager"/>
+                  <img src={customIcons[`leaderboard_${cat.id}_icon`]} alt="" className="w-3 h-3 object-contain"/>
                 ) : (
                   <Icon className="w-3 h-3" />
                 )}
@@ -565,7 +565,7 @@ const Leaderboard = () => {
                               {getPodiumFrame(2)!.frame_type === 'svga' || getPodiumFrame(2)!.frame_type === 'lottie' ? (
                                 <Suspense fallback={null}><UniversalFramePlayer src={getPodiumFrame(2)!.frame_url} type={getPodiumFrame(2)!.frame_type as any} className="w-full h-full" loop autoPlay /></Suspense>
                               ) : (
-                                <img src={getPodiumFrame(2)!.frame_url} alt="" className="w-full h-full object-contain" loading="eager"/>
+                                <img src={getPodiumFrame(2)!.frame_url} alt="" className="w-full h-full object-contain"/>
                               )}
                             </div>
                           )}
@@ -640,7 +640,7 @@ const Leaderboard = () => {
                               {getPodiumFrame(1)!.frame_type === 'svga' || getPodiumFrame(1)!.frame_type === 'lottie' ? (
                                 <Suspense fallback={null}><UniversalFramePlayer src={getPodiumFrame(1)!.frame_url} type={getPodiumFrame(1)!.frame_type as any} className="w-full h-full" loop autoPlay /></Suspense>
                               ) : (
-                                <img src={getPodiumFrame(1)!.frame_url} alt="" className="w-full h-full object-contain" loading="eager"/>
+                                <img src={getPodiumFrame(1)!.frame_url} alt="" className="w-full h-full object-contain"/>
                               )}
                             </div>
                           )}
@@ -703,7 +703,7 @@ const Leaderboard = () => {
                               {getPodiumFrame(3)!.frame_type === 'svga' || getPodiumFrame(3)!.frame_type === 'lottie' ? (
                                 <Suspense fallback={null}><UniversalFramePlayer src={getPodiumFrame(3)!.frame_url} type={getPodiumFrame(3)!.frame_type as any} className="w-full h-full" loop autoPlay /></Suspense>
                               ) : (
-                                <img src={getPodiumFrame(3)!.frame_url} alt="" className="w-full h-full object-contain" loading="eager"/>
+                                <img src={getPodiumFrame(3)!.frame_url} alt="" className="w-full h-full object-contain"/>
                               )}
                             </div>
                           )}

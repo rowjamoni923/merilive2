@@ -222,7 +222,7 @@ export default function LiveStreamFeed() {
           src={currentStream.thumbnail_url || currentStream.host?.avatar_url || "/placeholder.svg"}
           alt={currentStream.title || currentStream.host?.display_name || "Live stream"}
           className="h-full w-full object-cover"
-          onClick={() = loading="eager"> navigate(`/live/${currentStream.id}`)}
+          onClick={() => navigate(`/live/${currentStream.id}`)}
           onError={(event) => {
             const img = event.currentTarget;
             if (!img.dataset.fallbackApplied) {

@@ -163,7 +163,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
             "w-full h-full object-contain pointer-events-none",
             !imageLoaded && "opacity-0"
           )}
-          onLoadedData={() = preload="auto"> {
+          onLoadedData={() => {
             setImageLoaded(true);
             onLoad?.();
           }}
@@ -193,7 +193,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           "w-full h-full object-contain pointer-events-none",
           !imageLoaded && "opacity-0"
         )}
-        onLoad={() = loading="eager"> {
+        onLoad={() => {
           setImageLoaded(true);
           onLoad?.();
         }}

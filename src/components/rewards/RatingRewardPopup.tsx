@@ -281,7 +281,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                 <img 
                   src={ratingBannerImg}
                   alt="Rate us and get reward"
-                  className="w-full h-auto" loading="eager"/>
+                  className="w-full h-auto"/>
                 <div className="absolute inset-0 rounded-2xl border-2 border-amber-400/20 pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-transparent to-transparent pointer-events-none" />
               </div>

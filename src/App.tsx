@@ -632,6 +632,12 @@ const App = () => {
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
     }).catch(() => {}), 4500);
 
+    // Pkg357 — Global video lifecycle: pause off-screen + tab-hidden videos,
+    // skip LiveKit publisher/subscriber. Mirrors Chamet/TikTok behavior.
+    import('@/utils/globalVideoLifecycle')
+      .then(m => m.installGlobalVideoLifecycle())
+      .catch(() => {});
+
 
     // Defer SVGA prewarm to idle
     const svgaIdleId = idle(() => prewarmSVGA(), 3500);

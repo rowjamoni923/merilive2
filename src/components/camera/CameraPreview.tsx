@@ -180,7 +180,7 @@ export function CameraPreview({
         className={`w-full ${getAspectRatioClass()} object-cover ${
           mirror && facing === 'user' ? 'scale-x-[-1]' : ''
         }`}
-        style={{ touchAction: 'none', objectPosition: 'center center', pointerEvents: 'none' }} preload="auto"/>
+        style={{ touchAction: 'none', objectPosition: 'center center', pointerEvents: 'none' }}/>
 
       {/* Loading Overlay */}
       {isLoading && (

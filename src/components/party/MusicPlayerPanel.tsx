@@ -504,7 +504,7 @@ export function MusicPlayerPanel({
                         <img 
                           src={getProxiedUrl(currentTrack.cover_image_url)}
                           alt={currentTrack.title}
-                          className="w-full h-full object-cover" loading="eager"/>
+                          className="w-full h-full object-cover"/>
                       ) : (
                         <Music className="w-8 h-8 text-white" />
                       )}
@@ -705,7 +705,7 @@ export function MusicPlayerPanel({
                               <img 
                                 src={getProxiedUrl(track.cover_image_url)}
                                 alt={track.title}
-                                className="w-full h-full object-cover" loading="eager"/>
+                                className="w-full h-full object-cover"/>
                             ) : currentTrack?.id === track.id && isPlaying ? (
                               <motion.div
                                 animate={{ scale: [1, 1.2, 1] }}

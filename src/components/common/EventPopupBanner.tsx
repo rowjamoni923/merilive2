@@ -161,7 +161,7 @@ const EventPopupBanner = () => {
               src={popupCdn(banner.image_url)}
               alt={banner.title}
               onClick={handleBannerClick}
-              loading="eager"
+             
               decoding="sync"
               fetchPriority="high"
               className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"

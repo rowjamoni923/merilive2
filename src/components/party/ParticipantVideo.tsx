@@ -117,7 +117,7 @@ export function ParticipantVideo({
               "absolute inset-0 w-full h-full object-cover z-[1]",
               isSelf && "transform scale-x-[-1]"
             )}
-            style={{ touchAction: 'none', pointerEvents: 'none', objectPosition: 'center center', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties} preload="auto"/>
+            style={{ touchAction: 'none', pointerEvents: 'none', objectPosition: 'center center', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
         ) : (
           <Avatar className={cn(
             "border-2",

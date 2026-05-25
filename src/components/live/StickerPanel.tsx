@@ -126,7 +126,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                       <img
                         src={sticker.preview}
                         alt={sticker.name}
-                        loading="eager"
+                       
                         decoding="sync"
                         fetchPriority="high"
                         draggable={false}

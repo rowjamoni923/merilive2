@@ -516,7 +516,7 @@ const VideoGridSeat = ({
               "absolute inset-0 w-full h-full object-cover pointer-events-none",
               isMyself && "transform scale-x-[-1]"
             )}
-            style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties} preload="auto"/>
+            style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
           {/* Shield: hides native HTML5 play overlay icon until real frames arrive */}
           <div
             ref={shieldRef}

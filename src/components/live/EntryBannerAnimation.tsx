@@ -161,7 +161,7 @@ const EntryBannerAnimationInner = memo(({
                     <img 
                       src={avatarUrl} 
                       alt={userName}
-                      className="w-12 h-12 rounded-full border-2 border-white/80 shadow-lg" loading="eager"/>
+                      className="w-12 h-12 rounded-full border-2 border-white/80 shadow-lg"/>
                   )}
                   <span 
                     className="text-white font-bold text-xl tracking-wide max-w-[200px] truncate"
@@ -227,7 +227,7 @@ const EntryBannerAnimationInner = memo(({
                       <img 
                         src={avatarUrl} 
                         alt={userName}
-                        className="relative w-10 h-10 rounded-full border-2 border-white shadow-lg" loading="eager"/>
+                        className="relative w-10 h-10 rounded-full border-2 border-white shadow-lg"/>
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center border-2 border-white shadow-lg">

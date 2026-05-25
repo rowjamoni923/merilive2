@@ -176,7 +176,7 @@ const PoliciesAndBenefits = () => {
           <img 
             src={heroBanner}
             alt="MeriLive — Video Chat Without Limits"
-            className="w-full h-auto rounded-2xl object-cover" loading="eager"/>
+            className="w-full h-auto rounded-2xl object-cover"/>
         </div>
 
         {/* Description */}
@@ -197,7 +197,7 @@ const PoliciesAndBenefits = () => {
               <img 
                 src={banner.image}
                 alt={banner.title}
-                className="w-full h-auto object-cover rounded-2xl" loading="eager"/>
+                className="w-full h-auto object-cover rounded-2xl"/>
             </div>
           ))}
         </div>

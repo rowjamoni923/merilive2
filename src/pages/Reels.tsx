@@ -574,13 +574,13 @@ const Reels = () => {
               >
                 {/* Video */}
                 <video 
-                  ref={el = preload="auto"> videoRefs.current[currentReel.id] = el}
+                  ref={el => videoRefs.current[currentReel.id] = el}
                   src={currentReel.video_url}
                   className="w-full h-full object-cover"
                   loop
                   playsInline
                   autoPlay
-                  preload="auto"
+                 
                   muted={isMuted}
                   onClick={togglePlay}
                   poster={currentReel.thumbnail_url || undefined}

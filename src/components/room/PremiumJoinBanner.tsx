@@ -164,7 +164,7 @@ export const PremiumJoinBanner: React.FC<PremiumJoinBannerProps> = ({
                 <img 
                   src={avatarUrl}
                   alt={userName}
-                  className="w-full h-full object-cover" loading="eager"/>
+                  className="w-full h-full object-cover"/>
               ) : (
                 <div className="w-full h-full bg-white/20 flex items-center justify-center">
                   <span className="text-white font-bold text-lg">

@@ -152,7 +152,7 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
                 src={campaign.banner_image_url}
                 alt={campaign.campaign_name}
                 className="w-full h-24 object-cover rounded-2xl"
-                loading="eager"
+               
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl" />
               {/* Content over image */}

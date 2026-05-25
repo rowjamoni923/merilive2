@@ -202,7 +202,7 @@ const GiftEmojiAnimationInner = memo(({ emoji, count = 1, soundUrl, onComplete }
               src={emoji}
               alt="Gift"
               className="w-full h-full object-contain drop-shadow-2xl"
-              onError={(e) = loading="eager"> {
+              onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />

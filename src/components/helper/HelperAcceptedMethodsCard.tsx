@@ -164,7 +164,7 @@ export const HelperAcceptedMethodsCard = ({ helperId, helperCountryCode }: Helpe
                   />
                   <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                     {g.logo_url ? (
-                      <img src={g.logo_url} alt={g.name} className="w-full h-full object-contain p-0.5" loading="eager"/>
+                      <img src={g.logo_url} alt={g.name} className="w-full h-full object-contain p-0.5"/>
                     ) : (
                       <span className="text-base">💳</span>
                     )}

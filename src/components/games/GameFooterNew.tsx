@@ -1000,7 +1000,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
                 )}
               >
                 {game.logo_url ? (
-                  <img src={game.logo_url} alt={game.game_name} className="w-12 h-12 rounded-xl object-contain" loading="eager"/>
+                  <img src={game.logo_url} alt={game.game_name} className="w-12 h-12 rounded-xl object-contain"/>
                 ) : (
                   <span className="text-3xl">{game.game_emoji}</span>
                 )}

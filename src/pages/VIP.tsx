@@ -1279,7 +1279,7 @@ const VIP = () => {
                                 <img 
                                   src={priv.preview_url} 
                                   alt={priv.name}
-                                  className="w-full h-full object-cover" loading="eager"/>
+                                  className="w-full h-full object-cover"/>
                               ) : (
                                 fallbackIcon
                               )}

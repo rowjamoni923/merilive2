@@ -2461,7 +2461,7 @@ const Recharge = () => {
                               <img
                                 src={helper.avatar || '/placeholder.svg'}
                                 alt={helper.name}
-                                loading="eager"
+                               
                                 decoding="async"
                                 className={cn(
                                   "object-cover rounded-xl",
@@ -2545,7 +2545,7 @@ const Recharge = () => {
                                               src={resolved}
                                               alt={m.name}
                                               className="w-full h-full object-contain"
-                                              loading="eager"
+                                             
                                               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                                             />
                                           ) : (
@@ -3173,7 +3173,7 @@ const Recharge = () => {
                                 src={logoUrl} 
                                 alt={methodType} 
                                 className="w-5 h-5 rounded object-cover"
-                                onError={(e) = loading="eager"> {
+                                onError={(e) => {
                                   (e.currentTarget.style.display = 'none');
                                   e.currentTarget.nextElementSibling?.classList.remove('hidden');
                                 }}
@@ -3503,7 +3503,7 @@ const Recharge = () => {
                             src={gateway.logo_url}
                             alt={gateway.name}
                             className="w-10 h-10 rounded-lg object-cover"
-                            onError={(e) = loading="eager"> {
+                            onError={(e) => {
                               e.currentTarget.style.display = 'none';
                               e.currentTarget.nextElementSibling?.classList.remove('hidden');
                             }}
@@ -3652,7 +3652,7 @@ const Recharge = () => {
                   <div className="mt-1.5">
                     {paymentProof ? (
  <div className="relative rounded-xl overflow-hidden border border-slate-200/10">
-                        <img src={paymentProof} alt="Payment proof" className="w-full h-32 object-cover" loading="eager"/>
+                        <img src={paymentProof} alt="Payment proof" className="w-full h-32 object-cover"/>
                         <button
                           onClick={() => setPaymentProof(null)}
                           className="absolute top-2 right-2 bg-red-500 text-heading p-1 rounded-full"
@@ -3790,7 +3790,7 @@ const Recharge = () => {
                                 src={resolvedLogo}
                                 alt={selectedHelperMethod.method_name}
                                 className="h-6 w-6 object-contain"
-                                onError={(e) = loading="eager"> {
+                                onError={(e) => {
                                   e.currentTarget.style.display = 'none';
                                   e.currentTarget.nextElementSibling?.classList.remove('hidden');
                                 }}
@@ -3924,7 +3924,7 @@ const Recharge = () => {
                       <div className="mt-1">
                         {helperPaymentProof ? (
                           <div className="relative rounded-xl overflow-hidden border border-amber-400/20">
-                            <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" loading="eager"/>
+                            <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover"/>
                             <button
                               onClick={() => setHelperPaymentProof(null)}
                               className="absolute top-2 right-2 bg-red-500/80 text-white p-1 rounded-full"

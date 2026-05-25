@@ -118,7 +118,7 @@ export default function ShareReceive() {
                     {uploaded.map((m, i) => (
                       <div key={i} className="aspect-square rounded-md overflow-hidden bg-muted relative">
                         {m.mime.startsWith('image') ? (
-                          <img src={m.url} alt="" className="w-full h-full object-cover" loading="eager"/>
+                          <img src={m.url} alt="" className="w-full h-full object-cover"/>
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
                             {m.mime.startsWith('video') ? <FileVideo className="w-6 h-6" /> : <FileImage className="w-6 h-6" />}

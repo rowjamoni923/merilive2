@@ -391,7 +391,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
                 <img 
                   src={gift.senderAvatar}
                   alt=""
-                  className="w-9 h-9 rounded-full border-2 border-white/60 object-cover" loading="eager"/>
+                  className="w-9 h-9 rounded-full border-2 border-white/60 object-cover"/>
               ) : (
                 <div className="w-9 h-9 rounded-full border-2 border-white/60 flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br from-pink-400 to-purple-500">
                   {gift.senderName.charAt(0).toUpperCase()}

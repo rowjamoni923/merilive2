@@ -35,7 +35,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
     <img
       src={finalSrc}
       alt={alt}
-      loading="eager"
+     
       decoding="async"
       fetchPriority="high"
       onLoad={() => setLoaded(true)}

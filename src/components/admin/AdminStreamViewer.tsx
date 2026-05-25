@@ -136,7 +136,7 @@ export default function AdminStreamViewer({ streamId, roomName, hostName, onClos
         webkit-playsinline="true"
         x-webkit-airplay="deny"
         className={`w-full h-full object-contain pointer-events-none ${status !== "connected" ? "hidden" : ""}`}
-        style={{ touchAction: 'none', WebkitTouchCallout: 'none' } as React.CSSProperties} preload="auto"/>
+        style={{ touchAction: 'none', WebkitTouchCallout: 'none' } as React.CSSProperties}/>
 
       {status === "connected" && (
         <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-between">

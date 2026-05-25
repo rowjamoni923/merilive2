@@ -403,7 +403,7 @@ export const PKBattlePanel = ({
                         <img 
                           src={host.avatar_url || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"}
                           alt={host.display_name}
-                          className="w-full h-full object-cover" loading="eager"/>
+                          className="w-full h-full object-cover"/>
                       </div>
                       <div
                         className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[9px] font-bold text-black"

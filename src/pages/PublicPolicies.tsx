@@ -69,7 +69,7 @@ const PublicPolicies = () => {
           src={b.image}
           alt={b.title}
           className="w-full h-auto rounded-2xl object-cover cursor-pointer active:scale-[0.98] transition-transform"
-          loading="eager"
+         
           onClick={() => navigate(`/policies/${b.id}`)}
         />
       ))}

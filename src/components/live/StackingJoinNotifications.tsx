@@ -140,7 +140,7 @@ const JoinNotificationItem = memo(({ notification, index }: JoinNotificationItem
           src={notification.userAvatar || getDisplayAvatar(notification.userName)}
           alt=""
           className="w-full h-full object-cover"
-          loading="eager"
+         
         />
       </div>
 

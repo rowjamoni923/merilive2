@@ -373,7 +373,7 @@ const CreateParty = () => {
           className={cn(
             "w-full h-full object-cover",
             facingMode === "user" && "scale-x-[-1]"
-          )} preload="auto"/>
+          )}/>
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-700/50 to-orange-50">
           <AvatarWithFrame
@@ -662,7 +662,7 @@ const CreateParty = () => {
                 >
                   <div className="w-full h-full rounded-xl flex items-center justify-center overflow-hidden">
                     {game.logoUrl ? (
-                      <img src={getProxiedUrl(game.logoUrl)} alt={game.name} className="w-full h-full rounded-xl object-contain" loading="eager" decoding="async" draggable={false} />
+                      <img src={getProxiedUrl(game.logoUrl)} alt={game.name} className="w-full h-full rounded-xl object-contain" decoding="async" draggable={false} />
                     ) : (
                       <span className="text-6xl">{game.emoji}</span>
                     )}

@@ -4,7 +4,7 @@
  * Floating button that toggles the standard browser Picture-in-Picture API
  * on a <LiveKitVideoPlayer enablePictureInPicture pipId="..." />.
  *
- * Pairs to the `<video data-pip-id="..." preload="auto">` rendered by LiveKitVideoPlayer.
+ * Pairs to the `<video data-pip-id="...">` rendered by LiveKitVideoPlayer.
  *
  * - Auto-hides on browsers that don't support PiP (Firefox Android, Capacitor WebView).
  * - Listens to enter/leavepictureinpicture so the toggle stays in sync if the
@@ -26,7 +26,7 @@ export interface PictureInPictureButtonProps {
 
 function isPipSupported(): boolean {
   if (typeof document === "undefined") return false;
-  // Standard <video preload="auto"> PiP (Chrome/Edge/Safari desktop, Safari iOS, Chrome Android partial)
+  // Standard <video> PiP (Chrome/Edge/Safari desktop, Safari iOS, Chrome Android partial)
   return (
     "pictureInPictureEnabled" in document &&
     (document as Document & { pictureInPictureEnabled?: boolean }).pictureInPictureEnabled === true

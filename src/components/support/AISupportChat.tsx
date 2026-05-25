@@ -960,7 +960,7 @@ const AISupportChat = ({
                             src={message.attachmentUrl}
                             alt="Attachment"
                             className="max-w-full rounded-lg max-h-48 object-cover cursor-pointer"
-                            onClick={() = loading="eager"> window.open(message.attachmentUrl, "_blank")}
+                            onClick={() => window.open(message.attachmentUrl, "_blank")}
                           />
                         </div>
                       )}

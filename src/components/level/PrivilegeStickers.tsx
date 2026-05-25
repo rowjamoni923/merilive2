@@ -113,7 +113,7 @@ const StickerItem = ({
         <img 
           src={sticker.preview_url} 
           alt={sticker.name}
-          loading="eager"
+         
           decoding="async"
           className="w-full h-full object-contain"
         />
@@ -121,7 +121,7 @@ const StickerItem = ({
         <img 
           src={animationUrl} 
           alt={sticker.name}
-          loading="eager"
+         
           decoding="async"
           className="w-full h-full object-contain"
         />
@@ -197,7 +197,7 @@ export const StickerSendAnimation = ({
             <img 
               src={animationUrl || sticker.preview_url || ''} 
               alt={sticker.name}
-              className="w-full h-full object-contain" loading="eager"/>
+              className="w-full h-full object-contain"/>
           ) : null}
         </motion.div>
 

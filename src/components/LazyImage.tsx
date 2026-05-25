@@ -34,7 +34,7 @@ export const LazyImage = ({
       {...rest}
       src={showSrc || placeholder || undefined}
       alt={alt}
-      loading="eager"
+     
       decoding="async"
       fetchPriority="high"
       className={cn(className)}

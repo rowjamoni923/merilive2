@@ -161,7 +161,7 @@ export default function RatingProofHistory() {
                           src={row.screenshot_url}
                           alt="Rating screenshot"
                           className="w-full h-full object-cover"
-                          loading="eager"
+                         
                         />
                       </a>
                     ) : (
