@@ -1455,27 +1455,39 @@ const FaceVerification = () => {
   // which writes ai_analysis.rekognition + (when app_settings allow) auto-finalizes the
   // submission via service_auto_finalize_face_verification (gender, is_host, status).
   const triggerRekognitionAutoApprove = async (submissionId: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('face-verification-analyze', {
-        body: { submissionId },
-      });
-      if (error) {
-        console.warn('[FaceVerification] face-verification-analyze error:', error);
-        return null;
+    // Retry once on transient failure (cold-start / 401 token-refresh race).
+    let lastErr: unknown = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const { data, error } = await supabase.functions.invoke('face-verification-analyze', {
+          body: { submissionId },
+        });
+        if (error) {
+          lastErr = error;
+          console.warn(`[FaceVerification] face-verification-analyze attempt ${attempt + 1} error:`, error);
+          if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue; }
+        } else {
+          console.log('[FaceVerification] Rekognition analyze result:', data);
+          return data as {
+            ok?: boolean;
+            autoFinalize?: { success?: boolean; gender?: string; expected_gender?: string; verification_type?: string; reason?: string } | null;
+            blocker?: 'gender_mismatch' | 'liveness_failed' | 'replay_suspected' | 'profile_face_mismatch' | 'duplicate_face' | null;
+            declaredGender?: string | null;
+            expectedGender?: string | null;
+            detectedGender?: string | null;
+          };
+        }
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[FaceVerification] face-verification-analyze attempt ${attempt + 1} threw:`, err);
+        if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue; }
       }
-      console.log('[FaceVerification] Rekognition analyze result:', data);
-      return data as {
-        ok?: boolean;
-        autoFinalize?: { success?: boolean; gender?: string; expected_gender?: string; verification_type?: string; reason?: string } | null;
-        blocker?: 'gender_mismatch' | 'liveness_failed' | 'replay_suspected' | 'profile_face_mismatch' | 'duplicate_face' | null;
-        declaredGender?: string | null;
-        expectedGender?: string | null;
-        detectedGender?: string | null;
-      };
-    } catch (err) {
-      console.warn('[FaceVerification] face-verification-analyze invoke threw:', err);
-      return null;
     }
+    toast({
+      title: '⚠️ AI Verification Skipped',
+      description: 'AI auto-approve service is temporarily unreachable — your submission was saved and will be reviewed by admin.',
+    });
+    return null;
   };
 
   // If the edge function returned a hard `blocker`, show a blocking dialog
