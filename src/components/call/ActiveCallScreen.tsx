@@ -702,7 +702,7 @@ export function ActiveCallScreen({
               {/* Remote user avatar mini */}
               <div className="w-7 h-7 rounded-full overflow-hidden border border-white/20">
                 {remoteUserAvatar ? (
-                  <img src={normalizeProfileMediaUrl(remoteUserAvatar) || remoteUserAvatar} alt="" className="w-full h-full object-cover" loading="eager"/>
+                  <img src={normalizeProfileMediaUrl(remoteUserAvatar) || remoteUserAvatar} alt="" className="w-full h-full object-cover"/>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-bold">
                     {remoteUserName?.charAt(0)}

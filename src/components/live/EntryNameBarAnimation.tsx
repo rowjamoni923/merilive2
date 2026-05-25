@@ -175,7 +175,7 @@ const EntryNameBarAnimationInner = memo(({
                   <img 
                     src={cleanAnimUrl}
                     alt=""
-                    className="w-full h-full object-cover" loading="eager"/>
+                    className="w-full h-full object-cover"/>
                 </div>
               )}
 

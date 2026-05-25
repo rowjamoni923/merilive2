@@ -180,7 +180,7 @@ const MyPoster = () => {
                 <img 
                   src={image.image_url}
                   alt={`Poster ${index + 1}`}
-                  className="w-full h-full object-cover" loading="eager"/>
+                  className="w-full h-full object-cover"/>
                 {/* Gradient border for primary */}
                 {index === 0 && (
                   <div className="absolute inset-0 border-2 border-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-xl pointer-events-none" 

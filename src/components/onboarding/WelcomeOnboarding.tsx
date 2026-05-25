@@ -143,7 +143,7 @@ const WelcomeOnboarding = () => {
                   src={step.image}
                   alt={step.title}
                   className="w-full h-full object-cover"
-                  draggable={false} loading="eager"/>
+                  draggable={false}/>
               </div>
 
               {/* Text content */}

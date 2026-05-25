@@ -159,7 +159,7 @@ const ShopItemCard = ({
               src={item.preview_url}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
-              onError={() = loading="eager"> setImageError(true)}
+              onError={() => setImageError(true)}
             />
           ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
             <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
@@ -176,7 +176,7 @@ const ShopItemCard = ({
               src={item.animation_file_url || item.preview_url || ''}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
-              onError={() = loading="eager"> setImageError(true)}
+              onError={() => setImageError(true)}
             />
           )
         ) : (
@@ -600,7 +600,7 @@ const Shop = () => {
                       src={selectedItem.animation_file_url || selectedItem.preview_url || ''}
                       alt={selectedItem.name}
                       className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
-                      onError={(e) = loading="eager"> { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
                     <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />

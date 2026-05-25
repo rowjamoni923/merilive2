@@ -105,7 +105,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
               <img
                 src={bannerCdn(banner.image_url)}
                 alt={banner.title}
-                loading="eager"
+               
                 decoding="async"
                 // @ts-expect-error – fetchpriority is a standard HTML hint
                 fetchpriority="high"

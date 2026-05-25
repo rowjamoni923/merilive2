@@ -218,7 +218,7 @@ export default function AdminBranding() {
           muted
           loop
           autoPlay
-          playsInline controls preload="auto"/>
+          playsInline controls/>
       );
     }
 

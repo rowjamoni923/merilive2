@@ -156,7 +156,7 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
               <img 
                 src={reel.thumbnail_url}
                 alt={reel.caption || 'Reel'}
-                className="w-full h-full object-cover" loading="eager"/>
+                className="w-full h-full object-cover"/>
             ) : (
               <video
                 src={reel.video_url}
@@ -202,7 +202,7 @@ export const ProfileReelsTab = ({ userId, isOwnProfile, compact = false }: Profi
                 <img 
                   src={reel.thumbnail_url}
                   alt={reel.caption || 'Reel'}
-                  className="w-full h-full object-cover" loading="eager"/>
+                  className="w-full h-full object-cover"/>
               ) : (
                 <video
                   src={reel.video_url}

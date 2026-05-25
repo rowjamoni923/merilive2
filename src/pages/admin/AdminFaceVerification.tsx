@@ -925,9 +925,9 @@ const AdminFaceVerification = () => {
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" data-admin-media-bucket="face-verification">
                           {tiles.map((t, idx) => {
                             const isVid = t.kind === 'video' || isAdminVideoUrl(t.src);
-                            // Inline tiles are POSTERS ONLY (no <video preload="auto"> inside <button> — invalid HTML
+                            // Inline tiles are POSTERS ONLY (no <video> inside <button> — invalid HTML
                             // and the controls become unclickable). Clicking opens the detail dialog
-                            // where the real <video controls preload="auto"> lives and plays.
+                            // where the real <video controls> lives and plays.
                             if (isVid) {
                               const posterSrc = profilePhoto || t.src;
                               return (

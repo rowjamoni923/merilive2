@@ -260,7 +260,7 @@ export const ImageCropModal = ({
                       <img 
                         src={imageSrc}
                         alt={filter.name}
-                        className="w-full h-full object-cover" loading="eager"/>
+                        className="w-full h-full object-cover"/>
                     </div>
                     <span className="text-[10px] text-slate-600">{filter.name}</span>
                   </button>

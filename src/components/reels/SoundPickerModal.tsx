@@ -267,7 +267,7 @@ export const SoundPickerModal = ({
                         <img 
                           src={sound.cover_image_url}
                           alt={sound.title}
-                          className="w-full h-full object-cover" loading="eager"/>
+                          className="w-full h-full object-cover"/>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Disc3

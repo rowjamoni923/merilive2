@@ -225,7 +225,7 @@ export const GiftComboDisplay = ({ combo, onComplete }: GiftComboDisplayProps) =
             style={{ filter: `drop-shadow(0 4px 14px ${tier.glowColor})` }}
           >
             {combo.giftIcon ? (
-              <img src={combo.giftIcon} alt={combo.giftName} className="w-14 h-14 object-contain" loading="eager"/>
+              <img src={combo.giftIcon} alt={combo.giftName} className="w-14 h-14 object-contain"/>
             ) : (
               <span className="text-4xl">{combo.giftEmoji}</span>
             )}

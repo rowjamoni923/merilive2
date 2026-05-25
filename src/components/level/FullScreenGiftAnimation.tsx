@@ -353,7 +353,7 @@ const FullScreenGiftAnimation = ({
             muted
             playsInline
             onEnded={handleAnimationEnd}
-            className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain" preload="auto"/>
+            className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain"/>
         </div>
       );
     }
@@ -580,7 +580,7 @@ const FullScreenGiftAnimation = ({
                     <img 
                       src={senderAvatar} 
                       alt={senderName}
-                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover" loading="eager"/>
+                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover"/>
                   ) : (
                     <div 
                       className="w-12 h-12 rounded-full border-2 border-white/50 flex items-center justify-center text-white font-bold"
@@ -623,7 +623,7 @@ const FullScreenGiftAnimation = ({
                     <img 
                       src={receiverAvatar} 
                       alt={receiverName}
-                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover" loading="eager"/>
+                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover"/>
                   ) : (
                     <div 
                       className="w-12 h-12 rounded-full border-2 border-white/50 flex items-center justify-center text-white font-bold"

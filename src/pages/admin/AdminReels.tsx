@@ -668,7 +668,7 @@ const AdminReels = () => {
               className="w-full max-h-[70vh] object-contain"
               controls
               autoPlay
-              loop preload="auto"/>
+              loop/>
           )}
         </DialogContent>
       </Dialog>

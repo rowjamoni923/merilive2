@@ -520,7 +520,7 @@ const Level = () => {
                     <img 
                       src={getCustomLevelIcon(currentLevel)!} 
                       alt={`Level ${currentLevel}`}
-                      className="w-24 h-24 object-contain drop-shadow-2xl" loading="eager"/>
+                      className="w-24 h-24 object-contain drop-shadow-2xl"/>
                   ) : (
                     <span className="text-7xl drop-shadow-2xl">{getCurrentLevelData().icon}</span>
                   )}

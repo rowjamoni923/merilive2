@@ -264,7 +264,7 @@ export const ChametStyleChatPanel = ({
                             src={giftIconUrl}
                             alt=""
                             className="w-5 h-5 object-contain relative z-10 drop-shadow"
-                            loading="eager"
+                           
                             decoding="async"
                             onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                           />

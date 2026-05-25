@@ -78,13 +78,13 @@ const GiftItem = memo(({
         gift.icon_url.split('?')[0].toLowerCase().endsWith('.svga') ? (
           <div className="w-11 h-11">
             <img src={gift.icon_url} alt={gift.name} className="w-11 h-11 object-contain" 
-              onError={(e) = loading="eager"> { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           </div>
         ) : (
           <img
             src={gift.icon_url}
             alt={gift.name}
-            loading="eager"
+           
             decoding="async"
             className="w-11 h-11 object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -399,7 +399,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
                       <img 
                         src={selectedGift.icon_url}
                         alt={selectedGift.name}
-                        className="w-8 h-8 object-contain" loading="eager"/>
+                        className="w-8 h-8 object-contain"/>
                     ) : (
                       <span className="text-2xl">{selectedGift.emoji || '🎁'}</span>
                     )}

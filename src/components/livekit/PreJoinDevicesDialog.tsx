@@ -190,7 +190,7 @@ export const PreJoinDevicesDialog = ({ open, onOpenChange, onSaved }: Props) => 
               playsInline
               autoPlay
               muted
-              className="h-full w-full object-cover [transform:scaleX(-1)]" preload="auto"/>
+              className="h-full w-full object-cover [transform:scaleX(-1)]"/>
           </div>
 
           {/* Camera */}

@@ -192,7 +192,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           muted
           loop
           playsInline
-          preload="auto"
+         
           disablePictureInPicture
           onError={() => setMediaFailed(true)}
           ref={(el) => { if (el) el.playbackRate = 0.6; }}
@@ -206,7 +206,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           alt="MeriLive background"
           className="absolute inset-0 w-full h-full object-cover"
           decoding="async"
-          loading="eager"
+         
           fetchPriority="high"
           onError={() => setMediaFailed(true)}
           style={mediaStyle}
@@ -2086,7 +2086,7 @@ const Auth = () => {
               src={branding.logo_image_url} 
               alt="Logo" 
               className="w-28 h-28 object-contain"
-              onError={(e) = loading="eager"> {
+              onError={(e) => {
                 (e.target as HTMLImageElement).onerror = null;
                 (e.target as HTMLImageElement).src = '/logo.png';
               }}
@@ -2706,7 +2706,7 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full blur-2xl opacity-60 animate-pulse bg-gradient-to-br from-pink-500/50 via-purple-500/40 to-orange-400/30" />
                   <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-pink-500/40 shadow-2xl shadow-pink-500/30">
-                    <img src="/images/merilive-logo.png" alt="MeriLive" className="w-full h-full object-cover" loading="eager"/>
+                    <img src="/images/merilive-logo.png" alt="MeriLive" className="w-full h-full object-cover"/>
                   </div>
                 </div>
               </div>

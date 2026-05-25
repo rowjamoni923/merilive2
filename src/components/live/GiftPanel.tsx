@@ -64,7 +64,7 @@ interface GiftPanelProps {
 }
 
 // Pkg306 audit: accept URLs with query strings (cache-busters, signed Supabase URLs).
-// Previously `/\.(svga|json)$/i` mis-routed SVGA gifts with `?token=` into the <img loading="eager"> branch.
+// Previously `/\.(svga|json)$/i` mis-routed SVGA gifts with `?token=` into the <img> branch.
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 const VIDEO_OR_GIF_PATTERN = /\.(mp4|webm|gif)(\?|$)/i;
 const GIF_PATTERN = /\.gif(\?|$)/i;
@@ -576,7 +576,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
                   {selectedGift.animation_url && isVideoOrGif(selectedGift.animation_url) ? (
                     GIF_PATTERN.test(selectedGift.animation_url) ? (
-                      <img src={selectedGift.animation_url} alt={selectedGift.name} className="w-full h-full object-cover" loading="eager"/>
+                      <img src={selectedGift.animation_url} alt={selectedGift.name} className="w-full h-full object-cover"/>
                     ) : (
                       <video 
                         src={selectedGift.animation_url} 
@@ -588,7 +588,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                         controls={false}
                         disablePictureInPicture
                         disableRemotePlayback
-                        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate" preload="auto"/>
+                        controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"/>
 
                     )
                   ) : selectedGift.animation_url && HEAVY_ANIMATION_ASSET_PATTERN.test(selectedGift.animation_url) ? (
@@ -613,7 +613,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
                       )}
                     </Suspense>
                   ) : selectedGift.icon_url ? (
-                    <img src={selectedGift.icon_url} alt={selectedGift.name} className="w-6 h-6 object-contain" loading="eager"/>
+                    <img src={selectedGift.icon_url} alt={selectedGift.name} className="w-6 h-6 object-contain"/>
                   ) : (
                     <Gift className="w-6 h-6 text-white/70" />
                   )}

@@ -228,7 +228,7 @@ export const PKBattleResult = ({
                     <img 
                       src={winnerAvatar}
                       alt={winnerName}
-                      className="w-full h-full object-cover" loading="eager"/>
+                      className="w-full h-full object-cover"/>
                   </motion.div>
                   <motion.div
                     className="absolute -top-4 left-1/2 -translate-x-1/2"
@@ -338,7 +338,7 @@ export const PKBattleResult = ({
                     <img 
                       src={loserAvatar}
                       alt={loserName}
-                      className="w-full h-full object-cover" loading="eager"/>
+                      className="w-full h-full object-cover"/>
                   </div>
                 </div>
                 <p

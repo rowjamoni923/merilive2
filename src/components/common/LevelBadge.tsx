@@ -283,7 +283,7 @@ export const LevelBadge = forwardRef<HTMLSpanElement | HTMLDivElement, LevelBadg
             src={getProxiedUrl(dbIconUrl)} 
             alt={`Level ${level}`}
             className={cn(imageSizes[size], "object-contain relative z-[1]")}
-            onError={(e) = loading="eager"> {
+            onError={(e) => {
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
             }}
@@ -480,7 +480,7 @@ export const InlineLevelBadge = ({ level, className }: InlineLevelBadgeProps) =>
           src={getProxiedUrl(dbIconUrl)} 
           alt={`Lv${level}`}
           className="w-3 h-3 object-contain mr-0.5 relative z-[1]"
-          onError={(e) = loading="eager"> { e.currentTarget.style.display = 'none'; }}
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
         />
       ) : dbIcon ? (
         <span className="mr-0.5 text-[8px] relative z-[1]">{dbIcon}</span>

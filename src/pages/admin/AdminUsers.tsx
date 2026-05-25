@@ -365,7 +365,7 @@ export default function AdminUsers() {
                             <Avatar className="w-10 h-10 border-2 border-slate-200 shadow-sm">
                               <AvatarImage
                                 src={getDisplayAvatar(user.id, user.avatar_url, { gender: (user.gender as any) || 'female' })}
-                                loading="eager"
+                               
                                 referrerPolicy="no-referrer"
                               />
                               <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white">

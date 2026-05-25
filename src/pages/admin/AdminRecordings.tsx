@@ -489,7 +489,7 @@ export default function AdminRecordings() {
                 autoPlay
                 crossOrigin="anonymous"
                 className="w-full h-full"
-                onError={(e) = preload="auto"> {
+                onError={(e) => {
                   console.error("Video playback error:", e);
                   recordAdminError({ kind: "rpc", label: "AdminRecordings.adminId", message: formatAdminError(e) });
                   // Try opening in new tab as fallback

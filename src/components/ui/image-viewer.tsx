@@ -76,7 +76,7 @@ export const ImageViewer = ({ src, alt = "Image", open, onClose }: ImageViewerPr
               alt={alt}
               className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
               style={{ transform: `scale(${scale})` }}
-              draggable={false} loading="eager"/>
+              draggable={false}/>
           ) : (
             <div className="text-sm text-white/70">Loading image</div>
           )}

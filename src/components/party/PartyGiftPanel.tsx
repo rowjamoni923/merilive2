@@ -339,16 +339,16 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                                   />
                                 ) : isVideoOrGif(gift.icon_url) ? (
                                   gift.icon_url.endsWith('.gif') ? (
-                                    <img src={gift.icon_url} alt={gift.name} className="w-10 h-10 object-contain" loading="eager"/>
+                                    <img src={gift.icon_url} alt={gift.name} className="w-10 h-10 object-contain"/>
                                   ) : (
-                                    <video src={gift.icon_url} className="w-10 h-10 object-cover pointer-events-none" autoPlay loop muted playsInline controls={false} disablePictureInPicture disableRemotePlayback controlsList="nodownload nofullscreen noremoteplayback noplaybackrate" preload="auto"/>
+                                    <video src={gift.icon_url} className="w-10 h-10 object-cover pointer-events-none" autoPlay loop muted playsInline controls={false} disablePictureInPicture disableRemotePlayback controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"/>
                                   )
                                 ) : (
                                   <img 
                                     src={gift.icon_url}
                                     alt={gift.name}
                                     className="w-10 h-10 object-contain"
-                                    onError={(e) = loading="eager"> {
+                                    onError={(e) => {
                                       (e.target as HTMLImageElement).style.display = 'none';
                                     }}
                                   />
@@ -432,7 +432,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
                       <img 
                         src={selectedGift.icon_url}
                         alt={selectedGift.name}
-                        className="w-8 h-8 object-contain" loading="eager"/>
+                        className="w-8 h-8 object-contain"/>
                     )}
                   </Suspense>
                 ) : (

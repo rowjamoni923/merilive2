@@ -310,13 +310,13 @@ const AgencyPolicy = () => {
             <img 
               src={policyHeroBanner} 
               alt="MeriLive — Tap to view all Policies & Benefits"
-              className="w-full h-auto object-cover rounded-2xl" loading="eager"/>
+              className="w-full h-auto object-cover rounded-2xl"/>
             {/* Logo Overlay */}
             <div className="absolute top-3 left-1/2 -translate-x-1/2">
               <img 
                 src={meriliveLogo} 
                 alt="MeriLive" 
-                className="w-10 h-10 object-contain drop-shadow-lg" loading="eager"/>
+                className="w-10 h-10 object-contain drop-shadow-lg"/>
             </div>
           </div>
         </div>

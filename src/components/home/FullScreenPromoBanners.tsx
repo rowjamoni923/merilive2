@@ -282,7 +282,7 @@ export function FullScreenPromoBanners() {
               currentBanner.fullScreen
                 ? "h-full w-full object-contain"
                 : "h-auto w-full rounded-3xl object-contain"
-            } loading="eager"/>
+            }/>
 
           {canSkip && (
             <motion.button

@@ -64,7 +64,7 @@ const Game3DCard = ({
               src={getProxiedUrl(game.logo_url)}
               alt={game.game_name}
               className="w-full h-full object-contain"
-              loading="eager"
+             
               decoding="async"
               draggable={false}
             />

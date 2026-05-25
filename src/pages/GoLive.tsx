@@ -1048,7 +1048,7 @@ const GoLive = () => {
                 <img 
                   src={userProfile.avatar_url} 
                   alt={userProfile.display_name || "User"} 
-                  className="w-full h-full object-contain" loading="eager"/>
+                  className="w-full h-full object-contain"/>
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
                   <Camera className="w-8 h-8 text-white" />
@@ -1206,7 +1206,7 @@ const GoLive = () => {
                     transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
                     filter: beautyCSS || undefined,
                     WebkitAppearance: 'none',
-                  }} preload="auto"/>
+                  }}/>
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{

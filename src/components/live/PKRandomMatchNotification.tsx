@@ -122,7 +122,7 @@ export const PKRandomMatchNotification = ({
                   <img 
                     src={challengerAvatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100"}
                     alt={challengerName}
-                    className="w-full h-full object-cover" loading="eager"/>
+                    className="w-full h-full object-cover"/>
                 </div>
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-1.5 py-0.5 rounded text-[7px] font-bold text-black whitespace-nowrap">
                   Lv{challengerLevel}

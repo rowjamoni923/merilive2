@@ -1312,7 +1312,7 @@ export default function AdminGifts() {
                           autoPlay 
                           loop 
                           muted 
-                          playsInline controls preload="auto"/>
+                          playsInline controls/>
                       ) : (
                         <Play className="w-8 h-8 text-purple-500" />
                       )}
@@ -1612,7 +1612,7 @@ export default function AdminGifts() {
                 if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
                 if (isVideoOrGif(url)) return url.endsWith('.gif') 
                   ? <SmartImage src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
-                  : <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls preload="auto"/>;
+                  : <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls/>;
                 return <SmartImage src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />;
               })()}
             </div>

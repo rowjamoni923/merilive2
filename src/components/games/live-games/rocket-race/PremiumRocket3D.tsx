@@ -97,7 +97,7 @@ export function PremiumRocket3D({
           className="relative z-10 w-10 h-auto drop-shadow-2xl"
           style={{
             filter: `drop-shadow(0 0 10px ${cfg.glow}) drop-shadow(0 4px 8px rgba(0,0,0,0.4))`
-          }} loading="eager"/>
+          }}/>
       </motion.div>
     </div>
   );

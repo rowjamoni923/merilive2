@@ -112,7 +112,7 @@ export default function GamesHub() {
                 {(() => {
                   const logo = resolveGameLogo(activeGame);
                   return logo ? (
-                    <img src={logo} alt={activeGame.game_name} width={24} height={24} className="w-6 h-6 rounded object-contain" loading="eager"/>
+                    <img src={logo} alt={activeGame.game_name} width={24} height={24} className="w-6 h-6 rounded object-contain"/>
                   ) : (
                     <span className="text-xl">{activeGame.game_emoji}</span>
                   );
@@ -215,7 +215,7 @@ export default function GamesHub() {
                           <img
                             src={logo}
                             alt={game.game_name}
-                            loading="eager"
+                           
                             width={40}
                             height={40}
                             className="absolute top-2 left-2 w-10 h-10 rounded-lg object-contain bg-white/10 backdrop-blur-sm p-1"
@@ -264,7 +264,7 @@ export default function GamesHub() {
                           <img
                             src={logo}
                             alt={game.game_name}
-                            loading="eager"
+                           
                             width={40}
                             height={40}
                             className="w-10 h-10 rounded-lg object-contain"

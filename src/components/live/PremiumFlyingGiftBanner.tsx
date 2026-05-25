@@ -112,7 +112,7 @@ export const PremiumFlyingGiftBanner = ({
           src={giftImageUrl}
           alt={giftName}
           className="w-10 h-10 object-contain"
-          style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }} loading="eager"/>
+          style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }}/>
       );
     }
 
@@ -207,7 +207,7 @@ export const PremiumFlyingGiftBanner = ({
                     border: '2px solid rgba(255,255,255,0.65)',
                     boxShadow:
                       '0 0 0 1px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25)',
-                  }} loading="eager"/>
+                  }}/>
               ) : (
                 <div
                   className="relative w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base"

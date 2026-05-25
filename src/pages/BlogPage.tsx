@@ -164,7 +164,7 @@ export default function BlogPage() {
               className="flex items-center gap-3 cursor-pointer" 
               onClick={() => navigate("/")}
             >
-              <img src={meriliveLogo} alt="MeriLive" className="w-10 h-10 rounded-xl object-contain" loading="eager"/>
+              <img src={meriliveLogo} alt="MeriLive" className="w-10 h-10 rounded-xl object-contain"/>
               <div>
                 <h1 className="text-xl font-bold text-slate-800">MeriLive</h1>
                 <p className="text-xs text-pink-600 font-medium">Live Streaming & Video Calls</p>
@@ -517,7 +517,7 @@ export default function BlogPage() {
                         <img 
                           src={post.image} 
                           alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="eager"/>
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                         <Badge className="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-md">
                           {post.category}
                         </Badge>
@@ -563,7 +563,7 @@ export default function BlogPage() {
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={meriliveLogo} alt="MeriLive" className="w-8 h-8 rounded-lg object-contain" loading="eager"/>
+              <img src={meriliveLogo} alt="MeriLive" className="w-8 h-8 rounded-lg object-contain"/>
               <span className="text-slate-800 font-semibold">MeriLive</span>
             </div>
             <div className="text-slate-500 text-sm">
