@@ -588,16 +588,17 @@ const AISupportChat = ({
         .eq("ticket_id", ticketId)
         .order("created_at", { ascending: true });
 
-      const conversationMessages = ((existingMsgs || []) as any[])
+      const conversationMessages = await Promise.all(((existingMsgs || []) as any[])
         .filter((msg) => msg.sender_type === "user" || msg.sender_type === "admin")
-        .map((msg) => ({
+        .map(async (msg) => ({
           id: msg.id,
           role: msg.sender_type === "admin" ? "admin" : "user",
           content: msg.sender_type === "admin" ? (msg.translated_content || msg.content) : msg.content,
           timestamp: new Date(msg.created_at),
-          attachmentUrl: msg.attachment_url,
+          attachmentUrl: await getSupportAttachmentDisplayUrl(msg.attachment_url),
+          attachmentPath: extractSupportAttachmentPath(msg.attachment_url) || undefined,
           attachmentType: msg.attachment_type,
-        } as Message));
+        } as Message)));
 
       if (conversationMessages.length > 0) {
         setMessages(conversationMessages);

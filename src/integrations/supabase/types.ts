@@ -17958,6 +17958,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      current_admin_has_section_access: {
+        Args: { _require_edit?: boolean; _section_key: string }
+        Returns: boolean
+      }
       current_admin_id: { Args: never; Returns: string }
       current_admin_id_from_header: { Args: never; Returns: string }
       current_admin_reviewer_auth_id: { Args: never; Returns: string }
