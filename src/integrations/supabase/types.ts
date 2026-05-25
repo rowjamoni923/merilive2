@@ -17896,14 +17896,16 @@ export type Database = {
             Returns: Json
           }
         | { Args: { p_user_id: string }; Returns: Json }
-      check_brute_force: {
-        Args: {
-          p_action_type: string
-          p_identifier: string
-          p_ip_address?: string
-        }
-        Returns: Json
-      }
+      check_brute_force:
+        | { Args: { p_identifier: string }; Returns: Json }
+        | {
+            Args: {
+              p_action_type: string
+              p_identifier: string
+              p_ip_address?: string
+            }
+            Returns: Json
+          }
       check_bucket_visibility_drift: {
         Args: never
         Returns: {
@@ -18024,6 +18026,15 @@ export type Database = {
           p_validation_data?: Json
         }
         Returns: Json
+      }
+      consume_otp_exchange_token: {
+        Args: {
+          p_channel?: string
+          p_identifier: string
+          p_purpose?: string
+          p_verified_token: string
+        }
+        Returns: string
       }
       create_agency_for_user: {
         Args: {
