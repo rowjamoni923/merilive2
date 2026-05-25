@@ -123,9 +123,6 @@ const AdminAppSettingsHub = () => {
         <TabsContent value="links" className="mt-0">
           <AdminAllowedLinks />
         </TabsContent>
-        <TabsContent value="secret-links" className="mt-0">
-          <OwnerAccessLinkGenerator />
-        </TabsContent>
         <TabsContent value="settings" className="mt-0">
           <AdminSettings />
         </TabsContent>
