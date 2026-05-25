@@ -2783,7 +2783,7 @@ const Chat = () => {
                   ) : isRecording ? (
                     <div className="w-4 h-4 bg-white rounded-sm" />
                   ) : (
- <Send className="w-5 h-5 text-slate-900" />
+ <Send className="w-5 h-5 text-primary-foreground" />
                   )}
                 </motion.button>
               </>
@@ -2907,14 +2907,14 @@ const Chat = () => {
                   disabled={sending}
                   className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
                 >
- <Send className="w-5 h-5 text-slate-900" />
+ <Send className="w-5 h-5 text-primary-foreground" />
                 </motion.button>
               </>
             ) : (
               <>
                 {/* WhatsApp-style single pill: emoji • input • attach • camera */}
                 <div className={cn(
-                  "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-white/95 border border-amber-200/70 shadow-sm backdrop-blur-xl transition-colors",
+                  "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-card/95 border border-border shadow-sm backdrop-blur-xl transition-colors",
                   inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-300/70"
                 )}>
                   <motion.button
@@ -2923,13 +2923,13 @@ const Chat = () => {
                     className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
                     aria-label="Emoji"
                   >
-                    <Smile className="w-[20px] h-[20px] text-slate-500" />
+                    <Smile className="w-[20px] h-[20px] text-muted-foreground" />
                   </motion.button>
                   <Input
                     value={message}
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Message"
-                    className="flex-1 h-9 border-0 bg-transparent px-1 text-[14px] text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                    className="flex-1 h-9 border-0 bg-transparent px-1 text-[14px] text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     disabled={sending}
                     onFocus={() => setShowEmojiPicker(false)}
@@ -2940,7 +2940,7 @@ const Chat = () => {
                     className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
                     aria-label="Gallery"
                   >
-                    <Camera className="w-[18px] h-[18px] text-slate-500" />
+                    <Camera className="w-[18px] h-[18px] text-muted-foreground" />
                   </motion.button>
                 </div>
 
