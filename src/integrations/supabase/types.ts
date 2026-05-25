@@ -5977,39 +5977,57 @@ export type Database = {
       helper_upgrade_requests: {
         Row: {
           admin_notes: string | null
+          amount_usd: number | null
           created_at: string | null
           current_level: number | null
           helper_id: string
           id: string
+          notes: string | null
+          payment_method: string | null
+          payment_proof_url: string | null
           requested_level: number
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
+          transaction_id: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           admin_notes?: string | null
+          amount_usd?: number | null
           created_at?: string | null
           current_level?: number | null
           helper_id: string
           id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_proof_url?: string | null
           requested_level: number
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
+          transaction_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           admin_notes?: string | null
+          amount_usd?: number | null
           created_at?: string | null
           current_level?: number | null
           helper_id?: string
           id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_proof_url?: string | null
           requested_level?: number
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
+          transaction_id?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -16535,15 +16553,21 @@ export type Database = {
         Args: { _admin_id: string }
         Returns: {
           admin_notes: string | null
+          amount_usd: number | null
           created_at: string | null
           current_level: number | null
           helper_id: string
           id: string
+          notes: string | null
+          payment_method: string | null
+          payment_proof_url: string | null
           requested_level: number
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
+          transaction_id: string | null
           updated_at: string
+          user_id: string | null
         }[]
         SetofOptions: {
           from: "*"
