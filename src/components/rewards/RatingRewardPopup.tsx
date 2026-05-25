@@ -55,23 +55,22 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
       if (!user) return;
       setUserId(user.id);
 
-      const [{ data: settingData }, { data: amountData }] = await Promise.all([
-        supabase.from('app_settings').select('setting_value').eq('setting_key', 'rating_popup_enabled').maybeSingle(),
-        supabase.from('app_settings').select('setting_value').eq('setting_key', 'rating_reward_amounts').maybeSingle(),
+      const [enabledValue, amountValue] = await Promise.all([
+        getAppSetting<unknown>('rating_popup_enabled'),
+        getAppSetting<unknown>('rating_reward_amounts'),
       ]);
 
       const enabled =
-        settingData?.setting_value === true ||
-        settingData?.setting_value === 'true' ||
+        enabledValue === true ||
+        enabledValue === 'true' ||
         localStorage.getItem(RATING_PENDING_KEY) === 'true';
 
       if (!enabled) return;
 
       try {
-        const raw = amountData?.setting_value;
-        const cfg = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        const hb = Number(cfg?.host_beans);
-        const ud = Number(cfg?.user_diamonds);
+        const cfg = typeof amountValue === 'string' ? JSON.parse(amountValue) : amountValue;
+        const hb = Number((cfg as any)?.host_beans);
+        const ud = Number((cfg as any)?.user_diamonds);
         if (Number.isFinite(hb) && hb > 0 && Number.isFinite(ud) && ud > 0) {
           setRewardAmounts({ host_beans: hb, user_diamonds: ud });
         }
