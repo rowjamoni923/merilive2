@@ -470,12 +470,11 @@ export default function AdminUserManagement() {
     if (activeTab === "auto-verified" || activeTab === "auto-rejected") {
       fetchFaceSubmissions();
     }
-  }, [activeTab]);
+  }, [activeTab, debouncedAppSearchQuery]);
   
   useEffect(() => {
-    // Always fetch face submissions so stats are available
-    fetchFaceSubmissions();
-  }, [faceActiveTab]);
+    if (activeTab === "face-verification") fetchFaceSubmissions();
+  }, [activeTab, faceActiveTab, debouncedFaceSearchQuery]);
   
   useEffect(() => {
     if (activeTab === "moderation") {
