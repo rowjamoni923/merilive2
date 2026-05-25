@@ -14,6 +14,7 @@ import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface Reel {
@@ -415,10 +416,10 @@ const AdminReels = () => {
                 <Card key={reel.id} className="overflow-hidden">
                   <div className="relative aspect-[9/16] bg-muted">
                     {reel.thumbnail_url ? (
-                      <img 
+                      <SmartImage 
                         src={reel.thumbnail_url} 
                         alt="" 
-                        className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Video className="w-8 h-8 text-muted-foreground" />

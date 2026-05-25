@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { SmartImage } from "@/components/ui/smart-image";
 
 export interface CampaignTemplate {
   id: string;
@@ -336,7 +337,7 @@ export function CampaignPopupPreview({
               {/* Banner image */}
               {bannerImageUrl && (
                 <div className="h-16 overflow-hidden">
-                  <img src={bannerImageUrl} alt="" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  <SmartImage src={bannerImageUrl} alt="" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                 </div>
               )}
 

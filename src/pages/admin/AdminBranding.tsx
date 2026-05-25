@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Image, 
   Video, 
@@ -223,10 +224,10 @@ export default function AdminBranding() {
 
     if (settings.background_url && (settings.background_type === 'image' || settings.background_type === 'gif')) {
       return (
-        <img
+        <SmartImage
           src={settings.background_url}
           alt="Background"
-          className={className} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+          className={className} fallbackSrc="/placeholder.svg" />
       );
     }
 
@@ -299,10 +300,10 @@ export default function AdminBranding() {
                 <div className="flex items-center gap-4">
                   {settings.logo_image_url ? (
                     <div className="relative">
-                      <img 
+                      <SmartImage 
                         src={settings.logo_image_url} 
                         alt="Logo" 
-                        className="w-20 h-20 object-contain rounded-lg border bg-muted" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        className="w-20 h-20 object-contain rounded-lg border bg-muted" fallbackSrc="/placeholder.svg" />
                       <button
                         onClick={removeLogo}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
@@ -509,10 +510,10 @@ export default function AdminBranding() {
                 {/* Logo */}
                 <div className="pt-8 flex flex-col items-center">
                   {settings.logo_image_url ? (
-                    <img 
+                    <SmartImage 
                       src={settings.logo_image_url} 
                       alt="Logo" 
-                      className="w-32 h-32 object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="w-32 h-32 object-contain" fallbackSrc="/placeholder.svg" />
                   ) : (
                     <div className="flex flex-col items-center">
                       {/* Premium Primary Text */}

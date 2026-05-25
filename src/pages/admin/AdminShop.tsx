@@ -4,6 +4,7 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Plus, 
   Edit2, 
@@ -884,9 +885,9 @@ const AdminShop = () => {
                       ) : formData.file_type === 'video' ? (
                         <video src={previewFile} className="w-full h-full object-contain" controls autoPlay muted loop />
                       ) : formData.file_type === 'gif' ? (
-                        <img src={previewFile} alt="Preview" className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        <SmartImage src={previewFile} alt="Preview" className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                       ) : (
-                        <img src={previewFile} alt="Preview" className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        <SmartImage src={previewFile} alt="Preview" className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                       )}
                     </div>
                     <Button
@@ -1104,10 +1105,10 @@ const AdminShop = () => {
                   
                   {formData.preview_url ? (
                     <div className="mt-2 relative inline-block">
-                      <img
+                      <SmartImage
                         src={formData.preview_url}
                         alt="Preview"
-                        className="w-24 h-24 rounded-lg object-cover border border-white/20" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        className="w-24 h-24 rounded-lg object-cover border border-white/20" fallbackSrc="/placeholder.svg" />
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, preview_url: "" })}
@@ -1237,7 +1238,7 @@ const AdminShop = () => {
                 );
                 if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
                 if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;
-                return <img src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />;
+                return <SmartImage src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />;
               })()}
             </div>
           </div>

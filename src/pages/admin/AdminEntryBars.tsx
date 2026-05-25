@@ -13,6 +13,7 @@ import { Plus, Edit, Trash2, Upload, RefreshCw, Play, Eye, Volume2, Sparkles, Im
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface EntryBarItem {
@@ -347,10 +348,10 @@ const AdminEntryBars = () => {
                 <div className="relative aspect-video bg-gradient-to-br from-slate-900 via-purple-900/50 to-slate-900 rounded-xl overflow-hidden group shadow-lg">
                   {/* Thumbnail Image (Primary Display) */}
                   {item.preview_url ? (
-                    <img 
+                    <SmartImage 
                       src={item.preview_url} 
                       alt={item.name} 
-                      className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                   ) : item.animation_url ? (
                     <div >
                       <FixedAnimationFrame size="fill" center={false}
@@ -575,10 +576,10 @@ const AdminEntryBars = () => {
                 </div>
                 {formData.preview_url && (
                   <div className="h-16 bg-black/30 rounded-lg overflow-hidden flex items-center justify-center">
-                    <img 
+                    <SmartImage 
                       src={formData.preview_url} 
                       alt="Thumbnail"
-                      className="h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="h-full object-contain" fallbackSrc="/placeholder.svg" />
                   </div>
                 )}
               </div>
