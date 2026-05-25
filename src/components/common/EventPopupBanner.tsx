@@ -164,7 +164,7 @@ const EventPopupBanner = () => {
               loading="eager"
               decoding="sync"
               fetchPriority="high"
-              className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+              className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
               draggable={false}
               onError={(e) => { const t = e.currentTarget; if (banner.image_url && t.src !== banner.image_url) t.src = banner.image_url; }}
             />
