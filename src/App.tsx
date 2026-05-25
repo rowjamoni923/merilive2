@@ -660,6 +660,7 @@ const App = () => {
       cancelIdle(routeIdleId);
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
+      cancelIdle(giftIdleId);
       cancelIdle(batteryIdleId);
     };
   }, []);
