@@ -54,6 +54,11 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
     ? activeBanners.slice(-1)
     : activeBanners.slice(0, -1);
 
+  const getBannerAspectRatio = (bannerId: string) => {
+    if (position === 'top') return 343 / 128;
+    return bannerRatios[bannerId] || 343 / 128;
+  };
+
   const handleBannerClick = async (banner: Banner) => {
     if (!banner.link_url) return;
 
@@ -105,7 +110,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
             key={banner.id}
             onClick={() => handleBannerClick(banner)}
             className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative mt-1' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
-            style={banner.image_url ? { aspectRatio: String(bannerRatios[banner.id] || 343 / 128) } : { backgroundColor: banner.background_color }}
+            style={banner.image_url ? { aspectRatio: String(getBannerAspectRatio(banner.id)) } : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
               <img
