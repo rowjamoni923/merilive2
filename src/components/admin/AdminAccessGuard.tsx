@@ -99,9 +99,9 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
     decideSync();
 
-    // Background: validate URL access token (15s timeout) and persist flag.
-    // CRITICAL: timeout / network error must NOT flip the user to BlogPage —
-    // we keep them on the loader and let the retry below resolve.
+    // Background: validate URL access token (15s timeout) before rendering login.
+    // After retries, deny access so invalid/rotated links cannot keep a stale
+    // tab-scoped unlock flag alive.
     const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
     if (accessToken) {
       const validateOnce = async (attempt: number): Promise<boolean> => {
@@ -138,8 +138,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
       (async () => {
         // Up to 3 attempts (15s each) before giving up; if all fail and no
-        // session/flag exists, fall back to BlogPage. Network blips no longer
-        // kick a valid secret link to the block page.
+        // admin session exists, fall back to BlogPage.
         for (let i = 1; i <= 3; i++) {
           if (!mounted) return;
           const resolved = await validateOnce(i);
