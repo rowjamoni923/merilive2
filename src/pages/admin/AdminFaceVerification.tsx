@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FaceVerificationDebugPanel } from "@/components/admin/FaceVerificationDebugPanel";
-import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, isAutoFaceReview, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
 import { 
   ScanFace, 
   Search, 
@@ -227,8 +228,9 @@ interface StepItem {
 }
 
 const FACE_VERIFICATION_CACHE_KEY = 'admin_face_verification_cache_disabled_v4';
-const FACE_VERIFICATION_FETCH_LIMIT = 120;
+const FACE_VERIFICATION_FETCH_LIMIT = 30;
 const ADMIN_FAST_LOADING_TIMEOUT_MS = 900;
+const EMPTY_FACE_STATS: StatusCounts = { pending: 0, under_review: 0, approved: 0, rejected: 0, total: 0, auto_approved: 0, auto_rejected: 0, auto_host: 0, auto_user: 0 };
 
 const AdminFaceVerification = () => {
   const { toast } = useToast();
@@ -236,8 +238,10 @@ const AdminFaceVerification = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
   const [activeTab, setActiveTab] = useState("pending");
   const [mismatchOnly, setMismatchOnly] = useState(false);
+  const [serverStats, setServerStats] = useState<StatusCounts>(EMPTY_FACE_STATS);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -248,8 +252,10 @@ const AdminFaceVerification = () => {
   const [processing, setProcessing] = useState(false);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
   const actionInFlightRef = useRef(false);
+  const fetchRequestIdRef = useRef(0);
 
   const fetchSubmissions = async () => {
+    const requestId = ++fetchRequestIdRef.current;
     let fastTimeoutId: number | null = null;
 
     try {
@@ -262,24 +268,24 @@ const AdminFaceVerification = () => {
 
       // Pkg9 hardening: single server-side RPC replaces direct table SELECT +
       // N+1 client joins (profile/agency). Server enforces is_active_admin_session.
-      const rows: any[] = [];
-      let offset = 0;
-      let total = Number.POSITIVE_INFINITY;
-      for (let page = 0; page < 50 && rows.length < total; page += 1) {
-        const { data, error } = await supabase.rpc(
+      const q = debouncedSearchQuery.trim();
+      const serverStatus = activeTab === 'all' ? null : activeTab;
+      const [listResult, stats] = await Promise.all([
+        supabase.rpc(
           'admin_list_face_verification_paginated',
-          { _status: null, _search: null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: offset }
-        );
+          { _status: serverStatus, _search: q || null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
+        ),
+        fetchFilteredStatusCounts(supabase as any, {
+          table: 'face_verification_submissions',
+          searchColumn: 'full_name',
+          searchQuery: q,
+          globalStatsRpc: 'admin_face_verification_stats',
+        }),
+      ]);
 
-        if (error) throw error;
-
-        const payload = (data as any) || {};
-        const pageRows = (payload.rows || []) as any[];
-        rows.push(...pageRows);
-        total = Number(payload.total ?? rows.length);
-        offset += pageRows.length;
-        if (pageRows.length < FACE_VERIFICATION_FETCH_LIMIT) break;
-      }
+      if (listResult.error) throw listResult.error;
+      const payload = (listResult.data as any) || {};
+      const rows = (payload.rows || []) as any[];
 
       const enriched: Submission[] = rows.map((s) => ({
         ...s,
@@ -293,7 +299,9 @@ const AdminFaceVerification = () => {
           : null,
       }));
 
+      if (requestId !== fetchRequestIdRef.current) return;
       setSubmissions(enriched);
+      setServerStats(stats);
 
       // Never reuse old face-verification rows: approval state must be DB-fresh.
       if (typeof window !== 'undefined') {
