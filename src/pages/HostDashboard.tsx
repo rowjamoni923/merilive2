@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting, invalidateAppSetting } from "@/utils/appSettingsCache";
 import { toast } from "sonner";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { formatNumber as fmtNum } from "@/utils/formatNumber";
@@ -91,8 +92,9 @@ const HostDashboard = () => {
     const onAdmin = async (e: Event) => {
       const detail = (e as CustomEvent<{ table?: string }>).detail;
       if (detail?.table !== 'app_settings') return;
-      const { data } = await supabase.from('app_settings').select('setting_value').eq('setting_key', 'call_rates').maybeSingle();
-      const nextSettings = parseCallRateSettings(data?.setting_value);
+      invalidateAppSetting('call_rates');
+      const settingValue = await getAppSetting<unknown>('call_rates');
+      const nextSettings = parseCallRateSettings(settingValue);
       if (nextSettings) {
         setCommissionPercent(nextSettings.host_commission_percent ?? 50);
         setMinRate(nextSettings.min_rate ?? 1000);
@@ -131,14 +133,10 @@ const HostDashboard = () => {
 
       setProfile(profileData);
       
-      const { data: settingsData } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'call_rates')
-        .single();
+      const settingsValue = await getAppSetting<unknown>('call_rates');
 
-      if (settingsData?.setting_value) {
-        const callRates = parseCallRateSettings(settingsData.setting_value);
+      if (settingsValue) {
+        const callRates = parseCallRateSettings(settingsValue);
         setCommissionPercent(callRates?.host_commission_percent ?? 50);
         setMinRate(callRates?.min_rate ?? 1000);
         setMaxRate(callRates?.max_rate ?? 10000);

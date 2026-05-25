@@ -4,6 +4,7 @@ import { lazyRetry } from "@/utils/lazyRetry";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting } from "@/utils/appSettingsCache";
 import { Session } from "@supabase/supabase-js";
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -551,17 +552,11 @@ const App = () => {
 
     const checkMaintenance = async () => {
       try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'maintenance_mode')
-          .maybeSingle();
-
-        if (error) throw error;
-        if (data?.setting_value) {
-          setMaintenanceMode(data.setting_value as any);
+        const value = await getAppSetting<unknown>('maintenance_mode');
+        if (value) {
+          setMaintenanceMode(value as any);
           try {
-            localStorage.setItem('meri_maintenance_mode_cache', JSON.stringify({ at: Date.now(), value: data.setting_value }));
+            localStorage.setItem('meri_maintenance_mode_cache', JSON.stringify({ at: Date.now(), value }));
           } catch {}
         }
       } catch (e) {

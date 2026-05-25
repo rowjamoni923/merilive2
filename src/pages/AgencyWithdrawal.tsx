@@ -40,6 +40,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting } from "@/utils/appSettingsCache";
 import { toast } from "sonner";
 import { recordClientError } from "@/utils/clientErrorLog";
 
@@ -2166,35 +2167,30 @@ const AgencyWithdrawal = () => {
         }
       }
 
-      // Fetch beans to USD rate from settings (primary)
-      const { data: beansRateData } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'beans_to_usd_rate')
-        .maybeSingle();
-      
-      if (beansRateData?.setting_value) {
-        const rateValue = typeof beansRateData.setting_value === 'string'
-          ? JSON.parse(beansRateData.setting_value)
-          : beansRateData.setting_value as { rate?: number };
+      // Pkg D pass-2: fetch all 4 app_settings keys in parallel through the
+      // shared cache (was 4 sequential roundtrips, ~600ms on slow links).
+      const [beansRateValue, commissionFallbackValue, wsValue, awfValue] = await Promise.all([
+        getAppSetting<unknown>('beans_to_usd_rate'),
+        getAppSetting<unknown>('agency_commission'),
+        getAppSetting<unknown>('withdrawal_settings'),
+        getAppSetting<unknown>('auto_withdrawal_fee'),
+      ]);
+
+      // Beans→USD rate (primary)
+      if (beansRateValue) {
+        const rateValue = typeof beansRateValue === 'string'
+          ? JSON.parse(beansRateValue)
+          : (beansRateValue as { rate?: number });
         if (rateValue?.rate) {
           setCoinsToUsdRate(rateValue.rate);
         }
-      } else {
+      } else if (commissionFallbackValue) {
         // Fallback to agency_commission setting
-        const { data: settingsData } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'agency_commission')
-          .maybeSingle();
-        
-        if (settingsData?.setting_value) {
-          const commissionSettings = typeof settingsData.setting_value === 'string'
-            ? JSON.parse(settingsData.setting_value)
-            : settingsData.setting_value as CommissionSettings;
-          if (commissionSettings?.coins_to_dollar_rate) {
-            setCoinsToUsdRate(commissionSettings.coins_to_dollar_rate);
-          }
+        const commissionSettings = typeof commissionFallbackValue === 'string'
+          ? JSON.parse(commissionFallbackValue)
+          : (commissionFallbackValue as CommissionSettings);
+        if (commissionSettings?.coins_to_dollar_rate) {
+          setCoinsToUsdRate(commissionSettings.coins_to_dollar_rate);
         }
       }
 
@@ -2203,7 +2199,7 @@ const AgencyWithdrawal = () => {
         .from('currency_rates')
         .select('currency_code, rate_to_usd')
         .eq('is_active', true);
-      
+
       if (currencyRatesData && currencyRatesData.length > 0) {
         const dbRates: Record<string, number> = {};
         currencyRatesData.forEach(rate => {
@@ -2212,17 +2208,9 @@ const AgencyWithdrawal = () => {
         setExchangeRates({...DEFAULT_EXCHANGE_RATES, ...dbRates});
       }
 
-      // Fetch tiered withdrawal fees from DB (withdrawal_settings)
-      const { data: wsData } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'withdrawal_settings')
-        .maybeSingle();
-      
-      if (wsData?.setting_value) {
-        const ws = typeof wsData.setting_value === 'string' 
-          ? JSON.parse(wsData.setting_value) 
-          : wsData.setting_value;
+      // Tiered withdrawal fees
+      if (wsValue) {
+        const ws: any = typeof wsValue === 'string' ? JSON.parse(wsValue) : wsValue;
         if (ws.fees && Array.isArray(ws.fees)) {
           setWithdrawalFees(ws.fees);
           console.log('[AgencyWithdrawal] Tiered fees from DB:', ws.fees);
@@ -2232,16 +2220,9 @@ const AgencyWithdrawal = () => {
         if (ws.coins_to_dollar_rate) setCoinsToUsdRate(ws.coins_to_dollar_rate);
       }
 
-      // Fetch Auto Withdrawal Fee (admin-set flat USD for ePay/USDT/Binance/Crypto)
-      const { data: awfData } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'auto_withdrawal_fee')
-        .maybeSingle();
-      if (awfData?.setting_value) {
-        const awf = typeof awfData.setting_value === 'string'
-          ? JSON.parse(awfData.setting_value)
-          : awfData.setting_value;
+      // Auto withdrawal fee (flat USD for ePay/USDT/Binance/Crypto)
+      if (awfValue) {
+        const awf: any = typeof awfValue === 'string' ? JSON.parse(awfValue) : awfValue;
         setAutoWithdrawalFee({
           flat_usd: typeof awf.flat_usd === 'number' ? awf.flat_usd : 2,
           percent: typeof awf.percent === 'number' ? awf.percent : 0,
