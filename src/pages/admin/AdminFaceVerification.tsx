@@ -922,6 +922,7 @@ const AdminFaceVerification = () => {
                                     alt={t.label}
                                     kind="image"
                                     bucket="face-verification"
+                                    priority={idx < 6}
                                     className="w-full h-full"
                                     mediaClassName="object-cover w-full h-full"
                                   />
@@ -949,6 +950,7 @@ const AdminFaceVerification = () => {
                                   alt={t.label}
                                   kind={t.kind}
                                   bucket="face-verification"
+                                  priority={idx < 6}
                                   className="w-full h-full"
                                   mediaClassName="object-cover w-full h-full"
                                 />
