@@ -225,7 +225,7 @@ const AgencySignup = () => {
     setSendingEmailOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-email-otp', {
-        body: { email: formData.email.trim().toLowerCase(), purpose: 'verify' }
+        body: { email: formData.email.trim().toLowerCase(), purpose: 'verify', context: 'agency_signup' }
       });
 
       if (error) throw error;

@@ -5,7 +5,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 export interface SendOtpEmailArgs {
   to: string;
   otp: string;
-  purpose: "login" | "register" | "reset" | "verify" | "password_reset" | "admin" | "two_factor" | "agency";
+  // Template label key — any string. Known labels render branded copy
+  // (login, register/account_signup, account_email, reset/password_reset,
+  // admin/admin_login/admin_2fa/two_factor, admin_forgot/admin_password_reset,
+  // agency/agency_signup, sub_agency_signup). Unknown values render the
+  // generic verification copy.
+  purpose: string;
   expiryMinutes?: number;
   idempotencyKey?: string;
 }

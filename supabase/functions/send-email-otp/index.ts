@@ -30,6 +30,12 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const purpose = typeof body.purpose === "string" ? body.purpose : "login";
+    // Optional contextual label for the rendered email (e.g. "agency_signup",
+    // "sub_agency_signup", "account_email", "admin_forgot"). Does NOT affect
+    // the DB purpose column / consume-token contract — only the subject &
+    // body of the email itself.
+    const rawContext = typeof body.context === "string" ? body.context.trim() : "";
+    const emailContext = rawContext && rawContext.length <= 64 ? rawContext : purpose;
 
     if (!email || email.length > 254) {
       return json({ success: false, error: "Email is required" }, 400);
@@ -69,7 +75,7 @@ Deno.serve(async (req) => {
       return json({ success: false, error: "Failed to generate OTP" }, 500);
     }
 
-    const result = await sendOtpEmail({ to: email, otp, purpose: purpose as any, expiryMinutes: 5 });
+    const result = await sendOtpEmail({ to: email, otp, purpose: emailContext, expiryMinutes: 5 });
     if (!result.success) {
       console.error("[send-email-otp] Email delivery failed:", result.error);
       await supabase.from("email_otps").update({ is_used: true }).eq("email", email).eq("otp_code", otp).eq("is_used", false);
