@@ -1333,6 +1333,19 @@ const Chat = () => {
     setShowGiftAnimation(true);
   }
 
+  async function loadReplyMessages(replyIds: string[]) {
+    const missingReplyIds = [...new Set(replyIds)].filter((id) => id && !replyMessages[id]);
+    if (missingReplyIds.length === 0) return;
+
+    const { data: replies } = await supabase
+      .from('messages')
+      .select('id, content, sender_id')
+      .in('id', missingReplyIds);
+
+    const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id }]));
+    setReplyMessages(prev => ({ ...prev, ...map }));
+  }
+
   function upsertLiveMessage(messageRow: any) {
     const newMessage = castMessage(messageRow);
 
