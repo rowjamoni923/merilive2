@@ -312,11 +312,12 @@ export default function UserSupportTool() {
     if (!selectedUser || actionLoading) return;
     setActionLoading(true);
     try {
-      const { error } = await supabase
-        .from("profiles") // guard-ok: admin-only selected-user verification update via adminSupabase + server-side admin session RLS
-        .update({ is_verified: !selectedUser.is_verified })
-        .eq("id", selectedUser.id);
+      const { data, error } = await supabase.rpc("admin_set_user_verification", {
+        _user_id: selectedUser.id,
+        _verified: !selectedUser.is_verified,
+      });
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || "Verification update failed");
       emitInstantAdminSync(["profiles"]);
       toast.success(selectedUser.is_verified ? "Verification removed" : "✅ User verified");
       await refreshUser();
