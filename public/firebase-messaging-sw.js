@@ -177,12 +177,54 @@ self.addEventListener('activate', function(event) {
       self.clients.claim(),
       caches.keys().then(function(keys) {
         return Promise.all(keys.filter(function(k) {
-          return k.indexOf('meri-assets-') === 0 && k !== ASSET_CACHE;
+          return (k.indexOf('meri-assets-') === 0 && k !== ASSET_CACHE) ||
+                 (k.indexOf('meri-html-') === 0 && k !== HTML_CACHE);
         }).map(function(k) { return caches.delete(k); }));
       }),
     ])
   );
 });
+
+self.addEventListener('fetch', function(event) {
+  var req = event.request;
+
+  // Only handle GET
+  if (req.method !== 'GET') return;
+
+  var url;
+  try { url = new URL(req.url); } catch (e) { return; }
+
+  // Don't cache cross-origin (except for same-origin assets we own)
+  if (url.origin !== self.location.origin) return;
+
+  // Don't cache API/auth/realtime
+  if (url.pathname.indexOf('/rest/') !== -1) return;
+  if (url.pathname.indexOf('/auth/') !== -1) return;
+  if (url.pathname.indexOf('/realtime/') !== -1) return;
+  if (url.pathname.indexOf('/functions/') !== -1) return;
+
+  // ---- HTML navigations: network-first, fall back to last cached shell (offline) ----
+  if (req.mode === 'navigate' || req.destination === 'document') {
+    event.respondWith(
+      fetch(req).then(function(resp) {
+        if (resp && resp.status === 200) {
+          var copy = resp.clone();
+          caches.open(HTML_CACHE).then(function(c) { c.put('/__app_shell__', copy).catch(function() {}); }).catch(function() {});
+        }
+        return resp;
+      }).catch(function() {
+        return caches.open(HTML_CACHE).then(function(c) {
+          return c.match('/__app_shell__').then(function(hit) {
+            return hit || new Response(
+              '<!doctype html><meta charset="utf-8"><title>Offline</title><style>body{font-family:system-ui;margin:0;display:grid;place-items:center;height:100vh;background:#0F172A;color:#fff;text-align:center;padding:24px}h1{font-size:20px;margin:0 0 8px}p{opacity:.7;margin:0}</style><h1>You are offline</h1><p>Reconnect to continue.</p>',
+              { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+            );
+          });
+        });
+      })
+    );
+    return;
+  }
 
 self.addEventListener('fetch', function(event) {
   var req = event.request;
