@@ -621,8 +621,8 @@ const Leaderboard = () => {
                       <div className="relative w-full">
                         {/* Avatar area with ornate gold circle */}
                         <div className="relative mx-auto w-[88px] h-[88px] mb-1">
-                          <div className="absolute inset-[-8px] rounded-full" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #d97706, #f59e0b, #fbbf24)', padding: '3px', boxShadow: '0 0 30px rgba(251,191,36,0.4)' }}>
-                            <div className="w-full h-full rounded-full" style={{ background: '#1a0f08' }} />
+                          <div className="absolute inset-[-8px] rounded-full pointer-events-none" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #d97706, #f59e0b, #fbbf24)', padding: '3px', boxShadow: '0 0 30px rgba(251,191,36,0.4)' }}>
+                            <div className="w-full h-full rounded-full bg-transparent" />
                           </div>
                           {/* Rank 1 badge */}
                           <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', boxShadow: '0 3px 15px rgba(251,191,36,0.6)', border: '2px solid rgba(255,255,255,0.4)' }}>
