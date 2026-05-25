@@ -225,6 +225,7 @@ self.addEventListener('fetch', function(event) {
     );
     return;
   }
+});
 
 self.addEventListener('fetch', function(event) {
   var req = event.request;
