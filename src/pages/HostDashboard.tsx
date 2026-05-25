@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting, invalidateAppSetting } from "@/utils/appSettingsCache";
 import { toast } from "sonner";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { formatNumber as fmtNum } from "@/utils/formatNumber";
