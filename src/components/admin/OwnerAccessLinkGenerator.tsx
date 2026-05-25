@@ -24,7 +24,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PRODUCTION_DOMAIN } from "@/utils/shareLinks";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 
@@ -37,6 +36,7 @@ interface OwnerRow {
 
 export default function OwnerAccessLinkGenerator() {
   const session = getAdminSession();
+  const adminLinkOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://merilive.top';
   const [copiedOwner, setCopiedOwner] = useState(false);
   const [copiedSubAdmin, setCopiedSubAdmin] = useState(false);
   const [showOwnerSecret, setShowOwnerSecret] = useState(false);
@@ -121,8 +121,8 @@ export default function OwnerAccessLinkGenerator() {
     fetchOwners();
   }, []);
 
-  const ownerAccessLink = ownerToken ? `${PRODUCTION_DOMAIN}/admin/auth?access=${ownerToken}` : '';
-  const subAdminAccessLink = subAdminToken ? `${PRODUCTION_DOMAIN}/admin/auth?access=${subAdminToken}` : '';
+  const ownerAccessLink = ownerToken ? `${adminLinkOrigin}/admin/auth?access=${ownerToken}` : '';
+  const subAdminAccessLink = subAdminToken ? `${adminLinkOrigin}/admin/auth?access=${subAdminToken}` : '';
 
   const copy = async (text: string, kind: 'owner' | 'sub') => {
     try {
