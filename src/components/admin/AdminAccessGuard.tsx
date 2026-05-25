@@ -67,7 +67,6 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
     return hasAdminAccessFlag() && !!getAdminLinkToken();
   });
-  const [hasValidToken, setHasValidToken] = useState<boolean>(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -167,7 +166,6 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             setAdminLinkChallenge(typeof data.challenge === 'string' ? data.challenge : null);
             grantAdminAccess(role === 'owner');
             if (mounted) {
-              setHasValidToken(true);
               setIsAuthorized(true);
             }
             return true;
