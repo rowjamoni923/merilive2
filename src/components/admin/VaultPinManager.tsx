@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, ShieldCheck, KeyRound, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
+import useAdminAccess from "@/hooks/useAdminAccess";
 import { toast } from "sonner";
 
 interface PinStatus {
@@ -18,7 +19,7 @@ interface PinStatus {
 
 export default function VaultPinManager() {
   const session = getAdminSession();
-  const isOwner = session?.is_owner === true;
+  const { isOwner, isLoading: accessLoading } = useAdminAccess();
 
   const [status, setStatus] = useState<PinStatus | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,16 @@ export default function VaultPinManager() {
   useEffect(() => {
     fetchStatus();
   }, []);
+
+  if (accessLoading || loading) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!isOwner) {
     return (
@@ -206,10 +217,7 @@ export default function VaultPinManager() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {loading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : (
-              <>
+            <>
                 {status?.pin_set && (
                   <div>
                     <Label>Current PIN</Label>
@@ -261,7 +269,6 @@ export default function VaultPinManager() {
                   )}
                 </div>
               </>
-            )}
           </CardContent>
         </Card>
       )}

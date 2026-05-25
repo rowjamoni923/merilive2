@@ -1352,12 +1352,11 @@ export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  // Treat an existing admin session token as instant access too — otherwise
-  // an admin who arrives via secret link (session present, flag missing) would
-  // see "Preparing admin console…" spin forever if the verification call stalls.
-  const instantAdminAccess = hasAdminAccessFlag() || !!getAdminSession();
-  const [isAdmin, setIsAdmin] = useState(instantAdminAccess);
-  const [isLoading, setIsLoading] = useState(!instantAdminAccess);
+  // Never render the admin shell from local flags/session blobs alone. Browser
+  // storage is editable; the shell opens only after the server validates the
+  // x-admin-token + approved device and returns the matching admin row.
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(navGroups.map(g => g.title));
   const [searchQuery, setSearchQuery] = useState("");
   const [onlineUsersCount, setOnlineUsersCount] = useState(0);
@@ -2543,13 +2542,19 @@ export default function AdminLayout() {
         return;
       }
 
-      // Hard 6s timeout — never let a slow/hung query keep the "Preparing
-      // admin console…" spinner alive. Session presence already grants access
-      // optimistically (instantAdminAccess); this call only refines metadata.
+      const { data: verifiedAdminId, error: verifyError } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+      if (verifyError || !verifiedAdminId || String(verifiedAdminId) !== adminSession.admin_id) {
+        console.warn('[AdminLayout] Server-verified admin session mismatch - revoking local access', verifyError);
+        revokeAdminAccess();
+        setCurrentUser(null);
+        setIsAdmin(false);
+        return;
+      }
+
       const queryPromise = adminSupabase
         .from('admin_users')
         .select('id, user_id, email, display_name, role, is_active, accepted_at')
-        .eq('id', adminSession.admin_id)
+        .eq('id', String(verifiedAdminId))
         .eq('is_active', true)
         .maybeSingle();
       const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
@@ -2558,15 +2563,6 @@ export default function AdminLayout() {
       const { data: adminRecord, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error || !adminRecord) {
-        // Network/timeout: keep optimistic access alive (we already have a
-        // valid signed admin session token); just log and bail. Don't revoke
-        // because that would bounce the admin to /admin/login on every flaky
-        // request.
-        if (error?.message?.includes('timeout')) {
-          console.warn('[AdminLayout] admin_users lookup timed out — keeping optimistic access');
-          setIsAdmin(true);
-          return;
-        }
         console.warn('[AdminLayout] Dedicated admin session is invalid or inactive - revoking local access', error);
         revokeAdminAccess();
         setCurrentUser(null);
