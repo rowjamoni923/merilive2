@@ -242,7 +242,16 @@ serve(async (req) => {
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('')
       .slice(0, 8);
-    const subAdminToken = `gala-noir-onyx-${year}-prism-${subHash}`;
+    let subAdminToken = `gala-noir-onyx-${year}-prism-${subHash}`;
+    const { data: overrideToken } = await supabaseAdmin
+      .from('admin_token_overrides')
+      .select('token')
+      .eq('kind', 'sub_admin')
+      .eq('rotated_year', year)
+      .maybeSingle();
+    if (overrideToken?.token) {
+      subAdminToken = overrideToken.token;
+    }
     const loginLink = `https://merilive.com/admin/auth?access=${subAdminToken}&email=${encodeURIComponent(normalizedEmail)}`;
 
     console.log("[create-sub-admin] Sub-admin created successfully!");
