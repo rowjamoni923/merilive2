@@ -2554,22 +2554,53 @@ const Chat = () => {
                     </div>
                     
                     {/* Three Dot Menu for each message */}
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <button className="self-center p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
                           <MoreVertical className="w-4 h-4 text-muted-foreground" />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align={isMine ? "end" : "start"}>
+                      <DropdownMenuContent align={isMine ? "end" : "start"} className="bg-popover text-popover-foreground border border-border rounded-2xl min-w-[200px] shadow-xl p-1.5">
+                        <DropdownMenuItem onClick={() => {
+                          setReplyingTo({
+                            messageId: msg.id,
+                            content: (msg.content || '').slice(0, 80),
+                            senderName: senderName,
+                            senderId: msg.sender_id
+                          });
+                          toast.success("Replying to message");
+                        }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                          <MessageSquareReply className="w-4 h-4 text-primary" />
+                          <span className="font-medium text-sm">Reply</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setMessageReactions(prev => {
+                            const current = prev[msg.id] || [];
+                            const next = current.includes('❤️') ? current.filter(e => e !== '❤️') : [...current, '❤️'];
+                            return { ...prev, [msg.id]: next };
+                          });
+                          toast.success('Reacted ❤️');
+                        }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                          <SmilePlus className="w-4 h-4 text-amber-500" />
+                          <span className="font-medium text-sm">React</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setMessageInfoMessage(msg);
+                          setShowMessageInfo(true);
+                        }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                          <Info className="w-4 h-4 text-blue-400" />
+                          <span className="font-medium text-sm">Info</span>
+                        </DropdownMenuItem>
+                        <div className="h-px bg-border my-1" />
                         <DropdownMenuItem onClick={() => {
                           navigator.clipboard.writeText(msg.content);
                           toast.success("Message copied!");
-                        }}>
-                          Copy
+                        }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                          <span className="font-medium text-sm">Copy</span>
                         </DropdownMenuItem>
                         {!isMine && (
-                          <DropdownMenuItem onClick={() => otherUserId && navigate(`/profile-detail/${otherUserId}`)}>
-                            View Profile
+                          <DropdownMenuItem onClick={() => otherUserId && navigate(`/profile-detail/${otherUserId}`)} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                            <span className="font-medium text-sm">View Profile</span>
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
