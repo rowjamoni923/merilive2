@@ -2314,6 +2314,34 @@ const Chat = () => {
                           </p>
                         </button>
                       )}
+                      {/* Reply Quote */}
+                      {msg.reply_to_id && (() => {
+                        const replyTo = replyMessages[msg.reply_to_id];
+                        const rName = replyTo ? (
+                          replyTo.sender_id === currentUserId
+                            ? (myProfile?.display_name || 'You')
+                            : (isGroup ? msg.sender?.display_name : selectedConversation?.other_user?.display_name) || 'User'
+                        ) : 'Unknown';
+                        const rText = replyTo ? (replyTo.content || '').slice(0, 60) : 'Original message';
+                        return (
+                          <div className={cn(
+                            "mb-1 pl-2.5 border-l-[3px] rounded-l-sm py-0.5 pr-1 cursor-pointer",
+                            isMine ? "border-primary-foreground/40" : "border-primary/40"
+                          )} onClick={() => {
+                            const el = document.getElementById(`msg-${msg.reply_to_id}`);
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }}>
+                            <p className={cn(
+                              "text-[10px] font-semibold truncate",
+                              isMine ? "text-primary-foreground/80" : "text-primary/80"
+                            )}>{rName}</p>
+                            <p className={cn(
+                              "text-[11px] truncate opacity-70",
+                              isMine ? "text-primary-foreground/60" : "text-muted-foreground/60"
+                            )}>{rText}</p>
+                          </div>
+                        );
+                      })()}
                       {/* Message Bubble - No background for gifts */}
                       {(() => {
                         const content = msg.content || '';
