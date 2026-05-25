@@ -54,6 +54,7 @@ import DeviceApprovalSection from "@/components/admin/DeviceApprovalSection";
 import OwnerAccessLinkGenerator from "@/components/admin/OwnerAccessLinkGenerator";
 import VaultPinManager from "@/components/admin/VaultPinManager";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { PRODUCTION_DOMAIN } from "@/utils/shareLinks";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 const supabase = adminSupabase;
@@ -399,8 +400,7 @@ const AdminSubAdmins = () => {
   
   const getLoginLink = (email: string) => {
     const token = subAdminTokenForLinks || '';
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://merilive.top';
-    return `${origin}/admin/auth?access=${token}&email=${encodeURIComponent(email)}`;
+    return `${PRODUCTION_DOMAIN}/admin/auth?access=${token}&email=${encodeURIComponent(email)}`;
   };
 
   const resetCreateForm = () => {
