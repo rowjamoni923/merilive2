@@ -435,21 +435,23 @@ const AdminSubAdmins = () => {
 
   useEffect(() => {
     const fetchPendingCount = async () => {
-      const { count } = await supabase
-        .from('admin_allowed_devices')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-      setPendingDeviceCount(count || 0);
+      const session = getAdminSession();
+      if (!session?.admin_id || !session.is_owner) return setPendingDeviceCount(0);
+      const { data, error } = await supabase.rpc('admin_list_pending_devices' as any, {
+        _owner_admin_id: session.admin_id,
+      });
+      if (!error) setPendingDeviceCount(((data as any[]) || []).filter((device) => device.status === 'pending').length);
     };
     fetchPendingCount();
   }, []);
 
   useAdminRealtime(['admin_allowed_devices'], async () => {
-    const { count } = await supabase
-      .from('admin_allowed_devices')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
-    setPendingDeviceCount(count || 0);
+    const session = getAdminSession();
+    if (!session?.admin_id || !session.is_owner) return setPendingDeviceCount(0);
+    const { data, error } = await supabase.rpc('admin_list_pending_devices' as any, {
+      _owner_admin_id: session.admin_id,
+    });
+    if (!error) setPendingDeviceCount(((data as any[]) || []).filter((device) => device.status === 'pending').length);
   });
 
   return (
