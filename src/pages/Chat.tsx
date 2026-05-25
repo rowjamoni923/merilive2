@@ -2482,7 +2482,7 @@ const Chat = () => {
               {/* Header row */}
               <div className="flex items-center justify-between mb-2 px-1">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-[11px] font-semibold tracking-wide bg-gradient-to-r from-amber-700 via-rose-600 to-purple-700 bg-clip-text text-transparent whitespace-nowrap">
+                  <span className="text-[11px] font-semibold tracking-wide text-primary whitespace-nowrap">
                     ✨ Auto-Translate
                   </span>
                   <span className="text-[10px] text-muted-foreground">→</span>
@@ -2517,7 +2517,7 @@ const Chat = () => {
                       onClick={() => handleInlineLangChange(lang.code)}
                       className={`shrink-0 inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all duration-200 border ${ // dark-ok
                         active
-                          ? 'bg-gradient-to-r from-amber-400 via-rose-500 to-fuchsia-600 text-white border-white shadow-[0_4px_14px_rgba(244,114,182,0.45)] ring-2 ring-amber-300/70 scale-[1.04]'
+                          ? 'bg-gradient-primary text-primary-foreground border-primary-foreground/40 shadow-lg ring-2 ring-primary/30 scale-[1.04]'
                           : 'bg-card text-card-foreground border-border shadow-sm hover:border-accent hover:shadow-md hover:-translate-y-px'
                       }`}
                     >
@@ -2541,14 +2541,14 @@ const Chat = () => {
                   className="mt-2 rounded-xl px-3 py-2 bg-gradient-to-br from-card via-primary/5 to-secondary/5 border border-primary/20 shadow-inner"
                 >
                   <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-[10px] font-bold text-purple-700">
+                    <span className="text-[10px] font-bold text-primary">
                       {languageOptions.find(l => l.code === inlineTargetLang)?.flag} {inlineTargetLang}
                     </span>
                     {isInlineTranslating && (
                       <span className="inline-flex gap-0.5">
-                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                        <span className="w-1 h-1 bg-purple-500 rounded-full animate-bounce" />
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce" />
                       </span>
                     )}
                   </div>
@@ -2674,20 +2674,20 @@ const Chat = () => {
                 <div className="flex-1 relative">
                   <div className={cn(
                     "w-full h-11 rounded-full flex items-center justify-center gap-2",
-                    isRecording ? "bg-red-500/10" : "bg-green-500/10"
+                    isRecording ? "bg-destructive/10" : "bg-success/10"
                   )}>
                     {isRecording ? (
                       <>
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-red-500 font-semibold text-lg">
+                        <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
+                        <span className="text-destructive font-semibold text-lg">
                           {formatRecordingTime(recordingDuration)}
                         </span>
-                        <span className="text-red-500/70 text-sm">Recording...</span>
+                        <span className="text-destructive/70 text-sm">Recording...</span>
                       </>
                     ) : (
                       <>
-                        <Mic className="w-5 h-5 text-green-600" />
-                        <span className="text-green-600 font-medium">
+                        <Mic className="w-5 h-5 text-success-600" />
+                        <span className="text-success-600 font-medium">
                           {formatRecordingTime(recordingDuration)} Ready to send
                         </span>
                       </>
@@ -2705,8 +2705,8 @@ const Chat = () => {
                   className={cn(
                     "w-11 h-11 rounded-full flex items-center justify-center shadow-lg",
                     isRecording 
-                      ? "bg-red-500" 
-                      : "bg-gradient-to-r from-purple-500 to-pink-500"
+                      ? "bg-destructive" 
+                      : "bg-gradient-primary"
                   )}
                 >
                   {sendingVoice ? (
@@ -2836,7 +2836,7 @@ const Chat = () => {
                     }
                   }}
                   disabled={sending}
-                  className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+                    className="w-11 h-11 rounded-full bg-gradient-primary flex items-center justify-center shadow-lg"
                 >
  <Send className="w-5 h-5 text-primary-foreground" />
                 </motion.button>
@@ -2846,12 +2846,12 @@ const Chat = () => {
                 {/* WhatsApp-style single pill: emoji • input • attach • camera */}
                 <div className={cn(
                   "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-card/95 border border-border shadow-sm backdrop-blur-xl transition-colors",
-                  inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-300/70"
+                  inlineTranslateEnabled && "ring-1 ring-primary/40 border-primary/70"
                 )}>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
                     aria-label="Emoji"
                   >
                     <Smile className="w-[20px] h-[20px] text-muted-foreground" />
@@ -2868,7 +2868,7 @@ const Chat = () => {
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => { setShowMediaUploader(true); setShowEmojiPicker(false); }}
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
                     aria-label="Gallery"
                   >
                     <Camera className="w-[18px] h-[18px] text-muted-foreground" />
@@ -2881,13 +2881,13 @@ const Chat = () => {
                   whileTap={{ scale: 0.9 }}
                   onClick={message.trim() ? handleSend : handleVoiceRecord}
                   disabled={sending}
-                  className="shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 flex items-center justify-center shadow-md shadow-purple-500/30"
+                  className="shrink-0 w-11 h-11 rounded-full bg-gradient-primary flex items-center justify-center shadow-md shadow-primary/30"
                   aria-label={message.trim() ? "Send" : "Record voice"}
                 >
                   {message.trim() ? (
-                    <Send className="w-5 h-5 text-white" />
+                    <Send className="w-5 h-5 text-primary-foreground" />
                   ) : (
-                    <Mic className="w-5 h-5 text-white" />
+                    <Mic className="w-5 h-5 text-primary-foreground" />
                   )}
                 </motion.button>
               </>
