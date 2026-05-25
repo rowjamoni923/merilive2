@@ -313,10 +313,15 @@ const flushBatchSignQueue = () => {
 
 const batchSignAdminStoragePath = (storagePath: AdminStoragePath, adminToken: string) => new Promise<string | null>((resolve) => {
   batchSignQueue.push({ storagePath, adminToken, resolve });
+  // Microtask flush — coalesces all sign requests issued in the same tick
+  // (e.g. a page mounting 30 tiles) into ONE network round-trip without any
+  // artificial setTimeout delay.
   if (batchSignTimer === null) {
-    batchSignTimer = window.setTimeout(flushBatchSignQueue, 12);
+    batchSignTimer = 1;
+    queueMicrotask(() => { batchSignTimer = null; flushBatchSignQueue(); });
   }
 });
+
 
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
