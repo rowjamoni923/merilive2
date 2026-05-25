@@ -154,7 +154,7 @@ export function AdminLuxuryVideoPlayer({
         ref={videoRef}
         key={`${src}-${retryKey ?? ""}`}
         playsInline
-        preload="metadata"
+        preload="auto"
         muted={muted}
         autoPlay={autoPlay}
         poster={poster || undefined}
