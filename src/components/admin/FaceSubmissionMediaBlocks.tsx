@@ -99,7 +99,7 @@ export function FaceSubmissionMediaBlocks({ submission, priority = true }: { sub
 }
 
 /** Compact face media renderer for the modal view (bigger frames). */
-export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubmission }) {
+export function FaceSubmissionModalMedia({ submission, priority = true }: { submission: MediaSubmission; priority?: boolean }) {
   const faceClip = isRenderableFaceMediaUrl(submission.face_image_url) ? submission.face_image_url : null;
   const faceAngles = [submission.front_url, submission.left_url, submission.right_url].filter(isRenderableFaceMediaUrl);
   const selfieFallback = isRenderableFaceMediaUrl(submission.selfie_url) ? submission.selfie_url : null;
@@ -111,15 +111,15 @@ export function FaceSubmissionModalMedia({ submission }: { submission: MediaSubm
   return (
     <>
       {faceMedia && (
-        <AdminMediaFrame src={faceMedia} alt="Face" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
+        <AdminMediaFrame src={faceMedia} alt="Face" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName={isAdminVideoUrl(faceMedia) ? "h-64" : "h-64 object-cover"} />
       )}
 
       {livenessClip && (
-        <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} className="bg-background" mediaClassName="h-64" />
+        <AdminMediaFrame src={livenessClip} alt="Face liveness clip" kind="video" bucket="face-verification" poster={profilePhoto} priority={priority} className="bg-background" mediaClassName="h-64" />
       )}
 
       {introVideo && introVideo !== faceMedia && introVideo !== livenessClip && (
-        <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" className="bg-background" mediaClassName="h-64" />
+        <AdminMediaFrame src={introVideo} alt="Verification video" kind="video" bucket="face-verification" priority={priority} className="bg-background" mediaClassName="h-64" />
       )}
     </>
   );
