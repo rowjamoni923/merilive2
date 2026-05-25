@@ -2819,6 +2819,26 @@ const Chat = () => {
             </div>
           )}
           
+          {/* Reply Preview Bar */}
+          {replyingTo && (
+            <div className="px-4 pt-2 pb-1 flex items-center gap-2 animate-in slide-in-from-bottom-2 duration-200">
+              <div className="flex-1 flex items-center gap-2 pl-3 border-l-[3px] border-primary rounded-l-sm bg-muted/40 rounded-r-lg py-1.5 px-2">
+                <MessageSquareReply className="w-4 h-4 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold text-foreground truncate">{replyingTo.senderName}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{replyingTo.content}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setReplyingTo(null)}
+                className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0"
+                aria-label="Cancel reply"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+          )}
+          
           {/* Input Row - Voice Recording, Pending Media, or Text Mode */}
           <div className="px-4 py-3 flex items-center gap-2">
             {/* Recording Mode */}
