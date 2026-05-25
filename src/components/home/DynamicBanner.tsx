@@ -8,7 +8,7 @@ import { toSupabaseCdnUrl } from "@/lib/cdnImage";
 
 // Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
 const bannerCdn = (url: string | null | undefined) =>
-  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "cover" }) || url || "";
+  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "contain" }) || url || "";
 
 interface DynamicBannerProps {
   position?: 'top' | 'middle';
@@ -49,10 +49,10 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
     return true;
   });
 
-  // Split: last banner goes top (original first banner), rest go middle (after hosts)
+  // Split: first banner goes top, rest go middle (after hosts)
   const banners = position === 'top'
-    ? activeBanners.slice(-1)
-    : activeBanners.slice(0, -1);
+    ? activeBanners.slice(0, 1)
+    : activeBanners.slice(1);
 
   const getBannerAspectRatio = (bannerId: string) => {
     if (position === 'top') return 343 / 128;
@@ -120,7 +120,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                 decoding="async"
                 // @ts-expect-error – fetchpriority is a standard HTML hint
                 fetchpriority="high"
-                className={`absolute inset-0 block h-full w-full rounded-2xl object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute inset-0 block h-full w-full rounded-2xl object-contain transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                 onError={(e) => {
                   const t = e.currentTarget;
