@@ -184,6 +184,16 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         sound_url: normalizeGiftAssetUrl(gift.sound_url),
       }));
       setGifts(transformedGifts);
+      // Pkg C pass-2 — prewarm visible gift assets so first tap plays instantly.
+      // sessionPrewarmed dedupes inside the util, so repeat opens are cheap.
+      const assets: Array<string | null | undefined> = [];
+      transformedGifts.forEach(g => {
+        assets.push(g.animation_url);
+        assets.push(g.icon_url);
+      });
+      import('@/utils/giftAnimationPrewarm')
+        .then(m => m.prewarmGiftAssets(assets))
+        .catch(() => {});
     };
 
     const unsubscribe = subscribeToGiftCache(() => {
