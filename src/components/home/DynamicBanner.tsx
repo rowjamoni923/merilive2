@@ -102,27 +102,21 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
             style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
-              <div
-                className="relative w-full overflow-hidden rounded-2xl bg-white/[0.04]"
-                style={{ aspectRatio: '16 / 6' }}
-              >
-                <img
-                  src={bannerCdn(banner.image_url)}
-                  alt={banner.title}
-                  loading="eager"
-                  decoding="async"
-                  // @ts-expect-error – fetchpriority is a standard HTML hint
-                  fetchpriority="high"
-                  className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
-                  onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
-                  onError={(e) => {
-                    // CDN transform may be off (Pro plan) — retry original once, else hide.
-                    const t = e.currentTarget;
-                    if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
-                    (t.parentElement?.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
-                  }}
-                />
-              </div>
+              <img
+                src={bannerCdn(banner.image_url)}
+                alt={banner.title}
+                loading="eager"
+                decoding="async"
+                // @ts-expect-error – fetchpriority is a standard HTML hint
+                fetchpriority="high"
+                className={`block w-full h-auto rounded-2xl transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
+                onError={(e) => {
+                  const t = e.currentTarget;
+                  if (banner.image_url && t.src !== banner.image_url) { t.src = banner.image_url; return; }
+                  (t.parentElement as HTMLElement | null)?.style.setProperty('display', 'none');
+                }}
+              />
             ) : (
               <div className="flex items-center justify-between">
                 <div>
