@@ -210,25 +210,12 @@ const Index = () => {
       const baseProfiles = (profilesRes.data || []) as any[];
       const profiles = baseProfiles;
 
-      let activeBusyIds = new Set<string>();
-      const candidateHostIds = profiles.map((p: any) => p.id).filter(Boolean);
-      const busyProbeHostIds = candidateHostIds.slice(0, 36); // above-the-fold fast path
-
-      if (busyProbeHostIds.length > 0) {
-        const { data: activeCallsData } = await supabase
-          .from('private_calls')
-          .select('host_id')
-          .in('host_id', busyProbeHostIds)
-          .in('status', ['pending', 'ringing', 'connected'])
-          .is('ended_at', null);
-
-        activeBusyIds = new Set((activeCallsData || []).map((c: any) => c.host_id));
-      }
-
       // Map results
       const hostsWithStatus = profiles.map(profile => {
         const streamData = liveStreamMap.get(profile.id);
-        const isActuallyBusy = activeBusyIds.has(profile.id) || !!profile.is_in_call;
+        // Busy/callable status is server-derived by get_public_home_hosts_v1.
+        // Do not query private_calls from the home page: its RLS is participant-only.
+        const isActuallyBusy = !!profile.is_in_call;
         return {
           ...profile,
           is_in_call: isActuallyBusy,
