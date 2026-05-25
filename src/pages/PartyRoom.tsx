@@ -59,7 +59,6 @@ import { publishPartyClosed, type PartyClosedDetail } from "@/lib/livekitPartySi
 import { type GiftSentDetail } from "@/lib/livekitGiftSignaling";
 import { publishChatMessage } from "@/lib/livekitChatSignaling";
 import { publishPartyEvent, type PartyEventDetail, type ParticipantJoinedPayload, type SeatActionPayload, type RoomStateChangedPayload } from "@/lib/livekitPartyEventsSignaling";
-import { useVoiceActivityDetection } from "@/hooks/useVoiceActivityDetection";
 import { ParticipantVideo } from "@/components/party/ParticipantVideo";
 import { GameSelectionModal } from "@/components/party/GameSelectionModal";
 // UNIFIED ENTRY ANIMATION - Same architecture as Gift System
@@ -590,52 +589,9 @@ const PartyRoom = () => {
     isHost || myPosition !== null
   );
 
-  // Auto-close room handler when no voice activity for 10 seconds
-  const handleSilenceTimeout = useCallback(async () => {
-    if (!isHost || !roomId) return;
-    
-    console.log('[PartyRoom] Silence timeout - auto-closing room');
-    toast.info("Room closed due to inactivity");
-    
-    try {
-      // Mark room as inactive
-      await supabase
-        .from('party_rooms')
-        .update({ is_active: false })
-        .eq('id', roomId);
-      
-      // Leave all participants
-      await supabase
-        .from('party_room_participants')
-        .update({ left_at: new Date().toISOString() })
-        .eq('room_id', roomId)
-        .is('left_at', null);
-      
-      cleanupWebRTC();
-      navigate('/');
-    } catch (error) {
-      console.error('[PartyRoom] Error auto-closing room:', error);
-      recordClientError({ label: "PartyRoom.handleSilenceTimeout", message: error instanceof Error ? error.message : String(error) });
-    }
-  }, [isHost, roomId, cleanupWebRTC, navigate]);
-
-  // Voice activity detection for auto-close
-  // DISABLED for game rooms - games have their own lifecycle
-  // For audio/video rooms, only timeout after 5 MINUTES of complete silence (not 60 seconds)
-  const { isVoiceActive, silenceDuration, resetSilenceTimer } = useVoiceActivityDetection({
-    localStream,
-    peerStreams,
-    enabled: isHost && room?.room_type !== 'game', // CRITICAL: Completely disabled for game rooms
-    silenceTimeoutMs: 300000, // 5 MINUTES (was 60 seconds - too aggressive)
-    onSilenceTimeout: handleSilenceTimeout,
-  });
-
-  // Reset silence timer when new participant joins
-  useEffect(() => {
-    if (participants.length > 1) {
-      resetSilenceTimer();
-    }
-  }, [participants.length, resetSilenceTimer]);
+  // Voice/silence auto-close intentionally disabled for party rooms.
+  // Mobile WebView audio analyzers can report 0 analyzers during permission,
+  // reconnect, or LiveKit remount races; explicit close is the only DB close path.
 
   // Seat positions based on room type and ADMIN PANEL settings
   const getSeatPositions = () => {
