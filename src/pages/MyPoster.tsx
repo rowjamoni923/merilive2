@@ -177,11 +177,10 @@ const MyPoster = () => {
                 exit={{ opacity: 0, scale: 0.8 }}
                 className="relative aspect-[3/4] rounded-xl overflow-hidden group"
               >
-                <img
+                <img 
                   src={image.image_url}
                   alt={`Poster ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                  className="w-full h-full object-cover" loading="eager"/>
                 {/* Gradient border for primary */}
                 {index === 0 && (
                   <div className="absolute inset-0 border-2 border-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-xl pointer-events-none" 

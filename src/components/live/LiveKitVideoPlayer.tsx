@@ -312,7 +312,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           }}
         />
       </div>
-      <video
+      <video 
         ref={videoRef}
         autoPlay
         playsInline
@@ -342,9 +342,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
           opacity: 0,
           transition: 'opacity 160ms linear',
           zIndex: 1,
-        } as CSSProperties}
-
-      />
+        } as CSSProperties} preload="auto"/>
       {/* Pkg167: subtle edge vignette overlay (cinematic depth) */}
       <div
         aria-hidden

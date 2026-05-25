@@ -956,11 +956,11 @@ const AISupportChat = ({
                       {/* Image attachment */}
                       {message.attachmentUrl && message.attachmentType === "image" && (
                         <div className="mb-2">
-                          <img
+                          <img 
                             src={message.attachmentUrl}
                             alt="Attachment"
                             className="max-w-full rounded-lg max-h-48 object-cover cursor-pointer"
-                            onClick={() => window.open(message.attachmentUrl, "_blank")}
+                            onClick={() = loading="eager"> window.open(message.attachmentUrl, "_blank")}
                           />
                         </div>
                       )}

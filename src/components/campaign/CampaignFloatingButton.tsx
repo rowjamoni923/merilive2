@@ -786,12 +786,11 @@ function CampaignFloatingButton() {
                   }}
                 >
                   {campaign.banner_image_url ? (
-                    <img
+                    <img 
                       src={campaign.banner_image_url}
                       alt=""
                       className="absolute inset-0 block h-full w-full scale-[1.18] object-cover"
-                      style={{ objectPosition: 'center center' }}
-                    />
+                      style={{ objectPosition: 'center center' }} loading="eager"/>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <motion.span

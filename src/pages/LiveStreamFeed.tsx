@@ -218,11 +218,11 @@ export default function LiveStreamFeed() {
       className="fixed inset-0 bg-background overflow-hidden"
     >
       <div className="relative h-full w-full">
-        <img
+        <img 
           src={currentStream.thumbnail_url || currentStream.host?.avatar_url || "/placeholder.svg"}
           alt={currentStream.title || currentStream.host?.display_name || "Live stream"}
           className="h-full w-full object-cover"
-          onClick={() => navigate(`/live/${currentStream.id}`)}
+          onClick={() = loading="eager"> navigate(`/live/${currentStream.id}`)}
           onError={(event) => {
             const img = event.currentTarget;
             if (!img.dataset.fallbackApplied) {

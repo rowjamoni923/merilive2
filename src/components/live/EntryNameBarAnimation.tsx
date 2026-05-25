@@ -172,11 +172,10 @@ const EntryNameBarAnimationInner = memo(({
               {/* Layer 1: GIF/Image background */}
               {hasGifOrImage && cleanAnimUrl && gifLoaded && (
                 <div className="absolute inset-0 z-[1]">
-                  <img
+                  <img 
                     src={cleanAnimUrl}
                     alt=""
-                    className="w-full h-full object-cover"
-                  />
+                    className="w-full h-full object-cover" loading="eager"/>
                 </div>
               )}
 

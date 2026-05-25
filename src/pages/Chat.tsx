@@ -2313,7 +2313,7 @@ const Chat = () => {
                                     src={iconUrl} 
                                     alt="Gift" 
                                     className="w-10 h-10 object-contain"
-                                    onError={(e) => {
+                                    onError={(e) = loading="eager"> {
                                       (e.target as HTMLImageElement).style.display = 'none';
                                       (e.target as HTMLImageElement).insertAdjacentHTML('afterend', `<span class="text-xl">${giftEmoji}</span>`);
                                     }}
@@ -2326,7 +2326,7 @@ const Chat = () => {
                               {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
                               {isMine && diamondsAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-destructive rounded-full shadow-md">
-                                  <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
+                                  <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" loading="eager"/>
  <span className="text-[9px] font-bold text-primary-foreground">
                                     -{Number(diamondsAmount).toLocaleString()}
                                   </span>
@@ -2364,7 +2364,7 @@ const Chat = () => {
                                 src={displayUrl} 
                                 alt="Shared image"
                                 className="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => imageViewer.openImage(displayUrl)}
+                                onClick={() = loading="eager"> imageViewer.openImage(displayUrl)}
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).src = '/placeholder.svg';
                                 }}
@@ -2384,8 +2384,7 @@ const Chat = () => {
                               <video 
                                 src={displayUrl} 
                                 controls
-                                className="max-w-[200px] max-h-[200px] rounded-xl"
-                              />
+                                className="max-w-[200px] max-h-[200px] rounded-xl" preload="auto"/>
                               <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
                                 {formatTime(msg.created_at)}
                                 <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
@@ -2832,8 +2831,7 @@ const Chat = () => {
                         <img 
                           src={signedChatMediaUrls[pendingMedia.url] || pendingMedia.url} 
                           alt="Preview" 
-                          className="w-8 h-8 rounded-lg object-cover"
-                        />
+                          className="w-8 h-8 rounded-lg object-cover" loading="eager"/>
                         <span className="text-primary font-medium text-sm truncate">
                           📷 Image ready to send
                         </span>

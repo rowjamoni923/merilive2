@@ -232,8 +232,7 @@ export const FerrisWheelGame = () => {
             <img 
               src={ferrisWheelImage} 
               alt="Ferris Wheel" 
-              className="w-full h-full object-contain"
-            />
+              className="w-full h-full object-contain" loading="eager"/>
           </motion.div>
 
           {/* Center Display - Timer Overlay */}

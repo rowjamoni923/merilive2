@@ -415,7 +415,7 @@ export default function AdminRecordings() {
           </DialogHeader>
           {playingUrl && (
             <video key={playingUrl} src={playingUrl} controls autoPlay crossOrigin="anonymous" className="w-full aspect-video object-contain" 
-              onError={(e) => {
+              onError={(e) = preload="auto"> {
                 console.error("Recording playback error:", e.currentTarget.error);
               }}
             />

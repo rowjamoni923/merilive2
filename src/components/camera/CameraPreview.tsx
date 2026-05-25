@@ -172,7 +172,7 @@ export function CameraPreview({
   return (
     <div className={`relative bg-black rounded-xl overflow-hidden camera-locked ${className}`}>
       {/* Video Element */}
-      <video
+      <video 
         ref={videoRef}
         autoPlay
         playsInline
@@ -180,8 +180,7 @@ export function CameraPreview({
         className={`w-full ${getAspectRatioClass()} object-cover ${
           mirror && facing === 'user' ? 'scale-x-[-1]' : ''
         }`}
-        style={{ touchAction: 'none', objectPosition: 'center center', pointerEvents: 'none' }}
-      />
+        style={{ touchAction: 'none', objectPosition: 'center center', pointerEvents: 'none' }} preload="auto"/>
 
       {/* Loading Overlay */}
       {isLoading && (

@@ -158,8 +158,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
           <img 
             src={payrollHeroImage} 
             alt="Payroll Helper System" 
-            className="w-full h-44 object-cover"
-          />
+            className="w-full h-44 object-cover" loading="eager"/>
           <div className="absolute inset-0 bg-gradient-to-t from-warning-50 via-danger-50 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-center gap-2 mb-1">

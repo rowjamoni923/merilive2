@@ -359,12 +359,11 @@ export const ReelUploadModal = ({
               
               {videoPreview ? (
                 <div className="relative w-full">
-                  <video
+                  <video 
                     src={videoPreview}
                     className="w-full max-h-[300px] object-contain rounded-lg"
                     controls
-                    muted
-                  />
+                    muted preload="auto"/>
                   {!uploading && (
                     <button
                       onClick={(e) => {

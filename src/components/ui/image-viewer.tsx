@@ -71,13 +71,12 @@ export const ImageViewer = ({ src, alt = "Image", open, onClose }: ImageViewerPr
         {/* Image */}
         <div className="flex items-center justify-center w-full h-full overflow-auto p-4">
           {displaySrc ? (
-            <img
+            <img 
               src={displaySrc}
               alt={alt}
               className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
               style={{ transform: `scale(${scale})` }}
-              draggable={false}
-            />
+              draggable={false} loading="eager"/>
           ) : (
             <div className="text-sm text-white/70">Loading image</div>
           )}

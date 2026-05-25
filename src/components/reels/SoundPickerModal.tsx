@@ -264,11 +264,10 @@ export const SoundPickerModal = ({
                       className="relative w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-purple-600 to-pink-500 flex-shrink-0"
                     >
                       {sound.cover_image_url ? (
-                        <img
+                        <img 
                           src={sound.cover_image_url}
                           alt={sound.title}
-                          className="w-full h-full object-cover"
-                        />
+                          className="w-full h-full object-cover" loading="eager"/>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Disc3

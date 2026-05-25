@@ -365,7 +365,7 @@ const CreateParty = () => {
       className
     )}>
       {stream && isVideoEnabled ? (
-        <video
+        <video 
           ref={videoRef}
           autoPlay
           playsInline
@@ -373,8 +373,7 @@ const CreateParty = () => {
           className={cn(
             "w-full h-full object-cover",
             facingMode === "user" && "scale-x-[-1]"
-          )}
-        />
+          )} preload="auto"/>
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-700/50 to-orange-50">
           <AvatarWithFrame

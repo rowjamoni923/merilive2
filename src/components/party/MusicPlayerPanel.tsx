@@ -501,11 +501,10 @@ export function MusicPlayerPanel({
                     {/* Album Art */}
                     <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center overflow-hidden shadow-lg">
                       {currentTrack?.cover_image_url ? (
-                        <img
+                        <img 
                           src={getProxiedUrl(currentTrack.cover_image_url)}
                           alt={currentTrack.title}
-                          className="w-full h-full object-cover"
-                        />
+                          className="w-full h-full object-cover" loading="eager"/>
                       ) : (
                         <Music className="w-8 h-8 text-white" />
                       )}
@@ -703,11 +702,10 @@ export function MusicPlayerPanel({
                               : "bg-gray-100 text-gray-500"
                           )}>
                             {track.cover_image_url ? (
-                              <img
+                              <img 
                                 src={getProxiedUrl(track.cover_image_url)}
                                 alt={track.title}
-                                className="w-full h-full object-cover"
-                              />
+                                className="w-full h-full object-cover" loading="eager"/>
                             ) : currentTrack?.id === track.id && isPlaying ? (
                               <motion.div
                                 animate={{ scale: [1, 1.2, 1] }}

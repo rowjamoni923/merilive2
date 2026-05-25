@@ -883,7 +883,7 @@ const AdminShop = () => {
                           loop
                         />
                       ) : formData.file_type === 'video' ? (
-                        <video src={previewFile} className="w-full h-full object-contain" controls autoPlay muted loop />
+                        <video src={previewFile} className="w-full h-full object-contain" controls autoPlay muted loop preload="auto"/>
                       ) : formData.file_type === 'gif' ? (
                         <SmartImage src={previewFile} alt="Preview" cdnWidth={200} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                       ) : (
@@ -1240,7 +1240,7 @@ const AdminShop = () => {
                   <FixedAnimationFrame src={url} type="svga" size="fill" center={false} loop muted={false} />
                 );
                 if (isLottie(url)) return <FixedAnimationFrame src={url} type="lottie" size="fill" center={false} loop muted={false} />;
-                if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls />;
+                if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline controls preload="auto"/>;
                 return <SmartImage src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />;
               })()}
             </div>

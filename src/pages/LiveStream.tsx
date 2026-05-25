@@ -2652,7 +2652,7 @@ const LiveStream = () => {
           />
           
           <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
-            <img src={hostInfo.avatar || "/placeholder.svg"} alt={hostInfo.name} className="w-full h-full object-cover" />
+            <img src={hostInfo.avatar || "/placeholder.svg"} alt={hostInfo.name} className="w-full h-full object-cover" loading="eager"/>
           </div>
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-0.5 rounded-full shadow-lg">
             <span className="text-xs font-bold text-black">Lv{hostInfo.level}</span>
@@ -2890,7 +2890,7 @@ const LiveStream = () => {
         ) : showNativeHostSurface ? (
           <div className="absolute inset-0 pointer-events-none bg-transparent" />
         ) : showHostTransitionPreview ? (
-          <video
+          <video 
             ref={hostTransitionVideoRef}
             autoPlay
             playsInline
@@ -2912,8 +2912,7 @@ const LiveStream = () => {
               transform: 'scaleX(-1)',
               filter: combinedFilterCSS || undefined,
               WebkitAppearance: 'none',
-            }}
-          />
+            }} preload="auto"/>
         ) : isHost ? (
           <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center gap-4 px-6 text-center">
             {hostInfo?.avatar ? (
@@ -3741,11 +3740,10 @@ const LiveStream = () => {
             {/* Host Avatar */}
             <div className="relative mb-6">
               <div className="w-24 h-24 rounded-full border-4 border-amber-400/60 overflow-hidden shadow-2xl">
-                <img
+                <img 
                   src={hostInfo?.avatar || '/placeholder.svg'}
                   alt={hostInfo?.name}
-                  className="w-full h-full object-cover"
-                />
+                  className="w-full h-full object-cover" loading="eager"/>
               </div>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
@@ -3774,11 +3772,10 @@ const LiveStream = () => {
                     transition={{ delay: idx * 0.15 }}
                     className="w-24 h-32 rounded-xl overflow-hidden border-2 border-white/20 shadow-lg"
                   >
-                    <img
+                    <img 
                       src={photo}
                       alt={`${hostInfo?.name} photo ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="eager"/>
                   </motion.div>
                 ))}
               </div>

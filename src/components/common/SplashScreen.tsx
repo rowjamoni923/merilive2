@@ -109,12 +109,11 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
                   '0 20px 60px rgba(236,72,153,0.35), 0 0 0 1px rgba(236,72,153,0.22)',
               }}
             >
-              <img
+              <img 
                 src={appLogo}
                 alt="MeriLive"
                 className="absolute inset-0 block h-full w-full object-contain"
-                style={{ objectPosition: 'center center' }}
-              />
+                style={{ objectPosition: 'center center' }} loading="eager"/>
             </div>
           </motion.div>
 

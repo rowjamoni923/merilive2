@@ -44,8 +44,7 @@ export const Header = ({ coins, onRecharge, onSearch, onNotifications }: HeaderP
               <img 
                 src={logoImageUrl} 
                 alt="Logo" 
-                className="w-10 h-10 object-contain rounded-xl"
-              />
+                className="w-10 h-10 object-contain rounded-xl" loading="eager"/>
             ) : (
               <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
                 <span className="text-primary-foreground font-bold text-lg">

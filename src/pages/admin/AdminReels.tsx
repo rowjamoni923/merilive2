@@ -663,13 +663,12 @@ const AdminReels = () => {
             <DialogTitle className="text-white">Preview</DialogTitle>
           </DialogHeader>
           {selectedReel && (
-            <video
+            <video 
               src={selectedReel.video_url}
               className="w-full max-h-[70vh] object-contain"
               controls
               autoPlay
-              loop
-            />
+              loop preload="auto"/>
           )}
         </DialogContent>
       </Dialog>

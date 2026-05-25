@@ -129,7 +129,7 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
                       ? "ring-2 ring-blue-500"
                       : ""
                   }`}>
-                    <img src={maleAvatar} alt="Male" className="w-full h-full object-cover" />
+                    <img src={maleAvatar} alt="Male" className="w-full h-full object-cover" loading="eager"/>
                   </div>
                   <span className={`font-semibold ${
                     selectedGender === "male" ? "text-blue-400" : "text-slate-600"
@@ -167,7 +167,7 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
                       ? "ring-2 ring-pink-500"
                       : ""
                   }`}>
-                    <img src={femaleAvatar} alt="Female" className="w-full h-full object-cover" />
+                    <img src={femaleAvatar} alt="Female" className="w-full h-full object-cover" loading="eager"/>
                   </div>
                   <span className={`font-semibold ${
                     selectedGender === "female" ? "text-pink-400" : "text-slate-600"

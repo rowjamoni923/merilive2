@@ -70,7 +70,7 @@ describe('Realtime video surfaces — host + visitor must have ZERO native video
         .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
       const fileUsesHardener = /hardenVideoElementForNative/.test(src);
 
-      const re = /<video\b([^>]*?)(?:\/>|>)/gms;
+      const re = /<video \b([^>]*?)(?:\/>|>)/gms;
       let m: RegExpExecArray | null;
       while ((m = re.exec(src))) {
         const attrs = m[1];

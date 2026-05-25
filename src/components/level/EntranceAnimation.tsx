@@ -250,8 +250,7 @@ const EntranceAnimationInner = memo(({
             muted
             playsInline
             className="w-full h-full object-cover"
-            onEnded={handleAnimationComplete}
-          />
+            onEnded={handleAnimationComplete} preload="auto"/>
         </motion.div>
       );
     }
@@ -314,11 +313,10 @@ const EntranceAnimationInner = memo(({
           )}>
             {/* Avatar */}
             {userInfo.avatarUrl ? (
-              <img
+              <img 
                 src={userInfo.avatarUrl}
                 alt=""
-                className="w-9 h-9 rounded-full border-2 border-white/60 object-cover shadow-lg"
-              />
+                className="w-9 h-9 rounded-full border-2 border-white/60 object-cover shadow-lg" loading="eager"/>
             ) : (
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 border-2 border-white/60 flex items-center justify-center text-white font-bold text-sm shadow-lg">
                 {userInfo.displayName.charAt(0).toUpperCase()}

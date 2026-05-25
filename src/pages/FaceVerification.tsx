@@ -2091,7 +2091,7 @@ const FaceVerification = () => {
                 playsInline
                 muted
                 className="w-full h-full object-cover scale-x-[-1]"
-                onLoadedMetadata={() => setCameraReady(true)}
+                onLoadedMetadata={() = preload="auto"> setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
                 style={{ backgroundColor: '#000' }}
@@ -2875,7 +2875,7 @@ const FaceVerification = () => {
               {userPhotoPreview ? (
                 <div className="space-y-4">
                   <div className="w-48 h-48 mx-auto rounded-2xl overflow-hidden border-2 border-purple-500/50">
-                    <img src={userPhotoPreview} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={userPhotoPreview} alt="Profile" className="w-full h-full object-cover" loading="eager"/>
                   </div>
                   <div className="flex gap-3">
                     <Button variant="outline" className="flex-1 border-amber-200/60 text-slate-800" onClick={() => { setUserPhotoFile(null); setUserPhotoPreview(null); }}>
@@ -3010,7 +3010,7 @@ const FaceVerification = () => {
                 onClick={() => photoInputRef.current?.click()}
               >
                 {photoPreview ? (
-                  <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" loading="eager"/>
                 ) : (
                   <Camera className="w-10 h-10 text-purple-500" />
                 )}
@@ -3092,7 +3092,7 @@ const FaceVerification = () => {
             {/* Video Upload/Record */}
             <div className="aspect-video w-full rounded-2xl overflow-hidden bg-white/80 border border-amber-200/60 mb-4 relative shadow-lg">
               {videoPreview ? (
-                <video src={videoPreview} controls className="w-full h-full object-cover" />
+                <video src={videoPreview} controls className="w-full h-full object-cover" preload="auto"/>
               ) : isRecording ? (
                 <>
                   <video 
@@ -3100,8 +3100,7 @@ const FaceVerification = () => {
                     autoPlay 
                     playsInline 
                     muted 
-                    className="w-full h-full object-cover scale-x-[-1]"
-                  />
+                    className="w-full h-full object-cover scale-x-[-1]" preload="auto"/>
                   <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-500 px-4 py-1.5 rounded-full shadow-lg">
                     <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
                     <span className="text-slate-800 text-sm font-bold">{recordingTime}s / 15s</span>
@@ -3183,7 +3182,7 @@ const FaceVerification = () => {
                   onClick={() => hostPhotosInputRef.current?.click()}
                 >
                   {hostPhotosPreviews[index] ? (
-                    <img src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                    <img src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" loading="eager"/>
                   ) : (
                     <Camera className="w-8 h-8 text-slate-500" />
                   )}
@@ -3253,7 +3252,7 @@ const FaceVerification = () => {
             <div className="text-center">
               <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-purple-500/50">
                 {existingAccount.avatarUrl ? (
-                  <img src={existingAccount.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={existingAccount.avatarUrl} alt="" className="w-full h-full object-cover" loading="eager"/>
                 ) : (
                   <div className="w-full h-full bg-purple-600 flex items-center justify-center">
                     <User className="w-10 h-10 text-slate-800" />

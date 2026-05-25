@@ -1,7 +1,7 @@
 /**
  * Pkg204 — Picture-in-Picture toggle button (M1).
  *
- * Drop-in glass button. Pass a ref to the host's <video> element and the
+ * Drop-in glass button. Pass a ref to the host's <video preload="auto"> element and the
  * button handles PiP enter/exit + cross-browser state sync.
  *
  * Hidden automatically when neither standard PiP nor iOS Safari
@@ -9,7 +9,7 @@
  *
  * Usage:
  *   const videoRef = useRef<HTMLVideoElement>(null);
- *   <video ref={videoRef} … />
+ *   <video ref={videoRef} … preload="auto"/>
  *   <PictureInPictureButton videoRef={videoRef} />
  */
 

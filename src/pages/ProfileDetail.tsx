@@ -809,7 +809,7 @@ const ProfileDetail = () => {
           );
         })}
         {posterImages.length === 0 && (
-          <img src={getCurrentCoverImage()} alt="" className="absolute inset-0 w-full h-full object-contain bg-black" />
+          <img src={getCurrentCoverImage()} alt="" className="absolute inset-0 w-full h-full object-contain bg-black" loading="eager"/>
         )}
         {/* Premium gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-[#f7f8fa]" /> {/* dark-ok: intentional photo→footer overlay, no text inside */}
@@ -964,7 +964,7 @@ const ProfileDetail = () => {
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
  <Badge className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-slate-900 border-0 text-[10px] shadow-lg shadow-fuchsia-500/20 px-2.5 py-0.5 font-bold flex items-center gap-1">
                   {levelIcon?.icon_url && (levelIcon.icon_url.startsWith('http') || levelIcon.icon_url.startsWith('/')) ? (
-                    <img src={levelIcon.icon_url} alt={`Lv${level}`} className="w-3.5 h-3.5 object-contain rounded-sm" />
+                    <img src={levelIcon.icon_url} alt={`Lv${level}`} className="w-3.5 h-3.5 object-contain rounded-sm" loading="eager"/>
                   ) : null}
                   Lv{level}
                 </Badge>
@@ -1085,7 +1085,7 @@ const ProfileDetail = () => {
                         ) : frame.frame_url.endsWith('.json') ? (
                           <UniversalFramePlayer src={frame.frame_url} type="lottie" className="w-full h-full" loop={true} autoPlay={true} />
                         ) : (
-                          <img src={frame.frame_url} alt="" className="w-full h-full object-contain" />
+                          <img src={frame.frame_url} alt="" className="w-full h-full object-contain" loading="eager"/>
                         )
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400" />
@@ -1102,14 +1102,14 @@ const ProfileDetail = () => {
                       className="w-14 h-14 rounded-xl overflow-hidden ring-1 ring-white/15 shadow-lg"
                     >
                       {bar.preview_url ? (
-                        <img src={bar.preview_url} alt="" className="w-full h-full object-cover" />
+                        <img src={bar.preview_url} alt="" className="w-full h-full object-cover" loading="eager"/>
                       ) : bar.animation_url ? (
                         bar.animation_url.endsWith('.svga') ? (
                           <UniversalFramePlayer src={bar.animation_url} type="svga" className="w-full h-full" loop={true} autoPlay={true} />
                         ) : bar.animation_url.endsWith('.json') ? (
                           <UniversalFramePlayer src={bar.animation_url} type="lottie" className="w-full h-full" loop={true} autoPlay={true} />
                         ) : (
-                          <img src={bar.animation_url} alt="" className="w-full h-full object-cover" />
+                          <img src={bar.animation_url} alt="" className="w-full h-full object-cover" loading="eager"/>
                         )
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-amber-500/30 to-orange-500/30 flex items-center justify-center">
@@ -1154,7 +1154,7 @@ const ProfileDetail = () => {
                             ) : isLottie ? (
                               <UniversalFramePlayer src={assetUrl} type="lottie" className="w-full h-full" loop={true} autoPlay={true} />
                             ) : (
-                              <img src={assetUrl} alt="" className="w-full h-full object-contain" />
+                              <img src={assetUrl} alt="" className="w-full h-full object-contain" loading="eager"/>
                             )
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-amber-500/30 to-purple-500/30 flex items-center justify-center">

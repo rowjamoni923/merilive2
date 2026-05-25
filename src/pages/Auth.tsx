@@ -2086,7 +2086,7 @@ const Auth = () => {
               src={branding.logo_image_url} 
               alt="Logo" 
               className="w-28 h-28 object-contain"
-              onError={(e) => {
+              onError={(e) = loading="eager"> {
                 (e.target as HTMLImageElement).onerror = null;
                 (e.target as HTMLImageElement).src = '/logo.png';
               }}
@@ -2706,7 +2706,7 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full blur-2xl opacity-60 animate-pulse bg-gradient-to-br from-pink-500/50 via-purple-500/40 to-orange-400/30" />
                   <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-pink-500/40 shadow-2xl shadow-pink-500/30">
-                    <img src="/images/merilive-logo.png" alt="MeriLive" className="w-full h-full object-cover" />
+                    <img src="/images/merilive-logo.png" alt="MeriLive" className="w-full h-full object-cover" loading="eager"/>
                   </div>
                 </div>
               </div>

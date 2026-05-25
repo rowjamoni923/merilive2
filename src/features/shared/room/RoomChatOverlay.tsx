@@ -387,7 +387,7 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
                 src={gameLogoUrl} 
                 alt={gameWinData.gameName} 
                 className="w-full h-full object-cover"
-                onError={(e) => {
+                onError={(e) = loading="eager"> {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />

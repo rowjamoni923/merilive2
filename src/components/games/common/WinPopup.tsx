@@ -171,7 +171,7 @@ export function WinPopup({ show, amount, multiplier, emoji, logoUrl, message, is
                       src={getProxiedUrl(logoUrl)} 
                       alt="Game"
                       className="w-10 h-10 object-contain"
-                      onError={() => setImageError(true)}
+                      onError={() = loading="eager"> setImageError(true)}
                     />
                   </div>
                 ) : (

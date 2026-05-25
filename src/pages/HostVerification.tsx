@@ -750,7 +750,7 @@ const HostVerification = () => {
                   onClick={() => photoInputRef.current?.click()}
                 >
                   {photoPreview ? (
-                    <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" loading="eager"/>
                   ) : (
                     <Camera className="w-8 h-8 text-purple-400" />
                   )}
@@ -856,8 +856,7 @@ const HostVerification = () => {
                     autoPlay 
                     muted 
                     playsInline
-                    className="w-full h-full object-cover"
-                  />
+                    className="w-full h-full object-cover" preload="auto"/>
                   <div className="absolute top-4 left-4 bg-red-500 text-slate-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                     <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                     REC {recordingTime}s / 10s
@@ -868,8 +867,7 @@ const HostVerification = () => {
                 <video 
                   src={videoPreview} 
                   controls 
-                  className="w-full h-full object-cover"
-                />
+                  className="w-full h-full object-cover" preload="auto"/>
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
                   <Film className="w-16 h-16 mb-4" />
@@ -951,8 +949,7 @@ const HostVerification = () => {
                 <img 
                   src={faceVerificationImage} 
                   alt="Face" 
-                  className="w-full h-full object-cover"
-                />
+                  className="w-full h-full object-cover" loading="eager"/>
               ) : faceStream ? (
                 <>
                   <video 
@@ -960,8 +957,7 @@ const HostVerification = () => {
                     autoPlay 
                     muted 
                     playsInline
-                    className="w-full h-full object-cover"
-                  />
+                    className="w-full h-full object-cover" preload="auto"/>
                   {/* Face guide overlay */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="w-48 h-48 border-4 border-amber-200/60 rounded-full" />
