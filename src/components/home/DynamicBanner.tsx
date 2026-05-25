@@ -8,7 +8,7 @@ import { toSupabaseCdnUrl } from "@/lib/cdnImage";
 
 // Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
 const bannerCdn = (url: string | null | undefined) =>
-  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "contain" }) || url || "";
+  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "cover" }) || url || "";
 
 interface DynamicBannerProps {
   position?: 'top' | 'middle';
