@@ -1384,6 +1384,9 @@ const Chat = () => {
 
   function upsertLiveMessage(messageRow: any) {
     const newMessage = castMessage(messageRow);
+    if (newMessage.reply_to_id) {
+      void loadReplyMessages([newMessage.reply_to_id]);
+    }
 
     setMessages(prev => {
       const baseMessages = prev.filter(
@@ -1395,10 +1398,6 @@ const Chat = () => {
       );
 
       if (baseMessages.find(m => m.id === newMessage.id)) return baseMessages;
-
-      if (newMessage.reply_to_id) {
-        void loadReplyMessages([newMessage.reply_to_id]);
-      }
 
       return [
         ...baseMessages,
