@@ -639,9 +639,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           if (els) {
             els.forEach(el => {
               const key = el.dataset.livekitAudioKey;
-              if (key) remoteAudioTrackKeysRef.current.delete(key);
+              if (key) {
+                remoteAudioTrackKeysRef.current.delete(key);
+                detachLiveKitRemoteAudio(key);
+              }
             });
-            els.forEach(el => el.remove());
             remoteAudioElementsRef.current.delete(participant.identity);
           }
         }
@@ -675,9 +677,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         if (els) {
           els.forEach(el => {
             const key = el.dataset.livekitAudioKey;
-            if (key) remoteAudioTrackKeysRef.current.delete(key);
+            if (key) {
+              remoteAudioTrackKeysRef.current.delete(key);
+              detachLiveKitRemoteAudio(key);
+            }
           });
-          els.forEach(el => el.remove());
           remoteAudioElementsRef.current.delete(participant.identity);
         }
       });
