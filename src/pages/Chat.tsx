@@ -3286,6 +3286,44 @@ const Chat = () => {
               />
             )}
           </AnimatePresence>
+
+          {/* Message Info Dialog */}
+          <Dialog open={showMessageInfo} onOpenChange={setShowMessageInfo}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="text-foreground">Message Info</DialogTitle>
+              </DialogHeader>
+              {messageInfoMessage && (
+                <div className="space-y-3 py-2">
+                  <div className="rounded-xl bg-muted p-3">
+                    <p className="text-sm text-foreground break-words">{messageInfoMessage.content}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Sent</span>
+                      <span className="text-foreground font-medium">{new Date(messageInfoMessage.created_at).toLocaleString()}</span>
+                    </div>
+                    {messageInfoMessage.delivered_at && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Delivered</span>
+                        <span className="text-foreground font-medium">{new Date(messageInfoMessage.delivered_at).toLocaleString()}</span>
+                      </div>
+                    )}
+                    {messageInfoMessage.read_at && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Read</span>
+                        <span className="text-foreground font-medium">{new Date(messageInfoMessage.read_at).toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Status</span>
+                      <span className="text-foreground font-medium capitalize">{messageInfoMessage.status || 'sent'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     );
