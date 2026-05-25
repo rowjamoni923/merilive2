@@ -2912,7 +2912,7 @@ const Chat = () => {
                   <div className={cn(
                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border backdrop-blur-xl",
                     inlineTranslateEnabled 
-                      ? "bg-gradient-to-br from-primary/30 to-secondary/30 border-primary/40 shadow-lg shadow-purple-500/20" 
+                      ? "bg-gradient-primary border-primary/40 shadow-lg shadow-primary/20" 
  :"bg-card/70 border-border hover:bg-muted"
                   )}>
                     <Languages className={cn(
