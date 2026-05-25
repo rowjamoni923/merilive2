@@ -339,6 +339,13 @@ const PartyRoom = () => {
   // Track joins already processed by broadcast to deduplicate with postgres_changes
   const processedBroadcastJoinsRef = useRef(new Set<string>());
   const joinedRoomKeyRef = useRef<string | null>(null);
+  const explicitLeaveRef = useRef(false);
+  const [mediaReady, setMediaReady] = useState(false);
+
+  useEffect(() => {
+    explicitLeaveRef.current = false;
+    setMediaReady(false);
+  }, [roomId]);
 
   // Calculate if current user is host for room protection
   const isHostForProtection = room?.host_id === currentUser?.id;
@@ -348,22 +355,7 @@ const PartyRoom = () => {
     roomType: 'party',
     enabled: !!roomId,
     onNetworkClose: async () => {
-      console.log('[PartyRoom] Network lost - closing room');
-      if (isHostForProtection && roomId) {
-        // Mark room as inactive
-        await supabase
-          .from('party_rooms')
-          .update({ is_active: false })
-          .eq('id', roomId);
-      }
-      // Remove participant record
-      if (currentUser?.id && roomId) {
-        await supabase
-          .from('party_room_participants')
-          .delete()
-          .eq('room_id', roomId)
-          .eq('user_id', currentUser.id);
-      }
+      console.log('[PartyRoom] Network lost - keeping room open while LiveKit reconnects');
     },
   });
 
@@ -591,7 +583,7 @@ const PartyRoom = () => {
     cleanup: cleanupWebRTC,
     getPeerStream,
   } = usePartyRoomWebRTC(
-    roomId || null,
+    mediaReady ? roomId || null : null,
     currentUser?.id || null,
     room?.room_type || 'video',
     isHost,
@@ -1043,7 +1035,9 @@ const PartyRoom = () => {
       window.removeEventListener('livekit-gift-sent', handleLiveKitPartyGift);
       window.removeEventListener('livekit-party-event', handleLiveKitPartyEvent);
       void (async () => {
-        await leaveRoomForCleanup(roomId);
+        if (explicitLeaveRef.current) {
+          await leaveRoomForCleanup(roomId);
+        }
         cleanupWebRTC();
       })();
       // Pkg81b/c: participantChannel + participantChannelContinued deleted (null refs).
@@ -1201,6 +1195,7 @@ const PartyRoom = () => {
         p_password: null,
       });
       if (enterError) throw enterError;
+      setMediaReady(true);
       
       // 🎯 HOST RULE: Host opening their OWN room should NOT see/trigger an entry effect.
       // Only viewers (and other participants) see entry banners + animations.
@@ -1324,6 +1319,8 @@ const PartyRoom = () => {
     if (!roomId || !currentUser) return;
 
     try {
+      explicitLeaveRef.current = true;
+      setMediaReady(false);
       // If host is leaving, close the room completely
       console.log('[PartyRoom] leaveRoom called - isHost:', isHost, 'roomId:', roomId, 'userId:', currentUser.id);
       
@@ -1970,6 +1967,7 @@ const PartyRoom = () => {
           }
         }}
         onClose={async () => {
+          explicitLeaveRef.current = true;
           await leaveRoom();
           cleanupWebRTC();
           navigate('/');
