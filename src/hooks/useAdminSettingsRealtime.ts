@@ -276,7 +276,7 @@ const refreshBanners = async () => {
     .from('banners')
     .select('*')
     .eq('is_active', true)
-    .eq('location', 'home')
+    .or('location.is.null,location.eq.home')
     .order('display_order', { ascending: true });
   globalBanners = (data || []).map((b: any) => ({
     ...b,
