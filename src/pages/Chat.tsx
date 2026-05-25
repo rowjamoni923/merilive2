@@ -3281,11 +3281,10 @@ const Chat = () => {
             <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
               <MessageCircle className="w-10 h-10 text-purple-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2 text-slate-700">No conversations yet</h3>
-            <p className="text-slate-600 text-sm mb-4">Start a conversation with someone!</p>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">No conversations yet</h3>
+            <p className="text-muted-foreground text-sm mb-4">Start a conversation with someone!</p>
             <Button
- className="rounded-full font-bold text-slate-900"
-              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
+ className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
               onClick={() => navigate('/')}
             >
               Find Hosts
@@ -3328,17 +3327,17 @@ const Chat = () => {
                 </div>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate text-slate-900">{conv.other_user?.display_name || 'User'}</h3>
+                    <h3 className="font-semibold truncate text-foreground">{conv.other_user?.display_name || 'User'}</h3>
                     {conv.other_user?.country_flag && (
                       <span className="text-xs">{conv.other_user.country_flag}</span>
                     )}
                     <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
-                    <span className="text-[10px] text-slate-600 shrink-0 ml-auto font-medium">
+                    <span className="text-[10px] text-muted-foreground shrink-0 ml-auto font-medium">
                       {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-0.5">
-                    <p className="text-sm text-slate-600 truncate">{conv.last_message || 'No messages yet'}</p>
+                    <p className="text-sm text-muted-foreground truncate">{conv.last_message || 'No messages yet'}</p>
                     {conv.unread_count > 0 && (
  <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
                         {conv.unread_count}
