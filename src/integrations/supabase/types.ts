@@ -15911,6 +15911,10 @@ export type Database = {
       }
     }
     Functions: {
+      _admin_device_fingerprint_is_valid: {
+        Args: { _fingerprint: string }
+        Returns: boolean
+      }
       _current_admin_display: { Args: never; Returns: string }
       _current_admin_role: { Args: never; Returns: string }
       _do_reverse_auto_action: {
