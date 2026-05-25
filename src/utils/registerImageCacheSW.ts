@@ -1,34 +1,17 @@
 /**
- * Image cache service worker registration + warm-up helper.
- * Goal: every banner/photo loads in ~0ms after first view (cache-first SW)
- * + critical banners are warmed at app boot so even the first view is instant.
+ * Image cache service worker warm-up helper (Pkg B).
+ *
+ * The unified service worker lives at /firebase-messaging-sw.js and handles:
+ * 1. FCM background push notifications
+ * 2. Same-origin asset caching (JS/CSS/fonts/images) — stale-while-revalidate
+ * 3. Cross-origin image caching (avatars, banners, gifts, reels from Supabase/CDN) — cache-first
+ *
+ * This module only registers the SW if not already present, and sends WARM_IMAGES
+ * to pre-populate the cross-origin image cache so even the first view is instant.
  */
-import { supabase } from '@/integrations/supabase/client';
+import { supabase }  from '@/integrations/supabase/client';
 
 let registered = false;
-let registration: ServiceWorkerRegistration | null = null;
-
-export async function registerImageCacheSW(): Promise<void> {
-  if (registered) return;
-  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
-  // Don't register on admin panel host (keeps admin tools cleanly cache-busted)
-  try {
-    const host = window.location.hostname;
-    if (window.location.pathname.startsWith('/admin') || host.startsWith('merilive.com') || host === 'merilive.com') {
-      // admin host — skip
-      return;
-    }
-  } catch {
-    // ignore
-  }
-  registered = true;
-  try {
-    registration = await navigator.serviceWorker.register('/image-cache-sw.js', { scope: '/' });
-  } catch (e) {
-    // best-effort; do not block app
-    return;
-  }
-}
 
 function postWarm(urls: string[]) {
   if (!urls.length) return;
@@ -39,11 +22,10 @@ function postWarm(urls: string[]) {
     send(navigator.serviceWorker.controller);
     return;
   }
-  // Wait for activation
   navigator.serviceWorker.ready.then(reg => send(reg.active)).catch(() => {});
 }
 
-/** Browser-side preload via <link rel="preload"> + Image() — kicks fetch immediately. */
+/** Browser-level preloads — works even when SW isn't ready yet. */
 function preloadInBrowser(urls: string[]) {
   urls.forEach(u => {
     if (!u) return;
@@ -52,28 +34,53 @@ function preloadInBrowser(urls: string[]) {
       img.decoding = 'async';
       (img as any).fetchPriority = 'low';
       img.src = u;
-    } catch {
-      // ignore
-    }
+    } catch {}
   });
 }
 
+export async function registerImageCacheSW(): Promise<void> {
+  if (registered) return;
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+
+  // Skip only actual admin subdomains, NOT the main app domain.
+  // Previous bug: host.startsWith('merilive.com') skipped production.
+  try {
+    const host = window.location.hostname;
+    if (host.startsWith('admin.')) return;
+  } catch {
+    // ignore
+  }
+
+  registered = true;
+
+  // If no SW is controlling yet, register the unified SW.
+  // (FCM registers the same file later if push permission is granted.)
+  if (!navigator.serviceWorker.controller) {
+    try {
+      await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+    } catch (e) {
+      // best-effort; do not block app
+    }
+  }
+}
+
 /**
- * Warm cache with all visible app banners/popups/campaign images at boot.
- * Runs at idle so it never blocks first paint.
+ * Warm the image cache with critical app images at boot idle time.
+ * Runs via requestIdleCallback so it never blocks first paint.
  */
 export async function warmAppImageCache(): Promise<void> {
   if (typeof window === 'undefined') return;
+
   const run = async () => {
     const urls = new Set<string>();
     const push = (v: any) => {
       if (typeof v === 'string' && /^https?:\/\//.test(v)) urls.add(v);
     };
 
-    // Pull active banner-style assets in parallel. Each query is best-effort.
     const queries: Promise<any>[] = [];
-
     const safe = async (fn: () => Promise<any>) => { try { await fn(); } catch {} };
+
+    // Universal banners / campaigns (app + admin preview)
     queries.push(safe(async () => {
       const { data } = await supabase.from('entry_banners').select('image_url, animation_url').eq('is_active', true).limit(20);
       (data || []).forEach((r: any) => { push(r.image_url); push(r.animation_url); });
@@ -91,13 +98,28 @@ export async function warmAppImageCache(): Promise<void> {
       (data || []).forEach((r: any) => push(r.image_url));
     }));
 
+    // Host / gift / frame assets that appear on home feed & profile
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('gifts').select('image_url').eq('is_active', true).limit(50);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('vip_frames').select('image_url').eq('is_active', true).limit(30);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('role_frames').select('image_url').eq('is_active', true).limit(30);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+
     await Promise.allSettled(queries);
 
     const list = Array.from(urls);
     if (!list.length) return;
-    // Browser-level preload (works even without SW)
+
+    // Browser preload (works immediately, even before SW activates)
     preloadInBrowser(list);
-    // SW cache warm (instant on next view, persists across sessions)
+    // SW cache warm (persists across sessions)
     postWarm(list);
   };
 
