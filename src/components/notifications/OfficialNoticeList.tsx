@@ -133,7 +133,13 @@ export const OfficialNoticeList = () => {
   // notices refresh instantly without visibility-refresh/polling fallback.
   useEffect(() => {
     if (!currentUserId) return;
-    return subscribeToTables(`official-notices-${currentUserId}`, ['admin_notices'], () => {
+    return subscribeToTables(`official-notices-${currentUserId}`, ['admin_notices', 'notifications'], (table, _event, payload) => {
+      if (table === 'notifications') {
+        const noticeId = payload?.data?.notice_id;
+        if (payload?.user_id !== currentUserId || !noticeId) return;
+        if (!['admin_message', 'admin_notice'].includes(String(payload?.type || ''))) return;
+      }
+
       void fetchNotices();
     });
   }, [currentUserId, fetchNotices]);
