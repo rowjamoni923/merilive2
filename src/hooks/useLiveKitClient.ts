@@ -506,6 +506,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         } : {}),
       });
       roomRef.current = room;
+      primeLiveKitRoomMedia(room);
 
       const uid = config.uid || Math.floor(Math.random() * 100000);
       uidRef.current = uid;
@@ -794,6 +795,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
         room.removeAllListeners();
         roomRef.current = config.preloadedRoom;
+        primeLiveKitRoomMedia(config.preloadedRoom);
 
         // Re-wire essential events on the preloaded room
         const pRoom = config.preloadedRoom;
