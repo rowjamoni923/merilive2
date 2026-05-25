@@ -56,6 +56,8 @@ const sessionMatchesLinkRole = (session: ReturnType<typeof getAdminSession>, rol
 };
 
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
+  const location = useLocation();
+  const accessTokenFromRoute = new URLSearchParams(location.search).get('access')?.trim() || null;
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(() => {
     if (typeof window === 'undefined') return null;
 
@@ -67,7 +69,14 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
     return hasAdminAccessFlag() && !!getAdminLinkToken();
   });
-  const location = useLocation();
+    const isAuthRoute = location.pathname === '/admin/auth' || location.pathname === '/admin/login';
+
+    if (isAuthRoute && !accessTokenFromRoute) {
+      return true;
+    }
+
+    return hasAdminAccessFlag() && !!getAdminLinkToken();
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -121,8 +130,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         return;
       }
 
-      // No secret link, no tab unlock → deny. Even if a stale local admin
-      // session exists, it cannot grant access without a secret-link unlock.
+       // Plain admin login page must stay reachable so owners can at least see
+       // the login screen instead of being trapped on the public BlogPage.
+       if (isLoginRoute()) {
+         setIsAuthorized(true);
+         return;
+       }
+
+       // No secret link, no tab unlock → deny. Even if a stale local admin
+       // session exists, it cannot grant access without a secret-link unlock.
       if (session || storedLinkToken || tabAlreadyUnlocked) {
         clearAdminSession();
         revokeAdminAccess();
@@ -242,7 +258,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       return <Navigate to="/admin" replace />;
     }
     // If NO session and NOT on login route → redirect to login (preserve token in URL is unnecessary, flag is stored)
-    if (!session && !isLoginRoute()) {
+     if (!session && !isLoginRoute()) {
         return <Navigate to={accessToken ? `/admin/auth?access=${encodeURIComponent(accessToken)}` : "/admin/auth"} replace />;
     }
     return <>{children}</>;
