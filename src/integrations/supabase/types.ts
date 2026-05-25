@@ -18648,6 +18648,10 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      is_group_member: {
+        Args: { _group_id: string; _user_id?: string }
+        Returns: boolean
+      }
       is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
       is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_owner_email: { Args: { _email: string }; Returns: boolean }
