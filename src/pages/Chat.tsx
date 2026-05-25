@@ -1057,6 +1057,42 @@ const Chat = () => {
     return () => { cancelled = true; };
   }, [selectedGroup, currentUserId]);
 
+  useEffect(() => {
+    if (!selectedGroup?.id) return;
+
+    const unsubscribe = subscribeToTables(
+      `chat-group-messages-${selectedGroup.id}`,
+      ['group_messages'],
+      (_table: string, event: string, payload: any) => {
+        if (payload?.group_id !== selectedGroup.id) return;
+
+        if (event === 'INSERT') {
+          setGroupMessages(prev => {
+            if (prev.some(m => m.id === payload.id)) return prev;
+            return [...prev, { ...payload, sender: null }];
+          });
+
+          const senderId = payload.sender_id;
+          if (senderId) {
+            supabase
+              .from('profiles_public')
+              .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
+              .eq('id', senderId)
+              .maybeSingle()
+              .then(({ data }) => {
+                if (!data) return;
+                setGroupMessages(prev => prev.map(m =>
+                  m.id === payload.id ? { ...m, sender: data } : m
+                ));
+              });
+          }
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, [selectedGroup?.id]);
+
   // Fetch host's received gifts count and subscribe to real-time updates
   useEffect(() => {
     if (!selectedConversation?.other_user?.id) return;
