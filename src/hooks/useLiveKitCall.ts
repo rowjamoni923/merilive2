@@ -281,8 +281,9 @@ export function useLiveKitCall(
                   video: true,
                   audio: true,
                   lens: 'front',
-                  resolution: '1080p',
+                  resolution: '720p',
                   attachLocal: true,
+                  callType: 'Video Call',
                 });
                 lastNErr = null;
                 break;
@@ -607,7 +608,7 @@ export function useLiveKitCall(
             if (originalTrack && originalTrack.readyState === 'live') {
               const beautifiedTrack = await processTrackWithBeauty(originalTrack);
               if (beautifiedTrack !== originalTrack) {
-                await room.localParticipant.unpublishTrack(cameraPub.track);
+                await room.localParticipant.unpublishTrack(cameraPub.track, false);
                 await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
                 console.log('[LiveKitCall] ✅ Beauty filter applied to call');
               }
