@@ -7,9 +7,10 @@ import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert, MessageSquareReply, SmilePlus, Info } from "lucide-react";
 import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
 import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
+import { VoiceMessagePlayer } from "@/components/chat/VoiceMessagePlayer";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { MediaUploader } from "@/components/chat/MediaUploader";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
@@ -110,6 +111,7 @@ interface Message {
   status?: 'sending' | 'sent' | 'delivered' | 'read';
   delivered_at?: string | null;
   read_at?: string | null;
+  reply_to_id?: string | null;
   _optimistic?: boolean; // client-only flag for optimistic messages
 }
 
@@ -212,6 +214,17 @@ const Chat = () => {
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
   const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
   const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
+
+  // Reply state
+  const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string } | null>(null);
+  const [replyMessages, setReplyMessages] = useState<Record<string, { content: string; sender_id: string }>>({});
+  
+  // Message reactions (client-side only until DB table exists)
+  const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
+  
+  // Message info dialog
+  const [showMessageInfo, setShowMessageInfo] = useState(false);
+  const [messageInfoMessage, setMessageInfoMessage] = useState<Message | null>(null);
 
   // 🛡️ DM dedup guard: enforce one row per message id at all times. Catches
   // any race between optimistic insert, REST fetch, realtime INSERT,
@@ -1371,16 +1384,20 @@ const Chat = () => {
     conversationId: string,
     senderId: string,
     content: string,
-    messageType: string
+    messageType: string,
+    replyToId?: string | null
   ) {
+    const insertData: any = {
+      conversation_id: conversationId,
+      sender_id: senderId,
+      content,
+      message_type: messageType,
+    };
+    if (replyToId) insertData.reply_to_id = replyToId;
+
     const { data: newMsg, error } = await supabase
       .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: senderId,
-        content,
-        message_type: messageType,
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -1401,7 +1418,7 @@ const Chat = () => {
 
   // Pkg212 — offline DM outbox: drain queued messages on reconnect/resume/tick.
   useMessageOutboxDrain(!!currentUserId, currentUserId, async (item: OutboxItem) => {
-    await persistDirectMessage(item.conversationId, item.senderId, item.content, item.messageType);
+    await persistDirectMessage(item.conversationId, item.senderId, item.content, item.messageType, item.replyToId);
     // Replace the queued optimistic bubble with a "sent" one — realtime
     // upsertLiveMessage will replace it with the canonical row shortly.
     setMessages(prev => prev.map(m =>
@@ -1434,6 +1451,17 @@ const Chat = () => {
         }) as any)
       : [];
     setMessages([...serverMsgs, ...queued]);
+
+    // Fetch reply-to messages for quote rendering
+    const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))];
+    if (replyIds.length > 0) {
+      const { data: replies } = await supabase
+        .from('messages')
+        .select('id, content, sender_id')
+        .in('id', replyIds);
+      const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id }]));
+      setReplyMessages(prev => ({ ...prev, ...map }));
+    }
 
     // Mark as delivered via RPC
     if (currentUserId) {
@@ -1622,6 +1650,7 @@ const Chat = () => {
         is_read: false,
         message_type: 'text',
         status: 'sending',
+        reply_to_id: replyingTo?.messageId || null,
         _optimistic: true,
       };
       setMessages(prev => [...prev, optimisticMsg]);
@@ -1661,8 +1690,12 @@ const Chat = () => {
           selectedConversation.id,
           currentUserId,
           contentToSend,
-          'text'
+          'text',
+          replyingTo?.messageId
         );
+        
+        // Clear reply after successful send
+        setReplyingTo(null);
         
         // Track message sent for task progress
         trackTaskProgress('messages_sent', { increment: 1 });
@@ -1729,6 +1762,7 @@ const Chat = () => {
             senderId: currentUserId,
             content: contentToSend,
             messageType: 'text',
+            replyToId: replyingTo?.messageId,
           });
           // Mark the optimistic message as queued (waiting to send)
           setMessages(prev => prev.map(m =>
@@ -2198,7 +2232,7 @@ const Chat = () => {
         </header>
         
         {/* Messages */}
-        <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain" style={{ background: 'linear-gradient(180deg, hsl(40 40% 98% / 0.6) 0%, transparent 15%, transparent 85%, hsl(40 40% 98% / 0.6) 100%)', WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain chat-wallpaper" style={{ WebkitOverflowScrolling: 'touch' }}>
           {currentMessages.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground font-medium">No messages yet. Say hello! 👋</p>
@@ -2239,6 +2273,7 @@ const Chat = () => {
                     </div>
                   )}
                   <div
+                    id={`msg-${msg.id}`}
                     className={cn("flex gap-2 group", isMine ? "justify-end" : "justify-start", sameAsPrev ? "mt-0.5" : "mt-2")}
                   >
                     <div className={cn("flex gap-2 max-w-[78%]", isMine && "flex-row-reverse")}>
@@ -2281,6 +2316,34 @@ const Chat = () => {
                           </p>
                         </button>
                       )}
+                      {/* Reply Quote */}
+                      {msg.reply_to_id && (() => {
+                        const replyTo = replyMessages[msg.reply_to_id];
+                        const rName = replyTo ? (
+                          replyTo.sender_id === currentUserId
+                            ? (myProfile?.display_name || 'You')
+                            : (isGroup ? msg.sender?.display_name : selectedConversation?.other_user?.display_name) || 'User'
+                        ) : 'Unknown';
+                        const rText = replyTo ? (replyTo.content || '').slice(0, 60) : 'Original message';
+                        return (
+                          <div className={cn(
+                            "mb-1 pl-2.5 border-l-[3px] rounded-l-sm py-0.5 pr-1 cursor-pointer",
+                            isMine ? "border-primary-foreground/40" : "border-primary/40"
+                          )} onClick={() => {
+                            const el = document.getElementById(`msg-${msg.reply_to_id}`);
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }}>
+                            <p className={cn(
+                              "text-[10px] font-semibold truncate",
+                              isMine ? "text-primary-foreground/80" : "text-primary/80"
+                            )}>{rName}</p>
+                            <p className={cn(
+                              "text-[11px] truncate opacity-70",
+                              isMine ? "text-primary-foreground/60" : "text-muted-foreground/60"
+                            )}>{rText}</p>
+                          </div>
+                        );
+                      })()}
                       {/* Message Bubble - No background for gifts */}
                       {(() => {
                         const content = msg.content || '';
@@ -2428,25 +2491,14 @@ const Chat = () => {
                           );
                         }
 
-                        // Audio messages - minimal background
+                        // Audio messages - WhatsApp-style waveform player
                         if (isAudio) {
                           return (
-                            <div className={cn(
-                              "rounded-2xl px-3 py-2",
-                              isMine
- ?"bg-gradient-primary text-primary-foreground rounded-br-sm"
-                                : "bg-muted rounded-bl-sm"
-                            )}>
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                                  <Mic className="w-4 h-4" />
-                                </div>
-                                <audio 
-                                  src={displayUrl} 
-                                  controls
-                                  className="max-w-[180px] h-8"
-                                />
-                              </div>
+                            <div className="flex flex-col">
+                              <VoiceMessagePlayer
+                                src={displayUrl}
+                                isMine={isMine}
+                              />
                               <p className={cn(
                                 "text-[10px] mt-1 flex items-center gap-0.5",
                                 isMine ? "text-primary-foreground/85" : "text-muted-foreground"
@@ -2487,25 +2539,69 @@ const Chat = () => {
                           </div>
                         );
                       })()}
+                      {/* Reactions */}
+                      {messageReactions[msg.id] && messageReactions[msg.id].length > 0 && (
+                        <div className={cn(
+                          "flex flex-wrap gap-1 mt-0.5",
+                          isMine ? "justify-end" : "justify-start"
+                        )}>
+                          {messageReactions[msg.id].map((emoji, i) => (
+                            <span key={i} className="text-[13px] leading-none bg-card/80 rounded-full px-1 py-0.5 shadow-sm border border-border">
+                              {emoji}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     
                     {/* Three Dot Menu for each message */}
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <button className="self-center p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
                           <MoreVertical className="w-4 h-4 text-muted-foreground" />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align={isMine ? "end" : "start"}>
+                      <DropdownMenuContent align={isMine ? "end" : "start"} className="bg-popover text-popover-foreground border border-border rounded-2xl min-w-[200px] shadow-xl p-1.5">
+                        <DropdownMenuItem onClick={() => {
+                          setReplyingTo({
+                            messageId: msg.id,
+                            content: (msg.content || '').slice(0, 80),
+                            senderName: senderName,
+                            senderId: msg.sender_id
+                          });
+                          toast.success("Replying to message");
+                        }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                          <MessageSquareReply className="w-4 h-4 text-primary" />
+                          <span className="font-medium text-sm">Reply</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setMessageReactions(prev => {
+                            const current = prev[msg.id] || [];
+                            const next = current.includes('❤️') ? current.filter(e => e !== '❤️') : [...current, '❤️'];
+                            return { ...prev, [msg.id]: next };
+                          });
+                          toast.success('Reacted ❤️');
+                        }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                          <SmilePlus className="w-4 h-4 text-amber-500" />
+                          <span className="font-medium text-sm">React</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setMessageInfoMessage(msg);
+                          setShowMessageInfo(true);
+                        }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                          <Info className="w-4 h-4 text-blue-400" />
+                          <span className="font-medium text-sm">Info</span>
+                        </DropdownMenuItem>
+                        <div className="h-px bg-border my-1" />
                         <DropdownMenuItem onClick={() => {
                           navigator.clipboard.writeText(msg.content);
                           toast.success("Message copied!");
-                        }}>
-                          Copy
+                        }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                          <span className="font-medium text-sm">Copy</span>
                         </DropdownMenuItem>
                         {!isMine && (
-                          <DropdownMenuItem onClick={() => otherUserId && navigate(`/profile-detail/${otherUserId}`)}>
-                            View Profile
+                          <DropdownMenuItem onClick={() => otherUserId && navigate(`/profile-detail/${otherUserId}`)} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
+                            <span className="font-medium text-sm">View Profile</span>
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -2720,6 +2816,26 @@ const Chat = () => {
                   </motion.button>
                 ))}
               </div>
+            </div>
+          )}
+          
+          {/* Reply Preview Bar */}
+          {replyingTo && (
+            <div className="px-4 pt-2 pb-1 flex items-center gap-2 animate-in slide-in-from-bottom-2 duration-200">
+              <div className="flex-1 flex items-center gap-2 pl-3 border-l-[3px] border-primary rounded-l-sm bg-muted/40 rounded-r-lg py-1.5 px-2">
+                <MessageSquareReply className="w-4 h-4 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold text-foreground truncate">{replyingTo.senderName}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{replyingTo.content}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setReplyingTo(null)}
+                className="p-1.5 rounded-full hover:bg-muted transition-colors shrink-0"
+                aria-label="Cancel reply"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
             </div>
           )}
           
@@ -3170,6 +3286,44 @@ const Chat = () => {
               />
             )}
           </AnimatePresence>
+
+          {/* Message Info Dialog */}
+          <Dialog open={showMessageInfo} onOpenChange={setShowMessageInfo}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="text-foreground">Message Info</DialogTitle>
+              </DialogHeader>
+              {messageInfoMessage && (
+                <div className="space-y-3 py-2">
+                  <div className="rounded-xl bg-muted p-3">
+                    <p className="text-sm text-foreground break-words">{messageInfoMessage.content}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Sent</span>
+                      <span className="text-foreground font-medium">{new Date(messageInfoMessage.created_at).toLocaleString()}</span>
+                    </div>
+                    {messageInfoMessage.delivered_at && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Delivered</span>
+                        <span className="text-foreground font-medium">{new Date(messageInfoMessage.delivered_at).toLocaleString()}</span>
+                      </div>
+                    )}
+                    {messageInfoMessage.read_at && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Read</span>
+                        <span className="text-foreground font-medium">{new Date(messageInfoMessage.read_at).toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Status</span>
+                      <span className="text-foreground font-medium capitalize">{messageInfoMessage.status || 'sent'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     );
