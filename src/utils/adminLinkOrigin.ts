@@ -11,9 +11,14 @@ export const getAdminLinkOrigin = (): string => {
   if (typeof window === 'undefined') return FALLBACK_ADMIN_ORIGIN;
 
   const { origin, hostname } = window.location;
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
   const isBlockedHost = BLOCKED_HOST_PATTERNS.some((pattern) =>
     hostname === pattern || hostname.endsWith(`.${pattern}`),
   );
+
+  if (isAdminRoute) {
+    return origin;
+  }
 
   return isBlockedHost ? FALLBACK_ADMIN_ORIGIN : origin;
 };
