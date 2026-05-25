@@ -1,9 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
 /**
  * Force Reset Guest Password
@@ -17,18 +24,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { deviceId } = await req.json();
-
-    if (!deviceId) {
-      return new Response(
-        JSON.stringify({ error: "deviceId is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const auth = await requireAdminSession(req, supabase, { sectionKey: "user-management", requireEdit: true });
+    if (!auth.ok) return json({ error: auth.error }, auth.status);
+
+    const { deviceId } = await req.json();
+
+    if (typeof deviceId !== "string" || !/^device_[A-Za-z0-9_:-]{6,128}$/.test(deviceId)) {
+      return json({ error: "Valid deviceId is required" }, 400);
+    }
 
     // Find profile with this device_id
     const { data: profile, error: profileError } = await supabase
@@ -36,14 +45,22 @@ Deno.serve(async (req) => {
       .select("id, display_name")
       .eq("device_id", deviceId)
       .eq("is_deleted", false)
+      .eq("is_banned", false)
+      .eq("is_blocked", false)
       .maybeSingle();
 
     if (profileError || !profile) {
-      return new Response(
-        JSON.stringify({ success: false, reason: "no_profile_found" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: false, reason: "no_profile_found" });
     }
+
+    const { data: bannedDevice } = await supabase
+      .from("banned_devices")
+      .select("id")
+      .eq("device_id", deviceId)
+      .eq("is_active", true)
+      .or(`is_permanent.eq.true,expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+      .maybeSingle();
+    if (bannedDevice?.id) return json({ success: false, reason: "device_banned" }, 403);
 
     // Deterministic credentials
     const guestEmail = `guest_${deviceId}@meri.local`;
@@ -61,23 +78,14 @@ Deno.serve(async (req) => {
 
     if (updateError) {
       console.error("[force-reset-guest-password] Update failed:", updateError);
-      return new Response(
-        JSON.stringify({ success: false, reason: "update_failed", error: updateError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: false, reason: "update_failed", error: updateError.message }, 500);
     }
 
-    console.log(`[force-reset-guest-password] ✅ Reset password for user ${profile.id} (${profile.display_name})`);
+    console.log(`[force-reset-guest-password] ✅ Reset password for user ${profile.id} by admin ${auth.admin.id}`);
 
-    return new Response(
-      JSON.stringify({ success: true, userId: profile.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ success: true, userId: profile.id });
   } catch (err) {
     console.error("Error:", err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ error: "Internal server error" }, 500);
   }
 });

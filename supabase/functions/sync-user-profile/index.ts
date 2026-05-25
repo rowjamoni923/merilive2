@@ -7,6 +7,12 @@ const corsHeaders = {
 
 type JsonRecord = Record<string, any>
 
+const normalizeDeviceId = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return /^device_[A-Za-z0-9_:-]{6,128}$/.test(trimmed) ? trimmed : null
+}
+
 /**
  * Sync User Profile - Current Server Only
  * 
@@ -85,6 +91,23 @@ Deno.serve(async (req) => {
     // No profile — create one from auth metadata
     const meta = user.user_metadata || {}
     const displayName = meta.full_name || meta.name || meta.username || (user.email ? user.email.split('@')[0] : 'User')
+    const metadataDeviceId = normalizeDeviceId(meta.device_id)
+
+    if (metadataDeviceId) {
+      const { data: bannedDevice } = await newClient
+        .from('banned_devices')
+        .select('id')
+        .eq('device_id', metadataDeviceId)
+        .eq('is_active', true)
+        .or(`is_permanent.eq.true,expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .maybeSingle()
+      if (bannedDevice?.id) {
+        return new Response(JSON.stringify({ synced: false, reason: 'device_banned' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
 
     const newProfile: JsonRecord = {
       id: user.id,
@@ -98,7 +121,7 @@ Deno.serve(async (req) => {
       country_flag: meta.country_flag || null,
       country_name: meta.country_name || null,
       app_uid: meta.app_uid || null,
-      device_id: meta.device_id || null,
+      device_id: metadataDeviceId,
       is_verified: Boolean(user.email_confirmed_at),
       coins: 0,
       diamonds: 0,

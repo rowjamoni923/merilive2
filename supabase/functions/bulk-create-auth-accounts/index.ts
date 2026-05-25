@@ -1,9 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
 /**
  * Bulk Create Auth Accounts
@@ -29,14 +36,17 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    const auth = await requireAdminSession(req, adminClient, { ownerOnly: true });
+    if (!auth.ok) return json({ error: auth.error }, auth.status);
+
     // Optional: pass batch_size and offset for chunked processing
     let body: any = {};
     try {
       body = await req.json();
     } catch {}
     
-    const batchSize = body.batch_size || 200;
-    const startOffset = body.offset || 0;
+    const batchSize = Math.min(Math.max(Number(body.batch_size) || 200, 1), 500);
+    const startOffset = Math.max(Number(body.offset) || 0, 0);
     const dryRun = body.dry_run === true;
 
     // 1. Get profiles with device_id
@@ -44,6 +54,9 @@ Deno.serve(async (req) => {
       .from("profiles")
       .select("id, device_id, display_name, gender, avatar_url, app_uid, email")
       .not("device_id", "is", null)
+      .eq("is_deleted", false)
+      .eq("is_banned", false)
+      .eq("is_blocked", false)
       .order("created_at", { ascending: true })
       .range(startOffset, startOffset + batchSize - 1);
 
@@ -69,7 +82,19 @@ Deno.serve(async (req) => {
 
     for (const profile of profiles) {
       const deviceId = profile.device_id;
-      if (!deviceId) {
+      if (!deviceId || !/^device_[A-Za-z0-9_:-]{6,128}$/.test(deviceId)) {
+        skipped++;
+        continue;
+      }
+
+      const { data: bannedDevice } = await adminClient
+        .from("banned_devices")
+        .select("id")
+        .eq("device_id", deviceId)
+        .eq("is_active", true)
+        .or(`is_permanent.eq.true,expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .maybeSingle();
+      if (bannedDevice?.id) {
         skipped++;
         continue;
       }
@@ -157,7 +182,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`[bulk-create-auth] ✅ Batch done: created=${created}, skipped=${skipped}, errors=${errors}, offset=${startOffset}`);
+    console.log(`[bulk-create-auth] ✅ Batch done by owner ${auth.admin.id}: created=${created}, skipped=${skipped}, errors=${errors}, offset=${startOffset}`);
 
     return new Response(
       JSON.stringify({

@@ -27,9 +27,9 @@ Deno.serve(async (req) => {
   try {
     const { deviceId } = await req.json();
 
-    if (!deviceId) {
+    if (typeof deviceId !== "string" || !/^device_[A-Za-z0-9_:-]{6,128}$/.test(deviceId)) {
       return new Response(
-        JSON.stringify({ error: "deviceId is required" }),
+        JSON.stringify({ error: "Valid deviceId is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -44,12 +44,29 @@ Deno.serve(async (req) => {
       .select("id, display_name, device_id")
       .eq("device_id", deviceId)
       .eq("is_deleted", false)
+      .eq("is_banned", false)
+      .eq("is_blocked", false)
       .maybeSingle();
 
     if (profileError || !profile) {
       return new Response(
         JSON.stringify({ converted: false, reason: "no_profile_found" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: bannedDevice } = await supabase
+      .from("banned_devices")
+      .select("id")
+      .eq("device_id", deviceId)
+      .eq("is_active", true)
+      .or(`is_permanent.eq.true,expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+      .maybeSingle();
+
+    if (bannedDevice?.id) {
+      return new Response(
+        JSON.stringify({ converted: false, reason: "device_banned" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
