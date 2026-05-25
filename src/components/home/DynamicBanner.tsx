@@ -93,12 +93,12 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
 
   return (
     <>
-      <div className="space-y-2">
+      <div className="space-y-1.5 pt-1">
         {banners.map((banner) => (
           <div
             key={banner.id}
             onClick={() => handleBannerClick(banner)}
-            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'relative aspect-[343/105] bg-transparent' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
+            className={`rounded-2xl overflow-hidden ${banner.image_url ? 'mt-1' : 'p-4'} ${banner.link_url ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
             style={banner.image_url ? {} : { backgroundColor: banner.background_color }}
           >
             {banner.image_url ? (
@@ -109,7 +109,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                 decoding="async"
                 // @ts-expect-error – fetchpriority is a standard HTML hint
                 fetchpriority="high"
-                className={`absolute inset-0 block h-full w-full rounded-2xl object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                className={`block w-full h-auto rounded-2xl transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                 onError={(e) => {
                   const t = e.currentTarget;
