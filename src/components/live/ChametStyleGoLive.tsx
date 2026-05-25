@@ -536,7 +536,7 @@ export const CoHostSlotComponent = ({ slot, isEmpty, onInviteClick }: CoHostSlot
   return (
     <div className="relative w-20 h-24 rounded-xl overflow-hidden">
       <Avatar className="w-full h-full rounded-xl">
-        <AvatarImage src={slot.avatarUrl} className="object-cover" />
+        <AvatarImage src={slot.avatarUrl} className="object-contain" />
         <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-500 text-white text-lg rounded-xl">
           {slot.displayName?.[0] || 'U'}
         </AvatarFallback>

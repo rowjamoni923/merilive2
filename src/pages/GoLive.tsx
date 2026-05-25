@@ -1048,7 +1048,7 @@ const GoLive = () => {
                 <img 
                   src={userProfile.avatar_url} 
                   alt={userProfile.display_name || "User"} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">

@@ -31,7 +31,7 @@ export const StoryCircle = ({
       >
         <div className="p-0.5 bg-background rounded-full">
           <Avatar className="w-16 h-16 transition-transform duration-300 group-hover:scale-105">
-            <AvatarImage src={avatarUrl} alt={name} className="object-cover" />
+            <AvatarImage src={avatarUrl} alt={name} className="object-contain" />
             <AvatarFallback className="gradient-primary text-primary-foreground text-lg">
               {name.charAt(0)}
             </AvatarFallback>

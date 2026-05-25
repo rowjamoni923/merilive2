@@ -12,7 +12,7 @@ export interface SmartImageProps
   cdnHeight?: number;
   /** 20-100 (default 70). */
   quality?: number;
-  /** "cover" | "contain" | "fill" (default cover). */
+  /** "contain" | "cover" | "fill" (default contain). */
   resize?: CdnImageOptions["resize"];
   /** Eager-load (above the fold). Default lazy. */
   eager?: boolean;
@@ -24,7 +24,7 @@ export interface SmartImageProps
  * SmartImage — drop-in <img> replacement for dynamic Supabase Storage URLs.
  *
  * - Auto-rewrites `…/object/public/<bucket>/<path>` → Supabase Image Transform
- *   (`/render/image/public/<bucket>/<path>?width=&quality=&resize=cover`)
+ *   (`/render/image/public/<bucket>/<path>?width=&quality=&resize=contain`)
  *   so a 2MB raw upload becomes a 20-40KB WebP at the requested size.
  * - Falls back to the original URL automatically if transform endpoint errors
  *   (e.g. Supabase Pro plan / image transformations off → 400).
@@ -39,7 +39,7 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
       cdnWidth,
       cdnHeight,
       quality = 70,
-      resize = "cover",
+      resize = "contain",
       eager,
       fallbackSrc,
       onError,

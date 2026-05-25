@@ -103,7 +103,7 @@ const PremiumAvatarFrame: React.FC<PremiumAvatarFrameProps> = ({
       {/* Avatar - Always centered (Behind frame) z-10 */}
       <div className="absolute inset-0 flex items-center justify-center z-10">
         <Avatar className={cn(config.avatar, 'border-2 border-white/20')}>
-          <AvatarImage src={avatarSrc || undefined} className="object-cover" />
+          <AvatarImage src={avatarSrc || undefined} className="object-contain" />
           <AvatarFallback className={cn(
             'bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold',
             config.text
