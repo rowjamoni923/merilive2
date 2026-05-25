@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,6 +35,12 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
   try {
     const adminClient = createClient(
@@ -41,59 +48,11 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // ────────────────────────────────────────────────────────────────
-    // AUTH: caller MUST present a valid admin session via x-admin-token
-    // (server-issued, stored in admin_sessions and bound to admin_user_id)
-    // OR a Supabase auth JWT belonging to an active owner in admin_users.
-    // We do NOT trust any client-supplied admin_id any more — that was an
-    // owner-takeover vector (anyone knowing an owner uuid could fetch the
-    // live login tokens).
-    // ────────────────────────────────────────────────────────────────
-    let isOwner = false;
-
-    const adminTokenHeader = req.headers.get('x-admin-token');
-    if (adminTokenHeader && adminTokenHeader.length >= 16) {
-      const { data: sessionRow } = await adminClient
-        .from('admin_sessions')
-        .select('admin_user_id, expires_at')
-        .eq('session_token', adminTokenHeader)
-        .gt('expires_at', new Date().toISOString())
-        .maybeSingle();
-      if (sessionRow?.admin_user_id) {
-        const { data: row } = await adminClient
-          .from('admin_users')
-          .select('role, is_active')
-          .eq('id', sessionRow.admin_user_id)
-          .maybeSingle();
-        if (row?.role === 'owner' && row?.is_active) isOwner = true;
-      }
-    }
-
-    // Legacy fallback — Supabase JWT mapped to admin_users.user_id
-    if (!isOwner) {
-      const authHeader = req.headers.get('Authorization');
-      if (authHeader) {
-        const userClient = createClient(
-          Deno.env.get('SUPABASE_URL')!,
-          Deno.env.get('SUPABASE_ANON_KEY')!,
-          { global: { headers: { Authorization: authHeader } } }
-        );
-        const { data: { user } } = await userClient.auth.getUser();
-        if (user) {
-          const { data: row } = await adminClient
-            .from('admin_users')
-            .select('role, is_active')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          if (row?.role === 'owner' && row?.is_active) isOwner = true;
-        }
-      }
-    }
-
-    if (!isOwner) {
+    const auth = await requireAdminSession(req, adminClient, { ownerOnly: true });
+    if (!auth.ok) {
       return new Response(
-        JSON.stringify({ error: 'Only owners can view tokens' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: auth.error }),
+        { status: auth.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
