@@ -28,7 +28,7 @@ function isSkippable(v: HTMLVideoElement): boolean {
   try {
     if (!!v.closest(SKIP_SELECTOR) || v.matches?.(SKIP_SELECTOR)) return true;
     const stream = v.srcObject;
-    if (stream instanceof MediaStream) {
+    if (typeof MediaStream !== 'undefined' && stream instanceof MediaStream) {
       return stream.getTracks().some((track) => track.readyState === 'live' && /camera|microphone|screen|unknown/i.test((track as any).label || ''));
     }
     return false;
