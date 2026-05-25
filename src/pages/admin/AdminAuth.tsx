@@ -23,6 +23,14 @@ const loginSchema = z.object({
 
 type FlowState = 'login' | 'pending_approval' | 'rejected';
 
+interface PendingAuthData {
+  email: string;
+  display_name: string | null;
+  role: 'owner' | 'sub_admin';
+  is_owner: boolean;
+  must_change_password: boolean;
+}
+
 export default function AdminAuth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -35,6 +43,7 @@ export default function AdminAuth() {
   const [pendingAdminId, setPendingAdminId] = useState<string | null>(null);
   const [pendingFingerprint, setPendingFingerprint] = useState<string | null>(null);
   const [pendingSessionToken, setPendingSessionToken] = useState<string | null>(null);
+  const [pendingAuthData, setPendingAuthData] = useState<PendingAuthData | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
 
   // Pre-fill email from URL
@@ -100,66 +109,40 @@ export default function AdminAuth() {
   }, [flow, pendingAdminId, pendingFingerprint, pendingSessionToken]);
 
   const completeLoginAfterApproval = async () => {
-    // Re-authenticate to retrieve full admin info & save session
-    if (!email || !password) {
+    // Device approval already belongs to the pending server session created by
+    // the secret-link challenge login. Do NOT re-authenticate here: the login
+    // challenge is single-use by design.
+    if (!pendingAdminId || !pendingFingerprint || !pendingSessionToken || !pendingAuthData) {
       toast.error('Please log in again');
       setFlow('login');
       return;
     }
-    const { data, error } = await adminSupabase.rpc('admin_authenticate' as any, {
-      _email: email.trim().toLowerCase(),
-      _password: password,
-      _link_challenge: getAdminLinkChallenge(),
-    });
-    if (error || !(data as any)?.success) {
-      toast.error('Login failed after approval');
-      setFlow('login');
-      return;
-    }
-    const result = data as any;
     const linkKind = getAdminLinkKind();
-    if (linkKind === 'owner' && !result.is_owner) {
+    if (linkKind === 'owner' && !pendingAuthData.is_owner) {
       toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
       revokeAdminAccess();
       clearAdminSession();
       setFlow('login');
       return;
     }
-    if (linkKind === 'sub_admin' && result.is_owner) {
+    if (linkKind === 'sub_admin' && pendingAuthData.is_owner) {
       toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
       revokeAdminAccess();
       clearAdminSession();
       setFlow('login');
       return;
     }
-    const fp = getDeviceFingerprint();
-    setAdminSessionToken(result.session_token);
-    const { data: deviceData, error: deviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
-      _admin_id: result.admin_id,
-      _device_fingerprint: fp.fingerprint,
-      _device_name: fp.deviceName,
-      _device_info: fp.details,
-      _ip_address: null,
-      _user_agent: navigator.userAgent,
-    });
-    if (deviceError || (deviceData as any)?.status !== 'approved') {
-      clearAdminSession();
-      setAdminSessionToken(null);
-      toast.error('Device approval could not be confirmed. Please log in again.');
-      setFlow('login');
-      return;
-    }
     saveAdminSession({
-      admin_id: result.admin_id,
-      email: result.email,
-      display_name: result.display_name,
-      role: result.role,
-      is_owner: !!result.is_owner,
-      must_change_password: !!result.must_change_password,
-      device_fingerprint: fp.fingerprint,
-      session_token: result.session_token,
+      admin_id: pendingAdminId,
+      email: pendingAuthData.email,
+      display_name: pendingAuthData.display_name,
+      role: pendingAuthData.role,
+      is_owner: pendingAuthData.is_owner,
+      must_change_password: pendingAuthData.must_change_password,
+      device_fingerprint: pendingFingerprint,
+      session_token: pendingSessionToken,
     });
-    grantAdminAccess(!!result.is_owner);
+    grantAdminAccess(false);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('admin-session-change'));
     }
@@ -281,6 +264,13 @@ export default function AdminAuth() {
         setPendingAdminId(auth.admin_id);
         setPendingFingerprint(fp.fingerprint);
         setPendingSessionToken(auth.session_token);
+        setPendingAuthData({
+          email: auth.email,
+          display_name: auth.display_name ?? null,
+          role: auth.role,
+          is_owner: !!auth.is_owner,
+          must_change_password: !!auth.must_change_password,
+        });
         setPendingDeviceId(device.device_id);
         setAdminSessionToken(null);
         setFlow('pending_approval');
@@ -309,6 +299,7 @@ export default function AdminAuth() {
     setPendingDeviceId(null);
     setPendingFingerprint(null);
     setPendingSessionToken(null);
+    setPendingAuthData(null);
     setAdminSessionToken(null);
     setPassword('');
   };
