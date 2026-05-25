@@ -49,7 +49,7 @@ import { toast } from "sonner";
 import SVGAPreviewWithMuteToggle from "@/components/admin/SVGAPreviewWithMuteToggle";
 
 import { useR2Upload } from "@/hooks/useR2Upload";
-import { LazyImage } from "@/components/LazyImage";
+
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
