@@ -243,26 +243,25 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
 
     setSendingAppCode(true);
     setErrorMessage("");
-    const code = generateVerificationCode();
-    setGeneratedAppCode(code);
+    setAppCode("");
+    setAppVerified(false);
+    setAppVerifiedToken("");
 
     try {
-      const { error } = await supabase.functions.invoke('send-app-notification', {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
         body: {
+          action: 'send',
           userId: foundUser.id,
-          templateKey: 'agency_verification_code',
-          variables: {
-            code: code,
-            agency_name: 'Sub-Agency Registration'
-          },
-          type: 'agency_verification'
+          purpose: 'sub_agency_verification',
+          context: parentAgencyCode
         }
       });
 
-      if (error) throw error;
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Failed to send verification code"));
+      if (!data?.success) throw new Error(data?.error || "Failed to send verification code");
 
       setAppCodeSent(true);
-      setAppCodeTimer(60);
+      setAppCodeTimer(300);
     } catch (error: any) {
       console.error('App notification error:', error);
       setErrorMessage(error.message || "Failed to send verification code");
@@ -272,17 +271,22 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   };
 
   // Verify app code
-  const verifyAppCode = () => {
+  const verifyAppCode = async () => {
     if (appCodeTimer <= 0) {
       setErrorMessage("Code expired. Please resend the verification code.");
       return;
     }
-    
-    if (appCode === generatedAppCode) {
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: { action: 'verify', userId: foundUser?.id, code: appCode, purpose: 'sub_agency_verification' }
+      });
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Verification failed"));
+      if (!data?.success || !data?.verified_token) throw new Error(data?.error || "Verification failed");
       setAppVerified(true);
+      setAppVerifiedToken(data.verified_token);
       setErrorMessage("");
-    } else {
-      setErrorMessage("Wrong code. Please enter the correct code.");
+    } catch (error: any) {
+      setErrorMessage(error.message || "Wrong code. Please enter the correct code.");
     }
   };
 
