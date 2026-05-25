@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -39,7 +40,7 @@ interface DeviceRecord {
   device_info: any;
   ip_address: string | null;
   user_agent: string | null;
-  status: 'pending' | 'approved' | 'blocked';
+  status: 'pending' | 'approved' | 'blocked' | 'rejected' | 'revoked';
   approved_by: string | null;
   approved_at: string | null;
   last_used_at: string | null;
@@ -66,20 +67,29 @@ export default function DeviceApprovalSection() {
 
   const fetchDevices = async () => {
     try {
-      const { data, error } = await supabase
-        .from('admin_allowed_devices')
-        .select(`
-          *,
-          admin_user:admin_users!admin_allowed_devices_admin_user_id_fkey (
-            display_name,
-            email,
-            role
-          )
-        `)
-        .order('created_at', { ascending: false });
+      const session = getAdminSession();
+      if (!session?.admin_id || !session.is_owner) {
+        setDevices([]);
+        return;
+      }
+
+      const { data, error } = await supabase.rpc('admin_list_pending_devices' as any, {
+        _owner_admin_id: session.admin_id,
+      });
 
       if (error) throw error;
-      setDevices((data || []) as unknown as DeviceRecord[]);
+      const rows = ((data as any[]) || []).map((row) => ({
+        ...row,
+        created_at: row.requested_at || row.approved_at || row.last_used_at || new Date().toISOString(),
+        approved_by: null,
+        notes: null,
+        admin_user: {
+          display_name: row.admin_display_name,
+          email: row.admin_email,
+          role: row.admin_role,
+        },
+      })) as DeviceRecord[];
+      setDevices(rows);
     } catch (error) {
       console.error('Error fetching devices:', error);
       toast.error('Failed to load devices');
@@ -93,24 +103,26 @@ export default function DeviceApprovalSection() {
 
     setActionLoading(true);
     try {
-      if (actionType === 'delete') {
-        const { error } = await supabase
-          .from('admin_allowed_devices')
-          .delete()
-          .eq('id', selectedDevice.id);
+      const session = getAdminSession();
+      if (!session?.admin_id || !session.is_owner) throw new Error('Owner session required');
 
-        if (error) throw error;
-        toast.success('Device deleted');
-      } else {
-        const newStatus = actionType === 'approve' ? 'approved' : 'blocked';
-        const { error } = await supabase.rpc('update_admin_device_status', {
+      if (actionType === 'delete' || actionType === 'block') {
+        const { data, error } = await supabase.rpc('admin_revoke_device' as any, {
           _device_id: selectedDevice.id,
-          _new_status: newStatus,
-          _notes: null
+          _owner_admin_id: session.admin_id,
+          _reason: actionType === 'delete' ? 'Removed by owner' : 'Blocked by owner',
         });
-
         if (error) throw error;
-        toast.success(actionType === 'approve' ? 'Device approved' : 'Device blocked');
+        if (!(data as any)?.success) throw new Error((data as any)?.error || 'Action failed');
+        toast.success(actionType === 'delete' ? 'Device removed' : 'Device blocked');
+      } else {
+        const { data, error } = await supabase.rpc('admin_approve_device' as any, {
+          _device_id: selectedDevice.id,
+          _owner_admin_id: session.admin_id,
+        });
+        if (error) throw error;
+        if (!(data as any)?.success) throw new Error((data as any)?.error || 'Action failed');
+        toast.success('Device approved');
       }
 
       await fetchDevices();
