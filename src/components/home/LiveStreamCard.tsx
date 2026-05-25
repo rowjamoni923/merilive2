@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 interface LiveStreamCardProps {
   id: string;
@@ -31,11 +32,14 @@ export const LiveStreamCard = ({
   tags = [],
   hostLevel = 1,
 }: LiveStreamCardProps) => {
+  const normalizedThumbnailUrl = normalizeProfileMediaUrl(thumbnailUrl) || thumbnailUrl;
+  const normalizedHostAvatar = normalizeProfileMediaUrl(hostAvatar) || hostAvatar;
+
   return (
     <div className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] bg-muted">
       {/* Thumbnail */}
       <img
-        src={enhanceThumbnail(thumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
+        src={enhanceThumbnail(normalizedThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })}
         alt={hostName}
         loading="eager"
         decoding="sync"
@@ -43,7 +47,7 @@ export const LiveStreamCard = ({
         fetchpriority="high"
         onError={(e) => {
           const img = e.currentTarget;
-          if (img.src !== thumbnailUrl && thumbnailUrl) img.src = thumbnailUrl;
+          if (img.src !== normalizedThumbnailUrl && normalizedThumbnailUrl) img.src = normalizedThumbnailUrl;
         }}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         style={{
@@ -95,7 +99,7 @@ export const LiveStreamCard = ({
           <div className="relative">
             <AvatarWithFrame
               userId={hostId}
-              src={hostAvatar}
+              src={normalizedHostAvatar}
               name={hostName}
               level={hostLevel}
               size="sm"

@@ -24,6 +24,7 @@ import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { warmLiveKitToken } from "@/services/livekitService";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { enhanceThumbnail } from "@/utils/enhanceThumbnail";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 interface Profile {
   id: string;
@@ -74,7 +75,8 @@ function resolveFeedAvatar(
   viewerId: string | null,
   gender: "female" | "male" | null | undefined,
 ): string {
-  if (avatarUrl && avatarUrl.trim().length > 0) return avatarUrl;
+  const normalizedAvatar = normalizeProfileMediaUrl(avatarUrl) || avatarUrl;
+  if (normalizedAvatar && normalizedAvatar.trim().length > 0) return normalizedAvatar;
   const isOwner = !!viewerId && viewerId === profileId;
   if (isOwner) return DEFAULT_AVATAR;
   return getDisplayAvatar(profileId, null, { gender: gender === "male" ? "male" : "female" });
@@ -319,7 +321,7 @@ const Index = () => {
     // Pre-warm avatar URLs + live thumbnail URLs for instant rendering
     const warmableUrls = hosts
       .slice(0, 24)
-      .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].filter(Boolean))
+      .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].map((url) => normalizeProfileMediaUrl(url) || url).filter(Boolean))
       .filter((url): url is string => !!url && !warmedHostImagesRef.current.has(url));
 
     if (warmableUrls.length === 0 && liveIdsToWarm.length === 0) {
@@ -421,9 +423,12 @@ const Index = () => {
         <div className="relative aspect-[3/4]">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img
-            src={(user.isLive && user.liveThumbnailUrl)
-              ? enhanceThumbnail(user.liveThumbnailUrl, { width: 600, quality: 90, sharpen: 1.4 })
-              : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'))}
+            src={(() => {
+              const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
+              return (user.isLive && normalizedLiveThumb)
+                ? enhanceThumbnail(normalizedLiveThumb, { width: 600, quality: 90, sharpen: 1.4 })
+                : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'));
+            })()}
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover"
             style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
@@ -432,9 +437,10 @@ const Index = () => {
             decoding="async"
             onError={(e) => {
               const img = e.currentTarget;
+              const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
               // 1st fallback: live thumbnail raw URL if CDN proxy failed.
-              if (user.isLive && user.liveThumbnailUrl && img.src !== user.liveThumbnailUrl) {
-                img.src = user.liveThumbnailUrl;
+              if (user.isLive && normalizedLiveThumb && img.src !== normalizedLiveThumb) {
+                img.src = normalizedLiveThumb;
                 return;
               }
               // 2nd fallback: stable AI placeholder (gender-aware) so the

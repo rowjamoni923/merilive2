@@ -27,6 +27,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 interface PartyRoom {
   id: string;
@@ -468,7 +469,7 @@ const Discover = () => {
               {filteredRooms.map((room, index) => {
                 const TypeIcon = getRoomTypeIcon(room.room_type);
                 const hostLevel = room.host?.user_level || 1;
-                const hostAvatar = room.host?.avatar_url;
+                const hostAvatar = normalizeProfileMediaUrl(room.host?.avatar_url) || room.host?.avatar_url;
                 const gameEmoji = room.game_mode ? getGameModeEmoji(room.game_mode) : null;
                 const gameColor = room.game_mode ? getGameModeColor(room.game_mode) : null;
                 

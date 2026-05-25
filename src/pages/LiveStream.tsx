@@ -131,6 +131,7 @@ import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { Capacitor } from "@capacitor/core";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
 
 interface PKBattleState {
@@ -342,7 +343,7 @@ const LiveStream = () => {
       message: msg.message || "",
       color: "text-white",
       userLevel: profile?.user_level || 1,
-      userAvatar: profile?.avatar_url || undefined,
+      userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url || undefined,
       isHost: msg.user_id === hostId,
       isNewUser,
       countryFlag: profile?.country_flag || undefined,
@@ -845,9 +846,10 @@ const LiveStream = () => {
         console.log(`🔐 Host verification: currentUser=${currentUserId}, streamHost=${stream.host_id}, isHost=${isActualHost}`);
         
         if (hostProfile) {
+          const hostAvatar = normalizeProfileMediaUrl(hostProfile.avatar_url) || hostProfile.avatar_url || "";
           setHostInfo({
             name: hostProfile.display_name || "Host",
-            avatar: hostProfile.avatar_url || "",
+            avatar: hostAvatar,
             country: hostProfile.country_flag || "🌍",
             language: "English",
             gender: hostProfile.gender || "female",
@@ -886,6 +888,8 @@ const LiveStream = () => {
             .maybeSingle();
           const cp = challengerProfileRes.data;
           const op = opponentProfileRes.data;
+          const challengerAvatar = normalizeProfileMediaUrl(cp?.avatar_url) || cp?.avatar_url || "";
+          const opponentAvatar = normalizeProfileMediaUrl(op?.avatar_url) || op?.avatar_url || "";
 
           setPKBattleState({
             isActive: true,
@@ -893,14 +897,14 @@ const LiveStream = () => {
             isChallenger: isChallengerSide,
             challengerInfo: {
               name: cp?.display_name || "Host",
-              avatar: cp?.avatar_url || "",
+              avatar: challengerAvatar,
               level: cp?.user_level || 1,
               id: activeBattle.challenger_id || "",
               streamId: activeBattle.challenger_stream_id || "",
             },
             opponentInfo: {
               name: op?.display_name || "Host",
-              avatar: op?.avatar_url || "",
+              avatar: opponentAvatar,
               level: op?.user_level || 1,
               id: activeBattle.opponent_id || "",
               streamId: activeBattle.opponent_stream_id || "",
@@ -939,7 +943,7 @@ const LiveStream = () => {
           if (selfProfile) {
             const userName = selfProfile.display_name || "User";
             const userLevel = selfProfile.user_level || 1;
-            const avatarUrl = selfProfile.avatar_url || undefined;
+            const avatarUrl = normalizeProfileMediaUrl(selfProfile.avatar_url) || selfProfile.avatar_url || undefined;
             
             console.log('[LiveStream] 🎬 Self profile equipped_entrance_id:', selfProfile.equipped_entrance_id);
             
@@ -1496,7 +1500,7 @@ const LiveStream = () => {
 
         const photos = (data as any)?.host_photos;
         if (photos && Array.isArray(photos) && photos.length > 0) {
-          setHostPhotos(photos);
+          setHostPhotos(photos.map((photo) => normalizeProfileMediaUrl(photo) || photo).filter(Boolean));
         }
       } catch {
         // silent fallback
@@ -2080,7 +2084,7 @@ const LiveStream = () => {
         setSelectedProfile({
           id: profile.id,
           name: profile.display_name || "User",
-          avatar: profile.avatar_url || "",
+          avatar: normalizeProfileMediaUrl(profile.avatar_url) || profile.avatar_url || "",
           level: profile.user_level || 1,
           coins: 0,
           beans: 0,
