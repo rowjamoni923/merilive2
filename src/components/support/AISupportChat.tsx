@@ -16,6 +16,7 @@ interface Message {
   content: string;
   timestamp: Date;
   attachmentUrl?: string;
+  attachmentPath?: string;
   attachmentType?: string; // 'image' | 'voice'
   voiceTranscript?: string;
 }
@@ -328,6 +329,7 @@ const AISupportChat = ({
         content: "📷 Sent an image",
         timestamp: new Date(),
         attachmentUrl: uploaded.previewUrl,
+        attachmentPath: uploaded.path,
         attachmentType: "image",
       };
       setMessages(prev => [...prev, userMessage]);
@@ -441,6 +443,7 @@ const AISupportChat = ({
         content: transcript ? `🎤 Voice: "${transcript}"` : "🎤 Sent a voice message",
         timestamp: new Date(),
         attachmentUrl: uploaded.previewUrl,
+        attachmentPath: uploaded.path,
         attachmentType: "voice",
         voiceTranscript: transcript,
       };
