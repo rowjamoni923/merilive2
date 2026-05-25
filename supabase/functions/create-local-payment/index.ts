@@ -77,10 +77,6 @@ serve(async (req) => {
       throw new Error("Payment helper country mismatch");
     }
 
-    const { data: agencyBalance } = await supabaseAdmin.rpc("get_agency_diamond_balance", { owner_user_id: paymentMethod.helper.user_id });
-    const combinedHelperBalance = Number(paymentMethod.helper.wallet_balance || 0) + Number(agencyBalance || 0);
-    if (combinedHelperBalance < 300000) throw new Error("Payment helper is not available right now");
-    
     const gatewayInfo = paymentMethod.additional_info as any;
     if (!gatewayInfo?.gateway_type) throw new Error("Invalid gateway configuration");
 
@@ -121,6 +117,10 @@ serve(async (req) => {
       ? pkg.bonus_coins
       : 0;
     const totalCoins = baseCoins + bonusCoins;
+
+    const { data: agencyBalance } = await supabaseAdmin.rpc("get_agency_diamond_balance", { owner_user_id: paymentMethod.helper.user_id });
+    const combinedHelperBalance = Number(paymentMethod.helper.wallet_balance || 0) + Number(agencyBalance || 0);
+    if (combinedHelperBalance < totalCoins) throw new Error("Payment helper is not available right now");
 
     // Generate unique transaction ID
     const txnId = `ML${Date.now()}_${crypto.randomUUID().slice(0, 8)}_${user.id.substring(0, 8)}`;
