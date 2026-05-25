@@ -104,16 +104,19 @@ export function usePartyRoomWebRTC(
     if (els) {
       els.forEach((el) => {
         const key = el.dataset?.partyAudioKey;
-        if (key) remoteAudioTrackKeysRef.current.delete(key);
-        try { el.pause(); } catch { /* ignore */ }
-        try { (el as any).srcObject = null; } catch { /* ignore */ }
-        try { el.remove(); } catch { /* ignore */ }
+        if (key) {
+          remoteAudioTrackKeysRef.current.delete(key);
+          detachLiveKitRemoteAudio(key);
+        }
       });
       audioElementsRef.current.delete(identity);
     }
     Array.from(remoteAudioTrackKeysRef.current)
-      .filter((key) => key.startsWith(`${identity}:`))
-      .forEach((key) => remoteAudioTrackKeysRef.current.delete(key));
+      .filter((key) => key.startsWith(`party:${identity}:`))
+      .forEach((key) => {
+        remoteAudioTrackKeysRef.current.delete(key);
+        detachLiveKitRemoteAudio(key);
+      });
   };
 
   const detachAllAudio = () => {
