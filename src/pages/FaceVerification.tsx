@@ -473,22 +473,12 @@ const FaceVerification = () => {
     });
   };
 
-  // Call auto-face-verify edge function
-  const callAutoFaceVerify = async (
-    imageBase64: string,
-    submissionId?: string,
-    durations?: { introVideoDurationSeconds?: number; faceVideoDurationSeconds?: number }
-  ) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('Not authenticated');
+  // ⛔ Removed (Pkg357): the old single-shot `auto-face-verify` path produced
+  // unreliable male/female detection because it analysed ONE frame with no
+  // cross-checks. All face verification now goes through the 3-API pipeline
+  // in `face-verification-analyze` (AWS Rekognition multi-angle + external
+  // liveness provider + duplicate-face provider) — see triggerRekognitionAutoApprove.
 
-    const response = await supabase.functions.invoke('auto-face-verify', {
-      body: { imageBase64, submissionId, ...durations },
-    });
-
-    if (response.error) throw new Error(response.error.message || 'Verification failed');
-    return response.data;
-  };
 
   // Generate deterministic face/video hash; never random, so duplicate checks do not silently miss.
   const generateFaceHash = async (videoBlob: Blob): Promise<string> => {
