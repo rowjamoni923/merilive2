@@ -137,12 +137,10 @@ const Discover = () => {
 
       const activeParticipants = participantsRes.data || [];
       const roomParticipantCounts = new Map<string, number>();
-      const roomsWithHost = new Set<string>();
       
       activeParticipants.forEach(p => {
         const count = roomParticipantCounts.get(p.room_id) || 0;
         roomParticipantCounts.set(p.room_id, count + 1);
-        if (p.role === 'host') roomsWithHost.add(p.room_id);
       });
 
       const activeRoomIds = new Set(
