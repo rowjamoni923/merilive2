@@ -46,6 +46,13 @@ export default function AdminAuth() {
   const [pendingAuthData, setPendingAuthData] = useState<PendingAuthData | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
 
+  const getAdminAuthPath = () => {
+    const accessToken = getAdminLinkToken() || searchParams.get('access')?.trim() || null;
+    return accessToken
+      ? `/admin/auth?access=${encodeURIComponent(accessToken)}`
+      : '/admin/auth';
+  };
+
   // Pre-fill email from URL
   useEffect(() => {
     const emailParam = searchParams.get('email');
@@ -167,7 +174,7 @@ export default function AdminAuth() {
         toast.error('Access link missing or expired. Please reopen the secret link.');
         revokeAdminAccess();
         clearAdminSession();
-        navigate('/', { replace: true });
+        navigate(getAdminAuthPath(), { replace: true });
         return;
       }
 
@@ -182,7 +189,7 @@ export default function AdminAuth() {
         toast.error('Secret link verification failed. Please use the latest valid admin link.');
         revokeAdminAccess();
         clearAdminSession();
-        navigate('/', { replace: true });
+        navigate(getAdminAuthPath(), { replace: true });
         return;
       }
       const refreshedLinkKind = linkData.role === 'owner' ? 'owner' : 'sub_admin';
@@ -213,7 +220,7 @@ export default function AdminAuth() {
         toast.error('Access link missing or expired. Please use a valid secret link.');
         revokeAdminAccess();
         clearAdminSession();
-        navigate('/', { replace: true });
+        navigate(getAdminAuthPath(), { replace: true });
         return;
       }
       if (linkKind === 'owner' && !auth.is_owner) {
