@@ -538,6 +538,8 @@ export function usePrivateCall(userId: string | null) {
           host_busy_live: { title: 'Host Busy', description: 'Host is currently live' },
           hosts_cannot_initiate_user_calls: { title: 'Not Allowed', description: 'Hosts cannot initiate calls' },
           receiver_not_callable_host: { title: 'Unavailable', description: 'This user is not a callable host' },
+          host_offline: { title: 'Host Offline', description: 'This host is currently offline' },
+          host_busy: { title: 'Host Busy', description: 'This host is currently busy' },
           private_calls_disabled: { title: 'Calls Disabled', description: 'Private calls are temporarily disabled' },
           account_blocked: { title: 'Account Blocked', description: 'Account is blocked' },
           user_blocked: { title: 'Blocked', description: 'You and this host have blocked each other' },

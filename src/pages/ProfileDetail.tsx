@@ -226,23 +226,32 @@ const ProfileDetail = () => {
   const isOwnProfile = userId === currentUser?.id || !userId;
   
   // Handle host availability toggle (online/offline)
+  // Pkg336: capture prev synchronously so error revert isn't stale, and surface
+  // the server-side trigger error if the value is rejected.
   const handleToggleAvailability = useCallback(async () => {
     if (!currentUser?.id) return;
-    const newStatus = hostAvailability === 'online' ? 'offline' : 'online';
+    const prev = hostAvailability;
+    const newStatus = prev === 'online' ? 'offline' : 'online';
     setHostAvailability(newStatus);
-    
+
     const { error } = await supabase
       .from('profiles')
       .update({ host_availability: newStatus })
       .eq('id', currentUser.id);
-    
+
     if (error) {
-      setHostAvailability(hostAvailability); // revert
-      toast({ title: "Failed to update status", variant: "destructive" });
+      setHostAvailability(prev); // revert to actual previous, not stale state
+      toast({
+        title: "Failed to update status",
+        description: error.message || undefined,
+        variant: "destructive",
+      });
     } else {
-      toast({ 
+      toast({
         title: newStatus === 'online' ? "You are now Online" : "You are now Offline",
-        description: newStatus === 'online' ? "Users can see you on the home page" : "You won't appear on the home page",
+        description: newStatus === 'online'
+          ? "Users can see and call you"
+          : "You won't appear on the home page and incoming calls are blocked",
       });
     }
   }, [currentUser?.id, hostAvailability, toast]);
