@@ -2734,7 +2734,7 @@ const Chat = () => {
                 
                 {/* Media Preview */}
                 <div className="flex-1 relative">
-                  <div className="w-full h-11 rounded-full bg-blue-500/10 flex items-center justify-center gap-2 px-4">
+                  <div className="w-full h-11 rounded-full bg-primary/10 flex items-center justify-center gap-2 px-4">
                     {pendingMedia.type === 'image' ? (
                       <>
                         <img 
@@ -2742,21 +2742,21 @@ const Chat = () => {
                           alt="Preview" 
                           className="w-8 h-8 rounded-lg object-cover"
                         />
-                        <span className="text-blue-600 font-medium text-sm truncate">
+                        <span className="text-primary font-medium text-sm truncate">
                           📷 Image ready to send
                         </span>
                       </>
                     ) : pendingMedia.type === 'video' ? (
                       <>
-                        <ImageIcon className="w-5 h-5 text-purple-600" />
-                        <span className="text-purple-600 font-medium text-sm">
+                        <ImageIcon className="w-5 h-5 text-primary" />
+                        <span className="text-primary font-medium text-sm">
                           🎥 Video ready to send
                         </span>
                       </>
                     ) : (
                       <>
-                        <Mic className="w-5 h-5 text-orange-600" />
-                        <span className="text-orange-600 font-medium text-sm">
+                        <Mic className="w-5 h-5 text-warning-600" />
+                        <span className="text-warning-600 font-medium text-sm">
                           🎵 Audio ready to send
                         </span>
                       </>
@@ -2934,8 +2934,8 @@ const Chat = () => {
                   onClick={() => setShowGiftPanel(true)}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/25 backdrop-blur-xl hover:from-pink-500/30 hover:to-rose-500/30 transition-all duration-300">
-                    <Gift className="w-5 h-5 text-pink-400" />
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-primary/10 border border-primary/20 backdrop-blur-xl hover:bg-primary/15 transition-all duration-300">
+                    <Gift className="w-5 h-5 text-primary" />
                   </div>
                   <span className="text-[9px] font-semibold text-muted-foreground">Gift</span>
                 </motion.button>
@@ -2946,8 +2946,8 @@ const Chat = () => {
                   onClick={() => setShowGamePanel(true)}
                   className="flex flex-col items-center gap-1.5 group"
                 >
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/25 backdrop-blur-xl hover:from-indigo-500/30 hover:to-blue-500/30 transition-all duration-300">
-                    <Gamepad2 className="w-5 h-5 text-indigo-400" />
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-secondary/70 border border-border backdrop-blur-xl hover:bg-secondary transition-all duration-300">
+                    <Gamepad2 className="w-5 h-5 text-primary" />
                   </div>
                   <span className="text-[9px] font-semibold text-muted-foreground">Games</span>
                 </motion.button>
@@ -2963,14 +2963,14 @@ const Chat = () => {
                     }}
                     className="flex flex-col items-center gap-1.5 group"
                   >
-                    <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-rose-500/20 to-red-500/20 border border-rose-500/25 backdrop-blur-xl hover:from-rose-500/30 hover:to-red-500/30 transition-all duration-300">
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-rose-500/10 to-pink-500/10 animate-pulse" />
-                      <VideoCallIcon className="w-5 h-5 text-rose-400 relative z-10" />
+                    <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center bg-destructive/10 border border-destructive/20 backdrop-blur-xl hover:bg-destructive/15 transition-all duration-300">
+                      <div className="absolute inset-0 rounded-2xl bg-destructive/10 animate-pulse" />
+                      <VideoCallIcon className="w-5 h-5 text-destructive relative z-10" />
                     </div>
                     <div className="flex flex-col items-center">
                       <span className="text-[9px] font-semibold text-muted-foreground">Video Call</span>
                       {selectedConversation.other_user.call_rate_per_minute && selectedConversation.other_user.call_rate_per_minute > 0 && (
-                        <span className="text-[8px] text-amber-400/70 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
+                        <span className="text-[8px] text-warning-600/80 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
                       )}
                     </div>
                   </motion.button>
@@ -2990,7 +2990,7 @@ const Chat = () => {
             <DialogContent className="max-w-sm">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <Languages className="w-5 h-5 text-purple-500" />
+                  <Languages className="w-5 h-5 text-primary" />
                   Translator
                 </DialogTitle>
               </DialogHeader>
@@ -3023,24 +3023,24 @@ const Chat = () => {
                     value={translateText}
                     onChange={(e) => handleTranslateTextChange(e.target.value)}
                     placeholder="Type here... auto-translates as you type"
-                    className="w-full mt-2 p-3 rounded-xl border border-border min-h-[80px] resize-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                    className="w-full mt-2 p-3 rounded-xl border border-border min-h-[80px] resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
 
                 {/* Translation Result - Shows below input */}
                 <div className={`rounded-xl border-2 border-dashed transition-all ${
                   translatedResult 
-                    ? 'border-amber-300/60 bg-purple-500/10' 
+                    ? 'border-primary/40 bg-primary/10' 
  :'border-border bg-muted/30'
                 }`}>
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-purple-300">
+                      <span className="text-xs font-medium text-primary">
                         {languageOptions.find(l => l.code === selectedLanguage)?.flag} {selectedLanguage}
                       </span>
                       {isTranslating && (
                         <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                          <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                           Translating...
                         </span>
                       )}
@@ -3053,7 +3053,7 @@ const Chat = () => {
 
                 {/* Action Button */}
                 <Button
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  className="w-full bg-gradient-primary text-primary-foreground"
                   onClick={() => {
                     if (translatedResult) {
                       setMessage(prev => prev + translatedResult);
