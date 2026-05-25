@@ -654,14 +654,11 @@ export function useLiveKitCall(
                   }));
                 }
                 if (pub.track.kind === Track.Kind.Audio) {
-                  const audioEl = pub.track.attach() as HTMLAudioElement;
-                  audioEl.autoplay = true;
-                  audioEl.dataset.livekitRemoteAudio = 'call';
-                  try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-                  try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
-                  audioEl.style.display = 'none';
-                  try { document.body.appendChild(audioEl); } catch { /* ignore */ }
-                  audioEl.play().catch(() => {});
+                  const key = getLiveKitRemoteAudioKey('call', participant.identity, pub as RemoteTrackPublication, pub.track as RemoteTrack);
+                  if (!remoteAudioKeysRef.current.has(key)) {
+                    const audioEl = attachLiveKitRemoteAudioOnce({ scope: 'call', key, track: pub.track as RemoteTrack });
+                    if (audioEl) remoteAudioKeysRef.current.add(key);
+                  }
                 }
               }
             });
