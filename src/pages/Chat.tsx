@@ -674,7 +674,7 @@ const Chat = () => {
               senderId: currentUserId,
               recipientId,
               messageContent: '',
-              messageType: 'voice',
+              messageType: 'audio',
             }
           }).catch(() => {});
         }
@@ -2630,6 +2630,7 @@ const Chat = () => {
                     key={quickMsg}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
+                      if (!currentUserId) return;
                       setMessage(quickMsg);
                       // Auto-send on tap
                       setTimeout(() => {
@@ -2641,7 +2642,7 @@ const Chat = () => {
                         if (selectedConversation) {
                           persistDirectMessage(
                             selectedConversation.id,
-                            currentUserId!,
+                            currentUserId,
                             content,
                             'text'
                           ).then((sentMessage) => {
@@ -2812,6 +2813,7 @@ const Chat = () => {
                   whileTap={{ scale: 0.9 }}
                   onClick={async () => {
                     if (!pendingMedia) return;
+                    if (!currentUserId) return;
                     try {
                       // 🔍 For images: HOSTS ONLY — non-hosts (agency/user/helper) share images freely
                       if (pendingMedia.type === 'image' && currentUserId && myProfile?.is_host === true) {
@@ -2847,7 +2849,7 @@ const Chat = () => {
                       if (selectedConversation) {
                         await persistDirectMessage(
                           selectedConversation.id,
-                          currentUserId!,
+                          currentUserId,
                           pendingMedia.url,
                           pendingMedia.type
                         );
