@@ -146,6 +146,10 @@ Deno.serve(async (req) => {
           if (ls.host_id !== identity) {
             const { data: ban } = await svc.rpc("is_user_live_banned", { p_user_id: identity });
             if (ban === true) return json(403, { error: "live_banned" });
+            if (hidden && String(ls.live_privacy ?? "public").toLowerCase() === "public") {
+              // Public live preloader: subscribe-only hidden token before durable viewer row.
+              // Real entry still uses enter_live_stream before visible playback/viewer count.
+            } else {
             const { data: sv } = await svc
               .from("stream_viewers")
               .select("viewer_id")
@@ -154,6 +158,7 @@ Deno.serve(async (req) => {
               .is("left_at", null)
               .maybeSingle();
             if (!sv) return json(403, { error: "must_enter_stream_first" });
+            }
           }
         } else if (roomType === "call") {
           const m = /^call_([0-9a-f-]{36})$/i.exec(roomName);
