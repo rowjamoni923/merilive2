@@ -202,14 +202,24 @@ serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Try getClaims first (fast — JWT-local), fall back to getUser (server-side)
+    // because getClaims breaks on stale tokens / signing-key rotation, and that
+    // was returning 401 to every legit user (Pkg358 root cause).
+    let userId: string | null = null;
+    try {
+      const { data: claimsData } = await supabaseUser.auth.getClaims(token);
+      if (claimsData?.claims?.sub) userId = claimsData.claims.sub as string;
+    } catch (_e) { /* fall through to getUser */ }
+    if (!userId) {
+      const { data: userData, error: userErr } = await supabaseUser.auth.getUser(token);
+      if (userErr || !userData?.user?.id) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = userData.user.id;
     }
-    const userId = claimsData.claims.sub as string;
 
     const { submissionId } = await req.json() as { submissionId?: string };
     if (!submissionId) {
