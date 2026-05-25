@@ -500,7 +500,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                   <img
                     src={getProxiedUrl(currentGame.logo_url)}
                     alt={currentGame.game_name}
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-contain rounded-lg"
                     loading="lazy"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
