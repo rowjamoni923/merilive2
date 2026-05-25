@@ -53,7 +53,6 @@ import DeviceApprovalSection from "@/components/admin/DeviceApprovalSection";
 import OwnerAccessLinkGenerator from "@/components/admin/OwnerAccessLinkGenerator";
 import VaultPinManager from "@/components/admin/VaultPinManager";
 import { recordAdminError } from "@/utils/adminErrorLog";
-import { getAdminActorId } from "@/utils/adminActionMeta";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 const supabase = adminSupabase;
