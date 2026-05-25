@@ -127,7 +127,8 @@ export const GroupSettingsPanel = ({ group, currentUserId, onClose, onGroupUpdat
 
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop();
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      if (ext === 'svg') { toast.error("SVG not allowed"); setUploading(false); return; }
       const path = `group-avatars/${group.id}.${ext}`;
 
       const { error: uploadError } = await supabase.storage

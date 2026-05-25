@@ -1882,11 +1882,15 @@ const Chat = () => {
 
       // Upload group photo if selected
       if (newGroupPhoto) {
-        const ext = newGroupPhoto.name.split('.').pop();
-        const path = `group-avatars/${newGroup.id}.${ext}`;
-        await supabase.storage.from('assets').upload(path, newGroupPhoto, { upsert: true });
-        const { data: urlData } = supabase.storage.from('assets').getPublicUrl(path);
-        await supabase.from('groups').update({ avatar_url: urlData.publicUrl }).eq('id', newGroup.id);
+        const ext = (newGroupPhoto.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const path = `group-avatars/${newGroup.id}.${ext || 'jpg'}`;
+        const { error: upErr } = await supabase.storage.from('assets').upload(path, newGroupPhoto, { upsert: true });
+        if (!upErr) {
+          const { data: urlData } = supabase.storage.from('assets').getPublicUrl(path);
+          await supabase.from('groups').update({ avatar_url: `${urlData.publicUrl}?t=${Date.now()}` }).eq('id', newGroup.id);
+        } else {
+          console.warn('group avatar upload failed', upErr);
+        }
       }
 
       // Add creator as member with owner role
