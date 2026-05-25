@@ -268,7 +268,7 @@ serve(async (req) => {
       });
 
       if (creditError) {
-        console.error("[IPN] safe_credit_diamonds RPC error:", creditError);
+        console.error("[IPN] complete_gateway_helper_topup RPC error:", creditError);
         throw new Error("Failed to credit diamonds");
       }
 
