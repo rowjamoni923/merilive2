@@ -2425,15 +2425,7 @@ const LiveStream = () => {
         setShowSipDial(true);
       } },
     // Pkg111 + Pkg126: Record stream (MP4 archive or HLS replay).
-    { id: "record", name: "Record", iconName: "Video" as const, color: "from-fuchsia-400 to-purple-600", shadowColor: "shadow-fuchsia-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowRecording(true);
-      } },
-    // Pkg114: Simulcast room out to YouTube / Facebook / Twitch / custom RTMP.
-    { id: "simulcast", name: "Simulcast", iconName: "Cast" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowSimulcast(true);
-      } },
+    // Recording & Simulcast removed for privacy
     // Pkg117: Dispatch AI Agent into this room.
     { id: "agent", name: "Agent", iconName: "Bot" as const, color: "from-violet-400 to-purple-600", shadowColor: "shadow-violet-500/40", action: () => {
         setShowMoreOptions(false);
