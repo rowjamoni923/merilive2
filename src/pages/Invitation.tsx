@@ -648,7 +648,7 @@ const Invitation = () => {
                 <div className="w-16 h-16 rounded-full p-0.5 shadow-lg" style={{ background: 'linear-gradient(135deg, #d97706, #b45309)' }}>
                   <div className="w-full h-full rounded-full overflow-hidden bg-amber-900 flex items-center justify-center">
                     {leaderboard[2]?.avatar_url ? (
-                      <img src={leaderboard[2].avatar_url} alt="" className="w-full h-full object-cover" />
+                        <img src={leaderboard[2].avatar_url} alt="" className="w-full h-full object-contain" />
                     ) : (
                       <span className="text-amber-200 font-bold text-lg">{(leaderboard[2]?.display_name || 'U')[0]}</span>
                     )}
@@ -699,7 +699,7 @@ const Invitation = () => {
 
                 <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center shrink-0 border border-violet-200/60">
                   {entry.avatar_url ? (
-                    <img src={entry.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <img src={entry.avatar_url} alt="" className="w-full h-full object-contain" />
                   ) : (
                     <span className="text-violet-700 font-bold text-sm">{entry.display_name[0]}</span>
                   )}
