@@ -121,41 +121,52 @@ serve(async (req: Request): Promise<Response> => {
       const chatId = `${cleanPhone}@c.us`;
       const message = `🔐 *MeriLive Verification Code*\n\nYour OTP code is: *${otpCode}*\n\n⏰ This code expires in 5 minutes.\n\n⚠️ Do not share this code with anyone.\n\n— MeriLive Team`;
 
-      const greenApiUrl = `https://7103.api.greenapi.com/waInstance${greenApiInstanceId}/sendMessage/${greenApiToken}`;
+      // Host is configurable — GREEN-API assigns each instance to a specific
+      // shard subdomain (e.g. "https://7103.api.greenapi.com"). If it ever
+      // changes you can set GREEN_API_HOST without redeploying.
+      // Default to the generic host which auto-routes by instance id.
+      const greenApiHost = (Deno.env.get("GREEN_API_HOST") || "https://api.green-api.com").replace(/\/+$/, "");
+      const greenApiUrl = `${greenApiHost}/waInstance${greenApiInstanceId}/sendMessage/${greenApiToken}`;
 
-      console.log(`[whatsapp-otp] Sending to chatId: ${chatId}, URL: https://7103.api.greenapi.com/waInstance${greenApiInstanceId}/sendMessage/***`);
+      console.log(`[whatsapp-otp] Sending to chatId: ${chatId}, host: ${greenApiHost}`);
 
-      const whatsappResponse = await fetch(greenApiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chatId,
-          message,
-        }),
-      });
+      let whatsappResponse: Response;
+      try {
+        whatsappResponse = await fetch(greenApiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chatId, message }),
+        });
+      } catch (fetchErr: any) {
+        console.error("[whatsapp-otp] GREEN-API fetch failed:", fetchErr?.message || fetchErr);
+        await supabase.from("phone_otps").update({ is_used: true })
+          .eq("phone_number", cleanPhone).eq("otp_code", otpCode).eq("is_used", false);
+        return json({ success: false, message_sent: false, error: "WhatsApp service unreachable. Please try again." }, 502);
+      }
 
       const responseText = await whatsappResponse.text();
-      console.log(`[whatsapp-otp] GREEN-API response status: ${whatsappResponse.status}, body: ${responseText}`);
+      console.log(`[whatsapp-otp] GREEN-API response status: ${whatsappResponse.status}, body: ${responseText.slice(0, 500)}`);
 
       let whatsappResult: any = {};
-      try {
-        whatsappResult = JSON.parse(responseText);
-      } catch (e) {
-        console.error(`[whatsapp-otp] Failed to parse GREEN-API response: ${responseText}`);
-      }
+      try { whatsappResult = JSON.parse(responseText); } catch { /* non-json (e.g. 403 html) */ }
       const messageSent = whatsappResponse.ok && whatsappResult?.idMessage;
 
       console.log(`[whatsapp-otp] OTP sent to ${cleanPhone}, success: ${messageSent}`);
 
       if (!messageSent) {
-        await supabase
-          .from("phone_otps")
-          .update({ is_used: true })
-          .eq("phone_number", cleanPhone)
-          .eq("otp_code", otpCode)
-          .eq("is_used", false);
+        await supabase.from("phone_otps").update({ is_used: true })
+          .eq("phone_number", cleanPhone).eq("otp_code", otpCode).eq("is_used", false);
 
-        return json({ success: false, message_sent: false, error: "Failed to send WhatsApp message. Please try again." }, 502);
+        // Surface a useful hint for common GREEN-API failures.
+        let userErr = "Failed to send WhatsApp message. Please try again.";
+        if (whatsappResponse.status === 401 || whatsappResponse.status === 403) {
+          userErr = "WhatsApp service authorization failed. Please contact support.";
+        } else if (whatsappResponse.status === 466) {
+          userErr = "WhatsApp quota exceeded. Please try again later.";
+        } else if (whatsappResult?.message) {
+          userErr = `WhatsApp: ${String(whatsappResult.message).slice(0, 160)}`;
+        }
+        return json({ success: false, message_sent: false, error: userErr, upstream_status: whatsappResponse.status }, 502);
       }
 
       return json({ success: true, message_sent: true, message: "Verification code sent to your WhatsApp" }, 200);
