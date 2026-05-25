@@ -17895,10 +17895,6 @@ export type Database = {
         Args: { amount: number; recipient_uid: string }
         Returns: Json
       }
-      complete_agency_withdrawal: {
-        Args: { _proof: Json; _withdrawal_id: string }
-        Returns: Json
-      }
       complete_gateway_helper_topup: {
         Args: {
           p_gateway: string
