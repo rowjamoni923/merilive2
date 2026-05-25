@@ -132,6 +132,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             body: { token: accessToken },
           }) as Promise<{ data: any }>;
           const { data } = await Promise.race([call, timeout]);
+          if (!mounted || validationSettled) return true;
           if (data?.valid) {
             validationSettled = true;
             if (safetyTimer) window.clearTimeout(safetyTimer);
