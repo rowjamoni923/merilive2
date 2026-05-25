@@ -154,8 +154,10 @@ const AgencyCoinExchange = () => {
     const onAdmin = async (e: Event) => {
       const detail = (e as CustomEvent<{ table?: string }>).detail;
       if (detail?.table !== 'app_settings') return;
-      const { data } = await supabase.from('app_settings').select('setting_value').eq('setting_key', 'coin_exchange').maybeSingle();
-      if (data?.setting_value) setExchangeSettings(normalizeExchangeSettings(data.setting_value as Record<string, unknown>));
+      // Bust cache so we read the latest admin value
+      invalidateAppSetting('coin_exchange');
+      const value = await getAppSetting<Record<string, unknown>>('coin_exchange');
+      if (value) setExchangeSettings(normalizeExchangeSettings(value));
     };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
     return () => window.removeEventListener('admin-table-update', onAdmin as EventListener);
