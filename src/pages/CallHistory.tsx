@@ -42,7 +42,6 @@ const CallHistory = () => {
   const [commissionPercent, setCommissionPercent] = useState<number | null>(null);
   const [isHost, setIsHost] = useState(false);
 
-  useEffect(() => {
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userIdRef = useRef<string | null>(null);
 
