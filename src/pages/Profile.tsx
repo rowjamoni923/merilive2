@@ -1387,12 +1387,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         if (finalRate > maxRate) finalRate = maxRate;
       }
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ call_rate_per_minute: finalRate })
-        .eq('id', profile.id);
-      
+      const { data, error } = await supabase.rpc('update_host_call_rate', { p_rate: finalRate });
+
       if (error) throw error;
+      const result = data as any;
+      if (!result?.success) {
+        const code = result?.error || 'Failed to save';
+        throw new Error(String(code).replace(/_/g, ' '));
+      }
+      finalRate = Number(result.rate || finalRate);
       
       // Update local profile state
       setProfile({ ...profile, call_rate_per_minute: finalRate });
