@@ -192,11 +192,25 @@ Deno.serve(async (req) => {
             if (!pr.is_active || pr.ended_at) {
               return json(403, { error: "party_room_inactive" });
             }
-            const { data } = await svc.rpc("can_access_party_room", {
+            // Do NOT use can_access_party_room() as the participant proof here:
+            // that RPC depends on caller JWT context, while this edge function
+            // validates with a service-role client. The token gate must verify
+            // the durable participant row directly, after enter_party_room()
+            // has inserted/reactivated it.
+            const { data: participant } = await svc
+              .from("party_room_participants")
+              .select("user_id")
+              .eq("room_id", roomId)
+              .eq("user_id", identity)
+              .is("left_at", null)
+              .maybeSingle();
+            if (!participant) return json(403, { error: "not_party_participant" });
+
+            const { data: allowed } = await svc.rpc("can_access_party_room", {
               p_user_id: identity,
               p_room_id: roomId,
             });
-            if (data !== true) return json(403, { error: "not_party_participant" });
+            if (allowed !== true) return json(403, { error: "party_access_denied" });
           }
         }
       } catch (e) {
