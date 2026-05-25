@@ -867,7 +867,11 @@ const GoLive = () => {
 
     try {
       const { getCachedUser } = await import('@/utils/cachedAuth');
-      const user = await getCachedUser();
+      let user = await getCachedUser();
+      if (!user) {
+        const { data: authData } = await supabase.auth.getUser();
+        user = authData.user ?? null;
+      }
       if (!user) {
         setIsStarting(false);
         toast.error("Please login");
@@ -977,9 +981,10 @@ const GoLive = () => {
         } 
       });
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error("Error starting live:", error);
-      recordClientError({ label: "GoLive.createStreamPromise", message: error instanceof Error ? error.message : String(error) });
-      toast.error("Failed to start live stream");
+      recordClientError({ label: "GoLive.createStreamPromise", message });
+      toast.error(message || "Failed to start live stream");
       setIsStarting(false);
     }
   };
