@@ -692,12 +692,7 @@ const Chat = () => {
 
         if (error) throw error;
 
-        if (newMsg) {
-          setGroupMessages(prev => {
-            if (prev.find(m => m.id === newMsg.id)) return prev;
-            return [...prev, { ...newMsg, sender: null }];
-          });
-        }
+        appendSentGroupMessage(newMsg);
       }
       
       // Clear after successful send
@@ -2701,7 +2696,14 @@ const Chat = () => {
                             sender_id: currentUserId,
                             content,
                             message_type: 'text'
-                          })).then(() => setSending(false)).catch(() => setSending(false));
+                          }).select().single()).then(({ data, error }) => {
+                            if (error) throw error;
+                            appendSentGroupMessage(data);
+                            setSending(false);
+                          }).catch(() => {
+                            toast.error("Failed to send message");
+                            setSending(false);
+                          });
                         } else {
                           setSending(false);
                         }
@@ -2920,12 +2922,7 @@ const Chat = () => {
 
                         if (error) throw error;
 
-                        if (newMsg) {
-                          setGroupMessages(prev => {
-                            if (prev.find(m => m.id === newMsg.id)) return prev;
-                            return [...prev, { ...newMsg, sender: null }];
-                          });
-                        }
+                        appendSentGroupMessage(newMsg);
                       }
                       toast.success("Media sent!");
                       setPendingMedia(null);
