@@ -81,7 +81,15 @@ export function primeLiveKitRoomMedia(room: Room): void {
   if (roomPrimeCleanups.has(room)) return;
 
   const start = () => {
-    try { room.startAudio().catch(() => {}); } catch { /* ignore */ }
+    try {
+      room.startAudio()
+        .catch(() => {})
+        .finally(() => {
+          audioElementsByKey.forEach((el) => {
+            try { el.play().catch(() => {}); } catch { /* ignore */ }
+          });
+        });
+    } catch { /* ignore */ }
   };
   const onStatus = () => start();
   const cleanup = () => {
