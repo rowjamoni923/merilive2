@@ -86,7 +86,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
 }) => {
   // Synchronously seed Lottie state from cache so cached gifts paint on first
   // render (no loading spinner flash, no double-paint).
-  const initialLottie = animationTypeInitial(type, src) === 'lottie' ? lottieCacheGet(src) : null;
+  const initialType = type || detectAnimationType(src);
+  const initialLottie = initialType === 'lottie' ? lottieCacheGet(src) : null;
   const [lottieData, setLottieData] = useState<any>(initialLottie);
   const [lottieLoading, setLottieLoading] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
