@@ -162,11 +162,11 @@ const adminFetch: typeof fetch = (input, init) => {
       /not authorized|unauthorized|invalid.*session|session.*expired|jwt/i.test(parsedMsg);
     const accessDenied = isAuthStatus &&
       /access denied|admin only|permission denied|forbidden|insufficient/i.test(parsedMsg);
-    const missingToken = isRpc && !token && isAuthStatus;
+    const missingToken = isRpc && !isLoginRpc && !token && isAuthStatus;
 
     // Auth/session failures are security state, not UI errors: clear session and
     // leave admin silently so users never see scary RPC error stacks/toasts.
-    if (sessionExpired || accessDenied || missingToken) {
+    if ((sessionExpired || accessDenied || missingToken) && !isLoginRpc) {
       recordAdminError({
         kind: isRpc ? 'rpc' : 'rest',
         label: `${method} ${path}`,
