@@ -1375,7 +1375,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       
       // Use the selected callRate directly - level rates are pre-validated by admin
       // Only apply min/max limits if it's a custom rate, not a level-based rate
-      let finalRate = callRate;
+      let finalRate = Math.floor(Number(callRate) || 0);
+      if (finalRate <= 0) {
+        throw new Error('invalid_rate');
+      }
       
       // Check if this is a level-based rate (should not be clamped)
       const levelRates = callRateSettings?.level_rates || [];
@@ -2924,6 +2927,35 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                           );
                         })()}
                       </div>
+                    </div>
+
+                    <div className="space-y-3 rounded-xl border border-border bg-card p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-foreground text-sm font-semibold">Custom price</p>
+                          <p className="text-muted-foreground text-xs">
+                            {callRateSettings?.min_rate || 30}–{callRateSettings?.max_rate || 10000} 💎/min
+                          </p>
+                        </div>
+                        <div className="w-28">
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            min={callRateSettings?.min_rate || 30}
+                            max={callRateSettings?.max_rate || 10000}
+                            value={callRate || ''}
+                            onChange={(event) => setCallRate(Math.max(0, Math.floor(Number(event.target.value) || 0)))}
+                            className="h-9 text-right"
+                          />
+                        </div>
+                      </div>
+                      <Slider
+                        value={[Math.min(Math.max(callRate || 0, callRateSettings?.min_rate || 30), callRateSettings?.max_rate || 10000)]}
+                        min={callRateSettings?.min_rate || 30}
+                        max={callRateSettings?.max_rate || 10000}
+                        step={50}
+                        onValueChange={(value) => setCallRate(value[0] || 0)}
+                      />
                     </div>
                   </>
                 )}
