@@ -144,7 +144,25 @@ Deno.serve(async (req) => {
       } catch (e) {
         const msg = (e as Error).message ?? "egress_start_failed";
         console.error("[Pkg111] startRoomCompositeEgress failed:", msg);
-        return json(502, { error: "egress_start_failed", detail: msg });
+        // Soft-fail: if the egress service is unreachable/unavailable, do not break the live stream.
+        // The host can still go live — just without server-side recording.
+        const unavailable = /503|Service Unavailable|ECONNREFUSED|ENOTFOUND|fetch failed|network/i.test(msg);
+        if (unavailable) {
+          return json(200, {
+            success: false,
+            skipped: true,
+            reason: "egress_service_unavailable",
+            fallback: true,
+            detail: msg,
+          });
+        }
+        return json(200, {
+          success: false,
+          skipped: true,
+          reason: "egress_start_failed",
+          fallback: true,
+          detail: msg,
+        });
       }
 
       const publicUrl = S3_PUBLIC_BASE ? `${S3_PUBLIC_BASE}/${filename}` : null;
