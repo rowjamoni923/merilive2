@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { saveAdminSession, clearAdminSession, getAdminSession, setAdminSessionToken } from "@/utils/adminSession";
 import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
-import { grantAdminAccess, revokeAdminAccess } from "@/utils/adminAccessStorage";
+import { grantAdminAccess, revokeAdminAccess, getAdminLinkKind } from "@/utils/adminAccessStorage";
 import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -116,6 +116,21 @@ export default function AdminAuth() {
       return;
     }
     const result = data as any;
+    const linkKind = getAdminLinkKind();
+    if (linkKind === 'owner' && !result.is_owner) {
+      toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
+      revokeAdminAccess();
+      clearAdminSession();
+      setFlow('login');
+      return;
+    }
+    if (linkKind === 'sub_admin' && result.is_owner) {
+      toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
+      revokeAdminAccess();
+      clearAdminSession();
+      setFlow('login');
+      return;
+    }
     const fp = getDeviceFingerprint();
     setAdminSessionToken(result.session_token);
     const { data: deviceData, error: deviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
@@ -173,7 +188,35 @@ export default function AdminAuth() {
         toast.error(auth?.error || 'Invalid credentials');
         return;
       }
+
+      // ─── STRICT LINK-ROLE ENFORCEMENT ───────────────────────────
+      // Owner secret link → only owners may sign in.
+      // Sub-admin secret link → only sub-admins may sign in.
+      // This is independent of credentials: even with a valid password,
+      // wrong-link logins are rejected before any session is created.
+      const linkKind = getAdminLinkKind();
+      if (!linkKind) {
+        toast.error('Access link missing or expired. Please use a valid secret link.');
+        revokeAdminAccess();
+        clearAdminSession();
+        navigate('/', { replace: true });
+        return;
+      }
+      if (linkKind === 'owner' && !auth.is_owner) {
+        toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
+        revokeAdminAccess();
+        clearAdminSession();
+        return;
+      }
+      if (linkKind === 'sub_admin' && auth.is_owner) {
+        toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
+        revokeAdminAccess();
+        clearAdminSession();
+        return;
+      }
+
       setAdminSessionToken(auth.session_token);
+
 
       // Step 2: Device approval check
       const fp = getDeviceFingerprint();

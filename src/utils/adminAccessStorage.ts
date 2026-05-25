@@ -1,6 +1,9 @@
 const ADMIN_ACCESS_KEY = 'meri_admin_access';
 const OWNER_ACCESS_KEY = 'meri_owner_access';
 const ADMIN_LINK_TOKEN_KEY = 'meri_admin_link_token';
+const ADMIN_LINK_KIND_KEY = 'meri_admin_link_kind'; // 'owner' | 'sub_admin'
+
+export type AdminLinkKind = 'owner' | 'sub_admin';
 
 const hasWindow = () => typeof window !== 'undefined';
 
@@ -34,6 +37,18 @@ export const getAdminLinkToken = (): string | null => {
   return window.sessionStorage.getItem(ADMIN_LINK_TOKEN_KEY);
 };
 
+export const setAdminLinkKind = (kind: AdminLinkKind) => {
+  if (!hasWindow()) return;
+  window.sessionStorage.setItem(ADMIN_LINK_KIND_KEY, kind);
+  window.localStorage.removeItem(ADMIN_LINK_KIND_KEY);
+};
+
+export const getAdminLinkKind = (): AdminLinkKind | null => {
+  if (!hasWindow()) return null;
+  const v = window.sessionStorage.getItem(ADMIN_LINK_KIND_KEY);
+  return v === 'owner' || v === 'sub_admin' ? v : null;
+};
+
 /**
  * Keep sessionStorage in sync from persistent localStorage on fresh tabs/reloads.
  */
@@ -44,6 +59,7 @@ export const syncAdminAccessToSession = () => {
   window.localStorage.removeItem(ADMIN_ACCESS_KEY);
   window.localStorage.removeItem(OWNER_ACCESS_KEY);
   window.localStorage.removeItem(ADMIN_LINK_TOKEN_KEY);
+  window.localStorage.removeItem(ADMIN_LINK_KIND_KEY);
 };
 
 export const hasAdminAccessFlag = (): boolean => {
@@ -60,6 +76,9 @@ export const grantAdminAccess = (isOwner = false) => {
   writeFlag(ADMIN_ACCESS_KEY, 'true');
   if (isOwner) {
     writeFlag(OWNER_ACCESS_KEY, 'true');
+    setAdminLinkKind('owner');
+  } else {
+    setAdminLinkKind('sub_admin');
   }
 };
 
@@ -67,4 +86,6 @@ export const revokeAdminAccess = () => {
   removeFlag(ADMIN_ACCESS_KEY);
   removeFlag(OWNER_ACCESS_KEY);
   removeFlag(ADMIN_LINK_TOKEN_KEY);
+  removeFlag(ADMIN_LINK_KIND_KEY);
 };
+
