@@ -1,4 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedQuery } from "@/utils/queryCache";
+
+
 
 export type ResolvedLevelType = "user" | "host";
 
@@ -66,16 +69,25 @@ const sumPaginated = async (
 };
 
 export const fetchActiveLevelTiers = async (levelType: ResolvedLevelType): Promise<ResolvedLevelTier[]> => {
-  const { data, error } = await supabase
-    .from("user_level_tiers")
-    .select("level_number, level_name, min_topup_amount, min_earning_amount, level_icon, icon_url, animation_url")
-    .eq("tier_type", levelType)
-    .eq("is_active", true)
-    .order("level_number", { ascending: true });
-
-  if (error) throw error;
-  return (data ?? []) as ResolvedLevelTier[];
+  // Pkg D pass-3: cached + deduped across the many feed/profile callers
+  // (Discover, Live, ProfileDetail, Level, Agency, leaderboards). Admin
+  // edits to `user_level_tiers` broadcast `admin-table-update` → bust.
+  return getCachedQuery<ResolvedLevelTier[]>(
+    `user_level_tiers:active:${levelType}`,
+    async () => {
+      const { data, error } = await supabase
+        .from("user_level_tiers")
+        .select("level_number, level_name, min_topup_amount, min_earning_amount, level_icon, icon_url, animation_url")
+        .eq("tier_type", levelType)
+        .eq("is_active", true)
+        .order("level_number", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ResolvedLevelTier[];
+    },
+    { invalidateOnTables: ['user_level_tiers'] },
+  );
 };
+
 
 export const resolveEffectiveUserRechargeTotal = async (
   userId: string,

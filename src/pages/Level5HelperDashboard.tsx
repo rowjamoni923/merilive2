@@ -23,6 +23,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { getActiveCurrencyRates } from "@/utils/currencyRatesCache";
+
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -647,13 +649,16 @@ const Level5HelperDashboard = () => {
   };
 
   const loadCurrencyRates = async () => {
-    const { data } = await supabase
-      .from('currency_rates')
-      .select('country_code, currency_code, currency_symbol, rate_to_usd')
-      .eq('is_active', true);
-    
-    setCurrencyRates((data || []) as CurrencyRate[]);
+    // Pkg D pass-3: shared cache
+    try {
+      const rows = await getActiveCurrencyRates();
+      setCurrencyRates(rows as unknown as CurrencyRate[]);
+    } catch (err) {
+      console.warn('[Level5Helper] currency_rates cache fetch failed:', err);
+      setCurrencyRates([]);
+    }
   };
+
 
   const loadHelperOrders = async (helperId?: string) => {
     const id = helperId || helperData?.id;

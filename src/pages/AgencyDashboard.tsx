@@ -50,6 +50,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrencyRateForCountry } from "@/utils/currencyRatesCache";
+
 import { getCachedUser } from "@/utils/cachedAuth";
 import { HostsIcon3D, WithdrawIcon3D, RankingIcon3D, HelperIcon3D, DiamondExchangeIcon3D, PolicyIcon3D, HistoryIcon3D } from "@/components/agency/Premium3DIcons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -431,10 +433,11 @@ const AgencyDashboard = () => {
           subAgentUserIds.length > 0
             ? supabase.from("profiles").select("id, display_name, avatar_url").in("id", subAgentUserIds)
             : Promise.resolve({ data: [] }),
-          // Currency rate
+          // Currency rate — Pkg D pass-3 shared cache (deduped across agency tabs)
           countryCode
-            ? supabase.from('currency_rates').select('*').eq('country_code', countryCode).eq('is_active', true).single()
+            ? getCurrencyRateForCountry(countryCode).then((row) => ({ data: row })).catch(() => ({ data: null }))
             : Promise.resolve({ data: null }),
+
           // Helper pending topup count
           helperData?.is_verified
             ? supabase.from("helper_orders").select("*", { count: 'exact', head: true }).eq("helper_id", helperData.id).eq("status", "pending")
