@@ -18527,6 +18527,18 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_popular_gift_assets: {
+        Args: { _limit?: number }
+        Returns: {
+          animation_url: string
+          gift_id: string
+          icon_url: string
+          lottie_url: string
+          preview_url: string
+          rank_score: number
+          svga_url: string
+        }[]
+      }
       get_public_home_hosts_v1: {
         Args: {
           p_current_user_id?: string

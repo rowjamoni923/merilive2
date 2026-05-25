@@ -45,18 +45,32 @@ export async function prewarmGiftAnimations(): Promise<void> {
     // Ensure svgaplayerweb module is in memory before we touch binaries
     prewarmSVGA();
 
-    const { data, error } = await supabase
-      .from('gifts')
-      .select('icon_url, animation_url, svga_url, lottie_url, preview_url')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true, nullsFirst: false })
-      .limit(MAX_GIFTS);
-    if (error || !Array.isArray(data)) return;
+    // Pkg C pass-3 — popularity-ranked prewarm via SECDEF RPC
+    // (top sends over last 7d, falls back to display_order). Avoids
+    // exposing gift_transactions to clients and skews prewarm toward
+    // the gifts users actually see/send most often.
+    let rows: any[] | null = null;
+    try {
+      const { data, error } = await supabase.rpc('get_popular_gift_assets', { _limit: MAX_GIFTS });
+      if (!error && Array.isArray(data)) rows = data;
+    } catch {}
+
+    // Fallback: legacy display_order ranking if RPC missing/blocked
+    if (!rows) {
+      const { data, error } = await supabase
+        .from('gifts')
+        .select('icon_url, animation_url, svga_url, lottie_url, preview_url')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true, nullsFirst: false })
+        .limit(MAX_GIFTS);
+      if (error || !Array.isArray(data)) return;
+      rows = data;
+    }
 
     const imageUrls: string[] = [];
     const svgaUrls: string[] = [];
     const lottieUrls: string[] = [];
-    for (const row of data as any[]) {
+    for (const row of rows as any[]) {
       const candidates = [row.svga_url, row.lottie_url, row.animation_url, row.icon_url, row.preview_url].filter(Boolean) as string[];
       for (const url of candidates) {
         switch (classify(url)) {
@@ -67,6 +81,7 @@ export async function prewarmGiftAnimations(): Promise<void> {
         }
       }
     }
+
 
     // Image SW warm (fire-and-forget, message API handles batching)
     pushImageWarm(imageUrls);
