@@ -221,37 +221,6 @@ const ProfileDetail = () => {
   const { level: resolvedLevel, loading: resolvedLevelLoading } = useRealtimeLevel(levelTargetUserId);
 
   const isOwnProfile = userId === currentUser?.id || !userId;
-  
-  // Handle host availability toggle (online/offline)
-  // Pkg336: capture prev synchronously so error revert isn't stale, and surface
-  // the server-side trigger error if the value is rejected.
-  const handleToggleAvailability = useCallback(async () => {
-    if (!currentUser?.id) return;
-    const prev = hostAvailability;
-    const newStatus = prev === 'online' ? 'offline' : 'online';
-    setHostAvailability(newStatus);
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ host_availability: newStatus })
-      .eq('id', currentUser.id);
-
-    if (error) {
-      setHostAvailability(prev); // revert to actual previous, not stale state
-      toast({
-        title: "Failed to update status",
-        description: error.message || undefined,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: newStatus === 'online' ? "You are now Online" : "You are now Offline",
-        description: newStatus === 'online'
-          ? "Users can see and call you"
-          : "You won't appear on the home page and incoming calls are blocked",
-      });
-    }
-  }, [currentUser?.id, hostAvailability, toast]);
 
   // Handle call button click
   const handleCallClick = () => {
@@ -399,11 +368,7 @@ const ProfileDetail = () => {
     }
 
     setProfile(profileData as ProfileData);
-    
-    // Set host availability
-    if (profileData?.host_availability) {
-      setHostAvailability(profileData.host_availability);
-    }
+
     // Set poster images
     setPosterImages((postersResult?.data || []).map((poster: any) => ({
       ...poster,
@@ -1300,29 +1265,6 @@ const ProfileDetail = () => {
                 </motion.button>
               </div>
             </>
-          )}
-
-          {/* Host Availability Toggle - Only for own profile if host */}
-          {isOwnProfile && profile?.is_host && (profile as any)?.host_status === 'approved' && (
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleToggleAvailability}
- className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-slate-900 transition-all"
-              style={{
-                background: hostAvailability === 'online'
-                  ? 'linear-gradient(135deg, rgba(239,68,68,0.8), rgba(220,38,38,0.8))'
-                  : 'linear-gradient(135deg, rgba(34,197,94,0.8), rgba(22,163,74,0.8))',
-                boxShadow: hostAvailability === 'online'
-                  ? '0 8px 30px rgba(239,68,68,0.3)'
-                  : '0 8px 30px rgba(34,197,94,0.3)',
-              }}
-            >
-              <div className={cn(
-                "w-2.5 h-2.5 rounded-full",
-                hostAvailability === 'online' ? "bg-white animate-pulse" : "bg-white"
-              )} />
-              {hostAvailability === 'online' ? 'Go Offline' : 'Go Online'}
-            </motion.button>
           )}
 
           {/* Action Buttons - Only for OTHER users' profiles */}
