@@ -471,6 +471,12 @@ export default function AdminUserManagement() {
       fetchFaceSubmissions();
     }
   }, [activeTab, debouncedAppSearchQuery]);
+
+  useEffect(() => {
+    if (activeTab !== "auto-verified" && activeTab !== "auto-rejected" && activeTab !== "face-verification") {
+      fetchFaceStats();
+    }
+  }, [activeTab]);
   
   useEffect(() => {
     if (activeTab === "face-verification") fetchFaceSubmissions();
