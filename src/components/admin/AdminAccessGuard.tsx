@@ -7,6 +7,7 @@ import {
   grantAdminAccess,
   revokeAdminAccess,
   setAdminLinkToken,
+  setAdminLinkKind,
   hasAdminAccessFlag,
   getAdminLinkToken,
 } from "@/utils/adminAccessStorage";
