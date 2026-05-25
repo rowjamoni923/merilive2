@@ -1094,15 +1094,9 @@ const Chat = () => {
     };
   }, [selectedConversation?.other_user?.id]);
 
-  // Pkg92: conversation list refresh.
-  // The legacy `conv-refresh-${currentUserId}-${Date.now()}` channel subscribed to
-  // postgres_changes on `messages` + `conversations` — neither table is in the
-  // supabase_realtime publication, so it was a silent no-op AND an unfiltered
-  // global `messages` INSERT bind (exact $1400-pattern if the publication ever
-  // included it). Replaced with:
-  //   1. window 'chat:new-message' event (dispatched by useNotifications on
-  //      `notifications.type='message'` inserts — single existing subscription).
-  //   2. visibilitychange refetch (tab refocus).
+  // Pkg92/Pkg327: conversation list refresh comes from the existing realtime
+  // notifications subscription only. Do NOT add visibility-refresh/polling as a
+  // substitute for realtime updates.
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -1113,17 +1107,12 @@ const Chat = () => {
     };
 
     const onNewMessage = () => debouncedRefresh();
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') debouncedRefresh();
-    };
 
     window.addEventListener('chat:new-message', onNewMessage);
-    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       if (refreshTimer) clearTimeout(refreshTimer);
       window.removeEventListener('chat:new-message', onNewMessage);
-      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [currentUserId]);
 
@@ -1142,7 +1131,7 @@ const Chat = () => {
       const [profileResult] = await Promise.all([
         supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', user.id).single(),
         fetchConversations(user.id),
-        fetchGroups()
+        fetchGroups(user.id)
       ]);
       
       if (profileResult.data) {
@@ -1221,8 +1210,8 @@ const Chat = () => {
     }
   };
 
-  const fetchGroups = async () => {
-    const userId = currentUserId;
+  const fetchGroups = async (overrideUserId?: string) => {
+    const userId = overrideUserId || currentUserId;
     if (!userId) return;
 
     const { data: memberOf, error } = await supabase
