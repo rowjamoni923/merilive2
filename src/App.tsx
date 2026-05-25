@@ -639,6 +639,13 @@ const App = () => {
     // Defer SVGA prewarm to idle
     const svgaIdleId = idle(() => prewarmSVGA(), 3500);
 
+    // Pkg C — prewarm top gift animations (SVGA binaries + Lottie JSON + images)
+    const giftIdleId = idle(() => {
+      import('@/utils/giftAnimationPrewarm')
+        .then(m => m.prewarmGiftAnimations())
+        .catch(() => {});
+    }, 5500);
+
     // Pkg205 — one-time battery-optimization whitelist prompt (native Android
     // only). Prevents Xiaomi/Oppo/Vivo/Samsung from killing FCM listener and
     // dropping screen-off DM/call notifications. Gated by localStorage so
@@ -653,6 +660,7 @@ const App = () => {
       cancelIdle(routeIdleId);
       cancelIdle(imageIdleId);
       cancelIdle(svgaIdleId);
+      cancelIdle(giftIdleId);
       cancelIdle(batteryIdleId);
     };
   }, []);

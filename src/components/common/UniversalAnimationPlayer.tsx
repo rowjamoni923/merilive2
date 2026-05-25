@@ -2,6 +2,7 @@ import React, { useState, Suspense, lazy, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
 import { logAnimationCompletion, type AnimationCompletionSource } from '@/utils/animationDebug';
+import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -83,12 +84,16 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   showControls = false,
   fallbackEmoji = '🎁',
 }) => {
-  const [lottieData, setLottieData] = useState<any>(null);
+  // Synchronously seed Lottie state from cache so cached gifts paint on first
+  // render (no loading spinner flash, no double-paint).
+  const initialType = type || detectAnimationType(src);
+  const initialLottie = initialType === 'lottie' ? lottieCacheGet(src) : null;
+  const [lottieData, setLottieData] = useState<any>(initialLottie);
   const [lottieLoading, setLottieLoading] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   const animationType = type || detectAnimationType(src);
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef(false);
@@ -105,37 +110,40 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
     onComplete?.();
   };
 
-  // Load Lottie JSON data
+  // Load Lottie JSON data — Pkg C: in-memory cache so each gift is parsed once
   // Pkg306 audit: drop onLoad/onError from deps — unstable callbacks made
   // the fetch retrigger on every parent render, hammering Lottie URLs.
   const onLoadRef = useRef(onLoad);
   const onErrorRef = useRef(onError);
   useEffect(() => { onLoadRef.current = onLoad; onErrorRef.current = onError; }, [onLoad, onError]);
   useEffect(() => {
-    if (animationType === 'lottie' && src) {
-      let cancelled = false;
-      setLottieLoading(true);
-      setHasError(false);
-      fetch(src)
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch Lottie');
-          return res.json();
-        })
-        .then(data => {
-          if (cancelled) return;
-          setLottieData(data);
-          setLottieLoading(false);
-          onLoadRef.current?.();
-        })
-        .catch(err => {
-          if (cancelled) return;
-          console.error('[UniversalAnimationPlayer] Failed to load Lottie:', err);
-          setLottieLoading(false);
-          setHasError(true);
-          onErrorRef.current?.(err);
-        });
-      return () => { cancelled = true; };
+    if (animationType !== 'lottie' || !src) return;
+    const cached = lottieCacheGet(src);
+    if (cached) {
+      setLottieData(cached);
+      setLottieLoading(false);
+      // Fire onLoad on next tick so consumers can rely on async semantics
+      const t = setTimeout(() => onLoadRef.current?.(), 0);
+      return () => clearTimeout(t);
     }
+    const ac = new AbortController();
+    setLottieLoading(true);
+    setHasError(false);
+    fetchLottieCached(src, ac.signal)
+      .then(data => {
+        if (ac.signal.aborted) return;
+        setLottieData(data);
+        setLottieLoading(false);
+        onLoadRef.current?.();
+      })
+      .catch(err => {
+        if (ac.signal.aborted) return;
+        console.error('[UniversalAnimationPlayer] Failed to load Lottie:', err);
+        setLottieLoading(false);
+        setHasError(true);
+        onErrorRef.current?.(err as Error);
+      });
+    return () => ac.abort();
   }, [src, animationType]);
 
   // Error fallback
@@ -247,6 +255,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
           loop={loop}
           muted={muted}
           playsInline
+          preload="auto"
           controls={showControls}
           className={cn(
             "w-full h-full object-contain",
