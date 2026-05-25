@@ -1598,6 +1598,7 @@ const Auth = () => {
 
       if (error) throw error;
       if (!data?.verified || !data?.verified_token) {
+        if (isExpiredOtpMessage(data?.error)) setPhoneOtpCode("");
         toast({
           title: "Invalid Code",
           description: data?.error || "The verification code is incorrect",
@@ -1605,6 +1606,7 @@ const Auth = () => {
         });
         return;
       }
+      setPhoneVerifiedToken(data.verified_token);
 
       // OTP verified — check if account already exists
       // Check if account already exists for this phone number
@@ -1648,6 +1650,7 @@ const Auth = () => {
       });
       setAuthStep("phone_password");
     } catch (error: any) {
+      if (isExpiredOtpMessage(error?.message)) setPhoneOtpCode("");
       toast({
         title: "Error",
         description: error.message || "Verification failed",
