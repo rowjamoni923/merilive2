@@ -1689,8 +1689,12 @@ const Chat = () => {
           selectedConversation.id,
           currentUserId,
           contentToSend,
-          'text'
+          'text',
+          replyingTo?.messageId
         );
+        
+        // Clear reply after successful send
+        setReplyingTo(null);
         
         // Track message sent for task progress
         trackTaskProgress('messages_sent', { increment: 1 });
