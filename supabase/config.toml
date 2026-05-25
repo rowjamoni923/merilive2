@@ -1,106 +1,69 @@
 project_id = "ayjdlvuurscxucatbbah"
 
-[functions.migrate-helper-payment-logos]
-verify_jwt = false
-
-[functions.send-transactional-email]
-verify_jwt = false
-
-[functions.preview-transactional-email]
-verify_jwt = false
-
-[functions.handle-email-unsubscribe]
-verify_jwt = false
-
-[functions.handle-email-suppression]
-verify_jwt = false
-
-[functions.ranking-ai-advisor]
-verify_jwt = false
-
-[functions.aws-credentials-check]
-verify_jwt = false
-
-[functions.admin-sign-storage-url]
-verify_jwt = false
-
-[functions.public-gift-media]
-verify_jwt = false
-
-[functions.livekit-webhook]
-verify_jwt = false
-
-[functions.livekit-ingress]
-verify_jwt = true
-
-[functions.livekit-sip]
-verify_jwt = true
-
-[functions.livekit-egress]
-verify_jwt = true
-
-[functions.livekit-track-egress]
-verify_jwt = true
-
-[functions.livekit-stream-egress]
-verify_jwt = true
-
-[functions.livekit-sip-inbound]
-verify_jwt = true
-
-[functions.livekit-agent]
-verify_jwt = true
-
-[functions.livekit-hls-egress]
-verify_jwt = true
-
-[functions.livekit-forward-participant]
-verify_jwt = true
-
-[functions.livekit-auto-record]
-verify_jwt = false
-
-[functions.livekit-update-permission]
-verify_jwt = true
-
-
-
-
-
-
-
-
-
-
-[functions.swift-pay-create-deposit]
-verify_jwt = false
-
-[functions.swift-pay-poll-deposits]
-verify_jwt = false
-
-[functions.swift-pay-create-payout]
-verify_jwt = false
-
-[functions.livekit-move-participant]
-verify_jwt = true
-
-[functions.livekit-room-ops]
-verify_jwt = false
-
-[functions.livekit-egress-ops]
-verify_jwt = false
-
-[functions.livekit-ingress-ops]
-verify_jwt = false
-
-[functions.livekit-sip-ops]
-verify_jwt = false
-
-[functions.livekit-agent-ops]
-verify_jwt = false
-
-[functions.livekit-webhook-events-ops]
-verify_jwt = false
-
-[functions.ai-moderator]
-verify_jwt = false
+[functions]
+  [functions.admin-sign-storage-url]
+    verify_jwt = false
+  [functions.ai-moderator]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.aws-credentials-check]
+    verify_jwt = false
+  [functions.handle-email-suppression]
+    verify_jwt = false
+  [functions.handle-email-unsubscribe]
+    verify_jwt = false
+  [functions.livekit-agent]
+    verify_jwt = true
+  [functions.livekit-agent-ops]
+    verify_jwt = false
+  [functions.livekit-auto-record]
+    verify_jwt = false
+  [functions.livekit-egress]
+    verify_jwt = true
+  [functions.livekit-egress-ops]
+    verify_jwt = false
+  [functions.livekit-forward-participant]
+    verify_jwt = true
+  [functions.livekit-hls-egress]
+    verify_jwt = true
+  [functions.livekit-ingress]
+    verify_jwt = true
+  [functions.livekit-ingress-ops]
+    verify_jwt = false
+  [functions.livekit-move-participant]
+    verify_jwt = true
+  [functions.livekit-room-ops]
+    verify_jwt = false
+  [functions.livekit-sip]
+    verify_jwt = true
+  [functions.livekit-sip-inbound]
+    verify_jwt = true
+  [functions.livekit-sip-ops]
+    verify_jwt = false
+  [functions.livekit-stream-egress]
+    verify_jwt = true
+  [functions.livekit-track-egress]
+    verify_jwt = true
+  [functions.livekit-update-permission]
+    verify_jwt = true
+  [functions.livekit-webhook]
+    verify_jwt = false
+  [functions.livekit-webhook-events-ops]
+    verify_jwt = false
+  [functions.migrate-helper-payment-logos]
+    verify_jwt = false
+  [functions.preview-transactional-email]
+    verify_jwt = false
+  [functions.public-gift-media]
+    verify_jwt = false
+  [functions.ranking-ai-advisor]
+    verify_jwt = false
+  [functions.send-transactional-email]
+    verify_jwt = false
+  [functions.swift-pay-create-deposit]
+    verify_jwt = false
+  [functions.swift-pay-create-payout]
+    verify_jwt = false
+  [functions.swift-pay-poll-deposits]
+    verify_jwt = false
