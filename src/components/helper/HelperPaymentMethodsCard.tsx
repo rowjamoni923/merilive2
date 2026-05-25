@@ -120,14 +120,20 @@ export default function HelperPaymentMethodsCard({
         {loading ? (
           <div className="h-16 rounded-xl bg-amber-100/40 animate-pulse" />
         ) : countries.length === 0 ? (
-          <button
-            type="button"
-            onClick={handleManage}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-amber-300 text-amber-700 text-xs font-semibold hover:bg-amber-50 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add your first payment method
-          </button>
+          showManage ? (
+            <button
+              type="button"
+              onClick={handleManage}
+              className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-amber-300 text-amber-700 text-xs font-semibold hover:bg-amber-50 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add your first payment method
+            </button>
+          ) : (
+            <div className="w-full py-4 rounded-xl border-2 border-dashed border-amber-200 text-center text-amber-700/70 text-xs font-semibold">
+              No country payment methods yet
+            </div>
+          )
         ) : (
           <div className="space-y-3">
             {countries.map((cc) => (
