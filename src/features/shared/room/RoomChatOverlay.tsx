@@ -511,11 +511,11 @@ export const RoomChatOverlay = memo(({
       <div 
         ref={chatContainerRef}
         className={cn(
-          "flex flex-col-reverse gap-1.5 overflow-y-auto overflow-x-hidden",
+          "flex flex-col-reverse gap-2 overflow-y-auto overflow-x-hidden",
           "scrollbar-thin scrollbar-thumb-white/25 scrollbar-track-transparent",
-          "pr-1 rounded-2xl",
-          "bg-gradient-to-t from-black/20 via-transparent to-transparent",
-          "backdrop-blur-[2px]"
+          "pr-1 pl-0.5 py-1 rounded-2xl",
+          "bg-gradient-to-t from-black/25 via-black/5 to-transparent",
+          "backdrop-blur-[3px]"
         )}
         style={{ maxHeight }}
       >
