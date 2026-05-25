@@ -629,7 +629,10 @@ const App = () => {
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
     const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
       m.registerImageCacheSW().then(() => m.warmAppImageCache());
+      // Pkg B pass-3: prompt user to reload when a new SW version installs.
+      import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
     }).catch(() => {}), 4500);
+
 
     // Defer SVGA prewarm to idle
     const svgaIdleId = idle(() => prewarmSVGA(), 3500);

@@ -89,7 +89,6 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
           src={src}
           alt="Animation preview"
           className={cn("object-contain w-full h-full", className)}
-          loading="lazy"
           decoding="async"
           onError={() => setImgError(true)}
         />

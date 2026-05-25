@@ -581,7 +581,6 @@ const AdminPartyBackgrounds = () => {
                   <SmartImage
                     src={bg.image_url}
                     alt={bg.name}
-                    loading="lazy"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const img = e.currentTarget;
@@ -692,7 +691,6 @@ const AdminPartyBackgrounds = () => {
                       <SmartImage
                         src={bg.image_url}
                         alt={bg.name}
-                        loading="lazy"
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';

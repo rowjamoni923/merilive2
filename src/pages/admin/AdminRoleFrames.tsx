@@ -547,7 +547,7 @@ const AdminRoleFrames = () => {
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
                               {assignment.user?.avatar_url ? (
-                                <SmartImage src={assignment.user.avatar_url} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
+                                <SmartImage src={assignment.user.avatar_url} alt="" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                               ) : (
                                 <User className="w-full h-full p-1.5 text-slate-500" />
                               )}
@@ -781,7 +781,7 @@ const AdminRoleFrames = () => {
                   >
                     <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden">
                       {user.avatar_url ? (
-                        <SmartImage src={user.avatar_url} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
+                        <SmartImage src={user.avatar_url} alt="" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                       ) : (
                         <User className="w-full h-full p-2 text-slate-500" />
                       )}

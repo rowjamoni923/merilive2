@@ -238,10 +238,10 @@ export function AdminMediaFrame({
             key={`image-fallback-${displaySrc}`}
             src={displaySrc}
             alt={alt}
-            loading={priority ? "eager" : "lazy"}
+            eager={priority}
             decoding="async"
-            // @ts-expect-error – fetchpriority is valid HTML, React typings lag.
-            fetchpriority={priority ? "high" : "low"}
+            fetchPriority={priority ? "high" : "low"}
+
             referrerPolicy="no-referrer"
             className={cn("h-full w-full object-contain", mediaClassName)}
             onError={() => setImageFallbackFailed(true)}
@@ -314,10 +314,10 @@ export function AdminMediaFrame({
       key={displaySrc}
       src={displaySrc}
       alt={alt}
-      loading={priority ? "eager" : "lazy"}
+      eager={priority}
       decoding="async"
-      // @ts-expect-error – fetchpriority is valid HTML, React typings lag.
-      fetchpriority={priority ? "high" : "low"}
+      fetchPriority={priority ? "high" : "low"}
+
       referrerPolicy="no-referrer"
       className={cn("h-full w-full object-contain", mediaClassName)}
       onError={() => setFailed(true)}

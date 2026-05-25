@@ -791,7 +791,7 @@ export default function AdminWithdrawals() {
                                   title="View helper payment screenshot"
                                   onClick={(e) => { e.stopPropagation(); imageViewer.openImage(proof); }}
                                 >
-                                  <SmartImage src={proof} alt="Helper proof" className="w-full h-full object-cover" loading="lazy" fallbackSrc="/placeholder.svg" />
+                                  <SmartImage src={proof} alt="Helper proof" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                                 </button>
                               );
                             })()}

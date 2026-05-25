@@ -282,7 +282,6 @@ export default function AdminAiImageStudio() {
                       src={it.url}
                       alt={it.eventName}
                       className="w-full h-full object-cover"
-                      loading="lazy"
                     />
                     <button
                       type="button"
