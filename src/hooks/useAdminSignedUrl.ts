@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl } from "@/utils/adminStorageImages";
+import { resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl, tryResolvePublicAdminStorageUrlSync } from "@/utils/adminStorageImages";
 
 /**
  * Resolves a (possibly private) Supabase Storage URL/path into a signed URL
@@ -10,7 +10,7 @@ export function useAdminSignedUrl(
   value: string | null | undefined,
   bucket: string = "face-verification",
 ): string | null {
-  const [url, setUrl] = useState<string | null>(null);
+  const [url, setUrl] = useState<string | null>(() => tryResolvePublicAdminStorageUrlSync(value, bucket) || null);
 
   useEffect(() => {
     if (!value) {
@@ -18,13 +18,14 @@ export function useAdminSignedUrl(
       return;
     }
     let cancelled = false;
-    setUrl(null);
+    const syncUrl = tryResolvePublicAdminStorageUrlSync(value, bucket);
+    setUrl(syncUrl);
     (async () => {
       const resolver = bucket === "face-verification" || bucket === "host-verification"
         ? resolveAdminStorageObjectUrl
         : resolveAdminStorageImageUrl;
       const resolved = await resolver(value, bucket);
-      if (!cancelled) setUrl(resolved);
+      if (!cancelled) setUrl(resolved || syncUrl || null);
     })();
     return () => {
       cancelled = true;
@@ -42,7 +43,7 @@ export function useAdminSignedUrls(
   bucket: string = "face-verification",
 ): string[] {
   const key = (values || []).join("|");
-  const [urls, setUrls] = useState<string[]>([]);
+  const [urls, setUrls] = useState<string[]>(() => (values || []).map((v) => tryResolvePublicAdminStorageUrlSync(v, bucket) || ""));
 
   useEffect(() => {
     const list = values || [];
@@ -51,7 +52,8 @@ export function useAdminSignedUrls(
       return;
     }
     let cancelled = false;
-    setUrls([]);
+    const syncUrls = list.map((v) => tryResolvePublicAdminStorageUrlSync(v, bucket) || "");
+    setUrls(syncUrls);
     (async () => {
       const resolver = bucket === "face-verification" || bucket === "host-verification"
         ? resolveAdminStorageObjectUrl
@@ -59,7 +61,7 @@ export function useAdminSignedUrls(
       const resolved = await Promise.all(
         list.map((v) => resolver(v, bucket)),
       );
-      if (!cancelled) setUrls(resolved.map((u) => u || ""));
+      if (!cancelled) setUrls(resolved.map((u, i) => u || syncUrls[i] || ""));
     })();
     return () => {
       cancelled = true;
