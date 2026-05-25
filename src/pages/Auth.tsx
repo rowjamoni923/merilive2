@@ -255,12 +255,14 @@ const Auth = () => {
   const [otpLoading, setOtpLoading] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [emailVerifiedToken, setEmailVerifiedToken] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   
   // Phone auth state
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneOtpCode, setPhoneOtpCode] = useState("");
+  const [phoneVerifiedToken, setPhoneVerifiedToken] = useState("");
   const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
   const [selectedCountryCode, setSelectedCountryCode] = useState(COUNTRY_CODES[0]?.code ?? "+1");
   const [showCountryPicker, setShowCountryPicker] = useState(false);
