@@ -8,6 +8,7 @@ import {
   revokeAdminAccess,
   setAdminLinkToken,
   setAdminLinkKind,
+  setAdminLinkChallenge,
   hasAdminAccessFlag,
   getAdminLinkToken,
 } from "@/utils/adminAccessStorage";
@@ -150,6 +151,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             }
             setAdminLinkToken(accessToken);
             setAdminLinkKind(role);
+            setAdminLinkChallenge(typeof data.challenge === 'string' ? data.challenge : null);
             grantAdminAccess(role === 'owner');
             if (mounted) {
               setHasValidToken(true);
