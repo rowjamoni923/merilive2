@@ -36,6 +36,7 @@ import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
 import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
+import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -91,6 +92,7 @@ export function useLiveKitCall(
   // Drives the native event-listener subscription. Mirrors usingNativeRef
   // but as state so the effect re-runs after a successful native connect.
   const [nativeActive, setNativeActive] = useState(false);
+  const remoteAudioKeysRef = useRef<Set<string>>(new Set());
 
   // Auto-attach incoming remote video tracks (so the peer's tile renders) and
   // surface native disconnects back into React state. No-op on web/iOS.
@@ -191,6 +193,8 @@ export function useLiveKitCall(
       roomRef.current.disconnect(true);
       roomRef.current = null;
     }
+    remoteAudioKeysRef.current.forEach(detachLiveKitRemoteAudio);
+    remoteAudioKeysRef.current.clear();
 
     setState({
       localStream: null,
@@ -379,6 +383,7 @@ export function useLiveKitCall(
           e2ee: e2eeOption,
         });
         roomRef.current = room;
+        primeLiveKitRoomMedia(room);
 
         // Pkg108: enable E2EE on the Room post-construction (per SDK API).
         if (e2eeOption) {
@@ -410,15 +415,11 @@ export function useLiveKitCall(
           }
 
           if (track.kind === Track.Kind.Audio) {
-            const audioElement = track.attach() as HTMLAudioElement;
-            audioElement.autoplay = true;
-            audioElement.dataset.livekitRemoteAudio = 'call';
-            try { audioElement.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-            try { (audioElement as any).webkitPlaysInline = true; } catch { /* ignore */ }
-            audioElement.style.display = 'none';
-            // CRITICAL: must be in DOM for mobile WebViews to start playback.
-            try { document.body.appendChild(audioElement); } catch { /* ignore */ }
-            audioElement.play().catch(() => {});
+            const key = getLiveKitRemoteAudioKey('call', participant.identity, publication, track);
+            if (!remoteAudioKeysRef.current.has(key)) {
+              const audioElement = attachLiveKitRemoteAudioOnce({ scope: 'call', key, track });
+              if (audioElement) remoteAudioKeysRef.current.add(key);
+            }
           }
 
           // Build remote MediaStream
@@ -454,15 +455,26 @@ export function useLiveKitCall(
           }
         });
 
-        room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack) => {
+        room.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack, publication: RemoteTrackPublication, participant: RemoteParticipant) => {
           if (track.kind === Track.Kind.Video) {
             setState(p => ({ ...p, remoteVideoTrack: null }));
+          }
+          if (track.kind === Track.Kind.Audio) {
+            const key = getLiveKitRemoteAudioKey('call', participant.identity, publication, track);
+            remoteAudioKeysRef.current.delete(key);
+            detachLiveKitRemoteAudio(key);
           }
           track.detach().forEach(el => el.remove());
         });
 
-        room.on(RoomEvent.ParticipantDisconnected, () => {
+        room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
           console.log('[LiveKitCall] Remote participant left');
+          Array.from(remoteAudioKeysRef.current)
+            .filter((key) => key.startsWith(`call:${participant.identity}:`))
+            .forEach((key) => {
+              remoteAudioKeysRef.current.delete(key);
+              detachLiveKitRemoteAudio(key);
+            });
           setState(p => ({
             ...p,
             remoteVideoTrack: null,
@@ -648,14 +660,11 @@ export function useLiveKitCall(
                   }));
                 }
                 if (pub.track.kind === Track.Kind.Audio) {
-                  const audioEl = pub.track.attach() as HTMLAudioElement;
-                  audioEl.autoplay = true;
-                  audioEl.dataset.livekitRemoteAudio = 'call';
-                  try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-                  try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
-                  audioEl.style.display = 'none';
-                  try { document.body.appendChild(audioEl); } catch { /* ignore */ }
-                  audioEl.play().catch(() => {});
+                  const key = getLiveKitRemoteAudioKey('call', participant.identity, pub as RemoteTrackPublication, pub.track as RemoteTrack);
+                  if (!remoteAudioKeysRef.current.has(key)) {
+                    const audioEl = attachLiveKitRemoteAudioOnce({ scope: 'call', key, track: pub.track as RemoteTrack });
+                    if (audioEl) remoteAudioKeysRef.current.add(key);
+                  }
                 }
               }
             });

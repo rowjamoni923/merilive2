@@ -106,19 +106,15 @@ const Discover = () => {
         setLoading(true);
       }
       
-      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-      
       const [participantsRes, roomsRes] = await Promise.all([
         supabase
           .from('party_room_participants')
           .select('room_id, user_id, role, joined_at')
-          .is('left_at', null)
-          .gte('joined_at', twoHoursAgo),
+          .is('left_at', null),
         supabase
           .from('party_rooms')
           .select(`*`)
-          .eq('is_active', true)
-          .gte('created_at', twoHoursAgo),
+          .eq('is_active', true),
       ]);
 
       if (participantsRes.error) throw participantsRes.error;
@@ -141,21 +137,15 @@ const Discover = () => {
 
       const activeParticipants = participantsRes.data || [];
       const roomParticipantCounts = new Map<string, number>();
-      const roomsWithHost = new Set<string>();
       
       activeParticipants.forEach(p => {
         const count = roomParticipantCounts.get(p.room_id) || 0;
         roomParticipantCounts.set(p.room_id, count + 1);
-        if (p.role === 'host') roomsWithHost.add(p.room_id);
       });
 
       const activeRoomIds = new Set(
         (roomsRes.data || [])
           .filter((room: any) => room.is_active)
-          .filter((room: any) => {
-            const participantCount = roomParticipantCounts.get(room.id) || 0;
-            return participantCount > 0 || roomsWithHost.has(room.id);
-          })
           .map((room: any) => room.id)
       );
 
@@ -201,7 +191,7 @@ const Discover = () => {
           return {
             ...room,
             host: host ? { ...host, user_level: resolvedHostLevel } : null,
-            current_participants: roomParticipantCounts.get(room.id) || 1,
+            current_participants: Math.max(roomParticipantCounts.get(room.id) || 0, room.active_seats || 0, 1),
           };
         });
 

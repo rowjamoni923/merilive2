@@ -101,6 +101,8 @@ export function ParticipantVideo({
         {showVideo ? (
           <video 
             ref={videoRef}
+            data-livekit-media="true"
+            data-no-auto-pause="true"
             autoPlay
             playsInline
             muted={isSelf}

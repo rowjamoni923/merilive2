@@ -17,6 +17,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
+import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 import { pickOptimalCodecs } from '@/lib/livekitBackupCodec';
 import { consumePreparedHostPreviewStream } from '@/features/live/hostPreviewSession';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
@@ -82,26 +83,18 @@ export function usePartyRoomWebRTC(
     identity: string,
     pub?: RemoteTrackPublication | null,
     track?: RemoteTrack | null,
-  ) => `${identity}:${pub?.trackSid || (pub as any)?.sid || (track as any)?.sid || track?.mediaStreamTrack?.id || 'audio'}`;
+  ) => getLiveKitRemoteAudioKey('party', identity, pub, track);
 
   const attachRemoteAudioOnce = (identity: string, pub: RemoteTrackPublication | null, track: RemoteTrack) => {
     const key = getRemoteAudioTrackKey(identity, pub, track);
     if (remoteAudioTrackKeysRef.current.has(key)) return;
 
-    const audioEl = track.attach() as HTMLAudioElement;
-    audioEl.autoplay = true;
+    const audioEl = attachLiveKitRemoteAudioOnce({ scope: 'party', key, track });
+    if (!audioEl) return;
     audioEl.dataset.partyAudioKey = key;
-    audioEl.dataset.livekitRemoteAudio = 'party';
-    try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-    try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
-    audioEl.style.display = 'none';
-    // CRITICAL: must be in DOM for mobile WebViews (Android/iOS) to actually
-    // start playback. Detached <audio> nodes silently fail on many platforms.
-    try { document.body.appendChild(audioEl); } catch { /* ignore */ }
-    audioEl.play().catch(() => {});
 
     const existing = audioElementsRef.current.get(identity) || [];
-    existing.push(audioEl);
+    if (!existing.includes(audioEl)) existing.push(audioEl);
     audioElementsRef.current.set(identity, existing);
     remoteAudioTrackKeysRef.current.add(key);
   };
@@ -111,16 +104,19 @@ export function usePartyRoomWebRTC(
     if (els) {
       els.forEach((el) => {
         const key = el.dataset?.partyAudioKey;
-        if (key) remoteAudioTrackKeysRef.current.delete(key);
-        try { el.pause(); } catch { /* ignore */ }
-        try { (el as any).srcObject = null; } catch { /* ignore */ }
-        try { el.remove(); } catch { /* ignore */ }
+        if (key) {
+          remoteAudioTrackKeysRef.current.delete(key);
+          detachLiveKitRemoteAudio(key);
+        }
       });
       audioElementsRef.current.delete(identity);
     }
     Array.from(remoteAudioTrackKeysRef.current)
-      .filter((key) => key.startsWith(`${identity}:`))
-      .forEach((key) => remoteAudioTrackKeysRef.current.delete(key));
+      .filter((key) => key.startsWith(`party:${identity}:`))
+      .forEach((key) => {
+        remoteAudioTrackKeysRef.current.delete(key);
+        detachLiveKitRemoteAudio(key);
+      });
   };
 
   const detachAllAudio = () => {
@@ -264,6 +260,7 @@ export function usePartyRoomWebRTC(
           },
         });
         roomRef.current = room;
+        primeLiveKitRoomMedia(room);
 
         // Build video-only MediaStream for UI rendering.
         // Audio playback is handled separately via track.attach().
@@ -431,6 +428,7 @@ export function usePartyRoomWebRTC(
             : null;
           if (track.kind === Track.Kind.Audio) {
             remoteAudioTrackKeysRef.current.delete(audioKey!);
+            detachLiveKitRemoteAudio(audioKey!);
           }
           track.detach().forEach(el => el.remove());
 

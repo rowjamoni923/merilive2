@@ -17,6 +17,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
+import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
@@ -318,24 +319,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   }, [getUidForParticipant]);
 
   const attachRemoteAudioOnce = useCallback((track: RemoteTrack, participantIdentity: string, publication?: RemoteTrackPublication) => {
-    const trackKey = `${participantIdentity}:${publication?.trackSid || (track as any).sid || (track as any).mediaStreamTrack?.id || 'audio'}`;
+    const trackKey = getLiveKitRemoteAudioKey('live', participantIdentity, publication, track);
     if (remoteAudioTrackKeysRef.current.has(trackKey)) return;
+    const audioEl = attachLiveKitRemoteAudioOnce({ scope: 'live', key: trackKey, track, muted: isRemoteAudioMutedRef.current });
+    if (!audioEl) return;
     remoteAudioTrackKeysRef.current.add(trackKey);
-
-    const audioEl = track.attach() as HTMLAudioElement;
-    audioEl.dataset.livekitAudioKey = trackKey;
-    audioEl.dataset.livekitRemoteAudio = 'live';
-    audioEl.autoplay = true;
-    audioEl.muted = isRemoteAudioMutedRef.current;
-    audioEl.volume = 1;
-    try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-    try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
-    audioEl.style.display = 'none';
-    // CRITICAL: must be in DOM for mobile WebViews to actually start playback.
-    try { document.body.appendChild(audioEl); } catch { /* ignore */ }
-    audioEl.play().catch(() => {});
     const existing = remoteAudioElementsRef.current.get(participantIdentity) || [];
-    existing.push(audioEl);
+    if (!existing.includes(audioEl)) existing.push(audioEl);
     remoteAudioElementsRef.current.set(participantIdentity, existing);
   }, []);
 
@@ -516,6 +506,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         } : {}),
       });
       roomRef.current = room;
+      primeLiveKitRoomMedia(room);
 
       const uid = config.uid || Math.floor(Math.random() * 100000);
       uidRef.current = uid;
@@ -648,9 +639,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           if (els) {
             els.forEach(el => {
               const key = el.dataset.livekitAudioKey;
-              if (key) remoteAudioTrackKeysRef.current.delete(key);
+              if (key) {
+                remoteAudioTrackKeysRef.current.delete(key);
+                detachLiveKitRemoteAudio(key);
+              }
             });
-            els.forEach(el => el.remove());
             remoteAudioElementsRef.current.delete(participant.identity);
           }
         }
@@ -684,9 +677,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         if (els) {
           els.forEach(el => {
             const key = el.dataset.livekitAudioKey;
-            if (key) remoteAudioTrackKeysRef.current.delete(key);
+            if (key) {
+              remoteAudioTrackKeysRef.current.delete(key);
+              detachLiveKitRemoteAudio(key);
+            }
           });
-          els.forEach(el => el.remove());
           remoteAudioElementsRef.current.delete(participant.identity);
         }
       });
@@ -804,6 +799,7 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
         room.removeAllListeners();
         roomRef.current = config.preloadedRoom;
+        primeLiveKitRoomMedia(config.preloadedRoom);
 
         // Re-wire essential events on the preloaded room
         const pRoom = config.preloadedRoom;
@@ -832,9 +828,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             if (els) {
               els.forEach(el => {
                 const key = el.dataset.livekitAudioKey;
-                if (key) remoteAudioTrackKeysRef.current.delete(key);
+                if (key) {
+                  remoteAudioTrackKeysRef.current.delete(key);
+                  detachLiveKitRemoteAudio(key);
+                }
               });
-              els.forEach(el => el.remove());
               remoteAudioElementsRef.current.delete(participant.identity);
             }
           }
@@ -846,9 +844,11 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
           if (els) {
             els.forEach(el => {
               const key = el.dataset.livekitAudioKey;
-              if (key) remoteAudioTrackKeysRef.current.delete(key);
+              if (key) {
+                remoteAudioTrackKeysRef.current.delete(key);
+                detachLiveKitRemoteAudio(key);
+              }
             });
-            els.forEach(el => el.remove());
             remoteAudioElementsRef.current.delete(participant.identity);
           }
         });
@@ -1153,7 +1153,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         tokenRefreshDetachRef.current = null;
       }
       remoteAudioElementsRef.current.forEach(els => {
-        els.forEach(el => el.remove());
+        els.forEach(el => {
+          const key = el.dataset.livekitAudioKey;
+          if (key) detachLiveKitRemoteAudio(key);
+        });
       });
       remoteAudioElementsRef.current.clear();
       remoteAudioTrackKeysRef.current.clear();
