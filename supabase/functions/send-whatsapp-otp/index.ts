@@ -38,7 +38,9 @@ async function createPhoneExchangeToken(supabase: any, identifier: string): Prom
     identifier,
     channel: "phone",
     purpose: "login",
-    expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+    // Keep the post-OTP exchange token alive long enough for users on slow
+    // mobile networks to finish the name/password step without being bounced.
+    expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
   });
   if (error) throw error;
   return token;

@@ -255,12 +255,14 @@ const Auth = () => {
   const [otpLoading, setOtpLoading] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [emailVerifiedToken, setEmailVerifiedToken] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   
   // Phone auth state
   const [phoneNumber, setPhoneNumber] = useState("");
   const [phoneOtpCode, setPhoneOtpCode] = useState("");
+  const [phoneVerifiedToken, setPhoneVerifiedToken] = useState("");
   const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
   const [selectedCountryCode, setSelectedCountryCode] = useState(COUNTRY_CODES[0]?.code ?? "+1");
   const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -283,6 +285,8 @@ const Auth = () => {
 
     return error?.message || fallback;
   };
+
+  const isExpiredOtpMessage = (message: unknown) => /expired|not found|new code|one-time token|invalid/i.test(String(message || ""));
 
   // Auto-detect user's country for default country code
   useEffect(() => {
@@ -1256,6 +1260,7 @@ const Auth = () => {
       if (!verifyData?.success || !verifyData?.verified_token) {
         throw new Error(verifyData?.error || "Invalid verification code");
       }
+      setEmailVerifiedToken(verifyData.verified_token);
 
       const { data: signInData, error: signInError } = await supabase.functions.invoke(
         "otp-direct-signin",
@@ -1337,6 +1342,7 @@ const Auth = () => {
     } catch (error: any) {
       console.error("Email OTP verify error:", error);
       recordClientError({ label: "Auth.readyProfile", message: error instanceof Error ? error.message : String(error) });
+      if (isExpiredOtpMessage(error?.message)) setOtpCode("");
       toast({
         title: "Invalid Code",
         description: error.message || "Invalid verification code",
@@ -1404,38 +1410,39 @@ const Auth = () => {
         return;
       }
 
-      // Create account
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: displayName,
-            gender: selectedGender,
-            email_confirmed: true,
-            device_id: deviceId,
-          },
+      if (!emailVerifiedToken) {
+        toast({ title: "Verify Email", description: "Please request a fresh code and verify again.", variant: "destructive" });
+        setAuthStep("email_otp");
+        return;
+      }
+
+      const { data: signInData, error: signInError } = await supabase.functions.invoke("otp-direct-signin", {
+        body: {
+          email,
+          verified_token: emailVerifiedToken,
+          mode: "create",
+          password,
+          display_name: displayName,
+          device_id: deviceId,
+          gender: selectedGender,
         },
       });
 
-      if (error) {
-        // If user already exists, try to login
-        if (error.message?.includes("already registered")) {
-          toast({
-            title: "Account Exists",
-            description: "This email is already registered. Please login.",
-            variant: "destructive",
-          });
-          setAuthStep("login");
-          setIsEmailFlow(false);
-          return;
-        }
-        throw error;
+      if (signInError) throw new Error(await getFunctionErrorMessage(signInError, "Failed to create account"));
+      if (!signInData?.success || !signInData?.access_token || !signInData?.refresh_token) {
+        throw new Error(signInData?.error || "Failed to create account");
       }
 
-      if (data.user) {
+      const { error: setErr } = await supabase.auth.setSession({
+        access_token: signInData.access_token,
+        refresh_token: signInData.refresh_token,
+      });
+      if (setErr) throw setErr;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         const readyProfile = await ensureProfileReady(
-          data.user.id,
+          user.id,
           {
             display_name: displayName,
             is_verified: true,
@@ -1450,12 +1457,10 @@ const Auth = () => {
           throw new Error('Profile setup is still processing. Please try again.');
         }
 
-        if (selectedGender) {
-          localStorage.setItem(`gender_selected_${data.user.id}`, 'true');
-        }
+        if (selectedGender) localStorage.setItem(`gender_selected_${user.id}`, 'true');
 
         // Instant country detection (non-blocking)
-        detectAndSaveLocation(data.user.id);
+        detectAndSaveLocation(user.id);
 
         // Note: Agency join will happen after gender selection on home page
 
@@ -1593,6 +1598,7 @@ const Auth = () => {
 
       if (error) throw error;
       if (!data?.verified || !data?.verified_token) {
+        if (isExpiredOtpMessage(data?.error)) setPhoneOtpCode("");
         toast({
           title: "Invalid Code",
           description: data?.error || "The verification code is incorrect",
@@ -1600,6 +1606,7 @@ const Auth = () => {
         });
         return;
       }
+      setPhoneVerifiedToken(data.verified_token);
 
       // OTP verified — check if account already exists
       // Check if account already exists for this phone number
@@ -1643,6 +1650,7 @@ const Auth = () => {
       });
       setAuthStep("phone_password");
     } catch (error: any) {
+      if (isExpiredOtpMessage(error?.message)) setPhoneOtpCode("");
       toast({
         title: "Error",
         description: error.message || "Verification failed",
