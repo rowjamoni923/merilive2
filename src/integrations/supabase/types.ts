@@ -16126,16 +16126,10 @@ export type Database = {
         Args: { _id: string; _notes?: string }
         Returns: Json
       }
-      admin_authenticate:
-        | { Args: { _email: string; _password: string }; Returns: Json }
-        | {
-            Args: {
-              _email: string
-              _link_challenge?: string
-              _password: string
-            }
-            Returns: Json
-          }
+      admin_authenticate: {
+        Args: { _email: string; _link_challenge?: string; _password: string }
+        Returns: Json
+      }
       admin_block_agency: {
         Args: { _agency_id: string; _block: boolean; _reason?: string }
         Returns: Json
