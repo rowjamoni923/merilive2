@@ -214,6 +214,17 @@ const Chat = () => {
   const [signedChatMediaUrls, setSignedChatMediaUrls] = useState<Record<string, string>>({});
   const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
 
+  // Reply state
+  const [replyingTo, setReplyingTo] = useState<{ messageId: string; content: string; senderName: string; senderId: string } | null>(null);
+  const [replyMessages, setReplyMessages] = useState<Record<string, { content: string; sender_id: string }>>({});
+  
+  // Message reactions (client-side only until DB table exists)
+  const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
+  
+  // Message info dialog
+  const [showMessageInfo, setShowMessageInfo] = useState(false);
+  const [messageInfoMessage, setMessageInfoMessage] = useState<Message | null>(null);
+
   // 🛡️ DM dedup guard: enforce one row per message id at all times. Catches
   // any race between optimistic insert, REST fetch, realtime INSERT,
   // broadcast and persistDirectMessage so the same id never renders twice.
