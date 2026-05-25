@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
+import { getAppSetting, invalidateAppSetting } from '@/utils/appSettingsCache';
 
 interface UseHostCallRateResult {
   callRate: number | null;
