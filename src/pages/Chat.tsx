@@ -2140,7 +2140,7 @@ const Chat = () => {
                     <MoreVertical className="w-5 h-5 text-foreground pointer-events-none" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white border border-amber-200/60 rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
+                <DropdownMenuContent align="end" className="bg-popover text-popover-foreground border border-border rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
                   {/* Decorative top glow */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
                   
@@ -2149,7 +2149,7 @@ const Chat = () => {
                       const otherId = selectedConversation?.other_user?.id;
                       if (otherId) navigate(`/profile-detail/${otherId}`);
                     }}
-                    className="text-slate-700 hover:text-slate-900 hover:bg-amber-50 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                    className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
                   >
                     <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
                       <Users className="w-4 h-4 text-purple-400" />
@@ -2201,7 +2201,7 @@ const Chat = () => {
         <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain" style={{ background: 'linear-gradient(180deg, hsl(40 40% 98% / 0.6) 0%, transparent 15%, transparent 85%, hsl(40 40% 98% / 0.6) 100%)', WebkitOverflowScrolling: 'touch' }}>
           {currentMessages.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-slate-500 font-medium">No messages yet. Say hello! 👋</p>
+              <p className="text-muted-foreground font-medium">No messages yet. Say hello! 👋</p>
             </div>
           ) : (
             currentMessages.map((msg: any, idx: number, arr: any[]) => {
@@ -2233,7 +2233,7 @@ const Chat = () => {
                 <React.Fragment key={msg.id}>
                   {showDaySeparator && (
                     <div className="flex items-center justify-center my-2">
-                      <span className="px-3 py-0.5 rounded-full text-[10.5px] font-semibold text-slate-600 bg-white/85 border border-amber-200/50 shadow-sm backdrop-blur-sm">
+                      <span className="px-3 py-0.5 rounded-full text-[10.5px] font-semibold text-muted-foreground profile-home-pill shadow-sm backdrop-blur-sm">
                         {formatDayLabel(msg.created_at)}
                       </span>
                     </div>
@@ -2260,7 +2260,7 @@ const Chat = () => {
                         ) : (
                           <Avatar className="w-7 h-7 border border-purple-200/30">
                             <AvatarImage src={senderAvatar || undefined} className="object-cover" />
-                            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-900 text-[10px]">
+                            <AvatarFallback className="bg-gradient-primary text-primary-foreground text-[10px]">
                               {senderName[0]}
                             </AvatarFallback>
                           </Avatar>
@@ -2276,7 +2276,7 @@ const Chat = () => {
                           onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
                           className={cn("mb-0.5 px-1", isMine ? "text-right" : "text-left")}
                         >
-                          <p className="font-semibold text-[11px] text-slate-700">
+                          <p className="font-semibold text-[11px] text-muted-foreground">
                             {senderName}
                           </p>
                         </button>
