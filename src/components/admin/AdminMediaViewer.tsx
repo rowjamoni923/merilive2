@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import { isPrivateAdminStorageReference, resolveAdminStorageImageUrl, resolveAdminStorageObjectUrl, tryResolvePublicAdminStorageUrlSync } from "@/utils/adminStorageImages";
 import { AdminLuxuryVideoPlayer } from "./AdminLuxuryVideoPlayer";
+import { SmartImage } from "@/components/ui/smart-image";
 
 export type AdminMediaKind = "auto" | "image" | "video";
 
@@ -115,7 +116,7 @@ export function AdminMediaFrame({
   const [videoDuration, setVideoDuration] = useState(0);
   
   // Sync fast-path: public verification buckets resolve to a direct URL with
-  // zero await, so the <img> can paint on first render — no spinner flicker.
+  // zero await, so the <SmartImage> can paint on first render — no spinner flicker.
   const initialSync = tryResolvePublicAdminStorageUrlSync(src, bucket);
   const initialPosterSync = tryResolvePublicAdminStorageUrlSync(poster, bucket);
   const [displaySrc, setDisplaySrc] = useState<string | null>(initialSync);
@@ -233,7 +234,7 @@ export function AdminMediaFrame({
     if (displaySrc && !imageFallbackFailed && effectiveMediaKind !== "video") {
       return (
         <div className={cn("block overflow-hidden rounded-lg border border-border bg-muted/20", className)}>
-          <img
+          <SmartImage
             key={`image-fallback-${displaySrc}`}
             src={displaySrc}
             alt={alt}
@@ -309,7 +310,7 @@ export function AdminMediaFrame({
 
 
   const image = (
-    <img
+    <SmartImage
       key={displaySrc}
       src={displaySrc}
       alt={alt}

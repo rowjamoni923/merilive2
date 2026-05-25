@@ -578,7 +578,7 @@ const AdminPartyBackgrounds = () => {
                 style={bg.gradient_css && !bg.image_url ? { background: bg.gradient_css } : undefined}
               >
                 {bg.image_url ? (
-                  <img
+                  <SmartImage
                     src={bg.image_url}
                     alt={bg.name}
                     loading="lazy"
@@ -689,7 +689,7 @@ const AdminPartyBackgrounds = () => {
                     style={bg.gradient_css && !bg.image_url ? { background: bg.gradient_css } : undefined}
                   >
                     {bg.image_url && (
-                      <img
+                      <SmartImage
                         src={bg.image_url}
                         alt={bg.name}
                         loading="lazy"

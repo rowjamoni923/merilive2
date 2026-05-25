@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   Dialog,
   DialogContent,
@@ -567,7 +568,7 @@ const AdminFrames = () => {
                   frame.is_active ? "border-green-200 dark:border-green-800" : "border-gray-200 dark:border-gray-700 opacity-60"
                 }`}
               >
-                {/* Frame Preview - Use <img> only for real image thumbnails; otherwise play the animation */}
+                {/* Frame Preview - Use <SmartImage> only for real image thumbnails; otherwise play the animation */}
                 <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-hidden">
                   {(() => {
                     const previewUrl = frame.preview_url || '';
@@ -584,7 +585,7 @@ const AdminFrames = () => {
 
                     if (isImageThumb) {
                       return (
-                        <img
+                        <SmartImage
                           src={previewUrl}
                           alt={frame.name}
                           loading="lazy"

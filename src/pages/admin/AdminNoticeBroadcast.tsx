@@ -694,7 +694,7 @@ const AdminNoticeBroadcast = () => {
                     </span>
                   </div>
                   <div className="rounded-lg overflow-hidden border border-white/10 bg-black/40 mb-3">
-                    <img
+                    <SmartImage
                       src={aiPreview.url}
                       alt={aiPreview.prompt}
                       className="w-full h-auto max-h-[420px] object-contain"

@@ -308,7 +308,7 @@ const AdminTopupPaymentMethods = () => {
 
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${getMethodColor(method.method_type)}`}>
                       {method.icon_url ? (
-                        <img
+                        <SmartImage
                           src={method.icon_url}
                           alt={method.name}
                           className="w-12 h-12 object-cover"

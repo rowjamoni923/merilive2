@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -281,7 +282,7 @@ export default function AdminPermanentBan() {
 
                 {searchedUser && (
                   <div className="rounded-lg border border-border bg-muted/40 p-3 flex items-center gap-3">
-                    <img
+                    <SmartImage
                       src={searchedUser.avatar_url || "/placeholder.svg"}
                       className="h-10 w-10 rounded-full object-cover"
                       alt="" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
@@ -408,7 +409,7 @@ export default function AdminPermanentBan() {
                         onClick={() => setSelectedBan(b)}
                         className="w-full text-left rounded-lg border border-border bg-card hover:bg-muted/40 p-3 transition flex items-center gap-3"
                       >
-                        <img
+                        <SmartImage
                           src={b.avatar_url || "/placeholder.svg"}
                           className="h-10 w-10 rounded-full object-cover"
                           alt="" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />

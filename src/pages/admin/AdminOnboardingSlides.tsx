@@ -185,7 +185,7 @@ const AdminOnboardingSlides = () => {
               <GripVertical className="w-5 h-5 text-muted-foreground shrink-0" />
               
               <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted">
-                <img
+                <SmartImage
                   src={slide.image_url}
                   alt={slide.title}
                   className="w-full h-full object-cover"

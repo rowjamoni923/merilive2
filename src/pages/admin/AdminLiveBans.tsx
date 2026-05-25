@@ -17,6 +17,7 @@ import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Shield, 
   Ban, 
@@ -586,7 +587,7 @@ export default function AdminLiveBans() {
                           <TableRow key={ban.id}>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <img
+                                <SmartImage
                                   src={ban.profiles?.avatar_url || '/placeholder.svg'}
                                   alt=""
                                   className="w-8 h-8 rounded-full" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />

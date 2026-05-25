@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search, Gift, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   Dialog,
   DialogContent,
@@ -145,7 +146,7 @@ const GiftFrameDialog = ({
           {/* Frame info */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
             {framePreviewUrl ? (
-              <img
+              <SmartImage
                 src={framePreviewUrl}
                 alt={frameName}
                 className="w-12 h-12 rounded object-contain bg-black/20" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />

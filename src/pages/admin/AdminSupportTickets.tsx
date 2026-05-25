@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 import { useToast } from "@/hooks/use-toast";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   MessageCircle, Search, Loader2, Send, Clock, CheckCircle, 
   AlertCircle, XCircle, User, Mail, RefreshCw, Headphones, Gift, Diamond, Building2, Plus, Minus,
@@ -1601,7 +1602,7 @@ const AdminSupportTickets = () => {
                               {(msg as any).attachment_url && (msg as any).attachment_type === 'image' && (() => {
                                 const resolvedUrl = signedAttachmentUrls[msg.id] || (msg as any).attachment_url;
                                 return (
-                                  <img
+                                  <SmartImage
                                     src={resolvedUrl}
                                     alt="Attachment"
                                     className="max-w-full rounded-xl max-h-56 object-cover cursor-pointer mb-1.5 hover:opacity-90 transition-opacity shadow-sm"

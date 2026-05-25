@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { adminStyles } from "@/styles/adminStyles";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 // Lazy load SVGA player
@@ -437,7 +438,7 @@ const AdminEntryNameBars = () => {
               <div className="bg-black/40 rounded-lg p-2 flex justify-center">
                 <Suspense fallback={<div className="w-full h-16 bg-purple-600/20 animate-pulse rounded" />}>
                   {nameBar.preview_url ? (
-                    <img
+                    <SmartImage
                       src={nameBar.preview_url}
                       alt={nameBar.name}
                       className="w-full h-16 object-contain"
