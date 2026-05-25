@@ -17347,6 +17347,10 @@ export type Database = {
         Args: { _make_host: boolean; _user_id: string }
         Returns: undefined
       }
+      admin_set_section_permissions: {
+        Args: { p_admin_user_id: string; p_permissions?: Json }
+        Returns: Json
+      }
       admin_set_topup_trader_approval: {
         Args: {
           _approve: boolean
