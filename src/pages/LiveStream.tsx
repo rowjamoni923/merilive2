@@ -1061,14 +1061,10 @@ const LiveStream = () => {
   useEffect(() => {
     const fetchGiftCommission = async () => {
       try {
-        const { data } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'gift_commission')
-          .maybeSingle();
-        
-        if (data?.setting_value) {
-          const settings = data.setting_value as any;
+        const settingValue = await getAppSetting<Record<string, any>>('gift_commission');
+
+        if (settingValue) {
+          const settings = settingValue;
           let rate = 55;
           if (settings.host_percent !== undefined) {
             rate = settings.host_percent;
