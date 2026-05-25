@@ -1,6 +1,8 @@
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, ReactNode, lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { Navigate, useLocation } from "react-router-dom";
+
+const BlogPage = lazy(() => import("@/pages/BlogPage"));
 import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
 import {
   grantAdminAccess,
