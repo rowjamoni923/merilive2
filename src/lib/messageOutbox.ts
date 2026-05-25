@@ -18,6 +18,7 @@ export interface OutboxItem {
   senderId: string;
   content: string;
   messageType: string;
+  replyToId?: string;      // reply_to_id for quoting messages
   createdAt: number;       // ms epoch
   attempts: number;
   lastError?: string;
