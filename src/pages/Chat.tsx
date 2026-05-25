@@ -1761,6 +1761,7 @@ const Chat = () => {
             senderId: currentUserId,
             content: contentToSend,
             messageType: 'text',
+            replyToId: replyingTo?.messageId,
           });
           // Mark the optimistic message as queued (waiting to send)
           setMessages(prev => prev.map(m =>
