@@ -499,18 +499,15 @@ export default function AdminAgencies() {
     setActionLoading(true);
     try {
       const isCancelling = selectedAgency.is_active;
-      
-      const { error } = await supabase
-        .from("agencies")
-        .update({ 
-          is_active: !isCancelling,
-          is_blocked: isCancelling,
-          blocked_reason: isCancelling ? (cancelReason || 'Cancelled by admin') : null,
-          blocked_at: isCancelling ? new Date().toISOString() : null
-        })
-        .eq("id", selectedAgency.id);
+
+      const { data, error } = await supabase.rpc('admin_set_agency_active_status', {
+        _agency_id: selectedAgency.id,
+        _active: !isCancelling,
+        _reason: isCancelling ? (cancelReason || 'Cancelled by admin') : null,
+      });
 
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Agency update failed');
       
       // Send notification to agency owner
       if (selectedAgency.owner_id) {
@@ -538,12 +535,13 @@ export default function AdminAgencies() {
   const handleUpdateLevel = async (agencyId: string, newLevel: string) => {
     if (!guardStart(`level-${agencyId}`)) return;
     try {
-      const { error } = await supabase
-        .from("agencies")
-        .update({ level: newLevel })
-        .eq("id", agencyId);
+      const { data, error } = await supabase.rpc('admin_update_agency_level', {
+        _agency_id: agencyId,
+        _level: newLevel,
+      });
 
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Agency level update failed');
       toast.success("Agency level updated successfully");
       fetchAgencies();
     } catch (error) {
