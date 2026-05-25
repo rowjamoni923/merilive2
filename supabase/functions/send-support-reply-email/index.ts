@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -154,6 +155,19 @@ serve(async (req: Request) => {
   }
 
   try {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    const adminAuth = await requireAdminSession(req, supabase, { sectionKey: "moderation-hub", requireEdit: true });
+    if (!adminAuth.ok) {
+      return new Response(JSON.stringify({ success: false, error: adminAuth.error }), {
+        status: adminAuth.status,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const { ticketId, replyContent } = await req.json();
 
     if (!ticketId || !replyContent) {
@@ -161,11 +175,6 @@ serve(async (req: Request) => {
         status: 400, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
 
     // Get ticket details
     const { data: ticket, error: ticketError } = await supabase
