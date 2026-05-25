@@ -1035,7 +1035,9 @@ const PartyRoom = () => {
       window.removeEventListener('livekit-gift-sent', handleLiveKitPartyGift);
       window.removeEventListener('livekit-party-event', handleLiveKitPartyEvent);
       void (async () => {
-        await leaveRoomForCleanup(roomId);
+        if (explicitLeaveRef.current) {
+          await leaveRoomForCleanup(roomId);
+        }
         cleanupWebRTC();
       })();
       // Pkg81b/c: participantChannel + participantChannelContinued deleted (null refs).
@@ -1193,6 +1195,7 @@ const PartyRoom = () => {
         p_password: null,
       });
       if (enterError) throw enterError;
+      setMediaReady(true);
       
       // 🎯 HOST RULE: Host opening their OWN room should NOT see/trigger an entry effect.
       // Only viewers (and other participants) see entry banners + animations.
@@ -1316,6 +1319,8 @@ const PartyRoom = () => {
     if (!roomId || !currentUser) return;
 
     try {
+      explicitLeaveRef.current = true;
+      setMediaReady(false);
       // If host is leaving, close the room completely
       console.log('[PartyRoom] leaveRoom called - isHost:', isHost, 'roomId:', roomId, 'userId:', currentUser.id);
       
