@@ -703,7 +703,7 @@ const AdminFaceVerification = () => {
           { label: 'Approved', count: approvedCount, icon: CheckCircle2, bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', iconBg: 'rgba(34,197,94,0.3)', iconColor: '#4ade80', textColor: '#86efac', subColor: 'rgba(74,222,128,0.8)' },
           { label: 'Rejected', count: rejectedCount, icon: XCircle, bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', iconBg: 'rgba(239,68,68,0.3)', iconColor: '#f87171', textColor: '#fca5a5', subColor: 'rgba(248,113,113,0.8)' },
           { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.3)', iconBg: 'rgba(249,115,22,0.3)', iconColor: '#fb923c', textColor: '#fdba74', subColor: 'rgba(251,146,60,0.8)' },
-          { label: 'Total', count: visiblePool.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
+          { label: 'Total', count: visibleCounts.total || visiblePool.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
         ].map(({ label, count, icon: Icon, bg, border, iconBg, iconColor, textColor, subColor }) => (
           <div key={label} className="rounded-xl p-4 shadow-md" style={{ background: bg, border: `1px solid ${border}` }}>
             <div className="flex items-center gap-3">
@@ -818,7 +818,7 @@ const AdminFaceVerification = () => {
           </TabsTrigger>
           <TabsTrigger value="all" className="relative" data-testid="tab-all">
             All
-            <span data-testid="tab-count-all" className={visiblePool.length > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{visiblePool.length}</span>
+            <span data-testid="tab-count-all" className={(visibleCounts.total || visiblePool.length) > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{visibleCounts.total || visiblePool.length}</span>
           </TabsTrigger>
         </TabsList>
 
