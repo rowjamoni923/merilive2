@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FaceVerificationDebugPanel } from "@/components/admin/FaceVerificationDebugPanel";
-import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, isAutoFaceReview, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
 import { 
   ScanFace, 
   Search, 
@@ -227,8 +228,9 @@ interface StepItem {
 }
 
 const FACE_VERIFICATION_CACHE_KEY = 'admin_face_verification_cache_disabled_v4';
-const FACE_VERIFICATION_FETCH_LIMIT = 120;
+const FACE_VERIFICATION_FETCH_LIMIT = 30;
 const ADMIN_FAST_LOADING_TIMEOUT_MS = 900;
+const EMPTY_FACE_STATS: StatusCounts = { pending: 0, under_review: 0, approved: 0, rejected: 0, total: 0, auto_approved: 0, auto_rejected: 0, auto_host: 0, auto_user: 0 };
 
 const AdminFaceVerification = () => {
   const { toast } = useToast();
@@ -236,8 +238,10 @@ const AdminFaceVerification = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 250);
   const [activeTab, setActiveTab] = useState("pending");
   const [mismatchOnly, setMismatchOnly] = useState(false);
+  const [serverStats, setServerStats] = useState<StatusCounts>(EMPTY_FACE_STATS);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -248,8 +252,11 @@ const AdminFaceVerification = () => {
   const [processing, setProcessing] = useState(false);
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
   const actionInFlightRef = useRef(false);
+  const didRunFilterFetchRef = useRef(false);
+  const fetchRequestIdRef = useRef(0);
 
   const fetchSubmissions = async () => {
+    const requestId = ++fetchRequestIdRef.current;
     let fastTimeoutId: number | null = null;
 
     try {
@@ -262,24 +269,24 @@ const AdminFaceVerification = () => {
 
       // Pkg9 hardening: single server-side RPC replaces direct table SELECT +
       // N+1 client joins (profile/agency). Server enforces is_active_admin_session.
-      const rows: any[] = [];
-      let offset = 0;
-      let total = Number.POSITIVE_INFINITY;
-      for (let page = 0; page < 50 && rows.length < total; page += 1) {
-        const { data, error } = await supabase.rpc(
+      const q = debouncedSearchQuery.trim();
+      const serverStatus = activeTab === 'all' ? null : activeTab;
+      const [listResult, stats] = await Promise.all([
+        supabase.rpc(
           'admin_list_face_verification_paginated',
-          { _status: null, _search: null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: offset }
-        );
+          { _status: serverStatus, _search: q || null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
+        ),
+        fetchFilteredStatusCounts(supabase as any, {
+          table: 'face_verification_submissions',
+          searchColumn: 'full_name',
+          searchQuery: q,
+          globalStatsRpc: 'admin_face_verification_stats',
+        }),
+      ]);
 
-        if (error) throw error;
-
-        const payload = (data as any) || {};
-        const pageRows = (payload.rows || []) as any[];
-        rows.push(...pageRows);
-        total = Number(payload.total ?? rows.length);
-        offset += pageRows.length;
-        if (pageRows.length < FACE_VERIFICATION_FETCH_LIMIT) break;
-      }
+      if (listResult.error) throw listResult.error;
+      const payload = (listResult.data as any) || {};
+      const rows = (payload.rows || []) as any[];
 
       const enriched: Submission[] = rows.map((s) => ({
         ...s,
@@ -293,7 +300,9 @@ const AdminFaceVerification = () => {
           : null,
       }));
 
+      if (requestId !== fetchRequestIdRef.current) return;
       setSubmissions(enriched);
+      setServerStats(stats);
 
       // Never reuse old face-verification rows: approval state must be DB-fresh.
       if (typeof window !== 'undefined') {
@@ -313,6 +322,16 @@ const AdminFaceVerification = () => {
   };
 
   useAdminRealtime(['face_verification_submissions'], fetchSubmissions);
+
+  useEffect(() => {
+    if (!didRunFilterFetchRef.current) {
+      didRunFilterFetchRef.current = true;
+      return;
+    }
+    if (!getAdminSessionToken()) return;
+    fetchSubmissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, debouncedSearchQuery]);
 
   const handleRefresh = () => { setRefreshing(true); fetchSubmissions(); };
 
@@ -605,7 +624,7 @@ const AdminFaceVerification = () => {
   // Single source of truth for what the user can currently see (after search).
   // Counters are derived from the SAME pool the list uses, so badges always
   // match the visible rows regardless of search input.
-  const qRaw = searchQuery.trim();
+  const qRaw = debouncedSearchQuery.trim();
   const q = qRaw.toLowerCase();
   const matchesSearch = (sub: Submission) => {
     if (!q) return true;
@@ -642,7 +661,9 @@ const AdminFaceVerification = () => {
   });
 
   // Shared counter — guaranteed to be in sync with server bucket rules.
-  const visibleCounts = countFaceReviewBuckets(visiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes);
+  const visibleCounts = mismatchOnly
+    ? countFaceReviewBuckets(visiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes)
+    : serverStats;
   const pendingCount = visibleCounts.pending;
   const approvedCount = visibleCounts.approved;
   const autoApprovedCount = visibleCounts.auto_approved;
@@ -682,7 +703,7 @@ const AdminFaceVerification = () => {
           { label: 'Approved', count: approvedCount, icon: CheckCircle2, bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', iconBg: 'rgba(34,197,94,0.3)', iconColor: '#4ade80', textColor: '#86efac', subColor: 'rgba(74,222,128,0.8)' },
           { label: 'Rejected', count: rejectedCount, icon: XCircle, bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', iconBg: 'rgba(239,68,68,0.3)', iconColor: '#f87171', textColor: '#fca5a5', subColor: 'rgba(248,113,113,0.8)' },
           { label: 'Auto Rejected', count: autoRejectedCount, icon: AlertTriangle, bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.3)', iconBg: 'rgba(249,115,22,0.3)', iconColor: '#fb923c', textColor: '#fdba74', subColor: 'rgba(251,146,60,0.8)' },
-          { label: 'Total', count: visiblePool.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
+          { label: 'Total', count: visibleCounts.total || visiblePool.length, icon: ScanFace, bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', iconBg: 'rgba(168,85,247,0.3)', iconColor: '#c084fc', textColor: '#d8b4fe', subColor: 'rgba(192,132,252,0.8)' },
         ].map(({ label, count, icon: Icon, bg, border, iconBg, iconColor, textColor, subColor }) => (
           <div key={label} className="rounded-xl p-4 shadow-md" style={{ background: bg, border: `1px solid ${border}` }}>
             <div className="flex items-center gap-3">
@@ -797,7 +818,7 @@ const AdminFaceVerification = () => {
           </TabsTrigger>
           <TabsTrigger value="all" className="relative" data-testid="tab-all">
             All
-            <span data-testid="tab-count-all" className={visiblePool.length > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{visiblePool.length}</span>
+            <span data-testid="tab-count-all" className={(visibleCounts.total || visiblePool.length) > 0 ? "absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white" : "sr-only"}>{visibleCounts.total || visiblePool.length}</span>
           </TabsTrigger>
         </TabsList>
 

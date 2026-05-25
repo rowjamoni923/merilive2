@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FaceSubmissionMediaBlocks, FaceSubmissionModalMedia } from "@/components/admin/FaceSubmissionMediaBlocks";
 import { AdminMediaFrame } from "@/components/admin/AdminMediaViewer";
 import { useAdminSignedUrl } from "@/hooks/useAdminSignedUrl";
@@ -87,7 +88,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
-import { bucketOfStatus, countFaceReviewBuckets, isAutoFaceReview, isKnownStatus, warnUnknownStatus } from "@/lib/admin/statusCounts";
+import { bucketOfStatus, countFaceReviewBuckets, fetchFilteredStatusCounts, isAutoFaceReview, isKnownStatus, warnUnknownStatus, type StatusCounts } from "@/lib/admin/statusCounts";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -100,6 +101,8 @@ const normalizeFaceStatus = (status?: string | null): FaceVerificationSubmission
   if (['pending', 'submitted', 'under_review'].includes(normalized)) return normalized as FaceVerificationSubmission['status'];
   return 'pending';
 };
+const FACE_VERIFICATION_FETCH_LIMIT = 30;
+const EMPTY_FACE_STATS: StatusCounts = { pending: 0, under_review: 0, approved: 0, rejected: 0, total: 0, auto_approved: 0, auto_rejected: 0, auto_host: 0, auto_user: 0 };
 
 const inferFaceReviewSource = (s: any): 'auto' | 'manual' => {
   const status = String(s?.status || '').trim().toLowerCase();
@@ -378,8 +381,11 @@ export default function AdminUserManagement() {
   // Face Verification state
   const [faceSubmissions, setFaceSubmissions] = useState<FaceVerificationSubmission[]>([]);
   const [faceSearchQuery, setFaceSearchQuery] = useState("");
+  const debouncedFaceSearchQuery = useDebouncedValue(faceSearchQuery, 250);
+  const debouncedAppSearchQuery = useDebouncedValue(appSearchQuery, 250);
   const [faceActiveTab, setFaceActiveTab] = useState("pending");
   const [faceMismatchOnly, setFaceMismatchOnly] = useState(false);
+  const [faceServerStats, setFaceServerStats] = useState<StatusCounts>(EMPTY_FACE_STATS);
   const [selectedFaceSubmission, setSelectedFaceSubmission] = useState<FaceVerificationSubmission | null>(null);
   const [showFaceDetailModal, setShowFaceDetailModal] = useState(false);
   const [showFaceActionModal, setShowFaceActionModal] = useState(false);
@@ -417,6 +423,7 @@ export default function AdminUserManagement() {
   
   const pageSize = 20;
   const inFlightActionsRef = useRef<Set<string>>(new Set());
+  const faceFetchRequestIdRef = useRef(0);
 
   const startSingleFlight = (key: string) => {
     if (inFlightActionsRef.current.has(key)) return false;
@@ -463,12 +470,17 @@ export default function AdminUserManagement() {
     if (activeTab === "auto-verified" || activeTab === "auto-rejected") {
       fetchFaceSubmissions();
     }
+  }, [activeTab, debouncedAppSearchQuery]);
+
+  useEffect(() => {
+    if (activeTab !== "auto-verified" && activeTab !== "auto-rejected" && activeTab !== "face-verification") {
+      fetchFaceStats();
+    }
   }, [activeTab]);
   
   useEffect(() => {
-    // Always fetch face submissions so stats are available
-    fetchFaceSubmissions();
-  }, [faceActiveTab]);
+    if (activeTab === "face-verification") fetchFaceSubmissions();
+  }, [activeTab, faceActiveTab, debouncedFaceSearchQuery]);
   
   useEffect(() => {
     if (activeTab === "moderation") {
@@ -983,30 +995,47 @@ export default function AdminUserManagement() {
   };
 
   // === FACE VERIFICATION TAB FUNCTIONS ===
+  const fetchFaceStats = async () => {
+    try {
+      const stats = await fetchFilteredStatusCounts(supabase as any, {
+        table: 'face_verification_submissions',
+        searchColumn: 'full_name',
+        searchQuery: '',
+        globalStatsRpc: 'admin_face_verification_stats',
+      });
+      setFaceServerStats(stats);
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingFaceStats", message: formatAdminError(error)});
+    }
+  };
+
   const fetchFaceSubmissions = async () => {
+    const requestId = ++faceFetchRequestIdRef.current;
     setLoading(true);
     try {
-      const rows: any[] = [];
-      const pageSize = 120;
-      let offset = 0;
-      let total = Number.POSITIVE_INFINITY;
-      for (let page = 0; page < 50 && rows.length < total; page += 1) {
-        const { data, error } = await supabase.rpc('admin_list_face_verification_paginated', {
-          _status: null,
-          _search: null,
-          _limit: pageSize,
-          _offset: offset,
-        });
+      const isAutoTab = activeTab === "auto-verified" || activeTab === "auto-rejected";
+      const q = (isAutoTab ? debouncedAppSearchQuery : debouncedFaceSearchQuery).trim();
+      const serverStatus = isAutoTab
+        ? (activeTab === "auto-verified" ? "auto_approved" : "auto_rejected")
+        : (faceActiveTab === "all" ? null : faceActiveTab);
+      const [listResult, stats] = await Promise.all([
+        supabase.rpc('admin_list_face_verification_paginated', {
+          _status: serverStatus,
+          _search: q || null,
+          _limit: FACE_VERIFICATION_FETCH_LIMIT,
+          _offset: 0,
+        }),
+        fetchFilteredStatusCounts(supabase as any, {
+          table: 'face_verification_submissions',
+          searchColumn: 'full_name',
+          searchQuery: q,
+          globalStatsRpc: 'admin_face_verification_stats',
+        }),
+      ]);
 
-        if (error) throw error;
-
-        const payload = ((data as any) || {});
-        const pageRows = (payload.rows || []) as any[];
-        rows.push(...pageRows);
-        total = Number(payload.total ?? rows.length);
-        offset += pageRows.length;
-        if (pageRows.length < pageSize) break;
-      }
+      if (listResult.error) throw listResult.error;
+      const payload = ((listResult.data as any) || {});
+      const rows = (payload.rows || []) as any[];
       const enriched = rows.map((s: any) => ({
         ...s,
         status: normalizeFaceStatus(s.status ?? s.status_bucket),
@@ -1016,7 +1045,9 @@ export default function AdminUserManagement() {
         agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
 
+      if (requestId !== faceFetchRequestIdRef.current) return;
       setFaceSubmissions(enriched);
+      setFaceServerStats(stats);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingSubmissions", message: formatAdminError(error)});
       toast.error("Failed to load submissions");
@@ -1465,7 +1496,7 @@ export default function AdminUserManagement() {
   const isFacePendingBucket = (s: FaceVerificationSubmission) => getFaceSubmissionBucket(s) === 'pending';
   const isFaceAutoReviewed = (s: FaceVerificationSubmission) => Boolean(s.is_auto_reviewed) || s.review_source === 'auto' || isAutoFaceReview(s.status, s.admin_notes);
 
-  const faceQueryRaw = faceSearchQuery.trim();
+  const faceQueryRaw = debouncedFaceSearchQuery.trim();
   const faceQuery = faceQueryRaw.toLowerCase();
   const faceSearchMatches = faceSubmissions.filter(sub => {
     if (!faceQuery) return true;
@@ -1491,7 +1522,9 @@ export default function AdminUserManagement() {
     return false;
   });
 
-  const faceCounts = countFaceReviewBuckets(faceVisiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes);
+  const faceCounts = faceMismatchOnly
+    ? countFaceReviewBuckets(faceVisiblePool, (s) => s.status || s.status_bucket, (s) => s.admin_notes)
+    : faceServerStats;
   const pendingFaceCount = faceCounts.pending;
   const approvedFaceCount = faceCounts.approved;
   const rejectedFaceCount = faceCounts.rejected;
@@ -2550,7 +2583,7 @@ export default function AdminUserManagement() {
                     <ScanFace className="w-5 h-5" style={{ color: '#c084fc' }} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold" style={{ color: '#d8b4fe' }}>{faceVisiblePool.length}</p>
+                    <p className="text-2xl font-bold" style={{ color: '#d8b4fe' }}>{faceCounts.total || faceVisiblePool.length}</p>
                     <p className="text-sm" style={{ color: 'rgba(192,132,252,0.8)' }}>Total</p>
                   </div>
                 </div>
@@ -2610,7 +2643,7 @@ export default function AdminUserManagement() {
                 {rejectedFaceCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{rejectedFaceCount}</span>}
               </TabsTrigger>
               <TabsTrigger value="all" className="relative data-[state=active]:bg-purple-500 data-[state=active]:text-white text-slate-700">All
-                {faceVisiblePool.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{faceVisiblePool.length}</span>}
+                {(faceCounts.total || faceVisiblePool.length) > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full text-[10px] font-bold flex items-center justify-center text-white">{faceCounts.total || faceVisiblePool.length}</span>}
               </TabsTrigger>
             </TabsList>
 
