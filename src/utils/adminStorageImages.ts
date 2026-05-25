@@ -85,23 +85,59 @@ export const isPrivateAdminStorageReference = (value?: string | null, defaultBuc
   return !!storagePath && PRIVATE_STORAGE_BUCKETS.has(storagePath.bucket);
 };
 
+const SIGNED_URL_SESSION_STORAGE_KEY = 'merilive-admin-signed-url-cache-v1';
+
+// Hydrate signed-URL cache from sessionStorage on module load so a page
+// refresh / re-mount renders verification media INSTANTLY (no signing round-
+// trip until cached URLs expire).
+const hydrateSignedUrlCacheFromSession = () => {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.sessionStorage.getItem(SIGNED_URL_SESSION_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Array<[string, { url: string; expiresAt: number }]>;
+    const now = Date.now();
+    for (const [key, entry] of parsed) {
+      if (entry?.url && entry.expiresAt > now + 60_000) signedUrlCache.set(key, entry);
+    }
+  } catch (_) { /* ignore */ }
+};
+hydrateSignedUrlCacheFromSession();
+
+let persistTimer: number | null = null;
+const persistSignedUrlCacheToSession = () => {
+  if (typeof window === "undefined") return;
+  if (persistTimer !== null) return;
+  persistTimer = window.setTimeout(() => {
+    persistTimer = null;
+    try {
+      const now = Date.now();
+      const entries: Array<[string, { url: string; expiresAt: number }]> = [];
+      signedUrlCache.forEach((v, k) => { if (v.expiresAt > now + 60_000) entries.push([k, v]); });
+      window.sessionStorage.setItem(SIGNED_URL_SESSION_STORAGE_KEY, JSON.stringify(entries.slice(-200)));
+    } catch (_) { /* quota / private mode */ }
+  }, 300);
+};
+
 export const clearAdminStorageImageCache = () => {
   signedUrlCache.clear();
   failedSignedUrlCache.clear();
   inFlightSignedUrls.clear();
   objectUrlCache.forEach((url) => URL.revokeObjectURL(url));
   objectUrlCache.clear();
+  try { window?.sessionStorage?.removeItem(SIGNED_URL_SESSION_STORAGE_KEY); } catch (_) { /* ignore */ }
 };
 
-// Clear caches whenever the admin session is established/refreshed, so any
-// prior "no admin token" failures don't poison subsequent image loads.
+// Clear caches whenever the admin session is established/refreshed.
 if (typeof window !== "undefined") {
   window.addEventListener("admin-session-change", () => {
     signedUrlCache.clear();
     failedSignedUrlCache.clear();
     inFlightSignedUrls.clear();
+    try { window.sessionStorage.removeItem(SIGNED_URL_SESSION_STORAGE_KEY); } catch (_) { /* ignore */ }
   });
 }
+
 
 
 const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
@@ -313,10 +349,15 @@ const flushBatchSignQueue = () => {
 
 const batchSignAdminStoragePath = (storagePath: AdminStoragePath, adminToken: string) => new Promise<string | null>((resolve) => {
   batchSignQueue.push({ storagePath, adminToken, resolve });
+  // Microtask flush — coalesces all sign requests issued in the same tick
+  // (e.g. a page mounting 30 tiles) into ONE network round-trip without any
+  // artificial setTimeout delay.
   if (batchSignTimer === null) {
-    batchSignTimer = window.setTimeout(flushBatchSignQueue, 12);
+    batchSignTimer = 1;
+    queueMicrotask(() => { batchSignTimer = null; flushBatchSignQueue(); });
   }
 });
+
 
 
 const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
@@ -340,6 +381,7 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
       const signedUrl = await batchSignAdminStoragePath(storagePath, adminToken);
       if (signedUrl) {
         signedUrlCache.set(cacheKey, { url: signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+        persistSignedUrlCacheToSession();
         return signedUrl;
       }
     }
@@ -352,8 +394,10 @@ const signAdminStoragePath = async (storagePath: AdminStoragePath) => {
 
     if (!error && data?.signedUrl) {
       signedUrlCache.set(cacheKey, { url: data.signedUrl, expiresAt: Date.now() + 55 * 60 * 1000 });
+      persistSignedUrlCacheToSession();
       return data.signedUrl;
     }
+
 
     // Without an admin token the failure is "session not loaded yet" — cache
     // briefly so the next attempt after login retries immediately.
@@ -445,16 +489,30 @@ export const tryResolvePublicAdminStorageUrlSync = (
     if (parsed && PUBLIC_VERIFICATION_BUCKETS.has(parsed.bucket) && !isAlreadySignedStorageUrl(raw)) {
       return raw;
     }
+    // Already signed and still valid? Return as-is for instant render.
+    if (isAlreadySignedStorageUrl(raw)) return raw;
     return null;
   }
   const candidates = buildStorageCandidates(raw, defaultBucket);
+  // Public bucket fast-path.
   for (const candidate of candidates) {
     if (PUBLIC_VERIFICATION_BUCKETS.has(candidate.bucket)) {
       return getPublicStorageUrl(candidate);
     }
   }
+  // Cached signed URL fast-path — survives across page refreshes via
+  // sessionStorage rehydration, so verification tiles render INSTANTLY on
+  // re-mount without waiting for a fresh sign round-trip.
+  const adminToken = resolveStoredAdminToken();
+  const now = Date.now();
+  for (const candidate of candidates) {
+    const key = `${adminToken || 'anon'}::${candidate.bucket}/${candidate.path}`;
+    const cached = signedUrlCache.get(key);
+    if (cached && cached.expiresAt > now + 30_000) return cached.url;
+  }
   return null;
 };
+
 
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
