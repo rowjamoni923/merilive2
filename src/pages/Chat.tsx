@@ -1347,6 +1347,10 @@ const Chat = () => {
 
       if (baseMessages.find(m => m.id === newMessage.id)) return baseMessages;
 
+      if (newMessage.reply_to_id) {
+        void loadReplyMessages([newMessage.reply_to_id]);
+      }
+
       return [
         ...baseMessages,
         newMessage.sender_id === currentUserId
@@ -1448,15 +1452,8 @@ const Chat = () => {
     setMessages([...serverMsgs, ...queued]);
 
     // Fetch reply-to messages for quote rendering
-    const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))];
-    if (replyIds.length > 0) {
-      const { data: replies } = await supabase
-        .from('messages')
-        .select('id, content, sender_id')
-        .in('id', replyIds);
-      const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id }]));
-      setReplyMessages(prev => ({ ...prev, ...map }));
-    }
+    const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))] as string[];
+    void loadReplyMessages(replyIds);
 
     // Mark as delivered via RPC
     if (currentUserId) {
