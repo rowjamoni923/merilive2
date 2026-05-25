@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Step 2: Check if auth user exists and is anonymous
+    // Step 2: Look up auth user
     const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(profile.id);
 
     if (authError || !authUser?.user) {
@@ -80,54 +80,49 @@ Deno.serve(async (req) => {
       );
     }
 
-    // If user already has email, no conversion needed
+    // If user has a REAL email (not @meri.local), do not touch it.
     if (authUser.user.email && !authUser.user.email.includes('@meri.local')) {
       return new Response(
-        JSON.stringify({ 
-          converted: false, 
+        JSON.stringify({
+          converted: false,
           reason: "already_has_email",
-          hasCredentials: true 
+          hasCredentials: true,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // If already converted to guest credentials, just confirm
-    if (authUser.user.email?.includes('@meri.local')) {
-      return new Response(
-        JSON.stringify({ converted: true, alreadyConverted: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Step 3: Generate DETERMINISTIC credentials matching Auth.tsx and recover_session_by_device RPC
+    // Step 3: Deterministic credentials (must match Auth.tsx + recover_session_by_device RPC)
     const guestEmail = `guest_${deviceId}@meri.local`;
-    // MUST match the formula in Auth.tsx handleDeviceRegistration() and recover_session_by_device RPC
     const guestPassword = `meri_${deviceId}_secure`;
 
-    // Step 4: Update the anonymous user with email + password using Admin API
+    // Step 4: ALWAYS force-sync email + password to deterministic values.
+    // Covers in one call:
+    //   (a) Anonymous auth user (no email)
+    //   (b) Already has guest_<dev>@meri.local but password drifted
+    //   (c) Already correct → idempotent no-op
     const { error: updateError } = await supabase.auth.admin.updateUserById(
       profile.id,
       {
         email: guestEmail,
         password: guestPassword,
-        email_confirm: true, // Auto-confirm the email
+        email_confirm: true,
       }
     );
 
     if (updateError) {
-      console.error("Failed to convert anonymous user:", updateError);
+      console.error("[convert-anonymous-to-guest] Update failed:", updateError);
       return new Response(
         JSON.stringify({ converted: false, reason: "update_failed", error: updateError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`[convert-anonymous] Successfully converted user ${profile.id} (${profile.display_name}) to guest credentials`);
+    console.log(`[convert-anonymous-to-guest] Synced credentials for ${profile.id} (${profile.display_name})`);
 
     return new Response(
-      JSON.stringify({ 
-        converted: true, 
+      JSON.stringify({
+        converted: true,
         userId: profile.id,
         displayName: profile.display_name,
       }),
