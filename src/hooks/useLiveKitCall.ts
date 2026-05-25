@@ -467,8 +467,14 @@ export function useLiveKitCall(
           track.detach().forEach(el => el.remove());
         });
 
-        room.on(RoomEvent.ParticipantDisconnected, () => {
+        room.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
           console.log('[LiveKitCall] Remote participant left');
+          Array.from(remoteAudioKeysRef.current)
+            .filter((key) => key.startsWith(`call:${participant.identity}:`))
+            .forEach((key) => {
+              remoteAudioKeysRef.current.delete(key);
+              detachLiveKitRemoteAudio(key);
+            });
           setState(p => ({
             ...p,
             remoteVideoTrack: null,
