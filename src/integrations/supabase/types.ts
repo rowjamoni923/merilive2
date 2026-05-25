@@ -18718,6 +18718,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_all_notices_read: { Args: never; Returns: number }
       mark_call_delivered: {
         Args: { p_call_id: string; p_channel?: string; p_device_info?: Json }
         Returns: Json
@@ -18731,6 +18732,7 @@ export type Database = {
         Args: { _reminder_type: string; _subscription_id: string }
         Returns: undefined
       }
+      mark_notice_read: { Args: { _notice_id: string }; Returns: undefined }
       moderate_text: {
         Args: { p_context?: string; p_text: string }
         Returns: Json
