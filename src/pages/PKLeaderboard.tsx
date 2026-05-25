@@ -306,7 +306,7 @@ const PKLeaderboard = () => {
 
                   <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
                     {p.profile?.avatar_url ? (
-                      <img src={p.profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <img src={p.profile.avatar_url} alt="" className="w-full h-full object-contain" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center text-xs font-bold text-primary">
                         {(p.profile?.display_name || "?")[0]}
