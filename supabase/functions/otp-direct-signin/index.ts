@@ -91,24 +91,21 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } },
     );
 
-    const tokenHash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifiedToken));
-    const tokenHashHex = Array.from(new Uint8Array(tokenHash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-
-    const { data: tokenRow, error: tokenError } = await supabaseAdmin
-      .from("otp_exchange_tokens")
-      .select("id, identifier, channel, purpose")
-      .eq("token_hash", tokenHashHex)
-      .eq("identifier", tokenIdentifier)
-      .eq("channel", channel)
-      .eq("purpose", "login")
-      .eq("is_used", false)
-      .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
-
-    if (tokenError) throw tokenError;
-    if (!tokenRow) {
-      return json({ success: false, error: "OTP verification expired. Please request a new code." }, 401);
-    }
+    let consumedTokenId: string | null = null;
+    const consumeVerifiedToken = async () => {
+      const { data, error } = await supabaseAdmin.rpc("consume_otp_exchange_token", {
+        p_verified_token: verifiedToken,
+        p_identifier: tokenIdentifier,
+        p_channel: channel,
+        p_purpose: "login",
+      });
+      if (error) throw error;
+      consumedTokenId = typeof data === "string" ? data : null;
+      if (!consumedTokenId) {
+        return json({ success: false, error: "OTP verification expired. Please request a new code." }, 401);
+      }
+      return null;
+    };
 
     const profilePatch: Record<string, unknown> = {
       display_name: displayName || undefined,
@@ -118,6 +115,9 @@ serve(async (req) => {
     };
 
     if (mode === "create") {
+      const tokenResponse = await consumeVerifiedToken();
+      if (tokenResponse) return tokenResponse;
+
       if (password.length < 6) return json({ success: false, error: "Password must be at least 6 characters" }, 400);
       if (!displayName) return json({ success: false, error: "Display name is required" }, 400);
 
@@ -159,6 +159,11 @@ serve(async (req) => {
     }
     if (linkError) throw linkError;
 
+    if (!consumedTokenId) {
+      const tokenResponse = await consumeVerifiedToken();
+      if (tokenResponse) return tokenResponse;
+    }
+
     const tokenHashFromLink = linkData?.properties?.hashed_token;
     if (!tokenHashFromLink) throw new Error("Failed to create sign-in token");
 
@@ -168,18 +173,6 @@ serve(async (req) => {
     });
     if (verifyError || !verifiedData?.session) {
       throw verifyError || new Error("Failed to create session");
-    }
-
-    const { data: consumedToken, error: consumeError } = await supabaseAdmin
-      .from("otp_exchange_tokens")
-      .update({ is_used: true, used_at: new Date().toISOString() })
-      .eq("id", tokenRow.id)
-      .eq("is_used", false)
-      .select("id")
-      .maybeSingle();
-    if (consumeError) throw consumeError;
-    if (!consumedToken) {
-      return json({ success: false, error: "OTP verification expired. Please request a new code." }, 401);
     }
 
     return json(
