@@ -943,7 +943,7 @@ const LiveStream = () => {
           if (selfProfile) {
             const userName = selfProfile.display_name || "User";
             const userLevel = selfProfile.user_level || 1;
-            const avatarUrl = selfProfile.avatar_url || undefined;
+            const avatarUrl = normalizeProfileMediaUrl(selfProfile.avatar_url) || selfProfile.avatar_url || undefined;
             
             console.log('[LiveStream] 🎬 Self profile equipped_entrance_id:', selfProfile.equipped_entrance_id);
             
@@ -1500,7 +1500,7 @@ const LiveStream = () => {
 
         const photos = (data as any)?.host_photos;
         if (photos && Array.isArray(photos) && photos.length > 0) {
-          setHostPhotos(photos);
+          setHostPhotos(photos.map((photo) => normalizeProfileMediaUrl(photo) || photo).filter(Boolean));
         }
       } catch {
         // silent fallback
