@@ -130,33 +130,37 @@ export const InCallChat = memo(({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="absolute bottom-44 left-3 right-3 z-30 max-h-[45vh] flex flex-col rounded-2xl overflow-hidden bg-black/60 backdrop-blur-xl border border-white/15"
+          className="absolute bottom-44 left-3 right-3 z-30 max-h-[45vh] flex flex-col rounded-[20px] overflow-hidden bg-black/65 backdrop-blur-xl border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
-            <span className="text-white/90 text-xs font-semibold">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-gradient-to-r from-white/[0.04] to-transparent">
+            <span className="text-white/95 text-[13px] font-semibold tracking-tight">
               Chat with {remoteUserName}
             </span>
-            <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10">
-              <X className="w-4 h-4 text-white/60" />
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full hover:bg-white/15 flex items-center justify-center active:scale-95 transition"
+              aria-label="Close"
+            >
+              <X className="w-[18px] h-[18px] text-white/70" />
             </button>
           </div>
 
           {/* Messages */}
           <div
             ref={chatRef}
-            className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[120px] max-h-[30vh]"
+            className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 min-h-[140px] max-h-[30vh]"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             {messages.length === 0 && (
-              <p className="text-white/30 text-xs text-center py-4">
-                Send a message...
+              <p className="text-white/40 text-xs text-center py-6">
+                Send a message to start chatting…
               </p>
             )}
             {messages.map((msg) => {
               const isMe = msg.senderId === userId;
               return (
-                <div key={msg.id} className={cn("w-full", isMe && "text-right")}>
+                <div key={msg.id} className={cn("w-full flex", isMe ? "justify-end" : "justify-start")}>
                   <RoomChatBubble
                     id={msg.id}
                     userName={isMe ? "You" : msg.senderName}
@@ -169,23 +173,24 @@ export const InCallChat = memo(({
             })}
           </div>
 
-          {/* Input */}
-          <div className="flex items-center gap-2 px-3 py-2 border-t border-white/10">
+          {/* Input — Bigo-style pill + circular send */}
+          <div className="flex items-center gap-2 px-3 py-2.5 border-t border-white/10 bg-gradient-to-r from-white/[0.03] to-transparent">
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type a message..."
-              className="flex-1 bg-white/10 text-white text-xs px-3 py-2 rounded-full outline-none placeholder:text-white/30 border border-white/10 focus:border-purple-500/50"
+              placeholder="Type a message…"
+              className="flex-1 bg-white/[0.08] text-white text-[13px] px-4 py-2.5 rounded-full outline-none placeholder:text-white/35 border border-white/10 focus:border-purple-400/60 focus:bg-white/[0.12] transition"
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white disabled:opacity-30 active:scale-95 transition-transform"
+              className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 text-white disabled:opacity-30 active:scale-95 transition flex items-center justify-center shadow-md shadow-purple-500/40"
+              aria-label="Send"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-[18px] h-[18px]" />
             </button>
           </div>
         </motion.div>

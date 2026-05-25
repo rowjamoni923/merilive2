@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
+import React, { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
 
 
 import { useContentModeration } from "@/hooks/useContentModeration";
@@ -1934,6 +1934,23 @@ const Chat = () => {
     }
   };
 
+  // WhatsApp-style day separator label: Today / Yesterday / Day name / Full date
+  const formatDayLabel = (dateString: string) => {
+    const d = new Date(dateString);
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfMsg = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const diffDays = Math.round((startOfToday - startOfMsg) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return d.toLocaleDateString([], { weekday: 'long' });
+    return d.toLocaleDateString([], { day: 'numeric', month: 'short', year: now.getFullYear() === d.getFullYear() ? undefined : 'numeric' });
+  };
+  const sameDay = (a: string, b: string) => {
+    const da = new Date(a), db = new Date(b);
+    return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+  };
+
   const filteredConversations = conversations.filter(conv =>
     conv.other_user?.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -2040,12 +2057,12 @@ const Chat = () => {
                 if (userId) navigate(`/profile-detail/${userId}`);
               }}
             >
-              <div className="flex items-center gap-2">
-                <h2 className="font-bold text-slate-900 text-sm truncate max-w-[140px] drop-shadow-md">
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-semibold text-slate-900 text-[15px] leading-tight truncate max-w-[150px]">
                   {chatName}
                 </h2>
                 {!isGroup && (
- <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md shrink-0">
+                  <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
                     <Crown className="w-2.5 h-2.5" />
                     <span>Lv.{userLevel}</span>
                   </div>
@@ -2053,37 +2070,48 @@ const Chat = () => {
                 {!isGroup && otherUserTrader.isTrader && (
                   <TraderBadge level={otherUserTrader.traderLevel} size="xs" />
                 )}
+                {!isGroup && countryFlag && (
+                  <span className="text-[11px] leading-none">{countryFlag}</span>
+                )}
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-0.5 min-h-[14px]">
                 {!isGroup && isOtherTyping ? (
-                  <span className="text-[10px] text-fuchsia-600 font-semibold flex items-center gap-1">
+                  <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
                     <span className="flex gap-0.5">
-                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </span>
-                    typing...
+                    typing…
                   </span>
                 ) : !isGroup && (
                   selectedConversation?.other_user?.is_online ? (
-                    <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-green-400 shadow-glow animate-pulse" />
-                      Online
-                    </span>
+                    <span className="text-[11px] text-emerald-600 font-medium">online</span>
                   ) : (
-                    <span className="text-[10px] text-slate-700 font-medium">
-                      {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false)}
+                    <span className="text-[11px] text-slate-500 font-medium truncate">
+                      last seen {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false).toLowerCase()}
                     </span>
                   )
                 )}
-                {!isGroup && countryFlag && (
-                  <span className="text-[10px]">{countryFlag}</span>
+                {isGroup && (
+                  <span className="text-[11px] text-slate-500 font-medium">{selectedGroup?.member_count || 0} members</span>
                 )}
               </div>
-              {isGroup && (
-                <span className="text-[10px] text-slate-700">{selectedGroup?.member_count || 0} members</span>
-              )}
             </div>
+
+            {/* WhatsApp-style inline Video Call button (host + online only) */}
+            {!isGroup && selectedConversation?.other_user?.is_host && selectedConversation?.other_user?.is_online && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedConversation?.other_user?.id) startCall(selectedConversation.other_user.id);
+                }}
+                className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 border border-amber-200/60 shadow-sm hover:bg-white active:scale-95 transition-all"
+                aria-label="Video call"
+              >
+                <VideoCallIcon className="w-[18px] h-[18px] text-emerald-600" />
+              </button>
+            )}
 
             {/* Group Settings Button */}
             {isGroup && (
@@ -2176,7 +2204,7 @@ const Chat = () => {
               <p className="text-slate-500 font-medium">No messages yet. Say hello! 👋</p>
             </div>
           ) : (
-            currentMessages.map((msg: any) => {
+            currentMessages.map((msg: any, idx: number, arr: any[]) => {
               const isMine = msg.sender_id === currentUserId;
               const otherUserId = isGroup ? msg.sender_id : selectedConversation?.other_user?.id;
               const senderName = isMine 
@@ -2189,46 +2217,70 @@ const Chat = () => {
                 ? pickDisplayLevel(myProfile as any)
                 : pickDisplayLevel((isGroup ? msg.sender : selectedConversation?.other_user) as any);
               const senderUserId = isMine ? currentUserId : otherUserId;
-              
+
+              // WhatsApp-style clustering: hide avatar/name on consecutive same-sender msgs within 3min
+              const prev = idx > 0 ? arr[idx - 1] : null;
+              const next = idx < arr.length - 1 ? arr[idx + 1] : null;
+              const sameAsPrev = prev && prev.sender_id === msg.sender_id &&
+                (new Date(msg.created_at).getTime() - new Date(prev.created_at).getTime()) < 3 * 60 * 1000;
+              const sameAsNext = next && next.sender_id === msg.sender_id &&
+                (new Date(next.created_at).getTime() - new Date(msg.created_at).getTime()) < 3 * 60 * 1000;
+              const showAvatar = !sameAsNext; // anchor at last of cluster
+              const showName = isGroup && !sameAsPrev; // only group needs name, only on first of cluster
+              const showDaySeparator = !prev || !sameDay(prev.created_at, msg.created_at);
+
               return (
-                <div
-                  key={msg.id}
-                  className={cn("flex gap-2", isMine ? "justify-end" : "justify-start")}
-                >
-                    <div className={cn("flex gap-2 max-w-[75%]", isMine && "flex-row-reverse")}>
-                    {/* Avatar - both sides */}
-                    <button
-                      onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
-                      className="shrink-0 self-end mb-0.5"
-                    >
-                      {senderUserId ? (
-                        <AvatarWithFrame
-                          userId={senderUserId}
-                          src={senderAvatar || undefined}
-                          name={senderName}
-                          level={senderLevel}
-                          size="xs"
-                          showAnimation={false}
-                        />
-                      ) : (
-                        <Avatar className="w-7 h-7 border border-purple-200/30">
-                          <AvatarImage src={senderAvatar || undefined} className="object-cover" />
- <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-900 text-[10px]">
-                            {senderName[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                    </button>
-                    <div className="flex flex-col">
-                      {/* Sender Name - always show in DM and group */}
+                <React.Fragment key={msg.id}>
+                  {showDaySeparator && (
+                    <div className="flex items-center justify-center my-2">
+                      <span className="px-3 py-0.5 rounded-full text-[10.5px] font-semibold text-slate-600 bg-white/85 border border-amber-200/50 shadow-sm backdrop-blur-sm">
+                        {formatDayLabel(msg.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className={cn("flex gap-2 group", isMine ? "justify-end" : "justify-start", sameAsPrev ? "mt-0.5" : "mt-2")}
+                  >
+                    <div className={cn("flex gap-2 max-w-[78%]", isMine && "flex-row-reverse")}>
+                    {/* Avatar slot — only shows on last of cluster; otherwise reserved spacer keeps alignment */}
+                    {showAvatar ? (
                       <button
                         onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
-                        className={cn("mb-0.5", isMine ? "text-right" : "text-left")}
+                        className="shrink-0 self-end mb-0.5"
                       >
-                        <p className="font-semibold text-[11px] text-slate-700">
-                          {senderName}
-                        </p>
+                        {senderUserId ? (
+                          <AvatarWithFrame
+                            userId={senderUserId}
+                            src={senderAvatar || undefined}
+                            name={senderName}
+                            level={senderLevel}
+                            size="xs"
+                            showAnimation={false}
+                          />
+                        ) : (
+                          <Avatar className="w-7 h-7 border border-purple-200/30">
+                            <AvatarImage src={senderAvatar || undefined} className="object-cover" />
+                            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-900 text-[10px]">
+                              {senderName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
                       </button>
+                    ) : (
+                      <div className="shrink-0 w-7" aria-hidden />
+                    )}
+                    <div className="flex flex-col min-w-0">
+                      {/* Sender Name — group chat only, first of cluster only */}
+                      {showName && (
+                        <button
+                          onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
+                          className={cn("mb-0.5 px-1", isMine ? "text-right" : "text-left")}
+                        >
+                          <p className="font-semibold text-[11px] text-slate-700">
+                            {senderName}
+                          </p>
+                        </button>
+                      )}
                       {/* Message Bubble - No background for gifts */}
                       {(() => {
                         const content = msg.content || '';
@@ -2459,7 +2511,8 @@ const Chat = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                </div>
+                  </div>
+                </React.Fragment>
               );
             })
           )}
@@ -2859,69 +2912,53 @@ const Chat = () => {
               </>
             ) : (
               <>
-                {/* Camera Button - Left - Opens Gallery Directly */}
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => {
-                    setShowMediaUploader(true);
-                    setShowEmojiPicker(false);
-                  }}
-                  className="w-10 h-10 rounded-full bg-white/[0.06] border border-amber-200/60 flex items-center justify-center hover:bg-white/[0.1] transition-colors backdrop-blur-xl"
-                >
-                  <Camera className="w-5 h-5 text-slate-700" />
-                </motion.button>
-                
-                {/* Text Input */}
-                <div className="flex-1 relative">
+                {/* WhatsApp-style single pill: emoji • input • attach • camera */}
+                <div className={cn(
+                  "flex-1 flex items-center gap-1 pl-2 pr-1 h-11 rounded-full bg-white/95 border border-amber-200/70 shadow-sm backdrop-blur-xl transition-colors",
+                  inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-300/70"
+                )}>
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
+                    aria-label="Emoji"
+                  >
+                    <Smile className="w-[20px] h-[20px] text-slate-500" />
+                  </motion.button>
                   <Input
                     value={message}
                     onChange={(e) => handleMessageChange(e.target.value)}
-                    placeholder="Type something..."
-                    className={cn(
-"rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-amber-300/60 backdrop-blur-xl",
-                      inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-amber-300/60"
-                    )}
+                    placeholder="Message"
+                    className="flex-1 h-9 border-0 bg-transparent px-1 text-[14px] text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     disabled={sending}
-                    onFocus={() => {
-                      setShowEmojiPicker(false);
-                    }}
+                    onFocus={() => setShowEmojiPicker(false)}
                   />
-                  {/* Right side buttons inside input */}
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => {
-                        setShowEmojiPicker(!showEmojiPicker);
-                      }}
-                      className="p-1.5 rounded-full hover:bg-white/[0.08] transition-colors"
-                    >
-                      <Smile className="w-5 h-5 text-slate-600" />
-                    </motion.button>
-                    {/* Voice Recording Button */}
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={handleVoiceRecord}
-                      className="p-1.5 rounded-full hover:bg-white/[0.08] transition-colors"
-                    >
-                      <Mic className="w-5 h-5 text-slate-600" />
-                    </motion.button>
-                  </div>
-                </div>
-                
-                {/* Send Button */}
-                {message.trim() && (
                   <motion.button
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={handleSend}
-                    disabled={sending}
-                    className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+                    onClick={() => { setShowMediaUploader(true); setShowEmojiPicker(false); }}
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-amber-100/60 transition-colors"
+                    aria-label="Gallery"
                   >
- <Send className="w-5 h-5 text-slate-900" />
+                    <Camera className="w-[18px] h-[18px] text-slate-500" />
                   </motion.button>
-                )}
+                </div>
+
+                {/* Right-side circular action: mic when empty, send when typing */}
+                <motion.button
+                  initial={false}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={message.trim() ? handleSend : handleVoiceRecord}
+                  disabled={sending}
+                  className="shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 flex items-center justify-center shadow-md shadow-purple-500/30"
+                  aria-label={message.trim() ? "Send" : "Record voice"}
+                >
+                  {message.trim() ? (
+                    <Send className="w-5 h-5 text-white" />
+                  ) : (
+                    <Mic className="w-5 h-5 text-white" />
+                  )}
+                </motion.button>
               </>
             )}
           </div>

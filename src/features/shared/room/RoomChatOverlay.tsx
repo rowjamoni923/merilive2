@@ -293,69 +293,69 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       exit={{ opacity: 0, x: 60, transition: { duration: 0.15 } }}
       transition={{ type: "spring", damping: 28, stiffness: 350 }}
       className={cn(
-        "flex flex-wrap items-center gap-1.5 w-fit",
+        "flex flex-wrap items-center gap-2 w-fit",
         // Only apply default gradient bubble styling when there's NO designer bubble
         !hasDesignerBubble && [
-          "rounded-2xl max-w-[92%]",
+          "rounded-[20px] max-w-[94%]",
           "bg-gradient-to-r backdrop-blur-md",
           getBgStyle(),
           "border",
           getBorderStyle(),
           getGlowStyle(),
-          isGiftMessage ? "py-1 px-2.5" : "py-1.5 px-3.5",
+          isGiftMessage ? "py-1.5 px-3" : "py-2 px-4",
         ],
       )}
     >
-      {/* Mini Avatar - smaller for gift messages */}
+      {/* Mini Avatar — Bigo-spacious sizing */}
       {message.userAvatar && (
         <Avatar className={cn(
-          "border border-white/40 shrink-0",
-          isGiftMessage ? "w-4 h-4" : "w-5 h-5"
+          "border-[1.5px] border-white/50 shrink-0 shadow-md",
+          isGiftMessage ? "w-5 h-5" : "w-6 h-6"
         )}>
           <AvatarImage src={message.userAvatar} alt={message.user} />
-          <AvatarFallback className="bg-violet-500 text-white text-[6px] font-bold">
+          <AvatarFallback className="bg-violet-500 text-white text-[7px] font-bold">
             {message.initial}
           </AvatarFallback>
         </Avatar>
       )}
 
-      {/* HOST Badge - smaller for gift */}
+      {/* HOST Badge */}
       {isHost && !isGiftMessage && (
-        <div className="px-1.5 py-0.5 rounded text-[8px] font-black bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-md shrink-0 border border-white/30">
-          Host
+        <div className="px-2 py-0.5 rounded-md text-[9px] font-black bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-md shrink-0 border border-white/30 tracking-wide">
+          HOST
         </div>
       )}
 
       {/* NEW Badge */}
       {isNewUser && !isHost && !isGiftMessage && (
-        <div className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-sm shrink-0 animate-pulse">
+        <div className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-sm shrink-0 animate-pulse">
           🆕 NEW
         </div>
       )}
 
-      {/* Level Badge - smaller for gift messages */}
+      {/* Level Badge */}
       <div className={cn(
         "rounded-md font-black shrink-0 shadow-md",
         getLevelBadgeBg(level),
         getLevelTextColor(level),
-        isGiftMessage ? "px-1 py-0 text-[7px]" : "px-1.5 py-0.5 text-[9px]"
+        isGiftMessage ? "px-1.5 py-0.5 text-[8px]" : "px-2 py-0.5 text-[10px]"
       )}>
         <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{formatLevel(level)}</span>
       </div>
 
       {/* Country Flag */}
       {message.countryFlag && !isGiftMessage && (
-        <span className="text-xs shrink-0 drop-shadow-md">{message.countryFlag}</span>
+        <span className="text-sm shrink-0 drop-shadow-md">{message.countryFlag}</span>
       )}
 
-      {/* Username + Colon - smaller for gift messages */}
+      {/* Username + Colon */}
       <span className={cn(
-        "font-bold shrink-0",
+        "font-bold shrink-0 tracking-tight",
         isHost ? 'text-rose-100' : isGiftMessage ? 'text-pink-100' : isJoinMessage ? 'text-emerald-100' : 'text-cyan-100',
         "drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]",
         isHost && "text-shadow-glow-rose",
         isGameWinMessage && "text-shadow-glow-amber",
-        isGiftMessage ? "text-[9px]" : "text-[11px]"
+        isGiftMessage ? "text-[10.5px]" : "text-[12.5px]"
       )}>
         {message.user}:
       </span>
@@ -363,12 +363,12 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       {/* Trader Badge */}
       {message.isTrader && <TraderBadge level={message.traderLevel || 1} size="xs" />}
 
-      {/* Message Text with @mention support - smaller for gift messages */}
+      {/* Message Text */}
       <span className={cn(
-        "break-words font-medium",
+        "break-words font-medium leading-snug",
         "drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]",
         isGameWinMessage ? 'text-yellow-50 font-bold' : isGiftMessage ? 'text-pink-50' : 'text-white/95',
-        isGiftMessage ? "text-[9px]" : "text-[11px]"
+        isGiftMessage ? "text-[10.5px]" : "text-[12.5px]"
       )}>
         {parseMentions(cleanMessage)}
       </span>
@@ -511,11 +511,11 @@ export const RoomChatOverlay = memo(({
       <div 
         ref={chatContainerRef}
         className={cn(
-          "flex flex-col-reverse gap-1.5 overflow-y-auto overflow-x-hidden",
+          "flex flex-col-reverse gap-2 overflow-y-auto overflow-x-hidden",
           "scrollbar-thin scrollbar-thumb-white/25 scrollbar-track-transparent",
-          "pr-1 rounded-2xl",
-          "bg-gradient-to-t from-black/20 via-transparent to-transparent",
-          "backdrop-blur-[2px]"
+          "pr-1 pl-0.5 py-1 rounded-2xl",
+          "bg-gradient-to-t from-black/25 via-black/5 to-transparent",
+          "backdrop-blur-[3px]"
         )}
         style={{ maxHeight }}
       >
