@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,33 +27,16 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Verify the requesting admin session is an owner
-    const adminToken = req.headers.get("x-admin-token");
-    if (!adminToken || adminToken.length < 16) {
-      console.error("[update-sub-admin] No admin session token");
+    // Verify the requesting admin session is an approved owner device.
+    const auth = await requireAdminSession(req, supabaseAdmin, { ownerOnly: true });
+    if (!auth.ok) {
+      console.error("[update-sub-admin] Owner admin session rejected:", auth.error);
       return new Response(
-        JSON.stringify({ error: "Admin session required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: auth.error }),
+        { status: auth.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const { data: sessionRow } = await supabaseAdmin
-      .from("admin_sessions")
-      .select("admin_user_id, expires_at")
-      .eq("session_token", adminToken)
-      .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
-    const { data: requestingAdmin } = sessionRow?.admin_user_id
-      ? await supabaseAdmin.from("admin_users").select("id, role, is_active").eq("id", sessionRow.admin_user_id).maybeSingle()
-      : { data: null } as any;
-
-    if (!requestingAdmin?.is_active || requestingAdmin.role !== "owner") {
-      console.error("[update-sub-admin] Requesting admin is not owner");
-      return new Response(
-        JSON.stringify({ error: "Only Owners can manage sub-admins" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const requestingAdmin = auth.admin;
 
     console.log("[update-sub-admin] Requesting admin:", requestingAdmin.id);
 
