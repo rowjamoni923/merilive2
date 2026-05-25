@@ -1451,6 +1451,17 @@ const Chat = () => {
       : [];
     setMessages([...serverMsgs, ...queued]);
 
+    // Fetch reply-to messages for quote rendering
+    const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))];
+    if (replyIds.length > 0) {
+      const { data: replies } = await supabase
+        .from('messages')
+        .select('id, content, sender_id')
+        .in('id', replyIds);
+      const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id }]));
+      setReplyMessages(prev => ({ ...prev, ...map }));
+    }
+
     // Mark as delivered via RPC
     if (currentUserId) {
       supabase.rpc('mark_messages_delivered', {
