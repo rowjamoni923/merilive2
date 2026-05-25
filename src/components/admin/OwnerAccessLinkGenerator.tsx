@@ -239,7 +239,7 @@ export default function OwnerAccessLinkGenerator() {
                 <Label className="text-sm text-muted-foreground mb-2 block">Owner Royal URL</Label>
                 <div className="relative">
                   <Input
-                    value={loadingTokens ? 'Loading...' : showOwnerSecret ? ownerAccessLink : `${PRODUCTION_DOMAIN}/admin/auth?access=${maskToken(ownerToken)}`}
+                    value={loadingTokens ? 'Loading...' : showOwnerSecret ? ownerAccessLink : `${adminLinkOrigin}/admin/auth?access=${maskToken(ownerToken)}`}
                     readOnly
                     className="pr-20 font-mono text-xs"
                   />
@@ -325,7 +325,7 @@ export default function OwnerAccessLinkGenerator() {
                 <Label className="text-sm text-muted-foreground mb-2 block">Sub-Admin Onyx URL</Label>
                 <div className="relative">
                   <Input
-                    value={loadingTokens ? 'Loading...' : showSubAdminSecret ? subAdminAccessLink : `${PRODUCTION_DOMAIN}/admin/auth?access=${maskToken(subAdminToken)}`}
+                    value={loadingTokens ? 'Loading...' : showSubAdminSecret ? subAdminAccessLink : `${adminLinkOrigin}/admin/auth?access=${maskToken(subAdminToken)}`}
                     readOnly
                     className="pr-20 font-mono text-xs"
                   />
