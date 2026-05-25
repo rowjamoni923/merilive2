@@ -85,6 +85,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
 
   // Email verification
   const [emailOtp, setEmailOtp] = useState("");
+  const [emailVerifiedToken, setEmailVerifiedToken] = useState("");
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [sendingEmailOtp, setSendingEmailOtp] = useState(false);
@@ -300,6 +301,51 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     return /^[0-9+\-\s]{10,15}$/.test(phone.replace(/\s/g, ''));
   };
 
+  const sendEmailOtp = async () => {
+    const normalizedEmail = formData.email.trim().toLowerCase();
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage("Please enter a valid email address");
+      return;
+    }
+    setSendingEmailOtp(true);
+    setErrorMessage("");
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email-otp', {
+        body: { email: normalizedEmail, purpose: 'verify' }
+      });
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Failed to send email OTP"));
+      if (!data?.success) throw new Error(data?.error || "Failed to send email OTP");
+      setEmailOtpSent(true);
+      setEmailOtpTimer(300);
+      setEmailOtp("");
+      setEmailVerified(false);
+      setEmailVerifiedToken("");
+    } catch (error: any) {
+      setErrorMessage(error.message || "Failed to send email OTP");
+    } finally {
+      setSendingEmailOtp(false);
+    }
+  };
+
+  const verifyEmailOtp = async () => {
+    if (emailOtp.length !== 6) return;
+    setVerifyingEmailOtp(true);
+    setErrorMessage("");
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { email: formData.email.trim().toLowerCase(), otp: emailOtp, purpose: 'verify' }
+      });
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Email OTP verification failed"));
+      if (!data?.success || !data?.verified_token) throw new Error(data?.error || "Email OTP verification failed");
+      setEmailVerified(true);
+      setEmailVerifiedToken(data.verified_token);
+    } catch (error: any) {
+      setErrorMessage(error.message || "Email OTP verification failed");
+    } finally {
+      setVerifyingEmailOtp(false);
+    }
+  };
+
   const handleSubmit = async () => {
     // Validation
     if (!formData.agencyName.trim()) {
@@ -312,6 +358,10 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     }
     if (!formData.email.trim() || !isValidEmail(formData.email)) {
       setErrorMessage("Please enter a valid Gmail address");
+      return;
+    }
+    if (!emailVerified || !emailVerifiedToken) {
+      setErrorMessage("Please verify your email OTP first");
       return;
     }
     if (!formData.phone.trim() || !isValidPhone(formData.phone)) {
@@ -333,6 +383,8 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
           name: formData.agencyName.trim(),
           userId: foundUser?.id,
           email: formData.email.trim(),
+          emailVerifiedToken,
+          appVerifiedToken,
           phone: formData.phone.trim(),
           parentAgencyCode: parentAgencyCode
         }
