@@ -84,3 +84,41 @@ export async function prewarmGiftAnimations(): Promise<void> {
     // best-effort only
   }
 }
+
+/**
+ * Pkg C pass-2 — prewarm a caller-supplied list of gift asset URLs.
+ * Called when GiftPanel opens so every visible gift is buttery-smooth on first tap.
+ * Bounded, idempotent (per-URL caches already dedupe).
+ */
+const sessionPrewarmed = new Set<string>();
+export async function prewarmGiftAssets(urls: Array<string | null | undefined>): Promise<void> {
+  if (typeof window === 'undefined') return;
+  prewarmSVGA(); // ensure module is in memory
+
+  const svgaUrls: string[] = [];
+  const lottieUrls: string[] = [];
+  const imageUrls: string[] = [];
+
+  for (const raw of urls) {
+    if (!raw || typeof raw !== 'string') continue;
+    if (sessionPrewarmed.has(raw)) continue;
+    sessionPrewarmed.add(raw);
+    switch (classify(raw)) {
+      case 'svga': svgaUrls.push(raw); break;
+      case 'lottie': lottieUrls.push(raw); break;
+      case 'image': imageUrls.push(raw); break;
+      default: break;
+    }
+  }
+
+  if (imageUrls.length) pushImageWarm(imageUrls);
+
+  // Hard caps so opening a category with 200 gifts does not flood the network
+  const svgaCap = Math.min(svgaUrls.length, 20);
+  for (let i = 0; i < svgaCap; i++) {
+    try { await fetchWithBinaryCache(svgaUrls[i]); } catch {}
+  }
+  await Promise.allSettled(
+    lottieUrls.slice(0, 20).map(u => fetchLottieCached(u).catch(() => null))
+  );
+}
