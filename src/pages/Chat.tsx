@@ -674,7 +674,7 @@ const Chat = () => {
               senderId: currentUserId,
               recipientId,
               messageContent: '',
-              messageType: 'voice',
+              messageType: 'audio',
             }
           }).catch(() => {});
         }
@@ -1057,6 +1057,42 @@ const Chat = () => {
     return () => { cancelled = true; };
   }, [selectedGroup, currentUserId]);
 
+  useEffect(() => {
+    if (!selectedGroup?.id) return;
+
+    const unsubscribe = subscribeToTables(
+      `chat-group-messages-${selectedGroup.id}`,
+      ['group_messages'],
+      (_table: string, event: string, payload: any) => {
+        if (payload?.group_id !== selectedGroup.id) return;
+
+        if (event === 'INSERT') {
+          setGroupMessages(prev => {
+            if (prev.some(m => m.id === payload.id)) return prev;
+            return [...prev, { ...payload, sender: null }];
+          });
+
+          const senderId = payload.sender_id;
+          if (senderId) {
+            supabase
+              .from('profiles_public')
+              .select('id, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host')
+              .eq('id', senderId)
+              .maybeSingle()
+              .then(({ data }) => {
+                if (!data) return;
+                setGroupMessages(prev => prev.map(m =>
+                  m.id === payload.id ? { ...m, sender: data } : m
+                ));
+              });
+          }
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, [selectedGroup?.id]);
+
   // Fetch host's received gifts count and subscribe to real-time updates
   useEffect(() => {
     if (!selectedConversation?.other_user?.id) return;
@@ -1094,15 +1130,9 @@ const Chat = () => {
     };
   }, [selectedConversation?.other_user?.id]);
 
-  // Pkg92: conversation list refresh.
-  // The legacy `conv-refresh-${currentUserId}-${Date.now()}` channel subscribed to
-  // postgres_changes on `messages` + `conversations` — neither table is in the
-  // supabase_realtime publication, so it was a silent no-op AND an unfiltered
-  // global `messages` INSERT bind (exact $1400-pattern if the publication ever
-  // included it). Replaced with:
-  //   1. window 'chat:new-message' event (dispatched by useNotifications on
-  //      `notifications.type='message'` inserts — single existing subscription).
-  //   2. visibilitychange refetch (tab refocus).
+  // Pkg92/Pkg327: conversation list refresh comes from the existing realtime
+  // notifications subscription only. Do NOT add visibility-refresh/polling as a
+  // substitute for realtime updates.
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -1113,17 +1143,12 @@ const Chat = () => {
     };
 
     const onNewMessage = () => debouncedRefresh();
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') debouncedRefresh();
-    };
 
     window.addEventListener('chat:new-message', onNewMessage);
-    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       if (refreshTimer) clearTimeout(refreshTimer);
       window.removeEventListener('chat:new-message', onNewMessage);
-      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [currentUserId]);
 
@@ -1142,7 +1167,7 @@ const Chat = () => {
       const [profileResult] = await Promise.all([
         supabase.from('profiles').select('coins, display_name, avatar_url, user_level, host_level, max_user_level, gender, is_host').eq('id', user.id).single(),
         fetchConversations(user.id),
-        fetchGroups()
+        fetchGroups(user.id)
       ]);
       
       if (profileResult.data) {
@@ -1221,8 +1246,8 @@ const Chat = () => {
     }
   };
 
-  const fetchGroups = async () => {
-    const userId = currentUserId;
+  const fetchGroups = async (overrideUserId?: string) => {
+    const userId = overrideUserId || currentUserId;
     if (!userId) return;
 
     const { data: memberOf, error } = await supabase
@@ -1344,8 +1369,24 @@ const Chat = () => {
     setShowGiftAnimation(true);
   }
 
+  async function loadReplyMessages(replyIds: string[]) {
+    const missingReplyIds = [...new Set(replyIds)].filter((id) => id && !replyMessages[id]);
+    if (missingReplyIds.length === 0) return;
+
+    const { data: replies } = await supabase
+      .from('messages')
+      .select('id, content, sender_id')
+      .in('id', missingReplyIds);
+
+    const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id }]));
+    setReplyMessages(prev => ({ ...prev, ...map }));
+  }
+
   function upsertLiveMessage(messageRow: any) {
     const newMessage = castMessage(messageRow);
+    if (newMessage.reply_to_id) {
+      void loadReplyMessages([newMessage.reply_to_id]);
+    }
 
     setMessages(prev => {
       const baseMessages = prev.filter(
@@ -1428,7 +1469,7 @@ const Chat = () => {
     // Replace the queued optimistic bubble with a "sent" one — realtime
     // upsertLiveMessage will replace it with the canonical row shortly.
     setMessages(prev => prev.map(m =>
-      m.id === item.id ? { ...m, status: 'sent' as any } : m
+      m.id === item.id ? { ...m, status: 'sent' } : m
     ));
   });
 
@@ -1459,15 +1500,8 @@ const Chat = () => {
     setMessages([...serverMsgs, ...queued]);
 
     // Fetch reply-to messages for quote rendering
-    const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))];
-    if (replyIds.length > 0) {
-      const { data: replies } = await supabase
-        .from('messages')
-        .select('id, content, sender_id')
-        .in('id', replyIds);
-      const map = Object.fromEntries((replies || []).map(r => [r.id, { content: r.content, sender_id: r.sender_id }]));
-      setReplyMessages(prev => ({ ...prev, ...map }));
-    }
+    const replyIds = [...new Set((data || []).map(m => m.reply_to_id).filter(Boolean))] as string[];
+    void loadReplyMessages(replyIds);
 
     // Mark as delivered via RPC
     if (currentUserId) {
@@ -1640,6 +1674,7 @@ const Chat = () => {
 
   const handleSend = async () => {
     if (!message.trim() || sending) return;
+    if (!currentUserId || (!selectedConversation && !selectedGroup)) return;
 
     setSending(true);
     const originalContent = message.trim();
@@ -1688,6 +1723,12 @@ const Chat = () => {
           })
           .catch(err => console.error('[ContactDetection] Chat error:', err));
       }
+    }
+
+    if (contentToSend !== originalContent) {
+      setMessages(prev => prev.map(m =>
+        m.id === optimisticId ? { ...m, content: contentToSend } : m
+      ));
     }
 
     try {
@@ -2589,6 +2630,7 @@ const Chat = () => {
                     key={quickMsg}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
+                      if (!currentUserId) return;
                       setMessage(quickMsg);
                       // Auto-send on tap
                       setTimeout(() => {
@@ -2600,7 +2642,7 @@ const Chat = () => {
                         if (selectedConversation) {
                           persistDirectMessage(
                             selectedConversation.id,
-                            currentUserId!,
+                            currentUserId,
                             content,
                             'text'
                           ).then((sentMessage) => {
@@ -2771,6 +2813,7 @@ const Chat = () => {
                   whileTap={{ scale: 0.9 }}
                   onClick={async () => {
                     if (!pendingMedia) return;
+                    if (!currentUserId) return;
                     try {
                       // 🔍 For images: HOSTS ONLY — non-hosts (agency/user/helper) share images freely
                       if (pendingMedia.type === 'image' && currentUserId && myProfile?.is_host === true) {
@@ -2806,7 +2849,7 @@ const Chat = () => {
                       if (selectedConversation) {
                         await persistDirectMessage(
                           selectedConversation.id,
-                          currentUserId!,
+                          currentUserId,
                           pendingMedia.url,
                           pendingMedia.type
                         );
