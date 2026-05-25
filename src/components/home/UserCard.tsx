@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { CallButton } from "@/features/call";
 import { useCall } from "@/features/call";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 
 interface UserCardProps {
   id: string;
@@ -43,6 +44,7 @@ export const UserCard = ({
   onClick,
 }: UserCardProps) => {
   const { startCall } = useCall();
+  const normalizedPhotoUrl = normalizeProfileMediaUrl(photoUrl) || photoUrl;
 
   const getLevelIcon = () => {
     if (level >= 6) return <Star className="w-3 h-3 fill-current" />;
@@ -68,7 +70,7 @@ export const UserCard = ({
       {/* Photo with Frame Overlay */}
       <div className="relative aspect-[3/4] overflow-hidden">
         <img
-          src={photoUrl}
+          src={normalizedPhotoUrl}
           alt={name}
           loading="eager"
           decoding="sync"
@@ -128,7 +130,7 @@ export const UserCard = ({
           <div className="flex-shrink-0">
             <AvatarWithFrame
               userId={id}
-              src={photoUrl}
+              src={normalizedPhotoUrl}
               name={name}
               level={level}
               isHost={isHost}
