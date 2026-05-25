@@ -2197,7 +2197,7 @@ const Chat = () => {
                           />
                         ) : (
                           <Avatar className="w-7 h-7 border border-purple-200/30">
-                            <AvatarImage src={senderAvatar || undefined} className="object-cover" />
+                            <AvatarImage src={senderAvatar || undefined} className="object-contain" />
                             <AvatarFallback className="bg-gradient-primary text-primary-foreground text-[10px]">
                               {senderName[0]}
                             </AvatarFallback>

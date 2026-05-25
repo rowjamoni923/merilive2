@@ -530,7 +530,7 @@ const EditProfile = () => {
                   {/* Outer glow ring */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-full opacity-75 blur-sm animate-pulse" />
                   <Avatar className="relative w-28 h-28 ring-4 ring-amber-200 shadow-2xl">
-                    <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
+                    <AvatarImage src={profile?.avatar_url || undefined} className="object-contain" />
                     <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-on-dark text-3xl font-bold">
                       {displayName?.charAt(0) || "U"}
                     </AvatarFallback>
