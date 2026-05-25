@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import useAdminAccess from "@/hooks/useAdminAccess";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,6 +104,7 @@ const HUB_NAMES: Record<string, { name: string, color: string }> = {
 };
 
 const AdminSubAdmins = () => {
+  const { isOwner: verifiedOwner } = useAdminAccess();
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [sections, setSections] = useState<AdminSection[]>([]);
   const [loading, setLoading] = useState(false);
@@ -423,18 +425,18 @@ const AdminSubAdmins = () => {
   useEffect(() => {
     const fetchPendingCount = async () => {
       const session = getAdminSession();
-      if (!session?.admin_id || !session.is_owner) return setPendingDeviceCount(0);
+      if (!session?.admin_id || !verifiedOwner) return setPendingDeviceCount(0);
       const { data, error } = await supabase.rpc('admin_list_pending_devices' as any, {
         _owner_admin_id: session.admin_id,
       });
       if (!error) setPendingDeviceCount(((data as any[]) || []).filter((device) => device.status === 'pending').length);
     };
     fetchPendingCount();
-  }, []);
+  }, [verifiedOwner]);
 
   useAdminRealtime(['admin_allowed_devices'], async () => {
     const session = getAdminSession();
-    if (!session?.admin_id || !session.is_owner) return setPendingDeviceCount(0);
+    if (!session?.admin_id || !verifiedOwner) return setPendingDeviceCount(0);
     const { data, error } = await supabase.rpc('admin_list_pending_devices' as any, {
       _owner_admin_id: session.admin_id,
     });

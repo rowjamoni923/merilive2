@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
+import useAdminAccess from "@/hooks/useAdminAccess";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -54,6 +55,7 @@ interface DeviceRecord {
 }
 
 export default function DeviceApprovalSection() {
+  const { isOwner, isLoading: accessLoading } = useAdminAccess();
   const [loading, setLoading] = useState(true);
   const [devices, setDevices] = useState<DeviceRecord[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<DeviceRecord | null>(null);
@@ -62,13 +64,14 @@ export default function DeviceApprovalSection() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'blocked'>('pending');
 
   useEffect(() => {
+    if (accessLoading) return;
     fetchDevices();
-  }, []);
+  }, [accessLoading, isOwner]);
 
   const fetchDevices = async () => {
     try {
       const session = getAdminSession();
-      if (!session?.admin_id || !session.is_owner) {
+      if (!session?.admin_id || !isOwner) {
         setDevices([]);
         return;
       }
@@ -104,7 +107,7 @@ export default function DeviceApprovalSection() {
     setActionLoading(true);
     try {
       const session = getAdminSession();
-      if (!session?.admin_id || !session.is_owner) throw new Error('Owner session required');
+      if (!session?.admin_id || !isOwner) throw new Error('Owner session required');
 
       if (actionType === 'delete' || actionType === 'block') {
         const { data, error } = await supabase.rpc('admin_revoke_device' as any, {
@@ -182,7 +185,7 @@ export default function DeviceApprovalSection() {
   const approvedCount = devices.filter(d => d.status === 'approved').length;
   const blockedCount = devices.filter(d => d.status === 'blocked').length;
 
-  if (loading) {
+  if (loading || accessLoading) {
     return (
       <Card>
         <CardContent className="p-8 flex items-center justify-center">

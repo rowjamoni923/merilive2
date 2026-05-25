@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import useAdminAccess from "@/hooks/useAdminAccess";
-import { hasOwnerAccessFlag } from "@/utils/adminAccessStorage";
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
 
 // First accessible path map for sub-admins based on hub keys
@@ -188,9 +187,6 @@ interface AdminRouteGuardProps {
 }
 
 export default function AdminRouteGuard({ children, routeSegment }: AdminRouteGuardProps) {
-  // Owner flag short-circuit: never block owner routes behind async permission checks
-  if (hasOwnerAccessFlag()) return <>{children}</>;
-
   const { isOwner, hasHubAccess, isLoading } = useAdminAccess();
 
   // While permissions are loading, show premium loader (instead of blank outlet)
@@ -237,8 +233,6 @@ export default function AdminRouteGuard({ children, routeSegment }: AdminRouteGu
  * Owners see the dashboard. Sub-admins are redirected to their first accessible page.
  */
 export function SubAdminDashboardGuard({ children }: { children: ReactNode }) {
-  if (hasOwnerAccessFlag()) return <>{children}</>;
-
   const { isOwner, accessibleHubs, isLoading } = useAdminAccess();
 
   if (isLoading) {

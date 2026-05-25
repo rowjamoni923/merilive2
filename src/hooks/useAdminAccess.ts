@@ -3,9 +3,6 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { useEffect, useState } from "react";
 import { getAdminSession, type AdminSession } from "@/utils/adminSession";
 
-// Owner emails - hardcoded for absolute certainty
-const OWNER_EMAILS = ["smtv923@gmail.com", "sazzadshifa776@gmail.com"];
-
 interface AdminUser {
   id: string;
   user_id: string | null;
@@ -49,30 +46,46 @@ export const useAdminAccess = () => {
 
   const adminId = session?.admin_id ?? null;
 
-  // Fetch admin user record by admin_id (from the dedicated admin session)
-  const { data: adminUser, isLoading: isLoadingUser } = useQuery({
-    queryKey: ["admin-user", adminId],
+  // Server-derived admin id from the x-admin-token header. Never trust the
+  // locally stored admin_id/role for permissions because localStorage can be edited.
+  const { data: verifiedAdminId, isLoading: isLoadingVerifiedAdmin } = useQuery({
+    queryKey: ["verified-admin-id", adminId, session?.session_token],
     queryFn: async () => {
       if (!adminId) return null;
+      const { data, error } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+      if (error || !data) return null;
+      return String(data);
+    },
+    enabled: !!adminId,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  // Fetch admin user record by admin_id (from the dedicated admin session)
+  const { data: adminUser, isLoading: isLoadingUser } = useQuery({
+    queryKey: ["admin-user", verifiedAdminId],
+    queryFn: async () => {
+      if (!verifiedAdminId) return null;
       const { data, error } = await adminSupabase
         .from("admin_users")
         .select("id, user_id, email, display_name, role, is_active, invited_at, accepted_at, last_login_at")
-        .eq("id", adminId)
+        .eq("id", verifiedAdminId)
         .eq("is_active", true)
         .maybeSingle();
       if (error || !data) return null;
       return data as AdminUser;
     },
-    enabled: !!adminId,
+    enabled: !!verifiedAdminId,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 
   // Fetch accessible sections — for sub-admin we look up by admin_user_id directly
   const { data: accessibleSections, isLoading: isLoadingSections } = useQuery({
-    queryKey: ["admin-accessible-sections", adminId],
+    queryKey: ["admin-accessible-sections", verifiedAdminId],
     queryFn: async () => {
-      if (!adminId) return [];
+      if (!verifiedAdminId) return [];
       const { data, error } = await adminSupabase
         .from("admin_section_permissions")
         .select(`
@@ -83,7 +96,7 @@ export const useAdminAccess = () => {
             hub_key
           )
         `)
-        .eq("admin_user_id", adminId);
+        .eq("admin_user_id", verifiedAdminId);
 
       if (error || !data) return [];
 
@@ -96,7 +109,7 @@ export const useAdminAccess = () => {
           can_edit: !!row.can_edit,
         })) as AccessibleSection[];
     },
-    enabled: !!adminUser && adminUser.role !== 'owner',
+    enabled: !!verifiedAdminId && !!adminUser && adminUser.role !== 'owner',
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -107,9 +120,7 @@ export const useAdminAccess = () => {
     return undefined;
   }, []);
 
-  const isOwner = !!session?.is_owner ||
-                  adminUser?.role === 'owner' ||
-                  (!!adminUser?.email && OWNER_EMAILS.includes(adminUser.email.toLowerCase()));
+  const isOwner = adminUser?.id === verifiedAdminId && adminUser?.role === 'owner';
 
   const hasAccessTo = (sectionKey: string): boolean => {
     if (isOwner) return true;
@@ -137,11 +148,11 @@ export const useAdminAccess = () => {
     accessibleHubs,
     isOwner,
     isSubAdmin: !!session && !isOwner,
-    isAdmin: !!session,
+    isAdmin: !!session && !!verifiedAdminId && !!adminUser,
     hasAccessTo,
     canEdit,
     hasHubAccess,
-    isLoading: !!session && ((isLoadingUser && !adminUser) || (isLoadingSections && !accessibleSections && !isOwner)),
+    isLoading: !!session && ((isLoadingVerifiedAdmin && !verifiedAdminId) || (isLoadingUser && !adminUser) || (isLoadingSections && !accessibleSections && !isOwner)),
     session,
   };
 };
