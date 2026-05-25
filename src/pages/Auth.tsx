@@ -984,28 +984,41 @@ const Auth = () => {
       let userId: string | null = null;
 
       if (error) {
-        // If signup fails (email already exists), try signing in instead
+        // Signup failed — most likely email already exists for this device
+        // (orphan auth user, password drifted, or partial recovery state).
+        // Try: signin → if fail, force-sync credentials → signin again.
         console.log('[Auth] Signup failed, trying signin:', error.message);
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        let { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: guestEmail,
           password: guestPassword,
         });
-        
+
         if (signInError) {
-          console.error('[Auth] Both signup and signin failed:', signInError.message);
-          recordClientError({ label: "Auth.guestPassword", message: String(signInError.message ?? "unknown") });
-          // Fallback to email registration
-          toast({
-            title: "Information Required",
-            description: "Please register with Email",
+          console.log('[Auth] Signin failed too, force-syncing guest credentials and retrying');
+          try {
+            await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
+          } catch (e) { /* ignore — retry signin anyway */ }
+          const retry = await supabase.auth.signInWithPassword({
+            email: guestEmail,
+            password: guestPassword,
           });
-          setIsEmailFlow(true);
-          setAuthStep("email");
+          signInData = retry.data;
+          signInError = retry.error;
+        }
+
+        if (signInError) {
+          console.error('[Auth] Guest signin still failing after credential sync:', signInError.message);
+          recordClientError({ label: "Auth.guestPassword", message: String(signInError.message ?? "unknown") });
+          toast({
+            title: "Couldn't create account",
+            description: "Please try again in a moment.",
+            variant: "destructive",
+          });
           return;
         }
-        
+
         userId = signInData.user?.id || null;
-        
+
         // Update profile name if signing into existing account
         if (userId) {
           await supabase
