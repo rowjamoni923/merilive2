@@ -1103,7 +1103,7 @@ const App = () => {
 
   // Domain-based routing: ONLY .top domain shows the public landing page.
   // merilive.com is the MAIN APP/admin domain — must load the full app, NOT landing.
-  const publicLandingAllowedPaths = ['/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact', '/account-deletion', '/delete-account'];
+  const publicLandingAllowedPaths = ['/admin', '/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact', '/account-deletion', '/delete-account'];
   const isPublicLandingSubRoute = isPublicLandingHost && publicLandingAllowedPaths.some(p => currentPath.startsWith(p));
   
   if (isPublicLandingHost && !isPublicLandingSubRoute) {
