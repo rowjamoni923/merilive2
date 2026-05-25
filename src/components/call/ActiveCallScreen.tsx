@@ -20,6 +20,7 @@ import { VideoQualityButton } from "@/components/livekit/VideoQualityButton";
 import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 import BeansIcon from "@/components/common/BeansIcon";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting } from "@/utils/appSettingsCache";
 import { toast } from "sonner";
 import { publishChatMessage, type ChatMessageDetail } from "@/lib/livekitChatSignaling";
 import type { GiftSentDetail } from "@/lib/livekitGiftSignaling";
