@@ -314,6 +314,8 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
       </div>
       <video 
         ref={videoRef}
+        data-livekit-media="true"
+        data-no-auto-pause="true"
         autoPlay
         playsInline
         muted
