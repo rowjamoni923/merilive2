@@ -990,29 +990,32 @@ export default function AdminUserManagement() {
 
   // === FACE VERIFICATION TAB FUNCTIONS ===
   const fetchFaceSubmissions = async () => {
+    const requestId = ++faceFetchRequestIdRef.current;
     setLoading(true);
     try {
-      const rows: any[] = [];
-      const pageSize = 120;
-      let offset = 0;
-      let total = Number.POSITIVE_INFINITY;
-      for (let page = 0; page < 50 && rows.length < total; page += 1) {
-        const { data, error } = await supabase.rpc('admin_list_face_verification_paginated', {
-          _status: null,
-          _search: null,
-          _limit: pageSize,
-          _offset: offset,
-        });
+      const isAutoTab = activeTab === "auto-verified" || activeTab === "auto-rejected";
+      const q = (isAutoTab ? debouncedAppSearchQuery : debouncedFaceSearchQuery).trim();
+      const serverStatus = isAutoTab
+        ? (activeTab === "auto-verified" ? "auto_approved" : "auto_rejected")
+        : (faceActiveTab === "all" ? null : faceActiveTab);
+      const [listResult, stats] = await Promise.all([
+        supabase.rpc('admin_list_face_verification_paginated', {
+          _status: serverStatus,
+          _search: q || null,
+          _limit: FACE_VERIFICATION_FETCH_LIMIT,
+          _offset: 0,
+        }),
+        fetchFilteredStatusCounts(supabase as any, {
+          table: 'face_verification_submissions',
+          searchColumn: 'full_name',
+          searchQuery: q,
+          globalStatsRpc: 'admin_face_verification_stats',
+        }),
+      ]);
 
-        if (error) throw error;
-
-        const payload = ((data as any) || {});
-        const pageRows = (payload.rows || []) as any[];
-        rows.push(...pageRows);
-        total = Number(payload.total ?? rows.length);
-        offset += pageRows.length;
-        if (pageRows.length < pageSize) break;
-      }
+      if (listResult.error) throw listResult.error;
+      const payload = ((listResult.data as any) || {});
+      const rows = (payload.rows || []) as any[];
       const enriched = rows.map((s: any) => ({
         ...s,
         status: normalizeFaceStatus(s.status ?? s.status_bucket),
@@ -1022,7 +1025,9 @@ export default function AdminUserManagement() {
         agency_info: s.agency_name ? { agency_name: s.agency_name, agency_code: s.agency_code } : null,
       }));
 
+      if (requestId !== faceFetchRequestIdRef.current) return;
       setFaceSubmissions(enriched);
+      setFaceServerStats(stats);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingSubmissions", message: formatAdminError(error)});
       toast.error("Failed to load submissions");
