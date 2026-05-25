@@ -14,10 +14,20 @@ interface CreateSubAdminRequest {
   sections_access: string[]; // Array of section IDs
 }
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
     console.log("[create-sub-admin] Starting request...");
@@ -32,35 +42,30 @@ serve(async (req) => {
     const auth = await requireAdminSession(req, supabaseAdmin, { ownerOnly: true });
     if (!auth.ok) {
       console.error("[create-sub-admin] Owner admin session rejected:", auth.error);
-      return new Response(
-        JSON.stringify({ error: auth.error }),
-        { status: auth.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ error: auth.error }, auth.status);
     }
     const requestingAdmin = auth.admin;
 
     console.log("[create-sub-admin] Requesting admin:", requestingAdmin.id);
 
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const { email, password, display_name, sections_access }: CreateSubAdminRequest = body;
 
-    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    const safeDisplayName = typeof display_name === "string" ? display_name.trim().slice(0, 80) : normalizedEmail.split("@")[0];
+    const requestedSections = Array.isArray(sections_access)
+      ? Array.from(new Set(sections_access.filter((id) => typeof id === "string" && uuidRegex.test(id)))).slice(0, 200)
+      : [];
 
     console.log("[create-sub-admin] Creating sub-admin for email:", normalizedEmail);
 
     // Validate input
-    if (!normalizedEmail || !normalizedEmail.includes("@")) {
-      return new Response(
-        JSON.stringify({ error: "Please enter a valid email" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!normalizedEmail || normalizedEmail.length > 254 || !emailRegex.test(normalizedEmail)) {
+      return json({ error: "Please enter a valid email" }, 400);
     }
 
-    if (!password || password.length < 8) {
-      return new Response(
-        JSON.stringify({ error: "Password must be at least 8 characters" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+      return json({ error: "Password must be 8-128 characters" }, 400);
     }
 
     const findExistingAuthUserByEmail = async (targetEmail: string) => {
@@ -99,10 +104,7 @@ serve(async (req) => {
 
     if (existingAdmin) {
       console.error("[create-sub-admin] Admin already exists for email:", normalizedEmail);
-      return new Response(
-        JSON.stringify({ error: "An admin with this email already exists" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ error: "An admin with this email already exists" }, 400);
     }
 
     // Create or find auth user
@@ -131,28 +133,19 @@ serve(async (req) => {
 
         if (listError) {
           console.error("[create-sub-admin] Error listing users:", listError.message);
-          return new Response(
-            JSON.stringify({ error: "Failed to find existing user" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+          return json({ error: "Failed to find existing user" }, 500);
         }
 
         if (!existingUser) {
           console.error("[create-sub-admin] Existing user not found in paginated lookup:", normalizedEmail);
-          return new Response(
-            JSON.stringify({ error: "User already exists but could not be found in auth lookup" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+          return json({ error: "User already exists but could not be found in auth lookup" }, 400);
         }
 
         userId = existingUser.id;
         console.log("[create-sub-admin] Found existing auth user:", userId);
       } else {
         console.error("[create-sub-admin] Error creating user:", createError.message);
-        return new Response(
-          JSON.stringify({ error: createError.message }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return json({ error: createError.message }, 400);
       }
     } else {
       userId = newUser.user.id;
@@ -165,7 +158,7 @@ serve(async (req) => {
       .insert({
         user_id: userId,
         email: normalizedEmail,
-        display_name: display_name || normalizedEmail.split('@')[0],
+        display_name: safeDisplayName || normalizedEmail.split('@')[0],
         role: "sub_admin",
         is_active: true,
         invited_by: requestingAdmin.user_id,
@@ -176,10 +169,7 @@ serve(async (req) => {
 
     if (adminError) {
       console.error("[create-sub-admin] Error creating admin record:", adminError.message);
-      return new Response(
-        JSON.stringify({ error: "Failed to create admin record: " + adminError.message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ error: "Failed to create admin record" }, 400);
     }
 
     const { data: passwordResult, error: passwordError } = await supabaseAdmin.rpc("service_set_admin_password", {
@@ -189,19 +179,26 @@ serve(async (req) => {
     if (passwordError || !(passwordResult as any)?.success) {
       console.error("[create-sub-admin] Error setting admin password:", passwordError?.message || (passwordResult as any)?.error);
       await supabaseAdmin.from("admin_users").delete().eq("id", adminUser.id);
-      return new Response(
-        JSON.stringify({ error: "Failed to set admin password" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ error: "Failed to set admin password" }, 500);
     }
 
     console.log("[create-sub-admin] Admin record created:", adminUser.id);
 
     // Add section permissions
-    if (sections_access && sections_access.length > 0) {
-      console.log("[create-sub-admin] Adding permissions for sections:", sections_access);
+    if (requestedSections.length > 0) {
+      console.log("[create-sub-admin] Adding permissions for sections:", requestedSections.length);
+
+      const { data: validSections, error: sectionError } = await supabaseAdmin
+        .from("admin_sections")
+        .select("id")
+        .in("id", requestedSections)
+        .eq("is_active", true);
+      if (sectionError) {
+        console.error("[create-sub-admin] Section validation error:", sectionError.message);
+      }
+      const validSectionIds = new Set((validSections || []).map((s: any) => s.id));
       
-      const permissions = sections_access.map(sectionId => ({
+      const permissions = requestedSections.filter((sectionId) => validSectionIds.has(sectionId)).map(sectionId => ({
         admin_user_id: adminUser.id,
         section_id: sectionId,
         can_view: true,
@@ -210,9 +207,9 @@ serve(async (req) => {
         granted_by: requestingAdmin.user_id,
       }));
 
-      const { error: permError } = await supabaseAdmin
-        .from("admin_section_permissions")
-        .insert(permissions);
+      const { error: permError } = permissions.length > 0
+        ? await supabaseAdmin.from("admin_section_permissions").insert(permissions)
+        : { error: null } as any;
 
       if (permError) {
         console.error("[create-sub-admin] Error adding permissions:", permError.message);
@@ -229,10 +226,7 @@ serve(async (req) => {
       Deno.env.get('ADMIN_OWNER_TOKEN');
     if (!BASE_SECRET || BASE_SECRET.length < 16) {
       console.error('[create-sub-admin] ADMIN_TOKEN_BASE_SECRET missing or too short — refusing to mint sub-admin login link');
-      return new Response(
-        JSON.stringify({ error: 'Admin token secret not configured on server' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Admin token secret not configured on server' }, 500);
     }
     const year = new Date().getUTCFullYear();
     const enc = new TextEncoder();
@@ -253,22 +247,28 @@ serve(async (req) => {
 
     console.log("[create-sub-admin] Sub-admin created successfully!");
 
-    return new Response(
-      JSON.stringify({
+    return json(
+      {
         success: true,
-        admin_user: adminUser,
+        admin_user: {
+          id: adminUser.id,
+          user_id: adminUser.user_id,
+          email: adminUser.email,
+          display_name: adminUser.display_name,
+          role: adminUser.role,
+          is_active: adminUser.is_active,
+          invited_at: adminUser.invited_at,
+          accepted_at: adminUser.accepted_at,
+          last_login_at: adminUser.last_login_at,
+        },
         login_link: loginLink,
         message: "Sub-admin created successfully"
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      },
+      200,
     );
 
   } catch (error: unknown) {
     console.error("[create-sub-admin] Unexpected error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: "Server error: " + message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ error: "Server error" }, 500);
   }
 });
