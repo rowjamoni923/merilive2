@@ -1,6 +1,8 @@
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, ReactNode, lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { Navigate, useLocation } from "react-router-dom";
+
+const BlogPage = lazy(() => import("@/pages/BlogPage"));
 import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
 import {
   grantAdminAccess,
@@ -217,7 +219,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         </div>
       );
     }
-    return <Navigate to="/auth" replace />;
+    return <Suspense fallback={null}><BlogPage /></Suspense>;
   }
 
   // Authorized: render admin panel / login page
@@ -239,5 +241,5 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   }
 
   // Not authorized
-  return <Navigate to="/auth" replace />;
+  return <Suspense fallback={null}><BlogPage /></Suspense>;
 }

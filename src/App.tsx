@@ -1040,12 +1040,14 @@ const App = () => {
 
     const params = new URLSearchParams(currentSearch);
     const hasAccessToken = !!params.get('access')?.trim();
-    let normalizedPath = currentPath;
 
-    // Admin panel is dotcom-only. If someone opens the landing-domain secret link,
-    // send them straight to the dotcom admin auth flow instead of ever showing the
-    // public landing/blog shell.
-    if (currentPath === '/admin' && hasAccessToken) {
+    // Only forward to the .com main domain when an actual admin secret link is
+    // present. Plain /admin (no token) stays on the current host and falls
+    // through to AdminAccessGuard, which renders BlogPage as the public face.
+    if (!hasAccessToken) return null;
+
+    let normalizedPath = currentPath;
+    if (currentPath === '/admin') {
       normalizedPath = '/admin/auth';
     } else if (currentPath === '/admin/login') {
       normalizedPath = '/admin/auth';
