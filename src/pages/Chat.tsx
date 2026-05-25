@@ -1383,16 +1383,20 @@ const Chat = () => {
     conversationId: string,
     senderId: string,
     content: string,
-    messageType: string
+    messageType: string,
+    replyToId?: string | null
   ) {
+    const insertData: any = {
+      conversation_id: conversationId,
+      sender_id: senderId,
+      content,
+      message_type: messageType,
+    };
+    if (replyToId) insertData.reply_to_id = replyToId;
+
     const { data: newMsg, error } = await supabase
       .from('messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: senderId,
-        content,
-        message_type: messageType,
-      })
+      .insert(insertData)
       .select()
       .single();
 
