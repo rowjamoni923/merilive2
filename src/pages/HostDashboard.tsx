@@ -133,14 +133,10 @@ const HostDashboard = () => {
 
       setProfile(profileData);
       
-      const { data: settingsData } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'call_rates')
-        .single();
+      const settingsValue = await getAppSetting<unknown>('call_rates');
 
-      if (settingsData?.setting_value) {
-        const callRates = parseCallRateSettings(settingsData.setting_value);
+      if (settingsValue) {
+        const callRates = parseCallRateSettings(settingsValue);
         setCommissionPercent(callRates?.host_commission_percent ?? 50);
         setMinRate(callRates?.min_rate ?? 1000);
         setMaxRate(callRates?.max_rate ?? 10000);
