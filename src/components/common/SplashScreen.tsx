@@ -112,7 +112,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
               <img
                 src={appLogo}
                 alt="MeriLive"
-                className="absolute inset-0 block h-full w-full scale-[1.08] object-cover"
+                className="absolute inset-0 block h-full w-full object-contain"
                 style={{ objectPosition: 'center center' }}
               />
             </div>
