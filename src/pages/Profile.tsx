@@ -1413,8 +1413,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       const raw = String(error?.message || "").toLowerCase();
       let friendly = error?.message || "Failed to save";
       if (raw.includes("only approved hosts")) friendly = "Only approved hosts can set call price.";
-      else if (raw.includes("out of allowed range")) friendly = "Call price is outside the allowed range.";
-      else if (raw.includes("requires host_level")) friendly = "Your host level is too low for a custom price.";
+      else if (raw.includes("out of allowed range") || raw.includes("rate out of bounds")) friendly = "Call price is outside the allowed range.";
+      else if (raw.includes("requires host_level") || raw.includes("level too low")) friendly = "Your host level is too low for a custom price.";
+      else if (raw.includes("invalid rate")) friendly = "Please select a valid call price.";
       toast({ title: "Failed to save", description: friendly, variant: "destructive" });
     } finally {
       setSavingCallRate(false);
