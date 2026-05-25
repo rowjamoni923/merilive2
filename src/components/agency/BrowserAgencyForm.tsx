@@ -76,11 +76,20 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
 
   // App verification
   const [appCode, setAppCode] = useState("");
-  const [generatedAppCode, setGeneratedAppCode] = useState("");
+  const [appVerifiedToken, setAppVerifiedToken] = useState("");
   const [appVerified, setAppVerified] = useState(false);
   const [sendingAppCode, setSendingAppCode] = useState(false);
   const [appCodeSent, setAppCodeSent] = useState(false);
   const [appCodeTimer, setAppCodeTimer] = useState(0);
+
+  // Email verification
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailVerifiedToken, setEmailVerifiedToken] = useState("");
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [sendingEmailOtp, setSendingEmailOtp] = useState(false);
+  const [emailOtpTimer, setEmailOtpTimer] = useState(0);
+  const [verifyingEmailOtp, setVerifyingEmailOtp] = useState(false);
 
   // Fetch parent agency details
   useEffect(() => {
@@ -143,9 +152,21 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     return () => clearInterval(interval);
   }, [appCodeTimer]);
 
-  // Generate 4-digit code
-  const generateVerificationCode = () => {
-    return Math.floor(1000 + Math.random() * 9000).toString();
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (emailOtpTimer > 0) interval = setInterval(() => setEmailOtpTimer(prev => prev - 1), 1000);
+    return () => clearInterval(interval);
+  }, [emailOtpTimer]);
+
+  const getFunctionErrorMessage = async (error: any, fallback: string) => {
+    try {
+      const response = error?.context;
+      if (response && typeof response.json === "function") {
+        const payload = await response.json();
+        return payload?.error || payload?.message || fallback;
+      }
+    } catch {}
+    return error?.message || fallback;
   };
 
   // Search user by App UID
@@ -217,26 +238,25 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
 
     setSendingAppCode(true);
     setErrorMessage("");
-    const code = generateVerificationCode();
-    setGeneratedAppCode(code);
+    setAppCode("");
+    setAppVerified(false);
+    setAppVerifiedToken("");
 
     try {
-      const { error } = await supabase.functions.invoke('send-app-notification', {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
         body: {
+          action: 'send',
           userId: foundUser.id,
-          templateKey: 'agency_verification_code',
-          variables: {
-            code: code,
-            agency_name: 'Sub-Agency Registration'
-          },
-          type: 'agency_verification'
+          purpose: 'sub_agency_verification',
+          context: parentAgencyCode
         }
       });
 
-      if (error) throw error;
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Failed to send verification code"));
+      if (!data?.success) throw new Error(data?.error || "Failed to send verification code");
 
       setAppCodeSent(true);
-      setAppCodeTimer(60);
+      setAppCodeTimer(300);
     } catch (error: any) {
       console.error('App notification error:', error);
       setErrorMessage(error.message || "Failed to send verification code");
@@ -246,17 +266,22 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   };
 
   // Verify app code
-  const verifyAppCode = () => {
+  const verifyAppCode = async () => {
     if (appCodeTimer <= 0) {
       setErrorMessage("Code expired. Please resend the verification code.");
       return;
     }
-    
-    if (appCode === generatedAppCode) {
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-app-otp', {
+        body: { action: 'verify', userId: foundUser?.id, code: appCode, purpose: 'sub_agency_verification' }
+      });
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Verification failed"));
+      if (!data?.success || !data?.verified_token) throw new Error(data?.error || "Verification failed");
       setAppVerified(true);
+      setAppVerifiedToken(data.verified_token);
       setErrorMessage("");
-    } else {
-      setErrorMessage("Wrong code. Please enter the correct code.");
+    } catch (error: any) {
+      setErrorMessage(error.message || "Wrong code. Please enter the correct code.");
     }
   };
 
@@ -268,6 +293,51 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   // Validate phone format
   const isValidPhone = (phone: string) => {
     return /^[0-9+\-\s]{10,15}$/.test(phone.replace(/\s/g, ''));
+  };
+
+  const sendEmailOtp = async () => {
+    const normalizedEmail = formData.email.trim().toLowerCase();
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage("Please enter a valid email address");
+      return;
+    }
+    setSendingEmailOtp(true);
+    setErrorMessage("");
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email-otp', {
+        body: { email: normalizedEmail, purpose: 'verify' }
+      });
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Failed to send email OTP"));
+      if (!data?.success) throw new Error(data?.error || "Failed to send email OTP");
+      setEmailOtpSent(true);
+      setEmailOtpTimer(300);
+      setEmailOtp("");
+      setEmailVerified(false);
+      setEmailVerifiedToken("");
+    } catch (error: any) {
+      setErrorMessage(error.message || "Failed to send email OTP");
+    } finally {
+      setSendingEmailOtp(false);
+    }
+  };
+
+  const verifyEmailOtp = async () => {
+    if (emailOtp.length !== 6) return;
+    setVerifyingEmailOtp(true);
+    setErrorMessage("");
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { email: formData.email.trim().toLowerCase(), otp: emailOtp, purpose: 'verify' }
+      });
+      if (error) throw new Error(await getFunctionErrorMessage(error, "Email OTP verification failed"));
+      if (!data?.success || !data?.verified_token) throw new Error(data?.error || "Email OTP verification failed");
+      setEmailVerified(true);
+      setEmailVerifiedToken(data.verified_token);
+    } catch (error: any) {
+      setErrorMessage(error.message || "Email OTP verification failed");
+    } finally {
+      setVerifyingEmailOtp(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -282,6 +352,10 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     }
     if (!formData.email.trim() || !isValidEmail(formData.email)) {
       setErrorMessage("Please enter a valid Gmail address");
+      return;
+    }
+    if (!emailVerified || !emailVerifiedToken) {
+      setErrorMessage("Please verify your email OTP first");
       return;
     }
     if (!formData.phone.trim() || !isValidPhone(formData.phone)) {
@@ -303,6 +377,8 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
           name: formData.agencyName.trim(),
           userId: foundUser?.id,
           email: formData.email.trim(),
+          emailVerifiedToken,
+          appVerifiedToken,
           phone: formData.phone.trim(),
           parentAgencyCode: parentAgencyCode
         }
@@ -608,21 +684,18 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
                       </div>
                       
                       <InputOTP
-                        maxLength={4}
+                        maxLength={6}
                         value={appCode}
                         onChange={(value) => setAppCode(value)}
                       >
                         <InputOTPGroup className="gap-2 justify-center w-full">
-                          <InputOTPSlot index={0} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={1} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={2} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
-                          <InputOTPSlot index={3} className="w-12 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />
+                          {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} className="w-10 h-12 text-lg rounded-lg bg-white text-gray-900 border-gray-300" />)}
                         </InputOTPGroup>
                       </InputOTP>
                       
                       <Button
                         onClick={verifyAppCode}
-                        disabled={appCode.length < 4}
+                        disabled={appCode.length !== 6}
                         className="w-full bg-success-600 hover:bg-success-700"
                       >
                         <CheckCircle2 className="w-4 h-4 mr-2" />
@@ -655,14 +728,53 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
                 type="email"
                 placeholder="example@gmail.com"
                 value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, email: e.target.value }));
+                  setEmailVerified(false);
+                  setEmailVerifiedToken("");
+                  setEmailOtpSent(false);
+                  setEmailOtp("");
+                }}
                 className="mt-1.5"
+                disabled={emailVerified}
               />
               {formData.email && !isValidEmail(formData.email) && (
                 <p className="text-xs text-danger-500 mt-1">Please enter a valid email</p>
               )}
               {formData.email && isValidEmail(formData.email) && (
                 <p className="text-xs text-success-500 mt-1">✓ Valid email</p>
+              )}
+              {formData.email && isValidEmail(formData.email) && !emailVerified && (
+                <div className="mt-3 rounded-xl border border-brand-200 bg-brand-50 p-3 space-y-3">
+                  {!emailOtpSent ? (
+                    <Button onClick={sendEmailOtp} disabled={sendingEmailOtp} className="w-full bg-brand-600 hover:bg-brand-700">
+                      {sendingEmailOtp ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+                      Send Email OTP
+                    </Button>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between text-sm text-brand-700">
+                        <span>Enter the 6-digit email code</span>
+                        <span className="flex items-center gap-1 text-warning-600"><Timer className="w-3 h-3" />{Math.floor(emailOtpTimer / 60)}:{(emailOtpTimer % 60).toString().padStart(2, '0')}</span>
+                      </div>
+                      <InputOTP maxLength={6} value={emailOtp} onChange={setEmailOtp}>
+                        <InputOTPGroup className="justify-center w-full">
+                          {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} className="w-11 h-11 bg-white text-gray-900 border-gray-300" />)}
+                        </InputOTPGroup>
+                      </InputOTP>
+                      <Button onClick={verifyEmailOtp} disabled={emailOtp.length !== 6 || verifyingEmailOtp || emailOtpTimer <= 0} className="w-full bg-success-600 hover:bg-success-700">
+                        {verifyingEmailOtp ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                        Verify Email OTP
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+              {emailVerified && (
+                <div className="mt-2 p-3 bg-success-50 border border-success-200 rounded-xl flex items-center gap-2 text-success-700">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="font-medium">Email verified!</span>
+                </div>
               )}
             </div>
 
@@ -699,7 +811,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
             {/* Submit Button */}
             <Button
               onClick={handleSubmit}
-              disabled={formState === 'submitting' || !appVerified}
+              disabled={formState === 'submitting' || !appVerified || !emailVerified}
               className="w-full h-12 bg-gradient-to-r from-brand-600 to-info-600 hover:from-brand-700 hover:to-info-700 text-white font-semibold rounded-xl mt-2"
             >
               {formState === 'submitting' ? (
