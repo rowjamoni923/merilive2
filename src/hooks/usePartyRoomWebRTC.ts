@@ -257,6 +257,7 @@ export function usePartyRoomWebRTC(
           },
         });
         roomRef.current = room;
+        primeLiveKitRoomMedia(room);
 
         // Build video-only MediaStream for UI rendering.
         // Audio playback is handled separately via track.attach().
@@ -424,6 +425,7 @@ export function usePartyRoomWebRTC(
             : null;
           if (track.kind === Track.Kind.Audio) {
             remoteAudioTrackKeysRef.current.delete(audioKey!);
+            detachLiveKitRemoteAudio(audioKey!);
           }
           track.detach().forEach(el => el.remove());
 
