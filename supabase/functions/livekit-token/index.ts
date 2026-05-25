@@ -171,11 +171,28 @@ Deno.serve(async (req) => {
         } else if (roomType === "party") {
           const m = /^party_([0-9a-f-]{36})$/i.exec(roomName);
           if (!m) return json(400, { error: "invalid_party_room_name" });
-          const { data } = await svc.rpc("can_access_party_room", {
-            p_user_id: identity,
-            p_room_id: m[1],
-          });
-          if (data !== true) return json(403, { error: "not_party_participant" });
+          const roomId = m[1];
+          // Host of the room is always allowed — bypasses is_active gate so
+          // host can (re)join right after create_party_room or after a brief
+          // client crash/remount where is_active may have been flipped off.
+          const { data: pr } = await svc
+            .from("party_rooms")
+            .select("host_id,is_active,ended_at")
+            .eq("id", roomId)
+            .maybeSingle();
+          if (!pr) return json(403, { error: "party_room_not_found" });
+          if (pr.host_id === identity) {
+            // Host: allow even if is_active=false (let host resurrect/cleanup).
+          } else {
+            if (!pr.is_active || pr.ended_at) {
+              return json(403, { error: "party_room_inactive" });
+            }
+            const { data } = await svc.rpc("can_access_party_room", {
+              p_user_id: identity,
+              p_room_id: roomId,
+            });
+            if (data !== true) return json(403, { error: "not_party_participant" });
+          }
         }
       } catch (e) {
         console.error("[livekit-token] binding check failed:", e);
