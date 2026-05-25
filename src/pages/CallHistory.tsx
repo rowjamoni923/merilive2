@@ -111,13 +111,9 @@ const CallHistory = () => {
 
         // Fetch commission percentage only as a legacy fallback for very old rows
         // that do not have stored host_earned / host_earnings_amount values.
-        const { data: settingsData } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'call_rates')
-          .single();
+        const callRatesValue = await getAppSetting<unknown>('call_rates');
 
-        if (!settingsData?.setting_value) {
+        if (!callRatesValue) {
           console.error('CRITICAL: call_rates not found in app_settings!');
           recordClientError({ label: "CallHistory.callRates", message: 'CRITICAL: call_rates not found in app_settings!' });
         }
