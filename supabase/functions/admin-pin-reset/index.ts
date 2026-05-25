@@ -3,6 +3,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import nodemailer from "npm:nodemailer@6.9.12";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,28 +48,16 @@ If you did not request this, ignore this email. Your PIN will remain unchanged.
 </td></tr></table></td></tr></table></body></html>`;
 }
 
-async function getOwnerAdminFromSession(supabase: any, req: Request): Promise<{ id: string } | null> {
-  const token = req.headers.get("x-admin-token") || "";
-  if (!token || token.length < 16) return null;
-  const { data: sessionRow } = await supabase
-    .from("admin_sessions")
-    .select("admin_user_id, expires_at")
-    .eq("session_token", token)
-    .gt("expires_at", new Date().toISOString())
-    .maybeSingle();
-  if (!sessionRow?.admin_user_id) return null;
-  const { data: adminUser } = await supabase
-    .from("admin_users")
-    .select("id, role, is_active")
-    .eq("id", sessionRow.admin_user_id)
-    .eq("role", "owner")
-    .eq("is_active", true)
-    .maybeSingle();
-  return adminUser?.id ? { id: adminUser.id } : null;
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
 
   try {
     const adminToken = req.headers.get("x-admin-token") || "";
@@ -78,37 +67,33 @@ Deno.serve(async (req) => {
       { global: { headers: { "x-admin-token": adminToken } } },
     );
 
-    const owner = await getOwnerAdminFromSession(supabase, req);
-    if (!owner) {
-      return new Response(JSON.stringify({ success: false, error: "Owner admin session required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const auth = await requireAdminSession(req, supabase, { ownerOnly: true });
+    if (!auth.ok) {
+      return json({ success: false, error: auth.error }, auth.status);
     }
 
     let body: any = {};
     try { body = await req.json(); } catch { body = {}; }
     if (body?.action === "confirm") {
+      const otp = typeof body?.otp === "string" ? body.otp.trim() : "";
+      const newPin = typeof body?.new_pin === "string" ? body.new_pin.trim() : "";
+      if (!/^\d{6}$/.test(otp) || !/^\d{6}$/.test(newPin)) {
+        return json({ success: false, error: "OTP and PIN must be exactly 6 digits" }, 400);
+      }
       const { data: resetResult, error: resetError } = await supabase.rpc("admin_pin_reset_with_otp", {
-        _otp: body?.otp,
-        _new_pin: body?.new_pin,
+        _otp: otp,
+        _new_pin: newPin,
       });
       if (resetError) throw resetError;
       const result = resetResult as any;
-      return new Response(JSON.stringify(result), {
-        status: result?.success ? 200 : 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json(result, result?.success ? 200 : 400);
     }
 
     const { data, error } = await supabase.rpc("admin_pin_request_reset");
     if (error) throw error;
     const result = data as any;
     if (!result?.success) {
-      return new Response(JSON.stringify({ success: false, error: result?.error || "Failed" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ success: false, error: result?.error || "Failed" }, 400);
     }
 
     const ownerEmail: string = result.email;
@@ -118,10 +103,7 @@ Deno.serve(async (req) => {
     const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
 
     if (!gmailUser || !gmailAppPassword) {
-      return new Response(JSON.stringify({ success: false, error: "Email service not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ success: false, error: "Email service not configured" }, 500);
     }
 
     const transporter = nodemailer.createTransport({
@@ -145,15 +127,9 @@ Deno.serve(async (req) => {
       },
     });
 
-    return new Response(
-      JSON.stringify({ success: true, masked_email: maskEmail(ownerEmail) }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return json({ success: true, masked_email: maskEmail(ownerEmail) }, 200);
   } catch (err: any) {
     console.error("[admin-pin-reset] error:", err);
-    return new Response(JSON.stringify({ success: false, error: err?.message || "Internal error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ success: false, error: "Internal error" }, 500);
   }
 });
