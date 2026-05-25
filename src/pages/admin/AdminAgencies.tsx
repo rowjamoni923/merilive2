@@ -499,18 +499,15 @@ export default function AdminAgencies() {
     setActionLoading(true);
     try {
       const isCancelling = selectedAgency.is_active;
-      
-      const { error } = await supabase
-        .from("agencies")
-        .update({ 
-          is_active: !isCancelling,
-          is_blocked: isCancelling,
-          blocked_reason: isCancelling ? (cancelReason || 'Cancelled by admin') : null,
-          blocked_at: isCancelling ? new Date().toISOString() : null
-        })
-        .eq("id", selectedAgency.id);
+
+      const { data, error } = await supabase.rpc('admin_set_agency_active_status', {
+        _agency_id: selectedAgency.id,
+        _active: !isCancelling,
+        _reason: isCancelling ? (cancelReason || 'Cancelled by admin') : null,
+      });
 
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Agency update failed');
       
       // Send notification to agency owner
       if (selectedAgency.owner_id) {
@@ -538,12 +535,13 @@ export default function AdminAgencies() {
   const handleUpdateLevel = async (agencyId: string, newLevel: string) => {
     if (!guardStart(`level-${agencyId}`)) return;
     try {
-      const { error } = await supabase
-        .from("agencies")
-        .update({ level: newLevel })
-        .eq("id", agencyId);
+      const { data, error } = await supabase.rpc('admin_update_agency_level', {
+        _agency_id: agencyId,
+        _level: newLevel,
+      });
 
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Agency level update failed');
       toast.success("Agency level updated successfully");
       fetchAgencies();
     } catch (error) {
@@ -807,63 +805,15 @@ export default function AdminAgencies() {
 
     setPayrollLoading(true);
     try {
-      const { data: ownerProfile } = await supabase
-        .from("profiles")
-        .select("country_code, display_name")
-        .eq("id", selectedAgency.owner_id)
-        .maybeSingle();
-
-      const { data: existingHelper } = await supabase
-        .from("topup_helpers")
-        .select("id, payroll_enabled, trader_level")
-        .eq("user_id", selectedAgency.owner_id)
-        .maybeSingle();
-
-      if (existingHelper) {
-        if (existingHelper.payroll_enabled && existingHelper.trader_level === 5) {
-          toast.info("Already a Payroll Helper");
-          setShowPayrollDialog(false);
-          setPayrollLoading(false);
-          return;
-        }
-        const { error } = await supabase
-          .from("topup_helpers")
-          .update({
-            trader_level: 5,
-            payroll_enabled: true,
-            payroll_status: "approved",
-            payroll_approved_at: new Date().toISOString(),
-            is_active: true,
-            is_verified: true,
-            country_code: ownerProfile?.country_code || null,
-          })
-          .eq("id", existingHelper.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("topup_helpers")
-          .insert({
-            user_id: selectedAgency.owner_id,
-            trader_level: 5,
-            payroll_enabled: true,
-            payroll_status: "approved",
-            payroll_approved_at: new Date().toISOString(),
-            is_active: true,
-            is_verified: true,
-            country_code: ownerProfile?.country_code || null,
-            wallet_balance: 0,
-          });
-        if (error) throw error;
-      }
-
-      await supabase
-        .from("profiles")
-        .update({ is_verified: true })
-        .eq("id", selectedAgency.owner_id);
+      const { data, error } = await supabase.rpc('admin_promote_agency_owner_to_payroll_helper', {
+        _agency_id: selectedAgency.id,
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Payroll helper assignment failed');
 
       await adminSendNotification(selectedAgency.owner_id, "🎉 Payroll Helper Activated", `You have been promoted to Level 5 Payroll Helper for agency "${selectedAgency.name}".`, "agency_verification")
 
-      toast.success(`${ownerProfile?.display_name || "Owner"} is now a Payroll Helper`);
+      toast.success(`${(data as any)?.display_name || "Owner"} is now a Payroll Helper`);
       setShowPayrollDialog(false);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorMakingPayrollHelper", message: formatAdminError(error)});

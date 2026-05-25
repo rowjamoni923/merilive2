@@ -208,12 +208,13 @@ export default function AdminUsers() {
 
   const handleVerifyUser = async (userId: string, isVerified: boolean) => {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ is_verified: !isVerified })
-        .eq("id", userId);
+      const { data, error } = await supabase.rpc("admin_set_user_verification", {
+        _user_id: userId,
+        _verified: !isVerified,
+      });
 
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || "Verification update failed");
       toast.success(isVerified ? "Verification removed" : "User verified");
       fetchUsers();
     } catch (error) {

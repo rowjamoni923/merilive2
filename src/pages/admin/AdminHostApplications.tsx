@@ -405,11 +405,11 @@ export default function AdminHostApplications() {
   const handleMarkUnderReview = async (app: HostSubmission) => {
     if (!guardStart(`review-${app.id}`)) return;
     try {
-      const { error } = await supabase
-        .from("face_verification_submissions")
-        .update({ status: "under_review" })
-        .eq("id", app.id);
+      const { data, error } = await supabase.rpc('admin_mark_face_submission_under_review', {
+        _submission_id: app.id,
+      });
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || "Review start failed");
       toast.success("Review started");
       invalidateStatusCountsCache("face_verification_submissions"); fetchApplications(); fetchStatusCounts(true);
     } catch (error) { toast.error((error as any)?.message || "Operation failed"); } finally { guardEnd(`review-${app.id}`); }

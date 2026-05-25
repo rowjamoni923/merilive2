@@ -15953,6 +15953,15 @@ export type Database = {
         Args: { _action: string; _new: Json; _old: Json; _table: string }
         Returns: string
       }
+      _p341_assert_admin_can_target_agency: {
+        Args: {
+          _agency_id: string
+          _protect_owner?: boolean
+          _require_edit?: boolean
+          _sections: string[]
+        }
+        Returns: Json
+      }
       _p341_assert_admin_can_target_user: {
         Args: {
           _protect_owner?: boolean
@@ -17155,6 +17164,10 @@ export type Database = {
         Returns: Json
       }
       admin_logout: { Args: { _token: string }; Returns: undefined }
+      admin_mark_face_submission_under_review: {
+        Args: { _submission_id: string }
+        Returns: Json
+      }
       admin_moderation_audit_stats: { Args: never; Returns: Json }
       admin_moderation_overview_stats: { Args: never; Returns: Json }
       admin_party_management_stats: { Args: never; Returns: Json }
@@ -17226,6 +17239,10 @@ export type Database = {
         Args: { _notes?: string; _status: string; _withdrawal_id: string }
         Returns: Json
       }
+      admin_promote_agency_owner_to_payroll_helper: {
+        Args: { _agency_id: string }
+        Returns: Json
+      }
       admin_realtime_publication_status: {
         Args: never
         Returns: {
@@ -17265,6 +17282,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_reset_phone_violation_count: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
       admin_resolve_permanent_ban_targets: {
         Args: { _lookback_days?: number; _target_user_id: string }
         Returns: {
@@ -17295,6 +17316,15 @@ export type Database = {
       }
       admin_reverse_auto_action: {
         Args: { _action_id: string; _action_type: string; _reason: string }
+        Returns: Json
+      }
+      admin_review_host_application: {
+        Args: {
+          _admin_notes?: string
+          _application_id: string
+          _rejection_reason?: string
+          _status: string
+        }
         Returns: Json
       }
       admin_revoke_device: {
@@ -17353,6 +17383,10 @@ export type Database = {
         Args: { _admin_id: string; _ban_id: string; _reason?: string }
         Returns: Json
       }
+      admin_set_agency_active_status: {
+        Args: { _active: boolean; _agency_id: string; _reason?: string }
+        Returns: Json
+      }
       admin_set_host_status: {
         Args: { _make_host: boolean; _user_id: string }
         Returns: undefined
@@ -17370,14 +17404,17 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_user_verification: {
+        Args: { _user_id: string; _verified: boolean }
+        Returns: Json
+      }
       admin_toggle_face_verification: {
         Args: { _user_id: string; _verified: boolean }
         Returns: Json
       }
-      admin_update_agency_level: {
-        Args: { _agency_id: string; _level: number }
-        Returns: Json
-      }
+      admin_update_agency_level:
+        | { Args: { _agency_id: string; _level: number }; Returns: Json }
+        | { Args: { _agency_id: string; _level: string }; Returns: Json }
       admin_update_face_violation: {
         Args: { _admin_id: string; _status: string; _violation_id: string }
         Returns: Json

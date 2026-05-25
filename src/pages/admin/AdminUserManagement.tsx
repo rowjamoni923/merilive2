@@ -597,30 +597,20 @@ export default function AdminUserManagement() {
     if (!startSingleFlight(actionKey)) return;
     setActionLoading(true);
     try {
-      const { data: genderData, error: rpcError } = await supabase.rpc('admin_update_user_gender', {
-        _user_id: userId,
-        _gender: toHost ? 'female' : 'male',
+      const { data, error } = await supabase.rpc('admin_process_face_verification', {
+        _submission_id: submissionId,
+        _action: 'approve',
+        _reason: `Manually converted to ${toHost ? 'Host' : 'User'} by admin from Auto Rejected.`,
+        _approve_as: toHost ? 'host' : 'user',
+        _set_gender: toHost ? 'female' : 'male',
       });
-      if (rpcError) throw rpcError;
-      if ((genderData as any)?.pending) {
+      if (error) throw error;
+      if ((data as any)?.pending) {
         toast.success('⏳ Submitted for Owner Approval — conversion queued.');
         fetchFaceSubmissions();
         return;
       }
-      if ((genderData as any)?.success === false) {
-        throw new Error((genderData as any)?.error || 'Gender update failed');
-      }
-      await supabase.from('face_verification_submissions').update({
-        status: 'approved',
-        verification_type: toHost ? 'host' : 'face',
-        admin_notes: `Manually converted to ${toHost ? 'Host' : 'User'} by admin from Auto Rejected.`,
-        reviewed_at: new Date().toISOString(),
-      }).eq('id', submissionId);
-      const { error: verifyFaceError } = await supabase.rpc('admin_toggle_face_verification', {
-        _user_id: userId,
-        _verified: true,
-      });
-      if (verifyFaceError) throw verifyFaceError;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Conversion failed');
       // Send notification when converted to Host from rejected
       if (toHost) {
         await adminSendNotification(userId, '🌟 Host Account Activated! 🎤✨', '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟', 'system')
@@ -644,18 +634,21 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       const newVerified = !isVerified;
-      
-      // Update is_verified
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          is_verified: newVerified,
-          is_face_verified: newVerified,
-          face_verified_at: newVerified ? new Date().toISOString() : null,
-        })
-        .eq("id", userId);
+
+      const { data, error } = await supabase.rpc('admin_set_user_verification', {
+        _user_id: userId,
+        _verified: newVerified,
+      });
       if (error) throw error;
-      
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Verification update failed');
+
+      const { data: faceData, error: faceError } = await supabase.rpc('admin_toggle_face_verification', {
+        _user_id: userId,
+        _verified: newVerified,
+      });
+      if (faceError) throw faceError;
+      if ((faceData as any)?.success === false) throw new Error((faceData as any)?.error || 'Face verification update failed');
+
       toast.success(isVerified ? "Verification removed (face + profile)" : "User fully verified");
       fetchUsers();
     } catch (error) {
@@ -758,24 +751,12 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      // Set gender to female (host convention)
-      const { error: genderErr } = await supabase.rpc('admin_update_user_gender', {
+      const { data, error } = await supabase.rpc('admin_set_host_status', {
         _user_id: hostId,
-        _gender: 'female',
+        _make_host: true,
       });
-      if (genderErr) throw genderErr;
-
-      // Set host_status = approved, is_face_verified = true, is_verified = true
-      const { error: profileErr } = await supabase
-        .from("profiles")
-        .update({
-          host_status: 'approved',
-          is_face_verified: true,
-          is_verified: true,
-          face_verified_at: new Date().toISOString(),
-        })
-        .eq("id", hostId);
-      if (profileErr) throw profileErr;
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Host approval failed');
 
       toast.success("Host approved successfully");
       fetchHosts();
@@ -795,22 +776,12 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error: genderErr } = await supabase.rpc('admin_update_user_gender', {
+      const { data, error } = await supabase.rpc('admin_set_host_status', {
         _user_id: hostId,
-        _gender: 'male',
+        _make_host: false,
       });
-      if (genderErr) throw genderErr;
-
-      // Also reject host_status and clear face verification
-      const { error: profileErr } = await supabase
-        .from("profiles")
-        .update({
-          host_status: 'rejected',
-          is_face_verified: false,
-          face_verified_at: null,
-        })
-        .eq("id", hostId);
-      if (profileErr) throw profileErr;
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Host rejection failed');
 
       toast.success("Host rejected successfully");
       fetchHosts();
@@ -903,45 +874,15 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error: appError } = await supabase
-        .from("host_applications")
-        .update({
-          status: "approved",
-          reviewed_at: new Date().toISOString(),
-          admin_notes: adminNotes || null,
-        })
-        .eq("id", selectedApplication.id);
-
-      if (appError) throw appError;
-
-      const { data: genderData, error: profileError } = await supabase.rpc('admin_update_user_gender', {
-        _user_id: selectedApplication.user_id,
-        _gender: 'female',
+      const { data, error } = await supabase.rpc('admin_review_host_application', {
+        _application_id: selectedApplication.id,
+        _status: 'approved',
+        _admin_notes: adminNotes || null,
+        _rejection_reason: null,
       });
-      if (profileError) throw profileError;
+      if (error) throw error;
 
-      if ((genderData as any)?.pending) {
-        toast.success('⏳ Submitted for Owner Approval — host application queued.');
-        setShowAppDetailDialog(false);
-        setAdminNotes("");
-        fetchApplications();
-        return;
-      }
-      if ((genderData as any)?.success === false) {
-        throw new Error((genderData as any)?.error || 'Gender update failed');
-      }
-
-      const { error: faceVerifyError } = await supabase.rpc('admin_toggle_face_verification', {
-        _user_id: selectedApplication.user_id,
-        _verified: true,
-      });
-      if (faceVerifyError) throw faceVerifyError;
-
-      const { error: verifyError } = await supabase
-        .from("profiles")
-        .update({ is_verified: true })
-        .eq("id", selectedApplication.user_id);
-      if (verifyError) throw verifyError;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application approval failed');
 
       toast.success("Application approved!");
       setShowAppDetailDialog(false);
@@ -967,17 +908,15 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error } = await supabase
-        .from("host_applications")
-        .update({
-          status: "rejected",
-          rejection_reason: rejectionReason,
-          reviewed_at: new Date().toISOString(),
-          admin_notes: adminNotes || null,
-        })
-        .eq("id", selectedApplication.id);
+      const { data, error } = await supabase.rpc('admin_review_host_application', {
+        _application_id: selectedApplication.id,
+        _status: 'rejected',
+        _admin_notes: adminNotes || null,
+        _rejection_reason: rejectionReason,
+      });
 
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Application rejection failed');
 
       toast.success("Application rejected");
       setShowRejectDialog(false);
@@ -1259,20 +1198,20 @@ export default function AdminUserManagement() {
 
   const handleUnbanModUser = async (userId: string) => {
     try {
-      const { error } = await supabase.rpc("admin_block_user", {
+      const { error: unblockError } = await supabase.rpc("admin_block_user", {
         _user_id: userId,
         _block: false,
         _reason: null,
       });
 
-      if (error) throw error;
+      if (unblockError) throw unblockError;
 
-      const { error: resetError } = await supabase
-        .from("profiles")
-        .update({ phone_violation_count: 0 })
-        .eq("id", userId);
+      const { data: resetData, error: resetError } = await supabase.rpc('admin_reset_phone_violation_count', {
+        _user_id: userId,
+      });
 
       if (resetError) throw resetError;
+      if ((resetData as any)?.success === false) throw new Error((resetData as any)?.error || 'Phone violation reset failed');
       toast.success("User unbanned");
       fetchModerationLogs();
     } catch (error) {
