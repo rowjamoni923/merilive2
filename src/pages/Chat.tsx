@@ -2057,12 +2057,12 @@ const Chat = () => {
                 if (userId) navigate(`/profile-detail/${userId}`);
               }}
             >
-              <div className="flex items-center gap-2">
-                <h2 className="font-bold text-slate-900 text-sm truncate max-w-[140px] drop-shadow-md">
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-semibold text-slate-900 text-[15px] leading-tight truncate max-w-[150px]">
                   {chatName}
                 </h2>
                 {!isGroup && (
- <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md shrink-0">
+                  <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
                     <Crown className="w-2.5 h-2.5" />
                     <span>Lv.{userLevel}</span>
                   </div>
@@ -2070,37 +2070,48 @@ const Chat = () => {
                 {!isGroup && otherUserTrader.isTrader && (
                   <TraderBadge level={otherUserTrader.traderLevel} size="xs" />
                 )}
+                {!isGroup && countryFlag && (
+                  <span className="text-[11px] leading-none">{countryFlag}</span>
+                )}
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-0.5 min-h-[14px]">
                 {!isGroup && isOtherTyping ? (
-                  <span className="text-[10px] text-fuchsia-600 font-semibold flex items-center gap-1">
+                  <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
                     <span className="flex gap-0.5">
-                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </span>
-                    typing...
+                    typing…
                   </span>
                 ) : !isGroup && (
                   selectedConversation?.other_user?.is_online ? (
-                    <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-green-400 shadow-glow animate-pulse" />
-                      Online
-                    </span>
+                    <span className="text-[11px] text-emerald-600 font-medium">online</span>
                   ) : (
-                    <span className="text-[10px] text-slate-700 font-medium">
-                      {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false)}
+                    <span className="text-[11px] text-slate-500 font-medium truncate">
+                      last seen {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false).toLowerCase()}
                     </span>
                   )
                 )}
-                {!isGroup && countryFlag && (
-                  <span className="text-[10px]">{countryFlag}</span>
+                {isGroup && (
+                  <span className="text-[11px] text-slate-500 font-medium">{selectedGroup?.member_count || 0} members</span>
                 )}
               </div>
-              {isGroup && (
-                <span className="text-[10px] text-slate-700">{selectedGroup?.member_count || 0} members</span>
-              )}
             </div>
+
+            {/* WhatsApp-style inline Video Call button (host + online only) */}
+            {!isGroup && selectedConversation?.other_user?.is_host && selectedConversation?.other_user?.is_online && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedConversation?.other_user?.id) startCall(selectedConversation.other_user.id);
+                }}
+                className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 border border-amber-200/60 shadow-sm hover:bg-white active:scale-95 transition-all"
+                aria-label="Video call"
+              >
+                <VideoCallIcon className="w-[18px] h-[18px] text-emerald-600" />
+              </button>
+            )}
 
             {/* Group Settings Button */}
             {isGroup && (
