@@ -1085,6 +1085,51 @@ export type Database = {
           },
         ]
       }
+      agency_app_otps: {
+        Row: {
+          attempts: number
+          context: string | null
+          created_at: string
+          exchange_token_hash: string | null
+          expires_at: string
+          id: string
+          is_used: boolean
+          otp_hash: string
+          purpose: string
+          used_at: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          context?: string | null
+          created_at?: string
+          exchange_token_hash?: string | null
+          expires_at: string
+          id?: string
+          is_used?: boolean
+          otp_hash: string
+          purpose?: string
+          used_at?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          context?: string | null
+          created_at?: string
+          exchange_token_hash?: string | null
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          otp_hash?: string
+          purpose?: string
+          used_at?: string | null
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       agency_commission_history: {
         Row: {
           adjusted_by: string | null
@@ -18026,6 +18071,14 @@ export type Database = {
           p_validation_data?: Json
         }
         Returns: Json
+      }
+      consume_agency_app_otp_token: {
+        Args: {
+          p_purpose?: string
+          p_user_id: string
+          p_verified_token: string
+        }
+        Returns: string
       }
       consume_otp_exchange_token: {
         Args: {
