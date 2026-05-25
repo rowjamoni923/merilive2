@@ -24,6 +24,24 @@ interface NotificationTemplateRow {
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const RESTRICTED_USER_NOTIFICATION_TYPES = new Set([
+  "incoming_call", "call_received", "call_missed",
+  "admin_message", "admin_message_reply", "admin_notice", "admin_warning",
+  "system", "security", "report_resolved",
+  "topup_approved", "topup_rejected", "withdrawal_approved", "withdrawal_rejected",
+  "level_upgrade_approved", "level_upgrade_rejected", "helper_approved", "helper_rejected",
+  "payroll_approved", "payroll_rejected", "host_approved", "host_rejected",
+  "gift_received", "gift", "coins_added", "coins_received", "coin_purchase_helper",
+  "coin_purchase_direct", "diamonds_credited", "payment_completed", "beans_exchanged",
+  "agency_approved", "agency_verification", "agency_withdrawal_approved", "agency_diamond_received",
+  "app_sync",
+]);
+
+const isRestrictedUserNotificationType = (value: string) => {
+  const normalized = String(value || "").trim();
+  return RESTRICTED_USER_NOTIFICATION_TYPES.has(normalized) || normalized.startsWith("pk_");
+};
+
 const applyTemplateVariables = (template: string, variables: Record<string, string>) => {
   let result = template;
 
@@ -109,6 +127,16 @@ const handler = async (req: Request): Promise<Response> => {
     if (!isServiceRoleCall && !isAdmin && !callerUserId) {
       return new Response(JSON.stringify({ success: false, error: "Authentication required" }), {
         status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (!isServiceRoleCall && !isAdmin && isRestrictedUserNotificationType(type)) {
+      console.warn("[send-app-notification] Restricted notification type rejected", {
+        callerUserId, userId, templateKey, type,
+      });
+      return new Response(JSON.stringify({ success: false, error: "Restricted notification type" }), {
+        status: 403,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
