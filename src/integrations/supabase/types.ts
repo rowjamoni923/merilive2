@@ -271,6 +271,36 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_login_challenges: {
+        Row: {
+          challenge: string
+          consumed_at: string | null
+          consumed_by: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          role: Database["public"]["Enums"]["admin_role"]
+        }
+        Insert: {
+          challenge: string
+          consumed_at?: string | null
+          consumed_by?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          role: Database["public"]["Enums"]["admin_role"]
+        }
+        Update: {
+          challenge?: string
+          consumed_at?: string | null
+          consumed_by?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["admin_role"]
+        }
+        Relationships: []
+      }
       admin_login_otps: {
         Row: {
           created_at: string | null
@@ -16096,10 +16126,16 @@ export type Database = {
         Args: { _id: string; _notes?: string }
         Returns: Json
       }
-      admin_authenticate: {
-        Args: { _email: string; _password: string }
-        Returns: Json
-      }
+      admin_authenticate:
+        | { Args: { _email: string; _password: string }; Returns: Json }
+        | {
+            Args: {
+              _email: string
+              _link_challenge?: string
+              _password: string
+            }
+            Returns: Json
+          }
       admin_block_agency: {
         Args: { _agency_id: string; _block: boolean; _reason?: string }
         Returns: Json
