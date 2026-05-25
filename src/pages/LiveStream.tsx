@@ -2394,24 +2394,7 @@ const LiveStream = () => {
     { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (deepAR.isNativeAndroid) { void deepAR.openBeautyPanel().catch(() => { /* native optional */ }); } } },
     { id: "sticker", name: "Sticker", iconName: "Smile" as const, color: "from-orange-400 to-amber-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); setShowStickerPanel(true); } },
     { id: "flip", name: "Flip", iconName: "RotateCcw" as const, color: "from-blue-500 to-cyan-600", shadowColor: "shadow-blue-500/40", action: () => { setShowMoreOptions(false); switchCamera(); } },
-    // Pkg102: Screen Share toggle (web getDisplayMedia + native Android MediaProjection)
-    { id: "screen", name: isScreenSharing ? "Stop Share" : "Share Screen", iconName: "MonitorUp" as const, color: "from-indigo-500 to-violet-600", shadowColor: "shadow-indigo-500/40", action: async () => {
-        setShowMoreOptions(false);
-        try {
-          if (isScreenSharing) {
-            await stopScreenShare();
-            toast.success("Screen share stopped");
-          } else {
-            await startScreenShare();
-            toast.success("Screen share started");
-          }
-        } catch (err: any) {
-          const msg = String(err?.message || err?.code || err?.name || '');
-          // User-cancelled the system picker — stay silent
-          if (/NotAllowed|permission|denied|cancel/i.test(msg)) return;
-          toast.error("Couldn't start screen share");
-        }
-      } },
+    // Screen share removed for privacy
     // Pkg125/Pkg119: Virtual Background — web uses track-processors, native routes to Kotlin MediaPipe.
     { id: "virtualbg", name: "Background", iconName: "Wand2" as const, color: "from-emerald-400 to-teal-600", shadowColor: "shadow-emerald-500/40", action: () => {
         setShowMoreOptions(false);
@@ -2442,15 +2425,7 @@ const LiveStream = () => {
         setShowSipDial(true);
       } },
     // Pkg111 + Pkg126: Record stream (MP4 archive or HLS replay).
-    { id: "record", name: "Record", iconName: "Video" as const, color: "from-fuchsia-400 to-purple-600", shadowColor: "shadow-fuchsia-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowRecording(true);
-      } },
-    // Pkg114: Simulcast room out to YouTube / Facebook / Twitch / custom RTMP.
-    { id: "simulcast", name: "Simulcast", iconName: "Cast" as const, color: "from-amber-400 to-orange-600", shadowColor: "shadow-amber-500/40", action: () => {
-        setShowMoreOptions(false);
-        setShowSimulcast(true);
-      } },
+    // Recording & Simulcast removed for privacy
     // Pkg117: Dispatch AI Agent into this room.
     { id: "agent", name: "Agent", iconName: "Bot" as const, color: "from-violet-400 to-purple-600", shadowColor: "shadow-violet-500/40", action: () => {
         setShowMoreOptions(false);
@@ -2880,28 +2855,7 @@ const LiveStream = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none" />
       </div>
 
-      {/* Pkg102: Screen Share overlay (host preview OR viewer remote screen). */}
-      {(() => {
-        const remoteScreen = remoteScreenTracks && remoteScreenTracks.size > 0
-          ? Array.from(remoteScreenTracks.values())[0]
-          : null;
-        const activeScreen = isHost ? screenTrack : remoteScreen;
-        if (!activeScreen) return null;
-        return (
-          <div className="absolute top-20 right-3 z-40 w-44 sm:w-56 aspect-video rounded-xl overflow-hidden border-2 border-indigo-400/70 shadow-[0_8px_30px_rgba(79,70,229,0.45)] bg-black">
-            <LiveKitVideoPlayer
-              videoTrack={activeScreen}
-              mirror={false}
-              fit="contain"
-              className="absolute inset-0 w-full h-full"
-            />
-            <div className="absolute top-1 left-1 bg-indigo-500/85 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1">
-              <MonitorUp className="w-3 h-3 text-white" strokeWidth={2.2} />
-              <span className="text-white text-[10px] font-semibold tracking-wide">SCREEN</span>
-            </div>
-          </div>
-        );
-      })()}
+      {/* Screen share overlay removed for privacy */}
 
 
       {/* ⚡ INSTANT ENGAGEMENT: No loading spinners - stream loads instantly */}
@@ -3317,13 +3271,10 @@ const LiveStream = () => {
                       Gem: <Gem className="w-6 h-6" strokeWidth={1.8} />,
                       Music: <Music className="w-6 h-6" strokeWidth={1.8} />,
                       LogOut: <LogOut className="w-6 h-6" strokeWidth={1.8} />,
-                      MonitorUp: <MonitorUp className="w-6 h-6" strokeWidth={1.8} />,
                       ShieldCheck: <ShieldCheck className="w-6 h-6" strokeWidth={1.8} />,
                       Layers: <Layers className="w-6 h-6" strokeWidth={1.8} />,
                       Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
-                      Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
-                      Cast: <Cast className="w-6 h-6" strokeWidth={1.8} />,
                       Hand: <Hand className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
@@ -3838,16 +3789,7 @@ const LiveStream = () => {
             onClose={() => setShowSipDial(false)}
             streamId={id}
           />
-          <RecordingDialog
-            open={showRecording}
-            onClose={() => setShowRecording(false)}
-            streamId={id}
-          />
-          <SimulcastDialog
-            open={showSimulcast}
-            onClose={() => setShowSimulcast(false)}
-            streamId={id}
-          />
+          {/* Recording & Simulcast dialogs removed for privacy */}
           <PublishLayersDialog
             open={showPublishLayers}
             onClose={() => setShowPublishLayers(false)}
