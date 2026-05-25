@@ -286,6 +286,8 @@ const Auth = () => {
     return error?.message || fallback;
   };
 
+  const isExpiredOtpMessage = (message: unknown) => /expired|not found|new code|one-time token|invalid/i.test(String(message || ""));
+
   // Auto-detect user's country for default country code
   useEffect(() => {
     const detectUserCountry = async () => {
