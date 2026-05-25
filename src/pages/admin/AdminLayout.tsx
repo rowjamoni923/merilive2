@@ -77,7 +77,7 @@ import { AdminAlertBell } from "@/components/admin/AdminPhoneAlertsPanel";
 import { AdminRealtimeSyncIndicator } from "@/components/admin/AdminRealtimeSyncIndicator";
 import { AdminProfileMenu } from "@/components/admin/AdminProfileMenu";
 import useAdminAccess from "@/hooks/useAdminAccess";
-import { revokeAdminAccess, hasAdminAccessFlag, hasOwnerAccessFlag } from "@/utils/adminAccessStorage";
+import { revokeAdminAccess, hasAdminAccessFlag } from "@/utils/adminAccessStorage";
 import { getAdminSession } from "@/utils/adminSession";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
@@ -1355,7 +1355,7 @@ export default function AdminLayout() {
   // Treat an existing admin session token as instant access too — otherwise
   // an admin who arrives via secret link (session present, flag missing) would
   // see "Preparing admin console…" spin forever if the verification call stalls.
-  const instantAdminAccess = hasAdminAccessFlag() || hasOwnerAccessFlag() || !!getAdminSession();
+  const instantAdminAccess = hasAdminAccessFlag() || !!getAdminSession();
   const [isAdmin, setIsAdmin] = useState(instantAdminAccess);
   const [isLoading, setIsLoading] = useState(!instantAdminAccess);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(navGroups.map(g => g.title));
@@ -2531,7 +2531,7 @@ export default function AdminLayout() {
   const checkAdminAccess = async () => {
     try {
       const adminSession = getAdminSession();
-      const hasFlagAccess = hasAdminAccessFlag() || hasOwnerAccessFlag();
+      const hasFlagAccess = hasAdminAccessFlag();
 
       if (!adminSession) {
         if (hasFlagAccess) {
