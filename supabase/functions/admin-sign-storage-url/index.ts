@@ -177,16 +177,6 @@ Deno.serve(async (req) => {
 
     const ext = (path.split(".").pop() || "").toLowerCase().split(/[?#]/)[0];
     const extensionContentType = MIME[ext];
-    const { data: objectRow } = await supabase
-      .schema("storage")
-      .from("objects")
-      .select("metadata")
-      .eq("bucket_id", bucket)
-      .eq("name", path)
-      .maybeSingle();
-    const storedContentType = usefulMimeType((objectRow?.metadata as Record<string, unknown> | null)?.mimetype as string | undefined);
-    const contentType = storedContentType || extensionContentType;
-
     const extFallback = faceBucketFallback(bucket, path);
 
     if (String(body.mode || "").trim().toLowerCase() === "download") {
@@ -198,11 +188,9 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Sniff actual magic bytes — most trustworthy source of truth.
       const head = new Uint8Array(await fileBlob.slice(0, 16).arrayBuffer().catch(() => new ArrayBuffer(0)));
       const sniffed = sniffMimeFromBytes(head);
       const resolvedType = sniffed
-        || storedContentType
         || extensionContentType
         || usefulMimeType(fileBlob.type)
         || extFallback
@@ -212,11 +200,12 @@ Deno.serve(async (req) => {
         headers: {
           ...corsHeaders,
           "Content-Type": resolvedType,
-          "Cache-Control": "private, max-age=120",
+          "Cache-Control": "private, max-age=600",
         },
       });
     }
 
+    // FAST PATH: sign URL immediately (no upfront metadata read or UPDATE).
     const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
     if (error || !data?.signedUrl) {
       return new Response(JSON.stringify({ success: false, error: error?.message || "Failed to sign URL" }), {
@@ -225,23 +214,29 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Backfill stored mimetype non-destructively so storage serves correct Content-Type next time.
-    const backfillType = extensionContentType || extFallback;
-    if (backfillType && !storedContentType) {
-      try {
-        const existingMeta = (objectRow?.metadata as Record<string, unknown> | null) || {};
-        await supabase
-          .schema("storage")
-          .from("objects")
-          .update({ metadata: { ...existingMeta, mimetype: backfillType } as any })
-          .eq("bucket_id", bucket)
-          .eq("name", path);
-      } catch (_) { /* non-fatal */ }
-    }
-
-    return new Response(JSON.stringify({ success: true, signedUrl: data.signedUrl, contentType: contentType || extFallback || null }), {
+    const response = new Response(JSON.stringify({ success: true, signedUrl: data.signedUrl, contentType: extensionContentType || extFallback || null }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
+    // Background mimetype backfill — runs after response.
+    const backfillType = extensionContentType || extFallback;
+    if (backfillType) {
+      const bg = (async () => {
+        try {
+          const { data: objectRow } = await supabase.schema("storage").from("objects")
+            .select("metadata").eq("bucket_id", bucket).eq("name", path).maybeSingle();
+          const existingMeta = (objectRow?.metadata as Record<string, unknown> | null) || {};
+          if (usefulMimeType(existingMeta.mimetype as string | undefined)) return;
+          await supabase.schema("storage").from("objects")
+            .update({ metadata: { ...existingMeta, mimetype: backfillType } as any })
+            .eq("bucket_id", bucket).eq("name", path);
+        } catch (_) { /* non-fatal */ }
+      })();
+      try { (globalThis as any).EdgeRuntime?.waitUntil?.(bg); } catch (_) { /* ignore */ }
+    }
+
+    return response;
+
   } catch (error) {
     return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }), {
       status: 500,
