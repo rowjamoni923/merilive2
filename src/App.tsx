@@ -4,6 +4,7 @@ import { lazyRetry } from "@/utils/lazyRetry";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting } from "@/utils/appSettingsCache";
 import { Session } from "@supabase/supabase-js";
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
