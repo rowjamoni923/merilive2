@@ -3322,7 +3322,7 @@ const Chat = () => {
                     </Avatar>
                   )}
                   {conv.other_user?.is_online && (
- <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-online border-2 border-card rounded-full z-10 shadow-lg shadow-green-500/30" />
+ <span className="absolute bottom-0 right-0 w-4 h-4 gradient-online border-2 border-card rounded-full z-10 shadow-lg shadow-green-500/30" />
                   )}
                 </div>
                 <div className="flex-1 text-left min-w-0">
