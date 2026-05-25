@@ -648,7 +648,13 @@ export function useLiveKitCall(
                   }));
                 }
                 if (pub.track.kind === Track.Kind.Audio) {
-                  const audioEl = pub.track.attach();
+                  const audioEl = pub.track.attach() as HTMLAudioElement;
+                  audioEl.autoplay = true;
+                  audioEl.dataset.livekitRemoteAudio = 'call';
+                  try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
+                  try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
+                  audioEl.style.display = 'none';
+                  try { document.body.appendChild(audioEl); } catch { /* ignore */ }
                   audioEl.play().catch(() => {});
                 }
               }
