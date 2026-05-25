@@ -36,6 +36,7 @@ import { registerStreamRoom, unregisterStreamRoom } from '@/lib/livekitStreams';
 import { registerRpcRoom, unregisterRpcRoom } from '@/lib/livekitRpc';
 import { registerRoomForTranscription, unregisterRoomForTranscription } from '@/lib/livekitTranscription';
 import { registerReactionRoom, registerNativeReactionRoom, unregisterReactionRoom, unregisterNativeReactionRoom } from '@/lib/livekitReactions';
+import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
@@ -91,6 +92,7 @@ export function useLiveKitCall(
   // Drives the native event-listener subscription. Mirrors usingNativeRef
   // but as state so the effect re-runs after a successful native connect.
   const [nativeActive, setNativeActive] = useState(false);
+  const remoteAudioKeysRef = useRef<Set<string>>(new Set());
 
   // Auto-attach incoming remote video tracks (so the peer's tile renders) and
   // surface native disconnects back into React state. No-op on web/iOS.
