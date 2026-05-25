@@ -12,6 +12,10 @@ import {
 } from "@/utils/adminAccessStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 
+const VALIDATE_TIMEOUT_MS = 6_000;
+const VALIDATE_ATTEMPTS = 2;
+const VALIDATE_RETRY_DELAY_MS = 800;
+
 /**
  * AdminAccessGuard
  *
@@ -50,6 +54,16 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
   useEffect(() => {
     let mounted = true;
+    let validationSettled = false;
+    let safetyTimer: number | undefined;
+
+    const denyAccess = () => {
+      if (!mounted || validationSettled || getAdminSession()) return;
+      validationSettled = true;
+      clearAdminSession();
+      revokeAdminAccess();
+      setIsAuthorized(false);
+    };
 
     // Synchronous decision FIRST so we never spin forever if the edge fn is slow.
     // PRIORITY ORDER (instant grant — no flash of BlogPage):
@@ -104,16 +118,23 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     // tab-scoped unlock flag alive.
     const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
     if (accessToken) {
+      safetyTimer = window.setTimeout(() => {
+        console.warn('[AdminAccessGuard] validation safety timeout');
+        denyAccess();
+      }, (VALIDATE_TIMEOUT_MS * VALIDATE_ATTEMPTS) + (VALIDATE_RETRY_DELAY_MS * (VALIDATE_ATTEMPTS - 1)) + 1_000);
+
       const validateOnce = async (attempt: number): Promise<boolean> => {
         try {
           const timeout = new Promise<{ data: any }>((_, reject) =>
-            setTimeout(() => reject(new Error('validate-admin-token timeout')), 15000)
+            setTimeout(() => reject(new Error('validate-admin-token timeout')), VALIDATE_TIMEOUT_MS)
           );
           const call = adminSupabase.functions.invoke('validate-admin-token', {
             body: { token: accessToken },
           }) as Promise<{ data: any }>;
           const { data } = await Promise.race([call, timeout]);
           if (data?.valid) {
+            validationSettled = true;
+            if (safetyTimer) window.clearTimeout(safetyTimer);
             setAdminLinkToken(accessToken);
             grantAdminAccess(data.role === 'owner');
             if (mounted) {
@@ -124,9 +145,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
           }
           // Real {valid:false} response → invalid token. Only then deny.
           if (data && data.valid === false && mounted && !getAdminSession()) {
-            clearAdminSession();
-            revokeAdminAccess();
-            setIsAuthorized(false);
+            denyAccess();
             return true;
           }
           return false;
@@ -137,18 +156,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       };
 
       (async () => {
-        // Up to 3 attempts (15s each) before giving up; if all fail and no
+        // Two short attempts before giving up; if all fail and no
         // admin session exists, fall back to BlogPage.
-        for (let i = 1; i <= 3; i++) {
-          if (!mounted) return;
+        for (let i = 1; i <= VALIDATE_ATTEMPTS; i++) {
+          if (!mounted || validationSettled) return;
           const resolved = await validateOnce(i);
           if (resolved) return;
-          if (i < 3) await new Promise((r) => setTimeout(r, 1500));
+          if (i < VALIDATE_ATTEMPTS) await new Promise((r) => setTimeout(r, VALIDATE_RETRY_DELAY_MS));
         }
-        if (mounted && !getAdminSession()) {
-          revokeAdminAccess();
-          setIsAuthorized(false);
-        }
+        denyAccess();
       })();
     }
 
@@ -166,10 +182,11 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
     return () => {
       mounted = false;
+      if (safetyTimer) window.clearTimeout(safetyTimer);
       window.removeEventListener('storage', handler);
       window.removeEventListener('admin-session-change', handler);
     };
-  }, []);
+  }, [location.pathname, location.search]);
 
   // Loading
   if (isAuthorized === null) {
