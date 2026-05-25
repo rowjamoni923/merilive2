@@ -138,6 +138,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             validationSettled = true;
             if (safetyTimer) window.clearTimeout(safetyTimer);
             setAdminLinkToken(accessToken);
+            setAdminLinkKind(data.role === 'owner' ? 'owner' : 'sub_admin');
             grantAdminAccess(data.role === 'owner');
             if (mounted) {
               setHasValidToken(true);
