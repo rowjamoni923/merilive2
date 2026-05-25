@@ -133,7 +133,7 @@ export const OfficialNoticeList = () => {
   // notices refresh instantly without visibility-refresh/polling fallback.
   useEffect(() => {
     if (!currentUserId) return;
-    return subscribeToTables(['admin_notices'], () => {
+    return subscribeToTables(`official-notices-${currentUserId}`, ['admin_notices'], () => {
       void fetchNotices();
     });
   }, [currentUserId, fetchNotices]);
