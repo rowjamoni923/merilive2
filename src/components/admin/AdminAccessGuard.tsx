@@ -78,23 +78,19 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         return;
       }
 
-      // No session. Tab was previously unlocked via secret link → keep allowing
-      // /admin/auth so refresh / back-nav after entering email still works.
-      if (tabAlreadyUnlocked) {
-        setIsAuthorized(true);
-        setHasValidToken(true);
+      // No session. A previously unlocked tab or a fresh link must still be
+      // validated before rendering AdminAuth, so rotated/invalid secret links
+      // stop working immediately instead of relying on a stale session flag.
+      if (tabAlreadyUnlocked && getAdminLinkToken()) {
+        setIsAuthorized(null);
         return;
       }
 
-      // Fresh secret-link entry — OPTIMISTIC grant (Pkg191):
-      // Persist link token + tab flag immediately so user lands on AdminAuth
-      // instantly with NO loader/white flash. Background validation below will
-      // revoke the flag if the token is actually invalid.
+      // Fresh secret-link entry — persist only the candidate token and wait for
+      // server validation before granting access to the admin login page.
       if (accessToken) {
         setAdminLinkToken(accessToken);
-        grantAdminAccess(false);
-        setHasValidToken(true);
-        setIsAuthorized(true);
+        setIsAuthorized(null);
         return;
       }
 
