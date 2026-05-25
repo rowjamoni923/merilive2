@@ -103,11 +103,12 @@ export async function buildE2EERoomOptions(
     const keyProvider = new KeyProvider();
     await keyProvider.setKey(passphrase);
 
-    // Worker is constructed lazily via Vite's `?worker` import on the consumer
-    // side. We expose the key provider and let the caller wire the worker
-    // because Vite's `new Worker(new URL(...))` syntax must live in app code,
-    // not in a shared lib. Caller-facing helper below handles that.
-    return { keyProvider };
+    // LiveKit E2EE requires BOTH a key provider and the bundled E2EE worker.
+    // Returning only `{ keyProvider }` makes Room construction/enable fail on
+    // browsers where the worker transform is required, leaving private calls
+    // connected-but-without-decodable media.
+    const WorkerCtor = (await import('livekit-client/e2ee-worker?worker')).default;
+    return { keyProvider, worker: new WorkerCtor() };
   } catch {
     return null;
   }
