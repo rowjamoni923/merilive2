@@ -197,8 +197,7 @@ export const StickerSendAnimation = ({
             <img 
               src={animationUrl || sticker.preview_url || ''} 
               alt={sticker.name}
-              className="w-full h-full object-contain"
-            />
+              className="w-full h-full object-contain" loading="eager"/>
           ) : null}
         </motion.div>
 

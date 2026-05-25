@@ -281,14 +281,14 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
       {!mediaLoaded && (
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
-      <img
+      <img 
         src={src}
         alt="Animation"
         className={cn(
           "w-full h-full object-contain pointer-events-none",
           !mediaLoaded && "opacity-0"
         )}
-        onLoad={() => {
+        onLoad={() = loading="eager"> {
           setMediaLoaded(true);
           onLoad?.();
         }}

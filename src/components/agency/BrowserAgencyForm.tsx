@@ -351,7 +351,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   if (loadingParent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-danger-50 via-brand-800 to-warning-50 flex flex-col items-center justify-center p-6">
-        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse" />
+        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse" loading="eager"/>
         <Loader2 className="w-8 h-8 text-white animate-spin" />
         <p className="text-slate-600 text-sm mt-3">Loading...</p>
       </div>
@@ -362,7 +362,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   if (!parentAgency) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-danger-900 via-danger-800 to-warning-900 flex flex-col items-center justify-center p-6">
-        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4" />
+        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4" loading="eager"/>
         <AlertCircle className="w-12 h-12 text-white mb-4" />
         <h1 className="text-xl font-bold text-white mb-2">Agency Not Found</h1>
         <p className="text-slate-600 text-center text-sm">
@@ -434,7 +434,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3" />
+          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3" loading="eager"/>
           <h1 className="text-2xl font-bold text-white">Create Sub-Agency</h1>
           <p className="text-slate-500 text-sm mt-1">Fill the form and start your agency</p>
         </div>
@@ -464,8 +464,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
                 <img 
                   src={googlePlayBadge} 
                   alt="Get it on Google Play" 
-                  className="w-[120px] h-auto rounded-lg hover:opacity-90 transition-opacity"
-                />
+                  className="w-[120px] h-auto rounded-lg hover:opacity-90 transition-opacity" loading="eager"/>
               </a>
             </div>
             <p className="text-brand-300 text-xs mt-3">

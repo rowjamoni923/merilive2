@@ -162,7 +162,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
         >
           <div className="flex items-center gap-3">
             {noble.crown_url ? (
-              <img src={noble.crown_url} alt="" className="w-12 h-12 object-contain" />
+              <img src={noble.crown_url} alt="" className="w-12 h-12 object-contain" loading="eager"/>
             ) : (
               <Crown className="w-10 h-10" style={{ color: noble.badge_color || '#FFD700' }} />
             )}
@@ -222,7 +222,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                 >
                   <div className="flex items-center gap-3">
                     {card.crown_url ? (
-                      <img src={card.crown_url} alt="" className="w-10 h-10 object-contain" />
+                      <img src={card.crown_url} alt="" className="w-10 h-10 object-contain" loading="eager"/>
                     ) : (
                       <Crown className="w-8 h-8" style={{ color: card.badge_color || '#FFD700' }} />
                     )}

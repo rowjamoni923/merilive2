@@ -5,7 +5,7 @@ import { PremiumLiveStreamCard } from "./PremiumLiveStreamCard";
 // Mock heavy children so the test stays focused on the cover/avatar fallback contract.
 vi.mock("@/components/common/AvatarWithFrame", () => ({
   default: ({ src, name }: { src?: string; name: string }) => (
-    <img data-testid="avatar-with-frame" src={src} alt={name} />
+    <img data-testid="avatar-with-frame" src={src} alt={name} loading="eager"/>
   ),
 }));
 vi.mock("@/components/common/LevelBadge", () => ({

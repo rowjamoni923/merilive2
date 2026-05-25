@@ -212,13 +212,13 @@ export default function AdminBranding() {
   const renderBackgroundPreview = (className: string, rounded = false) => {
     if (settings.background_url && settings.background_type === 'video') {
       return (
-        <video
+        <video 
           src={settings.background_url}
           className={className}
           muted
           loop
           autoPlay
-          playsInline controls />
+          playsInline controls preload="auto"/>
       );
     }
 

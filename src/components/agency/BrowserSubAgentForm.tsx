@@ -341,7 +341,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   if (loadingAgency) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-danger-50 via-brand-800 to-warning-50 flex flex-col items-center justify-center p-6">
-        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse" />
+        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse" loading="eager"/>
         <Loader2 className="w-8 h-8 text-white animate-spin" />
         <p className="text-slate-600 text-sm mt-3">Loading...</p>
       </div>
@@ -352,7 +352,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   if (!agency) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-danger-900 via-danger-800 to-warning-900 flex flex-col items-center justify-center p-6">
-        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4" />
+        <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4" loading="eager"/>
         <AlertCircle className="w-12 h-12 text-white mb-4" />
         <h1 className="text-xl font-bold text-white mb-2">Agency Not Found</h1>
         <p className="text-slate-600 text-center text-sm">
@@ -432,7 +432,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3" />
+          <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3" loading="eager"/>
           <h1 className="text-2xl font-bold text-white">Become Sub-Agent</h1>
           <p className="text-slate-500 text-sm mt-1">Verify your identity and join the agency</p>
         </div>
@@ -444,8 +444,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
               <img 
                 src={agency.logo_url} 
                 alt={agency.name}
-                className="w-14 h-14 rounded-xl object-cover"
-              />
+                className="w-14 h-14 rounded-xl object-cover" loading="eager"/>
             ) : (
               <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-500 to-info-600 flex items-center justify-center">
                 <Building2 className="w-7 h-7 text-white" />
@@ -471,8 +470,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
               <img 
                 src={googlePlayBadge} 
                 alt="Get it on Google Play" 
-                className="w-[120px] h-auto rounded-lg hover:opacity-90 transition-opacity"
-              />
+                className="w-[120px] h-auto rounded-lg hover:opacity-90 transition-opacity" loading="eager"/>
             </a>
           </div>
           

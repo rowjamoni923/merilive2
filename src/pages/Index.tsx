@@ -409,8 +409,8 @@ const Index = () => {
       >
         <div className="relative aspect-[3/4]">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
-          <img
-            src={(() => {
+          <img 
+            src={(() = loading="eager"> {
               const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
               return (user.isLive && normalizedLiveThumb)
                 ? enhanceThumbnail(normalizedLiveThumb, { width: 600, quality: 90, sharpen: 1.4 })

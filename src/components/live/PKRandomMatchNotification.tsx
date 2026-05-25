@@ -119,11 +119,10 @@ export const PKRandomMatchNotification = ({
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 ring-2 ring-amber-400/30">
-                  <img
+                  <img 
                     src={challengerAvatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100"}
                     alt={challengerName}
-                    className="w-full h-full object-cover"
-                  />
+                    className="w-full h-full object-cover" loading="eager"/>
                 </div>
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-1.5 py-0.5 rounded text-[7px] font-bold text-black whitespace-nowrap">
                   Lv{challengerLevel}

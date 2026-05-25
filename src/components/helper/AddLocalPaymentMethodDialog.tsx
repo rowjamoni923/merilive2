@@ -198,7 +198,7 @@ export default function AddLocalPaymentMethodDialog({
                   className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200"
                 >
                   {r.logo_url ? (
-                    <img src={r.logo_url} alt={r.method_name} className="w-8 h-8 rounded object-cover" />
+                    <img src={r.logo_url} alt={r.method_name} className="w-8 h-8 rounded object-cover" loading="eager"/>
                   ) : (
                     <div className="w-8 h-8 rounded bg-amber-400 text-white grid place-items-center text-xs font-bold">
                       {r.method_name.charAt(0).toUpperCase()}

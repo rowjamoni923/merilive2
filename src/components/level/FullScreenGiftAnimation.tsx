@@ -346,15 +346,14 @@ const FullScreenGiftAnimation = ({
     if (animationType === 'video' && gift.animation_url) {
       return (
         <div className="absolute inset-0 flex items-center justify-center">
-          <video
+          <video 
             src={gift.animation_url}
             autoPlay
             loop={false}
             muted
             playsInline
             onEnded={handleAnimationEnd}
-            className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain"
-          />
+            className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain" preload="auto"/>
         </div>
       );
     }
@@ -581,8 +580,7 @@ const FullScreenGiftAnimation = ({
                     <img 
                       src={senderAvatar} 
                       alt={senderName}
-                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover"
-                    />
+                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover" loading="eager"/>
                   ) : (
                     <div 
                       className="w-12 h-12 rounded-full border-2 border-white/50 flex items-center justify-center text-white font-bold"
@@ -625,8 +623,7 @@ const FullScreenGiftAnimation = ({
                     <img 
                       src={receiverAvatar} 
                       alt={receiverName}
-                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover"
-                    />
+                      className="w-12 h-12 rounded-full border-2 border-white/50 object-cover" loading="eager"/>
                   ) : (
                     <div 
                       className="w-12 h-12 rounded-full border-2 border-white/50 flex items-center justify-center text-white font-bold"

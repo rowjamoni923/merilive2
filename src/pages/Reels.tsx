@@ -573,8 +573,8 @@ const Reels = () => {
                 className="h-full w-full relative"
               >
                 {/* Video */}
-                <video
-                  ref={el => videoRefs.current[currentReel.id] = el}
+                <video 
+                  ref={el = preload="auto"> videoRefs.current[currentReel.id] = el}
                   src={currentReel.video_url}
                   className="w-full h-full object-cover"
                   loop

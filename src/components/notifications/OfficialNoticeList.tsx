@@ -463,7 +463,7 @@ const OfficialNoticeItem = ({ notice, isRead, onRead, delay = 0 }: OfficialNotic
                       "rounded-xl object-cover border border-amber-200/60 shadow-md cursor-pointer hover:opacity-90 transition-opacity",
                       urls.length === 1 ? "max-h-52 w-full" : "h-28 w-full"
                     )}
-                    onClick={(e) => {
+                    onClick={(e) = loading="eager"> {
                       e.stopPropagation();
                       openImage(getProxiedUrl(url));
                     }}

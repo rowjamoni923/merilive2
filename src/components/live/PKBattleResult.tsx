@@ -225,11 +225,10 @@ export const PKBattleResult = ({
                     animate={{ scale: [1, 1.06, 1] }}
                     transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <img
+                    <img 
                       src={winnerAvatar}
                       alt={winnerName}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="eager"/>
                   </motion.div>
                   <motion.div
                     className="absolute -top-4 left-1/2 -translate-x-1/2"
@@ -336,11 +335,10 @@ export const PKBattleResult = ({
                       boxShadow: "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
                     }}
                   >
-                    <img
+                    <img 
                       src={loserAvatar}
                       alt={loserName}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="eager"/>
                   </div>
                 </div>
                 <p

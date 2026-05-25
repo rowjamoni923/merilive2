@@ -2724,12 +2724,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                               {tx.currency === 'bean' ? (
                                 <span className="text-base leading-none">🫘</span>
                               ) : (
-                                <img
+                                <img 
                                   src={diamondGem3D}
                                   alt="diamond"
                                   className="w-4 h-4 object-contain"
-                                  style={{ background: 'transparent' }}
-                                />
+                                  style={{ background: 'transparent' }} loading="eager"/>
                               )}
                             </p>
                             <p className={`text-[10px] capitalize ${statusColor}`}>{tx.status}</p>

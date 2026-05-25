@@ -153,7 +153,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           </div>
         )}
-        <video
+        <video 
           src={src}
           autoPlay={autoPlay}
           loop={loop}
@@ -163,7 +163,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
             "w-full h-full object-contain pointer-events-none",
             !imageLoaded && "opacity-0"
           )}
-          onLoadedData={() => {
+          onLoadedData={() = preload="auto"> {
             setImageLoaded(true);
             onLoad?.();
           }}
@@ -186,14 +186,14 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         </div>
       )}
-      <img
+      <img 
         src={src}
         alt="Avatar Frame"
         className={cn(
           "w-full h-full object-contain pointer-events-none",
           !imageLoaded && "opacity-0"
         )}
-        onLoad={() => {
+        onLoad={() = loading="eager"> {
           setImageLoaded(true);
           onLoad?.();
         }}

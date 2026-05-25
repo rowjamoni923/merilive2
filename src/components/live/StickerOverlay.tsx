@@ -73,12 +73,11 @@ const StickerOverlay = memo(({ stickerName, onDismiss, className = '' }: Sticker
           }}
         >
           <div className={`relative ${getStickerShimmer(stickerName) ? 'sticker-shimmer-wrap' : ''}`}>
-            <img
+            <img 
               src={asset}
               alt={stickerName}
               draggable={false}
-              className={`w-full h-auto object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.45)] pointer-events-none ${getStickerAnimationClass(stickerName)}`}
-            />
+              className={`w-full h-auto object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.45)] pointer-events-none ${getStickerAnimationClass(stickerName)}`} loading="eager"/>
             {onDismiss && (
               <button
                 type="button"

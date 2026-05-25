@@ -1,6 +1,6 @@
 // Pkg126: LiveKit HLS Egress — record a live stream as a browser-playable
 // `.m3u8` HLS playlist (+ `.ts` segments) instead of (or in addition to)
-// the Pkg111 MP4 file. Lets viewers replay in any <video> tag / hls.js
+// the Pkg111 MP4 file. Lets viewers replay in any <video preload="auto"> tag / hls.js
 // without downloading a multi-GB MP4.
 //
 // Kill-switch: app_settings.livekit_signaling_enabled.hls_egress === true

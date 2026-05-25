@@ -15,7 +15,7 @@
  *     reducer must populate per-viewer state independently.
  *
  *  3. The seat-level video player must attach() the LiveKit track AND set
- *     srcObject on the underlying <video> element for both viewer seats
+ *     srcObject on the underlying <video preload="auto"> element for both viewer seats
  *     (Android WebView + iOS Safari both need srcObject; attach() alone is
  *     not enough on some WebViews).
  */
@@ -273,7 +273,7 @@ describe('Live stream — two-viewer seat integration', () => {
     // Both seats called attach() on the SAME LiveKit track
     expect(hostVideo.attach).toHaveBeenCalledTimes(2);
 
-    // Both rendered <video> elements got srcObject pointed at the host track
+    // Both rendered <video preload="auto"> elements got srcObject pointed at the host track
     const videoA = a.container.querySelector('video') as HTMLVideoElement;
     const videoB = b.container.querySelector('video') as HTMLVideoElement;
     expect(videoA).toBeTruthy();

@@ -351,7 +351,7 @@ const About = () => {
       {/* ===== FOOTER ===== */}
       <footer className="px-4 py-10 border-t border-amber-200/60">
         <div className="max-w-4xl mx-auto text-center">
-          <img src={mascotLogo} alt="MeriLive" className="w-12 h-12 mx-auto mb-4" />
+          <img src={mascotLogo} alt="MeriLive" className="w-12 h-12 mx-auto mb-4" loading="eager"/>
           <p className="text-slate-400 text-sm mb-2">MeriLive - Live Streaming & Video Call App</p>
           <div className="flex gap-6 justify-center text-slate-400 text-xs">
             <a href={`${PRODUCTION_DOMAIN}/policies`} className="hover:text-slate-600 transition-colors">Policies</a>

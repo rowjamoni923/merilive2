@@ -12,7 +12,7 @@
  *     which are the ONLY two components allowed to resolve avatars and both
  *     internally call `getDisplayAvatar` with the resolved gender. If a surface
  *     ever stops importing the wrapper, this test fails — preventing silent
- *     regressions where someone hard-codes an `<img src={p.avatar_url}>`.
+ *     regressions where someone hard-codes an `<img src={p.avatar_url} loading="eager">`.
  */
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";

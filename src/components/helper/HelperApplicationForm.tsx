@@ -631,8 +631,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                   <img 
                     src={idCardFrontPreview} 
                     alt="ID Front" 
-                    className="w-full h-28 object-cover rounded-lg border border-amber-500/30"
-                  />
+                    className="w-full h-28 object-cover rounded-lg border border-amber-500/30" loading="eager"/>
                   <button
                     type="button"
                     onClick={() => { setIdCardFront(null); setIdCardFrontPreview(null); }}
@@ -668,8 +667,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                   <img 
                     src={idCardBackPreview} 
                     alt="ID Back" 
-                    className="w-full h-28 object-cover rounded-lg border border-amber-500/30"
-                  />
+                    className="w-full h-28 object-cover rounded-lg border border-amber-500/30" loading="eager"/>
                   <button
                     type="button"
                     onClick={() => { setIdCardBack(null); setIdCardBackPreview(null); }}

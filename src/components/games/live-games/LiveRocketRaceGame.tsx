@@ -323,8 +323,7 @@ export function LiveRocketRaceGame({
                   <img 
                     src={ROCKET_ASSETS[ROCKETS[idx]?.colorKey]} 
                     alt="winner"
-                    className="w-5 h-5 object-contain"
-                  />
+                    className="w-5 h-5 object-contain" loading="eager"/>
                 </motion.div>
               ))
             )}
@@ -540,8 +539,7 @@ export function LiveRocketRaceGame({
                 <img 
                   src={ROCKET_ASSETS[rocket.colorKey]} 
                   alt={rocket.name}
-                  className="w-8 h-8 object-contain"
-                />
+                  className="w-8 h-8 object-contain" loading="eager"/>
               </div>
               <div className="text-xs text-white font-semibold">{rocket.name}</div>
               <div className={cn(

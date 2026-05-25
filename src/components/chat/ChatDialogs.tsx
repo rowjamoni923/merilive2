@@ -136,7 +136,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
                 onClick={() => groupPhotoInputRef.current?.click()}
               >
                 {newGroupPhotoPreview ? (
-                  <img src={newGroupPhotoPreview} alt="Group" className="w-full h-full object-cover" />
+                  <img src={newGroupPhotoPreview} alt="Group" className="w-full h-full object-cover" loading="eager"/>
                 ) : (
                   <Camera className="w-8 h-8 text-muted-foreground" />
                 )}

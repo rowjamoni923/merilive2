@@ -31,7 +31,7 @@ declare global {
 export function isVideoPiPSupported(): boolean {
   if (typeof document === 'undefined') return false;
   if (document.pictureInPictureEnabled === true) return true;
-  // iOS Safari fallback (Picture-in-Picture presentation mode on <video>).
+  // iOS Safari fallback (Picture-in-Picture presentation mode on <video preload="auto">).
   try {
     const v = document.createElement('video');
     return typeof v.webkitSupportsPresentationMode === 'function';
@@ -61,7 +61,7 @@ export function isInVideoPiP(videoEl?: HTMLVideoElement | null): boolean {
 }
 
 /**
- * Enter Picture-in-Picture for the given <video> element.
+ * Enter Picture-in-Picture for the given <video preload="auto"> element.
  * MUST be called from inside a user-gesture handler (click / tap).
  * Returns true on success.
  */

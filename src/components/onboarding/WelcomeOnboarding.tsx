@@ -139,12 +139,11 @@ const WelcomeOnboarding = () => {
             >
               {/* Real illustration image */}
               <div className="w-full aspect-square overflow-hidden">
-                <img
+                <img 
                   src={step.image}
                   alt={step.title}
                   className="w-full h-full object-cover"
-                  draggable={false}
-                />
+                  draggable={false} loading="eager"/>
               </div>
 
               {/* Text content */}

@@ -193,11 +193,10 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                 >
                   {/* Thumbnail */}
                   {reel.thumbnail_url ? (
-                    <img
+                    <img 
                       src={reel.thumbnail_url}
                       alt={reel.caption || 'Reel'}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="eager"/>
                   ) : (
                     <video
                       src={reel.video_url}

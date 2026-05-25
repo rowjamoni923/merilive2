@@ -277,7 +277,7 @@ const shouldDownloadPrivateImageFirst = (storagePath: AdminStoragePath) => {
 
 const shouldStreamSignedStoragePath = (_storagePath: AdminStoragePath) => {
   // ★ NEVER download videos as blob: URLs. blob: URLs do not support HTTP
-  //   range requests, which breaks <video> seek + playback (the element shows
+  //   range requests, which breaks <video preload="auto"> seek + playback (the element shows
   //   only the poster). For verification videos we always serve the signed /
   //   public URL directly so the browser can stream it natively.
   return false;
@@ -475,7 +475,7 @@ export const resolveAdminStorageObjectUrl = async (value?: string | null, defaul
 /**
  * Synchronous fast-path: if `value` points at a PUBLIC verification bucket
  * (currently chat-media), return the direct public URL immediately
- * with zero network round-trips. Used to prime <img> src so admin thumbnails
+ * with zero network round-trips. Used to prime <img loading="eager"> src so admin thumbnails
  * render INSTANTLY instead of showing a "Resolving signed media URL…" spinner.
  * Returns null for private buckets, raw http(s) urls, or anything that needs
  * the async resolver.

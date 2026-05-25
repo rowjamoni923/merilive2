@@ -291,11 +291,10 @@ export function BackgroundPickerPanel({
                           >
                             {/* Background Preview */}
                             {bg.image_url ? (
-                              <img
+                              <img 
                                 src={getProxiedUrl(bg.image_url)}
                                 alt={bg.name}
-                                className="absolute inset-0 w-full h-full object-cover"
-                              />
+                                className="absolute inset-0 w-full h-full object-cover" loading="eager"/>
                             ) : (
                               <div className={cn("absolute inset-0", bg.gradient_css)} />
                             )}
@@ -397,11 +396,10 @@ export function BackgroundPickerPanel({
                             >
                               {/* Background Preview */}
                               {bg.image_url ? (
-                                <img
+                                <img 
                                   src={getProxiedUrl(bg.image_url)}
                                   alt={bg.name}
-                                  className="absolute inset-0 w-full h-full object-cover"
-                                />
+                                  className="absolute inset-0 w-full h-full object-cover" loading="eager"/>
                               ) : (
                                 <div className={cn("absolute inset-0", bg.gradient_css)} />
                               )}

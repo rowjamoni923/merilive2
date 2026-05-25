@@ -482,14 +482,14 @@ export default function AdminRecordings() {
           </DialogHeader>
           <div className="aspect-video bg-black rounded-lg overflow-hidden">
             {selectedRecording?.recording_url ? (
-              <video
+              <video 
                 key={selectedRecording.id}
                 src={selectedRecording.recording_url}
                 controls
                 autoPlay
                 crossOrigin="anonymous"
                 className="w-full h-full"
-                onError={(e) => {
+                onError={(e) = preload="auto"> {
                   console.error("Video playback error:", e);
                   recordAdminError({ kind: "rpc", label: "AdminRecordings.adminId", message: formatAdminError(e) });
                   // Try opening in new tab as fallback

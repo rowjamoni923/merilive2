@@ -183,8 +183,7 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                         <img 
                           src={hostAvatar} 
                           alt={hostName}
-                          className="w-full h-full object-cover"
-                        />
+                          className="w-full h-full object-cover" loading="eager"/>
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
  <span className="text-3xl font-bold text-slate-900">
