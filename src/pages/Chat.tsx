@@ -692,12 +692,7 @@ const Chat = () => {
 
         if (error) throw error;
 
-        if (newMsg) {
-          setGroupMessages(prev => {
-            if (prev.find(m => m.id === newMsg.id)) return prev;
-            return [...prev, { ...newMsg, sender: null }];
-          });
-        }
+        appendSentGroupMessage(newMsg);
       }
       
       // Clear after successful send
@@ -1672,6 +1667,24 @@ const Chat = () => {
   // 🔥 AWS Comprehend toxic content moderation (shared hook)
   const { checkToxicContent: checkToxic } = useContentModeration(currentUserId);
 
+  const appendSentGroupMessage = useCallback((newMsg: any) => {
+    if (!newMsg) return;
+    const ownSender = {
+      display_name: myProfile?.display_name || 'You',
+      avatar_url: myProfile?.avatar_url || null,
+      user_level: myProfile?.user_level || null,
+      host_level: myProfile?.host_level || null,
+      max_user_level: myProfile?.max_user_level || null,
+      gender: myProfile?.gender || null,
+      is_host: myProfile?.is_host || false,
+    };
+
+    setGroupMessages(prev => {
+      if (prev.find(m => m.id === newMsg.id)) return prev;
+      return [...prev, { ...newMsg, sender: ownSender }];
+    });
+  }, [myProfile]);
+
   const handleSend = async () => {
     if (!message.trim() || sending) return;
     if (!currentUserId || (!selectedConversation && !selectedGroup)) return;
@@ -1783,14 +1796,19 @@ const Chat = () => {
           }).catch(err => console.log('AI reply background:', err));
         }
       } else if (selectedGroup) {
-        await supabase
+        const { data: newMsg, error } = await supabase
           .from('group_messages')
           .insert({
             group_id: selectedGroup.id,
             sender_id: currentUserId,
             content: contentToSend,
             message_type: 'text'
-          });
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        appendSentGroupMessage(newMsg);
           
         // Track + background phone check
         trackTaskProgress('messages_sent', { increment: 1 });
@@ -1833,6 +1851,14 @@ const Chat = () => {
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim() || !currentUserId) return;
+
+    if (newGroupPhoto) {
+      const ext = (newGroupPhoto.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      if (ext === 'svg') {
+        toast.error("SVG not allowed");
+        return;
+      }
+    }
 
     setCreatingGroup(true);
     try {
@@ -1894,13 +1920,15 @@ const Chat = () => {
       }
 
       // Add creator as member with owner role
-      await supabase
+      const { error: memberError } = await supabase
         .from('group_members')
         .insert({
           group_id: newGroup.id,
           user_id: currentUserId,
           role: 'owner'
         });
+
+      if (memberError) throw memberError;
 
       toast.success("Group created successfully!");
       setShowCreateGroup(false);
@@ -1993,12 +2021,15 @@ const Chat = () => {
       fetchGroups();
     } catch (error: any) {
       const msg = String(error?.message || error || '');
-      if (msg.includes('group_full')) toast.error("This group is full");
+      if (msg.includes('duplicate key') || msg.includes('uniq_group_members')) toast.info("You're already a member of this group");
+      else if (msg.includes('group_full')) toast.error("This group is full");
       else if (msg.includes('family_limit_reached')) toast.error("You can only be in 1 family group");
       else if (msg.includes('basic_limit_reached')) toast.error("You can join max 20 general groups");
       else if (msg.includes('group_inactive')) toast.error("This group is no longer active");
       else if (msg.includes('user_blocked')) toast.error("Your account is restricted");
       else if (msg.includes('cannot_add_others')) toast.error("Only group admins can add members");
+      else if (msg.includes('not_group_member')) toast.error("Join this group again before sending messages");
+      else if (msg.includes('sender_blocked')) toast.error("Your account is restricted");
       else toast.error("Failed to join group");
     }
   };
@@ -2665,7 +2696,14 @@ const Chat = () => {
                             sender_id: currentUserId,
                             content,
                             message_type: 'text'
-                          })).then(() => setSending(false)).catch(() => setSending(false));
+                          }).select().single()).then(({ data, error }) => {
+                            if (error) throw error;
+                            appendSentGroupMessage(data);
+                            setSending(false);
+                          }).catch(() => {
+                            toast.error("Failed to send message");
+                            setSending(false);
+                          });
                         } else {
                           setSending(false);
                         }
@@ -2884,12 +2922,7 @@ const Chat = () => {
 
                         if (error) throw error;
 
-                        if (newMsg) {
-                          setGroupMessages(prev => {
-                            if (prev.find(m => m.id === newMsg.id)) return prev;
-                            return [...prev, { ...newMsg, sender: null }];
-                          });
-                        }
+                        appendSentGroupMessage(newMsg);
                       }
                       toast.success("Media sent!");
                       setPendingMedia(null);

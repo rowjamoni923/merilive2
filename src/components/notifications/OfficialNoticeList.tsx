@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { getProxiedUrl } from "@/utils/r2ProxyUrl";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { formatDistanceToNow } from "date-fns";
@@ -128,23 +129,26 @@ export const OfficialNoticeList = () => {
     if (currentUserId) fetchNotices();
   }, [currentUserId, fetchNotices]);
 
-  // Pkg91: admin_notices is admin-managed (tg_admin_broadcast_admin_notices).
-  // Listen to Pkg37 'admin-table-update' window event instead of opening a
-  // dead postgres_changes channel (admin_notices not in supabase_realtime).
+  // Pkg329 pass-3: admin_notices is in Supabase Realtime again, so Official
+  // notices refresh instantly without visibility-refresh/polling fallback.
   useEffect(() => {
     if (!currentUserId) return;
-    const onAdminUpdate = (event: Event) => {
-      const detail = (event as CustomEvent<{ table?: string }>).detail;
-      if (detail?.table === 'admin_notices') fetchNotices();
+    const unsubscribe = subscribeToTables(`official-notices-${currentUserId}`, ['admin_notices'], () => {
+      void fetchNotices();
+    });
+
+    const onNotificationChange = (event: Event) => {
+      const notification = (event as CustomEvent<any>).detail?.notification;
+      const noticeId = notification?.data?.notice_id;
+      if (notification?.user_id !== currentUserId || !noticeId) return;
+      if (!['admin_message', 'admin_notice'].includes(String(notification?.type || ''))) return;
+      void fetchNotices();
     };
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchNotices();
-    };
-    window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
+
+    window.addEventListener('notifications:change', onNotificationChange as EventListener);
     return () => {
-      window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
+      unsubscribe();
+      window.removeEventListener('notifications:change', onNotificationChange as EventListener);
     };
   }, [currentUserId, fetchNotices]);
 
