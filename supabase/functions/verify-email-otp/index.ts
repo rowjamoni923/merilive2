@@ -7,6 +7,20 @@ const corsHeaders = {
     "authorization, x-client-info, x-client-platform, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 async function createExchangeToken(supabase: any, identifier: string, purpose: string): Promise<string> {
   const rawBytes = new Uint8Array(32);
   crypto.getRandomValues(rawBytes);
@@ -29,23 +43,27 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
 
   try {
-    const { email, otp, purpose = "login" } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const otp = typeof body.otp === "string" ? body.otp.trim() : "";
+    const purpose = typeof body.purpose === "string" ? body.purpose : "login";
 
-    if (!email || !otp) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Email and OTP are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!email || !otp || email.length > 254) {
+      return json({ success: false, error: "Email and OTP are required" }, 400);
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json({ success: false, error: "Invalid email format" }, 400);
+    }
+    if (!["login", "register", "reset", "verify"].includes(purpose)) {
+      return json({ success: false, error: "Invalid purpose" }, 400);
     }
 
     // Validate OTP format (6 digits)
     if (!/^\d{6}$/.test(otp)) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid OTP format" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: false, error: "Invalid OTP format" }, 400);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -56,7 +74,7 @@ serve(async (req) => {
     const { data: otpRecord, error: fetchError } = await supabase
       .from("email_otps")
       .select("*")
-      .eq("email", email.toLowerCase())
+      .eq("email", email)
       .eq("purpose", purpose)
       .eq("is_used", false)
       .gt("expires_at", new Date().toISOString())
@@ -66,17 +84,11 @@ serve(async (req) => {
 
     if (fetchError) {
       console.error("[verify-email-otp] DB error:", fetchError);
-      return new Response(
-        JSON.stringify({ success: false, error: "Verification failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: false, error: "Verification failed" }, 500);
     }
 
     if (!otpRecord) {
-      return new Response(
-        JSON.stringify({ success: false, error: "OTP expired or not found. Please request a new one." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: false, error: "OTP expired or not found. Please request a new one." }, 400);
     }
 
     // Check max attempts (5 attempts max)
@@ -87,10 +99,7 @@ serve(async (req) => {
         .update({ is_used: true })
         .eq("id", otpRecord.id);
 
-      return new Response(
-        JSON.stringify({ success: false, error: "Too many failed attempts. Please request a new OTP." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: false, error: "Too many failed attempts. Please request a new OTP." }, 429);
     }
 
     // Increment attempts
@@ -100,22 +109,29 @@ serve(async (req) => {
       .eq("id", otpRecord.id);
 
     // Verify OTP (timing-safe comparison)
-    if (otpRecord.otp_code !== otp) {
+    if (!constantTimeEqual(String(otpRecord.otp_code), otp)) {
       const remaining = 4 - otpRecord.attempts;
-      return new Response(
-        JSON.stringify({ 
+      return json(
+        { 
           success: false, 
           error: `Invalid OTP. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.` 
-        }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        },
+        400,
       );
     }
 
     // Mark OTP as used
-    await supabase
+    const { data: consumedOtp, error: consumeError } = await supabase
       .from("email_otps")
-      .update({ is_used: true })
-      .eq("id", otpRecord.id);
+      .update({ is_used: true, verified_at: new Date().toISOString() })
+      .eq("id", otpRecord.id)
+      .eq("is_used", false)
+      .select("id")
+      .maybeSingle();
+    if (consumeError) throw consumeError;
+    if (!consumedOtp) {
+      return json({ success: false, error: "OTP expired or not found. Please request a new one." }, 400);
+    }
 
     console.log(`[verify-email-otp] OTP verified for ${email} (${purpose})`);
 
@@ -124,17 +140,11 @@ serve(async (req) => {
       console.log("[verify-email-otp] Expired OTPs cleaned up");
     });
 
-    const verifiedToken = await createExchangeToken(supabase, email.toLowerCase(), purpose);
+    const verifiedToken = await createExchangeToken(supabase, email, purpose);
 
-    return new Response(
-      JSON.stringify({ success: true, verified: true, verified_token: verifiedToken }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ success: true, verified: true, verified_token: verifiedToken }, 200);
   } catch (error) {
     console.error("[verify-email-otp] Error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ success: false, error: "Internal server error" }, 500);
   }
 });
