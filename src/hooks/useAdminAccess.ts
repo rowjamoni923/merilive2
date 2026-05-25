@@ -56,7 +56,7 @@ export const useAdminAccess = () => {
       if (!adminId) return null;
       const { data, error } = await adminSupabase
         .from("admin_users")
-        .select("*")
+        .select("id, user_id, email, display_name, role, is_active, invited_at, accepted_at, last_login_at")
         .eq("id", adminId)
         .eq("is_active", true)
         .maybeSingle();
