@@ -73,42 +73,37 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     };
 
     // Synchronous decision FIRST so we never spin forever if the edge fn is slow.
-    // PRIORITY ORDER (instant grant — no flash of BlogPage):
-    //   1. URL ?access=<token> OR stored tab token → validate first (prevents cross-role/stale-token entry)
-    //   2. Active admin session with no link token → denied by getAdminSession()
-    //   3. Nothing → BlogPage
+    //
+    // STRICT RULE (per user): admin panel is reachable ONLY via a secret link.
+    // - Fresh URL ?access=<token>           → validate, then unlock this tab
+    // - This tab already unlocked via link  → allow (sessionStorage flag, tab-scoped)
+    // - Anything else (bookmark, stale local session, direct /admin) → BlogPage
+    //
+    // A persistent admin session WITHOUT a tab-scoped link unlock is NOT enough.
+    // This blocks: bookmarked /admin, shared session across new tab, attacker
+    // who steals localStorage session token but never had the secret link.
     const decideSync = () => {
       if (!mounted) return;
       const session = getAdminSession();
       const accessToken = getAccessTokenFromURL();
       const tabAlreadyUnlocked = hasAdminAccessFlag();
+      const storedLinkToken = getAdminLinkToken();
 
-      // A fresh owner/sub-admin secret link always wins over any existing
-      // local admin session. This closes the cross-link bug where a logged-in
-      // sub-admin could open the Owner link (or owner could open sub-admin link)
-      // and keep the old session without being role-checked against that link.
+      // Fresh secret link in URL → always re-validate before rendering anything.
       if (accessToken) {
         setAdminLinkToken(accessToken);
         setIsAuthorized(null);
         return;
       }
 
-      // Even with an active local session, the tab-scoped secret link must be
-      // revalidated before rendering admin UI. A forged/stale sessionStorage
-      // token must never unlock the panel for even one render.
-      if ((session || tabAlreadyUnlocked) && getAdminLinkToken()) {
-        setIsAuthorized(null);
-        return;
-      }
-
-      if (session) {
-        // Session present — make sure header token is usable.
+      // Tab was unlocked earlier in this session via a secret link.
+      // Re-validate the stored token in the background; render is gated below.
+      if (tabAlreadyUnlocked && storedLinkToken) {
         if (!isLoginRoute()) {
           const token = getAdminSessionToken();
           if (!token) {
-            clearAdminSession();
-            revokeAdminAccess();
-            setIsAuthorized(false);
+            // Tab is unlocked but no admin login yet → send to login page.
+            setIsAuthorized(true);
             return;
           }
         }
@@ -116,8 +111,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         return;
       }
 
+      // No secret link, no tab unlock → deny. Even if a stale local admin
+      // session exists, it cannot grant access without a fresh link.
+      if (session || storedLinkToken) {
+        clearAdminSession();
+        revokeAdminAccess();
+      }
       setIsAuthorized(false);
     };
+
 
     decideSync();
 
