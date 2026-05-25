@@ -152,7 +152,7 @@ export default function HelperPaymentMethodsCard({
                           src={m.logo_url}
                           alt={m.method_name}
                           className="w-6 h-6 rounded-full object-cover border border-amber-100"
-                          loading="lazy"
+                          loading="eager"
                         />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 grid place-items-center text-white text-[10px] font-extrabold">

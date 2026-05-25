@@ -446,7 +446,7 @@ export default function AdminHosts() {
                         <Avatar className="w-10 h-10 border-2 border-pink-500/50">
                           <AvatarImage
                             src={getDisplayAvatar(host.id, host.avatar_url, { gender: 'female' })}
-                            loading="lazy"
+                            loading="eager"
                             referrerPolicy="no-referrer"
                           />
                           <AvatarFallback className="bg-pink-500/20 text-pink-400">
