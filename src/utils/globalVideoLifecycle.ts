@@ -22,11 +22,16 @@
 let installed = false;
 
 const SKIP_SELECTOR =
-  'video[data-lk-local-participant], video[data-lk-participant], video[data-livekit], video[data-no-auto-pause]';
+  'video[data-lk-local-participant], video[data-lk-participant], video[data-livekit], video[data-livekit-media], video[data-no-auto-pause]';
 
 function isSkippable(v: HTMLVideoElement): boolean {
   try {
-    return !!v.closest(SKIP_SELECTOR) || v.matches?.(SKIP_SELECTOR);
+    if (!!v.closest(SKIP_SELECTOR) || v.matches?.(SKIP_SELECTOR)) return true;
+    const stream = v.srcObject;
+    if (stream instanceof MediaStream) {
+      return stream.getTracks().some((track) => track.readyState === 'live' && /camera|microphone|screen|unknown/i.test((track as any).label || ''));
+    }
+    return false;
   } catch {
     return false;
   }
