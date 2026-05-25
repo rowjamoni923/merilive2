@@ -64,8 +64,9 @@ export default function DeviceApprovalSection() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'blocked'>('pending');
 
   useEffect(() => {
+    if (accessLoading) return;
     fetchDevices();
-  }, []);
+  }, [accessLoading, isOwner]);
 
   const fetchDevices = async () => {
     try {
