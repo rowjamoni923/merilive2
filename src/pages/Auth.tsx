@@ -1628,7 +1628,7 @@ const Auth = () => {
           localStorage.removeItem('meri_manual_logout');
           toast({
             title: "✅ Welcome Back!",
-            description: `Logged in as ${existingProfile.display_name || fullPhone}`,
+            description: `Logged in as ${existingProfile.display_name || displayPhone}`,
           });
           resetAuthState();
           navigateAfterAuth();
