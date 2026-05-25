@@ -17,6 +17,38 @@ function normalizePhoneIdentifier(value: unknown): string {
   return String(value || "").replace(/[\s\-\(\)]/g, "").replace(/^\+/, "");
 }
 
+async function consumeExchangeToken(supabaseAdmin: any, tokenId: string): Promise<boolean> {
+  const { data, error } = await supabaseAdmin
+    .from("otp_exchange_tokens")
+    .update({ is_used: true, used_at: new Date().toISOString() })
+    .eq("id", tokenId)
+    .eq("is_used", false)
+    .select("id")
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.id);
+}
+
+async function createMagicSession(supabaseAdmin: any, email: string) {
+  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    type: "magiclink",
+    email,
+  });
+  if (linkError) throw linkError;
+
+  const tokenHashFromLink = linkData?.properties?.hashed_token;
+  if (!tokenHashFromLink) throw new Error("Failed to create sign-in token");
+
+  const { data: verifiedData, error: verifyError } = await supabaseAdmin.auth.verifyOtp({
+    type: "magiclink",
+    token_hash: tokenHashFromLink,
+  });
+  if (verifyError || !verifiedData?.session) {
+    throw verifyError || new Error("Failed to create session");
+  }
+  return verifiedData;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ success: false, error: "Method not allowed" }, 405);
@@ -25,6 +57,13 @@ serve(async (req) => {
     const payload = await req.json();
     const email = typeof payload?.email === "string" ? payload.email.trim().toLowerCase() : "";
     const verifiedToken = typeof payload?.verified_token === "string" ? payload.verified_token : "";
+    const password = typeof payload?.password === "string" ? payload.password : "";
+    const displayName = typeof payload?.display_name === "string" ? payload.display_name.trim().slice(0, 80) : "";
+    const deviceId = typeof payload?.device_id === "string" ? payload.device_id.trim().slice(0, 160) : "";
+    const gender = ["male", "female"].includes(String(payload?.gender || "").toLowerCase())
+      ? String(payload.gender).toLowerCase()
+      : null;
+    const mode = payload?.mode === "create" ? "create" : "signin";
     const channel = payload?.channel === "phone" ? "phone" : "email";
     const tokenIdentifier = channel === "phone"
       ? normalizePhoneIdentifier(payload?.identifier)
@@ -69,6 +108,46 @@ serve(async (req) => {
     if (tokenError) throw tokenError;
     if (!tokenRow) {
       return json({ success: false, error: "OTP verification expired. Please request a new code." }, 401);
+    }
+
+    const profilePatch: Record<string, unknown> = {
+      display_name: displayName || undefined,
+      device_id: deviceId || undefined,
+      gender: gender || undefined,
+      is_verified: true,
+    };
+
+    if (mode === "create") {
+      if (password.length < 6) return json({ success: false, error: "Password must be at least 6 characters" }, 400);
+      if (!displayName) return json({ success: false, error: "Display name is required" }, 400);
+
+      const metadata: Record<string, unknown> = { full_name: displayName, device_id: deviceId || undefined };
+      if (channel === "phone") {
+        metadata.phone_number = tokenIdentifier;
+        metadata.phone_verified = true;
+        profilePatch.phone_number = tokenIdentifier;
+        profilePatch.phone_verified = true;
+      } else {
+        metadata.email_confirmed = true;
+        profilePatch.email = email;
+      }
+      if (gender) metadata.gender = gender;
+
+      const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: metadata,
+      });
+      if (createError) {
+        const msg = String(createError.message || "");
+        if (!/already|registered|exists/i.test(msg)) throw createError;
+      }
+
+      const userId = created?.user?.id;
+      if (userId) {
+        await supabaseAdmin.from("profiles").upsert({ id: userId, ...profilePatch }, { onConflict: "id" });
+      }
     }
 
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
