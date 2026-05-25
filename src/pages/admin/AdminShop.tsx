@@ -49,7 +49,7 @@ import { toast } from "sonner";
 import SVGAPreviewWithMuteToggle from "@/components/admin/SVGAPreviewWithMuteToggle";
 
 import { useR2Upload } from "@/hooks/useR2Upload";
-import { LazyImage } from "@/components/LazyImage";
+
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
@@ -739,7 +739,7 @@ const AdminShop = () => {
                     
                     // If preview_url exists and is a real image (not SVGA/Lottie), show as img
                     if (previewUrl && !isSVGA(previewUrl) && !isLottie(previewUrl)) {
-                      return <LazyImage src={previewUrl} alt={item.name} className="w-full h-full object-cover" />;
+                      return <SmartImage src={previewUrl} alt={item.name} cdnWidth={200} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />;
                     }
                     
                     // Otherwise use animation player for SVGA/Lottie
@@ -756,7 +756,7 @@ const AdminShop = () => {
                     }
                     
                     if (item.image_url) {
-                      return <LazyImage src={item.image_url} alt={item.name} className="w-full h-full object-cover" />;
+                      return <SmartImage src={item.image_url} alt={item.name} cdnWidth={200} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />;
                     }
                     
                     return <CategoryIcon className="w-8 h-8 text-purple-400" />;
@@ -885,9 +885,10 @@ const AdminShop = () => {
                       ) : formData.file_type === 'video' ? (
                         <video src={previewFile} className="w-full h-full object-contain" controls autoPlay muted loop />
                       ) : formData.file_type === 'gif' ? (
-                        <SmartImage src={previewFile} alt="Preview" className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
+                        <SmartImage src={previewFile} alt="Preview" cdnWidth={200} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                       ) : (
-                        <SmartImage src={previewFile} alt="Preview" className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
+                        <SmartImage src={previewFile} alt="Preview" cdnWidth={200} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
+
                       )}
                     </div>
                     <Button
@@ -1108,7 +1109,9 @@ const AdminShop = () => {
                       <SmartImage
                         src={formData.preview_url}
                         alt="Preview"
+                        cdnWidth={200}
                         className="w-24 h-24 rounded-lg object-cover border border-white/20" fallbackSrc="/placeholder.svg" />
+
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, preview_url: "" })}

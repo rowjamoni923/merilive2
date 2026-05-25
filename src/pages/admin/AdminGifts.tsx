@@ -64,7 +64,7 @@ import { defaultGiftAnimations, animationCategories, type DefaultAnimation } fro
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
-import { LazyImage } from "@/components/LazyImage";
+
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
 
@@ -848,7 +848,7 @@ export default function AdminGifts() {
                               autoPlay={true}
                             />
                           ) : (
-                            <LazyImage src={gift.icon_url} alt={gift.name} className="w-full h-full object-contain" />
+                            <SmartImage src={gift.icon_url} alt={gift.name} cdnWidth={64} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                           )
                         ) : (
                           <span className="text-3xl">{gift.icon_url}</span>
@@ -1105,7 +1105,7 @@ export default function AdminGifts() {
                             autoPlay={true}
                           />
                         ) : (
-                          <SmartImage src={formData.icon_url} alt="Icon" className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
+                          <SmartImage src={formData.icon_url} alt="Icon" cdnWidth={128} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                         )
                       ) : (
                         <span className="text-4xl md:text-5xl">{formData.icon_url}</span>
@@ -1304,7 +1304,7 @@ export default function AdminGifts() {
                           autoPlay={true}
                         />
                       ) : formData.animation_url.endsWith('.gif') || formData.animation_url.endsWith('.png') || formData.animation_url.endsWith('.webp') ? (
-                        <SmartImage src={formData.animation_url} alt="Animation" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
+                        <SmartImage src={formData.animation_url} alt="Animation" cdnWidth={256} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                       ) : formData.animation_url.endsWith('.mp4') || formData.animation_url.endsWith('.webm') ? (
                         <video 
                           src={formData.animation_url} 
