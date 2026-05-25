@@ -219,7 +219,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         </div>
       );
     }
-    return <Navigate to="/auth" replace />;
+    return <Suspense fallback={null}><BlogPage /></Suspense>;
   }
 
   // Authorized: render admin panel / login page
