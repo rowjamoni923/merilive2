@@ -113,7 +113,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                   decoding="async"
                   // @ts-expect-error – fetchpriority is a standard HTML hint
                   fetchpriority="high"
-                  className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
                   onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                   onError={(e) => {
                     // CDN transform may be off (Pro plan) — retry original once, else hide.
