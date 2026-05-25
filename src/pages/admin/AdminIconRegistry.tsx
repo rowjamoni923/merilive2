@@ -394,7 +394,7 @@ const AdminIconRegistry = () => {
             <div className="flex justify-center">
               <div className="w-20 h-20 rounded-2xl bg-slate-800 border border-slate-600 flex items-center justify-center" style={{ color: form.color_hex || undefined }}>
                 {form.icon_type === 'lucide' && form.lucide_name ? renderLucideIcon(form.lucide_name, 36) :
-                 form.icon_url ? <SmartImage src={form.icon_url} className="w-14 h-14 object-contain" fallbackSrc="/placeholder.svg" /> :
+                 form.icon_url ? <SmartImage src={form.icon_url} alt="" className="w-14 h-14 object-contain" fallbackSrc="/placeholder.svg" /> :
                  form.fallback_emoji ? <span className="text-3xl">{form.fallback_emoji}</span> :
                  <Image className="w-8 h-8 text-muted-foreground" />}
               </div>
