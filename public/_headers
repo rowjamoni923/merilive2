@@ -35,6 +35,25 @@
 /*.svg
   Cache-Control: public, max-age=2592000
 
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/*.ttf
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/*.otf
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/manifest.json
+  Cache-Control: public, max-age=300, must-revalidate
+
 /image-cache-sw.js
   Cache-Control: no-cache, no-store, must-revalidate
   Service-Worker-Allowed: /

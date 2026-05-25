@@ -53,6 +53,17 @@ export async function registerImageCacheSW(): Promise<void> {
 
   registered = true;
 
+  // Pkg B pass-2: unregister any stale /image-cache-sw.js registration from older builds
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(async (r) => {
+      const url = r.active?.scriptURL || r.installing?.scriptURL || r.waiting?.scriptURL || '';
+      if (url.indexOf('/image-cache-sw.js') !== -1) {
+        try { await r.unregister(); } catch {}
+      }
+    }));
+  } catch {}
+
   // If no SW is controlling yet, register the unified SW.
   // (FCM registers the same file later if push permission is granted.)
   if (!navigator.serviceWorker.controller) {
