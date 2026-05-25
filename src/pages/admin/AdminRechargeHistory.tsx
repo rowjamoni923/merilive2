@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   ArrowLeft, Search, Filter, RefreshCw, Coins, User, Calendar,
   CheckCircle, XCircle, Clock, CreditCard, Smartphone, DollarSign,
@@ -793,11 +794,11 @@ const AdminRechargeHistory = () => {
               {selectedRecord.user_payment_proof && (
                 <div>
                   <p className="text-muted-foreground text-sm mb-1">Payment Proof</p>
-                  <img 
+                  <SmartImage 
                     src={selectedRecord.user_payment_proof} 
                     alt="Payment proof" 
                     className="w-full rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity" 
-                    onClick={() => imageViewer.openImage(selectedRecord.user_payment_proof!)} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    onClick={() => imageViewer.openImage(selectedRecord.user_payment_proof!)} fallbackSrc="/placeholder.svg" />
                 </div>
               )}
             </div>

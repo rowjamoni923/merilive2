@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
 import { toast } from "sonner";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Mail, Search, Loader2, Send, RefreshCw, Inbox, 
   MailOpen, Clock, Star, ChevronLeft, Reply, Eye, UserSearch,
@@ -670,7 +671,7 @@ const AdminGmailSupport = () => {
               <div className="space-y-2">
                 {imagePreview && (
                   <div className="relative inline-block">
-                    <img src={imagePreview} alt="attachment" className="h-16 rounded-lg border border-border/30 shadow-sm" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <SmartImage src={imagePreview} alt="attachment" className="h-16 rounded-lg border border-border/30 shadow-sm" fallbackSrc="/placeholder.svg" />
                     <button
                       onClick={removeAttachment}
                       className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-sm"

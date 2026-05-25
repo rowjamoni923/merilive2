@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Search, Users, CheckCircle, XCircle, Clock, 
   Gem, Crown, Star, Shield, Loader2, Image, DollarSign,
@@ -1241,10 +1242,10 @@ const AdminLevel5Helpers = () => {
                 <div>
                   <p className="text-sm font-semibold mb-2">Payment Screenshot</p>
                   <div className="rounded-xl overflow-hidden border">
-                    <img 
+                    <SmartImage 
                       src={selectedWithdrawal.payment_screenshot_url} 
                       alt="Payment proof" 
-                      className="w-full object-cover max-h-64" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="w-full object-cover max-h-64" fallbackSrc="/placeholder.svg" />
                   </div>
                 </div>
               )}

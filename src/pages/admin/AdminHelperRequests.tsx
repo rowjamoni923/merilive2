@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   ArrowLeft, ArrowUpCircle, Wallet, Clock, CheckCircle, XCircle, 
   Eye, Search, Filter, RefreshCw, Image, AlertCircle, User
@@ -607,10 +608,10 @@ const AdminHelperRequests = () => {
                     rel="noopener noreferrer"
                     className="block"
                   >
-                    <img 
+                    <SmartImage 
                       src={selectedRequest.payment_proof_url} 
                       alt="Payment Proof" 
-                      className="w-full max-h-60 object-contain rounded-lg border cursor-pointer hover:opacity-90" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="w-full max-h-60 object-contain rounded-lg border cursor-pointer hover:opacity-90" fallbackSrc="/placeholder.svg" />
                   </a>
                 </div>
               )}

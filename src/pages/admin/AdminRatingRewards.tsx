@@ -11,6 +11,7 @@ import { getAdminSession } from "@/utils/adminSession";
 import { toast } from 'sonner';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SmartImage } from "@/components/ui/smart-image";
 
 // adminSendNotification removed — alerts now fired server-side by tg_rating_reward_alert.
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -646,7 +647,7 @@ export default function AdminRatingRewards() {
                     onClick={() => setPreviewImage(claim.screenshot_signed || claim.screenshot_url)}
                     className="w-14 h-14 rounded-lg overflow-hidden border border-slate-700 hover:border-purple-500 transition-colors flex-shrink-0 relative group"
                   >
-                    <img src={claim.screenshot_signed || claim.screenshot_url} alt="Screenshot" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <SmartImage src={claim.screenshot_signed || claim.screenshot_url} alt="Screenshot" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Eye className="w-4 h-4 text-white" />
                     </div>
@@ -703,7 +704,7 @@ export default function AdminRatingRewards() {
             <DialogTitle className="text-white text-sm">Rating Screenshot</DialogTitle>
           </DialogHeader>
           {previewImage && (
-            <img src={previewImage} alt="Rating Screenshot" className="w-full rounded-lg" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+            <SmartImage src={previewImage} alt="Rating Screenshot" className="w-full rounded-lg" fallbackSrc="/placeholder.svg" />
           )}
         </DialogContent>
       </Dialog>

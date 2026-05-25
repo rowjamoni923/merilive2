@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   Crown, Plus, Edit2, Trash2, Sparkles, Gem, Shield, Ghost, EyeOff,
   Lock, TrendingUp, Coins, Calendar, Zap, RefreshCw, Upload
@@ -190,7 +191,7 @@ const AdminNobleSubscriptions = () => {
             >
               <div className="flex items-center gap-3">
                 {card.crown_url ? (
-                  <img src={card.crown_url} alt="" className="w-10 h-10 object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  <SmartImage src={card.crown_url} alt="" className="w-10 h-10 object-contain" fallbackSrc="/placeholder.svg" />
                 ) : (
                   <Crown className="w-8 h-8" style={{ color: card.badge_color || '#FFD700' }} />
                 )}

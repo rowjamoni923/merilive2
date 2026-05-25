@@ -11,6 +11,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface PopupBanner {
@@ -197,7 +198,7 @@ const AdminPopupBanners = () => {
                   <Label className="text-slate-300">Banner Image *</Label>
                   {formData.image_url && (
                     <div className="mt-2 rounded-lg overflow-hidden border border-white/10 mb-2">
-                      <img src={formData.image_url} alt="Preview" className="w-full h-auto max-h-48 object-contain bg-black/50" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      <SmartImage src={formData.image_url} alt="Preview" className="w-full h-auto max-h-48 object-contain bg-black/50" fallbackSrc="/placeholder.svg" />
                     </div>
                   )}
                   <div className="flex gap-2 mt-1">
@@ -270,7 +271,7 @@ const AdminPopupBanners = () => {
             <CardContent className="p-0">
               <div className="flex gap-3 md:gap-4">
                 <div className="w-24 md:w-32 shrink-0">
-                  <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover min-h-[80px]" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  <SmartImage src={banner.image_url} alt={banner.title} className="w-full h-full object-cover min-h-[80px]" fallbackSrc="/placeholder.svg" />
                 </div>
                 <div className="flex-1 py-3 pr-3 min-w-0">
                   <div className="flex items-start justify-between gap-2">

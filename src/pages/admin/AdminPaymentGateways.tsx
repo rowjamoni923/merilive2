@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   Dialog,
   DialogContent,
@@ -739,10 +740,10 @@ const AdminPaymentGateways = () => {
                             {uploadingLogoForGateway === gateway.id ? (
                               <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
                             ) : gateway.logo_url ? (
-                              <img 
+                              <SmartImage 
                                 src={gateway.logo_url} 
                                 alt={gateway.name} 
-                                className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                                className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                             ) : (
                               getGatewayIcon(gateway.gateway_code)
                             )}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { useLocation } from "react-router-dom";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Users, UserPlus, Crown, Gem, DollarSign, FileText, Clock,
   CheckCircle, XCircle, Search, Loader2, RefreshCw, TrendingUp,
@@ -1275,14 +1276,14 @@ const AdminHelperManagement = () => {
                     <div>
                       <Label className="text-xs text-muted-foreground mb-2 block">Payment Screenshot</Label>
                       <div className="relative group">
-                        <img 
+                        <SmartImage 
                           src={selectedApp.payment_screenshot_url || selectedApp.payment_details?.screenshot_url}
                           alt="Payment Screenshot"
                           className="w-full max-h-64 object-contain rounded-lg border border-slate-700 cursor-pointer hover:opacity-90 transition-opacity"
                           onClick={() => {
                             const url = selectedApp.payment_screenshot_url || selectedApp.payment_details?.screenshot_url;
                             if (url) imageViewer.openImage(url);
-                          }} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                          }} fallbackSrc="/placeholder.svg" />
                         <div className="absolute bottom-2 right-2 bg-black/70 px-2 py-1 rounded text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
                           Click to view full size
                         </div>

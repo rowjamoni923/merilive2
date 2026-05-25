@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Search, Users, CheckCircle, XCircle, Clock,
   Phone, MessageCircle, Send, Crown, Star, Shield, Gem,
@@ -857,12 +858,12 @@ const AdminHelperApplications = () => {
                           </div>
                         )}
                         {selectedApp.payment_screenshot_url && (
-                          <img
+                          <SmartImage
                             src={selectedApp.payment_screenshot_url}
                             alt="Payment Screenshot"
                             className="w-full h-auto max-h-48 object-contain rounded-lg border cursor-pointer mt-2"
                             onClick={() => imageViewer.openImage(selectedApp.payment_screenshot_url!)}
-                            onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}
+                            fallbackSrc="/placeholder.svg"
                           />
                         )}
                       </div>
@@ -916,11 +917,11 @@ const AdminHelperApplications = () => {
                             <div className="space-y-1">
                               <p className="text-[10px] text-muted-foreground">Front Side</p>
                               <div className="relative group">
-                                <img 
+                                <SmartImage 
                                   src={selectedApp.id_card_front_url}
                                   alt="ID Front" 
                                   className="w-full h-32 object-cover rounded-lg border border-amber-500/30 cursor-pointer"
-                                  onClick={() => imageViewer.openImage(selectedApp.id_card_front_url!)} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                                  onClick={() => imageViewer.openImage(selectedApp.id_card_front_url!)} fallbackSrc="/placeholder.svg" />
                                 <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                   <ExternalLink className="w-5 h-5 text-white" />
                                 </div>
@@ -931,11 +932,11 @@ const AdminHelperApplications = () => {
                             <div className="space-y-1">
                               <p className="text-[10px] text-muted-foreground">Back Side</p>
                               <div className="relative group">
-                                <img 
+                                <SmartImage 
                                   src={selectedApp.id_card_back_url}
                                   alt="ID Back" 
                                   className="w-full h-32 object-cover rounded-lg border border-amber-500/30 cursor-pointer"
-                                  onClick={() => imageViewer.openImage(selectedApp.id_card_back_url!)} onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                                  onClick={() => imageViewer.openImage(selectedApp.id_card_back_url!)} fallbackSrc="/placeholder.svg" />
                                 <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                   <ExternalLink className="w-5 h-5 text-white" />
                                 </div>

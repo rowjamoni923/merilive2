@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Sparkles, Wand2, Loader2, Copy, Download, ImageIcon, Send, Trash2, History } from "lucide-react";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -277,7 +278,7 @@ export default function AdminAiImageStudio() {
               {items.map((it, idx) => (
                 <div key={`${it.url}-${idx}`} className="rounded-xl overflow-hidden border border-border bg-card/40 group">
                   <div className="relative aspect-video bg-black/40 flex items-center justify-center">
-                    <img
+                    <SmartImage
                       src={it.url}
                       alt={it.eventName}
                       className="w-full h-full object-cover"

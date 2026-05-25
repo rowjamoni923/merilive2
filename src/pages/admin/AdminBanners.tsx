@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Plus, Edit, Trash2, Eye, EyeOff, Save, Image, Link as LinkIcon, 
   Upload, GripVertical, ExternalLink, Palette 
@@ -320,10 +321,10 @@ export default function AdminBanners() {
                   style={{ backgroundColor: banner.background_color }}
                 >
                   {banner.image_url ? (
-                    <img 
+                    <SmartImage 
                       src={banner.image_url} 
                       alt={banner.title}
-                      className="w-full h-auto object-contain rounded-lg" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                      className="w-full h-auto object-contain rounded-lg" fallbackSrc="/placeholder.svg" />
                   ) : (
                     <div className="flex items-center justify-between px-4 h-16">
                       <div>
@@ -432,10 +433,10 @@ export default function AdminBanners() {
               <Label>Preview</Label>
               {formData.image_url ? (
                 <div className="w-full rounded-xl overflow-hidden">
-                  <img 
+                  <SmartImage 
                     src={formData.image_url} 
                     alt="Banner Preview"
-                    className="w-full h-auto object-contain rounded-xl" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    className="w-full h-auto object-contain rounded-xl" fallbackSrc="/placeholder.svg" />
                 </div>
               ) : (
                 <div 

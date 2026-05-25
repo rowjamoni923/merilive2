@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   Video,
   Search,
@@ -353,7 +354,7 @@ export default function AdminRecordings() {
                     {/* Thumbnail / Preview */}
                     <div className="relative w-full sm:w-48 h-28 bg-slate-900 rounded-lg overflow-hidden flex-shrink-0">
                       {recording.thumbnail_url ? (
-                        <img
+                        <SmartImage
                           src={recording.thumbnail_url}
                           alt="Recording thumbnail"
                           className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />

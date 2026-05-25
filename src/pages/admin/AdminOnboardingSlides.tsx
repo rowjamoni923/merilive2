@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
+import { SmartImage } from "@/components/ui/smart-image";
 
 interface OnboardingSlide {
   id: string;
@@ -184,7 +185,7 @@ const AdminOnboardingSlides = () => {
               <GripVertical className="w-5 h-5 text-muted-foreground shrink-0" />
               
               <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted">
-                <img
+                <SmartImage
                   src={slide.image_url}
                   alt={slide.title}
                   className="w-full h-full object-cover"
@@ -261,7 +262,7 @@ const AdminOnboardingSlides = () => {
               />
               {form.image_url && (
                 <div className="mt-2 w-full h-40 rounded-lg overflow-hidden bg-muted">
-                  <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  <SmartImage src={form.image_url} alt="Preview" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                 </div>
               )}
             </div>

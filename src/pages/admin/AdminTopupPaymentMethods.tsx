@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   Plus, Edit, Trash2, CreditCard, Smartphone, Bitcoin, Wallet,
   ArrowUp, ArrowDown, ToggleLeft, ToggleRight, RefreshCw, Upload, X
@@ -307,7 +308,7 @@ const AdminTopupPaymentMethods = () => {
 
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${getMethodColor(method.method_type)}`}>
                       {method.icon_url ? (
-                        <img
+                        <SmartImage
                           src={method.icon_url}
                           alt={method.name}
                           className="w-12 h-12 object-cover"
@@ -451,7 +452,7 @@ const AdminTopupPaymentMethods = () => {
               <div className="flex items-center gap-3">
                 <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
                   {formData.icon_url ? (
-                    <img src={formData.icon_url} alt="logo" className="w-16 h-16 object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <SmartImage src={formData.icon_url} alt="logo" className="w-16 h-16 object-cover" fallbackSrc="/placeholder.svg" />
                   ) : (
                     <CreditCard className="w-7 h-7 text-slate-500" />
                   )}

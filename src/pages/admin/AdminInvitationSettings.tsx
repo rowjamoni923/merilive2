@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface InvitationTier {
@@ -346,7 +347,7 @@ const AdminInvitationSettings = () => {
           {/* Current Banner Preview */}
           {(bannerUrl || bannerInput) && (
             <div className="rounded-xl overflow-hidden border border-white/10 shadow-lg">
-              <img 
+              <SmartImage 
                 src={bannerInput || bannerUrl} 
                 alt="Invitation Banner Preview" 
                 className="w-full h-auto max-h-40 object-cover"

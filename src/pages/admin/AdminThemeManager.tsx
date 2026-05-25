@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface EventTheme {
@@ -192,11 +193,11 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                 style={{ border: `1.5px solid ${cardBorder}35` }}
               >
                 {/* Real cover photo */}
-                <img 
+                <SmartImage 
                   src={MOCK_COVERS[i]} 
                   alt="" 
                   className="absolute inset-0 w-full h-full object-cover"
-                  loading="lazy" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  loading="lazy" fallbackSrc="/placeholder.svg" />
                 {/* Dark gradient overlay */}
                 <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 30%, ${navBg}ee 85%, ${navBg} 100%)` }} />
                 {/* Theme tint overlay */}
@@ -227,12 +228,12 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
                   <div className="flex items-center gap-1.5">
                     {/* Real avatar */}
                     <div className="relative shrink-0">
-                      <img 
+                      <SmartImage 
                         src={MOCK_AVATARS[i]} 
                         alt="" 
                         className="w-7 h-7 rounded-full object-cover"
                         style={{ border: `2px solid ${primary}`, boxShadow: `0 0 8px ${primary}50` }}
-                        loading="lazy" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                        loading="lazy" fallbackSrc="/placeholder.svg" />
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border border-black flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}>
                         <span className="text-[5px] font-bold text-white">✓</span>
                       </div>
@@ -284,7 +285,7 @@ const ThemePreviewModal = ({ theme, open, onClose }: { theme: EventTheme; open: 
               {/* Avatar with frame */}
               <div className="relative shrink-0">
                 <div className="w-14 h-14 rounded-full p-[2px]" style={{ background: `linear-gradient(135deg, ${primary}, ${accent}, ${secondary})` }}>
-                  <img src={MOCK_AVATARS[4]} alt="" className="w-full h-full rounded-full object-cover border-2 border-black" loading="lazy" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                  <SmartImage src={MOCK_AVATARS[4]} alt="" className="w-full h-full rounded-full object-cover border-2 border-black" loading="lazy" fallbackSrc="/placeholder.svg" />
                 </div>
                 {/* VIP badge */}
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-[1px] rounded-full text-[7px] font-extrabold text-white whitespace-nowrap" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})`, boxShadow: `0 2px 8px ${primary}60` }}>
@@ -645,7 +646,7 @@ const AdminThemeManager = () => {
                             <div className="w-10 h-10 rounded-lg bg-black/30 border border-white/10 flex items-center justify-center overflow-hidden relative group">
                               {currentUrl ? (
                                 <>
-                                  <img src={currentUrl} alt={iconType} className="w-8 h-8 object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                                  <SmartImage src={currentUrl} alt={iconType} className="w-8 h-8 object-contain" fallbackSrc="/placeholder.svg" />
                                   <button
                                     className="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                     onClick={async () => {

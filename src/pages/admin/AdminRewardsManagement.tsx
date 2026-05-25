@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import { SmartImage } from "@/components/ui/smart-image";
 
 // ==========================================
 // Admin Rewards Management
@@ -407,7 +408,7 @@ const AdminRewardsManagement = () => {
                       <Label>Banner Image</Label>
                       {firstRechargeConfig.banner_image_url ? (
                         <div className="relative rounded-xl overflow-hidden border border-border">
-                          <img
+                          <SmartImage
                             src={firstRechargeConfig.banner_image_url}
                             alt="Banner Preview"
                             className="w-full h-32 object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />

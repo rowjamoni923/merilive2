@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Plus, 
   Trash2, 
@@ -309,7 +310,7 @@ export default function AdminEntryBanners() {
             {/* Preview */}
             <div className="h-20 bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-lg flex items-center justify-center overflow-hidden">
               {banner.preview_url ? (
-                <img src={banner.preview_url} alt={banner.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                <SmartImage src={banner.preview_url} alt={banner.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
               ) : banner.animation_url?.toLowerCase().split('?')[0].endsWith('.svga') ? (
                 <SVGAPreviewWithMuteToggle
                   src={banner.animation_url}

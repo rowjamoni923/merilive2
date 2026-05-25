@@ -4,6 +4,7 @@ import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { motion } from "framer-motion";
+import { SmartImage } from "@/components/ui/smart-image";
 import {
   Wallet,
   CheckCircle,
@@ -790,7 +791,7 @@ export default function AdminWithdrawals() {
                                   title="View helper payment screenshot"
                                   onClick={(e) => { e.stopPropagation(); imageViewer.openImage(proof); }}
                                 >
-                                  <img src={proof} alt="Helper proof" className="w-full h-full object-cover" loading="lazy" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                                  <SmartImage src={proof} alt="Helper proof" className="w-full h-full object-cover" loading="lazy" fallbackSrc="/placeholder.svg" />
                                 </button>
                               );
                             })()}
@@ -992,10 +993,10 @@ export default function AdminWithdrawals() {
                         <span className="text-white/60 text-xs block mb-2">📸 Payment Screenshot:</span>
                         <div className="rounded-xl overflow-hidden border-2 border-purple-500/30 cursor-pointer"
                              onClick={() => imageViewer.openImage(helperPaymentScreenshot)}>
-                          <img 
+                          <SmartImage 
                             src={helperPaymentScreenshot} 
                             alt="Helper payment proof" 
-                            className="w-full max-h-64 object-contain bg-slate-800" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                            className="w-full max-h-64 object-contain bg-slate-800" fallbackSrc="/placeholder.svg" />
                         </div>
                         <p className="text-xs text-purple-300 text-center mt-1">Click to view full size</p>
                       </div>

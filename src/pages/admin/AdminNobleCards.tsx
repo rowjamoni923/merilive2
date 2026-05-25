@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, CreditCard } from "lucide-react";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface NobleCardItem {
@@ -281,7 +282,7 @@ const AdminNobleCards = () => {
                   {item.animation_url ? (
                     <FixedAnimationFrame size="fill" center={false} src={item.animation_url}  loop />
                   ) : item.preview_url ? (
-                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                    <SmartImage src={item.preview_url} alt={item.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
                   ) : (
                     <CreditCard className="h-12 w-12 text-rose-500" />
                   )}

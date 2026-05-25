@@ -12,6 +12,7 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 const SETTING_KEY = "payment_gateway_method_config";
@@ -483,7 +484,7 @@ const AdminPaymentGatewayMethodConfig = () => {
                     </div>
                     {g.logo_url && (
                       <div className="md:col-span-12 flex items-center gap-2 text-xs text-muted-foreground">
-                        <img src={g.logo_url} alt={g.method_name} className="h-6 w-6 rounded bg-white object-contain" onError={(e) => ((e.currentTarget.style.display = "none"))} />
+                        <SmartImage src={g.logo_url} alt={g.method_name} className="h-6 w-6 rounded bg-white object-contain" onError={(e) => ((e.currentTarget.style.display = "none"))} />
                         <span className="truncate">{g.logo_url}</span>
                       </div>
                     )}

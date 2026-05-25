@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Image, 
   Plus, 
@@ -577,7 +578,7 @@ const AdminPartyBackgrounds = () => {
                 style={bg.gradient_css && !bg.image_url ? { background: bg.gradient_css } : undefined}
               >
                 {bg.image_url ? (
-                  <img
+                  <SmartImage
                     src={bg.image_url}
                     alt={bg.name}
                     loading="lazy"
@@ -688,7 +689,7 @@ const AdminPartyBackgrounds = () => {
                     style={bg.gradient_css && !bg.image_url ? { background: bg.gradient_css } : undefined}
                   >
                     {bg.image_url && (
-                      <img
+                      <SmartImage
                         src={bg.image_url}
                         alt={bg.name}
                         loading="lazy"
@@ -836,7 +837,7 @@ const AdminPartyBackgrounds = () => {
             {/* Preview */}
             {formData.image_url && (
               <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-                <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                <SmartImage src={formData.image_url} alt="Preview" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                 <Button
                   variant="destructive"
                   size="icon"
@@ -940,7 +941,7 @@ const AdminPartyBackgrounds = () => {
             {/* Current Image Preview */}
             {formData.image_url && (
               <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-                <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
+                <SmartImage src={formData.image_url} alt="Preview" className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
                 <Button
                   variant="destructive"
                   size="icon"

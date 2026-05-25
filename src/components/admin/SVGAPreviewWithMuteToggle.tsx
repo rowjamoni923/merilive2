@@ -2,6 +2,7 @@ import React, { useState, Suspense, lazy, useCallback } from 'react';
 import { Volume2, VolumeX, Loader2, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { SmartImage } from "@/components/ui/smart-image";
 
 // Only load SVGA players when needed
 const SVGAPlayer = lazy(() => import('@/components/common/SVGAPlayer'));
@@ -69,7 +70,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
     );
   }
 
-  // Non-SVGA (GIF/WebP/PNG/JPG) → render as <img> with error fallback
+  // Non-SVGA (GIF/WebP/PNG/JPG) → render as <SmartImage> with error fallback
   if (!isSvga) {
     if (imgError) {
       return (
@@ -84,7 +85,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
     }
     return (
       <div className={cn("relative", containerClassName)}>
-        <img
+        <SmartImage
           src={src}
           alt="Animation preview"
           className={cn("object-contain w-full h-full", className)}

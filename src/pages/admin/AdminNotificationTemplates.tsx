@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
+import { SmartImage } from "@/components/ui/smart-image";
 import { 
   ArrowLeft, 
   Bell, 
@@ -375,7 +376,7 @@ const AdminNotificationTemplates = () => {
           <CardContent className="grid grid-cols-5 gap-3">
             {premiumIcons.map((icon) => (
               <div key={icon.url} className="rounded-xl bg-white/[0.04] border border-white/10 p-2 text-center">
-                <img src={icon.url} alt={icon.label} className="w-full aspect-square object-contain" loading="lazy" />
+                <SmartImage src={icon.url} alt={icon.label} className="w-full aspect-square object-contain" loading="lazy" />
                 <p className="mt-1 text-[10px] text-white/70 truncate">{icon.label}</p>
               </div>
             ))}
@@ -390,7 +391,7 @@ const AdminNotificationTemplates = () => {
           <CardContent className="grid gap-3">
             {eventBanners.map((banner) => (
               <div key={banner.url} className="rounded-xl overflow-hidden border border-white/10 bg-white/[0.04]">
-                <img src={banner.url} alt={banner.title} className="w-full aspect-[4/1.8] object-cover" loading="lazy" />
+                <SmartImage src={banner.url} alt={banner.title} className="w-full aspect-[4/1.8] object-cover" loading="lazy" />
               </div>
             ))}
           </CardContent>
@@ -481,7 +482,7 @@ const AdminNotificationTemplates = () => {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {aiBanners.map((b) => (
                     <div key={b.url} className="rounded-xl overflow-hidden border border-white/10 bg-black/30">
-                      <img src={b.url} alt={b.eventName} className="w-full object-cover" style={{ aspectRatio: `${b.w} / ${b.h}` }} />
+                      <SmartImage src={b.url} alt={b.eventName} className="w-full object-cover" style={{ aspectRatio: `${b.w} / ${b.h}` }} />
                       <div className="p-2 flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-white/90 truncate">{b.eventName}</p>
@@ -512,7 +513,7 @@ const AdminNotificationTemplates = () => {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   {template.image_url ? (
-                      <img src={template.image_url} alt={getTemplateLabel(template.template_key)} className="w-11 h-11 rounded-xl object-cover bg-white/10" loading="lazy" />
+                      <SmartImage src={template.image_url} alt={getTemplateLabel(template.template_key)} className="w-11 h-11 rounded-xl object-cover bg-white/10" loading="lazy" />
                     ) : (
                       <span className="text-2xl">{template.icon_emoji || getTemplateIcon(template.template_key)}</span>
                     )}
@@ -682,7 +683,7 @@ const AdminNotificationTemplates = () => {
             <div className="bg-purple-500/10 rounded-xl p-4 border border-purple-500/20">
               <div className="flex items-start gap-3">
                 {previewContent.image_url ? (
-                  <img src={previewContent.image_url} alt="Notification preview" className="w-12 h-12 rounded-xl object-cover bg-white/10" />
+                  <SmartImage src={previewContent.image_url} alt="Notification preview" className="w-12 h-12 rounded-xl object-cover bg-white/10" />
                 ) : (
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white">
                     {previewContent.icon_emoji || <Bell className="w-5 h-5" />}
