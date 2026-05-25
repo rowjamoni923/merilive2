@@ -52,7 +52,24 @@ export const useAdminAccess = () => {
     queryKey: ["verified-admin-id", adminId, session?.session_token],
     queryFn: async () => {
       if (!adminId) return null;
-      const { data, error } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+      let { data, error } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+      // Self-heal: legacy admin_sessions rows without device_fingerprint break
+      // the strict header→admin lookup. Re-run device-access RPC and retry once.
+      if ((error || !data) && session?.device_fingerprint) {
+        try {
+          await adminSupabase.rpc('admin_request_device_access' as any, {
+            _admin_id: adminId,
+            _device_fingerprint: session.device_fingerprint,
+            _device_name: session.display_name || null,
+            _device_info: { ua: typeof navigator !== 'undefined' ? navigator.userAgent : null },
+            _ip_address: null,
+            _user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+          });
+          const retry = await adminSupabase.rpc('current_admin_id_from_header' as any);
+          data = retry.data as any;
+          error = retry.error as any;
+        } catch { /* fall through */ }
+      }
       if (error || !data) return null;
       return String(data);
     },
