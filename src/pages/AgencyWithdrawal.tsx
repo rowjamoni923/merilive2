@@ -40,6 +40,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrencyRateMap } from "@/utils/currencyRatesCache";
+
 import { getAppSetting } from "@/utils/appSettingsCache";
 import { toast } from "sonner";
 import { recordClientError } from "@/utils/clientErrorLog";
