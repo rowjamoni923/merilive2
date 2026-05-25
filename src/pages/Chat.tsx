@@ -2981,17 +2981,17 @@ const Chat = () => {
                   <div className={cn(
                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border backdrop-blur-xl",
                     inlineTranslateEnabled 
-                      ? "bg-gradient-to-br from-purple-500/30 to-violet-500/30 border-purple-400/40 shadow-lg shadow-purple-500/20" 
- :"bg-white/[0.06] border-slate-200/[0.08] hover:bg-white/[0.1]"
+                      ? "bg-gradient-to-br from-primary/30 to-secondary/30 border-primary/40 shadow-lg shadow-purple-500/20" 
+ :"bg-card/70 border-border hover:bg-muted"
                   )}>
                     <Languages className={cn(
                       "w-5 h-5",
-                      inlineTranslateEnabled ? "text-purple-300" : "text-slate-700"
+                      inlineTranslateEnabled ? "text-primary" : "text-foreground"
                     )} />
                   </div>
                   <span className={cn(
                     "text-[9px] font-semibold",
-                    inlineTranslateEnabled ? "text-purple-300" : "text-slate-600"
+                    inlineTranslateEnabled ? "text-primary" : "text-muted-foreground"
                   )}>
                     {inlineTranslateEnabled ? "ON" : "Translate"}
                   </span>
@@ -3006,7 +3006,7 @@ const Chat = () => {
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/25 backdrop-blur-xl hover:from-pink-500/30 hover:to-rose-500/30 transition-all duration-300">
                     <Gift className="w-5 h-5 text-pink-400" />
                   </div>
-                  <span className="text-[9px] font-semibold text-slate-600">Gift</span>
+                  <span className="text-[9px] font-semibold text-muted-foreground">Gift</span>
                 </motion.button>
                 
                 {/* Games */}
@@ -3018,7 +3018,7 @@ const Chat = () => {
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/25 backdrop-blur-xl hover:from-indigo-500/30 hover:to-blue-500/30 transition-all duration-300">
                     <Gamepad2 className="w-5 h-5 text-indigo-400" />
                   </div>
-                  <span className="text-[9px] font-semibold text-slate-600">Games</span>
+                  <span className="text-[9px] font-semibold text-muted-foreground">Games</span>
                 </motion.button>
                 
                 {/* Video Call */}
@@ -3037,7 +3037,7 @@ const Chat = () => {
                       <VideoCallIcon className="w-5 h-5 text-rose-400 relative z-10" />
                     </div>
                     <div className="flex flex-col items-center">
-                      <span className="text-[9px] font-semibold text-slate-600">Video Call</span>
+                      <span className="text-[9px] font-semibold text-muted-foreground">Video Call</span>
                       {selectedConversation.other_user.call_rate_per_minute && selectedConversation.other_user.call_rate_per_minute > 0 && (
                         <span className="text-[8px] text-amber-400/70 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
                       )}
