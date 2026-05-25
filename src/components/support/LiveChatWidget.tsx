@@ -167,12 +167,6 @@ const LiveChatWidget = ({ onClose }: LiveChatWidgetProps) => {
 
       // 🔥 AWS Comprehend toxic content moderation (background)
       checkToxic(text, { contextType: 'support' }).catch(() => {});
-
-      // Update ticket status back to open so admin sees it
-      await supabase
-        .from("support_tickets")
-        .update({ status: "open", updated_at: new Date().toISOString() })
-        .eq("id", ticketId);
     } catch (error) {
       console.error("Send error:", error);
     } finally {

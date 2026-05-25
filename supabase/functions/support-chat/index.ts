@@ -47,6 +47,19 @@ function rateLimit(userId: string): boolean {
   return true;
 }
 
+function normalizeMessages(input: unknown): { role: "user" | "assistant"; content: string }[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .slice(-12)
+    .map((message) => {
+      const record = message && typeof message === "object" ? message as Record<string, unknown> : {};
+      const role = record.role === "assistant" ? "assistant" : "user";
+      const content = typeof record.content === "string" ? record.content.trim().slice(0, 1200) : "";
+      return { role, content };
+    })
+    .filter((message) => message.content.length > 0);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -89,7 +102,7 @@ serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const messages = Array.isArray(body?.messages) ? body.messages : [];
+    const messages = normalizeMessages(body?.messages);
     if (messages.length === 0) {
       return new Response(
         JSON.stringify({ error: "messages required" }),

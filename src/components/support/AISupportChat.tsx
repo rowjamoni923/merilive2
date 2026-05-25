@@ -16,6 +16,7 @@ interface Message {
   content: string;
   timestamp: Date;
   attachmentUrl?: string;
+  attachmentPath?: string;
   attachmentType?: string; // 'image' | 'voice'
   voiceTranscript?: string;
 }
@@ -328,6 +329,7 @@ const AISupportChat = ({
         content: "📷 Sent an image",
         timestamp: new Date(),
         attachmentUrl: uploaded.previewUrl,
+        attachmentPath: uploaded.path,
         attachmentType: "image",
       };
       setMessages(prev => [...prev, userMessage]);
@@ -441,6 +443,7 @@ const AISupportChat = ({
         content: transcript ? `🎤 Voice: "${transcript}"` : "🎤 Sent a voice message",
         timestamp: new Date(),
         attachmentUrl: uploaded.previewUrl,
+        attachmentPath: uploaded.path,
         attachmentType: "voice",
         voiceTranscript: transcript,
       };
@@ -556,7 +559,7 @@ const AISupportChat = ({
               sender_id: userId,
               sender_type: "user",
               content: attachMsg.content,
-              attachment_url: attachMsg.attachmentUrl,
+              attachment_url: attachMsg.attachmentPath || extractSupportAttachmentPath(attachMsg.attachmentUrl),
               attachment_type: attachMsg.attachmentType,
               voice_transcript: attachMsg.voiceTranscript || null,
             } as any);
@@ -679,10 +682,6 @@ const AISupportChat = ({
           translated_content: translatedContent || null,
           original_language: "auto",
         } as any);
-        await supabase
-          .from("support_tickets")
-          .update({ status: "open", updated_at: new Date().toISOString() })
-          .eq("id", liveChatTicketId);
       } catch (error) {
         console.error("Send error:", error);
       }
