@@ -2511,7 +2511,8 @@ const Chat = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                </div>
+                  </div>
+                </React.Fragment>
               );
             })
           )}
