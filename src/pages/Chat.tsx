@@ -2538,6 +2538,19 @@ const Chat = () => {
                           </div>
                         );
                       })()}
+                      {/* Reactions */}
+                      {messageReactions[msg.id] && messageReactions[msg.id].length > 0 && (
+                        <div className={cn(
+                          "flex flex-wrap gap-1 mt-0.5",
+                          isMine ? "justify-end" : "justify-start"
+                        )}>
+                          {messageReactions[msg.id].map((emoji, i) => (
+                            <span key={i} className="text-[13px] leading-none bg-card/80 rounded-full px-1 py-0.5 shadow-sm border border-border">
+                              {emoji}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     
                     {/* Three Dot Menu for each message */}
