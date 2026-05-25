@@ -131,6 +131,7 @@ import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { Capacitor } from "@capacitor/core";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
 
 interface PKBattleState {
@@ -342,7 +343,7 @@ const LiveStream = () => {
       message: msg.message || "",
       color: "text-white",
       userLevel: profile?.user_level || 1,
-      userAvatar: profile?.avatar_url || undefined,
+      userAvatar: normalizeProfileMediaUrl(profile?.avatar_url) || profile?.avatar_url || undefined,
       isHost: msg.user_id === hostId,
       isNewUser,
       countryFlag: profile?.country_flag || undefined,
