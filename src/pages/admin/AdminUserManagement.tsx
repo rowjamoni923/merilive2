@@ -381,8 +381,11 @@ export default function AdminUserManagement() {
   // Face Verification state
   const [faceSubmissions, setFaceSubmissions] = useState<FaceVerificationSubmission[]>([]);
   const [faceSearchQuery, setFaceSearchQuery] = useState("");
+  const debouncedFaceSearchQuery = useDebouncedValue(faceSearchQuery, 250);
+  const debouncedAppSearchQuery = useDebouncedValue(appSearchQuery, 250);
   const [faceActiveTab, setFaceActiveTab] = useState("pending");
   const [faceMismatchOnly, setFaceMismatchOnly] = useState(false);
+  const [faceServerStats, setFaceServerStats] = useState<StatusCounts>(EMPTY_FACE_STATS);
   const [selectedFaceSubmission, setSelectedFaceSubmission] = useState<FaceVerificationSubmission | null>(null);
   const [showFaceDetailModal, setShowFaceDetailModal] = useState(false);
   const [showFaceActionModal, setShowFaceActionModal] = useState(false);
@@ -420,6 +423,7 @@ export default function AdminUserManagement() {
   
   const pageSize = 20;
   const inFlightActionsRef = useRef<Set<string>>(new Set());
+  const faceFetchRequestIdRef = useRef(0);
 
   const startSingleFlight = (key: string) => {
     if (inFlightActionsRef.current.has(key)) return false;
