@@ -1909,8 +1909,14 @@ const Chat = () => {
       // Upload group photo if selected
       if (newGroupPhoto) {
         const ext = (newGroupPhoto.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!newGroupPhoto.type?.startsWith('image/') || ext === 'svg') {
+          throw new Error('Invalid group photo type');
+        }
         const path = `group-avatars/${newGroup.id}.${ext || 'jpg'}`;
-        const { error: upErr } = await supabase.storage.from('assets').upload(path, newGroupPhoto, { upsert: true });
+        const { error: upErr } = await supabase.storage.from('assets').upload(path, newGroupPhoto, {
+          upsert: true,
+          contentType: newGroupPhoto.type,
+        });
         if (!upErr) {
           const { data: urlData } = supabase.storage.from('assets').getPublicUrl(path);
           await supabase.from('groups').update({ avatar_url: `${urlData.publicUrl}?t=${Date.now()}` }).eq('id', newGroup.id);
@@ -2006,13 +2012,15 @@ const Chat = () => {
         }
       }
 
-      await supabase
+      const { error: joinError } = await supabase
         .from('group_members')
         .insert({
           group_id: groupId,
           user_id: currentUserId,
           role: 'member'
         });
+
+      if (joinError) throw joinError;
 
       toast.success("Joined group successfully!");
       setShowSearchGroup(false);
