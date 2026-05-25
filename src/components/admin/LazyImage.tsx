@@ -1,12 +1,11 @@
 /**
- * LazyImage — IntersectionObserver-based lazy image loader for admin tables.
+ * LazyImage (admin) — formerly IntersectionObserver-based, now eager.
  *
- * Defaults:
- * - loading="lazy" + decoding="async"
- * - Tiny placeholder until visible, then swaps src
- * - Skeleton shimmer while loading
+ * Per user mandate: no image in the app or admin panel should appear
+ * "broken-up" or load in pieces. All images load instantly. API kept
+ * stable so existing call sites compile unchanged.
  */
-import React, { useEffect, useRef, useState, memo } from 'react';
+import React, { memo, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface LazyImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'loading'> {
@@ -28,51 +27,28 @@ const LazyImage: React.FC<LazyImageProps> = ({
   alt = '',
   ...rest
 }) => {
-  const ref = useRef<HTMLImageElement>(null);
-  const [visible, setVisible] = useState(false);
   const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || visible) return;
-    if (typeof IntersectionObserver === 'undefined') {
-      setVisible(true);
-      return;
-    }
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            setVisible(true);
-            obs.disconnect();
-          }
-        });
-      },
-      { rootMargin: '120px' }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [visible]);
-
-  const finalSrc = visible && src ? src : fallback;
+  const finalSrc = src || fallback;
   const sizeStyle = size ? { width: size, height: size } : undefined;
 
   return (
     <img
-      ref={ref}
       src={finalSrc}
       alt={alt}
-      loading="lazy"
+      loading="eager"
       decoding="async"
+      fetchPriority="high"
       onLoad={() => setLoaded(true)}
-      onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; setLoaded(true); }}
+      onError={(e) => {
+        const t = e.currentTarget;
+        if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg';
+        setLoaded(true);
+      }}
       style={sizeStyle}
       className={cn(
-        'object-cover transition-opacity duration-300',
+        'object-cover',
         rounded && 'rounded-full',
-        !loaded && visible && 'opacity-0',
-        loaded && 'opacity-100',
-        !visible && 'bg-slate-800/40',
+        !loaded && 'bg-slate-800/40',
         className
       )}
       {...rest}
