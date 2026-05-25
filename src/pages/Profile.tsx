@@ -1,5 +1,5 @@
 // Profile Page - Main user profile view
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import diamondGem3D from "@/assets/diamond-gem-3d.png";
 
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -157,6 +157,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [traderId, setTraderId] = useState<string | null>(null);
   const [isInActiveAgency, setIsInActiveAgency] = useState(false);
   const [userVIPTier, setUserVIPTier] = useState<number>(0);
+  const [hostAvailability, setHostAvailability] = useState<string>('online');
 
   const isWeakIdentityName = (value?: string | null) => {
     const normalized = value?.trim().toLowerCase() || "";
@@ -511,6 +512,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
         if (!isMounted) return;
         setProfile(profileData);
+
+        // Sync host availability state
+        if (profileData?.host_availability) {
+          setHostAvailability(profileData.host_availability);
+        }
 
         // Cache profile for instant reload/tab-switch restore (persistent + 24h TTL guard)
         if (profileData) {
@@ -1422,26 +1428,46 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return levelRate?.rate || callRateSettings?.default_rate || 2000;
   };
 
+  // Pkg336: Host availability toggle handler (moved from ProfileDetail to Profile menu)
+  const handleToggleAvailability = useCallback(async () => {
+    if (!currentUser?.id) return;
+    const prev = hostAvailability;
+    const newStatus = prev === 'online' ? 'offline' : 'online';
+    setHostAvailability(newStatus);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ host_availability: newStatus })
+      .eq('id', currentUser.id);
+
+    if (error) {
+      setHostAvailability(prev);
+      toast({
+        title: "Failed to update status",
+        description: error.message || undefined,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: newStatus === 'online' ? "You are now Online" : "You are now Offline",
+        description: newStatus === 'online'
+          ? "Users can see and call you"
+          : "You won't appear on the home page and incoming calls are blocked",
+      });
+    }
+  }, [currentUser?.id, hostAvailability, toast]);
+
   const menuItems = [
     // Go Offline button - ONLY for hosts
-    { 
-      icon: Power, 
-      label: "Go Offline", 
-      path: "", 
-      iconBg: "bg-red-100",
-      iconColor: "text-red-500",
-      show: isOwnProfile && profile?.is_host === true,
-      onClick: async () => {
-        if (!currentUser?.id) return;
-        const confirmed = window.confirm("Are you sure you want to go offline? You will be logged out and won't receive calls or messages.");
-        if (!confirmed) return;
-        // INSTANT: flag + navigate first, cleanup in background
-        try { localStorage.setItem('meri_manual_logout', 'true'); } catch {}
-        navigate('/auth', { replace: true });
-        void goOfflineManually(currentUser.id).catch(() => {});
-        void supabase.auth.signOut({ scope: 'local' }).catch(() => {});
-        void import('@/utils/nativeSessionStorage').then(({ clearNativeSession }) => clearNativeSession()).catch(() => {});
-      }
+    {
+      icon: Power,
+      label: hostAvailability === 'online' ? "Go Offline" : "Go Online",
+      path: "",
+      rightText: hostAvailability === 'online' ? "Online" : "Offline",
+      iconBg: hostAvailability === 'online' ? "bg-red-100" : "bg-green-100",
+      iconColor: hostAvailability === 'online' ? "text-red-500" : "text-green-500",
+      show: isOwnProfile && profile?.is_host === true && (profile as any)?.host_status === 'approved',
+      onClick: handleToggleAvailability,
     },
     // Messages always at top for all users
     { 
