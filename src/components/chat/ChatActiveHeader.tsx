@@ -134,17 +134,17 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 min-h-[14px]">
             {!isGroup && isOtherTyping ? (
-              <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+              <span className="text-[11px] text-success-600 font-semibold flex items-center gap-1">
                 <span className="flex gap-0.5">
-                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <span className="w-1 h-1 rounded-full bg-success animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1 h-1 rounded-full bg-success animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1 h-1 rounded-full bg-success animate-bounce" style={{ animationDelay: "300ms" }} />
                 </span>
                 typing…
               </span>
             ) : !isGroup && (
               selectedConversation?.other_user?.is_online ? (
-                <span className="text-[11px] text-emerald-600 font-medium">online</span>
+                <span className="text-[11px] text-success-600 font-medium">online</span>
               ) : (
                 <span className="text-[11px] text-muted-foreground font-medium truncate">
                   last seen {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false).toLowerCase()}
@@ -167,7 +167,7 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
             className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 active:scale-95 transition-all"
             aria-label="Video call"
           >
-            <VideoCallIcon className="w-[18px] h-[18px] text-emerald-600" />
+            <VideoCallIcon className="w-[18px] h-[18px] text-success-600" />
           </button>
         )}
 
@@ -201,7 +201,7 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
               align="end"
               className="bg-popover text-popover-foreground border border-border rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto"
             >
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
               <DropdownMenuItem
                 onClick={() => {
@@ -211,7 +211,7 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
                 className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
               >
                 <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-purple-400" />
+                  <Users className="w-4 h-4 text-primary" />
                 </div>
                 <span className="font-medium text-sm">View Profile</span>
               </DropdownMenuItem>
@@ -230,10 +230,10 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
                     toast.error("Failed to block user");
                   }
                 }}
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/[0.08] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
               >
                 <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/20 flex items-center justify-center">
-                  <X className="w-4 h-4 text-red-400" />
+                  <X className="w-4 h-4 text-destructive" />
                 </div>
                 <span className="font-medium text-sm">Block User</span>
               </DropdownMenuItem>
@@ -243,10 +243,10 @@ export const ChatActiveHeader: React.FC<ChatActiveHeaderProps> = ({
                   e.preventDefault();
                   setTimeout(() => setShowReportDialog(true), 100);
                 }}
-                className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/[0.08] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                className="text-warning-600 hover:text-warning-700 hover:bg-warning/10 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
               >
-                <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center">
-                  <ShieldAlert className="w-4 h-4 text-amber-400" />
+                <div className="w-8 h-8 rounded-lg bg-warning/15 border border-warning/20 flex items-center justify-center">
+                  <ShieldAlert className="w-4 h-4 text-warning-600" />
                 </div>
                 <span className="font-medium text-sm">Report</span>
               </DropdownMenuItem>
