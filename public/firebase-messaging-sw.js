@@ -227,14 +227,91 @@ self.addEventListener('fetch', function(event) {
 
 self.addEventListener('message', function(event) {
   var data = event.data || {};
-  if (data.type !== 'MERI_CLEAR_APP_ASSET_CACHE') return;
+  if (data.type === 'MERI_CLEAR_APP_ASSET_CACHE') {
+    event.waitUntil(
+      caches.keys().then(function(keys) {
+        return Promise.all(keys.filter(function(k) {
+          return k.indexOf('meri-assets-') === 0 || k.indexOf('meri-img-cache-') === 0;
+        }).map(function(k) { return caches.delete(k); }));
+      }).catch(function() {})
+    );
+  }
+});
 
-  event.waitUntil(
-    caches.keys().then(function(keys) {
-      return Promise.all(keys.filter(function(k) {
-        return k.indexOf('meri-assets-') === 0;
-      }).map(function(k) { return caches.delete(k); }));
-    }).catch(function() {})
+// =============================================
+// 🖼️ CROSS-ORIGIN IMAGE CACHE — merged from image-cache-sw.js
+// Cache-first for avatars, banners, gifts, reels from Supabase/CDN.
+// Makes repeat visits instant (<50ms) for every photo.
+// =============================================
+var IMG_CACHE_NAME = 'meri-img-cache-v3';
+var IMG_MAX_ENTRIES = 600;
+
+var IMG_HOST_RE = /(supabase\.co\/storage|supabase\.in\/storage|images?\.|cdn\.|cloudflarestorage|googleusercontent|cloudinary|imgur)/i;
+var IMG_EXT_RE = /\.(png|jpe?g|webp|avif|gif|svg|ico)(\?|$)/i;
+var PRIVATE_STORAGE_RE = /\/storage\/v1\/.*\/(face-verification|host-verification|payment-proofs|payment-screenshots|helper-screenshots|rating-screenshots|support-attachments|live-recordings|chat-media)\//i;
+
+function isImageRequest(req) {
+  if (req.method !== 'GET') return false;
+  if (req.destination === 'image') return true;
+  var url = req.url;
+  if (IMG_EXT_RE.test(url)) return true;
+  if (IMG_HOST_RE.test(url) && /image|object|public/i.test(url)) return true;
+  return false;
+}
+
+async function trimImgCache(cache) {
+  var keys = await cache.keys();
+  if (keys.length <= IMG_MAX_ENTRIES) return;
+  var remove = keys.length - IMG_MAX_ENTRIES;
+  for (var i = 0; i < remove; i++) await cache.delete(keys[i]);
+}
+
+self.addEventListener('fetch', function(event) {
+  var req = event.request;
+  if (!isImageRequest(req)) return;
+  // Skip range requests (video chunks sometimes look like images)
+  if (req.headers.get('range')) return;
+  // Skip private/sensitive buckets
+  if (PRIVATE_STORAGE_RE.test(req.url)) return;
+  // Only handle cross-origin images here; same-origin assets handled above
+  try {
+    var url = new URL(req.url);
+    if (url.origin === self.location.origin) return;
+  } catch (e) { return; }
+
+  event.respondWith(
+    caches.open(IMG_CACHE_NAME).then(function(cache) {
+      return cache.match(req, { ignoreVary: true }).then(function(cached) {
+        // Stale-while-revalidate: return cached immediately, refresh in background
+        var networkPromise = fetch(req).then(function(res) {
+          if (res && (res.ok || res.type === 'opaque')) {
+            cache.put(req, res.clone()).then(function() { trimImgCache(cache); }).catch(function() {});
+          }
+          return res;
+        }).catch(function() { return cached; });
+
+        return cached || networkPromise;
+      });
+    })
   );
+});
+
+// Handle warm-up messages from the app (pre-load critical images)
+self.addEventListener('message', function(event) {
+  var data = event.data || {};
+  if (data.type === 'WARM_IMAGES' && Array.isArray(data.urls)) {
+    event.waitUntil(
+      caches.open(IMG_CACHE_NAME).then(function(cache) {
+        return Promise.all(data.urls.slice(0, 200).map(function(u) {
+          return cache.match(u, { ignoreVary: true }).then(function(hit) {
+            if (hit) return;
+            return fetch(u, { mode: 'no-cors' }).then(function(res) {
+              if (res) return cache.put(u, res.clone());
+            }).catch(function() {});
+          });
+        })).then(function() { return trimImgCache(cache); });
+      })
+    );
+  }
 });
 
