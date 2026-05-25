@@ -54,7 +54,7 @@ import DeviceApprovalSection from "@/components/admin/DeviceApprovalSection";
 import OwnerAccessLinkGenerator from "@/components/admin/OwnerAccessLinkGenerator";
 import VaultPinManager from "@/components/admin/VaultPinManager";
 import { recordAdminError } from "@/utils/adminErrorLog";
-import { PRODUCTION_DOMAIN } from "@/utils/shareLinks";
+import { getAdminLinkOrigin } from "@/utils/adminLinkOrigin";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 const supabase = adminSupabase;
@@ -400,7 +400,7 @@ const AdminSubAdmins = () => {
   
   const getLoginLink = (email: string) => {
     const token = subAdminTokenForLinks || '';
-    return `${PRODUCTION_DOMAIN}/admin/auth?access=${token}&email=${encodeURIComponent(email)}`;
+    return `${getAdminLinkOrigin()}/admin/auth?access=${token}&email=${encodeURIComponent(email)}`;
   };
 
   const resetCreateForm = () => {
