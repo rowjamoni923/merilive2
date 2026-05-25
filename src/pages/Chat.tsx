@@ -74,6 +74,9 @@ import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { pickDisplayLevel } from "@/utils/displayLevel";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+import { ChatListView } from "@/components/chat/ChatListView";
+import { ChatDialogs } from "@/components/chat/ChatDialogs";
+import { ChatActiveHeader } from "@/components/chat/ChatActiveHeader";
 
 interface Conversation {
   id: string;
@@ -2023,213 +2026,26 @@ const Chat = () => {
 
     return (
       <div className="fixed inset-0 flex flex-col overflow-hidden profile-home-shell">
-        {/* Chat Header - z-index MUST be lower than GiftPanel backdrop (9998) */}
-        <header className="flex-shrink-0 safe-area-top profile-home-card" style={{ zIndex: 10, position: 'relative', borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
-          <div className="flex items-center gap-3 px-3 py-2.5 h-14">
-            {/* Back Button */}
-            <button
-              type="button"
-              className="flex items-center justify-center w-9 h-9 rounded-full profile-home-icon-button active:scale-95 transition-all duration-150 shrink-0"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setSelectedConversation(null);
-                setSelectedGroup(null);
-                setMessages([]);
-                setGroupMessages([]);
-                fetchConversations();
-                fetchGroups();
-              }}
-            >
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
-            
-            {/* User Avatar with Premium Frame */}
-            {!isGroup && selectedConversation?.other_user?.id ? (
-              <div 
-                className="shrink-0 cursor-pointer"
-                onClick={() => {
-                  const userId = selectedConversation?.other_user?.id;
-                  if (userId) navigate(`/profile-detail/${userId}`);
-                }}
-              >
-                <AvatarWithFrame
-                  userId={selectedConversation.other_user.id}
-                  src={chatAvatar}
-                  name={chatName}
-                  level={userLevel}
-                  size="sm"
-                  showAnimation={true}
-                  showGlow={true}
-                  isOnline={selectedConversation?.other_user?.is_online || false}
-                />
-              </div>
-            ) : (
-              <div 
-                className="cursor-pointer shrink-0"
-                onClick={() => {
-                  const userId = isGroup ? selectedGroup?.owner_id : selectedConversation?.other_user?.id;
-                  if (userId) navigate(`/profile-detail/${userId}`);
-                }}
-              >
-                <AvatarWithFrame
-                  userId={isGroup ? selectedGroup?.owner_id : undefined}
-                  src={chatAvatar || undefined}
-                  name={chatName || "U"}
-                  level={1}
-                  size="sm"
-                  showFrame={!isGroup}
-                />
-              </div>
-            )}
-            
-            {/* User Info - Center */}
-            <div 
-              className="flex-1 min-w-0 cursor-pointer"
-              onClick={() => {
-                const userId = isGroup ? selectedGroup?.owner_id : selectedConversation?.other_user?.id;
-                if (userId) navigate(`/profile-detail/${userId}`);
-              }}
-            >
-              <div className="flex items-center gap-1.5">
-                <h2 className="font-semibold text-foreground text-[15px] leading-tight truncate max-w-[150px]">
-                  {chatName}
-                </h2>
-                {!isGroup && (
-                  <div className="flex items-center gap-0.5 bg-gradient-gold text-accent-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
-                    <Crown className="w-2.5 h-2.5" />
-                    <span>Lv.{userLevel}</span>
-                  </div>
-                )}
-                {!isGroup && otherUserTrader.isTrader && (
-                  <TraderBadge level={otherUserTrader.traderLevel} size="xs" />
-                )}
-                {!isGroup && countryFlag && (
-                  <span className="text-[11px] leading-none">{countryFlag}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 mt-0.5 min-h-[14px]">
-                {!isGroup && isOtherTyping ? (
-                  <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <span className="flex gap-0.5">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </span>
-                    typing…
-                  </span>
-                ) : !isGroup && (
-                  selectedConversation?.other_user?.is_online ? (
-                    <span className="text-[11px] text-emerald-600 font-medium">online</span>
-                  ) : (
-                    <span className="text-[11px] text-muted-foreground font-medium truncate">
-                      last seen {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false).toLowerCase()}
-                    </span>
-                  )
-                )}
-                {isGroup && (
-                  <span className="text-[11px] text-muted-foreground font-medium">{selectedGroup?.member_count || 0} members</span>
-                )}
-              </div>
-            </div>
-
-            {/* WhatsApp-style inline Video Call button (host + online only) */}
-            {!isGroup && selectedConversation?.other_user?.is_host && selectedConversation?.other_user?.is_online && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (selectedConversation?.other_user?.id) startCall(selectedConversation.other_user.id);
-                }}
-                className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 active:scale-95 transition-all"
-                aria-label="Video call"
-              >
-                <VideoCallIcon className="w-[18px] h-[18px] text-emerald-600" />
-              </button>
-            )}
-
-            {/* Group Settings Button */}
-            {isGroup && (
-              <button
-                type="button"
-                className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 relative z-20"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('[Chat] ⚙️ Settings button clicked, selectedGroup:', selectedGroup?.id);
-                  setShowGroupSettings(true);
-                }}
-              >
-                <Settings className="w-5 h-5 text-foreground pointer-events-none" />
-              </button>
-            )}
-
-            {/* Three Dot Menu for 1-on-1 chats - Block, Report, Profile */}
-            {!isGroup && (
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="w-9 h-9 rounded-full profile-home-icon-button flex items-center justify-center shrink-0 relative z-20 backdrop-blur-xl"
-                  >
-                    <MoreVertical className="w-5 h-5 text-foreground pointer-events-none" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-popover text-popover-foreground border border-border rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
-                  {/* Decorative top glow */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-                  
-                  <DropdownMenuItem
-                    onClick={() => {
-                      const otherId = selectedConversation?.other_user?.id;
-                      if (otherId) navigate(`/profile-detail/${otherId}`);
-                    }}
-                    className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
-                      <Users className="w-4 h-4 text-purple-400" />
-                    </div>
-                    <span className="font-medium text-sm">View Profile</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      const otherId = selectedConversation?.other_user?.id;
-                      if (!otherId || !currentUserId) return;
-                      try {
-                        await supabase.from('user_blocks').insert({
-                          blocker_id: currentUserId,
-                          blocked_id: otherId
-                        });
-                        toast.success("User blocked");
-                        navigate('/chat');
-                      } catch {
-                        toast.error("Failed to block user");
-                      }
-                    }}
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/[0.08] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/20 flex items-center justify-center">
-                      <X className="w-4 h-4 text-red-400" />
-                    </div>
-                    <span className="font-medium text-sm">Block User</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setTimeout(() => setShowReportDialog(true), 100);
-                    }}
-                    className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/[0.08] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center">
-                      <ShieldAlert className="w-4 h-4 text-amber-400" />
-                    </div>
-                    <span className="font-medium text-sm">Report</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </header>
+        <ChatActiveHeader
+          selectedConversation={selectedConversation}
+          selectedGroup={selectedGroup}
+          currentUserId={currentUserId}
+          myProfile={myProfile}
+          isOtherTyping={isOtherTyping}
+          otherUserTrader={otherUserTrader}
+          onBack={() => {
+            setSelectedConversation(null);
+            setSelectedGroup(null);
+            setMessages([]);
+            setGroupMessages([]);
+            fetchConversations();
+            fetchGroups();
+          }}
+          startCall={startCall}
+          setShowGroupSettings={setShowGroupSettings}
+          setShowReportDialog={setShowReportDialog}
+          formatLastSeen={formatLastSeen}
+        />
         
         {/* Messages */}
         <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain chat-wallpaper" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -3331,408 +3147,47 @@ const Chat = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden profile-home-shell">
-      {/* Header - Ultra Premium */}
-      <header className="flex-shrink-0 z-40 safe-area-top profile-home-card" style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
-        <div className="px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-fuchsia-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Messages</h1>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full profile-home-icon-button text-foreground shadow-sm"
-              onClick={() => navigate('/search')}
-            >
-              <MessageCircle className="w-5 h-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full profile-home-icon-button text-foreground shadow-sm"
-              onClick={() => setShowGroupActions(true)}
-            >
-              <Users className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Tabs - Premium Light */}
-        <div className="px-4">
-          <Tabs value={chatTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-card/70 border border-border rounded-xl p-1 shadow-inner">
- <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground">
-                Messages
-                {globalUnread.messages > 0 && (
- <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
-                    {formatBadgeCount(globalUnread.messages)}
-                  </span>
-                )}
-              </TabsTrigger>
- <TabsTrigger value="official" className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground">
-                Official
-                {globalUnread.official > 0 && (
- <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-gold text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
-                    {formatBadgeCount(globalUnread.official)}
-                  </span>
-                )}
-              </TabsTrigger>
- <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground">
-                Notifications
-                {globalUnread.notifications > 0 && (
- <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
-                    {formatBadgeCount(globalUnread.notifications)}
-                  </span>
-                )}
-              </TabsTrigger>
- <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg text-muted-foreground">
-                Groups
-                {groups.length > 0 && (
-                  <span className="ml-1 text-xs text-white/80">({groups.length})</span>
-                )}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+      <ChatListView
+        chatTab={chatTab}
+        onTabChange={handleTabChange}
+        globalUnread={globalUnread}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        loading={loading}
+        conversations={conversations}
+        groups={groups}
+        onSelectConversation={handleSelectConversation}
+        onSelectGroup={handleSelectGroup}
+        onShowGroupActions={() => setShowGroupActions(true)}
+      />
 
-        <div className="px-4 py-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder={chatTab === 'messages' ? "Search conversations..." : "Search groups..."}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-full bg-card/90 border border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm"
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* Scrollable Content */}
-      <div className="flex-1 min-h-0">
-      <main className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
-      
-      {loading ? (
-        <div className="divide-y divide-border">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center gap-3 p-4 animate-pulse">
-              <div className="w-14 h-14 rounded-full bg-muted" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 w-32 bg-muted rounded" />
-                <div className="h-3 w-48 bg-muted rounded" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : chatTab === 'official' ? (
-        // Official Notice Tab
-        <OfficialNoticeList />
-      ) : chatTab === 'notifications' ? (
-        // Notifications Tab
-        <NotificationList />
-      ) : chatTab === 'messages' ? (
-        // Messages Tab
-        filteredConversations.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
-              <MessageCircle className="w-10 h-10 text-purple-400" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2 text-foreground">No conversations yet</h3>
-            <p className="text-muted-foreground text-sm mb-4">Start a conversation with someone!</p>
-            <Button
- className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
-              onClick={() => navigate('/')}
-            >
-              Find Hosts
-            </Button>
-          </div>
-        ) : (
-          <div className="divide-y divide-amber-100/60">
-            {filteredConversations.map((conv) => (
-              <motion.button
-                key={conv.id}
-                onClick={() => handleSelectConversation(conv)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-amber-50/60 transition-all duration-200 relative"
-                whileTap={{ scale: 0.98 }}
-              >
-                {/* Unread glow indicator */}
-                {conv.unread_count > 0 && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-fuchsia-500 to-purple-500 shadow-lg shadow-fuchsia-500/30" />
-                )}
-                <div className="relative">
-                  {conv.other_user?.id ? (
-                    <AvatarWithFrame
-                      userId={conv.other_user.id}
-                      src={conv.other_user?.avatar_url}
-                      name={conv.other_user?.display_name || 'User'}
-                      level={pickDisplayLevel(conv.other_user as any)}
-                      size="md"
-                      showAnimation={false}
-                    />
-                  ) : (
-                    <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
-                      <AvatarImage src={conv.other_user?.avatar_url || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
-                        {conv.other_user?.display_name?.[0] || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  {conv.other_user?.is_online && (
- <span className="absolute bottom-0 right-0 w-4 h-4 gradient-online border-2 border-card rounded-full z-10 shadow-lg shadow-green-500/30" />
-                  )}
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate text-foreground">{conv.other_user?.display_name || 'User'}</h3>
-                    {conv.other_user?.country_flag && (
-                      <span className="text-xs">{conv.other_user.country_flag}</span>
-                    )}
-                    <LevelBadge level={pickDisplayLevel(conv.other_user as any)} size="xs" />
-                    <span className="text-[10px] text-muted-foreground shrink-0 ml-auto font-medium">
-                      {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mt-0.5">
-                    <p className="text-sm text-muted-foreground truncate">{conv.last_message || 'No messages yet'}</p>
-                    {conv.unread_count > 0 && (
- <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
-                        {conv.unread_count}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        )
-      ) : (
-        // Groups Tab
-        filteredGroups.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
-              <Users className="w-10 h-10 text-purple-400" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2 text-foreground">No groups yet</h3>
-            <p className="text-muted-foreground text-sm mb-4">Create or join a group!</p>
-            <Button
- className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
-              onClick={() => setShowGroupActions(true)}
-            >
-              Get Started
-            </Button>
-          </div>
-        ) : (
-          <div className="divide-y divide-amber-100/60">
-            {filteredGroups.map((group) => (
-              <motion.button
-                key={group.id}
-                onClick={() => handleSelectGroup(group)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-amber-50/60 transition-all duration-200"
-                whileTap={{ scale: 0.98 }}
-              >
-                <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
-                  <AvatarImage src={group.avatar_url || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
-                    <Users className="w-6 h-6" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 text-left min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate text-foreground">{group.name}</h3>
-                    <span className="text-xs text-muted-foreground">({group.member_count})</span>
-                  </div>
-                  {group.is_owner && (
- <Badge className="bg-gradient-gold text-accent-foreground border-0 text-xs mt-1">
-                      <Crown className="w-3 h-3 mr-1" />
-                      Owner
-                    </Badge>
-                  )}
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        )
-      )}
-      </main>
-      </div>
-
-      {/* Group Actions Sheet */}
-      <Sheet open={showGroupActions} onOpenChange={setShowGroupActions}>
-        <SheetContent side="bottom" className="rounded-t-3xl border-t border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
-          <SheetHeader>
-            <SheetTitle className="sr-only">Group Actions</SheetTitle>
-          </SheetHeader>
-          <div className="py-6 flex justify-center gap-8">
-            <button
-              className="flex flex-col items-center gap-2"
-              onClick={() => {
-                setShowGroupActions(false);
-                setShowCreateGroup(true);
-              }}
-            >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 border border-fuchsia-500/25 flex items-center justify-center backdrop-blur-xl">
-                <Users className="w-8 h-8 text-fuchsia-400" />
-              </div>
-              <span className="text-sm font-medium text-foreground">Create</span>
-            </button>
-            <button
-              className="flex flex-col items-center gap-2"
-              onClick={() => {
-                setShowGroupActions(false);
-                setShowSearchGroup(true);
-              }}
-            >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/25 flex items-center justify-center backdrop-blur-xl">
-                <Search className="w-8 h-8 text-purple-400" />
-              </div>
-              <span className="text-sm font-medium text-foreground">Search</span>
-            </button>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Create Group Dialog */}
-      <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
-        <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Create a group</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="groupName" className="text-foreground font-medium">Group Name</Label>
-              <Input
-                id="groupName"
-                placeholder="Enter group name"
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                className="bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
-              />
-            </div>
-
-            <div className="flex justify-center">
-              <button 
-                className="w-20 h-20 rounded-full border-2 border-dashed border-accent/60 flex items-center justify-center hover:bg-muted transition-colors overflow-hidden"
-                onClick={() => groupPhotoInputRef.current?.click()}
-              >
-                {newGroupPhotoPreview ? (
-                  <img src={newGroupPhotoPreview} alt="Group" className="w-full h-full object-cover" />
-                ) : (
-                  <Camera className="w-8 h-8 text-purple-400/50" />
-                )}
-              </button>
-              <input
-                ref={groupPhotoInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setNewGroupPhoto(file);
-                    setNewGroupPhotoPreview(URL.createObjectURL(file));
-                  }
-                }}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <RadioGroup value={newGroupType} onValueChange={setNewGroupType}>
-                <div className="flex items-center space-x-3 p-3 rounded-xl border border-border bg-card/60">
-                  <RadioGroupItem value="basic" id="basic" />
-                  <Label htmlFor="basic" className="flex-1 cursor-pointer">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-purple-400" />
-                      <span className="font-medium text-foreground">Basic Group</span>
-                    </div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3 p-3 rounded-xl border border-border bg-card/60">
-                  <RadioGroupItem value="family" id="family" />
-                  <Label htmlFor="family" className="flex-1 cursor-pointer">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-pink-400" />
-                      <span className="font-medium text-foreground">Family Group</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      One user can join one family group only
-                    </p>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <Button
- className="w-full rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
-              onClick={handleCreateGroup}
-              disabled={!newGroupName.trim() || creatingGroup}
-            >
-              {creatingGroup ? 'Creating...' : 'Create Group'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Search Group Dialog */}
-      <Dialog open={showSearchGroup} onOpenChange={setShowSearchGroup}>
-        <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Search Group</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="relative">
-              <Input
-                placeholder="Search a group by Group ID"
-                value={groupSearchQuery}
-                onChange={(e) => setGroupSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearchGroup()}
- className="pr-12 bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
-              />
-              <Button
-                size="icon"
-                variant="ghost"
- className="absolute right-1 top-1/2 -translate-y-1/2 text-foreground hover:text-foreground hover:bg-muted"
-                onClick={handleSearchGroup}
-              >
-                <Search className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {groupSearchResults.length > 0 && (
-              <div className="space-y-2">
-                {groupSearchResults.map((group) => (
-                  <div
-                    key={group.id}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card/60"
-                  >
-                    <Avatar className="w-12 h-12 ring-2 ring-purple-500/20">
-                      <AvatarImage src={group.avatar_url || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
-                        <Users className="w-5 h-5" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold truncate text-foreground">{group.name}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {group.member_count} members • {group.group_type}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
- className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
-                      onClick={() => handleJoinGroup(group.id)}
-                    >
-                      Join
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {groupSearchQuery && groupSearchResults.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">No groups found</p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
+      <ChatDialogs
+        showGroupActions={showGroupActions}
+        onShowGroupActionsChange={setShowGroupActions}
+        onShowCreateGroup={() => setShowCreateGroup(true)}
+        onShowSearchGroup={() => setShowSearchGroup(true)}
+        showCreateGroup={showCreateGroup}
+        onShowCreateGroupChange={setShowCreateGroup}
+        newGroupName={newGroupName}
+        onNewGroupNameChange={setNewGroupName}
+        newGroupType={newGroupType}
+        onNewGroupTypeChange={setNewGroupType}
+        newGroupPhotoPreview={newGroupPhotoPreview}
+        groupPhotoInputRef={groupPhotoInputRef}
+        onGroupPhotoSelect={(file) => {
+          setNewGroupPhoto(file);
+          setNewGroupPhotoPreview(URL.createObjectURL(file));
+        }}
+        creatingGroup={creatingGroup}
+        onCreateGroup={handleCreateGroup}
+        showSearchGroup={showSearchGroup}
+        onShowSearchGroupChange={setShowSearchGroup}
+        groupSearchQuery={groupSearchQuery}
+        onGroupSearchQueryChange={setGroupSearchQuery}
+        groupSearchResults={groupSearchResults}
+        onSearchGroup={handleSearchGroup}
+        onJoinGroup={handleJoinGroup}
+      />
       {/* Group Settings Panel */}
       {showGroupSettings && selectedGroup && currentUserId && (
         <GroupSettingsPanel
