@@ -12,6 +12,7 @@ interface HelperPaymentMethodsCardProps {
   onManage?: () => void;
   /** Bump this number from the parent after add/delete to force the list to refresh. */
   refreshKey?: number;
+  showManage?: boolean;
 }
 
 interface Row {
@@ -36,6 +37,7 @@ export default function HelperPaymentMethodsCard({
   manageHref = "/level5-helper-dashboard?tab=country-methods&action=add",
   onManage,
   refreshKey = 0,
+  showManage = true,
 }: HelperPaymentMethodsCardProps) {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
@@ -103,13 +105,15 @@ export default function HelperPaymentMethodsCard({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleManage}
-            className="text-[11px] font-bold text-amber-700 hover:text-amber-900 px-2 py-1 rounded-lg hover:bg-amber-100/60 transition-colors"
-          >
-            Manage
-          </button>
+          {showManage && (
+            <button
+              type="button"
+              onClick={handleManage}
+              className="text-[11px] font-bold text-amber-700 hover:text-amber-900 px-2 py-1 rounded-lg hover:bg-amber-100/60 transition-colors"
+            >
+              Manage
+            </button>
+          )}
         </div>
 
         {/* Body */}
