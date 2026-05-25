@@ -66,8 +66,6 @@ const AgencySignup = () => {
 
   // In-App Notification OTP state
   const [appOtp, setAppOtp] = useState("");
-  const [generatedAppOtp, setGeneratedAppOtp] = useState("");
-  const [appVerifiedToken, setAppVerifiedToken] = useState("");
   const [appOtpSent, setAppOtpSent] = useState(false);
   const [appVerified, setAppVerified] = useState(false);
   const [sendingAppOtp, setSendingAppOtp] = useState(false);
@@ -92,10 +90,6 @@ const AgencySignup = () => {
     return () => clearInterval(interval);
   }, [appOtpTimer]);
 
-  const generateVerificationCode = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
-
   const getFunctionErrorMessage = async (error: any, fallback: string) => {
     try {
       const response = error?.context;
@@ -109,8 +103,6 @@ const AgencySignup = () => {
 
   const resetAppOtpState = () => {
     setAppOtp("");
-    setGeneratedAppOtp("");
-    setAppVerifiedToken("");
     setAppOtpSent(false);
     setAppVerified(false);
     setAppOtpTimer(0);
@@ -122,7 +114,6 @@ const AgencySignup = () => {
     setSendingAppOtp(true);
     setAppOtp("");
     setAppVerified(false);
-    setAppVerifiedToken("");
 
     try {
       const { data, error } = await supabase.functions.invoke('agency-app-otp', {
@@ -160,7 +151,6 @@ const AgencySignup = () => {
       if (!data?.success || !data?.verified_token) throw new Error(data?.error || "App OTP verification failed");
 
       setAppVerified(true);
-      setAppVerifiedToken(data.verified_token);
       toast({ title: "✅ App OTP Verified!", description: "In-app verification successful" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "App OTP verification failed", variant: "destructive" });
