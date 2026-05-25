@@ -116,6 +116,21 @@ export default function AdminAuth() {
       return;
     }
     const result = data as any;
+    const linkKind = getAdminLinkKind();
+    if (linkKind === 'owner' && !result.is_owner) {
+      toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
+      revokeAdminAccess();
+      clearAdminSession();
+      setFlow('login');
+      return;
+    }
+    if (linkKind === 'sub_admin' && result.is_owner) {
+      toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
+      revokeAdminAccess();
+      clearAdminSession();
+      setFlow('login');
+      return;
+    }
     const fp = getDeviceFingerprint();
     setAdminSessionToken(result.session_token);
     const { data: deviceData, error: deviceError } = await adminSupabase.rpc('admin_request_device_access' as any, {
