@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { saveAdminSession, clearAdminSession, getAdminSession, setAdminSessionToken } from "@/utils/adminSession";
 import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
-import { grantAdminAccess, revokeAdminAccess } from "@/utils/adminAccessStorage";
+import { grantAdminAccess, revokeAdminAccess, getAdminLinkKind } from "@/utils/adminAccessStorage";
 import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
 import { z } from "zod";
