@@ -632,7 +632,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts, cont
                       <img 
                         src={getProxiedUrl(game.logo_url)} 
                         alt={game.game_name}
-                        className="w-14 h-14 object-cover rounded-xl"
+                        className="w-14 h-14 object-contain rounded-xl"
                         loading="lazy"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
