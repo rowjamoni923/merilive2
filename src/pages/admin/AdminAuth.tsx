@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { saveAdminSession, clearAdminSession, getAdminSession, setAdminSessionToken } from "@/utils/adminSession";
 import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
-import { grantAdminAccess, revokeAdminAccess, getAdminLinkKind, getAdminLinkChallenge } from "@/utils/adminAccessStorage";
+import { grantAdminAccess, revokeAdminAccess, getAdminLinkKind, getAdminLinkChallenge, getAdminLinkToken, setAdminLinkChallenge, setAdminLinkKind } from "@/utils/adminAccessStorage";
 import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -160,6 +160,33 @@ export default function AdminAuth() {
 
     setLoading(true);
     try {
+      const accessToken = getAdminLinkToken() || searchParams.get('access')?.trim() || null;
+      if (!accessToken) {
+        toast.error('Access link missing or expired. Please reopen the secret link.');
+        revokeAdminAccess();
+        clearAdminSession();
+        navigate('/', { replace: true });
+        return;
+      }
+
+      // Always refresh the short-lived server challenge at submit time. The
+      // already-created owner/sub-admin link remains the authority, but users
+      // should not get locked out just because the login page stayed open for
+      // more than a few minutes before they typed credentials.
+      const { data: linkData, error: linkError } = await adminSupabase.functions.invoke('validate-admin-token', {
+        body: { token: accessToken },
+      });
+      if (linkError || !linkData?.valid || typeof linkData.challenge !== 'string') {
+        toast.error('Secret link verification failed. Please use the latest valid admin link.');
+        revokeAdminAccess();
+        clearAdminSession();
+        navigate('/', { replace: true });
+        return;
+      }
+      const refreshedLinkKind = linkData.role === 'owner' ? 'owner' : 'sub_admin';
+      setAdminLinkKind(refreshedLinkKind);
+      setAdminLinkChallenge(linkData.challenge);
+
       // Step 1: Authenticate via custom RPC (no auth.users)
       const { data: authData, error: authError } = await adminSupabase.rpc('admin_authenticate' as any, {
         _email: email.trim().toLowerCase(),
