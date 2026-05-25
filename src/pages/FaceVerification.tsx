@@ -1898,8 +1898,9 @@ const FaceVerification = () => {
           user_id: userId,
           verification_type: 'host',
           status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
-          admin_notes: faceManualReviewRequired ? 'Manual review required: liveness captured but AI/pose detection could not safely auto-approve.' : null,
-          ai_analysis: faceManualReviewRequired ? { manual_review_required: true, reason: 'client_pose_partial_or_antispoof_uncertain' } : null,
+          // ★ Pkg358: do NOT pre-flag manual_review_required — let analyze pipeline decide.
+          admin_notes: faceManualReviewRequired ? 'Client antispoof/pose hinted uncertain — AI pipeline will still attempt auto-approve.' : null,
+          ai_analysis: faceManualReviewRequired ? { client_antispoof_hint: 'pose_partial_or_static' } : null,
           full_name: fullName,
           age: parseInt(age),
           language: language,
