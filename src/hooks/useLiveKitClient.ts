@@ -17,6 +17,7 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { attachLiveKitTokenRefresh } from '@/lib/livekitTokenRefresh';
+import { attachLiveKitRemoteAudioOnce, detachLiveKitRemoteAudio, getLiveKitRemoteAudioKey, primeLiveKitRoomMedia } from '@/lib/livekitMediaSystem';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit, whenNativeLiveKitKillSwitchReady } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
@@ -318,24 +319,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
   }, [getUidForParticipant]);
 
   const attachRemoteAudioOnce = useCallback((track: RemoteTrack, participantIdentity: string, publication?: RemoteTrackPublication) => {
-    const trackKey = `${participantIdentity}:${publication?.trackSid || (track as any).sid || (track as any).mediaStreamTrack?.id || 'audio'}`;
+    const trackKey = getLiveKitRemoteAudioKey('live', participantIdentity, publication, track);
     if (remoteAudioTrackKeysRef.current.has(trackKey)) return;
+    const audioEl = attachLiveKitRemoteAudioOnce({ scope: 'live', key: trackKey, track, muted: isRemoteAudioMutedRef.current });
+    if (!audioEl) return;
     remoteAudioTrackKeysRef.current.add(trackKey);
-
-    const audioEl = track.attach() as HTMLAudioElement;
-    audioEl.dataset.livekitAudioKey = trackKey;
-    audioEl.dataset.livekitRemoteAudio = 'live';
-    audioEl.autoplay = true;
-    audioEl.muted = isRemoteAudioMutedRef.current;
-    audioEl.volume = 1;
-    try { audioEl.setAttribute('playsinline', 'true'); } catch { /* ignore */ }
-    try { (audioEl as any).webkitPlaysInline = true; } catch { /* ignore */ }
-    audioEl.style.display = 'none';
-    // CRITICAL: must be in DOM for mobile WebViews to actually start playback.
-    try { document.body.appendChild(audioEl); } catch { /* ignore */ }
-    audioEl.play().catch(() => {});
     const existing = remoteAudioElementsRef.current.get(participantIdentity) || [];
-    existing.push(audioEl);
+    if (!existing.includes(audioEl)) existing.push(audioEl);
     remoteAudioElementsRef.current.set(participantIdentity, existing);
   }, []);
 
