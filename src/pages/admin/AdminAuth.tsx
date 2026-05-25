@@ -52,11 +52,13 @@ export default function AdminAuth() {
     if (emailParam) setEmail(decodeURIComponent(emailParam));
   }, [searchParams]);
 
-  // If already signed in, redirect
+  // If already signed in on the plain login route, redirect. A fresh secret
+  // link must keep the login form visible so the link role/challenge is checked
+  // again instead of reusing a stale local admin session.
   useEffect(() => {
     const existing = getAdminSession();
     const hasSecretLink = !!searchParams.get('access');
-    if (existing && hasSecretLink) {
+    if (existing && !hasSecretLink) {
       grantAdminAccess(existing.is_owner);
       navigate('/admin', { replace: true });
     }
