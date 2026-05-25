@@ -14,8 +14,18 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function generateTempPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*";
+  const bytes = new Uint8Array(14);
+  crypto.getRandomValues(bytes);
+  return "Temp@" + Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -37,9 +47,9 @@ Deno.serve(async (req) => {
     } catch {
       return json({ error: "Invalid JSON body" }, 400);
     }
-    const user_id = body?.user_id;
-    if (!user_id || typeof user_id !== "string") {
-      return json({ error: "user_id is required" }, 400);
+    const user_id = typeof body?.user_id === "string" ? body.user_id.trim() : "";
+    if (!uuidRegex.test(user_id)) {
+      return json({ error: "Valid user_id is required" }, 400);
     }
 
     const { data: targetAdmin } = await adminClient
@@ -52,11 +62,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Generate temp password
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-    let tempPassword = "Temp@";
-    for (let i = 0; i < 8; i++) {
-      tempPassword += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    const tempPassword = generateTempPassword();
 
     // ── Reset password
     const { error: updateError } = await adminClient.auth.admin.updateUserById(user_id, {
@@ -64,7 +70,7 @@ Deno.serve(async (req) => {
     });
     if (updateError) {
       console.error("[admin-reset-user-password] Update failed:", updateError);
-      return json({ error: "Failed to reset password: " + updateError.message }, 500);
+      return json({ error: "Failed to reset password" }, 500);
     }
 
     // ── Best-effort audit log

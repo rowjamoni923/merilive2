@@ -13,10 +13,19 @@ interface UpdateSubAdminRequest {
   new_password?: string;
 }
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
     console.log("[update-sub-admin] Starting request...");
@@ -31,25 +40,22 @@ serve(async (req) => {
     const auth = await requireAdminSession(req, supabaseAdmin, { ownerOnly: true });
     if (!auth.ok) {
       console.error("[update-sub-admin] Owner admin session rejected:", auth.error);
-      return new Response(
-        JSON.stringify({ error: auth.error }),
-        { status: auth.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ error: auth.error }, auth.status);
     }
     const requestingAdmin = auth.admin;
 
     console.log("[update-sub-admin] Requesting admin:", requestingAdmin.id);
 
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const { admin_user_id, action, new_password }: UpdateSubAdminRequest = body;
 
     console.log("[update-sub-admin] Action:", action, "for admin_user_id:", admin_user_id);
 
-    if (!admin_user_id) {
-      return new Response(
-        JSON.stringify({ error: "admin_user_id is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!admin_user_id || !uuidRegex.test(admin_user_id)) {
+      return json({ error: "Valid admin_user_id is required" }, 400);
+    }
+    if (!["update_password", "toggle_block", "delete"].includes(action)) {
+      return json({ error: "Unknown action" }, 400);
     }
 
     // Get the admin user
@@ -61,19 +67,13 @@ serve(async (req) => {
 
     if (fetchError || !adminUser) {
       console.error("[update-sub-admin] Admin user not found:", fetchError?.message);
-      return new Response(
-        JSON.stringify({ error: "Admin not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ error: "Admin not found" }, 404);
     }
 
     // Cannot modify owner
     if (adminUser.role === "owner") {
       console.error("[update-sub-admin] Cannot modify owner account");
-      return new Response(
-        JSON.stringify({ error: "Owner account cannot be modified" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ error: "Owner account cannot be modified" }, 403);
     }
 
     let result: Record<string, unknown> = { success: true };
@@ -82,11 +82,8 @@ serve(async (req) => {
       case "update_password":
         console.log("[update-sub-admin] Updating password...");
         
-        if (!new_password || new_password.length < 8) {
-          return new Response(
-          JSON.stringify({ error: "Password must be at least 8 characters" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+        if (typeof new_password !== "string" || new_password.length < 8 || new_password.length > 128) {
+          return json({ error: "Password must be 8-128 characters" }, 400);
         }
 
         const { data: passwordResult, error: passwordError } = await supabaseAdmin.rpc("service_set_admin_password", {
@@ -95,10 +92,7 @@ serve(async (req) => {
         });
         if (passwordError || !(passwordResult as any)?.success) {
           console.error("[update-sub-admin] Password update error:", passwordError?.message || (passwordResult as any)?.error);
-          return new Response(
-            JSON.stringify({ error: (passwordResult as any)?.error || "Failed to update password" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+          return json({ error: (passwordResult as any)?.error || "Failed to update password" }, 400);
         }
         console.log("[update-sub-admin] Password updated successfully");
         result.message = "Password changed successfully";
@@ -116,23 +110,11 @@ serve(async (req) => {
 
         if (blockError) {
           console.error("[update-sub-admin] Block toggle error:", blockError.message);
-          return new Response(
-            JSON.stringify({ error: "Failed to change status" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+          return json({ error: "Failed to change status" }, 400);
         }
 
-        // Also disable/enable the auth user
-        if (adminUser.user_id) {
-          const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(
-            adminUser.user_id,
-            { ban_duration: newStatus ? "none" : "876000h" } // ~100 years if blocked
-          );
-          
-          if (banError) {
-            console.error("[update-sub-admin] Auth ban error:", banError.message);
-            // Don't fail completely, DB status is already updated
-          }
+        if (!newStatus) {
+          await supabaseAdmin.from("admin_sessions").delete().eq("admin_user_id", admin_user_id);
         }
 
         console.log("[update-sub-admin] Block status toggled:", newStatus ? "unblocked" : "blocked");
@@ -142,15 +124,8 @@ serve(async (req) => {
 
       case "delete":
         console.log("[update-sub-admin] Deleting sub-admin...");
-        
-        // Delete auth user first
-        if (adminUser.user_id) {
-          const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(adminUser.user_id);
-          if (deleteAuthError) {
-            console.error("[update-sub-admin] Auth delete error:", deleteAuthError.message);
-            // Continue with DB delete anyway
-          }
-        }
+
+        await supabaseAdmin.from("admin_sessions").delete().eq("admin_user_id", admin_user_id);
 
         // Delete admin user record (cascade will delete permissions)
         const { error: deleteError } = await supabaseAdmin
@@ -160,10 +135,7 @@ serve(async (req) => {
 
         if (deleteError) {
           console.error("[update-sub-admin] DB delete error:", deleteError.message);
-          return new Response(
-            JSON.stringify({ error: "Failed to delete sub-admin" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+          return json({ error: "Failed to delete sub-admin" }, 400);
         }
 
         console.log("[update-sub-admin] Sub-admin deleted successfully");
@@ -171,23 +143,13 @@ serve(async (req) => {
         break;
 
       default:
-        return new Response(
-          JSON.stringify({ error: "Unknown action" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return json({ error: "Unknown action" }, 400);
     }
 
-    return new Response(
-      JSON.stringify(result),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json(result, 200);
 
   } catch (error: unknown) {
     console.error("[update-sub-admin] Unexpected error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: "Server error: " + message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({ error: "Server error" }, 500);
   }
 });
