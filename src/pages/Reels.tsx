@@ -102,7 +102,9 @@ const Reels = () => {
   const [newComment, setNewComment] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
+  // Default muted = true so mobile browsers allow autoplay (TikTok/Reels behaviour).
+  // User can tap the speaker icon to unmute (that tap is a user gesture).
+  const [isMuted, setIsMuted] = useState(true);
   const [preSelectedSound, setPreSelectedSound] = useState<Sound | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [reportReason, setReportReason] = useState<string>("");
@@ -577,10 +579,13 @@ const Reels = () => {
                   className="w-full h-full object-cover"
                   loop
                   playsInline
+                  autoPlay
+                  preload="auto"
                   muted={isMuted}
                   onClick={togglePlay}
                   poster={currentReel.thumbnail_url || undefined}
                 />
+
 
                 {/* Play/Pause Overlay — cinematic indigo glow */}
                 <AnimatePresence>
