@@ -5121,30 +5121,42 @@ export type Database = {
           created_at: string | null
           created_by: string
           description: string | null
+          group_code: string
+          group_type: string
           id: string
           is_active: boolean | null
           max_members: number | null
+          member_count: number
           name: string
+          owner_id: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
           created_by: string
           description?: string | null
+          group_code: string
+          group_type?: string
           id?: string
           is_active?: boolean | null
           max_members?: number | null
+          member_count?: number
           name: string
+          owner_id: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
           created_by?: string
           description?: string | null
+          group_code?: string
+          group_type?: string
           id?: string
           is_active?: boolean | null
           max_members?: number | null
+          member_count?: number
           name?: string
+          owner_id?: string
         }
         Relationships: []
       }
@@ -18648,6 +18660,10 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      is_group_member: {
+        Args: { _group_id: string; _user_id?: string }
+        Returns: boolean
+      }
       is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
       is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_owner_email: { Args: { _email: string }; Returns: boolean }
@@ -19042,14 +19058,16 @@ export type Database = {
       }
       sample_cost_monitor: { Args: never; Returns: undefined }
       search_group_by_code: {
-        Args: { _code: string }
+        Args: { _group_code: string }
         Returns: {
           avatar_url: string
           group_code: string
+          group_type: string
           id: string
-          is_public: boolean
           member_count: number
           name: string
+          owner_avatar: string
+          owner_name: string
         }[]
       }
       search_user_by_app_uid: {
