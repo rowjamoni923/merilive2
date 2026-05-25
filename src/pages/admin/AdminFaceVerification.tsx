@@ -228,7 +228,7 @@ interface StepItem {
 }
 
 const FACE_VERIFICATION_CACHE_KEY = 'admin_face_verification_cache_disabled_v4';
-const FACE_VERIFICATION_FETCH_LIMIT = 500;
+const FACE_VERIFICATION_FETCH_LIMIT = 120;
 const ADMIN_FAST_LOADING_TIMEOUT_MS = 900;
 
 const AdminFaceVerification = () => {
