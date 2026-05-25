@@ -193,6 +193,8 @@ export function useLiveKitCall(
       roomRef.current.disconnect(true);
       roomRef.current = null;
     }
+    remoteAudioKeysRef.current.forEach(detachLiveKitRemoteAudio);
+    remoteAudioKeysRef.current.clear();
 
     setState({
       localStream: null,
@@ -381,6 +383,7 @@ export function useLiveKitCall(
           e2ee: e2eeOption,
         });
         roomRef.current = room;
+        primeLiveKitRoomMedia(room);
 
         // Pkg108: enable E2EE on the Room post-construction (per SDK API).
         if (e2eeOption) {
