@@ -144,10 +144,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: conversation, error: conversationError } = await supabase
       .from("conversations")
-      .select("participant_1, participant_2")
+      .select("participant1_id, participant2_id")
       .eq("id", conversationId)
       .maybeSingle();
-    const participants = [conversation?.participant_1, conversation?.participant_2];
+    const participants = [conversation?.participant1_id, conversation?.participant2_id];
     if (verifyError || conversationError || !verifiedMessage || !conversation || !participants.includes(senderId) || !participants.includes(recipientId)) {
       console.warn("[MsgPush] Message/conversation verification rejected", { conversationId, messageId, senderId, recipientId });
       return new Response(
@@ -179,7 +179,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Build notification content based on message type
     let body = String(verifiedMessage.content || messageContent || "");
-    if (messageType === 'voice') body = "🎤 Voice message";
+    if (messageType === 'voice' || messageType === 'audio') body = "🎤 Voice message";
     else if (messageType === 'image') body = "📷 Photo";
     else if (messageType === 'video') body = "🎥 Video";
     else if (messageType === 'gift') body = "🎁 Sent you a gift!";
