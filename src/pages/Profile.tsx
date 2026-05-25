@@ -2215,7 +2215,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Menu Items - Compact */}
           {menuItems.length > 0 && (
             <div className="profile-home-section rounded-xl overflow-hidden mt-2">
-              {menuItems.map((item, index) => (
+              {menuItems.filter((item) => item.show !== false).map((item, index) => (
                 <button
                   key={index}
                   onClick={() => {
