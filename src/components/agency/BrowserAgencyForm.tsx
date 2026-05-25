@@ -77,10 +77,19 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   // App verification
   const [appCode, setAppCode] = useState("");
   const [generatedAppCode, setGeneratedAppCode] = useState("");
+  const [appVerifiedToken, setAppVerifiedToken] = useState("");
   const [appVerified, setAppVerified] = useState(false);
   const [sendingAppCode, setSendingAppCode] = useState(false);
   const [appCodeSent, setAppCodeSent] = useState(false);
   const [appCodeTimer, setAppCodeTimer] = useState(0);
+
+  // Email verification
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [sendingEmailOtp, setSendingEmailOtp] = useState(false);
+  const [emailOtpTimer, setEmailOtpTimer] = useState(0);
+  const [verifyingEmailOtp, setVerifyingEmailOtp] = useState(false);
 
   // Fetch parent agency details
   useEffect(() => {
@@ -143,9 +152,26 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
     return () => clearInterval(interval);
   }, [appCodeTimer]);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (emailOtpTimer > 0) interval = setInterval(() => setEmailOtpTimer(prev => prev - 1), 1000);
+    return () => clearInterval(interval);
+  }, [emailOtpTimer]);
+
   // Generate 4-digit code
   const generateVerificationCode = () => {
     return Math.floor(1000 + Math.random() * 9000).toString();
+  };
+
+  const getFunctionErrorMessage = async (error: any, fallback: string) => {
+    try {
+      const response = error?.context;
+      if (response && typeof response.json === "function") {
+        const payload = await response.json();
+        return payload?.error || payload?.message || fallback;
+      }
+    } catch {}
+    return error?.message || fallback;
   };
 
   // Search user by App UID
