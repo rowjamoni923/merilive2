@@ -1370,14 +1370,12 @@ export default function AdminLayout() {
   const sidebarSearchRef = useRef<HTMLInputElement>(null);
   const adminScrollRootRef = useRef<HTMLElement | null>(null);
   const adminTouchStartRef = useRef<{ x: number; y: number } | null>(null);
-  // Owner emails for hardcoded check
-  const OWNER_EMAILS = ["smtv923@gmail.com", "sazzadshifa776@gmail.com"];
-  
   // Admin access hook for permission-based filtering
   const { isOwner: hookIsOwner, hasHubAccess, adminUser, isLoading: accessLoading } = useAdminAccess();
   
-  // Double-check owner status using hook, email match, AND localStorage owner flag (token-based access)
-  const isOwner = hookIsOwner || hasOwnerAccessFlag() || (!!currentUser?.email && OWNER_EMAILS.includes(currentUser.email)) || (!!adminUser?.email && OWNER_EMAILS.includes(adminUser.email));
+  // Owner status must come from the server-validated admin session/row only.
+  // Never use local flags or hardcoded emails here; browser storage is editable.
+  const isOwner = hookIsOwner;
   
   // Pending request counts for badges
   const [pendingCounts, setPendingCounts] = useState<Record<string, number>>({});
