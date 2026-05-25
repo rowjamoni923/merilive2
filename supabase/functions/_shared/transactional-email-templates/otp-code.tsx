@@ -15,12 +15,20 @@ interface OtpProps {
 const purposeLabel = (p?: string): string => {
   switch (p) {
     case 'login': return 'Sign-In Verification'
-    case 'register': return 'Account Verification'
+    case 'register':
+    case 'account_signup': return 'Account Sign Up'
+    case 'account_email': return 'Email Verification'
     case 'reset':
     case 'password_reset': return 'Password Reset'
     case 'admin':
+    case 'admin_login':
+    case 'admin_2fa':
     case 'two_factor': return 'Admin Verification'
-    case 'agency': return 'Agency Verification'
+    case 'admin_forgot':
+    case 'admin_password_reset': return 'Admin Password Reset'
+    case 'agency':
+    case 'agency_signup': return 'Agency Sign Up'
+    case 'sub_agency_signup': return 'Sub-Agency Sign Up'
     default: return 'Identity Verification'
   }
 }
@@ -31,15 +39,26 @@ const purposeIntro = (p?: string, name?: string): string => {
     case 'login':
       return `${greeting} use the code below to securely sign in to your MeriLive account.`
     case 'register':
-      return `${greeting} welcome to MeriLive! Use the code below to verify your email and activate your account.`
+    case 'account_signup':
+      return `${greeting} welcome to MeriLive! Use the code below to verify your email and create your account.`
+    case 'account_email':
+      return `${greeting} use the code below to verify and link this email to your MeriLive account.`
     case 'reset':
     case 'password_reset':
       return `${greeting} we received a request to reset your password. Use the code below to continue.`
     case 'admin':
+    case 'admin_login':
+    case 'admin_2fa':
     case 'two_factor':
       return `${greeting} use the code below to complete admin two-factor verification.`
+    case 'admin_forgot':
+    case 'admin_password_reset':
+      return `${greeting} use the code below to reset your MeriLive admin password.`
     case 'agency':
-      return `${greeting} use the code below to verify your agency account.`
+    case 'agency_signup':
+      return `${greeting} use the code below to verify your email and complete your MeriLive agency registration.`
+    case 'sub_agency_signup':
+      return `${greeting} use the code below to verify your email and complete your MeriLive sub-agency registration.`
     default:
       return `${greeting} use the code below to complete your verification.`
   }
