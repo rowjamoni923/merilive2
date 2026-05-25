@@ -56,8 +56,11 @@ const sessionMatchesLinkRole = (session: ReturnType<typeof getAdminSession>, rol
 };
 
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
+  const location = useLocation();
+  const accessTokenFromRoute = new URLSearchParams(location.search).get('access')?.trim() || null;
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(() => {
     if (typeof window === 'undefined') return null;
+    const isAuthRoute = window.location.pathname === '/admin/auth' || window.location.pathname === '/admin/login';
 
     // Only a fresh secret link in the URL should put the guard into the
     // async "verifying" state. Direct /admin opens must resolve immediately.
@@ -65,9 +68,12 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       return null;
     }
 
+    if (isAuthRoute && !accessTokenFromRoute) {
+      return true;
+    }
+
     return hasAdminAccessFlag() && !!getAdminLinkToken();
   });
-  const location = useLocation();
 
   useEffect(() => {
     let mounted = true;
@@ -121,8 +127,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         return;
       }
 
-      // No secret link, no tab unlock → deny. Even if a stale local admin
-      // session exists, it cannot grant access without a secret-link unlock.
+       // Plain admin login page must stay reachable so owners can at least see
+       // the login screen instead of being trapped on the public BlogPage.
+       if (isLoginRoute()) {
+         setIsAuthorized(true);
+         return;
+       }
+
+       // No secret link, no tab unlock → deny. Even if a stale local admin
+       // session exists, it cannot grant access without a secret-link unlock.
       if (session || storedLinkToken || tabAlreadyUnlocked) {
         clearAdminSession();
         revokeAdminAccess();
@@ -231,19 +244,19 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   }
 
   // Authorized: render admin panel / login page
-    if (isAuthorized) {
+  if (isAuthorized) {
     const session = getAdminSession();
-      const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
+    const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
     // If the user has a session and opens the plain login route, redirect to
     // admin home. But a fresh ?access= secret link must always render AdminAuth
     // so stale/expired local sessions cannot bypass re-authentication and then
     // get kicked to the public app by protected admin requests.
-      if (isLoginRoute() && session && !getAccessTokenFromURL()) {
+    if (isLoginRoute() && session && !getAccessTokenFromURL()) {
       return <Navigate to="/admin" replace />;
     }
     // If NO session and NOT on login route → redirect to login (preserve token in URL is unnecessary, flag is stored)
     if (!session && !isLoginRoute()) {
-        return <Navigate to={accessToken ? `/admin/auth?access=${encodeURIComponent(accessToken)}` : "/admin/auth"} replace />;
+      return <Navigate to={accessToken ? `/admin/auth?access=${encodeURIComponent(accessToken)}` : "/admin/auth"} replace />;
     }
     return <>{children}</>;
   }
