@@ -846,9 +846,10 @@ const LiveStream = () => {
         console.log(`🔐 Host verification: currentUser=${currentUserId}, streamHost=${stream.host_id}, isHost=${isActualHost}`);
         
         if (hostProfile) {
+          const hostAvatar = normalizeProfileMediaUrl(hostProfile.avatar_url) || hostProfile.avatar_url || "";
           setHostInfo({
             name: hostProfile.display_name || "Host",
-            avatar: hostProfile.avatar_url || "",
+            avatar: hostAvatar,
             country: hostProfile.country_flag || "🌍",
             language: "English",
             gender: hostProfile.gender || "female",
@@ -887,6 +888,8 @@ const LiveStream = () => {
             .maybeSingle();
           const cp = challengerProfileRes.data;
           const op = opponentProfileRes.data;
+          const challengerAvatar = normalizeProfileMediaUrl(cp?.avatar_url) || cp?.avatar_url || "";
+          const opponentAvatar = normalizeProfileMediaUrl(op?.avatar_url) || op?.avatar_url || "";
 
           setPKBattleState({
             isActive: true,
@@ -894,14 +897,14 @@ const LiveStream = () => {
             isChallenger: isChallengerSide,
             challengerInfo: {
               name: cp?.display_name || "Host",
-              avatar: cp?.avatar_url || "",
+              avatar: challengerAvatar,
               level: cp?.user_level || 1,
               id: activeBattle.challenger_id || "",
               streamId: activeBattle.challenger_stream_id || "",
             },
             opponentInfo: {
               name: op?.display_name || "Host",
-              avatar: op?.avatar_url || "",
+              avatar: opponentAvatar,
               level: op?.user_level || 1,
               id: activeBattle.opponent_id || "",
               streamId: activeBattle.opponent_stream_id || "",
