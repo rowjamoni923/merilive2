@@ -49,10 +49,10 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
     return true;
   });
 
-  // Split: first banner goes top, rest go middle (after hosts)
+  // Split: last banner goes top (original first banner), rest go middle (after hosts)
   const banners = position === 'top'
-    ? activeBanners.slice(0, 1)
-    : activeBanners.slice(1);
+    ? activeBanners.slice(-1)
+    : activeBanners.slice(0, -1);
 
   const getBannerAspectRatio = (bannerId: string) => {
     if (position === 'top') return 343 / 128;
