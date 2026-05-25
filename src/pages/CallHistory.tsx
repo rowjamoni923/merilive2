@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting } from "@/utils/appSettingsCache";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -110,13 +111,9 @@ const CallHistory = () => {
 
         // Fetch commission percentage only as a legacy fallback for very old rows
         // that do not have stored host_earned / host_earnings_amount values.
-        const { data: settingsData } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'call_rates')
-          .single();
+        const callRatesValue = await getAppSetting<unknown>('call_rates');
 
-        if (!settingsData?.setting_value) {
+        if (!callRatesValue) {
           console.error('CRITICAL: call_rates not found in app_settings!');
           recordClientError({ label: "CallHistory.callRates", message: 'CRITICAL: call_rates not found in app_settings!' });
         }
@@ -156,8 +153,8 @@ const CallHistory = () => {
         // Get commission rate for calculations - NO DEFAULTS
         // CRITICAL: Must be configured in Admin Panel
         let commRate = 0;
-        if (settingsData?.setting_value) {
-          const callRates = settingsData.setting_value as any;
+        if (callRatesValue) {
+          const callRates = callRatesValue as any;
           if (callRates.host_commission_percent !== undefined) {
             commRate = callRates.host_commission_percent;
           } else {

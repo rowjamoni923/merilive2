@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting, invalidateAppSetting } from "@/utils/appSettingsCache";
 import { recordClientError } from "@/utils/clientErrorLog";
 import {
   Dialog,
@@ -153,8 +154,10 @@ const AgencyCoinExchange = () => {
     const onAdmin = async (e: Event) => {
       const detail = (e as CustomEvent<{ table?: string }>).detail;
       if (detail?.table !== 'app_settings') return;
-      const { data } = await supabase.from('app_settings').select('setting_value').eq('setting_key', 'coin_exchange').maybeSingle();
-      if (data?.setting_value) setExchangeSettings(normalizeExchangeSettings(data.setting_value as Record<string, unknown>));
+      // Bust cache so we read the latest admin value
+      invalidateAppSetting('coin_exchange');
+      const value = await getAppSetting<Record<string, unknown>>('coin_exchange');
+      if (value) setExchangeSettings(normalizeExchangeSettings(value));
     };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
     return () => window.removeEventListener('admin-table-update', onAdmin as EventListener);
@@ -200,16 +203,10 @@ const AgencyCoinExchange = () => {
       // CRITICAL FIX: My Beans = profiles.beans (personal), NOT agency wallet_balance (Total Beans)
       setOwnerBeans(Math.max(0, Number(profileData?.beans || 0)));
 
-      // Fetch exchange settings
-      const { data: settingsData } = await supabase
-        .from("app_settings")
-        .select("setting_value")
-        .eq("setting_key", "coin_exchange")
-        .maybeSingle();
-
-      if (settingsData?.setting_value) {
-        const settings = settingsData.setting_value as Record<string, unknown>;
-        setExchangeSettings(normalizeExchangeSettings(settings));
+      // Fetch exchange settings (shared cache — dedupes with the admin-broadcast listener)
+      const settingsValue = await getAppSetting<Record<string, unknown>>('coin_exchange');
+      if (settingsValue) {
+        setExchangeSettings(normalizeExchangeSettings(settingsValue));
       }
 
       // Fetch recent transactions

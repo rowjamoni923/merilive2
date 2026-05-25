@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
+import { getAppSetting } from '@/utils/appSettingsCache';
 import { publishCallEnded, publishCallAccepted, type CallEndedDetail, type CallAcceptedDetail } from '@/lib/livekitCallSignaling';
 import { NativeCall } from '@/plugins/NativeCall';
 
@@ -456,15 +457,15 @@ export function usePrivateCall(userId: string | null) {
       // PARALLEL: Fetch user coins, host info, and admin call settings simultaneously
       // NOTE: Do NOT query the host's `profiles` row directly — RLS blocks non-owner SELECT.
       // Host busy/blocked/face-verified checks all run server-side inside `start_private_call` RPC.
-      const [userProfileRes, hostProfileRes, settingsRes] = await Promise.all([
+      const [userProfileRes, hostProfileRes, callRatesSetting] = await Promise.all([
         supabase.from('profiles').select('coins, display_name, avatar_url, user_level').eq('id', userId).single(),
         supabase.from('profiles_public').select('display_name, avatar_url, is_online, host_level, call_rate_per_minute').eq('id', hostId).maybeSingle(),
-        supabase.from('app_settings').select('setting_value').eq('setting_key', 'call_rates').maybeSingle(),
+        getAppSetting<unknown>('call_rates'),
       ]);
 
       const userProfile = userProfileRes.data;
       const hostProfile = hostProfileRes.data;
-      const callSettings = parseCallRateSettings(settingsRes.data?.setting_value);
+      const callSettings = parseCallRateSettings(callRatesSetting);
       const callRate = resolveEffectiveCallRate({
         settings: callSettings,
         hostLevel: hostProfile?.host_level,

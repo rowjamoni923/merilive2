@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
+import { getAppSetting, invalidateAppSetting } from '@/utils/appSettingsCache';
 
 interface UseHostCallRateResult {
   callRate: number | null;
@@ -28,17 +29,13 @@ export function useHostCallRate(hostId: string | null | undefined): UseHostCallR
 
     setLoading(true);
     try {
-      const [{ data: hostProfile }, { data: settings }] = await Promise.all([
+      const [{ data: hostProfile }, settingValue] = await Promise.all([
         supabase
           .from('profiles_public')
           .select('host_level, call_rate_per_minute')
           .eq('id', hostId)
           .maybeSingle(),
-        supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'call_rates')
-          .maybeSingle(),
+        getAppSetting<unknown>('call_rates'),
       ]);
 
       if (!hostProfile) {
@@ -47,7 +44,7 @@ export function useHostCallRate(hostId: string | null | undefined): UseHostCallR
         return;
       }
 
-      const callSettings = parseCallRateSettings(settings?.setting_value);
+      const callSettings = parseCallRateSettings(settingValue);
       const resolvedRate = resolveEffectiveCallRate({
         settings: callSettings,
         hostLevel: hostProfile.host_level,

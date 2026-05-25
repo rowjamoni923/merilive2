@@ -50,6 +50,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting } from "@/utils/appSettingsCache";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -429,15 +430,16 @@ const PartyRoom = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        // Fetch both settings in parallel
-        const [commissionRes, limitsRes] = await Promise.all([
-          supabase.from('app_settings').select('setting_value').eq('setting_key', 'gift_commission').maybeSingle(),
-          supabase.from('app_settings').select('setting_value').eq('setting_key', 'party_room_limits').maybeSingle()
+        // Fetch both settings in parallel (each goes through appSettingsCache —
+        // dedupes with concurrent LiveStream / useHostCallRate fetches)
+        const [commissionValue, limitsValue] = await Promise.all([
+          getAppSetting<Record<string, any>>('gift_commission'),
+          getAppSetting<Record<string, any>>('party_room_limits'),
         ]);
-        
+
         // Gift Commission
-        if (commissionRes.data?.setting_value) {
-          const settings = commissionRes.data.setting_value as any;
+        if (commissionValue) {
+          const settings = commissionValue;
           let rate = 55;
           if (settings.host_percent !== undefined) {
             rate = settings.host_percent;
@@ -447,10 +449,10 @@ const PartyRoom = () => {
           console.log('[PartyRoom] ✅ Commission rate loaded:', rate);
           setHostCommissionPercent(rate);
         }
-        
+
         // Party Limits
-        if (limitsRes.data?.setting_value) {
-          const limits = limitsRes.data.setting_value as any;
+        if (limitsValue) {
+          const limits = limitsValue;
           console.log('[PartyRoom] ✅ Party limits loaded:', limits);
           setAdminPartyLimits({
             max_video_participants: limits.max_video_participants || 4,

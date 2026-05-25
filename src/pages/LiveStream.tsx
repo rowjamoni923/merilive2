@@ -69,6 +69,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppSetting } from "@/utils/appSettingsCache";
 import { toast } from "sonner";
 import { useLiveKitClient } from "@/hooks/useLiveKitClient";
 import { usePKOpponentRoom } from "@/hooks/usePKOpponentRoom";
@@ -1060,14 +1061,10 @@ const LiveStream = () => {
   useEffect(() => {
     const fetchGiftCommission = async () => {
       try {
-        const { data } = await supabase
-          .from('app_settings')
-          .select('setting_value')
-          .eq('setting_key', 'gift_commission')
-          .maybeSingle();
-        
-        if (data?.setting_value) {
-          const settings = data.setting_value as any;
+        const settingValue = await getAppSetting<Record<string, any>>('gift_commission');
+
+        if (settingValue) {
+          const settings = settingValue;
           let rate = 55;
           if (settings.host_percent !== undefined) {
             rate = settings.host_percent;
