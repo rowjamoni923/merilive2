@@ -1074,6 +1074,12 @@ const App = () => {
   const isPublicLandingHost = publicLandingHosts.includes(window.location.hostname);
   const publicLandingAllowedPaths = ['/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact', '/account-deletion', '/delete-account'];
   const isPublicLandingSubRoute = isPublicLandingHost && publicLandingAllowedPaths.some(p => currentPath.startsWith(p));
+
+  if (isPublicLandingHost && currentPath.startsWith('/admin')) {
+    const redirectUrl = `https://merilive.com${window.location.pathname}${window.location.search}${window.location.hash}`;
+    window.location.replace(redirectUrl);
+    return null;
+  }
   
   if (isPublicLandingHost && !isPublicLandingSubRoute) {
     return (
