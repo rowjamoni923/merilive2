@@ -15947,6 +15947,7 @@ export type Database = {
       _internal_add_diamonds:
         | { Args: { _amount: number; _user_id: string }; Returns: undefined }
         | { Args: { _amount: number; _user_id: string }; Returns: undefined }
+      _is_target_user_owner: { Args: { _user_id: string }; Returns: boolean }
       _mod_audit_extract_target: { Args: { _row: Json }; Returns: string }
       _mod_audit_summary: {
         Args: { _action: string; _new: Json; _old: Json; _table: string }
