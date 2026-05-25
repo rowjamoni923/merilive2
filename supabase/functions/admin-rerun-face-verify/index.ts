@@ -7,6 +7,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -127,10 +128,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: validData, error: validErr } = await supabaseAdmin.rpc("validate_admin_token", { _token: adminToken });
-    if (validErr || !validData || (validData as any)?.valid !== true) {
-      return new Response(JSON.stringify({ error: "Invalid admin token" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const adminAuth = await requireAdminSession(req, supabaseAdmin, {
+      sectionKey: "face-verification",
+      requireEdit: true,
+    });
+    if (!adminAuth.ok) {
+      return new Response(JSON.stringify({ error: adminAuth.error }), {
+        status: adminAuth.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
