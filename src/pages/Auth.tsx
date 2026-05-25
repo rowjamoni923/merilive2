@@ -1265,6 +1265,17 @@ const Auth = () => {
       if (signInError) {
         throw new Error(await getFunctionErrorMessage(signInError, "Failed to complete sign-in"));
       }
+      if (signInData?.exists === false || signInData?.error === "User not found") {
+        setEmailVerified(true);
+        setPassword("");
+        setConfirmPassword("");
+        setAuthStep("email_password");
+        toast({
+          title: "✅ Email Verified!",
+          description: "Now set your name and password to create your account.",
+        });
+        return;
+      }
       if (!signInData?.success || !signInData?.access_token) {
         throw new Error(signInData?.error || "Failed to complete sign-in");
       }
@@ -1339,6 +1350,16 @@ const Auth = () => {
   // NEW Email Flow - Step 4: Create account with password
   const handleCreateEmailAccount = async () => {
     // Registration allowed on all platforms (native + web preview)
+
+    if (!emailVerified) {
+      toast({
+        title: "Verify Email",
+        description: "Please verify your email code before creating an account.",
+        variant: "destructive",
+      });
+      setAuthStep("email");
+      return;
+    }
 
     if (!displayName.trim()) {
       toast({
@@ -1489,10 +1510,21 @@ const Auth = () => {
 
   const selectedCountry = COUNTRY_CODES.find(c => c.code === selectedCountryCode) || COUNTRY_CODES[0];
 
+  const getPhoneIdentity = () => {
+    const nationalNumber = phoneNumber.replace(/\D/g, "").replace(/^0+/, "");
+    const countryDigits = selectedCountryCode.replace(/\D/g, "");
+    const phoneDigits = `${countryDigits}${nationalNumber}`;
+    return {
+      phoneDigits,
+      displayPhone: phoneDigits ? `+${phoneDigits}` : "",
+      phoneEmail: `phone_${phoneDigits}@meri.local`,
+    };
+  };
+
   // Phone Flow - Step 1: Send WhatsApp OTP
   const handleSendPhoneOtp = async () => {
-    const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
-    if (!cleanPhone || cleanPhone.length < 6) {
+    const { phoneDigits, displayPhone } = getPhoneIdentity();
+    if (!phoneDigits || phoneDigits.length < 7) {
       toast({
         title: "Error",
         description: "Please enter a valid phone number",
@@ -1501,21 +1533,19 @@ const Auth = () => {
       return;
     }
 
-    const fullPhone = selectedCountryCode + cleanPhone;
-
     // Brute-force / abuse gate — shared namespace prevents OTP spam
-    const canProceed = await checkBeforeLogin(`otp:${fullPhone}`);
+    const canProceed = await checkBeforeLogin(`otp:${phoneDigits}`);
     if (!canProceed) return;
 
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-whatsapp-otp', {
-        body: { phone_number: fullPhone, action: "send" }
+        body: { phone_number: displayPhone, action: "send" }
       });
 
       if (error) throw error;
       if (!data?.success) {
-        await recordAttempt(`otp:${fullPhone}`, false);
+        await recordAttempt(`otp:${phoneDigits}`, false);
         toast({
           title: "Error",
           description: data?.error || "Failed to send OTP",
@@ -1524,15 +1554,15 @@ const Auth = () => {
         return;
       }
 
-      await recordAttempt(`otp:${fullPhone}`, false);
+      await recordAttempt(`otp:${phoneDigits}`, false);
       toast({
         title: "📱 WhatsApp OTP Sent!",
-        description: `Verification code sent to ${fullPhone} via WhatsApp`,
+        description: `Verification code sent to ${displayPhone} via WhatsApp`,
       });
       setAuthStep("phone_otp");
     } catch (error: any) {
       recordClientError({ label: "Auth.handleSendPhoneOtp", message: error instanceof Error ? error.message : String(error) });
-      await recordAttempt(`otp:${fullPhone}`, false);
+      await recordAttempt(`otp:${phoneDigits}`, false);
       toast({
         title: "Error",
         description: error.message || "Failed to send WhatsApp OTP",
