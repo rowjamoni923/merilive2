@@ -2489,25 +2489,14 @@ const Chat = () => {
                           );
                         }
 
-                        // Audio messages - minimal background
+                        // Audio messages - WhatsApp-style waveform player
                         if (isAudio) {
                           return (
-                            <div className={cn(
-                              "rounded-2xl px-3 py-2",
-                              isMine
- ?"bg-gradient-primary text-primary-foreground rounded-br-sm"
-                                : "bg-muted rounded-bl-sm"
-                            )}>
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                                  <Mic className="w-4 h-4" />
-                                </div>
-                                <audio 
-                                  src={displayUrl} 
-                                  controls
-                                  className="max-w-[180px] h-8"
-                                />
-                              </div>
+                            <div className="flex flex-col">
+                              <VoiceMessagePlayer
+                                src={displayUrl}
+                                isMine={isMine}
+                              />
                               <p className={cn(
                                 "text-[10px] mt-1 flex items-center gap-0.5",
                                 isMine ? "text-primary-foreground/85" : "text-muted-foreground"
