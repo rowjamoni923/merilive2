@@ -146,7 +146,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
           if (resolved) return;
           if (i < 3) await new Promise((r) => setTimeout(r, 1500));
         }
-        if (mounted && !getAdminSession() && !hasAdminAccessFlag()) {
+        if (mounted && !getAdminSession()) {
+          revokeAdminAccess();
           setIsAuthorized(false);
         }
       })();
