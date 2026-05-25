@@ -1503,6 +1503,7 @@ const HelperDashboard = () => {
               <HelperPaymentMethodsCard
                 helperId={helperData.id}
                 refreshKey={paymentMethodsRefreshKey}
+                showManage={canManageCountryPaymentMethods}
                 onManage={canManageCountryPaymentMethods ? () => setShowAddPaymentMethodDialog(true) : undefined}
               />
             )}
