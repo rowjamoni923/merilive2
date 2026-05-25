@@ -2241,21 +2241,21 @@ const Chat = () => {
                               
                               {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
                               {isMine && diamondsAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full shadow-md shadow-rose-500/30">
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-destructive rounded-full shadow-md">
                                   <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
  <span className="text-[9px] font-bold text-primary-foreground">
                                     -{Number(diamondsAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : !isMine && beansAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md shadow-amber-500/30">
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-gold rounded-full shadow-md">
                                   <Beans3DIcon size={12} />
  <span className="text-[9px] font-bold text-accent-foreground">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : beansAmount ? (
-                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md">
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-gold rounded-full shadow-md">
                                   <Beans3DIcon size={12} />
  <span className="text-[9px] font-bold text-accent-foreground">
                                     +{Number(beansAmount).toLocaleString()}
@@ -2335,14 +2335,10 @@ const Chat = () => {
                             className={cn(
                               "rounded-2xl px-2.5 py-1.5 max-w-full text-[13px] leading-[1.35]",
                               isMine
- ?"bg-gradient-primary text-primary-foreground rounded-br-sm shadow-md shadow-purple-500/20"
-                                : "rounded-bl-sm text-card-foreground shadow-sm",
+ ?"bg-gradient-primary text-primary-foreground rounded-br-sm shadow-md shadow-primary/20"
+                                : "bg-card border border-border rounded-bl-sm text-card-foreground shadow-sm",
                               msg._optimistic && "opacity-70"
                             )}
-                            style={!isMine ? {
-                              background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(40 40% 99%) 100%)',
-                              border: '1px solid hsl(40 35% 88% / 0.7)',
-                            } : undefined}
                           >
                             <span className="break-words">{content}</span>
                             <span className={cn(
@@ -2401,14 +2397,14 @@ const Chat = () => {
                           });
                           toast.success('Reacted ❤️');
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
-                          <SmilePlus className="w-4 h-4 text-amber-500" />
+                          <SmilePlus className="w-4 h-4 text-warning-600" />
                           <span className="font-medium text-sm">React</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
                           setMessageInfoMessage(msg);
                           setShowMessageInfo(true);
                         }} className="text-foreground hover:text-foreground hover:bg-muted cursor-pointer gap-2 py-2.5 px-3 rounded-xl transition-all">
-                          <Info className="w-4 h-4 text-blue-400" />
+                          <Info className="w-4 h-4 text-primary" />
                           <span className="font-medium text-sm">Info</span>
                         </DropdownMenuItem>
                         <div className="h-px bg-border my-1" />
@@ -2445,11 +2441,11 @@ const Chat = () => {
                     showAnimation={false}
                   />
                 </div>
-                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm" style={{ background: 'linear-gradient(135deg, hsl(var(--card)) 0%, hsl(40 40% 99%) 100%)', border: '1px solid hsl(var(--border) / 0.7)' }}>
+                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm bg-card border border-border">
                   <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -2459,7 +2455,7 @@ const Chat = () => {
         </div>
 
         {/* Message Input - Ultra Premium Dark Glass */}
-        <div className="flex-shrink-0 pt-2 safe-area-bottom" style={{ background: 'linear-gradient(to top, hsl(40 40% 98%) 0%, hsl(40 40% 98% / 0.92) 70%, transparent 100%)', borderTop: '1px solid hsl(40 35% 88% / 0.5)' }}>
+        <div className="flex-shrink-0 pt-2 safe-area-bottom bg-background/95 border-t border-border">
           {/* Media Uploader (direct gallery) */}
           <MediaUploader
             isOpen={showMediaUploader}
