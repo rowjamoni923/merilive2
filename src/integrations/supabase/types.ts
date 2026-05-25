@@ -3727,6 +3727,7 @@ export type Database = {
       }
       email_otps: {
         Row: {
+          attempts: number
           created_at: string | null
           email: string
           expires_at: string
@@ -3734,8 +3735,10 @@ export type Database = {
           is_used: boolean | null
           otp_code: string
           purpose: string | null
+          verified_at: string | null
         }
         Insert: {
+          attempts?: number
           created_at?: string | null
           email: string
           expires_at: string
@@ -3743,8 +3746,10 @@ export type Database = {
           is_used?: boolean | null
           otp_code: string
           purpose?: string | null
+          verified_at?: string | null
         }
         Update: {
+          attempts?: number
           created_at?: string | null
           email?: string
           expires_at?: string
@@ -3752,6 +3757,7 @@ export type Database = {
           is_used?: boolean | null
           otp_code?: string
           purpose?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -9113,28 +9119,34 @@ export type Database = {
       }
       password_reset_otps: {
         Row: {
+          attempts: number
           created_at: string | null
           email: string
           expires_at: string
           id: string
           is_used: boolean | null
           otp_code: string
+          verified_at: string | null
         }
         Insert: {
+          attempts?: number
           created_at?: string | null
           email: string
           expires_at: string
           id?: string
           is_used?: boolean | null
           otp_code: string
+          verified_at?: string | null
         }
         Update: {
+          attempts?: number
           created_at?: string | null
           email?: string
           expires_at?: string
           id?: string
           is_used?: boolean | null
           otp_code?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -9414,6 +9426,7 @@ export type Database = {
           otp_code: string
           phone_number: string
           purpose: string | null
+          verified_at: string | null
         }
         Insert: {
           attempts?: number
@@ -9425,6 +9438,7 @@ export type Database = {
           otp_code: string
           phone_number: string
           purpose?: string | null
+          verified_at?: string | null
         }
         Update: {
           attempts?: number
@@ -9436,6 +9450,7 @@ export type Database = {
           otp_code?: string
           phone_number?: string
           purpose?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }
