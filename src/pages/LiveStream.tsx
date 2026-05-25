@@ -3271,13 +3271,10 @@ const LiveStream = () => {
                       Gem: <Gem className="w-6 h-6" strokeWidth={1.8} />,
                       Music: <Music className="w-6 h-6" strokeWidth={1.8} />,
                       LogOut: <LogOut className="w-6 h-6" strokeWidth={1.8} />,
-                      MonitorUp: <MonitorUp className="w-6 h-6" strokeWidth={1.8} />,
                       ShieldCheck: <ShieldCheck className="w-6 h-6" strokeWidth={1.8} />,
                       Layers: <Layers className="w-6 h-6" strokeWidth={1.8} />,
                       Radio: <Radio className="w-6 h-6" strokeWidth={1.8} />,
                       PhoneCall: <PhoneCall className="w-6 h-6" strokeWidth={1.8} />,
-                      Video: <Video className="w-6 h-6" strokeWidth={1.8} />,
-                      Cast: <Cast className="w-6 h-6" strokeWidth={1.8} />,
                       Hand: <Hand className="w-6 h-6" strokeWidth={1.8} />,
                     };
                     const IconComponent = iconMap[option.iconName];
