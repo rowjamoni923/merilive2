@@ -77,11 +77,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
     <>
       {/* Group Actions Sheet */}
       <Sheet open={showGroupActions} onOpenChange={onShowGroupActionsChange}>
-        <SheetContent
-          side="bottom"
-          className="rounded-t-3xl border-t border-amber-200/60"
-          style={{ background: "linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)" }}
-        >
+        <SheetContent side="bottom" className="rounded-t-3xl border-t border-border bg-popover text-popover-foreground">
           <SheetHeader>
             <SheetTitle className="sr-only">Group Actions</SheetTitle>
           </SheetHeader>
@@ -93,8 +89,8 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
                 onShowCreateGroup();
               }}
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 border border-fuchsia-500/25 flex items-center justify-center backdrop-blur-xl">
-                <Users className="w-8 h-8 text-fuchsia-400" />
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-xl">
+                <Users className="w-8 h-8 text-primary" />
               </div>
               <span className="text-sm font-medium text-foreground">Create</span>
             </button>
@@ -105,8 +101,8 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
                 onShowSearchGroup();
               }}
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/25 flex items-center justify-center backdrop-blur-xl">
-                <Search className="w-8 h-8 text-purple-400" />
+              <div className="w-16 h-16 rounded-2xl bg-secondary/70 border border-border flex items-center justify-center backdrop-blur-xl">
+                <Search className="w-8 h-8 text-primary" />
               </div>
               <span className="text-sm font-medium text-foreground">Search</span>
             </button>
@@ -116,10 +112,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
 
       {/* Create Group Dialog */}
       <Dialog open={showCreateGroup} onOpenChange={onShowCreateGroupChange}>
-        <DialogContent
-          className="max-w-sm mx-auto border border-amber-200/60"
-          style={{ background: "linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)" }}
-        >
+        <DialogContent className="max-w-sm mx-auto border border-border bg-popover text-popover-foreground">
           <DialogHeader>
             <DialogTitle className="text-foreground">Create a group</DialogTitle>
           </DialogHeader>
@@ -145,7 +138,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
                 {newGroupPhotoPreview ? (
                   <img src={newGroupPhotoPreview} alt="Group" className="w-full h-full object-cover" />
                 ) : (
-                  <Camera className="w-8 h-8 text-purple-400/50" />
+                  <Camera className="w-8 h-8 text-muted-foreground" />
                 )}
               </button>
               <input
@@ -166,7 +159,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
                   <RadioGroupItem value="basic" id="basic" />
                   <Label htmlFor="basic" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-purple-400" />
+                      <Users className="w-5 h-5 text-primary" />
                       <span className="font-medium text-foreground">Basic Group</span>
                     </div>
                   </Label>
@@ -175,7 +168,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
                   <RadioGroupItem value="family" id="family" />
                   <Label htmlFor="family" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-pink-400" />
+                      <Users className="w-5 h-5 text-primary" />
                       <span className="font-medium text-foreground">Family Group</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">One user can join one family group only</p>
@@ -197,10 +190,7 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
 
       {/* Search Group Dialog */}
       <Dialog open={showSearchGroup} onOpenChange={onShowSearchGroupChange}>
-        <DialogContent
-          className="max-w-sm mx-auto border border-amber-200/60"
-          style={{ background: "linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)" }}
-        >
+        <DialogContent className="max-w-sm mx-auto border border-border bg-popover text-popover-foreground">
           <DialogHeader>
             <DialogTitle className="text-foreground">Search Group</DialogTitle>
           </DialogHeader>
@@ -227,9 +217,9 @@ export const ChatDialogs: React.FC<ChatDialogsProps> = ({
               <div className="space-y-2">
                 {groupSearchResults.map((group: Group) => (
                   <div key={group.id} className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card/60">
-                    <Avatar className="w-12 h-12 ring-2 ring-purple-500/20">
+                    <Avatar className="w-12 h-12 ring-2 ring-primary/20">
                       <AvatarImage src={group.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
                         <Users className="w-5 h-5" />
                       </AvatarFallback>
                     </Avatar>
