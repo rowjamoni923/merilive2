@@ -3356,11 +3356,10 @@ const Chat = () => {
             <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
               <Users className="w-10 h-10 text-purple-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2 text-slate-700">No groups yet</h3>
-            <p className="text-slate-600 text-sm mb-4">Create or join a group!</p>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">No groups yet</h3>
+            <p className="text-muted-foreground text-sm mb-4">Create or join a group!</p>
             <Button
- className="rounded-full font-bold text-slate-900"
-              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
+ className="rounded-full font-bold text-primary-foreground bg-gradient-primary shadow-price"
               onClick={() => setShowGroupActions(true)}
             >
               Get Started
@@ -3383,11 +3382,11 @@ const Chat = () => {
                 </Avatar>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate text-slate-900">{group.name}</h3>
-                    <span className="text-xs text-white/80">({group.member_count})</span>
+                    <h3 className="font-semibold truncate text-foreground">{group.name}</h3>
+                    <span className="text-xs text-muted-foreground">({group.member_count})</span>
                   </div>
                   {group.is_owner && (
- <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border-0 text-xs mt-1">
+ <Badge className="bg-gradient-gold text-accent-foreground border-0 text-xs mt-1">
                       <Crown className="w-3 h-3 mr-1" />
                       Owner
                     </Badge>
@@ -3418,7 +3417,7 @@ const Chat = () => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 border border-fuchsia-500/25 flex items-center justify-center backdrop-blur-xl">
                 <Users className="w-8 h-8 text-fuchsia-400" />
               </div>
-              <span className="text-sm font-medium text-slate-700">Create</span>
+              <span className="text-sm font-medium text-foreground">Create</span>
             </button>
             <button
               className="flex flex-col items-center gap-2"
@@ -3430,7 +3429,7 @@ const Chat = () => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/25 flex items-center justify-center backdrop-blur-xl">
                 <Search className="w-8 h-8 text-purple-400" />
               </div>
-              <span className="text-sm font-medium text-slate-700">Search</span>
+              <span className="text-sm font-medium text-foreground">Search</span>
             </button>
           </div>
         </SheetContent>
