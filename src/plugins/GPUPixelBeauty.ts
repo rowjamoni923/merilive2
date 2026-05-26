@@ -114,8 +114,17 @@ export function persistLevels(levels: ProBeautyLevels) {
 
 const BROADCAST_FLAG_KEY = 'pkg201.broadcast.enabled';
 
+/**
+ * Default = ON. Broadcast injection must be live by default so that when
+ * a host enables Beauty in the panel, viewers actually see the processed
+ * stream. Operators can opt out by calling setBroadcastBeautyFlag(false).
+ */
 export function isBroadcastBeautyEnabled(): boolean {
-  try { return localStorage.getItem(BROADCAST_FLAG_KEY) === '1'; } catch { return false; }
+  try {
+    const v = localStorage.getItem(BROADCAST_FLAG_KEY);
+    if (v === '0') return false;
+    return true;
+  } catch { return true; }
 }
 export function setBroadcastBeautyFlag(enabled: boolean) {
   try { localStorage.setItem(BROADCAST_FLAG_KEY, enabled ? '1' : '0'); } catch { /* ignore */ }
@@ -123,8 +132,8 @@ export function setBroadcastBeautyFlag(enabled: boolean) {
 
 /**
  * Push current beauty levels into LiveKit's outgoing camera track via the
- * native GPUPixelBeautyProcessor. No-op on web or when the broadcast flag
- * is off. Calls NativeLiveKit.setBeautyBroadcast under the hood.
+ * native GPUPixelBeautyProcessor. No-op on web. enabled=false always runs
+ * (detach must not be gated by the flag).
  */
 export async function applyBroadcastBeauty(levels: ProBeautyLevels, enabled: boolean) {
   if (!isNativeBeautyAvailable()) return;
@@ -144,4 +153,5 @@ export async function applyBroadcastBeauty(levels: ProBeautyLevels, enabled: boo
     /* native optional */
   }
 }
+
 
