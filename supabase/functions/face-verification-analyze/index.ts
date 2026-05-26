@@ -756,6 +756,7 @@ serve(async (req) => {
       if (replaySuspected) softFlags.push(`replay_suspected(L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°)`);
       if (profileMismatch) softFlags.push(`profile_mismatch(${profileMatchScore?.toFixed(1)}%)`);
       if (duplicateBlock) softFlags.push("duplicate_face");
+      if (hostPhotosMismatch) softFlags.push(`host_photos_mismatch(min=${hostPhotosMinScore?.toFixed(1)}%)`);
 
       const reviewReason = autoReason === "invalid_face_count"
         ? `Needs admin review: ${details.length === 0 ? "no clear face on front frame" : "multiple faces on front frame"}.`
