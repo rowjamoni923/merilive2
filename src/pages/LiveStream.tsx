@@ -1267,27 +1267,8 @@ const LiveStream = () => {
   }, [id, currentUserId, addBigoJoinNotification, addEntryAnimation]);
 
 
-  // ========== Pkg82b: stream_gift_fallback_${id} Supabase channel DELETED ==========
-  // LiveKit-Purist policy: no `postgres_changes` on gift_transactions.
-  // Host-side bean reconciliation now uses a 30s REST safety-net poll
-  // (safe per $1400-bill rule: ≥30s, host-only, single row sum).
-  // Pkg76 envelope remains the instant path; this only catches the rare
-  // case where the host's tab missed a DataPacket (e.g. backgrounded).
-  useEffect(() => {
-    if (!id || !isHost || !streamData?.host_id) return;
-    const reconcile = async () => {
-      const { data } = await supabase
-        .from('gift_transactions')
-        .select('coin_amount, receiver_beans')
-        .eq('stream_id', id)
-        .eq('receiver_id', streamData.host_id);
-      if (!data || !mountedRef.current) return;
-      const totalFromDb = data.reduce((s: number, tx: any) => s + Number(tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * adminGiftCommission / 100)), 0);
-      setTotalBeans((prev) => (totalFromDb > prev ? totalFromDb : prev));
-    };
-    const timer = setInterval(reconcile, 30000); // safety-net poll: 30s (Pkg57 floor)
-    return () => clearInterval(timer);
-  }, [id, isHost, streamData?.host_id, adminGiftCommission]);
+  // Zero-refresh policy: no gift reconciliation REST poll. LiveKit envelopes,
+  // own-beans/app-sync pushes, and explicit gift events are the instant paths.
 
 
   // State for stream ended modal (for viewers)
@@ -1343,8 +1324,7 @@ const LiveStream = () => {
     };
   }, [id, isHost, hostInfo?.name, leaveChannel, navigate]);
 
-  // VIEWER: Periodic stale stream detection (every 30s)
-  // If host crashed/exited and heartbeat stopped, server marks stream inactive
+  // VIEWER: stream-ended detection via LiveKit + live_streams realtime only.
   useEffect(() => {
     if (!id || isHost) return;
 
@@ -1361,27 +1341,7 @@ const LiveStream = () => {
       }, 3000);
     };
 
-    const checkStaleStream = async () => {
-      try {
-        // Trigger server-side cleanup of stale streams (heartbeat > 60s ago)
-        await supabase.rpc('cleanup_stale_live_streams');
-        
-        // Check if this stream is still active
-        const { data } = await supabase
-          .from('live_streams')
-          .select('is_active')
-          .eq('id', id)
-          .single();
-        
-        if (data && !data.is_active) showEndedFromDb();
-      } catch (e) {
-        console.error('[LiveStream] Stale check error:', e);
-        recordClientError({ label: "LiveStream.checkStaleStream", message: e instanceof Error ? e.message : String(e) });
-      }
-    };
-
-    // Pkg305 pass-2: row-level realtime detects host/admin end instantly;
-    // 30s poll remains only as stale-heartbeat safety net.
+    // Pkg305 pass-2: row-level realtime detects host/admin end instantly.
     const unsubscribeStream = subscribeToTables(
       `livestream-row-${id}`,
       ['live_streams'],
@@ -1391,9 +1351,7 @@ const LiveStream = () => {
       }
     );
 
-    const interval = setInterval(checkStaleStream, 30000);
     return () => {
-      clearInterval(interval);
       unsubscribeStream?.();
       if (streamEndRedirectTimerRef.current) {
         clearTimeout(streamEndRedirectTimerRef.current);
