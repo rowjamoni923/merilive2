@@ -885,9 +885,12 @@ const FaceVerification = () => {
 
     try {
       const serverPose = await withSoftTimeout(serverPosePromise, 2500);
-      if (serverPose?.faceDetected) return serverPose;
+      if (serverPose?.faceDetected && serverPose.eyesOpen) return serverPose;
 
-      const localPose = await withSoftTimeout(localPosePromise, 6500);
+      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 2500 : 6500);
+      if (serverPose?.faceDetected && localPose?.faceDetected) {
+        return { ...serverPose, eyesOpen: serverPose.eyesOpen || localPose.eyesOpen };
+      }
       if (localPose?.faceDetected) return localPose;
 
       return serverPose ?? localPose ?? null;
