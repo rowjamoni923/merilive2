@@ -55,6 +55,11 @@ const sessionMatchesLinkRole = (session: ReturnType<typeof getAdminSession>, rol
   return role === 'owner' ? session.is_owner === true : session.is_owner === false;
 };
 
+const hasPotentialAdminSession = (): boolean => {
+  const session = getAdminSession();
+  return !!session && getAdminSessionToken().length >= 16;
+};
+
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   const location = useLocation();
   const accessTokenFromRoute = new URLSearchParams(location.search).get('access')?.trim() || null;
@@ -80,6 +85,11 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       return true;
     }
 
+    // Existing admin sessions were created through a secret link already, but
+    // localStorage is editable. If the tab/link flag is missing, pause on the
+    // admin loader and let the server x-admin-token check below decide — never
+    // flash BlogPage during normal admin section navigation.
+    if (hasPotentialAdminSession()) return null;
     return hasAdminAccessFlag() && !!getAdminLinkToken();
   });
 
@@ -110,6 +120,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       const accessToken = getAccessTokenFromURL();
       const tabAlreadyUnlocked = hasAdminAccessFlag();
       const storedLinkToken = getAdminLinkToken();
+      const potentialAdminSession = !!session && getAdminSessionToken().length >= 16;
 
       // Fresh secret link in URL → optimistically grant + persist token,
       // validate in background. We do NOT switch to BlogPage on failure.
@@ -121,6 +132,30 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
       if (tabAlreadyUnlocked && storedLinkToken) {
         setIsAuthorized(true);
+        return;
+      }
+
+      if (potentialAdminSession) {
+        setIsAuthorized(null);
+        (async () => {
+          try {
+            const timeout = new Promise<{ data: any }>((_, reject) =>
+              setTimeout(() => reject(new Error('admin session validation timeout')), VALIDATE_TIMEOUT_MS)
+            );
+            const call = (async () => adminSupabase.rpc('current_admin_id_from_header' as any))();
+            const { data } = await Promise.race([call, timeout]);
+            if (!mounted) return;
+            if (data && String(data) === session.admin_id) {
+              grantAdminAccess(session.is_owner);
+              setIsAuthorized(true);
+            } else {
+              setIsAuthorized(false);
+            }
+          } catch (e) {
+            console.warn('[AdminAccessGuard] existing admin session validation failed', e);
+            if (mounted) setIsAuthorized(false);
+          }
+        })();
         return;
       }
 
@@ -200,7 +235,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
     const handler = () => {
       const session = getAdminSession();
-      if (session) setIsAuthorized(true);
+      if (session && getAdminSessionToken().length >= 16 && hasAdminAccessFlag()) setIsAuthorized(true);
       else if (!hasAdminAccessFlag() && !hasFreshAccessToken) {
         revokeAdminAccess();
         setIsAuthorized(false);
@@ -220,19 +255,17 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   // Loading state — only reachable when there's NO fresh access token
   // (fresh tokens always optimistically render the admin shell).
   if (isAuthorized === null) {
-    if (getAccessTokenFromURL()) {
-      // Defensive: should not hit because decideSync sets true for fresh tokens,
-      // but if it ever does, still avoid BlogPage flash.
-      return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-violet-500 mx-auto mb-3" />
-            <p className="text-slate-400 text-sm">Verifying access...</p>
-          </div>
+    // Fresh secret links and already-issued server admin sessions both verify
+    // inside the admin experience. Do not show the public BlogPage as an
+    // intermediate state during admin navigation.
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-violet-500 mx-auto mb-3" />
+          <p className="text-slate-400 text-sm">Verifying access...</p>
         </div>
-      );
-    }
-    return <Suspense fallback={null}><BlogPage /></Suspense>;
+      </div>
+    );
   }
 
   // Authorized: render admin panel / login page
