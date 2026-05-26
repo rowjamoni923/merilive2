@@ -58,6 +58,12 @@ const SAFETY_LIMIT = 500;
 const DEDUPE_MS = 250;
 const inflight = new Map<string, { p: Promise<Response>; t: number }>();
 
+if (typeof window !== 'undefined') {
+  const clearAdminReadCache = () => clearInstantRestCache('admin');
+  window.addEventListener('admin-table-update', clearAdminReadCache);
+  window.addEventListener('admin-session-change', clearAdminReadCache);
+}
+
 function urlString(input: RequestInfo | URL): string {
   if (typeof input === 'string') return input;
   if (input instanceof URL) return input.toString();
@@ -191,8 +197,8 @@ const adminFetch: typeof fetch = (input, init) => {
     }
     const p = fetchWithInstantRestCache(url, opts, {
       namespace: 'admin',
-      ttlMs: 90_000,
-      staleWhileRevalidateMs: 10 * 60_000,
+      ttlMs: 3_000,
+      staleWhileRevalidateMs: 0,
       maxEntries: 320,
       // Admin RPCs power live counters, permissions, and financial summaries.
       // Never serve them from session cache: stale RPC JSON made dashboard counts
