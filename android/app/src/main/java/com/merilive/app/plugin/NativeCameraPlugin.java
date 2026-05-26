@@ -76,7 +76,7 @@ public class NativeCameraPlugin extends Plugin {
     private Camera camera;
     private PreviewView previewView;
     private CameraSelector currentSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
-    private Size targetResolution = new Size(1920, 1080);
+    private Size targetResolution = new Size(1280, 720);
 
     private ImageCapture imageCapture;
     private VideoCapture<Recorder> videoCapture;
@@ -472,14 +472,15 @@ public class NativeCameraPlugin extends Plugin {
             try {
                 long now = System.currentTimeMillis();
                 if (now - lastFrameEncodeAt < 350) return;
-                int rotation = image.getImageInfo().getRotationDegrees();
-                boolean mirror = currentSelector == CameraSelector.DEFAULT_FRONT_CAMERA;
-                byte[] jpeg = normalizeJpegForFaceDetection(imageProxyToJpeg(image, 82), rotation, mirror, 82);
+        int rotation = image.getImageInfo().getRotationDegrees();
+        // Do not mirror analyzer frames. Mirroring is only a preview concern;
+        // mirrored JPEGs invert yaw and cause left/right liveness to fail.
+        byte[] jpeg = normalizeJpegForFaceDetection(imageProxyToJpeg(image, 82), rotation, false, 82);
                 synchronized (frameLock) {
                     latestFrameJpeg = jpeg;
                     latestFrameWidth = (rotation == 90 || rotation == 270) ? image.getHeight() : image.getWidth();
                     latestFrameHeight = (rotation == 90 || rotation == 270) ? image.getWidth() : image.getHeight();
-                    latestFrameRotation = rotation;
+                    latestFrameRotation = 0;
                     lastFrameEncodeAt = now;
                 }
             } catch (Exception e) {
