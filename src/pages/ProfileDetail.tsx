@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo, type ImgHTMLAttributes } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -792,7 +792,7 @@ const ProfileDetail = () => {
                   className="w-full h-full object-contain bg-black"
                  
                   decoding="async"
-                  {...({ fetchpriority: active ? 'high' : 'low' } as React.ImgHTMLAttributes<HTMLImageElement>)}
+                  {...({ fetchpriority: active ? 'high' : 'low' } as ImgHTMLAttributes<HTMLImageElement>)}
                 />
               )}
             </motion.div>
