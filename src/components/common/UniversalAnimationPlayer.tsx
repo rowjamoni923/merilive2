@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
 import { logAnimationCompletion, type AnimationCompletionSource } from '@/utils/animationDebug';
 import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -84,27 +86,28 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   showControls = false,
   fallbackEmoji = '🎁',
 }) => {
+  const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
   // Synchronously seed Lottie state from cache so cached gifts paint on first
   // render (no loading spinner flash, no double-paint).
-  const initialType = type || detectAnimationType(src);
-  const initialLottie = initialType === 'lottie' ? lottieCacheGet(src) : null;
+  const initialType = type || detectAnimationType(resolvedSrc);
+  const initialLottie = initialType === 'lottie' ? lottieCacheGet(resolvedSrc) : null;
   const [lottieData, setLottieData] = useState<any>(initialLottie);
   const [lottieLoading, setLottieLoading] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const animationType = type || detectAnimationType(src);
+  const animationType = type || detectAnimationType(resolvedSrc);
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef(false);
-  useEffect(() => { startTimeRef.current = Date.now(); completedRef.current = false; }, [src, loop]);
+  useEffect(() => { startTimeRef.current = Date.now(); completedRef.current = false; }, [resolvedSrc, loop]);
 
   const fireComplete = (source: AnimationCompletionSource) => {
     if (completedRef.current) return;
     completedRef.current = true;
     logAnimationCompletion('UniversalAnimationPlayer', source, {
       elapsed: Date.now() - startTimeRef.current,
-      src,
+      src: resolvedSrc,
     });
     onCompleteDebug?.(source);
     onComplete?.();
@@ -117,8 +120,8 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
   const onErrorRef = useRef(onError);
   useEffect(() => { onLoadRef.current = onLoad; onErrorRef.current = onError; }, [onLoad, onError]);
   useEffect(() => {
-    if (animationType !== 'lottie' || !src) return;
-    const cached = lottieCacheGet(src);
+    if (animationType !== 'lottie' || !resolvedSrc) return;
+    const cached = lottieCacheGet(resolvedSrc);
     if (cached) {
       setLottieData(cached);
       setLottieLoading(false);
@@ -129,7 +132,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
     const ac = new AbortController();
     setLottieLoading(true);
     setHasError(false);
-    fetchLottieCached(src, ac.signal)
+    fetchLottieCached(resolvedSrc, ac.signal)
       .then(data => {
         if (ac.signal.aborted) return;
         setLottieData(data);
@@ -144,7 +147,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
         onErrorRef.current?.(err as Error);
       });
     return () => ac.abort();
-  }, [src, animationType]);
+  }, [resolvedSrc, animationType]);
 
   // Error fallback
   if (hasError) {
@@ -166,7 +169,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
       return (
         <Suspense fallback={<LoadingSpinner />}>
           <SVGAPlayerWithAudio
-            src={src}
+            src={resolvedSrc}
             className={className}
             loop={loop}
             autoPlay={autoPlay}
@@ -184,7 +187,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
     return (
       <Suspense fallback={<LoadingSpinner />}>
         <SVGAPlayer
-          src={src}
+          src={resolvedSrc}
           className={className}
           loop={loop}
           autoPlay={autoPlay}
@@ -205,7 +208,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
     return (
       <Suspense fallback={<LoadingSpinner />}>
         <VAPPlayer
-          src={src}
+          src={resolvedSrc}
           className={className}
           loop={loop}
           autoPlay={autoPlay}
@@ -250,7 +253,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
         )}
         <video
           ref={videoRef}
-          src={src}
+          src={resolvedSrc}
           autoPlay={autoPlay}
           loop={loop}
           muted={muted}
@@ -282,7 +285,7 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
       <img 
-        src={src}
+        src={resolvedSrc}
         alt="Animation"
         className={cn(
           "w-full h-full object-contain pointer-events-none",

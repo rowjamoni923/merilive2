@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ImgHTMLAttributes } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { Mail, User, Heart, X, Building2, Check, Sparkles, Lock, Eye, EyeOff, Phone, MessageCircle, ChevronDown, Search, Gift, CheckCircle } from "lucide-react";
@@ -207,7 +207,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           className="absolute inset-0 w-full h-full object-cover"
           decoding="async"
          
-          fetchPriority="high"
+          {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
           onError={() => setMediaFailed(true)}
           style={mediaStyle}
         />
