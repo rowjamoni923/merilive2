@@ -1,6 +1,9 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
+import { fetchLottieCached, lottieCacheGet } from '@/utils/lottieCache';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 
 // Lazy load SVGA players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
@@ -54,18 +57,25 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
   onLoad,
   onError,
 }) => {
-  const [lottieData, setLottieData] = useState<any>(null);
+  const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
+  const initialFrameType = type || detectFrameType(resolvedSrc);
+  const [lottieData, setLottieData] = useState<any>(initialFrameType === 'lottie' ? lottieCacheGet(resolvedSrc) : null);
   const [lottieLoading, setLottieLoading] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   
-  const frameType = type || detectFrameType(src);
+  const frameType = type || detectFrameType(resolvedSrc);
 
   // Load Lottie JSON data
   React.useEffect(() => {
-    if (frameType === 'lottie' && src) {
+    if (frameType === 'lottie' && resolvedSrc) {
+      const cached = lottieCacheGet(resolvedSrc);
+      if (cached) {
+        setLottieData(cached);
+        setLottieLoading(false);
+        return;
+      }
       setLottieLoading(true);
-      fetch(src)
-        .then(res => res.json())
+      fetchLottieCached(resolvedSrc)
         .then(data => {
           setLottieData(data);
           setLottieLoading(false);
@@ -77,7 +87,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           onError?.(err);
         });
     }
-  }, [src, frameType, onLoad, onError]);
+  }, [resolvedSrc, frameType, onLoad, onError]);
 
   // SVGA Animation
   if (frameType === 'svga') {
