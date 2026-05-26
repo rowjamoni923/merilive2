@@ -271,19 +271,10 @@ export function useRealtimeEarnings(userId: string | null) {
 
     fetchEarnings();
 
-    // Pkg89 LiveKit-Purist: removed `earnings-${userId}` postgres_changes
-    // subscription on `gift_transactions`. Table NOT in supabase_realtime publication;
-    // this hook has ZERO consumers. Gift earnings push instantly via Pkg76
-    // `livekit-gift-sent` window event (for active room views) and Pkg85
-    // `own-beans-updated` (for global My Beans). Visibility refresh covers other surfaces.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchEarnings();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
+    // Gift earnings push instantly via `livekit-gift-sent` + `own-beans-updated` window events.
   }, [userId]);
+
 
 
   return { todayEarnings, weekEarnings, monthEarnings, totalEarnings, recentGifts, loading, lastUpdate };
