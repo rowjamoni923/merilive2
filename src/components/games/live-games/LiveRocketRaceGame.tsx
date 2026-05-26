@@ -9,6 +9,7 @@ import { PremiumRocket3D } from "./rocket-race/PremiumRocket3D";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
 import { useLiveGameEffects } from "@/hooks/useLiveGameEffects";
 import { processWin } from "@/services/gameBalanceService";
+import { SmartImage } from "@/components/ui/smart-image";
 
 // Import rocket images for UI elements
 import rocketBlueImg from "@/assets/rockets/rocket-blue.png";
@@ -320,9 +321,10 @@ export function LiveRocketRaceGame({
                     "border-white/20"
                   )}
                 >
-                  <img 
+                  <SmartImage
                     src={ROCKET_ASSETS[ROCKETS[idx]?.colorKey]} 
                     alt="winner"
+                    fallbackSrc={ROCKET_ASSETS[ROCKETS[idx]?.colorKey]}
                     className="w-5 h-5 object-contain"/>
                 </motion.div>
               ))
@@ -536,9 +538,10 @@ export function LiveRocketRaceGame({
                 `bg-gradient-to-br ${rocket.color}`,
                 "shadow-lg"
               )}>
-                <img 
+                <SmartImage
                   src={ROCKET_ASSETS[rocket.colorKey]} 
                   alt={rocket.name}
+                  fallbackSrc={ROCKET_ASSETS[rocket.colorKey]}
                   className="w-8 h-8 object-contain"/>
               </div>
               <div className="text-xs text-white font-semibold">{rocket.name}</div>

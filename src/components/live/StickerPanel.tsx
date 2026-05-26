@@ -6,6 +6,7 @@ import { useMemo, useState, type ImgHTMLAttributes } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SmartImage } from '@/components/ui/smart-image';
 import { PROMO_STICKERS, type PromoStickerCategory, getStickerAnimationClass } from './stickerAssets';
 
 interface StickerPanelProps {
@@ -123,9 +124,10 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                           : 'border-white/10 bg-white/5 hover:bg-white/10'
                       )}
                     >
-                      <img
+                      <SmartImage
                         src={sticker.preview}
                         alt={sticker.name}
+                        fallbackSrc={sticker.preview}
                        
                         decoding="sync"
                         {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
