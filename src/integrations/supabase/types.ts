@@ -1257,7 +1257,7 @@ export type Database = {
           commission_rate: number | null
           created_at: string
           gift_earnings: number | null
-          host_id: string
+          host_id: string | null
           host_name: string | null
           host_uid: string | null
           id: string
@@ -1277,7 +1277,7 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string
           gift_earnings?: number | null
-          host_id: string
+          host_id?: string | null
           host_name?: string | null
           host_uid?: string | null
           id?: string
@@ -1297,7 +1297,7 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string
           gift_earnings?: number | null
-          host_id?: string
+          host_id?: string | null
           host_name?: string | null
           host_uid?: string | null
           id?: string
