@@ -3219,7 +3219,7 @@ const FaceVerification = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
+                    className="flex-1 border-amber-300 text-slate-800 hover:bg-amber-100 h-12 rounded-xl font-semibold"
                     onClick={() => videoInputRef.current?.click()}
                   >
                     <Upload className="w-5 h-5 mr-2" />
@@ -3238,7 +3238,7 @@ const FaceVerification = () => {
               {videoPreview && (
                 <Button
                   variant="outline"
-                  className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
+                  className="w-full border-amber-300 text-slate-800 hover:bg-amber-100 h-12 rounded-xl font-semibold"
                   onClick={() => {
                     setVideoPreview(null);
                     setVideoFile(null);
@@ -3295,7 +3295,7 @@ const FaceVerification = () => {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-amber-200/60 text-white hover:bg-amber-50/70 h-14 rounded-2xl"
+              className="flex-1 border-amber-300 text-slate-800 hover:bg-amber-100 h-14 rounded-2xl font-semibold"
               onClick={() => setCurrentStep(1)}
             >
               Back
