@@ -1647,15 +1647,16 @@ const FaceVerification = () => {
       }
       // Fallback only if public upload failed (keeps existing flow alive)
       if (!profilePhotoUrl) profilePhotoUrl = await uploadFile(userPhotoFile, 'profile-photos');
-      // ★ Save Basic Information (name/age/language/photo) directly onto profile
-      //   so it's reflected immediately app-wide, regardless of admin approval timing.
+      // Basic Information (name/age/language) saved on profile immediately;
+      // profile photo (avatar) is intentionally NOT written here — it only
+      // appears on the user's profile after face verification is approved
+      // (handled server-side by sync_profile_on_face_verification trigger).
       {
         const profilePatch: Record<string, unknown> = {
           display_name: fullName.trim(),
           age: parseInt(age, 10),
           language: language,
         };
-        if (profilePhotoUrl) profilePatch.avatar_url = profilePhotoUrl;
         const { error: profUpdErr } = await supabase.from('profiles').update(profilePatch).eq('id', userId);
         if (profUpdErr) console.warn('[FaceVerification] profile basic-info update failed', profUpdErr);
       }
@@ -1928,21 +1929,17 @@ const FaceVerification = () => {
         throw new Error('Submission blocked: all host media requirements must be uploaded successfully.');
       }
       
-      // Save face hash + Basic Information (name/age/language/photo) on profile
-      // so name/age/language/photo are reflected immediately, not gated on admin approval.
+      // Save face hash + Basic Information (name/age/language) on profile immediately.
+      // Profile photo, 3 host gallery photos, and intro video are intentionally NOT
+      // written here — they only appear on the host's profile after approval,
+      // gated server-side by sync_profile_on_face_verification trigger.
       {
         const hostProfilePatch: Record<string, unknown> = {
           face_hash: faceHash,
           display_name: fullName.trim(),
           age: parseInt(age, 10),
           language: language,
-          // Host gallery shown on ProfileDetail: 3 uploaded photos + intro video
-          // (NOT the face-verification liveness video — that stays admin-only).
-          host_photos: photoUrls,
-          profile_photo_url: profilePhotoUrl,
-          cover_url: introVideoUrl,
         };
-        if (profilePhotoUrl) hostProfilePatch.avatar_url = profilePhotoUrl;
         const { error: hostProfUpdErr } = await supabase
           .from('profiles')
           .update(hostProfilePatch)
