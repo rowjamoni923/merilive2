@@ -45,6 +45,17 @@ interface AgencyDetails {
   };
 }
 
+interface HostAgencyRequest {
+  id: string;
+  agency_id: string;
+  host_id: string;
+  status: string;
+  joined_at: string | null;
+  agency_name: string;
+  agency_code: string;
+  agency_logo: string | null;
+}
+
 const getLevelColor = (level: string) => {
   switch(level) {
     case 'A5': return 'from-brand-500 to-info-600';
@@ -83,29 +94,45 @@ const AgencyDetailsPage = () => {
           .from("profiles").select("app_uid").eq("id", user.id).maybeSingle();
         if (myProfile?.app_uid) setCurrentUserUid(myProfile.app_uid);
 
-        const { data: hostData } = await supabase
-          .from("agency_hosts")
-          .select(`
-            *,
-            agency:agencies(
-              id, name, agency_code, level, logo_url, commission_rate,
-              total_hosts, total_agents, wallet_balance, diamond_balance,
-              owner_id, created_at, whatsapp_number
-            )
-          `)
-          .eq("host_id", user.id)
-          .eq("status", "active")
-          .maybeSingle();
+        const { data: hostRequests, error: hostRequestError } = await supabase.rpc("get_host_agency_request", { _host_id: user.id });
 
-        if (hostData?.agency) {
+        if (hostRequestError) throw hostRequestError;
+
+        const activeRequest = ((hostRequests || []) as HostAgencyRequest[]).find((request) => request.status === "active");
+
+        if (activeRequest?.agency_id) {
+          const { data: agencyData, error: agencyError } = await supabase
+            .from("agencies_public")
+            .select("id, name, agency_code, level, logo_url, total_hosts, total_agents, owner_id, created_at")
+            .eq("id", activeRequest.agency_id)
+            .maybeSingle();
+
+          if (agencyError) throw agencyError;
+
+          const normalizedAgency = {
+            id: activeRequest.agency_id,
+            name: agencyData?.name || activeRequest.agency_name,
+            agency_code: agencyData?.agency_code || activeRequest.agency_code,
+            level: agencyData?.level || 'A1',
+            logo_url: agencyData?.logo_url || activeRequest.agency_logo || null,
+            commission_rate: 0,
+            total_hosts: agencyData?.total_hosts || 0,
+            total_agents: agencyData?.total_agents || 0,
+            wallet_balance: 0,
+            diamond_balance: 0,
+            owner_id: agencyData?.owner_id || '',
+            created_at: agencyData?.created_at || activeRequest.joined_at || new Date().toISOString(),
+            whatsapp_number: null,
+          };
+
           const { data: ownerData } = await supabase
             .from("profiles")
             .select("id, display_name, avatar_url, app_uid, country_flag, user_level")
-            .eq("id", hostData.agency.owner_id)
+            .eq("id", normalizedAgency.owner_id)
             .maybeSingle();
 
           setHostAgency({
-            ...hostData.agency,
+            ...normalizedAgency,
             owner: ownerData ? {
               ...ownerData,
               avatar_url: ownerData.avatar_url || null,
