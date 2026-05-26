@@ -184,7 +184,11 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    const cronSecretHeader = req.headers.get("x-cron-secret") || req.headers.get("x-internal-secret");
+    const CRON_SECRET = Deno.env.get("CRON_SECRET");
+    const isInternalCall = !!(CRON_SECRET && cronSecretHeader && cronSecretHeader === CRON_SECRET);
+
+    if (!isInternalCall && !authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -194,31 +198,30 @@ serve(async (req) => {
     const supabaseUser = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
+      authHeader ? { global: { headers: { Authorization: authHeader } } } : {},
     );
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    // Try getClaims first (fast — JWT-local), fall back to getUser (server-side)
-    // because getClaims breaks on stale tokens / signing-key rotation, and that
-    // was returning 401 to every legit user (Pkg358 root cause).
     let userId: string | null = null;
-    try {
-      const { data: claimsData } = await supabaseUser.auth.getClaims(token);
-      if (claimsData?.claims?.sub) userId = claimsData.claims.sub as string;
-    } catch (_e) { /* fall through to getUser */ }
-    if (!userId) {
-      const { data: userData, error: userErr } = await supabaseUser.auth.getUser(token);
-      if (userErr || !userData?.user?.id) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    if (!isInternalCall) {
+      const token = authHeader!.replace("Bearer ", "");
+      try {
+        const { data: claimsData } = await supabaseUser.auth.getClaims(token);
+        if (claimsData?.claims?.sub) userId = claimsData.claims.sub as string;
+      } catch (_e) { /* fall through to getUser */ }
+      if (!userId) {
+        const { data: userData, error: userErr } = await supabaseUser.auth.getUser(token);
+        if (userErr || !userData?.user?.id) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        userId = userData.user.id;
       }
-      userId = userData.user.id;
     }
 
     const { submissionId } = await req.json() as { submissionId?: string };
@@ -241,12 +244,16 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (row.user_id !== userId) {
+    // Internal/cron calls operate on behalf of the row owner.
+    if (isInternalCall) {
+      userId = row.user_id;
+    } else if (row.user_id !== userId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
     const st = String(row.status || "").trim().toLowerCase();
     // DB normalizes newly inserted "submitted" rows to "pending" before the
     // edge function can read them. Both mean "ready for AI analysis" here.
