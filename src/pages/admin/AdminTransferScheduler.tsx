@@ -16,12 +16,14 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 interface TransferSchedule {
   is_active: boolean;
-  interval_days: number;
-  interval_hours: number;
+  schedule_day_of_week: number; // 0=Sun..6=Sat
+  schedule_hour: number; // 0-23
+  schedule_minute: number; // 0-59
   next_transfer_at: string | null;
   last_transfer_at: string | null;
   timezone: string;
 }
+
 
 interface TransferHistory {
   id: string;
