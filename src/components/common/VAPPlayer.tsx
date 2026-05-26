@@ -89,8 +89,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   // Load config
   useEffect(() => {
-    if (configSrc) {
-      fetch(configSrc)
+    if (resolvedConfigSrc) {
+      fetch(resolvedConfigSrc)
         .then(res => res.json())
         .then(data => {
           setConfig(data.info || data);
@@ -101,7 +101,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         });
     } else {
       // Try to load config from same path with .json extension
-      const jsonPath = src.replace(/\.(mp4|webm)$/i, '.json');
+      const jsonPath = resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
       fetch(jsonPath)
         .then(res => {
           if (!res.ok) throw new Error('Config not found');
@@ -115,7 +115,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           setConfig(null); // Will use auto-detection
         });
     }
-  }, [src, configSrc]);
+  }, [resolvedSrc, resolvedConfigSrc]);
 
   // WebGL shader for alpha blending
   const createShaders = useCallback((gl: WebGLRenderingContext) => {
@@ -316,7 +316,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   // Initialize video and WebGL
   useEffect(() => {
-    if (!src) return;
+    if (!resolvedSrc) return;
 
     const video = document.createElement('video');
     video.crossOrigin = 'anonymous';
