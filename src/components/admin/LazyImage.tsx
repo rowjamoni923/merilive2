@@ -5,7 +5,7 @@
  * "broken-up" or load in pieces. All images load instantly. API kept
  * stable so existing call sites compile unchanged.
  */
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface LazyImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'loading'> {
