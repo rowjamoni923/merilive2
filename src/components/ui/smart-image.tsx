@@ -18,6 +18,8 @@ export interface SmartImageProps
   eager?: boolean;
   /** Fallback src on error. */
   fallbackSrc?: string;
+  /** Admin-only fallback bucket for raw private storage paths. */
+  adminBucket?: string;
 }
 
 /**
@@ -42,18 +44,36 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
       resize = "contain",
       eager = true,
       fallbackSrc,
+      adminBucket = "payment-screenshots",
       onError,
       className,
       ...rest
     },
     ref
   ) => {
-    const cdnSrc = React.useMemo(() => {
+    const baseSrc = React.useMemo(() => {
       if (!src) return undefined;
       // Pass-through: transform endpoint disabled to prevent double-request
       // flicker on Pro plan / transforms-off. Original URL loads in one shot.
       return toSupabaseCdnUrl(normalizePublicMediaUrl(src), { width: cdnWidth, height: cdnHeight, quality, resize });
     }, [src, cdnWidth, cdnHeight, quality, resize]);
+    const [displaySrc, setDisplaySrc] = React.useState<string | undefined>(baseSrc);
+
+    React.useEffect(() => {
+      let cancelled = false;
+      setDisplaySrc(baseSrc);
+      if (!src || typeof window === "undefined" || !window.location.pathname.startsWith("/admin")) return;
+      import("@/utils/adminStorageImages").then((m) => {
+        if (cancelled) return;
+        const sync = m.tryResolvePublicAdminStorageUrlSync(src, adminBucket);
+        if (sync) setDisplaySrc(sync);
+        if (m.isPrivateAdminStorageReference(src, adminBucket) && !sync) setDisplaySrc(fallbackSrc || undefined);
+        return m.resolveAdminStorageImageUrl(src, adminBucket).then((resolved) => {
+          if (!cancelled && resolved) setDisplaySrc(resolved);
+        });
+      }).catch(() => {});
+      return () => { cancelled = true; };
+    }, [src, baseSrc, fallbackSrc, adminBucket]);
 
     const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
       if (fallbackSrc && (e.currentTarget as HTMLImageElement).src !== fallbackSrc) {
@@ -64,7 +84,7 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
     };
 
 
-    if (!cdnSrc) {
+    if (!displaySrc) {
       return fallbackSrc ? (
         <img
           ref={ref}
@@ -81,7 +101,7 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
     return (
       <img
         ref={ref}
-        src={cdnSrc}
+        src={displaySrc}
         alt={alt}
         loading={eager ? "eager" : "lazy"}
         decoding="async"
