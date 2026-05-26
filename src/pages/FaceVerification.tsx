@@ -1928,11 +1928,22 @@ const FaceVerification = () => {
         throw new Error('Submission blocked: all host media requirements must be uploaded successfully.');
       }
       
-      // Save face hash to profile
-      await supabase
-        .from('profiles')
-        .update({ face_hash: faceHash })
-        .eq('id', userId);
+      // Save face hash + Basic Information (name/age/language/photo) on profile
+      // so name/age/language/photo are reflected immediately, not gated on admin approval.
+      {
+        const hostProfilePatch: Record<string, unknown> = {
+          face_hash: faceHash,
+          display_name: fullName.trim(),
+          age: parseInt(age, 10),
+          language: language,
+        };
+        if (profilePhotoUrl) hostProfilePatch.avatar_url = profilePhotoUrl;
+        const { error: hostProfUpdErr } = await supabase
+          .from('profiles')
+          .update(hostProfilePatch)
+          .eq('id', userId);
+        if (hostProfUpdErr) console.warn('[FaceVerification] host profile basic-info update failed', hostProfUpdErr);
+      }
       
       // CRITICAL: Check for existing pending submission before inserting
       const { data: existingSubmission } = await supabase
