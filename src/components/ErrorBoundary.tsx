@@ -52,17 +52,32 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = () => {
-    // Pkg54: if the failure was a stale chunk, clear per-module reload counters
-    // and trigger a full cache-busting reload so the user is never stuck on the
-    // "Updating MeriLive" card with a permanently missing chunk.
+    // If the failure was a stale chunk (post-deploy hash mismatch), the only
+    // reliable recovery is to wipe SW + asset caches AND do a hard reload so
+    // the browser fetches a fresh index.html with the new chunk hashes.
+    // The user explicitly asked for this to work — manual "Try Again" click
+    // is NOT an "auto-refresh"; it's a user-initiated recovery.
     if (this.state.error && isChunkLoadError(this.state.error)) {
       resetChunkRecoveryMarkers();
       this.setState({ recovering: true });
-      void scheduleChunkLoadRecovery(this.state.error, this.state.error.message);
+      void (async () => {
+        try {
+          await scheduleChunkLoadRecovery(this.state.error!, this.state.error!.message);
+        } catch { /* best-effort */ }
+        try {
+          // Cache-busting reload to current path (preserves admin secret URL).
+          const url = new URL(window.location.href);
+          url.searchParams.set('_r', String(Date.now()));
+          window.location.replace(url.toString());
+        } catch {
+          window.location.reload();
+        }
+      })();
       return;
     }
     this.setState({ hasError: false, error: null, errorInfo: null, recovering: false });
   };
+
 
   handleGoHome = () => {
     window.location.href = '/';
