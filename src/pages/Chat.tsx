@@ -812,8 +812,13 @@ const Chat = () => {
         });
 
         if (!response.success) {
-          const realMsg = response.error || "Gift failed";
-          console.error('[Chat Gift] Edge function error:', realMsg);
+          const rawErr = (response as any).error;
+          const realMsg = typeof rawErr === 'string'
+            ? rawErr
+            : (rawErr && typeof rawErr === 'object' && typeof (rawErr as any).message === 'string')
+              ? (rawErr as any).message
+              : "Gift failed";
+          console.error('[Chat Gift] Edge function error:', rawErr);
           recordClientError({ label: "Chat.response", message: realMsg });
           // Refund on failure
           setUserCoins(prev => prev + totalCost);
