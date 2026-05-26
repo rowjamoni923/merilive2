@@ -155,7 +155,19 @@ export default function BlogPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
+    <div
+      className="min-h-screen bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]"
+      style={{
+        // Defensive: override global `touch-action: manipulation` /
+        // `overscroll-behavior: none` so the public Blog/About page always
+        // scrolls cleanly in mobile Chrome + Android WebView, regardless of
+        // any parent native-disguise rules. See index.css ~line 3427.
+        touchAction: 'pan-y',
+        overscrollBehaviorY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+      }}
+    >
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-lg border-b border-amber-200/60 shadow-sm">
         <div className="container mx-auto px-4 py-4">
