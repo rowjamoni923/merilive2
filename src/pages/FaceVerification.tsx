@@ -3295,7 +3295,7 @@ const FaceVerification = () => {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-amber-200/60 text-white hover:bg-amber-50/70 h-14 rounded-2xl"
+              className="flex-1 border-amber-300 text-slate-800 hover:bg-amber-100 h-14 rounded-2xl font-semibold"
               onClick={() => setCurrentStep(1)}
             >
               Back
