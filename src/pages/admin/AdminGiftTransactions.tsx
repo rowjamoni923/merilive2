@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import { SmartImage } from "@/components/ui/smart-image";
 
