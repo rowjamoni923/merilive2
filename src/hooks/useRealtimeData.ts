@@ -28,18 +28,11 @@ export function useRealtimeProfile(userId: string | null) {
 
     fetchProfile();
 
-    // Pkg89 LiveKit-Purist: removed `profile-${userId}` postgres_changes subscription.
-    // `profiles` is NOT in supabase_realtime publication (would never fire), and this
-    // hook has ZERO consumers in the app. Use `useUserBalance` (own-row push via
-    // `user-balance-updates-${id}` channel) or rely on `app-sync` events instead.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchProfile();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch. Profile data
+    // is pushed via own-balance / admin-broadcast / Supabase Realtime channels
+    // already; we never re-query on tab focus.
   }, [userId]);
+
 
   return { profile, loading };
 }
@@ -88,18 +81,10 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
 
     fetchData();
 
-    // Pkg89 LiveKit-Purist: removed `agency-${agencyId}` + `agency-perf-${agencyId}`
-    // postgres_changes subscriptions. Neither table is in supabase_realtime publication,
-    // and this hook has ZERO consumers. Use admin-broadcast push (Pkg37) or visibility
-    // refresh — never re-subscribe to cross-user `agencies` tables.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchData();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
+    // Updates arrive via admin-broadcast push.
   }, [agencyId]);
+
 
   return { stats, performance, loading };
 }
@@ -205,18 +190,10 @@ export function useRealtimeRankings(rankingType: string, periodType: string) {
   useEffect(() => {
     fetchRankings();
 
-    // Pkg89 LiveKit-Purist: removed `rankings-${type}-${period}` UNFILTERED
-    // postgres_changes on `agency_performance`. UNFILTERED cross-user subscription
-    // is the exact $1400-bill pattern. agency_performance is NOT in publication anyway,
-    // and this hook has ZERO consumers. Use admin-broadcast push or visibility refresh.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchRankings();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
+    // Manual refresh is exposed via the returned `refresh` callback.
   }, [fetchRankings]);
+
 
 
   return { rankings, loading, lastUpdate, refresh: fetchRankings };
@@ -294,19 +271,10 @@ export function useRealtimeEarnings(userId: string | null) {
 
     fetchEarnings();
 
-    // Pkg89 LiveKit-Purist: removed `earnings-${userId}` postgres_changes
-    // subscription on `gift_transactions`. Table NOT in supabase_realtime publication;
-    // this hook has ZERO consumers. Gift earnings push instantly via Pkg76
-    // `livekit-gift-sent` window event (for active room views) and Pkg85
-    // `own-beans-updated` (for global My Beans). Visibility refresh covers other surfaces.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchEarnings();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
+    // Gift earnings push instantly via `livekit-gift-sent` + `own-beans-updated` window events.
   }, [userId]);
+
 
 
   return { todayEarnings, weekEarnings, monthEarnings, totalEarnings, recentGifts, loading, lastUpdate };

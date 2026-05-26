@@ -72,19 +72,9 @@ export function useParcels(userId: string | undefined) {
     },
   });
 
-  // Pkg83-ext: removed static `parcels-realtime` channel (user_parcels not in
-  // publication). Mutation invalidates inline; visibility refetch covers
-  // server-side rewards.
-  useEffect(() => {
-    if (!userId) return;
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') {
-        queryClient.invalidateQueries({ queryKey: ['user-parcels'] });
-      }
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [userId, queryClient]);
+  // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
+  // Mutation invalidates the cache inline; new parcels surface on next route entry.
+
 
 
   return {

@@ -128,12 +128,13 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         return;
       }
 
-      if (session || storedLinkToken || tabAlreadyUnlocked) {
-        clearAdminSession();
-        revokeAdminAccess();
-      }
+      // Pkg360 NO-AUTO-LOGOUT: do NOT clear an existing admin session just
+      // because the tab-scoped unlock flag is gone. We only gate rendering
+      // (BlogPage fallback) — the persisted admin session token stays intact
+      // so re-entering via secret link / login route restores access instantly.
       setIsAuthorized(false);
     };
+
 
     decideSync();
 

@@ -71,16 +71,13 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
       const detail = (event as CustomEvent<{ table?: string }>).detail;
       if (detail?.table === 'recharge_campaigns') fetchCampaigns();
     };
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchCampaigns();
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch — admin push covers updates.
     window.addEventListener('admin-table-update', onAdminUpdate as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
     return () => {
       window.removeEventListener('admin-table-update', onAdminUpdate as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [fetchCampaigns, location]);
+
 
 
   const visibleCampaigns = campaigns.filter(c => !dismissed.has(c.id));

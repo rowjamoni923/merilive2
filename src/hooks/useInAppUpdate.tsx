@@ -85,14 +85,14 @@ export function useInAppUpdate() {
     });
 
     runCheck();
-    const onVisible = () => { if (document.visibilityState === "visible") runCheck(); };
-    document.addEventListener("visibilitychange", onVisible);
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange re-check.
+    // Update check fires once on app start.
 
     return () => {
       cancelled = true;
-      document.removeEventListener("visibilitychange", onVisible);
       handle.then((h) => h.remove()).catch(() => {});
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }

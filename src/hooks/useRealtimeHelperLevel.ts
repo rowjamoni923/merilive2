@@ -67,22 +67,20 @@ export const useRealtimeHelperLevel = (helperId: string | null) => {
   // Pkg83-ext: removed static helper-level-updates channel (topup_helpers not
   // in supabase_realtime publication — was silent no-op). Replaced with
   // visibility refetch + admin-table-update for admin-driven changes.
+  // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
+  // Admin-driven updates still arrive via the admin-table-update push event.
   useEffect(() => {
     if (!helperId) return;
     const onAdmin = (e: Event) => {
       const table = (e as CustomEvent<{ table?: string }>).detail?.table;
       if (table === 'topup_helpers') fetchHelperData();
     };
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchHelperData();
-    };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
     return () => {
       window.removeEventListener('admin-table-update', onAdmin as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [helperId, fetchHelperData]);
+
 
 
   return {
