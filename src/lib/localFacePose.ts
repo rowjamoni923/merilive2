@@ -7,8 +7,6 @@ export type LocalFacePoseResult = {
   source: "local";
 };
 
-let detectorPromise: Promise<any | null> | null = null;
-
 type LocalDetector = {
   estimateFaces: (
     image: HTMLImageElement,
