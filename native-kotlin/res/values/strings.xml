@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">MeriLive</string>
     <string name="app_tagline">Go Live. Get Famous.</string>
+    <string name="title_activity_main">MeriLive</string>
 
     <!-- Bottom Nav -->
     <string name="nav_home">Home</string>
