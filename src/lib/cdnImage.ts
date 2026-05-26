@@ -33,36 +33,17 @@ const RENDER_PUBLIC = "/storage/v1/render/image/public/";
 
 export function toSupabaseCdnUrl(
   url: string | null | undefined,
-  opts: CdnImageOptions = {}
+  _opts: CdnImageOptions = {}
 ): string | undefined {
+  // Image-transform endpoint disabled project-wide: it was returning broken /
+  // partial WebP frames (visible "piece by piece" decode) and the onError
+  // fallback to the original URL caused a second request + visible flicker.
+  // Serving the original public URL is faster end-to-end because the asset
+  // is already cached at the Supabase edge after first hit.
   if (!url || typeof url !== "string") return url || undefined;
-  // Already a transformed / signed render URL, or a data/blob URI — leave alone
-  if (
-    url.startsWith("data:") ||
-    url.startsWith("blob:") ||
-    url.includes("/storage/v1/render/image/") ||
-    url.includes("/storage/v1/object/sign/")
-  ) {
-    return url;
-  }
-  const idx = url.indexOf(OBJECT_PUBLIC);
-  if (idx === -1) return url; // not a Supabase public-object URL
-  const base = url.slice(0, idx) + RENDER_PUBLIC;
-  const rest = url.slice(idx + OBJECT_PUBLIC.length);
-  const params = new URLSearchParams();
-  const w = opts.width ? Math.max(16, Math.min(2000, Math.round(opts.width))) : undefined;
-  const h = opts.height ? Math.max(16, Math.min(2000, Math.round(opts.height))) : undefined;
-  // Bumped default 70 → 88: at 70 WebP shows visible blocky/"broken-up" decode
-  // on avatars + banners; 88 keeps file size reasonable but renders clean.
-  const q = Math.max(20, Math.min(100, Math.round(opts.quality ?? 88)));
-  if (w) params.set("width", String(w));
-  if (h) params.set("height", String(h));
-  params.set("quality", String(q));
-  params.set("resize", opts.resize ?? "contain");
-  // Strip any existing query on the original (rare)
-  const cleanRest = rest.split("?")[0];
-  return `${base}${cleanRest}?${params.toString()}`;
+  return url;
 }
+
 
 /**
  * Convenience: pick a sensible width based on a CSS px size and devicePixelRatio.
