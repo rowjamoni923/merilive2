@@ -441,6 +441,55 @@ serve(async (req) => {
     rekognition.profile_match_skip_reason = profileMatchSkipReason;
     rekognition.profile_mismatch = profileMismatch;
 
+    // ───────────────────────────────────────────────────────────────────
+    // Host gallery photos ↔ verification-selfie cross-check.
+    // For host (female) submissions, the 3 host gallery photos must be the
+    // same person as the live face. This catches "uploaded someone else's
+    // photos, then verified with own face" or vice-versa. Threshold 75%
+    // per-photo. Any single mismatch → flag (manual review). Missing /
+    // no-face / fetch-fail = skip (no block).
+    // ───────────────────────────────────────────────────────────────────
+    const hostPhotos = Array.isArray((row as Record<string, unknown>).host_photos)
+      ? ((row as Record<string, unknown>).host_photos as string[]).filter((u) => typeof u === "string" && u.length > 0)
+      : [];
+    const hostPhotoScores: Array<{ url: string; score: number | null; skip?: string }> = [];
+    let hostPhotosMinScore: number | null = null;
+    let hostPhotosMismatch = false;
+    if (!frontError && hostPhotos.length > 0) {
+      for (const hp of hostPhotos) {
+        try {
+          const hpBytes = await fetchImageBytes(hp, supabaseAdmin);
+          const hpDet = await detectFaces(hpBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+          const hpFaceCount = ((hpDet.FaceDetails as unknown[] | undefined) ?? []).length;
+          if (hpFaceCount === 0) {
+            hostPhotoScores.push({ url: hp, score: null, skip: "no_face" });
+            continue;
+          }
+          const score = await compareFaces(
+            hpBytes,
+            frontBytes,
+            AWS_ACCESS_KEY_ID,
+            AWS_SECRET_ACCESS_KEY,
+            AWS_REGION,
+          );
+          hostPhotoScores.push({ url: hp, score });
+          if (hostPhotosMinScore === null || score < hostPhotosMinScore) hostPhotosMinScore = score;
+          if (score < 75) hostPhotosMismatch = true;
+        } catch (e) {
+          hostPhotoScores.push({
+            url: hp,
+            score: null,
+            skip: `fetch_or_compare_failed:${e instanceof Error ? e.message : "unknown"}`,
+          });
+        }
+      }
+    }
+    rekognition.host_photos_count = hostPhotos.length;
+    rekognition.host_photos_scores = hostPhotoScores;
+    rekognition.host_photos_min_score = hostPhotosMinScore;
+    rekognition.host_photos_mismatch = hostPhotosMismatch;
+
+
     const profileSummary = profileMatchScore !== null
       ? `, profile↔selfie=${profileMatchScore.toFixed(1)}%${profileMismatch ? " MISMATCH" : ""}`
       : profileMatchSkipReason
