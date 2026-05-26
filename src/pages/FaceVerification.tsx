@@ -1647,8 +1647,17 @@ const FaceVerification = () => {
       }
       // Fallback only if public upload failed (keeps existing flow alive)
       if (!profilePhotoUrl) profilePhotoUrl = await uploadFile(userPhotoFile, 'profile-photos');
-      if (profilePhotoUrl) {
-        await supabase.from('profiles').update({ avatar_url: profilePhotoUrl }).eq('id', userId);
+      // ★ Save Basic Information (name/age/language/photo) directly onto profile
+      //   so it's reflected immediately app-wide, regardless of admin approval timing.
+      {
+        const profilePatch: Record<string, unknown> = {
+          display_name: fullName.trim(),
+          age: parseInt(age, 10),
+          language: language,
+        };
+        if (profilePhotoUrl) profilePatch.avatar_url = profilePhotoUrl;
+        const { error: profUpdErr } = await supabase.from('profiles').update(profilePatch).eq('id', userId);
+        if (profUpdErr) console.warn('[FaceVerification] profile basic-info update failed', profUpdErr);
       }
 
       // CRITICAL: Check for existing pending/approved submission before inserting
@@ -1919,11 +1928,22 @@ const FaceVerification = () => {
         throw new Error('Submission blocked: all host media requirements must be uploaded successfully.');
       }
       
-      // Save face hash to profile
-      await supabase
-        .from('profiles')
-        .update({ face_hash: faceHash })
-        .eq('id', userId);
+      // Save face hash + Basic Information (name/age/language/photo) on profile
+      // so name/age/language/photo are reflected immediately, not gated on admin approval.
+      {
+        const hostProfilePatch: Record<string, unknown> = {
+          face_hash: faceHash,
+          display_name: fullName.trim(),
+          age: parseInt(age, 10),
+          language: language,
+        };
+        if (profilePhotoUrl) hostProfilePatch.avatar_url = profilePhotoUrl;
+        const { error: hostProfUpdErr } = await supabase
+          .from('profiles')
+          .update(hostProfilePatch)
+          .eq('id', userId);
+        if (hostProfUpdErr) console.warn('[FaceVerification] host profile basic-info update failed', hostProfUpdErr);
+      }
       
       // CRITICAL: Check for existing pending submission before inserting
       const { data: existingSubmission } = await supabase
