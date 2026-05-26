@@ -84,9 +84,20 @@ const queryPermission = async (name: PermissionName, isNative: boolean): Promise
  * @capacitor/camera plugin only handles photo/gallery permissions, NOT WebRTC.
  * The native WebChromeClient.onPermissionRequest() handles the actual Android permission dialog.
  */
-const requestCameraViaGetUserMedia = async (includeAudio: boolean): Promise<{ granted: boolean; stream?: MediaStream; error?: string }> => {
+const denialHint = (isNative: boolean): string =>
+  isNative
+    ? 'Camera permission denied. Open phone Settings → Apps → MeriLive → Permissions → Camera, set it to Allow, then return to the app.'
+    : 'Camera blocked in your browser. Tap the lock/info icon next to the address bar → Site settings (Permissions) → Camera → Allow, then reload this page.';
+
+const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boolean = false): Promise<{ granted: boolean; stream?: MediaStream; error?: string }> => {
   try {
-    console.log('[Camera Permission] Requesting via getUserMedia (native WebView path), audio:', includeAudio);
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      return { granted: false, error: 'Your browser does not support camera access. Try the latest Chrome or Safari over HTTPS.' };
+    }
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      return { granted: false, error: 'Camera requires a secure (HTTPS) connection. Reload the site over HTTPS.' };
+    }
+    console.log('[Camera Permission] Requesting via getUserMedia, native:', isNative, 'audio:', includeAudio);
     const stream = await withTimeout(
       navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user' }, 
@@ -125,17 +136,17 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean): Promise<{ gr
   } catch (err: any) {
     console.error('[Camera Permission] getUserMedia failed:', err?.name, err?.message);
     
-    if (err.name === 'NotAllowedError') {
-      return { granted: false, error: 'Camera permission denied. Enable from Settings > Apps > MeriLive > Permissions.' };
+    if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+      return { granted: false, error: denialHint(isNative) };
     }
-    if (err.name === 'NotFoundError') {
-      return { granted: false, error: 'No camera found on this device.' };
+    if (err.name === 'NotFoundError' || err.name === 'OverconstrainedError') {
+      return { granted: false, error: 'No usable camera was found on this device.' };
     }
     if (err.name === 'NotReadableError') {
-      return { granted: false, error: 'Camera is being used by another app.' };
+      return { granted: false, error: 'Camera is busy. Close other apps/tabs using the camera and try again.' };
     }
     if (err.name === 'TimeoutError') {
-      return { granted: false, error: 'Camera permission timed out. Please try again.' };
+      return { granted: false, error: 'Camera permission timed out. Please tap "Start Face Scan" again.' };
     }
     return { granted: false, error: err?.message || 'Camera access failed.' };
   }
@@ -180,7 +191,7 @@ export function useNativeCameraPermission() {
           // ===== NATIVE ANDROID: Direct getUserMedia (the ONLY reliable method) =====
           // @capacitor/camera is for photo capture, NOT for WebRTC getUserMedia.
           // The native WebChromeClient.onPermissionRequest() handles the Android permission dialog.
-          const result = await requestCameraViaGetUserMedia(includeMicrophone);
+          const result = await requestCameraViaGetUserMedia(includeMicrophone, true);
           
           if (result.granted) {
             // Stop the probe stream - actual stream will be requested later
@@ -203,12 +214,11 @@ export function useNativeCameraPermission() {
         if (cameraState === 'denied') {
           permissionDeniedCount++;
           setPermissionGranted(false);
-          return { granted: false, error: 'Camera permission denied in browser settings.' };
+          return { granted: false, error: denialHint(false) };
         }
 
         if (cameraState !== 'granted') {
-          // Need to request via getUserMedia
-          const result = await requestCameraViaGetUserMedia(includeMicrophone);
+          const result = await requestCameraViaGetUserMedia(includeMicrophone, false);
           if (!result.granted) {
             permissionDeniedCount++;
             setPermissionGranted(false);
@@ -244,9 +254,9 @@ export function useNativeCameraPermission() {
         setPermissionGranted(false);
 
         let errorMessage = 'Camera access failed.';
-        if (error.name === 'NotAllowedError') errorMessage = 'Camera permission denied. Enable from Settings.';
-        else if (error.name === 'NotFoundError') errorMessage = 'No camera found on this device.';
-        else if (error.name === 'NotReadableError') errorMessage = 'Camera is being used by another app.';
+        if (error.name === 'NotAllowedError' || error.name === 'SecurityError') errorMessage = denialHint(isNativeApp);
+        else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') errorMessage = 'No usable camera was found on this device.';
+        else if (error.name === 'NotReadableError') errorMessage = 'Camera is busy. Close other apps/tabs using the camera and try again.';
         else if (error.name === 'TimeoutError') errorMessage = 'Camera start timed out. Please try again.';
 
         return { granted: false, error: errorMessage };
@@ -341,12 +351,14 @@ export function useNativeCameraPermission() {
       }
 
       setPermissionGranted(false);
-      if (lastError?.name === 'NotAllowedError') {
+      if (lastError?.name === 'NotAllowedError' || lastError?.name === 'SecurityError') {
         permissionDeniedCount++;
-        throw new Error('Camera permission denied. Enable from Settings > Apps > MeriLive > Permissions.');
+        // Invalidate any stale "granted" cache so the next attempt re-prompts cleanly
+        globalPermissionGranted = null; writeCachedPerm(false);
+        throw new Error(denialHint(isNativeApp));
       }
-      if (lastError?.name === 'NotFoundError') throw new Error('No camera found on this device.');
-      if (lastError?.name === 'NotReadableError') throw new Error('Camera is being used by another app.');
+      if (lastError?.name === 'NotFoundError' || lastError?.name === 'OverconstrainedError') throw new Error('No usable camera was found on this device.');
+      if (lastError?.name === 'NotReadableError') throw new Error('Camera is busy. Close other apps/tabs using the camera and try again.');
       if (lastError?.name === 'TimeoutError') throw new Error('Camera stream request timed out. Please try again.');
       throw new Error(lastError?.message || 'Unable to access camera with any settings.');
     })();
