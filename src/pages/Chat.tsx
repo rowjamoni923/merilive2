@@ -812,8 +812,13 @@ const Chat = () => {
         });
 
         if (!response.success) {
-          const realMsg = response.error || "Gift failed";
-          console.error('[Chat Gift] Edge function error:', realMsg);
+          const rawErr = (response as any).error;
+          const realMsg = typeof rawErr === 'string'
+            ? rawErr
+            : (rawErr && typeof rawErr === 'object' && typeof (rawErr as any).message === 'string')
+              ? (rawErr as any).message
+              : "Gift failed";
+          console.error('[Chat Gift] Edge function error:', rawErr);
           recordClientError({ label: "Chat.response", message: realMsg });
           // Refund on failure
           setUserCoins(prev => prev + totalCost);
@@ -856,12 +861,17 @@ const Chat = () => {
           updateCachedBalance(updatedProfile.coins || 0);
         }
       } catch (error) {
+        const msg = error instanceof Error
+          ? error.message
+          : (error && typeof error === 'object' && typeof (error as any).message === 'string')
+            ? (error as any).message
+            : (typeof error === 'string' ? error : 'Unknown error');
         console.error('[Chat Gift] Background error:', error);
-        recordClientError({ label: "Chat.messageContent", message: error instanceof Error ? error.message : String(error) });
+        recordClientError({ label: "Chat.messageContent", message: msg });
         // Refund on error
         setUserCoins(prev => prev + totalCost);
         setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
-        toast.error(`Gift failed: ${error instanceof Error ? error.message : String(error)}`);
+        toast.error(`Gift failed: ${msg}`);
       }
     })();
   };
