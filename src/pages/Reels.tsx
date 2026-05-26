@@ -21,6 +21,14 @@ import { FlyingGiftAnimation } from "@/components/live/FlyingGiftAnimation";
 import { useFlyingGifts } from "@/hooks/useFlyingGifts";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+
+// Module-scoped instant cache — re-entering Reels shows the last list immediately
+// (zero-refresh feel) while realtime + background fetch keep it fresh.
+const reelsCache: { byCategory: Map<string, any[]>; categories: any[] | null } = {
+  byCategory: new Map(),
+  categories: null,
+};
 interface Sound {
   id: string;
   title: string;
@@ -87,13 +95,14 @@ const Reels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("/chat");
-  const [reels, setReels] = useState<Reel[]>([]);
+  // Hydrate from module cache so re-entry is instant (no blank/loading flash)
+  const [reels, setReels] = useState<Reel[]>(() => reelsCache.byCategory.get('all') || []);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => (reelsCache.byCategory.get('all')?.length ?? 0) === 0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [isHost, setIsHost] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(() => reelsCache.categories || []);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -144,17 +153,87 @@ const Reels = () => {
         setIsHost(profileRes.data?.is_host || false);
         userCoinsRef.current = profileRes.data?.coins || 0;
         setUserCoins(profileRes.data?.coins || 0);
-        if (categoriesRes.data) setCategories(categoriesRes.data);
+        if (categoriesRes.data) {
+          setCategories(categoriesRes.data);
+          reelsCache.categories = categoriesRes.data;
+        }
       } else {
         const { data } = await supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order');
-        if (data) setCategories(data);
+        if (data) {
+          setCategories(data);
+          reelsCache.categories = data;
+        }
       }
     };
     init();
   }, []);
 
+  // ⚡ Supabase Realtime — instant feed updates without any refresh.
+  // New reels appear at the top, deletes vanish, like/comment/share counts tick live.
   useEffect(() => {
-    fetchReels(reels.length === 0);
+    const refetchTimer = { current: null as ReturnType<typeof setTimeout> | null };
+    const scheduleRefetch = () => {
+      if (refetchTimer.current) clearTimeout(refetchTimer.current);
+      refetchTimer.current = setTimeout(() => fetchReels(false), 350);
+    };
+
+    const bumpCount = (reelId: string, field: 'like_count' | 'comment_count' | 'share_count', delta: number) => {
+      setReels(prev => {
+        const next = prev.map(r => r.id === reelId ? { ...r, [field]: Math.max(0, (r[field] as number) + delta) } : r);
+        reelsCache.byCategory.set(selectedCategory, next);
+        return next;
+      });
+    };
+
+    const unsubscribe = subscribeToTables(
+      `reels-feed-${selectedCategory}`,
+      ['reels', 'reel_likes', 'reel_comments', 'reel_shares'],
+      (table, event, payload) => {
+        const row: any = payload?.new || payload?.old;
+        if (!row) return;
+        if (table === 'reels') {
+          // New upload / approval flip / deletion → refetch list (debounced)
+          scheduleRefetch();
+        } else if (table === 'reel_likes') {
+          const reelId = row.reel_id;
+          if (!reelId) return;
+          if (event === 'INSERT') bumpCount(reelId, 'like_count', 1);
+          else if (event === 'DELETE') bumpCount(reelId, 'like_count', -1);
+        } else if (table === 'reel_comments') {
+          const reelId = row.reel_id;
+          if (!reelId) return;
+          if (event === 'INSERT') {
+            bumpCount(reelId, 'comment_count', 1);
+            // If user has the comments sheet open on this reel, prepend live
+            if (showComments && reels[currentIndex]?.id === reelId && row.user_id !== currentUserIdRef.current) {
+              // Re-fetch with profile join for the avatar/name
+              fetchComments(reelId);
+            }
+          } else if (event === 'DELETE') {
+            bumpCount(reelId, 'comment_count', -1);
+          }
+        } else if (table === 'reel_shares' && event === 'INSERT') {
+          bumpCount(row.reel_id, 'share_count', 1);
+        }
+      }
+    );
+
+    return () => {
+      if (refetchTimer.current) clearTimeout(refetchTimer.current);
+      unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, currentUserId]);
+
+
+  useEffect(() => {
+    // Instant hydrate from per-category cache, then refresh in the background
+    const cached = reelsCache.byCategory.get(selectedCategory);
+    if (cached && cached.length > 0) {
+      setReels(cached);
+      setLoading(false);
+    }
+    fetchReels(reels.length === 0 && !cached);
   }, [selectedCategory, currentUserId]);
 
   useEffect(() => {
@@ -165,8 +244,9 @@ const Reels = () => {
   }, [searchParams, reels]);
 
   const fetchReels = async (isInitial = false) => {
-    // Only show loading on initial load, not on category/filter change
-    if (isInitial || reels.length === 0) setLoading(true);
+    // Only show loading on initial cold start (no cache yet)
+    const hasCache = (reelsCache.byCategory.get(selectedCategory)?.length ?? 0) > 0;
+    if ((isInitial || reels.length === 0) && !hasCache) setLoading(true);
     let query = supabase
       .from('reels')
       .select(`
@@ -213,8 +293,11 @@ const Reels = () => {
       }));
 
       setReels(reelsWithStatus);
+      reelsCache.byCategory.set(selectedCategory, reelsWithStatus);
     } else {
-      setReels(data || []);
+      const list = data || [];
+      setReels(list);
+      reelsCache.byCategory.set(selectedCategory, list);
     }
     setLoading(false);
   };
