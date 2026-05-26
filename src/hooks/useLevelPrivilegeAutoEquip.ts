@@ -171,10 +171,11 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
           ...vehicleCandidates.map((item) => item.id),
         ]);
 
+        // Only auto-equip when the slot is EMPTY. Never override a user's manual pick —
+        // doing so caused equipped items (e.g. Entry Effects like "Bat") to silently revert
+        // back to the highest-level free reward immediately after the user pressed Equip.
         const canOverride = (currentId: string | null | undefined) => {
-          if (!currentId) return true;
-          if (protectedIds.has(currentId)) return false;
-          return levelOwnedIds.has(currentId);
+          return !currentId;
         };
 
         const updateData: Record<string, string> = {};
