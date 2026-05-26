@@ -434,7 +434,9 @@ serve(async (req) => {
                   AWS_SECRET_ACCESS_KEY,
                   AWS_REGION,
                 );
-                profileMismatch = profileMatchScore < 80;
+                // Pro-app: same person typically scores 90%+, glasses/lighting/angle
+                // can drop to 70%. <65% means clearly different person.
+                profileMismatch = profileMatchScore < 65;
               } catch (e) {
                 profileMatchSkipReason = `compare_failed:${e instanceof Error ? e.message : "unknown"}`;
               }
