@@ -73,6 +73,7 @@ import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel } from "@/utils/callRateSettings";
 import { getCachedUser } from "@/utils/cachedAuth";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { getAppSetting, invalidateAppSetting } from "@/utils/appSettingsCache";
 
 interface ProfileStats {
   followersCount: number;
@@ -2089,26 +2090,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         beans_balance: agency.wallet_balance || 0
                       });
                       
-                      // Fetch exchange settings from correct key 'coin_exchange'
-                      const { data: settings } = await supabase
-                        .from('app_settings')
-                        .select('setting_value')
-                        .eq('setting_key', 'coin_exchange')
-                        .maybeSingle();
+                      invalidateAppSetting('agency_coin_exchange');
+                      const settingVal = await getAppSetting<Record<string, unknown>>('agency_coin_exchange', { maxAgeMs: 0 });
                       
-                      if (settings?.setting_value) {
-                        // Pkg370 fix: app_settings.setting_value is stored as TEXT (JSON
-                        // string), not jsonb. If we treat it as an object the keys come
-                        // back undefined and the rate falls back to the stale default
-                        // (1:1, 25% fee) — which makes the client compute a diamond
-                        // amount that the server rejects with "Exchange rate mismatch".
-                        let settingVal: any = settings.setting_value;
-                        if (typeof settingVal === 'string') {
-                          try { settingVal = JSON.parse(settingVal); } catch { settingVal = {}; }
-                        }
+                      if (settingVal) {
                         setAgencyExchangeSettings({
                           beans_to_diamonds_rate: Number(settingVal.beans_to_diamonds_rate) || 1,
-                          exchange_fee_percent: Number(settingVal.exchange_fee_percent ?? 0),
+                          exchange_fee_percent: Number(settingVal.exchange_fee_percent ?? 25),
                           min_exchange_amount: Number(settingVal.min_exchange_amount) || 100000
                         });
                       }
@@ -3113,12 +3101,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   const value = e.target.value;
                   setExchangeBeansAmount(value);
                   
-                  // Calculate fee first (deducted from beans input)
-                  // Then convert remaining beans to diamonds
                   const beansNum = parseInt(value) || 0;
-                  const fee = Math.floor(beansNum * agencyExchangeSettings.exchange_fee_percent / 100);
-                  const beansAfterFee = beansNum - fee;
-                  const diamonds = Math.floor(beansAfterFee / agencyExchangeSettings.beans_to_diamonds_rate);
+                  const grossDiamonds = Math.floor(beansNum / agencyExchangeSettings.beans_to_diamonds_rate);
+                  const fee = Math.floor(grossDiamonds * agencyExchangeSettings.exchange_fee_percent / 100);
+                  const diamonds = Math.max(0, grossDiamonds - fee);
                   setExchangeDiamondsToGet(diamonds);
                   setExchangeFeeAmount(fee);
                 }}
@@ -3135,10 +3121,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     onClick={() => {
                       const val = idx === 3 ? beans : amount;
                       setExchangeBeansAmount(val.toString());
-                      // Fee deducted first, remaining beans convert to diamonds
-                      const fee = Math.floor(val * agencyExchangeSettings.exchange_fee_percent / 100);
-                      const beansAfterFee = val - fee;
-                      const diamonds = Math.floor(beansAfterFee / agencyExchangeSettings.beans_to_diamonds_rate);
+                      const grossDiamonds = Math.floor(val / agencyExchangeSettings.beans_to_diamonds_rate);
+                      const fee = Math.floor(grossDiamonds * agencyExchangeSettings.exchange_fee_percent / 100);
+                      const diamonds = Math.max(0, grossDiamonds - fee);
                       setExchangeDiamondsToGet(diamonds);
                       setExchangeFeeAmount(fee);
                     }}
