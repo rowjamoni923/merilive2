@@ -1341,6 +1341,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Check face verification status
   const isFaceVerified = (profile as any)?.is_face_verified;
   const [faceVerificationPending, setFaceVerificationPending] = useState(false);
+  const [faceVerificationStatus, setFaceVerificationStatus] = useState<string | null>(null);
 
   // Open Call Price Modal - fetch settings and current rate
   const handleOpenCallPriceModal = async () => {
