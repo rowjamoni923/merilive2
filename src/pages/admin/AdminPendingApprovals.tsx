@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +78,9 @@ export default function AdminPendingApprovals() {
   }, [tab]);
 
   useEffect(() => { load(); }, [load]);
+  // Pkg362: instant push on new owner-approval queue items.
+  useAdminRealtime(['admin_pending_actions'], load, 'admin-pending-approvals', { debounceMs: 400 });
+
 
   const approve = async (id: string) => {
     setBusyId(id);

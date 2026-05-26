@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import { SmartImage } from "@/components/ui/smart-image";
 
@@ -105,7 +106,10 @@ export default function AdminGiftTransactions() {
     void fetchTransactions();
   }, [fetchTransactions]);
 
-  // Auto-refresh disabled per admin policy. Use the manual refresh button instead.
+  // Pkg362: instant push when a new gift is sent (no manual refresh needed).
+  useAdminRealtime(['gift_transactions'], fetchTransactions, 'admin-gift-txns', { debounceMs: 600 });
+
+
 
   // Aggregate by receiver
   const receiverSummaries: ReceiverSummary[] = (() => {

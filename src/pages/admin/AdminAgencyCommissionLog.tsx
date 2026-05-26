@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, RefreshCw, MoreVertical, Plus, Minus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,8 @@ const AdminAgencyCommissionLog = () => {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  // Pkg362: zero-refresh push from agency_commission_history bumps.
+  useAdminRealtime(['agency_commission_history'], load, 'admin-commission-log', { debounceMs: 500 });
 
   const openAdjust = (row: CommissionRow, sign: "plus" | "minus") => {
     setTarget(row);
