@@ -824,7 +824,10 @@ const FaceVerification = () => {
           faceStream.getTracks().forEach(track => track.stop());
           setFaceStream(null);
         }
-        await nativeFaceCam.startPreview('1080p');
+        // 720p keeps Android CameraX preview + analyzer + recorder bound on far
+        // more low/mid-range phones; 1080p often drops the analyzer, which made
+        // the visible face preview work while captureFrame returned no face.
+        await nativeFaceCam.startPreview('720p');
         setNativeFaceCameraActive(true);
         setCameraReady(true);
         return;
