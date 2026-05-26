@@ -1,18 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_realtime_service.dart';
-import 'presence_service.dart';
 
 class AppLifecycleService with WidgetsBindingObserver {
   static final AppLifecycleService _instance = AppLifecycleService._internal();
   factory AppLifecycleService() => _instance;
   AppLifecycleService._internal();
 
-  final _supabase = Supabase.instance.client;
-  final _realtime = SupabaseRealtimeService();
-  final _presence = PresenceService();
-  
   final StreamController<void> _resumeController = StreamController<void>.broadcast();
   Stream<void> get onResume => _resumeController.stream;
 
