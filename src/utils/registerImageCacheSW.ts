@@ -111,16 +111,16 @@ export async function warmAppImageCache(): Promise<void> {
 
     // Host / gift / frame assets that appear on home feed & profile
     queries.push(safe(async () => {
-      const { data } = await supabase.from('gifts').select('image_url').eq('is_active', true).limit(50);
-      (data || []).forEach((r: any) => push(r.image_url));
+      const { data } = await supabase.from('gifts').select('icon_url, preview_url, animation_url').eq('is_active', true).limit(50);
+      (data || []).forEach((r: any) => { push(r.icon_url); push(r.preview_url); push(r.animation_url); });
     }));
     queries.push(safe(async () => {
-      const { data } = await supabase.from('vip_frames').select('image_url').eq('is_active', true).limit(30);
-      (data || []).forEach((r: any) => push(r.image_url));
+      const { data } = await supabase.from('avatar_frames').select('frame_url, preview_url').eq('is_active', true).limit(30);
+      (data || []).forEach((r: any) => { push(r.frame_url); push(r.preview_url); });
     }));
     queries.push(safe(async () => {
-      const { data } = await supabase.from('role_frames').select('image_url').eq('is_active', true).limit(30);
-      (data || []).forEach((r: any) => push(r.image_url));
+      const { data } = await supabase.from('role_frames').select('frame_url, preview_url').eq('is_active', true).limit(30);
+      (data || []).forEach((r: any) => { push(r.frame_url); push(r.preview_url); });
     }));
 
     await Promise.allSettled(queries);
