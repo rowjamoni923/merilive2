@@ -66,6 +66,9 @@ export default function AdminSupportReports() {
   }, [tab, toast]);
 
   useEffect(() => { if (isOwner) load(); }, [load, isOwner]);
+  // Pkg362: instant push on new support reports.
+  useAdminRealtime(['support_reports'], load, 'admin-support-reports', { debounceMs: 500 });
+
 
   const updateStatus = async (id: string, status: Report["status"]) => {
     setBusy(id);
