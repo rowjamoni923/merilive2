@@ -130,14 +130,12 @@ export default function AdminAuth() {
     if (linkKind === 'owner' && !pendingAuthData.is_owner) {
       toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
       revokeAdminAccess();
-      clearAdminSession();
       setFlow('login');
       return;
     }
     if (linkKind === 'sub_admin' && pendingAuthData.is_owner) {
       toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
       revokeAdminAccess();
-      clearAdminSession();
       setFlow('login');
       return;
     }
@@ -223,13 +221,11 @@ export default function AdminAuth() {
       if (linkKind === 'owner' && !auth.is_owner) {
         toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
         revokeAdminAccess();
-        clearAdminSession();
         return;
       }
       if (linkKind === 'sub_admin' && auth.is_owner) {
         toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
         revokeAdminAccess();
-        clearAdminSession();
         return;
       }
 
