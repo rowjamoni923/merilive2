@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Capacitor } from "@capacitor/core";
 import { registerFCMToken, setupForegroundMessageHandler, deactivateFCMToken } from "@/services/firebaseMessaging";
 import { toast } from "sonner";
 
