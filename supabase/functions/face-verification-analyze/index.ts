@@ -231,7 +231,7 @@ serve(async (req) => {
 
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("face_verification_submissions")
-      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url")
+      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url,host_photos,profile_photo_url,video_url")
       .eq("id", submissionId)
       .maybeSingle();
 
@@ -441,17 +441,70 @@ serve(async (req) => {
     rekognition.profile_match_skip_reason = profileMatchSkipReason;
     rekognition.profile_mismatch = profileMismatch;
 
+    // ───────────────────────────────────────────────────────────────────
+    // Host gallery photos ↔ verification-selfie cross-check.
+    // For host (female) submissions, the 3 host gallery photos must be the
+    // same person as the live face. This catches "uploaded someone else's
+    // photos, then verified with own face" or vice-versa. Threshold 75%
+    // per-photo. Any single mismatch → flag (manual review). Missing /
+    // no-face / fetch-fail = skip (no block).
+    // ───────────────────────────────────────────────────────────────────
+    const hostPhotos = Array.isArray((row as Record<string, unknown>).host_photos)
+      ? ((row as Record<string, unknown>).host_photos as string[]).filter((u) => typeof u === "string" && u.length > 0)
+      : [];
+    const hostPhotoScores: Array<{ url: string; score: number | null; skip?: string }> = [];
+    let hostPhotosMinScore: number | null = null;
+    let hostPhotosMismatch = false;
+    if (!frontError && hostPhotos.length > 0) {
+      for (const hp of hostPhotos) {
+        try {
+          const hpBytes = await fetchImageBytes(hp, supabaseAdmin);
+          const hpDet = await detectFaces(hpBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
+          const hpFaceCount = ((hpDet.FaceDetails as unknown[] | undefined) ?? []).length;
+          if (hpFaceCount === 0) {
+            hostPhotoScores.push({ url: hp, score: null, skip: "no_face" });
+            continue;
+          }
+          const score = await compareFaces(
+            hpBytes,
+            frontBytes,
+            AWS_ACCESS_KEY_ID,
+            AWS_SECRET_ACCESS_KEY,
+            AWS_REGION,
+          );
+          hostPhotoScores.push({ url: hp, score });
+          if (hostPhotosMinScore === null || score < hostPhotosMinScore) hostPhotosMinScore = score;
+          if (score < 75) hostPhotosMismatch = true;
+        } catch (e) {
+          hostPhotoScores.push({
+            url: hp,
+            score: null,
+            skip: `fetch_or_compare_failed:${e instanceof Error ? e.message : "unknown"}`,
+          });
+        }
+      }
+    }
+    rekognition.host_photos_count = hostPhotos.length;
+    rekognition.host_photos_scores = hostPhotoScores;
+    rekognition.host_photos_min_score = hostPhotosMinScore;
+    rekognition.host_photos_mismatch = hostPhotosMismatch;
+
+
     const profileSummary = profileMatchScore !== null
       ? `, profile↔selfie=${profileMatchScore.toFixed(1)}%${profileMismatch ? " MISMATCH" : ""}`
       : profileMatchSkipReason
         ? `, profile-check skipped (${profileMatchSkipReason})`
         : "";
+    const hostPhotosSummary = hostPhotos.length > 0
+      ? `, host-photos(${hostPhotos.length}) min=${hostPhotosMinScore !== null ? hostPhotosMinScore.toFixed(1) + "%" : "n/a"}${hostPhotosMismatch ? " MISMATCH" : ""}`
+      : "";
     const summary =
       `Rekognition: faces F/L/R=${details.length}/${leftDetails.length}/${rightDetails.length}` +
       `${frontError || leftError || rightError ? ` (${[frontError, leftError, rightError].filter(Boolean).join(", ")})` : ""}, ` +
       `gender=${rawG} (${genderConf.toFixed(1)}%)${genderConflict ? " conflict" : ""}, ` +
       `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%` +
-      profileSummary;
+      profileSummary + hostPhotosSummary;
+
 
     // ───────────────────────────────────────────────────────────────────
     // Gender-declaration cross-check.
@@ -687,12 +740,21 @@ serve(async (req) => {
     // admin_notes for admin awareness, but DO NOT block auto-approve unless
     // the underlying Rekognition thresholds also fail. Admin will see flags
     // in ai_analysis and can manually override if needed.
-    const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
-      "service_auto_finalize_face_verification",
-      { p_submission_id: submissionId },
-    );
-    const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
-    if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+    // If host gallery photos don't match the live face, force manual review
+    // by short-circuiting the auto-finalize RPC call.
+    let autoResult: Record<string, unknown> | null = null;
+    if (hostPhotosMismatch) {
+      autoResult = { success: false, reason: "host_photos_mismatch" };
+      console.log("[face-verification-analyze] host_photos_mismatch → manual review");
+    } else {
+      const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
+        "service_auto_finalize_face_verification",
+        { p_submission_id: submissionId },
+      );
+      autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
+      if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+    }
+
 
     // ★ NEVER auto-reject. If auto-approve cannot safely fire, leave the row
     //   in `submitted` so admin sees it in Pending and reviews manually.
@@ -703,6 +765,7 @@ serve(async (req) => {
       if (replaySuspected) softFlags.push(`replay_suspected(L=${yawDeltaL.toFixed(1)}° R=${yawDeltaR.toFixed(1)}°)`);
       if (profileMismatch) softFlags.push(`profile_mismatch(${profileMatchScore?.toFixed(1)}%)`);
       if (duplicateBlock) softFlags.push("duplicate_face");
+      if (hostPhotosMismatch) softFlags.push(`host_photos_mismatch(min=${hostPhotosMinScore?.toFixed(1)}%)`);
 
       const reviewReason = autoReason === "invalid_face_count"
         ? `Needs admin review: ${details.length === 0 ? "no clear face on front frame" : "multiple faces on front frame"}.`
@@ -716,7 +779,10 @@ serve(async (req) => {
                 ? `Needs admin review: front-vs-side similarity low (L=${compareFL.toFixed(1)}% R=${compareFR.toFixed(1)}%).`
                 : autoReason === "below_thresholds"
                   ? "Needs admin review: AI confidence below auto-approve threshold."
-                  : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+                  : autoReason === "host_photos_mismatch"
+                    ? `Needs admin review: one or more host gallery photos do not match the live face (min similarity ${hostPhotosMinScore?.toFixed(1)}%).`
+                    : `Needs admin review: ${autoReason || "AI could not safely auto-approve"}.`;
+
 
       const flagsLine = softFlags.length ? `\n[soft-flags] ${softFlags.join(", ")}` : "";
       await supabaseAdmin
