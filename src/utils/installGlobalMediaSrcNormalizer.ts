@@ -25,14 +25,35 @@ import { normalizePublicMediaUrl } from "@/lib/cdnImage";
 
 const INSTALLED_FLAG = "__lovableMediaSrcNormalizerInstalled__";
 
+function findSrcDescriptor(proto: object | null): {
+  proto: object;
+  desc: PropertyDescriptor;
+} | null {
+  let cur: object | null = proto;
+  while (cur) {
+    const d = Object.getOwnPropertyDescriptor(cur, "src");
+    if (d && d.set && d.get && d.configurable) return { proto: cur, desc: d };
+    cur = Object.getPrototypeOf(cur);
+  }
+  return null;
+}
+
 function patchSrcDescriptor(
-  Ctor: typeof HTMLImageElement | typeof HTMLVideoElement | typeof HTMLSourceElement,
+  Ctor:
+    | typeof HTMLImageElement
+    | typeof HTMLVideoElement
+    | typeof HTMLAudioElement
+    | typeof HTMLSourceElement,
   defaultBucket: string,
 ) {
   const proto = Ctor?.prototype;
   if (!proto) return;
-  const desc = Object.getOwnPropertyDescriptor(proto, "src");
-  if (!desc || !desc.set || !desc.get || !desc.configurable) return;
+  // `src` may be defined on a parent prototype (HTMLMediaElement for video/audio).
+  // Walk the chain and re-define directly on the concrete prototype so we don't
+  // accidentally also intercept assignments on unrelated <audio>/<source> uses.
+  const found = findSrcDescriptor(proto);
+  if (!found) return;
+  const { desc } = found;
 
   Object.defineProperty(proto, "src", {
     configurable: true,
