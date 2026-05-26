@@ -87,8 +87,7 @@ const HostDashboard = () => {
     
     // Pkg83-ext: removed static `host-dashboard-realtime` channel
     // (private_calls/gift_transactions/profiles/app_settings not in publication
-    // — was silent no-op). Pkg37 admin_broadcast pushes call_rates edits;
-    // visibility refetch handles dashboard snapshot on tab return.
+    // — was silent no-op). Pkg37 admin_broadcast pushes call_rates edits.
     const onAdmin = async (e: Event) => {
       const detail = (e as CustomEvent<{ table?: string }>).detail;
       if (detail?.table !== 'app_settings') return;
@@ -106,13 +105,10 @@ const HostDashboard = () => {
         }) || 0);
       }
     };
-    const onVisible = () => { if (document.visibilityState === 'visible') fetchDashboardData(); };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
       window.removeEventListener('admin-table-update', onAdmin as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
     };
 
   }, [profile?.call_rate_per_minute]);
