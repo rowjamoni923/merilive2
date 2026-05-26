@@ -260,20 +260,18 @@ serve(async (req) => {
     const frontUrl = row.front_url || row.face_image_url || row.selfie_url;
     const leftUrl = row.left_url;
     const rightUrl = row.right_url;
-    if (!frontUrl || !leftUrl || !rightUrl) {
-      return new Response(JSON.stringify({ error: "Missing angle URLs" }), {
+    if (!frontUrl) {
+      return new Response(JSON.stringify({ error: "Missing front face URL" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     let frontBytes: Uint8Array;
-    let leftBytes: Uint8Array;
-    let rightBytes: Uint8Array;
+    let leftBytes: Uint8Array | null = null;
+    let rightBytes: Uint8Array | null = null;
     try {
       frontBytes = await fetchImageBytes(frontUrl, supabaseAdmin);
-      leftBytes = await fetchImageBytes(leftUrl, supabaseAdmin);
-      rightBytes = await fetchImageBytes(rightUrl, supabaseAdmin);
     } catch (fetchErr) {
       const msg = fetchErr instanceof Error ? fetchErr.message : "image_fetch_failed";
       const rekognition = { version: 1, edge_fetch_error: msg };
@@ -296,11 +294,19 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (leftUrl) {
+      try { leftBytes = await fetchImageBytes(leftUrl, supabaseAdmin); }
+      catch (e) { console.warn("[face-verification-analyze] left image fetch skipped:", e instanceof Error ? e.message : e); }
+    }
+    if (rightUrl) {
+      try { rightBytes = await fetchImageBytes(rightUrl, supabaseAdmin); }
+      catch (e) { console.warn("[face-verification-analyze] right image fetch skipped:", e instanceof Error ? e.message : e); }
+    }
 
     const [det, leftDet, rightDet] = await Promise.all([
       detectFaces(frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
-      detectFaces(leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
-      detectFaces(rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION),
+      leftBytes ? detectFaces(leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) : Promise.resolve({ FaceDetails: [] }),
+      rightBytes ? detectFaces(rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) : Promise.resolve({ FaceDetails: [] }),
     ]);
     const details = (det.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
     const leftDetails = (leftDet.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
@@ -308,7 +314,7 @@ serve(async (req) => {
 
     let compareFL = 0;
     let compareFR = 0;
-    if (details.length === 1 && leftDetails.length === 1 && rightDetails.length === 1) {
+    if (details.length === 1 && leftDetails.length === 1 && rightDetails.length === 1 && leftBytes && rightBytes) {
       try {
         compareFL = await compareFaces(frontBytes, leftBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
         compareFR = await compareFaces(frontBytes, rightBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
@@ -350,7 +356,7 @@ serve(async (req) => {
     if (rightDetails.length === 0) rightError = "no_face_right";
     else if (rightDetails.length > 1) rightError = "multiple_faces_right";
 
-    if (frontError || leftError || rightError) finalGender = "unknown";
+    if (frontError) finalGender = "unknown";
 
     const rekognition: Record<string, unknown> = {
       version: 1,
@@ -698,12 +704,16 @@ serve(async (req) => {
     //   • Clean submissions auto-approve (~90/100 target).
     // ────────────────────────────────────────────────────────────────────
     const finalGenderForDecision = String(rekognition.final_gender || "").trim().toLowerCase();
+    const detectedGenderForDecision = (finalGenderForDecision === "male" || finalGenderForDecision === "female")
+      ? finalGenderForDecision
+      : rawG;
     const strictGenderMismatch = Boolean(
       expectedGender &&
       (expectedGender === "male" || expectedGender === "female") &&
-      (finalGenderForDecision === "male" || finalGenderForDecision === "female") &&
-      finalGenderForDecision !== expectedGender &&
-      !frontError && !leftError && !rightError
+      (detectedGenderForDecision === "male" || detectedGenderForDecision === "female") &&
+      detectedGenderForDecision !== expectedGender &&
+      genderConf >= 70 &&
+      !frontError
     );
     const hardAutoReject: "gender_mismatch" | null = (genderDeclarationMismatch || strictGenderMismatch) ? "gender_mismatch" : null;
 
@@ -715,8 +725,8 @@ serve(async (req) => {
         .update({
           status: "rejected",
           reviewed_at: new Date().toISOString(),
-          rejection_reason: `Account verification requires "${expectedGender}" but live face detected as "${finalGenderForDecision || rawG}" (${genderConf.toFixed(1)}% confidence). Please contact Support Chat to resolve.`,
-          admin_notes: `${summary}\n[auto-reject] gender_mismatch: expected=${expectedGender} declared=${declaredGender} detected=${finalGenderForDecision || rawG} (${genderConf.toFixed(1)}%)`,
+          rejection_reason: `Account verification requires "${expectedGender}" but live face detected as "${detectedGenderForDecision}" (${genderConf.toFixed(1)}% confidence). Please contact Support Chat to resolve.`,
+          admin_notes: `${summary}\n[auto-reject] gender_mismatch: expected=${expectedGender} declared=${declaredGender} detected=${detectedGenderForDecision} (${genderConf.toFixed(1)}%)`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -730,7 +740,7 @@ serve(async (req) => {
           blocker: "gender_mismatch",
           declaredGender,
           expectedGender,
-          detectedGender: finalGenderForDecision || rawG,
+          detectedGender: detectedGenderForDecision,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );

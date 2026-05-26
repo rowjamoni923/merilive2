@@ -1552,6 +1552,23 @@ const FaceVerification = () => {
   // which writes ai_analysis.rekognition + (when app_settings allow) auto-finalizes the
   // submission via service_auto_finalize_face_verification (gender, is_host, status).
   const triggerRekognitionAutoApprove = async (submissionId: string) => {
+    const waitForFinalizedSubmission = async (): Promise<{
+      status: string | null;
+      rejection_reason: string | null;
+    } | null> => {
+      for (let i = 0; i < 6; i++) {
+        const { data } = await supabase
+          .from('face_verification_submissions')
+          .select('status,rejection_reason')
+          .eq('id', submissionId)
+          .maybeSingle();
+        const status = String((data as any)?.status || '').toLowerCase();
+        if (status === 'approved' || status === 'rejected') return data as any;
+        await new Promise(resolve => setTimeout(resolve, 350));
+      }
+      return null;
+    };
+
     // Retry once on transient failure (cold-start / 401 token-refresh race).
     let lastErr: unknown = null;
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -1565,7 +1582,7 @@ const FaceVerification = () => {
           if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue; }
         } else {
           console.log('[FaceVerification] Rekognition analyze result:', data);
-          return data as {
+          const result = data as {
             ok?: boolean;
             autoFinalize?: { success?: boolean; gender?: string; expected_gender?: string; verification_type?: string; reason?: string } | null;
             blocker?: 'gender_mismatch' | 'liveness_failed' | 'replay_suspected' | 'profile_face_mismatch' | 'duplicate_face' | null;
@@ -1573,6 +1590,16 @@ const FaceVerification = () => {
             expectedGender?: string | null;
             detectedGender?: string | null;
           };
+          if (!result?.autoFinalize?.success && !result?.blocker) {
+            const finalized = await waitForFinalizedSubmission();
+            if (finalized?.status === 'approved') {
+              return { ...result, autoFinalize: { ...(result.autoFinalize || {}), success: true } };
+            }
+            if (finalized?.status === 'rejected') {
+              return { ...result, blocker: 'gender_mismatch' };
+            }
+          }
+          return result;
         }
       } catch (err) {
         lastErr = err;
@@ -1801,7 +1828,7 @@ const FaceVerification = () => {
       // → service_auto_finalize_face_verification handles gender swap + is_host + status='approved'.
       let autoApproved = false;
       let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
-      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+      if (submissionData?.id && angleUrls.front_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
         // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
         if (handleVerificationBlocker(result)) { setLoading(false); return; }
@@ -2058,7 +2085,7 @@ const FaceVerification = () => {
       // → service_auto_finalize_face_verification handles gender swap + is_host=true + status='approved'.
       let autoApproved = false;
       let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
-      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+      if (submissionData?.id && angleUrls.front_url) {
         const result = await triggerRekognitionAutoApprove(submissionData.id);
         // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
         if (handleVerificationBlocker(result)) { setLoading(false); return; }
