@@ -15,6 +15,7 @@ type LocalDetector = {
 };
 
 let detectorPromise: Promise<LocalDetector | null> | null = null;
+let detectorPreloadStarted = false;
 
 const loadLocalDetector = async () => {
   if (typeof window === "undefined") return null;
@@ -100,5 +101,16 @@ export async function detectLocalFacePoseFromBase64(imageBase64: string): Promis
   } catch (error) {
     console.warn("[LocalFacePose] detection failed", error);
     return null;
+  }
+}
+
+export function preloadLocalFacePoseDetector() {
+  if (detectorPreloadStarted || typeof window === "undefined") return;
+  detectorPreloadStarted = true;
+  const run = () => { void loadLocalDetector(); };
+  if ("requestIdleCallback" in window) {
+    (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout?: number }) => number }).requestIdleCallback(run, { timeout: 2500 });
+  } else {
+    globalThis.setTimeout(run, 400);
   }
 }
