@@ -236,11 +236,22 @@ const HostVerification = () => {
                   </>
                 )}
               </Button>
+
+              {/* Optional: skip agency and go straight to face verification */}
+              <Button
+                variant="ghost"
+                className="w-full text-muted-foreground hover:text-foreground"
+                disabled={joining}
+                onClick={() => navigate("/face-verification")}
+              >
+                Skip — I don't have an agency code
+              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground text-center px-4">
-              Face verification uses the same secure pipeline as user verification.
-              You'll capture photos, an intro video, and a live liveness scan in the next step.
+              Agency is optional. You can apply as an independent host and join an agency later from your profile.
+              The next step captures your profile photo, 3 gallery photos, intro video, and a live face scan — all using
+              the same secure verification pipeline.
             </p>
           </>
         )}
@@ -250,3 +261,4 @@ const HostVerification = () => {
 };
 
 export default HostVerification;
+
