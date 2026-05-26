@@ -545,9 +545,9 @@ const inferDefaultBucketForElement = (el: AdminMediaElement) => {
   if (/support|attachment|ticket/.test(haystack)) return "support-attachments";
   if (/recording|stream/.test(haystack)) return "live-recordings";
   if (/avatar|profile/.test(haystack)) return "avatars";
-  if (/payment|proof|screenshot|recharge|topup|order/.test(haystack)) return "payment-screenshots";
   if (/logo|icon|asset|badge|theme|branding/.test(haystack)) return "app-assets";
   if (/banner|campaign|popup/.test(haystack)) return "banners";
+  if (/payment|proof|screenshot|recharge|topup|order/.test(haystack)) return "payment-screenshots";
   if (/reel/.test(haystack)) return "reels";
   return "face-verification";
 };

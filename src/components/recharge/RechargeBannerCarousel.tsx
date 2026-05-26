@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { normalizePublicMediaUrl } from "@/lib/cdnImage";
 
 import banner1 from "@/assets/recharge-banner-1-first.jpg";
 import banner2 from "@/assets/recharge-banner-2-campaign.jpg";
@@ -28,6 +29,46 @@ const DEFAULT_BANNERS: BannerItem[] = [
 ];
 
 const ROTATE_MS = 5000;
+const CACHE_KEY = "merilive_recharge_banners_cache_v1";
+
+const normalizeBanner = (b: any): BannerItem | null => {
+  const imageUrl = normalizePublicMediaUrl(b?.image_url, "banners");
+  if (!imageUrl) return null;
+  return {
+    id: String(b.id),
+    image_url: imageUrl,
+    title: b.title,
+    link_url: b.link_url,
+    link_type: b.link_type,
+  };
+};
+
+const readCachedBanners = (): BannerItem[] => {
+  try {
+    if (typeof window === "undefined") return [];
+    const parsed = JSON.parse(window.localStorage.getItem(CACHE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.map(normalizeBanner).filter(Boolean) as BannerItem[] : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeCachedBanners = (items: BannerItem[]) => {
+  try {
+    if (typeof window !== "undefined" && items.length) window.localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+  } catch { /* ignore */ }
+};
+
+const preloadBannerImages = (items: BannerItem[]) => {
+  items.forEach((b, i) => {
+    try {
+      const img = new Image();
+      img.decoding = "async";
+      (img as any).fetchPriority = i === 0 ? "high" : "low";
+      img.src = b.image_url;
+    } catch { /* ignore */ }
+  });
+};
 
 export default function RechargeBannerCarousel({
   onBannerClick,
@@ -46,15 +87,14 @@ export default function RechargeBannerCarousel({
         .eq("is_active", true)
         .order("display_order", { ascending: true });
       if (error) return [] as BannerItem[];
-      return (data || [])
-        .filter((b: any) => !!b.image_url)
-        .map((b: any) => ({
-          id: b.id,
-          image_url: b.image_url,
-          title: b.title,
-          link_url: b.link_url,
-          link_type: b.link_type,
-        })) as BannerItem[];
+      const items = (data || []).map(normalizeBanner).filter(Boolean) as BannerItem[];
+      writeCachedBanners(items);
+      preloadBannerImages(items);
+      return items;
+    },
+    initialData: () => {
+      const cached = readCachedBanners();
+      return cached.length ? cached : undefined;
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -69,6 +109,10 @@ export default function RechargeBannerCarousel({
 
   const [index, setIndex] = useState(0);
   const pausedRef = useRef(false);
+
+  useEffect(() => {
+    preloadBannerImages(banners);
+  }, [banners]);
 
   // Auto-rotate every 5s. Pauses on visibility hidden to save battery.
   useEffect(() => {
@@ -121,7 +165,13 @@ export default function RechargeBannerCarousel({
             alt={b.title || `Banner ${i + 1}`}
             className="w-full h-full object-cover rounded-2xl select-none"
             draggable={false}
-            loading={i === 0 ? "eager" : "lazy"}
+            loading="eager"
+            decoding="async"
+            fetchPriority={i === 0 ? "high" : "low"}
+            onError={(event) => {
+              const fallback = DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url;
+              if (fallback && event.currentTarget.src !== fallback) event.currentTarget.src = fallback;
+            }}
           />
         </button>
       ))}

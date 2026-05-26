@@ -30,6 +30,15 @@ export interface CdnImageOptions {
 
 const OBJECT_PUBLIC = "/storage/v1/object/public/";
 const RENDER_PUBLIC = "/storage/v1/render/image/public/";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
+const STORAGE_OBJECT_RE = /\/storage\/v1\/(?:object|render\/image)\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
+
+const PUBLIC_MEDIA_BUCKETS = new Set([
+  "app-assets", "app-icons", "assets", "avatars", "banners", "banners-media",
+  "branding", "content-media", "payment-logos", "posters", "reels",
+]);
+
+const RAW_MEDIA_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv)(?:[?#].*)?$/i;
 
 export function toSupabaseCdnUrl(
   url: string | null | undefined,
@@ -42,6 +51,41 @@ export function toSupabaseCdnUrl(
   // is already cached at the Supabase edge after first hit.
   if (!url || typeof url !== "string") return url || undefined;
   return url;
+}
+
+export function toPublicStorageUrl(bucket: string, path: string): string {
+  const safeBucket = encodeURIComponent(bucket);
+  const safePath = path.split('/').map(encodeURIComponent).join('/');
+  return `${SUPABASE_URL}/storage/v1/object/public/${safeBucket}/${safePath}`;
+}
+
+export function normalizePublicMediaUrl(
+  value: string | null | undefined,
+  defaultBucket = "banners"
+): string | undefined {
+  if (!value || typeof value !== "string") return value || undefined;
+  const raw = value.trim();
+  if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return raw || undefined;
+
+  try {
+    const url = new URL(raw);
+    const match = url.pathname.match(STORAGE_OBJECT_RE);
+    if (!match) return raw;
+    const bucket = decodeURIComponent(match[1]);
+    if (!PUBLIC_MEDIA_BUCKETS.has(bucket)) return raw;
+    return raw;
+  } catch {
+    const clean = raw.replace(/^\/+/, "");
+    const [first, ...rest] = clean.split('/');
+    if (PUBLIC_MEDIA_BUCKETS.has(first) && rest.length > 0) {
+      return toPublicStorageUrl(first, rest.join('/'));
+    }
+    if (defaultBucket && RAW_MEDIA_PATH_RE.test(clean)) {
+      const path = clean.startsWith(`${defaultBucket}/`) ? clean.slice(defaultBucket.length + 1) : clean;
+      return toPublicStorageUrl(defaultBucket, path);
+    }
+    return raw;
+  }
 }
 
 
