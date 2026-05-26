@@ -925,12 +925,15 @@ const FaceVerification = () => {
 
     try {
       const serverPose = await withSoftTimeout(serverPosePromise, 2200);
-      if (serverPose?.faceDetected && serverPose.eyesOpen) return serverPose;
-
-      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 1800 : 3200);
-      if (serverPose?.faceDetected && localPose?.faceDetected) {
-        return { ...serverPose, eyesOpen: serverPose.eyesOpen || localPose.eyesOpen };
+      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 1400 : 3200);
+      if (localPose?.faceDetected) {
+        return {
+          ...localPose,
+          eyesOpen: localPose.eyesOpen && serverPose?.eyesOpen !== false,
+        };
       }
+
+      if (serverPose?.faceDetected && serverPose.eyesOpen) return serverPose;
       if (localPose?.faceDetected) return localPose;
 
       return serverPose ?? localPose ?? null;
@@ -1098,25 +1101,33 @@ const FaceVerification = () => {
       // on fragile up/down pitch detection while still capturing front/left/right
       // images for Rekognition + manual admin review.
       const calib = calibrationRef.current;
-      const overallSec = Math.min(75, Math.max(35,
-        Math.round(calib.stepWindowSec * faceInstructions.length + 10)
+      const overallSec = Math.min(90, Math.max(55,
+        Math.round(calib.stepWindowSec * faceInstructions.length + 22)
       ));
       let elapsed = 0;
       timerRef.current = setInterval(() => {
         elapsed++;
         setVerificationTime(elapsed);
         if (elapsed >= overallSec) {
+          const completedCount = instructionsCompletedRef.current.filter(Boolean).length;
           const allDone = instructionsCompletedRef.current.every(Boolean);
-          const partialDone = instructionsCompletedRef.current.filter(Boolean).length >= 2;
+          const partialDone = completedCount >= 2;
+          const faceTicks = debugLogRef.current.filter(e => e.kind === 'tick' && e.eyesOpen !== false).length;
+          const noFacePolls = debugLogRef.current.filter(e => e.kind === 'no_face').length;
+          const enoughFaceEvidence = faceTicks >= 6 && noFacePolls <= Math.max(4, faceTicks);
+          const analyzerUncertainButUsable = !allDone && enoughFaceEvidence && (completedCount >= 1 || poseHistoryRef.current.length >= 8);
           pushDebug({
             kind: 'timeout',
             elapsedSec: elapsed,
             overallSec,
             stepsCompleted: [...instructionsCompletedRef.current],
+            faceTicks,
+            noFacePolls,
+            analyzerUncertainButUsable,
             stuckOnStep: currentInstructionRef.current,
             stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
           });
-          finishVerification(allDone || partialDone, !allDone && partialDone);
+          finishVerification(allDone || partialDone || analyzerUncertainButUsable, !allDone && (partialDone || analyzerUncertainButUsable));
         }
       }, 1000);
       
