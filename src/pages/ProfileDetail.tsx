@@ -792,7 +792,7 @@ const ProfileDetail = () => {
                   className="w-full h-full object-contain bg-black"
                  
                   decoding="async"
-                  fetchPriority={active ? 'high' : 'low'}
+                  {...({ fetchpriority: active ? 'high' : 'low' } as React.ImgHTMLAttributes<HTMLImageElement>)}
                 />
               )}
             </motion.div>
