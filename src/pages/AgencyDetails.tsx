@@ -246,18 +246,21 @@ const AgencyDetailsPage = () => {
               </h3>
 
               <div className="relative flex items-center gap-4 p-4 bg-gradient-to-br from-amber-50 via-orange-50/50 to-amber-50 rounded-2xl border border-amber-100/80 shadow-inner">
-                <div className="relative">
-                  <div className="p-[2px] rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
-                    <Avatar className="w-16 h-16 border-2 border-white">
-                      <AvatarImage src={hostAgency.owner.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-xl font-semibold">
-                        {hostAgency.owner.display_name?.charAt(0) || 'O'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
+                <div className="relative flex-shrink-0 w-16 h-16">
+                  <FramedAvatarWithPrivileges
+                    userId={hostAgency.owner.id}
+                    src={hostAgency.owner.avatar_url || undefined}
+                    name={hostAgency.owner.display_name || 'O'}
+                    level={hostAgency.owner.user_level || 1}
+                    size="md"
+                    showFrame
+                    showAnimation
+                    showGlow={(hostAgency.owner.user_level || 0) >= 5}
+                  />
                   {hostAgency.owner.country_flag && (
-                    <span className="absolute -bottom-1 -right-1 text-lg drop-shadow">{hostAgency.owner.country_flag}</span>
+                    <span className="absolute -bottom-1 -right-1 text-lg drop-shadow z-10">{hostAgency.owner.country_flag}</span>
                   )}
+
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
