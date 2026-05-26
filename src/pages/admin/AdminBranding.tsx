@@ -36,6 +36,9 @@ interface BrandingSettings {
   logo_image_url: string | null;
 }
 
+const LOGO_BUCKET = 'app-assets';
+const BACKGROUND_BUCKET = 'branding';
+
 const inferBackgroundTypeFromUrl = (url: string, fallback: BrandingSettings['background_type']): BrandingSettings['background_type'] => {
   const cleanUrl = url.split('?')[0].toLowerCase();
   if (!cleanUrl) return 'gradient';
@@ -125,10 +128,13 @@ export default function AdminBranding() {
     setUploading(type);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${type}-${Date.now()}.${fileExt}`;
+      const bucket = type === 'logo' ? LOGO_BUCKET : BACKGROUND_BUCKET;
+      const fileName = type === 'logo'
+        ? `branding/logo-${Date.now()}.${fileExt}`
+        : `${type}-${Date.now()}.${fileExt}`;
       
       const { data, error } = await supabase.storage
-        .from('branding')
+        .from(bucket)
         .upload(fileName, file, {
           upsert: true,
           contentType: file.type
@@ -137,7 +143,7 @@ export default function AdminBranding() {
       if (error) throw error;
 
       const { data: urlData } = supabase.storage
-        .from('branding')
+        .from(bucket)
         .getPublicUrl(fileName);
 
       if (type === 'logo') {
