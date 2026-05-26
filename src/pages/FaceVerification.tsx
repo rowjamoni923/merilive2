@@ -1399,6 +1399,7 @@ const FaceVerification = () => {
 
   // Finish verification
   const finishVerification = async (success: boolean, manualReviewRequired = false) => {
+    let effectiveManualReviewRequired = manualReviewRequired;
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -1423,6 +1424,13 @@ const FaceVerification = () => {
       }
     } else if (faceRecorderRef.current && faceRecorderRef.current.state === 'recording') {
       faceRecorderRef.current.stop();
+    } else if (success) {
+      // If MediaRecorder is unavailable on the device/browser, still let a real
+      // liveness pass be submitted with the captured angle stills for admin/AI review.
+      const proof = JSON.stringify({ type: 'face-verification-proof', at: Date.now(), angles: Object.keys(capturedAnglesRef.current) });
+      setFaceVerificationVideo(new Blob([proof], { type: 'application/json' }));
+      effectiveManualReviewRequired = true;
+      pushDebug({ kind: 'recorder_fallback_proof_blob', angles: Object.keys(capturedAnglesRef.current) });
     }
     
     setVerificationRecording(false);
@@ -1454,10 +1462,10 @@ const FaceVerification = () => {
       
       pushDebug({ kind: 'finish', success: true });
       setFaceVerified(true);
-      setFaceManualReviewRequired(manualReviewRequired);
+      setFaceManualReviewRequired(effectiveManualReviewRequired);
       toast({
-        title: manualReviewRequired ? "Manual Review Ready" : localizedMsg.success,
-        description: manualReviewRequired ? "Enough liveness data was captured. Submit it for admin review." : localizedMsg.successDesc,
+        title: effectiveManualReviewRequired ? "Manual Review Ready" : localizedMsg.success,
+        description: effectiveManualReviewRequired ? "Enough liveness data was captured. Submit it for admin review." : localizedMsg.successDesc,
       });
     } else {
       pushDebug({
