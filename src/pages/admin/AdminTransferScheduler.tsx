@@ -16,12 +16,14 @@ import { recordAdminError } from "@/utils/adminErrorLog";
 import { formatAdminError } from "@/utils/formatAdminError";
 interface TransferSchedule {
   is_active: boolean;
-  interval_days: number;
-  interval_hours: number;
+  schedule_day_of_week: number; // 0=Sun..6=Sat
+  schedule_hour: number; // 0-23
+  schedule_minute: number; // 0-59
   next_transfer_at: string | null;
   last_transfer_at: string | null;
   timezone: string;
 }
+
 
 interface TransferHistory {
   id: string;
@@ -56,8 +58,9 @@ const AdminTransferScheduler = () => {
   const [distributing, setDistributing] = useState(false);
   const [schedule, setSchedule] = useState<TransferSchedule>({
     is_active: false,
-    interval_days: 7,
-    interval_hours: 0,
+    schedule_day_of_week: 1, // Monday
+    schedule_hour: 0,
+    schedule_minute: 5,
     next_transfer_at: null,
     last_transfer_at: null,
     timezone: 'Asia/Dhaka'
@@ -83,18 +86,15 @@ const AdminTransferScheduler = () => {
 
   useAdminRealtime(['agency_earnings_transfers'], () => { fetchSchedule(); fetchHistory(); });
 
+  // Countdown display (visual only — server fires the actual transfer)
   useEffect(() => {
     if (!schedule.next_transfer_at || !schedule.is_active) return;
-
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const target = new Date(schedule.next_transfer_at!).getTime();
       const diff = target - now;
-
       if (diff <= 0) {
         setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        // Auto process when timer reaches 0
-        handleAutoProcess();
       } else {
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -103,23 +103,13 @@ const AdminTransferScheduler = () => {
         setCountdown({ days, hours, minutes, seconds });
       }
     }, 1000);
-
     return () => clearInterval(timer);
   }, [schedule.next_transfer_at, schedule.is_active]);
 
-  // Auto-run commission distribution when its scheduled time arrives
-  useEffect(() => {
-    if (!commissionSchedule.is_active || !commissionSchedule.next_run_at) return;
-    const target = new Date(commissionSchedule.next_run_at).getTime();
-    const ms = target - Date.now();
-    if (ms <= 0) {
-      distributeCommissionNow();
-      return;
-    }
-    const t = setTimeout(() => { distributeCommissionNow(); }, Math.min(ms, 2_147_000_000));
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [commissionSchedule.next_run_at, commissionSchedule.is_active]);
+  // Note: server-side pg_cron ticks (tick_agency_weekly_scheduler /
+  // tick_agency_commission_scheduler) run every minute and fire the actual
+  // transfer + commission based on app_settings. The browser no longer fires.
+
 
   const fetchSchedule = async () => {
     try {
@@ -313,19 +303,36 @@ const AdminTransferScheduler = () => {
     }
   };
 
+  // Compute next fire time (wall-clock) for the configured weekday+hour+minute in tz
+  const computeNextRun = (s: TransferSchedule): Date => {
+    // Use Intl to get current parts in target timezone
+    const tz = s.timezone || 'UTC';
+    const nowUtcMs = Date.now();
+    // Walk forward up to 8 days to find next slot >= now
+    for (let i = 0; i < 8 * 24 * 60; i++) {
+      const cand = new Date(nowUtcMs + i * 60 * 1000);
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+      }).formatToParts(cand);
+      const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(parts.find(p => p.type==='weekday')?.value || '');
+      const hh = parseInt(parts.find(p => p.type==='hour')?.value || '0', 10);
+      const mm = parseInt(parts.find(p => p.type==='minute')?.value || '0', 10);
+      if (wd === s.schedule_day_of_week && hh === s.schedule_hour && mm === s.schedule_minute) return cand;
+    }
+    return new Date(nowUtcMs + 7 * 24 * 60 * 60 * 1000);
+  };
+
   const startTimer = async () => {
-    const now = new Date();
-    const nextTransfer = new Date(now.getTime() + (schedule.interval_days * 24 + schedule.interval_hours) * 60 * 60 * 1000);
-    
+    const next = computeNextRun(schedule);
     const newSchedule = {
       ...schedule,
       is_active: true,
-      next_transfer_at: nextTransfer.toISOString()
+      next_transfer_at: next.toISOString()
     };
-    
     await saveSchedule(newSchedule);
-    toast.success('Timer started!');
+    toast.success('Schedule activated! Server will fire automatically.');
   };
+
 
   const stopTimer = async () => {
     const newSchedule = {
@@ -338,13 +345,6 @@ const AdminTransferScheduler = () => {
     toast.success('Timer stopped');
   };
 
-  const handleAutoProcess = async () => {
-    await processTransferNow();
-    // Restart timer for next cycle
-    if (schedule.is_active) {
-      await startTimer();
-    }
-  };
 
   const processTransferNow = async () => {
     setProcessing(true);
@@ -488,76 +488,95 @@ const AdminTransferScheduler = () => {
           </CardContent>
         </Card>
 
-        {/* Settings Card */}
+        {/* Settings Card — Weekday + Time */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <Clock className="w-5 h-5 text-primary" />
-              Transfer Interval Settings
+              Weekly Transfer Schedule
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Pick the weekday and exact time. The transfer runs automatically every week at that wall-clock time
+              — even when no admin is logged in.
+            </p>
+
+            <div className="space-y-2">
+              <Label>Day of the week</Label>
+              <Select
+                value={String(schedule.schedule_day_of_week)}
+                onValueChange={(v) => setSchedule({ ...schedule, schedule_day_of_week: parseInt(v) })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((name, i) => (
+                    <SelectItem key={i} value={String(i)}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Days</Label>
-                <Select 
-                  value={schedule.interval_days.toString()} 
-                  onValueChange={(v) => setSchedule({ ...schedule, interval_days: parseInt(v) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7, 14, 30].map(d => (
-                      <SelectItem key={d} value={d.toString()}>{d} Day(s)</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Hour (0-23)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={schedule.schedule_hour}
+                  onChange={(e) => {
+                    const n = Math.max(0, Math.min(23, parseInt(e.target.value || '0', 10) || 0));
+                    setSchedule({ ...schedule, schedule_hour: n });
+                  }}
+                />
               </div>
               <div className="space-y-2">
-                <Label>Hours</Label>
-                <Select 
-                  value={schedule.interval_hours.toString()} 
-                  onValueChange={(v) => setSchedule({ ...schedule, interval_hours: parseInt(v) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[0, 1, 2, 3, 4, 5, 6, 12, 18].map(h => (
-                      <SelectItem key={h} value={h.toString()}>{h} Hour(s)</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Minute (0-59)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={59}
+                  value={schedule.schedule_minute}
+                  onChange={(e) => {
+                    const n = Math.max(0, Math.min(59, parseInt(e.target.value || '0', 10) || 0));
+                    setSchedule({ ...schedule, schedule_minute: n });
+                  }}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label>Timezone</Label>
-              <Select 
-                value={schedule.timezone} 
+              <Select
+                value={schedule.timezone}
                 onValueChange={(v) => setSchedule({ ...schedule, timezone: v })}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Asia/Dhaka">Bangladesh (UTC+6)</SelectItem>
                   <SelectItem value="UTC">UTC</SelectItem>
                   <SelectItem value="Asia/Kolkata">India (UTC+5:30)</SelectItem>
+                  <SelectItem value="Asia/Karachi">Pakistan (UTC+5)</SelectItem>
+                  <SelectItem value="Asia/Dubai">UAE (UTC+4)</SelectItem>
+                  <SelectItem value="Asia/Singapore">Singapore (UTC+8)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <Button 
-              className="w-full" 
-              onClick={() => saveSchedule(schedule)}
+            <Button
+              className="w-full"
+              onClick={() => {
+                const next = computeNextRun(schedule);
+                saveSchedule({ ...schedule, next_transfer_at: schedule.is_active ? next.toISOString() : schedule.next_transfer_at });
+              }}
               disabled={saving}
             >
               {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-              Save Settings
+              Save Schedule
             </Button>
           </CardContent>
+
         </Card>
 
         {/* Manual Transfer Card */}

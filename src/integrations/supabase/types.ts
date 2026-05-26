@@ -1257,7 +1257,7 @@ export type Database = {
           commission_rate: number | null
           created_at: string
           gift_earnings: number | null
-          host_id: string
+          host_id: string | null
           host_name: string | null
           host_uid: string | null
           id: string
@@ -1277,7 +1277,7 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string
           gift_earnings?: number | null
-          host_id: string
+          host_id?: string | null
           host_name?: string | null
           host_uid?: string | null
           id?: string
@@ -1297,7 +1297,7 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string
           gift_earnings?: number | null
-          host_id?: string
+          host_id?: string | null
           host_name?: string | null
           host_uid?: string | null
           id?: string
@@ -19465,6 +19465,8 @@ export type Database = {
         Returns: string
       }
       sweep_pending_face_verifications: { Args: never; Returns: number }
+      tick_agency_commission_scheduler: { Args: never; Returns: Json }
+      tick_agency_weekly_scheduler: { Args: never; Returns: Json }
       timeout_private_call: { Args: { _call_id: string }; Returns: Json }
       transfer_coins_to_user: {
         Args: {
