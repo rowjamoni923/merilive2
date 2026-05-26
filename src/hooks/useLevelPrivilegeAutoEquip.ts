@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { clearFrameCache } from '@/components/common/AvatarWithFrame';
+import { clearEntryAnimationCache } from '@/utils/fetchEntryAnimation';
 import { resolveLevelFromTiers } from '@/utils/levelResolver';
 import { useAppSyncEvent } from '@/hooks/useAppSyncEvent';
 
 const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolean => {
   const level = requiredLevel ?? 1;
-  return level === 1 || level >= 6;
+  return level >= 1;
 };
 
 const isFreeAsset = (asset: {
@@ -22,6 +23,22 @@ type Candidate = { id: string; level: number };
 const pickHighest = (items: Candidate[]): Candidate | null => {
   if (items.length === 0) return null;
   return items.reduce((best, item) => (item.level > best.level ? item : best));
+};
+
+const normalizePrivilegeSlot = (category: string | null | undefined) => {
+  const value = (category || '').toLowerCase();
+  if (value === 'frame' || value === 'portrait_frame') return 'frame';
+  if (value === 'entrance' || value === 'entrance_effect' || value === 'entry_banner') return 'entrance';
+  if (value === 'entry_name_bar' || value === 'entry_bar' || value === 'entry_bar_effect') return 'entry_name_bar';
+  if (value === 'bubble' || value === 'chat_bubble') return 'bubble';
+  if (value === 'vehicle' || value === 'vehicle_entrance') return 'vehicle';
+  if (value === 'badge' || value === 'medal' || value === 'vip_medal') return 'medal';
+  if (value === 'noble_card') return 'noble_card';
+  return value || 'other';
+};
+
+const isActivePurchase = (purchase: any) => {
+  return !purchase?.expires_at || new Date(purchase.expires_at).getTime() > Date.now();
 };
 
 export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
@@ -79,7 +96,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
         const targetType = resolvedLevel.levelType;
 
         const [purchasesRes, assignedFramesRes, framesRes, levelPrivilegesRes, entryNameBarsRes, entryBannersRes, vehicleEntrancesRes] = await Promise.all([
-          supabase.from('user_purchases').select('item_id').eq('user_id', userId).eq('is_active', true),
+          supabase.from('user_purchases').select('item_id, is_equipped, expires_at, shop_items(category)').eq('user_id', userId).eq('is_active', true),
           supabase.from('user_role_frames').select('frame_id').eq('user_id', userId),
           supabase
             .from('avatar_frames')
@@ -106,11 +123,28 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
         if (cancelled) return;
 
-        const protectedIds = new Set<string>([
-          ...((purchasesRes.data || []).map((item: any) => item.item_id).filter(Boolean) as string[]),
-          ...((assignedFramesRes.data || []).map((item: any) => item.frame_id).filter(Boolean) as string[]),
-          ...(profile.current_vip_tier_id ? [profile.current_vip_tier_id] : []),
-        ]);
+        const updateData: Record<string, string> = {};
+        const equippedPurchaseBySlot = new Map<string, string>();
+        for (const purchase of (purchasesRes.data || []) as any[]) {
+          if (!purchase.is_equipped || !purchase.item_id || !isActivePurchase(purchase)) continue;
+          const slot = normalizePrivilegeSlot((purchase.shop_items as any)?.category);
+          if (!equippedPurchaseBySlot.has(slot)) equippedPurchaseBySlot.set(slot, purchase.item_id);
+        }
+
+        const preferEquippedPurchase = (slot: string, field: string, currentId?: string | null) => {
+          const purchasedId = equippedPurchaseBySlot.get(slot);
+          if (purchasedId && currentId !== purchasedId) updateData[field] = purchasedId;
+          return purchasedId || currentId || updateData[field] || null;
+        };
+
+        const nextFrameId = preferEquippedPurchase('frame', 'equipped_frame_id', profile.equipped_frame_id);
+        const nextEntranceId = preferEquippedPurchase('entrance', 'equipped_entrance_id', profile.equipped_entrance_id || profile.equipped_entry_banner_id);
+        if (updateData.equipped_entrance_id && profile.equipped_entry_banner_id !== updateData.equipped_entrance_id) {
+          updateData.equipped_entry_banner_id = updateData.equipped_entrance_id;
+        }
+        const nextNameBarId = preferEquippedPurchase('entry_name_bar', 'equipped_entry_name_bar_id', profile.equipped_entry_name_bar_id);
+        const nextBubbleId = preferEquippedPurchase('bubble', 'equipped_bubble_id', profile.equipped_bubble_id);
+        const nextVehicleId = preferEquippedPurchase('vehicle', 'equipped_vehicle_id', profile.equipped_vehicle_id);
 
         const frameCandidates = ((framesRes.data || []) as any[])
           .map((frame) => ({
@@ -178,22 +212,20 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
           return !currentId;
         };
 
-        const updateData: Record<string, string> = {};
-
-        if (bestFrame && canOverride(profile.equipped_frame_id) && profile.equipped_frame_id !== bestFrame.id) {
+        if (bestFrame && canOverride(nextFrameId) && profile.equipped_frame_id !== bestFrame.id) {
           updateData.equipped_frame_id = bestFrame.id;
         }
-        if (bestEntrance && canOverride(profile.equipped_entrance_id || profile.equipped_entry_banner_id)) {
+        if (bestEntrance && canOverride(nextEntranceId)) {
           if (profile.equipped_entrance_id !== bestEntrance.id) updateData.equipped_entrance_id = bestEntrance.id;
           if (profile.equipped_entry_banner_id !== bestEntrance.id) updateData.equipped_entry_banner_id = bestEntrance.id;
         }
-        if (bestNameBar && canOverride(profile.equipped_entry_name_bar_id) && profile.equipped_entry_name_bar_id !== bestNameBar.id) {
+        if (bestNameBar && canOverride(nextNameBarId) && profile.equipped_entry_name_bar_id !== bestNameBar.id) {
           updateData.equipped_entry_name_bar_id = bestNameBar.id;
         }
-        if (bestBubble && canOverride(profile.equipped_bubble_id) && profile.equipped_bubble_id !== bestBubble.id) {
+        if (bestBubble && canOverride(nextBubbleId) && profile.equipped_bubble_id !== bestBubble.id) {
           updateData.equipped_bubble_id = bestBubble.id;
         }
-        if (bestVehicle && canOverride(profile.equipped_vehicle_id) && profile.equipped_vehicle_id !== bestVehicle.id) {
+        if (bestVehicle && canOverride(nextVehicleId) && profile.equipped_vehicle_id !== bestVehicle.id) {
           updateData.equipped_vehicle_id = bestVehicle.id;
         }
 
@@ -201,6 +233,9 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
           const { error } = await supabase.from('profiles').update(updateData).eq('id', userId);
           if (!error && updateData.equipped_frame_id) {
             clearFrameCache();
+          }
+          if (!error && (updateData.equipped_entrance_id || updateData.equipped_entry_name_bar_id || updateData.equipped_vehicle_id)) {
+            clearEntryAnimationCache();
           }
         }
       } catch (error) {

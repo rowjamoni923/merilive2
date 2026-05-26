@@ -152,7 +152,7 @@ const shouldShowLevelAvatarFrame = (requiredLevel: number | null | undefined): b
 
 const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolean => {
   const level = requiredLevel ?? 1;
-  return level === 1 || level >= 6;
+  return level >= 1;
 };
 
 const getPrivilegeSlot = (category: string): PrivilegeSlot => {
