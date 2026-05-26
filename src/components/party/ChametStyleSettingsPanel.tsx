@@ -93,22 +93,7 @@ export function ChametStyleSettingsPanel({
       value: isMirrorMode,
       onToggle: onMirrorModeToggle
     },
-    {
-      id: 'camera',
-      icon: Camera,
-      label: 'Camera',
-      type: 'toggle' as const,
-      value: isCameraOn,
-      onToggle: onCameraToggle
-    },
-    {
-      id: 'switch-camera',
-      icon: SwitchCamera,
-      label: 'Switch the Camera',
-      type: 'toggle' as const,
-      value: !isFrontCamera,
-      onToggle: onSwitchCamera
-    },
+    // Camera + Switch Camera toggles removed per request (no video icons in call/live/party)
     {
       id: 'microphone',
       icon: Mic,
