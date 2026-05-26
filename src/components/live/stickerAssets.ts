@@ -205,20 +205,20 @@ let _warmed = false;
 export function warmStickerCache() {
   if (_warmed || typeof window === 'undefined') return;
   _warmed = true;
-  const run = () => {
-    for (const s of PROMO_STICKERS) {
+  // Fire immediately — every PNG goes into the HTTP cache + decoder so the
+  // first paint of the panel grid is instant (no progressive load).
+  for (const s of PROMO_STICKERS) {
+    try {
       const img = new Image();
       img.decoding = 'async';
       img.src = s.preview;
-      // Force decode into GPU so first paint is instant
       if (typeof img.decode === 'function') img.decode().catch(() => {});
-    }
-  };
-  const ric = (window as unknown as { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
-  if (typeof ric === 'function') ric(run);
-  else setTimeout(run, 200);
+    } catch { /* ignore */ }
+  }
 }
 
-// Auto-warm on module evaluation (module is imported lazily with StickerPanel chunk)
+// Auto-warm on module evaluation. The module is statically imported by
+// LiveStream / GoLive so warming starts the moment the host enters the live
+// page, well before they tap the Sticker button.
 warmStickerCache();
 
