@@ -513,7 +513,7 @@ const FaceVerification = () => {
   // unreliable male/female detection because it analysed ONE frame with no
   // cross-checks. All face verification now goes through the 3-API pipeline
   // in `face-verification-analyze` (AWS Rekognition multi-angle + external
-  // liveness provider + duplicate-face provider) — see triggerRekognitionAutoApprove.
+  // liveness provider + duplicate-face provider), triggered after DB insert.
 
 
   // Generate deterministic face/video hash; never random, so duplicate checks do not silently miss.
@@ -1622,118 +1622,6 @@ const FaceVerification = () => {
     return out;
   };
 
-  // Trigger AWS Rekognition analyze (DetectFaces + CompareFaces front-vs-left/right)
-  // which writes ai_analysis.rekognition + (when app_settings allow) auto-finalizes the
-  // submission via service_auto_finalize_face_verification (gender, is_host, status).
-  const triggerRekognitionAutoApprove = async (submissionId: string) => {
-    const waitForFinalizedSubmission = async (): Promise<{
-      status: string | null;
-      rejection_reason: string | null;
-    } | null> => {
-      for (let i = 0; i < 6; i++) {
-        const { data } = await supabase
-          .from('face_verification_submissions')
-          .select('status,rejection_reason')
-          .eq('id', submissionId)
-          .maybeSingle();
-        const status = String((data as any)?.status || '').toLowerCase();
-        if (status === 'approved' || status === 'rejected') return data as any;
-        await new Promise(resolve => setTimeout(resolve, 350));
-      }
-      return null;
-    };
-
-    // Retry once on transient failure (cold-start / 401 token-refresh race).
-    let lastErr: unknown = null;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const { data, error } = await supabase.functions.invoke('face-verification-analyze', {
-          body: { submissionId },
-        });
-        if (error) {
-          lastErr = error;
-          console.warn(`[FaceVerification] face-verification-analyze attempt ${attempt + 1} error:`, error);
-          if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue; }
-        } else {
-          console.log('[FaceVerification] Rekognition analyze result:', data);
-          const result = data as {
-            ok?: boolean;
-            autoFinalize?: { success?: boolean; gender?: string; expected_gender?: string; verification_type?: string; reason?: string } | null;
-            blocker?: 'gender_mismatch' | 'liveness_failed' | 'replay_suspected' | 'profile_face_mismatch' | 'duplicate_face' | null;
-            declaredGender?: string | null;
-            expectedGender?: string | null;
-            detectedGender?: string | null;
-          };
-          if (!result?.autoFinalize?.success && !result?.blocker) {
-            const finalized = await waitForFinalizedSubmission();
-            if (finalized?.status === 'approved') {
-              return { ...result, autoFinalize: { ...(result.autoFinalize || {}), success: true } };
-            }
-            if (finalized?.status === 'rejected') {
-              return { ...result, blocker: 'gender_mismatch' };
-            }
-          }
-          return result;
-        }
-      } catch (err) {
-        lastErr = err;
-        console.warn(`[FaceVerification] face-verification-analyze attempt ${attempt + 1} threw:`, err);
-        if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue; }
-      }
-    }
-    toast({
-      title: '⚠️ AI Verification Skipped',
-      description: 'AI auto-approve service is temporarily unreachable — your submission was saved and will be reviewed by admin.',
-    });
-    return null;
-  };
-
-  // If the edge function returned a hard `blocker`, show a blocking dialog
-  // (English only, per app convention) and route the user to support. Returns
-  // true when the user was routed so the caller can short-circuit normal flow.
-  const handleVerificationBlocker = (
-    result: Awaited<ReturnType<typeof triggerRekognitionAutoApprove>>,
-  ): boolean => {
-    const blocker = result?.blocker;
-    if (!blocker) return false;
-    const declared = result?.declaredGender ?? result?.expectedGender ?? 'unknown';
-    const detected = result?.detectedGender ?? 'unknown';
-    const messages: Record<string, { title: string; body: string }> = {
-      gender_mismatch: {
-        title: '❌ Gender Mismatch Detected',
-        body: `Your account is registered as "${declared}", but our AI detected your face as "${detected}". You cannot complete verification on this account. Please open a support ticket — our team will help you correct your account.`,
-      },
-      liveness_failed: {
-        title: '❌ Liveness Check Failed',
-        body: 'Our system detected that the verification was performed using a photo or recorded video instead of your real, live face. Please open a support ticket so our team can review your case.',
-      },
-      replay_suspected: {
-        title: '❌ Replay / Static Image Detected',
-        body: 'Your three angle captures showed almost no head movement — this looks like a phone screen, printed photo or static image instead of a live person. Please open a support ticket for assistance.',
-      },
-      profile_face_mismatch: {
-        title: '❌ Profile Photo Does Not Match',
-        body: 'The face in your verification selfie does not match the photo on your profile. Please open a support ticket so we can verify your identity manually.',
-      },
-      duplicate_face: {
-        title: '❌ Duplicate Account Detected',
-        body: 'This face is already verified on another account. You cannot verify the same face on multiple accounts. Please open a support ticket if you believe this is an error.',
-      },
-    };
-    const { title, body } = messages[blocker];
-    toast({ title, description: body, variant: 'destructive' });
-    // Persist the blocker reason so the support page can pre-fill the ticket.
-    try {
-      sessionStorage.setItem('verification_blocker', JSON.stringify({
-        blocker, declared, detected, at: Date.now(),
-      }));
-    } catch { /* noop */ }
-    setTimeout(() => navigate('/settings/customer-service'), 600);
-    return true;
-  };
-
-
-
   const getMissingHostRequirements = () => {
     const missing: string[] = [];
 
@@ -1900,24 +1788,9 @@ const FaceVerification = () => {
 
       if (submissionError) throw submissionError;
 
-      // ★ AUTO-APPROVE via AWS Rekognition: DetectFaces (gender) + CompareFaces (front-vs-left/right)
-      // → service_auto_finalize_face_verification handles gender swap + is_host + status='approved'.
-      let autoApproved = false;
-      let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
-      if (submissionData?.id && angleUrls.front_url) {
-        const result = await triggerRekognitionAutoApprove(submissionData.id);
-        // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
-        if (handleVerificationBlocker(result)) { setLoading(false); return; }
-        if (result?.autoFinalize?.success) {
-          autoApproved = true;
-          autoMessage = "🎉 Auto-approved! Your account is verified.";
-        }
-      }
-
-
       toast({
-        title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
-        description: autoApproved ? autoMessage : faceManualReviewRequired ? "Your verification is in admin manual review." : autoMessage,
+        title: "✅ Submission Successful!",
+        description: faceManualReviewRequired ? "Your verification is in admin manual review." : "Your verification was submitted. AI approval will continue in the background.",
       });
       navigate('/profile');
       return;
@@ -2159,24 +2032,9 @@ const FaceVerification = () => {
 
       if (submissionError) throw submissionError;
 
-      // ★ AUTO-APPROVE via AWS Rekognition: DetectFaces (gender) + CompareFaces (front-vs-left/right)
-      // → service_auto_finalize_face_verification handles gender swap + is_host=true + status='approved'.
-      let autoApproved = false;
-      let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
-      if (submissionData?.id && angleUrls.front_url) {
-        const result = await triggerRekognitionAutoApprove(submissionData.id);
-        // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
-        if (handleVerificationBlocker(result)) { setLoading(false); return; }
-        if (result?.autoFinalize?.success) {
-          autoApproved = true;
-          autoMessage = "🎉 Auto-approved as Host! Welcome to the platform.";
-        }
-      }
-
-
       toast({
-        title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
-        description: autoApproved ? autoMessage : faceManualReviewRequired ? "Your host verification is in admin manual review." : autoMessage,
+        title: "✅ Host Application Submitted!",
+        description: faceManualReviewRequired ? "Your host verification is in admin manual review." : "Your host verification was submitted. AI approval will continue in the background.",
       });
       navigate('/profile');
       return;
