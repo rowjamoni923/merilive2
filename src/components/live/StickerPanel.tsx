@@ -2,11 +2,10 @@
  * StickerPanel — premium promo sticker picker.
  * Uses our own premium hot / romantic / gift / party / VIP stickers.
  */
-import { useMemo, useState, type ImgHTMLAttributes } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { SmartImage } from '@/components/ui/smart-image';
 import { PROMO_STICKERS, type PromoStickerCategory, getStickerAnimationClass } from './stickerAssets';
 
 interface StickerPanelProps {
@@ -124,13 +123,12 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                           : 'border-white/10 bg-white/5 hover:bg-white/10'
                       )}
                     >
-                      <SmartImage
+                      <img
                         src={sticker.preview}
                         alt={sticker.name}
-                        fallbackSrc={sticker.preview}
-                       
+                        loading="eager"
                         decoding="sync"
-                        {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
+                        {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
                         draggable={false}
                         className={cn('h-full w-full object-contain drop-shadow-md', getStickerAnimationClass(sticker.name))}
                       />
