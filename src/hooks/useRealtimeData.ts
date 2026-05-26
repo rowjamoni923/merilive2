@@ -190,18 +190,10 @@ export function useRealtimeRankings(rankingType: string, periodType: string) {
   useEffect(() => {
     fetchRankings();
 
-    // Pkg89 LiveKit-Purist: removed `rankings-${type}-${period}` UNFILTERED
-    // postgres_changes on `agency_performance`. UNFILTERED cross-user subscription
-    // is the exact $1400-bill pattern. agency_performance is NOT in publication anyway,
-    // and this hook has ZERO consumers. Use admin-broadcast push or visibility refresh.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchRankings();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
+    // Manual refresh is exposed via the returned `refresh` callback.
   }, [fetchRankings]);
+
 
 
   return { rankings, loading, lastUpdate, refresh: fetchRankings };
