@@ -1846,24 +1846,9 @@ const FaceVerification = () => {
 
       if (submissionError) throw submissionError;
 
-      // ★ AUTO-APPROVE via AWS Rekognition: DetectFaces (gender) + CompareFaces (front-vs-left/right)
-      // → service_auto_finalize_face_verification handles gender swap + is_host + status='approved'.
-      let autoApproved = false;
-      let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
-      if (submissionData?.id && angleUrls.front_url) {
-        const result = await triggerRekognitionAutoApprove(submissionData.id);
-        // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
-        if (handleVerificationBlocker(result)) { setLoading(false); return; }
-        if (result?.autoFinalize?.success) {
-          autoApproved = true;
-          autoMessage = "🎉 Auto-approved! Your account is verified.";
-        }
-      }
-
-
       toast({
-        title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
-        description: autoApproved ? autoMessage : faceManualReviewRequired ? "Your verification is in admin manual review." : autoMessage,
+        title: "✅ Submission Successful!",
+        description: faceManualReviewRequired ? "Your verification is in admin manual review." : "Your verification was submitted. AI approval will continue in the background.",
       });
       navigate('/profile');
       return;
@@ -2105,24 +2090,9 @@ const FaceVerification = () => {
 
       if (submissionError) throw submissionError;
 
-      // ★ AUTO-APPROVE via AWS Rekognition: DetectFaces (gender) + CompareFaces (front-vs-left/right)
-      // → service_auto_finalize_face_verification handles gender swap + is_host=true + status='approved'.
-      let autoApproved = false;
-      let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
-      if (submissionData?.id && angleUrls.front_url) {
-        const result = await triggerRekognitionAutoApprove(submissionData.id);
-        // Hard blockers (gender/liveness/replay/profile/duplicate) → support ticket flow.
-        if (handleVerificationBlocker(result)) { setLoading(false); return; }
-        if (result?.autoFinalize?.success) {
-          autoApproved = true;
-          autoMessage = "🎉 Auto-approved as Host! Welcome to the platform.";
-        }
-      }
-
-
       toast({
-        title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
-        description: autoApproved ? autoMessage : faceManualReviewRequired ? "Your host verification is in admin manual review." : autoMessage,
+        title: "✅ Host Application Submitted!",
+        description: faceManualReviewRequired ? "Your host verification is in admin manual review." : "Your host verification was submitted. AI approval will continue in the background.",
       });
       navigate('/profile');
       return;
