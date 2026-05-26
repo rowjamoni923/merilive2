@@ -508,43 +508,61 @@ const HostVerification = () => {
 
   // Save Step 2
   const saveStep2 = async () => {
-    if (!videoFile) {
-      toast({
-        title: "Error",
-        description: "Please upload a video",
-        variant: "destructive",
-      });
+    if (!videoFile && !videoPreview) {
+      toast({ title: "Video required", description: "Please record or upload a 10-second intro video", variant: "destructive" });
       return;
     }
-    
+
+    // Need 3 gallery photos (existing previews OR newly picked files)
+    const haveAllPhotos = [0, 1, 2].every((i) => galleryFiles[i] || galleryPreviews[i]);
+    if (!haveAllPhotos) {
+      toast({ title: "3 photos required", description: "Please add all 3 gallery photos. These appear on your host profile after approval.", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
-    
+
     try {
-      const videoUrl = await uploadFile(videoFile, 'videos');
-      if (!videoUrl) throw new Error('Video upload failed');
-      
+      // Upload video only if newly recorded/picked
+      let videoUrl = videoPreview;
+      if (videoFile) {
+        const uploaded = await uploadFile(videoFile, 'videos');
+        if (!uploaded) throw new Error('Video upload failed');
+        videoUrl = uploaded;
+      }
+
+      // Upload any new gallery photos; keep existing URLs for slots not changed
+      const photoUrls: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        const file = galleryFiles[i];
+        if (file) {
+          const url = await uploadFile(file, 'photos');
+          if (!url) throw new Error(`Photo ${i + 1} upload failed`);
+          photoUrls.push(url);
+        } else if (galleryPreviews[i]) {
+          photoUrls.push(galleryPreviews[i] as string);
+        }
+      }
+
       await supabase
         .from('host_applications')
         .update({
           video_url: videoUrl,
           video_duration_seconds: 10,
+          host_photos: photoUrls,
           current_step: 3,
         })
         .eq('user_id', userId);
-      
+
       setCurrentStep(3);
       toast({ title: "✅ Step 2 Complete!" });
-      
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message || "Failed to save", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
+
 
   // Save Step 3 and submit
   const submitApplication = async () => {
