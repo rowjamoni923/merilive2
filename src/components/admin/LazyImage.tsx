@@ -5,8 +5,9 @@
  * "broken-up" or load in pieces. All images load instantly. API kept
  * stable so existing call sites compile unchanged.
  */
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 
 interface LazyImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'loading'> {
   src?: string | null;
@@ -27,7 +28,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
   alt = '',
   ...rest
 }) => {
-  const finalSrc = src || fallback;
+  const finalSrc = useMemo(() => normalizePublicMediaUrl(src) || normalizePublicMediaUrl(fallback) || fallback, [src, fallback]);
   const sizeStyle = size ? { width: size, height: size } : undefined;
 
   return (
@@ -35,7 +36,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
       src={finalSrc}
       alt={alt}
       decoding="async"
-      fetchPriority="high"
+      {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
       onError={(e) => {
         const t = e.currentTarget;
         if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg';
