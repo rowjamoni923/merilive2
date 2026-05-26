@@ -45,6 +45,17 @@ interface AgencyDetails {
   };
 }
 
+interface HostAgencyRequest {
+  id: string;
+  agency_id: string;
+  host_id: string;
+  status: string;
+  joined_at: string | null;
+  agency_name: string;
+  agency_code: string;
+  agency_logo: string | null;
+}
+
 const getLevelColor = (level: string) => {
   switch(level) {
     case 'A5': return 'from-brand-500 to-info-600';
@@ -83,29 +94,47 @@ const AgencyDetailsPage = () => {
           .from("profiles").select("app_uid").eq("id", user.id).maybeSingle();
         if (myProfile?.app_uid) setCurrentUserUid(myProfile.app_uid);
 
-        const { data: hostData } = await supabase
-          .from("agency_hosts")
-          .select(`
-            *,
-            agency:agencies(
-              id, name, agency_code, level, logo_url, commission_rate,
-              total_hosts, total_agents, wallet_balance, diamond_balance,
-              owner_id, created_at, whatsapp_number
-            )
-          `)
-          .eq("host_id", user.id)
-          .eq("status", "active")
-          .maybeSingle();
+        const { data: hostRequests, error: hostRequestError } = await supabase.rpc("get_host_agency_request", { _host_id: user.id });
 
-        if (hostData?.agency) {
-          const { data: ownerData } = await supabase
-            .from("profiles")
-            .select("id, display_name, avatar_url, app_uid, country_flag, user_level")
-            .eq("id", hostData.agency.owner_id)
+        if (hostRequestError) throw hostRequestError;
+
+        const activeRequest = ((hostRequests || []) as HostAgencyRequest[]).find((request) => request.status === "active");
+
+        if (activeRequest?.agency_id) {
+          const { data: agencyData, error: agencyError } = await supabase
+            .from("agencies_public")
+            .select("id, name, agency_code, level, logo_url, total_hosts, total_agents, owner_id, created_at")
+            .eq("id", activeRequest.agency_id)
             .maybeSingle();
 
+          if (agencyError) throw agencyError;
+
+          const normalizedAgency = {
+            id: activeRequest.agency_id,
+            name: agencyData?.name || activeRequest.agency_name,
+            agency_code: agencyData?.agency_code || activeRequest.agency_code,
+            level: agencyData?.level || 'A1',
+            logo_url: agencyData?.logo_url || activeRequest.agency_logo || null,
+            commission_rate: 0,
+            total_hosts: agencyData?.total_hosts || 0,
+            total_agents: agencyData?.total_agents || 0,
+            wallet_balance: 0,
+            diamond_balance: 0,
+            owner_id: agencyData?.owner_id || '',
+            created_at: agencyData?.created_at || activeRequest.joined_at || new Date().toISOString(),
+            whatsapp_number: null,
+          };
+
+          const { data: ownerData } = normalizedAgency.owner_id
+            ? await supabase
+                .from("profiles_public")
+                .select("id, display_name, avatar_url, app_uid, country_flag, user_level")
+                .eq("id", normalizedAgency.owner_id)
+                .maybeSingle()
+            : { data: null };
+
           setHostAgency({
-            ...hostData.agency,
+            ...normalizedAgency,
             owner: ownerData ? {
               ...ownerData,
               avatar_url: ownerData.avatar_url || null,
@@ -155,6 +184,45 @@ const AgencyDetailsPage = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <div className="px-4 space-y-4 pt-4">
+          {/* Agency Info Card */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border">
+            <div className="flex items-center gap-4">
+              <Avatar className="w-16 h-16 border-2 border-brand-200">
+                <AvatarImage src={hostAgency.logo_url || undefined} />
+                <AvatarFallback className={`bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')} text-white text-xl`}>
+                  {hostAgency.name?.charAt(0) || 'A'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="font-bold text-gray-800 text-xl truncate">{hostAgency.name}</h2>
+                  <Badge className={`bg-gradient-to-r ${getLevelColor(hostAgency.level || 'A1')} text-white border-0`}>
+                    {getLevelName(hostAgency.level || 'A1')}
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <Hash className="w-4 h-4" />
+                  {hostAgency.agency_code}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-5">
+              <div className="p-3 bg-brand-50 rounded-xl border border-brand-100">
+                <p className="text-xs text-brand-600 flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5" /> Hosts
+                </p>
+                <p className="text-lg font-bold text-brand-800">{hostAgency.total_hosts || 0}</p>
+              </div>
+              <div className="p-3 bg-warning-50 rounded-xl border border-warning-100">
+                <p className="text-xs text-warning-600 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5" /> Joined
+                </p>
+                <p className="text-sm font-bold text-warning-800">{new Date(hostAgency.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+
           {/* Owner Details Card */}
           {hostAgency.owner && (
             <div className="bg-white rounded-2xl p-5 shadow-lg border">
