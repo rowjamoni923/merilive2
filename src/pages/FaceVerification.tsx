@@ -1151,12 +1151,12 @@ const FaceVerification = () => {
       if (poseCheckInFlightRef.current) return;
       poseCheckInFlightRef.current = true;
       try {
-      if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
+        if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
       
-      const frameBase64 = await captureFaceFrameBase64();
-      if (!frameBase64) return;
+        const frameBase64 = await captureFaceFrameBase64();
+        if (!frameBase64) return;
       
-      setScanningStatus('scanning');
+        setScanningStatus('scanning');
       
       const result = await checkFacePose(frameBase64);
       
