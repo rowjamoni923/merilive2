@@ -81,18 +81,10 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
 
     fetchData();
 
-    // Pkg89 LiveKit-Purist: removed `agency-${agencyId}` + `agency-perf-${agencyId}`
-    // postgres_changes subscriptions. Neither table is in supabase_realtime publication,
-    // and this hook has ZERO consumers. Use admin-broadcast push (Pkg37) or visibility
-    // refresh — never re-subscribe to cross-user `agencies` tables.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchData();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
+    // Updates arrive via admin-broadcast push.
   }, [agencyId]);
+
 
   return { stats, performance, loading };
 }
