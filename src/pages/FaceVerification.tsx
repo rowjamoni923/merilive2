@@ -1929,21 +1929,17 @@ const FaceVerification = () => {
         throw new Error('Submission blocked: all host media requirements must be uploaded successfully.');
       }
       
-      // Save face hash + Basic Information (name/age/language/photo) on profile
-      // so name/age/language/photo are reflected immediately, not gated on admin approval.
+      // Save face hash + Basic Information (name/age/language) on profile immediately.
+      // Profile photo, 3 host gallery photos, and intro video are intentionally NOT
+      // written here — they only appear on the host's profile after approval,
+      // gated server-side by sync_profile_on_face_verification trigger.
       {
         const hostProfilePatch: Record<string, unknown> = {
           face_hash: faceHash,
           display_name: fullName.trim(),
           age: parseInt(age, 10),
           language: language,
-          // Host gallery shown on ProfileDetail: 3 uploaded photos + intro video
-          // (NOT the face-verification liveness video — that stays admin-only).
-          host_photos: photoUrls,
-          profile_photo_url: profilePhotoUrl,
-          cover_url: introVideoUrl,
         };
-        if (profilePhotoUrl) hostProfilePatch.avatar_url = profilePhotoUrl;
         const { error: hostProfUpdErr } = await supabase
           .from('profiles')
           .update(hostProfilePatch)
