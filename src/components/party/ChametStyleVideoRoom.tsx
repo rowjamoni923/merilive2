@@ -363,14 +363,14 @@ export function ChametStyleVideoRoom({
         </div>
       </header>
 
-      {/* Video Grid - 2x2 Layout matching Chamet */}
+      {/* Video Grid - 2x2 Layout matching Chamet — fixed equal seat sizes */}
       <main className="relative z-10 flex-1 px-2 py-2">
-        <div className="grid grid-cols-2 grid-rows-2 gap-1.5 h-[55vh]">
+        <div className="grid grid-cols-2 gap-1.5 w-full max-w-md mx-auto">
           {seatGrid.map((participant, index) => {
             const isMyself = participant?.id === currentUserId;
             const isEmpty = !participant;
-            const frameStyle = participant ? getLevelFrame(participant.level) : null;
             const streamToUse = isMyself ? localStream : (participant && getPeerStream ? getPeerStream(participant.id) : null);
+            const hasVideo = !!streamToUse && !participant?.isVideoOff;
 
             return (
               <motion.div
@@ -379,8 +379,8 @@ export function ChametStyleVideoRoom({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 className={cn(
-                  "relative overflow-hidden rounded-2xl",
-                  isEmpty 
+                  "relative overflow-hidden rounded-2xl aspect-square w-full",
+                  isEmpty
                     ? "bg-purple-800/40 border border-purple-500/20 cursor-pointer"
                     : ""
                 )}
@@ -388,84 +388,59 @@ export function ChametStyleVideoRoom({
               >
                 {participant ? (
                   <div className="w-full h-full relative">
-                    {/* Video Feed */}
-                    {streamToUse && !participant.isVideoOff ? (
-                      <>
-                        <video 
-                          ref={(el) => {
-                            if (el && streamToUse && el.srcObject !== streamToUse) {
-                              hardenVideoElementForNative(el, { muted: isMyself });
-                              el.srcObject = streamToUse;
-                              el.play().catch(() => {});
+                    {/* Always-mounted video element — prevents flicker when stream ref changes */}
+                    <video
+                      ref={(el) => {
+                        if (!el) return;
+                        if (streamToUse) {
+                          if (el.srcObject !== streamToUse) {
+                            hardenVideoElementForNative(el, { muted: isMyself });
+                            el.srcObject = streamToUse;
+                            el.play().catch(() => {});
+                          }
+                        } else if (el.srcObject) {
+                          el.srcObject = null;
+                        }
+                      }}
+                      autoPlay
+                      playsInline
+                      muted={isMyself}
+                      controls={false}
+                      disablePictureInPicture
+                      disableRemotePlayback
+                      controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+                      poster=""
+                      // @ts-ignore
+                      x5-video-player-type="h5"
+                      x5-video-player-fullscreen="false"
+                      x5-playsinline="true"
+                      webkit-playsinline="true"
+                      className={cn(
+                        "absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-200",
+                        isMyself && "transform scale-x-[-1]",
+                        hasVideo ? "opacity-100" : "opacity-0"
+                      )}
+                      style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
+                    />
 
-                              // Shield removal: wait for actual frames before removing cover
-                              const shield = el.parentElement?.querySelector('[data-video-shield]') as HTMLElement;
-                              if (shield) {
-                                const removeShield = () => {
-                                  shield.style.opacity = '0';
-                                  setTimeout(() => { shield.style.display = 'none'; }, 300);
-                                };
-                                // Try requestVideoFrameCallback first, fallback to timer
-                                if ('requestVideoFrameCallback' in el) {
-                                  (el as any).requestVideoFrameCallback(removeShield);
-                                } else {
-                                  setTimeout(removeShield, 600);
-                                }
-                                // Safety: always remove after 1.5s
-                                setTimeout(removeShield, 1500);
-                              }
-                            }
-                          }}
-                          autoPlay
-                          playsInline
-                          muted={isMyself}
-                          controls={false}
-                          disablePictureInPicture
-                          disableRemotePlayback
-                          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-                          poster=""
-                          // @ts-ignore
-                          x5-video-player-type="h5"
-                          x5-video-player-fullscreen="false"
-                          x5-playsinline="true"
-                          webkit-playsinline="true"
-                          className={cn(
-                            "absolute inset-0 w-full h-full object-cover pointer-events-none",
-                            isMyself && "transform scale-x-[-1]"
-                          )}
-                          style={{ touchAction: 'none', WebkitAppearance: 'none' } as React.CSSProperties}
-                        />
-                        {/* Shield overlay to hide native play button until video frames arrive */}
-                        <div
-                          data-video-shield
-                          className="absolute inset-0 z-10 bg-gradient-to-br from-purple-700/80 to-indigo-800/80 flex items-center justify-center pointer-events-none transition-opacity duration-300"
-                        >
-                          <AvatarWithFrame
-                            userId={participant.id}
-                            src={participant.avatarUrl}
-                            name={participant.displayName}
-                            level={participant.level}
-                            isHost={participant.isHost}
-                            size="lg"
-                            showAnimation={true}
-                            showGlow={true}
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80">
-                        <AvatarWithFrame
-                          userId={participant.id}
-                          src={participant.avatarUrl}
-                          name={participant.displayName}
-                          level={participant.level}
-                          isHost={participant.isHost}
-                          size="lg"
-                          showAnimation={true}
-                          showGlow={true}
-                        />
-                      </div>
-                    )}
+                    {/* Avatar fallback — shown over video when no frames yet or video is off */}
+                    <div
+                      className={cn(
+                        "absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80 transition-opacity duration-300 pointer-events-none",
+                        hasVideo ? "opacity-0" : "opacity-100"
+                      )}
+                    >
+                      <AvatarWithFrame
+                        userId={participant.id}
+                        src={participant.avatarUrl}
+                        name={participant.displayName}
+                        level={participant.level}
+                        isHost={participant.isHost}
+                        size="lg"
+                        showAnimation={true}
+                        showGlow={true}
+                      />
+                    </div>
 
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
@@ -489,13 +464,11 @@ export function ChametStyleVideoRoom({
                     {/* Bottom Info - Country Flag + Level Stars */}
                     <div className="absolute bottom-0 left-0 right-0 p-2">
                       <div className="flex items-center gap-1.5">
-                        {/* Country Flag - Use host's country flag for host position */}
                         <span className="text-base">
-                          {participant.isHost && hostCountryFlag 
-                            ? hostCountryFlag 
+                          {participant.isHost && hostCountryFlag
+                            ? hostCountryFlag
                             : (participant.countryFlag || '🌍')}
                         </span>
-                        {/* Level Stars (like Chamet's ⭐⭐⭐) */}
                         <span className="text-yellow-300 text-[10px]">
                           {'⭐'.repeat(Math.min(Math.floor(participant.level / 10) + 1, 7))}
                         </span>
@@ -521,6 +494,7 @@ export function ChametStyleVideoRoom({
                   /* Empty Seat - Sofa Icon like Chamet */
                   <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
                     <Armchair className="w-12 h-12 text-purple-400/50" />
+                    <span className="text-purple-200/60 text-xs font-medium">Seat {index + 1}</span>
                   </div>
                 )}
               </motion.div>
