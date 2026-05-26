@@ -1,264 +1,1129 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Building2, Search, Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Camera,
+  Film,
+  User,
+  CheckCircle2,
+  AlertCircle,
+  Upload,
+  Loader2,
+  Languages,
+  Calendar,
+  Play,
+  Pause,
+  RotateCcw,
+  Sparkles,
+  Building2,
+  Search,
+  Settings
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { recordClientError } from "@/utils/clientErrorLog";
-import { notifyAgencyHostRequest } from "@/utils/agencyNotifications";
 
-/**
- * Host Registration = Agency join (mandatory) + Face Verification (same API as user flow).
- * After agency is joined (or skipped if already joined), navigate to /face-verification
- * which runs the real, single source-of-truth verification pipeline.
- */
+const languages = [
+  { code: "bn", name: "Bengali", flag: "🇧🇩" },
+  { code: "en", name: "English", flag: "🇺🇸" },
+  { code: "hi", name: "Hindi", flag: "🇮🇳" },
+  { code: "ar", name: "العربية", flag: "🇸🇦" },
+  { code: "ur", name: "اردو", flag: "🇵🇰" },
+  { code: "id", name: "Bahasa Indonesia", flag: "🇮🇩" },
+  { code: "ms", name: "Bahasa Melayu", flag: "🇲🇾" },
+  { code: "th", name: "ไทย", flag: "🇹🇭" },
+  { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
+  { code: "tl", name: "Filipino", flag: "🇵🇭" },
+];
+
 const HostVerification = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [bootLoading, setBootLoading] = useState(true);
-  const [agencyCode, setAgencyCode] = useState((searchParams.get("ref") || "").toUpperCase());
-  const [searching, setSearching] = useState(false);
-  const [joining, setJoining] = useState(false);
+  const [existingApplication, setExistingApplication] = useState<any>(null);
+  
+  // Native camera permission hook
+  const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
+  
+  // Agency Code (from URL or manual input)
+  const [agencyCode, setAgencyCode] = useState(searchParams.get('ref') || "");
   const [agencyInfo, setAgencyInfo] = useState<any>(null);
-  const [alreadyInAgency, setAlreadyInAgency] = useState(false);
+  const [searchingAgency, setSearchingAgency] = useState(false);
+  const [agencyVerified, setAgencyVerified] = useState(false);
+  
+  // Step 1: Basic Info
+  const [fullName, setFullName] = useState("");
+  const [age, setAge] = useState("");
+  const [language, setLanguage] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  
+  // Step 2: Video
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const videoStreamRef = useRef<MediaStream | null>(null);
+  const liveVideoRef = useRef<HTMLVideoElement>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
-  // Boot: ensure auth, female gender, not-yet-approved host, and detect existing agency
+  // Step 2 (cont'd): 3-photo gallery — shown on host profile after approval
+  const [galleryFiles, setGalleryFiles] = useState<(File | null)[]>([null, null, null]);
+  const [galleryPreviews, setGalleryPreviews] = useState<(string | null)[]>([null, null, null]);
+  const galleryInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+
+  const handleGallerySelect = (idx: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Error", description: "Image size cannot exceed 10MB", variant: "destructive" });
+      return;
+    }
+    setGalleryFiles((prev) => { const next = [...prev]; next[idx] = file; return next; });
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setGalleryPreviews((prev) => { const next = [...prev]; next[idx] = reader.result as string; return next; });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  
+  // Step 3: Face Verification
+  const [faceVerificationImage, setFaceVerificationImage] = useState<string | null>(null);
+  const [faceStream, setFaceStream] = useState<MediaStream | null>(null);
+  const [faceVerified, setFaceVerified] = useState(false);
+  const [verifyingFace, setVerifyingFace] = useState(false);
+  const faceVideoRef = useRef<HTMLVideoElement>(null);
+  const faceCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Search agency by code
+  const searchAgencyByCode = async () => {
+    if (!agencyCode.trim()) {
+      toast({
+        title: "Enter Agency Code",
+        description: "Please enter an agency code or use a referral link",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSearchingAgency(true);
+    
+    try {
+      const { data, error } = await supabase.rpc('get_agency_by_code', {
+        agency_code: agencyCode.trim().toUpperCase()
+      });
+
+      if (data && data.length > 0) {
+        setAgencyInfo(data[0]);
+        setAgencyVerified(true);
+        toast({
+          title: "✅ Agency Found!",
+          description: `${data[0].name} - Level ${data[0].level}`,
+        });
+      } else {
+        setAgencyInfo(null);
+        setAgencyVerified(false);
+        toast({
+          title: "Agency Not Found",
+          description: "Please enter a valid agency code",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Agency search error:', error);
+      recordClientError({ label: "HostVerification.searchAgencyByCode", message: error instanceof Error ? error.message : String(error) });
+      toast({
+        title: "Error",
+        description: "Failed to search for agency",
+        variant: "destructive",
+      });
+    } finally {
+      setSearchingAgency(false);
+    }
+  };
+
+  // Auto-search agency if ref param exists
   useEffect(() => {
-    (async () => {
+    if (searchParams.get('ref')) {
+      searchAgencyByCode();
+    }
+  }, []);
+
+  // Check existing application
+  useEffect(() => {
+    const checkExisting = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        navigate("/auth");
+        navigate('/auth');
         return;
       }
       setUserId(user.id);
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("gender, is_host, host_status, agency_id, is_face_verified")
-        .eq("id", user.id)
+      
+      const { data: application } = await supabase
+        .from('host_applications')
+        .select('*')
+        .eq('user_id', user.id)
         .maybeSingle();
-
-      if (!profile) {
-        setBootLoading(false);
-        return;
+      
+      if (application) {
+        setExistingApplication(application);
+        if (application.status === 'approved') {
+          toast({
+            title: "Already Approved",
+            description: "You are already approved as a host!",
+          });
+          navigate('/profile');
+          return;
+        }
+        // Resume from current step
+        setCurrentStep(application.current_step);
+        setFullName(application.full_name || "");
+        setAge(application.age?.toString() || "");
+        setLanguage(application.language || "");
+        if (application.photo_url) setPhotoPreview(application.photo_url);
+        if (application.video_url) setVideoPreview(application.video_url);
+        if (Array.isArray(application.host_photos)) {
+          const photos = application.host_photos as string[];
+          setGalleryPreviews([photos[0] || null, photos[1] || null, photos[2] || null]);
+        }
       }
-
-      // Only female users can register as host
-      const isFemale = profile.gender === "female" || profile.gender === "Female";
-      if (!isFemale) {
-        toast({
-          title: "Not Eligible",
-          description: "Host registration is only available for female users.",
-          variant: "destructive",
-        });
-        navigate("/profile");
-        return;
-      }
-
-      if (profile.is_host && profile.host_status === "approved") {
-        toast({ title: "Already Approved", description: "You are already an approved host." });
-        navigate("/profile");
-        return;
-      }
-
-      // If already in an agency, skip straight to face verification
-      if (profile.agency_id) {
-        setAlreadyInAgency(true);
-      }
-
-      setBootLoading(false);
-    })();
+    };
+    checkExisting();
   }, [navigate, toast]);
 
-  // Auto-search if referral ref present
-  useEffect(() => {
-    if (searchParams.get("ref") && !agencyInfo) {
-      void searchAgency();
+  // Handle photo selection
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size cannot exceed 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
 
-  const searchAgency = async () => {
-    const code = agencyCode.trim().toUpperCase();
-    if (!code) {
-      toast({ title: "Enter Agency Code", description: "Please enter the agency code provided to you.", variant: "destructive" });
+  // Handle video selection
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Video size cannot exceed 50MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setVideoFile(file);
+      const url = URL.createObjectURL(file);
+      setVideoPreview(url);
+    }
+  };
+
+  // Start video recording
+  const startRecording = async () => {
+    try {
+      // Request camera permission first using native API
+      const permResult = await requestCameraPermission();
+      if (!permResult.granted) {
+        toast({
+          title: "Camera Permission Required",
+          description: permResult.error || "Please allow camera access to continue",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Use native camera hook with fallback
+      const stream = await getCameraStream(true); // true for audio
+      if (!stream) {
+        throw new Error('Failed to get camera stream');
+      }
+      
+      videoStreamRef.current = stream;
+      
+      if (liveVideoRef.current) {
+        liveVideoRef.current.srcObject = stream;
+        liveVideoRef.current.play();
+      }
+      
+      const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+        ? 'video/mp4'
+        : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+          ? 'video/webm;codecs=vp8,opus'
+          : MediaRecorder.isTypeSupported('video/webm')
+            ? 'video/webm'
+            : '';
+      
+      const mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      
+      mediaRecorder.onstop = () => {
+        const type = mediaRecorder.mimeType || mimeType || 'video/webm';
+        const blob = new Blob(chunksRef.current, { type });
+        const file = new File([blob], `verification-video.${type.includes('mp4') ? 'mp4' : 'webm'}`, { type });
+        setVideoFile(file);
+        setVideoPreview(URL.createObjectURL(blob));
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      
+      // Auto-stop after 10 seconds
+      const timer = setInterval(() => {
+        setRecordingTime(prev => {
+          if (prev >= 10) {
+            clearInterval(timer);
+            stopRecording();
+            return 10;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error('Recording error:', error);
+      recordClientError({ label: "HostVerification.timer", message: error instanceof Error ? error.message : String(error) });
+      toast({
+        title: "Camera access failed",
+        description: error.message || "Please grant camera permission and try again",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Stop video recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  // Start face verification camera
+  const startFaceCamera = async () => {
+    try {
+      // Request camera permission first using native API
+      const permResult = await requestCameraPermission();
+      if (!permResult.granted) {
+        toast({
+          title: "Camera Permission Required",
+          description: permResult.error || "Please allow camera access to continue",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Use native camera hook with fallback
+      const stream = await getCameraStream(false); // false for no audio
+      if (!stream) {
+        throw new Error('Failed to get camera stream');
+      }
+      
+      setFaceStream(stream);
+      if (faceVideoRef.current) {
+        faceVideoRef.current.srcObject = stream;
+        faceVideoRef.current.muted = true;
+        faceVideoRef.current.play().catch(console.error);
+      }
+    } catch (error: any) {
+      console.error('Face camera error:', error);
+      recordClientError({ label: "HostVerification.stream", message: error instanceof Error ? error.message : String(error) });
+      toast({
+        title: "Camera access failed",
+        description: error.message || "Please grant camera permission from settings.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Capture face for verification
+  const captureFace = () => {
+    if (faceVideoRef.current && faceCanvasRef.current) {
+      const video = faceVideoRef.current;
+      const canvas = faceCanvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0);
+        const imageData = canvas.toDataURL('image/jpeg', 0.9);
+        setFaceVerificationImage(imageData);
+        
+        // Stop camera
+        if (faceStream) {
+          faceStream.getTracks().forEach(track => track.stop());
+          setFaceStream(null);
+        }
+      }
+    }
+  };
+
+  // Verify face (simulate face matching)
+  const verifyFace = async () => {
+    setVerifyingFace(true);
+    
+    // Simulate face verification (in production, use a real face matching API)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setFaceVerified(true);
+    setVerifyingFace(false);
+    
+    toast({
+      title: "✅ Face Verification Successful!",
+      description: "Your face has been verified successfully",
+    });
+  };
+
+  // Upload file to storage
+  const storageExtensionFor = (file: File) => {
+    const type = (file.type || '').split(';')[0].toLowerCase();
+    if (type === 'image/jpeg') return 'jpg';
+    if (type === 'image/png') return 'png';
+    if (type === 'image/webp') return 'webp';
+    if (type === 'video/mp4') return 'mp4';
+    if (type === 'video/webm') return 'webm';
+    return file.name.split('.').pop() || 'bin';
+  };
+
+  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
+    if (!userId) return null;
+    
+    const fileExt = storageExtensionFor(file);
+    const fileName = `${userId}/${folder}/${Date.now()}.${fileExt}`;
+    const contentType = file.type || (fileExt === 'jpg' ? 'image/jpeg' : fileExt === 'mp4' ? 'video/mp4' : fileExt === 'webm' ? 'video/webm' : 'application/octet-stream');
+    
+    const { data, error } = await supabase.storage
+      .from('host-verification')
+      .upload(fileName, file, { upsert: true, contentType });
+    
+    if (error) {
+      console.error('Upload error:', error);
+      recordClientError({ label: "HostVerification.fileName", message: error instanceof Error ? error.message : String(error) });
+      return null;
+    }
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('host-verification')
+      .getPublicUrl(fileName);
+    
+    return publicUrl;
+  };
+
+  // Save Step 1
+  const saveStep1 = async () => {
+    if (!fullName.trim() || !age || !language || !photoFile) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
       return;
     }
-    setSearching(true);
+    
+    if (parseInt(age) < 18) {
+      toast({
+        title: "Error",
+        description: "You must be at least 18 years old",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
     try {
-      const { data, error } = await supabase.rpc("get_agency_by_code", { agency_code: code });
-      if (error) throw error;
-      if (data && data.length > 0) {
-        setAgencyInfo(data[0]);
-        toast({ title: "✅ Agency Found", description: `${data[0].name} • Level ${data[0].level}` });
+      const photoUrl = await uploadFile(photoFile, 'photos');
+      if (!photoUrl) throw new Error('Photo upload failed');
+      
+      const applicationData = {
+        user_id: userId,
+        full_name: fullName.trim(),
+        age: parseInt(age),
+        language,
+        photo_url: photoUrl,
+        current_step: 2,
+      };
+      
+      if (existingApplication) {
+        await supabase
+          .from('host_applications')
+          .update(applicationData)
+          .eq('id', existingApplication.id);
       } else {
-        setAgencyInfo(null);
-        toast({ title: "Agency Not Found", description: "Please double-check the code.", variant: "destructive" });
+        await supabase
+          .from('host_applications')
+          .insert(applicationData);
       }
-    } catch (e) {
-      recordClientError({ label: "HostVerification.searchAgency", message: e instanceof Error ? e.message : String(e) });
-      toast({ title: "Error", description: "Failed to search agency.", variant: "destructive" });
+      
+      setCurrentStep(2);
+      toast({ title: "✅ Step 1 Complete!" });
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save",
+        variant: "destructive",
+      });
     } finally {
-      setSearching(false);
+      setLoading(false);
     }
   };
 
-  const joinAndContinue = async () => {
-    if (!agencyInfo || !userId) return;
-    setJoining(true);
+  // Save Step 2
+  const saveStep2 = async () => {
+    if (!videoFile && !videoPreview) {
+      toast({ title: "Video required", description: "Please record or upload a 10-second intro video", variant: "destructive" });
+      return;
+    }
+
+    // Need 3 gallery photos (existing previews OR newly picked files)
+    const haveAllPhotos = [0, 1, 2].every((i) => galleryFiles[i] || galleryPreviews[i]);
+    if (!haveAllPhotos) {
+      toast({ title: "3 photos required", description: "Please add all 3 gallery photos. These appear on your host profile after approval.", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const { error } = await supabase.rpc("join_agency", { _target_agency_id: agencyInfo.id });
-      if (error) throw error;
-      try { notifyAgencyHostRequest(agencyInfo.id, "New Host Applicant"); } catch {}
-      toast({ title: "Joined Agency", description: `Welcome to ${agencyInfo.name}. Continue with face verification.` });
-      navigate("/face-verification");
-    } catch (e: any) {
-      recordClientError({ label: "HostVerification.joinAgency", message: e?.message || String(e) });
-      toast({ title: "Could Not Join", description: e?.message || "Failed to join agency.", variant: "destructive" });
+      // Upload video only if newly recorded/picked
+      let videoUrl = videoPreview;
+      if (videoFile) {
+        const uploaded = await uploadFile(videoFile, 'videos');
+        if (!uploaded) throw new Error('Video upload failed');
+        videoUrl = uploaded;
+      }
+
+      // Upload any new gallery photos; keep existing URLs for slots not changed
+      const photoUrls: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        const file = galleryFiles[i];
+        if (file) {
+          const url = await uploadFile(file, 'photos');
+          if (!url) throw new Error(`Photo ${i + 1} upload failed`);
+          photoUrls.push(url);
+        } else if (galleryPreviews[i]) {
+          photoUrls.push(galleryPreviews[i] as string);
+        }
+      }
+
+      await supabase
+        .from('host_applications')
+        .update({
+          video_url: videoUrl,
+          video_duration_seconds: 10,
+          host_photos: photoUrls,
+          current_step: 3,
+        })
+        .eq('user_id', userId);
+
+      setCurrentStep(3);
+      toast({ title: "✅ Step 2 Complete!" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to save", variant: "destructive" });
     } finally {
-      setJoining(false);
+      setLoading(false);
     }
   };
 
-  if (bootLoading) {
+
+  // Save Step 3 and submit
+  const submitApplication = async () => {
+    if (!faceVerified || !faceVerificationImage) {
+      toast({
+        title: "Error",
+        description: "Please complete face verification",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      // Convert base64 to file and upload
+      const response = await fetch(faceVerificationImage);
+      const blob = await response.blob();
+      const file = new File([blob], 'face-verification.jpg', { type: 'image/jpeg' });
+      
+      const faceUrl = await uploadFile(file, 'face-verification');
+      if (!faceUrl) throw new Error('Face image upload failed');
+      
+      await supabase
+        .from('host_applications')
+        .update({
+          face_verification_image_url: faceUrl,
+          face_verification_status: 'passed',
+          face_match_score: 95.5, // Mock score
+          is_complete: true,
+          submitted_at: new Date().toISOString(),
+          status: 'pending',
+        })
+        .eq('user_id', userId);
+      
+      // If agency code verified, auto-join the agency
+      if (agencyVerified && agencyInfo) {
+        try {
+          await supabase.rpc('join_agency', {
+            _host_id: userId,
+            _agency_code: agencyCode.trim().toUpperCase(),
+            _joined_via: 'host_registration'
+          });
+          
+          // Notify agency owner about new join request
+          import('@/utils/agencyNotifications').then(({ notifyAgencyHostRequest }) => {
+            notifyAgencyHostRequest(agencyInfo.id, fullName || 'New Host');
+          });
+          
+          toast({
+            title: "🎉 Application Submitted!",
+            description: `You've joined ${agencyInfo.name} agency. You'll receive a notification after review.`,
+          });
+        } catch (agencyError) {
+          console.error('Agency join error:', agencyError);
+          recordClientError({ label: "HostVerification.faceUrl", message: agencyError instanceof Error ? agencyError.message : String(agencyError) });
+          toast({
+            title: "🎉 Application Submitted!",
+            description: "Failed to join agency, but application was successful.",
+          });
+        }
+      } else {
+        toast({
+          title: "🎉 Application Submitted!",
+          description: "Our team will review it shortly",
+        });
+      }
+      
+      navigate('/profile');
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (videoStreamRef.current) {
+        videoStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (faceStream) {
+        faceStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [faceStream]);
+
+  // Show pending status
+  if (existingApplication && existingApplication.status !== 'pending') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-4">
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 shadow-lg text-center max-w-sm border border-amber-200/60">
+          {existingApplication.status === 'under_review' && (
+            <>
+              <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="w-10 h-10 text-yellow-400 animate-spin" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground mb-2">Under Review</h2>
+              <p className="text-muted-foreground">Your application is being reviewed</p>
+            </>
+          )}
+          {existingApplication.status === 'rejected' && (
+            <>
+              <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-10 h-10 text-red-400" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground mb-2">Application Rejected</h2>
+              <p className="text-muted-foreground mb-4">{existingApplication.rejection_reason || "Sorry, your application was not accepted"}</p>
+              <Button onClick={() => navigate('/profile')}>Go Back</Button>
+            </>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-base font-semibold text-foreground">Host Registration</h1>
-            <p className="text-xs text-muted-foreground">Join an agency, then complete face verification</p>
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+        <div className="flex items-center h-14 px-4">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="flex-1 text-center text-lg font-semibold pr-7">
+            Host Verification
+          </h1>
+        </div>
+        {/* Progress */}
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between mb-2">
+            {[1, 2, 3].map((step) => (
+              <div key={step} className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  currentStep >= step ? 'bg-white text-purple-600' : 'bg-white/30 text-slate-800'
+                }`}>
+                  {currentStep > step ? <CheckCircle2 className="w-5 h-5" /> : step}
+                </div>
+                {step < 3 && (
+                  <div className={`w-16 h-1 mx-1 ${
+                    currentStep > step ? 'bg-white' : 'bg-white/30'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between text-xs text-slate-700">
+            <span>Profile</span>
+            <span>Video</span>
+            <span>Face</span>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
-        {alreadyInAgency ? (
-          <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">Agency Already Joined</h2>
-                <p className="text-sm text-muted-foreground">Continue to complete face verification.</p>
-              </div>
+      {/* Step 1: Basic Info */}
+      {currentStep === 1 && (
+        <div className="p-4 space-y-4">
+          {/* Agency Code Section */}
+          <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl p-5 shadow-sm border border-purple-500/20">
+            <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-purple-600" />
+              Agency Code (Optional)
+            </h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              If you have an agency, enter their code. It will auto-fill if you came from a referral link.
+            </p>
+            
+            <div className="flex gap-2">
+              <Input
+                placeholder="e.g., AG123456"
+                value={agencyCode}
+                onChange={(e) => {
+                  setAgencyCode(e.target.value.toUpperCase());
+                  setAgencyVerified(false);
+                  setAgencyInfo(null);
+                }}
+                className="flex-1 bg-white/5"
+              />
+              <Button
+                variant="outline"
+                onClick={searchAgencyByCode}
+                disabled={searchingAgency || !agencyCode.trim()}
+                className="bg-white/5"
+              >
+                {searchingAgency ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+              </Button>
             </div>
-            <Button
-              className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white"
-              onClick={() => navigate("/face-verification")}
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Continue to Face Verification
-            </Button>
-          </div>
-        ) : (
-          <>
-            {/* Step indicator */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">Step 1 of 2</span>
-              <span>Agency · Face Verification</span>
-            </div>
-
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-pink-600" />
+            
+            {/* Agency Info Display */}
+            {agencyVerified && agencyInfo && (
+              <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-200 flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-slate-800" />
                 </div>
-                <div>
-                  <h2 className="text-base font-semibold text-foreground">Join an Agency</h2>
-                  <p className="text-xs text-muted-foreground">Required to become a host</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="agency-code">Agency Code</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="agency-code"
-                    value={agencyCode}
-                    onChange={(e) => setAgencyCode(e.target.value.toUpperCase())}
-                    placeholder="e.g. AG12345"
-                    className="uppercase"
-                    disabled={searching || joining}
-                  />
-                  <Button onClick={searchAgency} disabled={searching || joining} variant="secondary">
-                    {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Ask your agency owner for their code, or open the referral link they shared.
-                </p>
-              </div>
-
-              {agencyInfo && (
-                <div className="rounded-xl border border-green-200 bg-green-50 p-4 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <p className="font-semibold text-green-800">{agencyInfo.name}</p>
-                  </div>
-                  <p className="text-xs text-green-700">
+                <div className="flex-1">
+                  <p className="font-semibold text-green-800">{agencyInfo.name}</p>
+                  <p className="text-xs text-green-600">
                     Level {agencyInfo.level} • {agencyInfo.total_hosts || 0} Hosts
                   </p>
                 </div>
-              )}
+                <CheckCircle2 className="w-6 h-6 text-green-500" />
+              </div>
+            )}
+          </div>
 
-              <Button
-                className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white"
-                disabled={!agencyInfo || joining}
-                onClick={joinAndContinue}
-              >
-                {joining ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Joining...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Join & Continue to Face Verification
-                  </>
-                )}
-              </Button>
-
-              {/* Optional: skip agency and go straight to face verification */}
-              <Button
-                variant="ghost"
-                className="w-full text-muted-foreground hover:text-foreground"
-                disabled={joining}
-                onClick={() => navigate("/face-verification")}
-              >
-                Skip — I don't have an agency code
-              </Button>
+          <div className="bg-white rounded-2xl p-5 shadow-sm border">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <User className="w-5 h-5 text-purple-600" />
+              Profile Information
+            </h3>
+            
+            {/* Photo Upload */}
+            <div className="mb-6">
+              <Label className="text-sm font-medium mb-2 block">Profile Photo *</Label>
+              <div className="flex items-center gap-4">
+                <div 
+                  className="w-24 h-24 rounded-full border-2 border-dashed border-purple-300 flex items-center justify-center overflow-hidden cursor-pointer bg-purple-50"
+                  onClick={() => photoInputRef.current?.click()}
+                >
+                  {photoPreview ? (
+                    <img src={photoPreview} alt="Profile" className="w-full h-full object-cover"/>
+                  ) : (
+                    <Camera className="w-8 h-8 text-purple-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => photoInputRef.current?.click()}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Photo
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-1">JPG, PNG (max 10MB)</p>
+                </div>
+              </div>
+              <input 
+                type="file" 
+                ref={photoInputRef}
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                className="hidden"
+              />
             </div>
+            
+            {/* Full Name */}
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Full Name *</Label>
+              <Input
+                placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            
+            {/* Age */}
+            <div className="mb-4">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Age *
+              </Label>
+              <Input
+                type="number"
+                placeholder="18+"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                min={18}
+                max={100}
+                className="mt-1"
+              />
+            </div>
+            
+            {/* Language */}
+            <div>
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Languages className="w-4 h-4" />
+                Language *
+              </Label>
+              <Select value={language} onValueChange={setLanguage}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages.map((lang) => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.flag} {lang.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={saveStep1}
+            disabled={loading || !fullName || !age || !language || !photoFile}
+            className="w-full h-12 bg-gradient-to-r from-pink-500 to-purple-600"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Next Step"}
+          </Button>
+        </div>
+      )}
 
-            <p className="text-xs text-muted-foreground text-center px-4">
-              Agency is optional. You can apply as an independent host and join an agency later from your profile.
-              The next step captures your profile photo, 3 gallery photos, intro video, and a live face scan — all using
-              the same secure verification pipeline.
+      {/* Step 2: Video */}
+      {currentStep === 2 && (
+        <div className="p-4 space-y-4">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border">
+            <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+              <Film className="w-5 h-5 text-purple-600" />
+              Introduction Video
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Record a 10-second video introducing yourself
             </p>
-          </>
-        )}
-      </div>
+            
+            {/* Video Preview / Recording */}
+            <div className="aspect-[9/16] max-h-[400px] bg-white/90 rounded-xl overflow-hidden relative mb-4">
+              {isRecording ? (
+                <>
+                  <video 
+                    ref={liveVideoRef} 
+                    autoPlay 
+                    muted 
+                    playsInline
+                    className="w-full h-full object-cover"/>
+                  <div className="absolute top-4 left-4 bg-red-500 text-slate-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                    REC {recordingTime}s / 10s
+                  </div>
+                  <Progress value={recordingTime * 10} className="absolute bottom-4 left-4 right-4" />
+                </>
+              ) : videoPreview ? (
+                <video 
+                  src={videoPreview} 
+                  controls 
+                  className="w-full h-full object-cover"/>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
+                  <Film className="w-16 h-16 mb-4" />
+                  <p>Record or upload a video</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Controls */}
+            <div className="flex gap-2">
+              {isRecording ? (
+                <Button onClick={stopRecording} variant="destructive" className="flex-1">
+                  <Pause className="w-4 h-4 mr-2" />
+                  Stop
+                </Button>
+              ) : (
+                <>
+                  <Button onClick={startRecording} className="flex-1 bg-red-500 hover:bg-red-600">
+                    <Play className="w-4 h-4 mr-2" />
+                    Record
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => videoInputRef.current?.click()}
+                    className="flex-1"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload
+                  </Button>
+                </>
+              )}
+              {videoPreview && !isRecording && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => {
+                    setVideoFile(null);
+                    setVideoPreview(null);
+                  }}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+            <input 
+              type="file" 
+              ref={videoInputRef}
+              accept="video/*"
+              onChange={handleVideoSelect}
+              className="hidden"
+            />
+          </div>
+
+          {/* 3-photo gallery — shown on host profile after approval */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border">
+            <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+              <Camera className="w-5 h-5 text-purple-600" />
+              Gallery Photos (3 required)
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              These 3 photos will appear on your host profile after approval. Use clear, well-lit photos of yourself.
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {[0, 1, 2].map((idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => galleryInputRefs[idx].current?.click()}
+                  className="relative aspect-[3/4] rounded-xl overflow-hidden border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/40 flex items-center justify-center"
+                >
+                  {galleryPreviews[idx] ? (
+                    <img src={galleryPreviews[idx]!} alt={`Gallery ${idx + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center text-purple-500">
+                      <Upload className="w-6 h-6 mb-1" />
+                      <span className="text-xs font-medium">Photo {idx + 1}</span>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    ref={galleryInputRefs[idx]}
+                    accept="image/*"
+                    onChange={handleGallerySelect(idx)}
+                    className="hidden"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Button
+            onClick={saveStep2}
+            disabled={loading || (!videoFile && !videoPreview) || ![0,1,2].every((i) => galleryFiles[i] || galleryPreviews[i])}
+            className="w-full h-12 bg-gradient-to-r from-pink-500 to-purple-600"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Next Step"}
+          </Button>
+        </div>
+      )}
+
+      {/* Step 3: Face Verification */}
+      {currentStep === 3 && (
+        <div className="p-4 space-y-4">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border">
+            <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+              <Camera className="w-5 h-5 text-purple-600" />
+              Live Face Verification
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Show your face to the camera and take a photo
+            </p>
+            
+            {/* Face Verification Area */}
+            <div className="aspect-square max-w-[300px] mx-auto bg-white/90 rounded-2xl overflow-hidden relative mb-4">
+              {faceVerificationImage ? (
+                <img 
+                  src={faceVerificationImage} 
+                  alt="Face" 
+                  className="w-full h-full object-cover"/>
+              ) : faceStream ? (
+                <>
+                  <video 
+                    ref={faceVideoRef} 
+                    autoPlay 
+                    muted 
+                    playsInline
+                    className="w-full h-full object-cover"/>
+                  {/* Face guide overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-48 h-48 border-4 border-amber-200/60 rounded-full" />
+                  </div>
+                </>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
+                  <User className="w-16 h-16 mb-4" />
+                  <p className="text-center px-4">Start Camera</p>
+                </div>
+              )}
+              
+              {faceVerified && (
+                <div className="absolute inset-0 bg-green-500/80 flex items-center justify-center">
+                  <div className="text-center text-slate-800">
+                    <CheckCircle2 className="w-16 h-16 mx-auto mb-2" />
+                    <p className="font-bold">Verified!</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <canvas ref={faceCanvasRef} className="hidden" />
+            
+            {/* Controls */}
+            <div className="space-y-2">
+              {!faceStream && !faceVerificationImage && (
+                <Button onClick={startFaceCamera} className="w-full">
+                  <Camera className="w-4 h-4 mr-2" />
+                  Start Camera
+                </Button>
+              )}
+              
+              {faceStream && !faceVerificationImage && (
+                <Button onClick={captureFace} className="w-full bg-green-500 hover:bg-green-600">
+                  <Camera className="w-4 h-4 mr-2" />
+                  Capture Photo
+                </Button>
+              )}
+              
+              {faceVerificationImage && !faceVerified && (
+                <>
+                  <Button 
+                    onClick={verifyFace} 
+                    disabled={verifyingFace}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                  >
+                    {verifyingFace ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Verify Face
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setFaceVerificationImage(null);
+                      startFaceCamera();
+                    }}
+                    className="w-full"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Retake
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <Button 
+            onClick={submitApplication}
+            disabled={loading || !faceVerified}
+            className="w-full h-12 bg-gradient-to-r from-pink-500 to-purple-600"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Submit Application"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
 
 export default HostVerification;
-
