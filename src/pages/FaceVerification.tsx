@@ -115,19 +115,41 @@ const getLocalizedMessages = (_countryName?: string) => ({
   staticFace: 'Static face detected. Please use a real camera, not a photo.',
 });
 
-// Capture a frame from live video element as base64
-const captureFrameFromLiveVideo = (videoEl: HTMLVideoElement, size = 480): string | null => {
+// Capture the exact visible camera area, not the raw hidden overflow. On mobile
+// the preview uses object-cover in a portrait box while the camera frame can be
+// landscape; sending the uncropped raw frame makes the detector analyze a
+// different image than the user is centering in the oval.
+const captureFrameFromLiveVideo = (videoEl: HTMLVideoElement, size = 640): string | null => {
   if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) return null;
   const canvas = document.createElement('canvas');
-  const aspect = videoEl.videoWidth / videoEl.videoHeight || 1;
+  const sourceW = videoEl.videoWidth;
+  const sourceH = videoEl.videoHeight;
+  const visibleW = videoEl.clientWidth || videoEl.offsetWidth || sourceW;
+  const visibleH = videoEl.clientHeight || videoEl.offsetHeight || sourceH;
+  const visibleAspect = visibleW / Math.max(1, visibleH);
+  const sourceAspect = sourceW / Math.max(1, sourceH);
+
+  let sx = 0;
+  let sy = 0;
+  let sw = sourceW;
+  let sh = sourceH;
+  if (sourceAspect > visibleAspect) {
+    sw = Math.round(sourceH * visibleAspect);
+    sx = Math.round((sourceW - sw) / 2);
+  } else if (sourceAspect < visibleAspect) {
+    sh = Math.round(sourceW / visibleAspect);
+    sy = Math.round((sourceH - sh) / 2);
+  }
+
+  const outAspect = sw / Math.max(1, sh);
   canvas.width = size;
-  canvas.height = Math.round(size / aspect);
+  canvas.height = Math.round(size / outAspect);
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
-  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+  ctx.drawImage(videoEl, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
   return dataUrl.split(',')[1];
 };
 
