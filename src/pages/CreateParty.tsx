@@ -220,6 +220,21 @@ const CreateParty = () => {
     };
   }, []);
 
+  // Sync stream → video element whenever either changes (video element may
+  // mount AFTER startCameraInstant set srcObject on a null ref → preview blank).
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (stream && isVideoEnabled) {
+      if (v.srcObject !== stream) {
+        v.srcObject = stream;
+      }
+      v.play().then(() => setCameraReady(true)).catch(() => {});
+    } else {
+      try { v.srcObject = null; } catch {}
+    }
+  }, [stream, isVideoEnabled, mode]);
+
   // Handle mode changes - switch camera/audio
   useEffect(() => {
     if (stream) {
