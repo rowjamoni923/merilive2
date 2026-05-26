@@ -2150,51 +2150,6 @@ const Auth = () => {
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="min-h-full flex flex-col justify-end gap-2 px-5 pt-4 pb-8 safe-area-top safe-area-bottom">
-        {/* Logo */}
-        <div className="pt-2 flex flex-col items-center">
-          {branding.logo_image_url ? (
-            <img 
-              src={branding.logo_image_url} 
-              alt="Logo" 
-              className="w-28 h-28 object-contain"
-              onError={(e) => {
-                (e.target as HTMLImageElement).onerror = null;
-                (e.target as HTMLImageElement).src = '/logo.png';
-              }}
-            />
-          ) : (
-            <>
-              <div className="relative">
-               {/* Premium MERI text with metallic shine effect */}
-               <h1 
-                 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-pink-200 to-pink-400 text-center tracking-wide"
-                 style={{ 
-                   fontFamily: "'Pacifico', cursive",
-                   WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.2)',
-                 }}
-               >
-                   {branding.logo_text_primary}
-                 </h1>
-                </div>
-             
-             {/* LIVE badge with elegant underline */}
-             <div className="flex items-center gap-2 mt-0.5">
-               <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-               <h2 
-                 className="text-xl font-bold text-white uppercase" /* dark-ok */
-                 style={{ 
-                   fontFamily: "'Montserrat', sans-serif",
-                   letterSpacing: '0.5em',
-                 }}
-               >
-                  {branding.logo_text_secondary}
-                </h2>
-               <div className="h-px w-8 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-             </div>
-            </>
-          )}
-        </div>
-
           {/* Agency Referral Banner */}
           {agencyInfo && (
             <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/90 to-pink-500/90 backdrop-blur-sm rounded-2xl shadow-lg">
