@@ -33,6 +33,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
+import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import VipNobleSection from "@/components/vip/VipNobleSection";
