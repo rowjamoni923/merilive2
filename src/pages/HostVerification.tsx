@@ -203,6 +203,10 @@ const HostVerification = () => {
         setLanguage(application.language || "");
         if (application.photo_url) setPhotoPreview(application.photo_url);
         if (application.video_url) setVideoPreview(application.video_url);
+        if (Array.isArray(application.host_photos)) {
+          const photos = application.host_photos as string[];
+          setGalleryPreviews([photos[0] || null, photos[1] || null, photos[2] || null]);
+        }
       }
     };
     checkExisting();
