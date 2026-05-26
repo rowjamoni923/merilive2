@@ -644,7 +644,15 @@ serve(async (req) => {
     //     occlusion, etc.) goes to admin MANUAL REVIEW — never auto-reject.
     //   • Clean submissions auto-approve (~90/100 target).
     // ────────────────────────────────────────────────────────────────────
-    const hardAutoReject: "gender_mismatch" | null = genderDeclarationMismatch ? "gender_mismatch" : null;
+    const finalGenderForDecision = String(rekognition.final_gender || "").trim().toLowerCase();
+    const strictGenderMismatch = Boolean(
+      expectedGender &&
+      (expectedGender === "male" || expectedGender === "female") &&
+      (finalGenderForDecision === "male" || finalGenderForDecision === "female") &&
+      finalGenderForDecision !== expectedGender &&
+      !frontError && !leftError && !rightError
+    );
+    const hardAutoReject: "gender_mismatch" | null = (genderDeclarationMismatch || strictGenderMismatch) ? "gender_mismatch" : null;
 
     if (hardAutoReject) {
       // Auto-reject: flip status to 'rejected' so admin doesn't have to
@@ -654,8 +662,8 @@ serve(async (req) => {
         .update({
           status: "rejected",
           reviewed_at: new Date().toISOString(),
-          rejection_reason: `Account verification requires "${expectedGender}" but live face detected as "${rawG}" (${genderConf.toFixed(1)}% confidence). Please contact Support Chat to resolve.`,
-          admin_notes: `${summary}\n[auto-reject] gender_mismatch: expected=${expectedGender} declared=${declaredGender} detected=${rawG} (${genderConf.toFixed(1)}%)`,
+          rejection_reason: `Account verification requires "${expectedGender}" but live face detected as "${finalGenderForDecision || rawG}" (${genderConf.toFixed(1)}% confidence). Please contact Support Chat to resolve.`,
+          admin_notes: `${summary}\n[auto-reject] gender_mismatch: expected=${expectedGender} declared=${declaredGender} detected=${finalGenderForDecision || rawG} (${genderConf.toFixed(1)}%)`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", submissionId)
@@ -669,7 +677,7 @@ serve(async (req) => {
           blocker: "gender_mismatch",
           declaredGender,
           expectedGender,
-          detectedGender: rawG,
+          detectedGender: finalGenderForDecision || rawG,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
