@@ -117,13 +117,15 @@ const getLocalizedMessages = (_countryName?: string) => ({
 
 // Capture a frame from live video element as base64
 const captureFrameFromLiveVideo = (videoEl: HTMLVideoElement, size = 480): string | null => {
-  if (!videoEl || videoEl.readyState < 2) return null;
+  if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) return null;
   const canvas = document.createElement('canvas');
-  const aspect = videoEl.videoWidth / videoEl.videoHeight;
+  const aspect = videoEl.videoWidth / videoEl.videoHeight || 1;
   canvas.width = size;
   canvas.height = Math.round(size / aspect);
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
   ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
   return dataUrl.split(',')[1];
