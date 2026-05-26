@@ -21,6 +21,14 @@ import { FlyingGiftAnimation } from "@/components/live/FlyingGiftAnimation";
 import { useFlyingGifts } from "@/hooks/useFlyingGifts";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+
+// Module-scoped instant cache — re-entering Reels shows the last list immediately
+// (zero-refresh feel) while realtime + background fetch keep it fresh.
+const reelsCache: { byCategory: Map<string, any[]>; categories: any[] | null } = {
+  byCategory: new Map(),
+  categories: null,
+};
 interface Sound {
   id: string;
   title: string;
