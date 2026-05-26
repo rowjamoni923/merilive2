@@ -77,9 +77,6 @@ export function installSWUpdatePrompt(): void {
   // …and any that register later (FCM/image-cache call register() lazily).
   navigator.serviceWorker.ready.then((reg) => {
     wireRegistration(reg);
-    // Light hourly poll for backend updates while the tab stays open.
-    try {
-      setInterval(() => { reg.update().catch(() => {}); }, 60 * 60 * 1000);
-    } catch {}
+    // Zero-refresh policy: no periodic service-worker update polling.
   }).catch(() => {});
 }
