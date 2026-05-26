@@ -1268,6 +1268,9 @@ const EditProfile = () => {
                 className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600"
               />
             </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <b>Tip:</b> Use 8+ characters with letters, numbers and a symbol (e.g. <code className="bg-white px-1 rounded">M3ri!Live#2026</code>). Common or breached passwords (like <code className="bg-white px-1 rounded">Sazzad017</code>) will be rejected.
+            </p>
             <Button 
               onClick={handlePasswordChange}
               disabled={passwordSaving}
