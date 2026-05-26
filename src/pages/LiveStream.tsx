@@ -603,11 +603,17 @@ const LiveStream = () => {
     },
     onError: (error) => {
       console.error('❌ LiveKit error:', error);
-      recordClientError({ label: "LiveStream.deltaY", message: error instanceof Error ? error.message : String(error) });
+      const msg = error instanceof Error ? error.message : String(error);
+      recordClientError({ label: "LiveStream.deltaY", message: msg });
+      // Viewer-side: stream ended/inactive → friendly toast + navigate home (no blank screen)
+      if (location.state?.isHost !== true && /stream_inactive|must_enter_stream_first|not_stream_host/i.test(msg)) {
+        toast.info('This live stream has ended.');
+        try { navigate('/', { replace: true }); } catch { /* ignore */ }
+        return;
+      }
       // 🚨 Host-visible toast on camera/publish failure so they aren't stuck
       // on a black "Starting camera..." screen indefinitely.
       if (location.state?.isHost === true) {
-        const msg = error instanceof Error ? error.message : String(error);
         if (/camera|microphone|publish|getUserMedia|NotAllowed|NotReadable|Permission/i.test(msg)) {
           toast.error('Camera failed to start — please check camera permission and try again.');
         }
