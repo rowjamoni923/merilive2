@@ -138,28 +138,49 @@ Deno.serve(async (req) => {
       return json({ error: "withdrawal_not_payable", status: "changed" }, 409);
     }
 
-    const externalUserId = `merilive_agency_${w.agency_id}`;
+    // Treasury account on SwiftPay that holds pooled platform USDT.
+    // Configurable via app_settings (key='swift_pay_treasury_external_user_id') so
+    // admin can swap accounts without redeploy. Default 'merilive_treasury'.
+    let treasuryExternalUserId = "merilive_treasury";
+    try {
+      const { data: tset } = await admin
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "swift_pay_treasury_external_user_id")
+        .maybeSingle();
+      const raw = tset?.setting_value as unknown;
+      const candidate = typeof raw === "string"
+        ? raw
+        : (raw && typeof raw === "object" && "value" in (raw as Record<string, unknown>))
+          ? String((raw as Record<string, unknown>).value ?? "")
+          : "";
+      if (candidate && /^[a-zA-Z0-9_.:-]{1,255}$/.test(candidate)) {
+        treasuryExternalUserId = candidate;
+      }
+    } catch {
+      // ignore — use default
+    }
 
     // 🔒 IDEMPOTENCY HEADER — prevents accidental double-payouts even if
     // the function is invoked twice for the same withdrawal in parallel.
     const idemKey = `withdrawal_${w.id}`;
 
-    // Call Swift Pay payout
-    const payoutRes = await fetch(`${SWIFT_PAY_BASE_URL}/api/public/v1/payout`, {
+    // Call SwiftPay /api/public/v1/withdraw — note: endpoint is `withdraw`,
+    // NOT `payout`. Schema: { external_user_id, address, currency, amount,
+    // idempotency_key }. SwiftPay debits `external_user_id`'s balance and
+    // sends NET (after SwiftPay's own admin-configured fee) on-chain.
+    const payoutRes = await fetch(`${SWIFT_PAY_BASE_URL}/api/public/v1/withdraw`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${SWIFT_PAY_API_KEY}`,
         "Content-Type": "application/json",
-        "Idempotency-Key": idemKey,
       },
       body: JSON.stringify({
-        external_user_id: externalUserId,
-        display_name: (w as any).agencies.name,
-        amount_usd: netUsd,
-        pay_currency: payCurrency,
-        pay_address: payAddress,
-        pay_network: payNetwork,
-        reference: idemKey,
+        external_user_id: treasuryExternalUserId,
+        address: payAddress,
+        currency: payCurrency,
+        amount: netUsd,
+        idempotency_key: idemKey,
       }),
     });
     const txt = await payoutRes.text();
@@ -173,18 +194,27 @@ Deno.serve(async (req) => {
         status: "pending",
         payment_details: { ...initiatingDetails, swift_pay_payout: { ...initiatingDetails.swift_pay_payout, error: parsed, status: "failed", at: new Date().toISOString() } },
       }).eq("id", w.id);
-      return json({ error: parsed?.error ?? "gateway_error", details: parsed }, 502);
+      return json({ error: parsed?.error ?? "gateway_error", details: parsed, gateway_status: payoutRes.status }, 502);
     }
 
-    const paymentId = parsed?.payment_id ? String(parsed.payment_id) : null;
-    const status = parsed?.status ?? "processing";
+
+    // SwiftPay /withdraw returns: { withdrawal_id, payout_id, amount, fee_usd, net_amount_usd }
+    // and stamps withdrawals.status='sent' once the on-chain payout is dispatched.
+    // We accept either {payout_id} (real schema) or {payment_id} (legacy) for safety.
+    const paymentId = parsed?.payout_id
+      ? String(parsed.payout_id)
+      : parsed?.payment_id ? String(parsed.payment_id) : null;
+    const status = parsed?.status ?? (paymentId ? "sent" : "processing");
+    const settledStatuses = ["sent", "finished", "completed", "approved"];
 
     await admin.from("agency_withdrawals").update({
-      status: status === "completed" ? "approved" : "pending",
+      status: settledStatuses.includes(String(status).toLowerCase()) ? "approved" : "pending",
       payment_details: {
         ...initiatingDetails,
         swift_pay_payout: {
           payment_id: paymentId,
+          payout_id: paymentId,
+          swift_withdrawal_id: parsed?.withdrawal_id ?? null,
           status,
           pay_currency: payCurrency,
           pay_address: payAddress,
@@ -196,7 +226,8 @@ Deno.serve(async (req) => {
       },
     }).eq("id", w.id);
 
-    return json({ ok: true, payment_id: paymentId, status });
+    return json({ ok: true, payment_id: paymentId, payout_id: paymentId, status });
+
   } catch (e) {
     console.error("[swift-pay-create-payout] fatal", e);
     return json({ error: (e as Error).message ?? "unknown" }, 500);
