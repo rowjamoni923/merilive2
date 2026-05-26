@@ -1083,6 +1083,19 @@ const FaceVerification = () => {
     }
   };
 
+  useEffect(() => {
+    const faceCameraActive = !!faceStream || usingNativeFaceCamera;
+    if (!faceCameraActive || !cameraReady || verificationStarted || verificationRecording || faceVerified) return;
+    if (autoFaceStartRef.current) return;
+    autoFaceStartRef.current = true;
+
+    const timer = window.setTimeout(() => {
+      void startFaceVerification();
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [faceStream, usingNativeFaceCamera, cameraReady, verificationStarted, verificationRecording, faceVerified]);
+
   const evaluateAdaptivePose = (
     instrId: string,
     pose: { yaw: number; pitch: number },
@@ -1375,6 +1388,7 @@ const FaceVerification = () => {
 
   // Reset verification
   const resetVerification = () => {
+    autoFaceStartRef.current = false;
     if (usingNativeFaceCameraRef.current && nativeFaceRecordingRef.current) {
       nativeFaceCam.stopRecording().catch(() => null);
       nativeFaceRecordingRef.current = false;
