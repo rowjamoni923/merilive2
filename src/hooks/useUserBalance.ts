@@ -239,6 +239,7 @@ export function useUserBalancePrefetch(): void {
       clearTimeout(timer);
       window.removeEventListener('app-sync', handleAppSync as EventListener);
       authListener.subscription.unsubscribe();
+      directProfileUnsub?.();
     };
   }, []);
 }
