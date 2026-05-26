@@ -7,7 +7,7 @@ export { default as ProfileDetailPage } from '@/pages/ProfileDetail';
 export { default as EditProfilePage } from '@/pages/EditProfile';
 export { default as HostDashboardPage } from '@/pages/HostDashboard';
 export { default as HostApplicationPage } from '@/pages/HostApplication';
-export { default as HostVerificationPage } from '@/pages/HostVerification';
+export { default as HostVerificationPage } from '@/pages/FaceVerification';
 export { default as HostTransferHistoryPage } from '@/pages/HostTransferHistory';
 export { default as FaceVerificationPage } from '@/pages/FaceVerification';
 export { default as FollowingListPage } from '@/pages/FollowingList';

@@ -1221,7 +1221,7 @@ const App = () => {
                 <Route path="/host-dashboard" element={<ProtectedRoute session={session}><HostDashboard /></ProtectedRoute>} />
                 <Route path="/host/obs-stream" element={<ProtectedRoute session={session}><OBSStreamSetup /></ProtectedRoute>} />
                 <Route path="/my-recordings" element={<ProtectedRoute session={session}><MyRecordings /></ProtectedRoute>} />
-                <Route path="/host-verification" element={<ProtectedRoute session={session}><HostVerification /></ProtectedRoute>} />
+                <Route path="/host-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
                 <Route path="/face-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
                 <Route path="/dev/face-pose-tests" element={<ProtectedRoute session={session}><FacePoseRegression /></ProtectedRoute>} />
                 <Route path="/dev/avatar-ring-check" element={<ProtectedRoute session={session}><AvatarFrameRingCheck /></ProtectedRoute>} />
