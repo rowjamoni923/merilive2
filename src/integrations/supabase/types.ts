@@ -16014,6 +16014,10 @@ export type Database = {
         }
         Returns: string
       }
+      _enqueue_face_analyze: {
+        Args: { _submission_id: string }
+        Returns: undefined
+      }
       _execute_admin_pending_action: {
         Args: { _action_type: string; _payload: Json }
         Returns: Json
@@ -19429,6 +19433,7 @@ export type Database = {
         Args: { _message_id: string; _reason: string; _ticket_id: string }
         Returns: string
       }
+      sweep_pending_face_verifications: { Args: never; Returns: number }
       timeout_private_call: { Args: { _call_id: string }; Returns: Json }
       transfer_coins_to_user: {
         Args: {
