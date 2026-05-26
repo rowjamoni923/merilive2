@@ -32,6 +32,7 @@ const OBJECT_PUBLIC = "/storage/v1/object/public/";
 const RENDER_PUBLIC = "/storage/v1/render/image/public/";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ayjdlvuurscxucatbbah.supabase.co";
 const STORAGE_OBJECT_RE = /\/storage\/v1\/(?:object|render\/image)\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
+const ROOT_STORAGE_RE = /^\/storage\/v1\/(?:object|render\/image)\/(?:public|sign|authenticated)\/([^/?#]+)\/([^?#]+)/;
 
 const PUBLIC_MEDIA_BUCKETS = new Set([
   "app-assets", "app-icons", "assets", "avatars", "banners", "banners-media",
@@ -64,8 +65,17 @@ export function normalizePublicMediaUrl(
   defaultBucket = "banners"
 ): string | undefined {
   if (!value || typeof value !== "string") return value || undefined;
-  const raw = value.trim();
+  const raw = value.trim()
+    .replace(/^https:\/([^/])/i, "https://$1")
+    .replace(/^http:\/([^/])/i, "http://$1");
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return raw || undefined;
+
+  const rootStorageMatch = raw.match(ROOT_STORAGE_RE);
+  if (rootStorageMatch?.[1] && rootStorageMatch?.[2]) {
+    const bucket = decodeURIComponent(rootStorageMatch[1]);
+    const path = decodeURIComponent(rootStorageMatch[2]);
+    return PUBLIC_MEDIA_BUCKETS.has(bucket) ? toPublicStorageUrl(bucket, path) : raw;
+  }
 
   try {
     const url = new URL(raw);
