@@ -175,7 +175,9 @@ const Index = () => {
       const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v1");
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.filter(isEligibleCachedHost) : [];
+      return Array.isArray(parsed)
+        ? parsed.map(normalizePresenceForDisplay).filter(isEligibleCachedHost)
+        : [];
     } catch {
       return [];
     }
@@ -225,7 +227,7 @@ const Index = () => {
 
       if (profilesRes.error) throw profilesRes.error;
       const baseProfiles = (profilesRes.data || []) as any[];
-      const profiles = baseProfiles;
+      const profiles = baseProfiles.map(normalizePresenceForDisplay);
 
       // Map results
       const hostsWithStatus = profiles.map(profile => {
@@ -424,7 +426,7 @@ const Index = () => {
         )}
         style={{ contain: 'layout style paint' }}
       >
-        <div className="relative aspect-[3/4]">
+        <div className="relative aspect-[3/4] bg-muted overflow-hidden">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img 
             src={(() => {
@@ -434,11 +436,11 @@ const Index = () => {
                 : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'));
             })()}
             alt={user.display_name || 'User'}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover bg-muted [content-visibility:auto]"
             style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
-            loading={index < 6 ? "eager" : "lazy"}
-            {...({ fetchpriority: index < 4 ? "high" : "auto" } as any)}
-            decoding="async"
+            loading="eager"
+            {...({ fetchpriority: index < 12 ? "high" : "auto" } as any)}
+            decoding={index < 12 ? "sync" : "async"}
             onError={(e) => {
               const img = e.currentTarget;
               const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
