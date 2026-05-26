@@ -227,7 +227,13 @@ const Reels = () => {
 
 
   useEffect(() => {
-    fetchReels(reels.length === 0);
+    // Instant hydrate from per-category cache, then refresh in the background
+    const cached = reelsCache.byCategory.get(selectedCategory);
+    if (cached && cached.length > 0) {
+      setReels(cached);
+      setLoading(false);
+    }
+    fetchReels(reels.length === 0 && !cached);
   }, [selectedCategory, currentUserId]);
 
   useEffect(() => {
