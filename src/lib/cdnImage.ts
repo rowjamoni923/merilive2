@@ -39,6 +39,7 @@ const PUBLIC_MEDIA_BUCKETS = new Set([
   "branding", "content-media", "payment-logos", "posters", "reels",
 ]);
 
+const APP_LOCAL_MEDIA_RE = /^\/?(?:src\/assets\/|assets\/|lovable-uploads\/|placeholder\.svg(?:[?#].*)?$|favicon\.|icon-)/i;
 const RAW_MEDIA_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv)(?:[?#].*)?$/i;
 
 export function toSupabaseCdnUrl(
@@ -69,6 +70,12 @@ export function normalizePublicMediaUrl(
     .replace(/^https:\/([^/])/i, "https://$1")
     .replace(/^http:\/([^/])/i, "http://$1");
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return raw || undefined;
+  // App-bundled assets from Vite (/src/assets/... in preview, /assets/... in build)
+  // must stay same-origin. The global <img> src normalizer calls this for every
+  // image, and rewriting local sticker/rocket URLs to the default `avatars`
+  // bucket produced broken Supabase URLs like avatars/src/assets/....
+  if (APP_LOCAL_MEDIA_RE.test(raw)) return raw;
+  if (raw.startsWith("/") && !raw.startsWith("/storage/v1/")) return raw;
 
   const rootStorageMatch = raw.match(ROOT_STORAGE_RE);
   if (rootStorageMatch?.[1] && rootStorageMatch?.[2]) {
