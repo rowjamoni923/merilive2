@@ -47,10 +47,8 @@ const INITIAL_CALL_STATE: CallState = {
   callerRemainingCoins: 0,
 };
 
-// COST-CRITICAL: Incoming-call instant delivery is FCM notifications + a scoped
-// private_calls realtime listener. This is only a 30s safety-net REST poll for
-// foreground/resume recovery. Was 800ms (catastrophic: 10k users × 75 reads/min).
-const FALLBACK_PENDING_CALL_POLL_MS = 30000;
+// Incoming-call instant delivery is FCM notifications + a scoped private_calls
+// realtime listener. Zero-refresh policy forbids REST polling/resume checks.
 const DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS = 60;
 const INCOMING_CALL_STALE_BUFFER_MS = 5000;
 
@@ -1086,14 +1084,9 @@ export function usePrivateCall(userId: string | null) {
     if (!userId) return;
 
     let isCleanedUp = false;
-    let pollingInterval: ReturnType<typeof setInterval> | null = null;
-    let appResumeCleanup: (() => void) | undefined;
-
     const checkPendingCalls = async () => {
       if (isCleanedUp) return;
-      // ✅ On native platforms (Capacitor), ALWAYS check - visibilityState unreliable during streaming
-      const isNative = Capacitor.isNativePlatform();
-      if (!isNative && document.visibilityState !== 'visible') return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       
       // ✅ Only skip if GENUINELY in an active call (connected/calling/ringing with valid ID)
       const currentStatus = callStateRef.current.status;
@@ -1152,10 +1145,6 @@ export function usePrivateCall(userId: string | null) {
 
     return () => {
       isCleanedUp = true;
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-      appResumeCleanup?.();
     };
   }, [userId, showVerifiedIncomingCall]);
 
