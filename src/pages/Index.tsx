@@ -44,6 +44,7 @@ interface Profile {
   is_verified?: boolean | null;
   is_face_verified?: boolean | null;
   created_at?: string;
+  last_seen_at?: string | null;
   frame_id?: string | null;
   host_status?: string | null;
   host_availability?: string | null;
@@ -80,6 +81,22 @@ function resolveFeedAvatar(
   const isOwner = !!viewerId && viewerId === profileId;
   if (isOwner) return DEFAULT_AVATAR;
   return getDisplayAvatar(profileId, null, { gender: gender === "male" ? "male" : "female" });
+}
+
+const ACTIVE_HEARTBEAT_WINDOW_MS = 30 * 60 * 1000;
+
+function hasFreshHeartbeat(lastSeenAt?: string | null): boolean {
+  if (!lastSeenAt) return false;
+  const lastSeen = new Date(lastSeenAt).getTime();
+  return Number.isFinite(lastSeen) && Date.now() - lastSeen <= ACTIVE_HEARTBEAT_WINDOW_MS;
+}
+
+function normalizePresenceForDisplay<T extends Partial<Profile>>(host: T): T {
+  const isManuallyOffline = String(host.host_availability || "online").toLowerCase() === "offline";
+  return {
+    ...host,
+    is_online: host.is_online === true && !isManuallyOffline && hasFreshHeartbeat(host.last_seen_at),
+  };
 }
 
 
@@ -158,7 +175,9 @@ const Index = () => {
       const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v1");
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.filter(isEligibleCachedHost) : [];
+      return Array.isArray(parsed)
+        ? parsed.map(normalizePresenceForDisplay).filter(isEligibleCachedHost)
+        : [];
     } catch {
       return [];
     }
@@ -208,7 +227,7 @@ const Index = () => {
 
       if (profilesRes.error) throw profilesRes.error;
       const baseProfiles = (profilesRes.data || []) as any[];
-      const profiles = baseProfiles;
+      const profiles = baseProfiles.map(normalizePresenceForDisplay);
 
       // Map results
       const hostsWithStatus = profiles.map(profile => {
@@ -407,7 +426,7 @@ const Index = () => {
         )}
         style={{ contain: 'layout style paint' }}
       >
-        <div className="relative aspect-[3/4]">
+        <div className="relative aspect-[3/4] bg-muted overflow-hidden">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img 
             src={(() => {
@@ -417,11 +436,11 @@ const Index = () => {
                 : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'));
             })()}
             alt={user.display_name || 'User'}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover bg-muted"
             style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
-            loading={index < 6 ? "eager" : "lazy"}
-            {...({ fetchpriority: index < 4 ? "high" : "auto" } as any)}
-            decoding="async"
+            loading="eager"
+            {...({ fetchpriority: index < 12 ? "high" : "auto" } as any)}
+            decoding={index < 12 ? "sync" : "async"}
             onError={(e) => {
               const img = e.currentTarget;
               const normalizedLiveThumb = normalizeProfileMediaUrl(user.liveThumbnailUrl) || user.liveThumbnailUrl;
