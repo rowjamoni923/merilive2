@@ -161,13 +161,18 @@ const Index = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const warmedHostImagesRef = useRef<Set<string>>(new Set());
-  const isEligibleCachedHost = useCallback((host: Partial<Profile> | null | undefined) => {
+  const isEligibleCachedHost = useCallback((host: (Partial<Profile> & { isLive?: boolean; is_in_call?: boolean }) | null | undefined) => {
     if (!host) return false;
-    return host.is_host === true
+    const baseOk = host.is_host === true
       && (host.gender === "female" || host.gender === "Female")
       && host.host_status === "approved"
       && host.is_face_verified === true
       && host.host_availability !== "offline";
+    if (!baseOk) return false;
+    // Pkg368: only show online / live / busy hosts; hide offline from home feed.
+    const lastSeen = host.last_seen_at ? new Date(host.last_seen_at).getTime() : 0;
+    const isReallyOnline = host.is_online === true && lastSeen >= Date.now() - 30 * 60 * 1000;
+    return isReallyOnline || host.isLive === true || host.is_in_call === true;
   }, []);
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
