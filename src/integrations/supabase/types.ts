@@ -16146,6 +16146,16 @@ export type Database = {
         Args: { _agency_id: string; _delta_beans: number; _reason: string }
         Returns: Json
       }
+      admin_adjust_balance: {
+        Args: {
+          _delta: number
+          _field: string
+          _reason?: string
+          _target_id: string
+          _target_type: string
+        }
+        Returns: Json
+      }
       admin_agency_overview_stats: { Args: never; Returns: Json }
       admin_apply_severity_ban: {
         Args: {
