@@ -8,7 +8,6 @@ object AppConstants {
     const val LIVEKIT_URL = "wss://194.233.66.79:7880"
 
     // Beauty
-    const val DEEPAR_LICENSE_KEY = "cf1eb9f4e2d9a7fdd208d71e4232eb8d05e09b2e2f9b1de6cc28fb93f0c824c65c9bcc7cfbe0c797"
 
     // Secure Storage Keys
     const val PREF_ACCESS_TOKEN = "pref_access_token"

@@ -74,7 +74,6 @@ class BeautyBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun updateBeauty() {
-        deepARManager.setBeautyParams(
             smooth = binding.seekSmoothing.progress / 100f,
             white = binding.seekWhitening.progress / 100f,
             thin = binding.seekThinFace.progress / 100f,

@@ -99,7 +99,6 @@ class GoLiveFragment : Fragment() {
 
     private fun initializeLiveCamera() {
         startCameraPreview()
-        deepARManager.initialize()
     }
 
     private fun startCameraPreview() {
@@ -169,21 +168,17 @@ class GoLiveFragment : Fragment() {
     }
 
     private fun showBeautyPanel() {
-        ensureDeepArReady()
         BeautyBottomSheet().show(childFragmentManager, "beauty")
     }
 
     private fun showStickerPanel() {
-        ensureDeepArReady()
         StickerBottomSheet().show(childFragmentManager, "stickers")
     }
 
-    private fun ensureDeepArReady() {
         if (!PermissionHelper.hasCameraPermission(requireContext())) {
             showPermissionBlockedMessage()
             return
         }
-        deepARManager.initialize()
     }
 
     private fun observeState() {
@@ -217,7 +212,6 @@ class GoLiveFragment : Fragment() {
     override fun onDestroyView() {
         cameraProvider?.unbindAll()
         cameraProvider = null
-        deepARManager.release()
         liveKitManager.disconnect()
         super.onDestroyView()
         _binding = null

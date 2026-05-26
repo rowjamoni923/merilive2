@@ -41,13 +41,11 @@ class StickerBottomSheet : BottomSheetDialogFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.stickers.collect { stickers ->
                 binding.rvStickers.adapter = StickerAdapter(stickers) { sticker ->
-                    deepARManager.loadEffect(sticker.file_url)
                 }
             }
         }
 
         binding.btnClearSticker.setOnClickListener {
-            deepARManager.clearEffect()
         }
     }
 

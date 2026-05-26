@@ -96,7 +96,7 @@ class LiveRepositoryImpl @Inject constructor(
                     id = it.id,
                     name = it.name,
                     file_url = it.file_url,
-                    file_type = "deepar",
+                    file_type = "beauty",
                     preview_image_url = it.preview_image_url,
                     category = it.category,
                     is_free = it.is_free,
