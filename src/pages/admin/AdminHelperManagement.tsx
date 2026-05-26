@@ -404,7 +404,7 @@ const AdminHelperManagement = () => {
     try {
       const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('helper_applications')
         .update({
           status: 'rejected',
@@ -413,6 +413,7 @@ const AdminHelperManagement = () => {
           reviewed_at: new Date().toISOString()
         })
         .eq('id', app.id);
+      if (updateError) throw updateError;
 
       await adminSendNotification(app.user_id, '❌ Helper Application Rejected', adminNotes, 'helper_rejected')
 
