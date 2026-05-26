@@ -850,17 +850,47 @@ const FaceVerification = () => {
   }, [faceStream, attachFacePreviewStream]);
 
   // Call face-check API to get real pose data
-  const checkFacePose = async (imageBase64: string): Promise<{faceDetected: boolean, pose: {yaw: number, pitch: number, roll: number}, eyesOpen: boolean} | null> => {
+  const checkFacePose = async (imageBase64: string): Promise<{faceDetected: boolean, pose: {yaw: number, pitch: number, roll: number}, eyesOpen: boolean, source?: 'server' | 'local'} | null> => {
+    const withSoftTimeout = async <T,>(promise: Promise<T>, timeoutMs: number): Promise<T | null> => {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise<null>((resolve) => { timeoutId = setTimeout(() => resolve(null), timeoutMs); }),
+        ]);
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    };
+
+    const localPosePromise = detectLocalFacePoseFromBase64(imageBase64);
+    const serverPosePromise = (async () => {
+      try {
+        const response = await supabase.functions.invoke('face-check', {
+          body: { imageBase64, streamId: 'face-verification' },
+        });
+        if (response.error || !response.data) return null;
+        return {
+          faceDetected: Boolean(response.data.faceDetected),
+          pose: response.data.pose || { yaw: 0, pitch: 0, roll: 0 },
+          eyesOpen: response.data.eyesOpen !== false,
+          source: 'server' as const,
+        };
+      } catch (err) {
+        console.error('[FaceVerify] Pose check error:', err);
+        recordClientError({ label: "FaceVerification.response", message: err instanceof Error ? err.message : String(err) });
+        return null;
+      }
+    })();
+
     try {
-      const response = await supabase.functions.invoke('face-check', {
-        body: { imageBase64, streamId: 'face-verification' },
-      });
-      if (response.error || !response.data) return null;
-      return {
-        faceDetected: response.data.faceDetected,
-        pose: response.data.pose || { yaw: 0, pitch: 0, roll: 0 },
-        eyesOpen: response.data.eyesOpen,
-      };
+      const serverPose = await withSoftTimeout(serverPosePromise, 2500);
+      if (serverPose?.faceDetected) return serverPose;
+
+      const localPose = await withSoftTimeout(localPosePromise, 6500);
+      if (localPose?.faceDetected) return localPose;
+
+      return serverPose ?? localPose ?? null;
     } catch (err) {
       console.error('[FaceVerify] Pose check error:', err);
       recordClientError({ label: "FaceVerification.response", message: err instanceof Error ? err.message : String(err) });
