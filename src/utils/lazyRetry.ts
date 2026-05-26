@@ -6,12 +6,19 @@
  * calls window.location.reload/replace/href. The user explicitly requires no
  * automatic app reloads.
  */
-export const isChunkLoadError = (error: any) =>
-  error?.message?.includes('Failed to fetch dynamically imported module') ||
-  error?.message?.includes('Loading chunk') ||
-  error?.message?.includes('Importing a module script failed') ||
-  error?.message?.includes('dynamically imported module') ||
-  error?.name === 'ChunkLoadError';
+import type { ComponentType } from 'react';
+
+const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || '');
+const getErrorName = (error: unknown) => error instanceof Error ? error.name : '';
+
+export const isChunkLoadError = (error: unknown) => {
+  const message = getErrorMessage(error);
+  return message.includes('Failed to fetch dynamically imported module') ||
+    message.includes('Loading chunk') ||
+    message.includes('Importing a module script failed') ||
+    message.includes('dynamically imported module') ||
+    getErrorName(error) === 'ChunkLoadError';
+};
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -62,11 +69,11 @@ async function clearStaleRuntimeCaches() {
 
 const MAX_RECOVERIES_PER_MODULE = 1;
 
-export async function scheduleChunkLoadRecovery(error: any, source = ''): Promise<boolean> {
+export async function scheduleChunkLoadRecovery(error: unknown, source = ''): Promise<boolean> {
   if (!isChunkLoadError(error) || typeof window === 'undefined') return false;
   if (window.__meriChunkRecoveryScheduled) return true;
 
-  const moduleKey = getModuleKey(source || error?.message || String(error));
+  const moduleKey = getModuleKey(source || getErrorMessage(error));
   const recoveryKey = `${RECOVERY_KEY_PREFIX}${moduleKey}`;
 
   let attempts = 0;
@@ -101,10 +108,12 @@ export function resetChunkRecoveryMarkers() {
   }
   try {
     if (typeof window !== 'undefined') window.__meriChunkRecoveryScheduled = false;
-  } catch {}
+  } catch {
+    // best-effort
+  }
 }
 
-export function lazyRetry<T extends React.ComponentType<any>>(
+export function lazyRetry<T extends ComponentType<unknown>>(
   importFn: () => Promise<{ default: T }>,
 ): () => Promise<{ default: T }> {
   return async () => {
@@ -137,10 +146,10 @@ export function lazyRetry<T extends React.ComponentType<any>>(
   };
 }
 
-export function lazyRetryOptional<T extends React.ComponentType<any>>(
+export function lazyRetryOptional<T extends ComponentType<unknown>>(
   importFn: () => Promise<{ default: T }>,
-  fallback: React.ComponentType<any>,
-): () => Promise<{ default: React.ComponentType<any> }> {
+  fallback: ComponentType<unknown>,
+): () => Promise<{ default: ComponentType<unknown> }> {
   const load = lazyRetry(importFn);
 
   return async () => {
