@@ -820,13 +820,17 @@ const Auth = () => {
     patch: Record<string, unknown>,
     options: { requireHost?: boolean; maxAttempts?: number } = {}
   ) => {
-    // Strip server-protected columns (profiles triggers raise on direct mutation of these)
+    // Strip server-protected columns (profiles triggers raise on direct mutation of these).
+    // is_verified / is_host / host_status / host_level / coins / beans / diamonds / total_*
+    // / registration_ip / last_login_ip / device_id / is_banned / is_blocked / is_deleted /
+    // agency_id / call_rate_per_minute / is_face_verified can only be touched via SECDEF RPCs.
+    // gender + display_name first-time writes are still allowed by their respective guards.
     const PROTECTED_PROFILE_FIELDS = new Set([
       'is_verified', 'is_host', 'is_face_verified', 'host_status', 'host_level',
       'coins', 'beans', 'diamonds', 'beans_balance', 'total_earnings', 'pending_earnings',
       'weekly_earnings', 'total_recharged', 'registration_ip', 'last_login_ip',
       'device_id', 'is_banned', 'is_blocked', 'is_deleted', 'blocked_reason',
-      'agency_id', 'gender', 'call_rate_per_minute',
+      'agency_id', 'call_rate_per_minute',
     ]);
     const cleanPatch = Object.fromEntries(
       Object.entries(patch).filter(([key, value]) => value !== undefined && !PROTECTED_PROFILE_FIELDS.has(key))
