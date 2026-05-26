@@ -2,7 +2,7 @@
  * StickerPanel — premium promo sticker picker.
  * Uses our own premium hot / romantic / gift / party / VIP stickers.
  */
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
