@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type ImgHTMLAttributes } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { normalizePublicMediaUrl } from "@/lib/cdnImage";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import banner1 from "@/assets/recharge-banner-1-first.jpg";
 import banner2 from "@/assets/recharge-banner-2-campaign.jpg";
@@ -29,7 +30,7 @@ const DEFAULT_BANNERS: BannerItem[] = [
 ];
 
 const ROTATE_MS = 5000;
-const CACHE_KEY = "merilive_recharge_banners_cache_v1";
+const CACHE_KEY = "merilive_recharge_banners_cache_v2";
 
 const normalizeBanner = (b: any): BannerItem | null => {
   const imageUrl = normalizePublicMediaUrl(b?.image_url, "banners");
@@ -55,7 +56,9 @@ const readCachedBanners = (): BannerItem[] => {
 
 const writeCachedBanners = (items: BannerItem[]) => {
   try {
-    if (typeof window !== "undefined" && items.length) window.localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+    if (typeof window === "undefined") return;
+    if (items.length) window.localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+    else window.localStorage.removeItem(CACHE_KEY);
   } catch { /* ignore */ }
 };
 
@@ -99,7 +102,7 @@ export default function RechargeBannerCarousel({
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: "always",
   });
 
   const banners = useMemo<BannerItem[]>(
@@ -160,18 +163,14 @@ export default function RechargeBannerCarousel({
             i === index ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
           )}
         >
-          <img
+          <SmartImage
             src={b.image_url}
             alt={b.title || `Banner ${i + 1}`}
+            fallbackSrc={DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url}
             className="w-full h-full object-cover rounded-2xl select-none"
             draggable={false}
-            loading="eager"
-            decoding="async"
-            {...({ fetchpriority: i === 0 ? "high" : "low" } as ImgHTMLAttributes<HTMLImageElement>)}
-            onError={(event) => {
-              const fallback = DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url;
-              if (fallback && event.currentTarget.src !== fallback) event.currentTarget.src = fallback;
-            }}
+            eager={i === index}
+            resize="cover"
           />
         </button>
       ))}
