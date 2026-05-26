@@ -59,9 +59,11 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
       return toSupabaseCdnUrl(normalizePublicMediaUrl(src), { width: cdnWidth, height: cdnHeight, quality, resize });
     }, [src, cdnWidth, cdnHeight, quality, resize]);
     const [displaySrc, setDisplaySrc] = React.useState<string | undefined>(baseSrc);
+    const retryCountRef = React.useRef(0);
 
     React.useEffect(() => {
       let cancelled = false;
+      retryCountRef.current = 0;
       setDisplaySrc(baseSrc);
       if (!src || typeof window === "undefined" || !window.location.pathname.startsWith("/admin")) return;
       import("@/utils/adminStorageImages").then((m) => {
@@ -77,8 +79,21 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
     }, [src, baseSrc, fallbackSrc, adminBucket]);
 
     const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      if (fallbackSrc && (e.currentTarget as HTMLImageElement).src !== fallbackSrc) {
-        (e.currentTarget as HTMLImageElement).src = fallbackSrc;
+      const el = e.currentTarget as HTMLImageElement;
+      // Pkg370: silent retry up to 2 times on transient network failure
+      // (mobile/flaky CDN) before giving up to fallback. Cache-bust query
+      // forces a fresh fetch instead of returning the cached failed response.
+      if (baseSrc && retryCountRef.current < 2 && el.src !== fallbackSrc) {
+        retryCountRef.current += 1;
+        const delay = 400 * retryCountRef.current;
+        const bust = `${baseSrc}${baseSrc.includes("?") ? "&" : "?"}_r=${Date.now()}`;
+        window.setTimeout(() => {
+          if (el.isConnected) el.src = bust;
+        }, delay);
+        return;
+      }
+      if (fallbackSrc && el.src !== fallbackSrc) {
+        el.src = fallbackSrc;
         return;
       }
       onError?.(e);
