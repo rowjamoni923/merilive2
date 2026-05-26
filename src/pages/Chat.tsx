@@ -861,12 +861,17 @@ const Chat = () => {
           updateCachedBalance(updatedProfile.coins || 0);
         }
       } catch (error) {
+        const msg = error instanceof Error
+          ? error.message
+          : (error && typeof error === 'object' && typeof (error as any).message === 'string')
+            ? (error as any).message
+            : (typeof error === 'string' ? error : 'Unknown error');
         console.error('[Chat Gift] Background error:', error);
-        recordClientError({ label: "Chat.messageContent", message: error instanceof Error ? error.message : String(error) });
+        recordClientError({ label: "Chat.messageContent", message: msg });
         // Refund on error
         setUserCoins(prev => prev + totalCost);
         setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
-        toast.error(`Gift failed: ${error instanceof Error ? error.message : String(error)}`);
+        toast.error(`Gift failed: ${msg}`);
       }
     })();
   };
