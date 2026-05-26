@@ -58,8 +58,9 @@ const AdminTransferScheduler = () => {
   const [distributing, setDistributing] = useState(false);
   const [schedule, setSchedule] = useState<TransferSchedule>({
     is_active: false,
-    interval_days: 7,
-    interval_hours: 0,
+    schedule_day_of_week: 1, // Monday
+    schedule_hour: 0,
+    schedule_minute: 5,
     next_transfer_at: null,
     last_transfer_at: null,
     timezone: 'Asia/Dhaka'
