@@ -1247,6 +1247,7 @@ const FaceVerification = () => {
       if (!result || !result.faceDetected) {
         consecutiveFails++;
         consecutiveFailsRef.current = consecutiveFails;
+        if (!noFaceStartedAt) noFaceStartedAt = Date.now();
         setScanningStatus('fail');
         setLiveDiag({
           faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
@@ -1262,7 +1263,7 @@ const FaceVerification = () => {
           instruction: faceInstructions[currentInstructionRef.current]?.id,
           apiOk: !!result,
         });
-        if (consecutiveFails >= 10) {
+        if (consecutiveFails >= 8 || Date.now() - noFaceStartedAt > 12000) {
           const fallbackFrame = await captureFaceFrameBase64(720);
           if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
           pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
@@ -1272,6 +1273,7 @@ const FaceVerification = () => {
       }
       
       consecutiveFails = 0;
+      noFaceStartedAt = 0;
       const pose = result.pose;
       
       // ─── Calibration phase ─────────────────────────────────────────────
