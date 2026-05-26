@@ -328,16 +328,10 @@ const GoLive = () => {
       const table = (event as CustomEvent | undefined)?.detail?.table;
       if (!table || table === 'live_bans') void checkBanStatus();
     };
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') void checkBanStatus();
-    };
-
     window.addEventListener('admin-table-update', syncBanStatus);
-    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       window.removeEventListener('admin-table-update', syncBanStatus);
-      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [userProfile?.id]);
 
@@ -495,16 +489,10 @@ const GoLive = () => {
       const table = (event as CustomEvent).detail?.table;
       if (table === 'profiles' || table === 'face_verification_submissions' || table === 'host_applications') syncVerificationState();
     };
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') syncVerificationState();
-    };
-
     window.addEventListener('admin-table-update', handleAdminUpdate);
-    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       window.removeEventListener('admin-table-update', handleAdminUpdate);
-      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [currentUserId, refreshUserProfile]);
 
