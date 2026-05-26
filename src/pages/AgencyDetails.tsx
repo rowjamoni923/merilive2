@@ -127,7 +127,7 @@ const AgencyDetailsPage = () => {
 
           const { data: ownerData } = normalizedAgency.owner_id
             ? await supabase
-                .from("profiles")
+                .from("profiles_public")
                 .select("id, display_name, avatar_url, app_uid, country_flag, user_level")
                 .eq("id", normalizedAgency.owner_id)
                 .maybeSingle()
