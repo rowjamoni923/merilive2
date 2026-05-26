@@ -1342,6 +1342,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const isFaceVerified = (profile as any)?.is_face_verified;
   const [faceVerificationPending, setFaceVerificationPending] = useState(false);
   const [faceVerificationStatus, setFaceVerificationStatus] = useState<string | null>(null);
+  const effectiveFaceVerificationStatus = String(faceVerificationStatus || (profile as any)?.face_verification_status || (profile as any)?.host_status || '').toLowerCase();
+  const faceVerificationRejected = effectiveFaceVerificationStatus === 'rejected';
 
   // Open Call Price Modal - fetch settings and current rate
   const handleOpenCallPriceModal = async () => {
@@ -1503,7 +1505,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: Star,
       label: "Host Registration",
       path: "/host-verification",
-      rightText: faceVerificationPending ? "Under Review" : "Become a Host",
+      rightText: faceVerificationPending ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Become a Host",
       highlight: !faceVerificationPending,
       iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
       iconColor: "text-display",
@@ -1517,7 +1519,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: UserCheck,
       label: "Face Verification",
       path: faceVerificationPending ? "" : "/face-verification",
-      rightText: faceVerificationPending ? "Under Review" : "Required",
+      rightText: faceVerificationPending ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Required",
       highlight: !faceVerificationPending,
       iconBg: faceVerificationPending ? "bg-blue-50 border border-blue-100" : "bg-amber-100",
       iconColor: faceVerificationPending ? "text-blue-600" : "text-amber-500",
