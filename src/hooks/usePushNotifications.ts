@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { App as CapApp } from '@capacitor/app';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
@@ -257,15 +256,11 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       } catch { /* ignore */ }
     };
 
-    let cleanup: (() => void) | null = null;
-    CapApp.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) void heartbeat();
-    }).then((l) => { cleanup = () => l.remove(); });
-
-    // Initial heartbeat after token is known.
+    // Initial heartbeat after token is known. Zero-refresh policy: no
+    // appState/foreground heartbeat loop.
     void heartbeat();
 
-    return () => { if (cleanup) cleanup(); };
+    return undefined;
   }, [isSupported, token]);
 
   return {
