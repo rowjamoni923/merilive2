@@ -1486,27 +1486,40 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       iconColor: "text-pink-500",
       show: isOwnProfile
     },
-    { 
-      icon: UserCheck, 
-      label: "Face Verification", 
-      path: faceVerificationPending ? "" : "/face-verification", 
+    // Host Registration — for female candidates (unifies agency join + face verification)
+    {
+      icon: Star,
+      label: "Host Registration",
+      path: "/host-verification",
+      rightText: faceVerificationPending ? "Under Review" : "Become a Host",
+      highlight: !faceVerificationPending,
+      iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
+      iconColor: "text-display",
+      show: canApplyForHost,
+      onClick: faceVerificationPending ? () => {
+        toast({ title: "Under Review", description: "Your host application is being reviewed by our team. Please wait." });
+      } : undefined,
+    },
+    // Face Verification — only for non-host-candidate users (males); females use Host Registration
+    {
+      icon: UserCheck,
+      label: "Face Verification",
+      path: faceVerificationPending ? "" : "/face-verification",
       rightText: faceVerificationPending ? "Under Review" : "Required",
       highlight: !faceVerificationPending,
       iconBg: faceVerificationPending ? "bg-blue-50 border border-blue-100" : "bg-amber-100",
       iconColor: faceVerificationPending ? "text-blue-600" : "text-amber-500",
-      show: isOwnProfile && !isFaceVerified, // Hide completely after approved
+      show: isOwnProfile && !isFaceVerified && !canApplyForHost, // hidden for females (they see Host Registration)
       onClick: faceVerificationPending ? () => {
         toast({ title: "Under Review", description: "Your face verification is being reviewed by our team. Please wait." });
       } : undefined,
     },
-    { 
-      icon: PhoneCall, 
-      label: "Call Price Update", 
+    {
+      icon: PhoneCall,
+      label: "Call Price Update",
       action: "call_price",
       rightText: (() => {
-        // If settings not loaded yet, show loading indicator
         if (!callRateSettings) return "Loading...";
-        
         const hostLevel = getEffectiveHostLevel((profile as any)?.host_level);
         const levelRates = callRateSettings?.level_rates || [];
         const levelRate = levelRates.find((lr: any) => lr.level === hostLevel);
@@ -1521,18 +1534,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       })(),
       highlight: true,
       iconBg: "bg-gradient-to-r from-green-500 to-emerald-500",
- iconColor:"text-display",
-      show: isOwnProfile && isFemale // Female host persona — visible from sign-up
-    },
-    { 
-      icon: Star, 
-      label: "Host Registration", 
-      path: "/host-verification", 
-      rightText: "Become a Host",
-      highlight: true,
-      iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
- iconColor:"text-display",
-      show: canApplyForHost
+      iconColor: "text-display",
+      show: isOwnProfile && isFemale,
     },
     { 
       icon: Crown, 
