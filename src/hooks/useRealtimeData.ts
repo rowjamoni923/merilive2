@@ -28,18 +28,11 @@ export function useRealtimeProfile(userId: string | null) {
 
     fetchProfile();
 
-    // Pkg89 LiveKit-Purist: removed `profile-${userId}` postgres_changes subscription.
-    // `profiles` is NOT in supabase_realtime publication (would never fire), and this
-    // hook has ZERO consumers in the app. Use `useUserBalance` (own-row push via
-    // `user-balance-updates-${id}` channel) or rely on `app-sync` events instead.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchProfile();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch. Profile data
+    // is pushed via own-balance / admin-broadcast / Supabase Realtime channels
+    // already; we never re-query on tab focus.
   }, [userId]);
+
 
   return { profile, loading };
 }
