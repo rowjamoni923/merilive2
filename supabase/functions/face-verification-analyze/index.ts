@@ -231,7 +231,7 @@ serve(async (req) => {
 
     const { data: row, error: rowErr } = await supabaseAdmin
       .from("face_verification_submissions")
-      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url")
+      .select("id,user_id,status,verification_type,front_url,left_url,right_url,selfie_url,face_image_url,host_photos,profile_photo_url,video_url")
       .eq("id", submissionId)
       .maybeSingle();
 
