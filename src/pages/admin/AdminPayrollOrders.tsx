@@ -270,38 +270,19 @@ const AdminPayrollOrders = () => {
 
       } else {
         // Handle regular helper orders
-        const { error } = await supabase
-          .from('helper_orders')
-          .update({ 
-            status: action === 'complete' ? 'completed' : 'cancelled',
-            processed_at: new Date().toISOString()
-          })
-          .eq('id', order.id);
-
-        if (error) throw error;
+        const { data, error } = await supabase.rpc('process_helper_order_secure' as any, {
+          _order_id: order.id,
+          _action: action,
+          _notes: `Processed from Admin Payroll Orders: ${action}`,
+        });
+        const result = data as any;
+        if (error || !result?.success) {
+          throw new Error(result?.error || error?.message || 'Failed to process helper order');
+        }
 
         if (action === 'complete') {
-          // Atomic coin addition (race-condition safe)
-          await supabase.rpc('add_coins', {
-            p_user_id: order.user_id,
-            p_amount: order.coin_amount,
-          });
-
-          const { data: helperData } = await supabase
-            .from('topup_helpers')
-            .select('wallet_balance, total_sold')
-            .eq('id', order.helper_id)
-            .maybeSingle();
-
-          await supabase
-            .from('topup_helpers')
-            .update({ 
-              wallet_balance: (helperData?.wallet_balance || 0) - order.coin_amount,
-              total_sold: (helperData?.total_sold || 0) + order.coin_amount
-            })
-            .eq('id', order.helper_id);
-
-          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${(order.coin_amount ?? 0).toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'coin_purchase_helper')
+          const coinAmount = Number(result.creditedCoins || order.coin_amount || 0);
+          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${coinAmount.toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'coin_purchase_helper')
         }
       }
 
