@@ -379,31 +379,67 @@ const EditProfile = () => {
   };
 
   const handlePasswordChange = async () => {
-    if (newPassword !== confirmPassword) {
+    const pwd = newPassword;
+    if (pwd !== confirmPassword) {
       sonnerToast.error("Passwords do not match");
       return;
     }
-    
-    if (newPassword.length < 6) {
-      sonnerToast.error("Password must be at least 6 characters");
+    if (pwd.length < 8) {
+      sonnerToast.error("Password must be at least 8 characters");
       return;
     }
-    
+    // Supabase project has HaveIBeenPwned + strength checks enabled.
+    // Pre-validate locally so we don't even submit obvious losers.
+    const hasLetter = /[A-Za-z]/.test(pwd);
+    const hasNumber = /\d/.test(pwd);
+    const hasSymbol = /[^A-Za-z0-9]/.test(pwd);
+    if (!hasLetter || !hasNumber) {
+      sonnerToast.error("Password must include both letters and numbers");
+      return;
+    }
+    if (!hasSymbol && pwd.length < 12) {
+      sonnerToast.error("Add a symbol (!@#$…) or make it at least 12 characters");
+      return;
+    }
+
     setPasswordSaving(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabase.auth.updateUser({ password: pwd });
       if (error) throw error;
-      
+
       setShowPasswordModal(false);
       setNewPassword("");
       setConfirmPassword("");
       sonnerToast.success("Password changed!");
     } catch (error: any) {
-      sonnerToast.error(error.message || "Password change failed");
+      const raw = String(error?.message || error?.error_description || "").toLowerCase();
+      const code = String(error?.code || "").toLowerCase();
+      let friendly = "Password change failed. Please try again.";
+      if (
+        raw.includes("pwned") ||
+        raw.includes("known to be weak") ||
+        raw.includes("easy to guess") ||
+        raw.includes("weak password") ||
+        code.includes("weak_password")
+      ) {
+        friendly =
+          "This password has been found in a public data breach. Please pick a unique password — try mixing uppercase, lowercase, numbers and a symbol (e.g. M3ri!Live#2026).";
+      } else if (raw.includes("same") && raw.includes("password")) {
+        friendly = "New password must be different from your current password.";
+      } else if (raw.includes("rate") || raw.includes("too many")) {
+        friendly = "Too many attempts. Please wait a moment and try again.";
+      } else if (raw.includes("at least") && raw.includes("character")) {
+        // Supabase length error — surface as-is, it's already clear.
+        friendly = error?.message || friendly;
+      } else if (error?.message) {
+        friendly = error.message;
+      }
+      sonnerToast.error(friendly);
     } finally {
       setPasswordSaving(false);
     }
   };
+
 
   const handleSendLinkOtp = async () => {
     const email = linkEmail.trim().toLowerCase();
@@ -1189,7 +1225,7 @@ const EditProfile = () => {
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : "Save Phone Number"}
             </Button>
-          </div>
+            </div>
         </DialogContent>
       </Dialog>
 
@@ -1232,6 +1268,9 @@ const EditProfile = () => {
                 className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-heading placeholder:text-slate-600"
               />
             </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <b>Tip:</b> Use 8+ characters with letters, numbers and a symbol (e.g. <code className="bg-white px-1 rounded">M3ri!Live#2026</code>). Common or breached passwords (like <code className="bg-white px-1 rounded">Sazzad017</code>) will be rejected.
+            </p>
             <Button 
               onClick={handlePasswordChange}
               disabled={passwordSaving}
