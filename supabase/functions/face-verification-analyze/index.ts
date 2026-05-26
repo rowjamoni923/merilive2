@@ -740,12 +740,21 @@ serve(async (req) => {
     // admin_notes for admin awareness, but DO NOT block auto-approve unless
     // the underlying Rekognition thresholds also fail. Admin will see flags
     // in ai_analysis and can manually override if needed.
-    const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
-      "service_auto_finalize_face_verification",
-      { p_submission_id: submissionId },
-    );
-    const autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
-    if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+    // If host gallery photos don't match the live face, force manual review
+    // by short-circuiting the auto-finalize RPC call.
+    let autoResult: Record<string, unknown> | null = null;
+    if (hostPhotosMismatch) {
+      autoResult = { success: false, reason: "host_photos_mismatch" };
+      console.log("[face-verification-analyze] host_photos_mismatch → manual review");
+    } else {
+      const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc(
+        "service_auto_finalize_face_verification",
+        { p_submission_id: submissionId },
+      );
+      autoResult = !rpcErr ? rpcData as Record<string, unknown> : null;
+      if (rpcErr) console.warn("[face-verification-analyze] auto-finalize:", rpcErr.message);
+    }
+
 
     // ★ NEVER auto-reject. If auto-approve cannot safely fire, leave the row
     //   in `submitted` so admin sees it in Pending and reviews manually.
