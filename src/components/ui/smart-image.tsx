@@ -45,6 +45,7 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
       eager = true,
       fallbackSrc,
       adminBucket = "payment-screenshots",
+      fetchPriority: _fetchPriority,
       onError,
       className,
       ...rest
