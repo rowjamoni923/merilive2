@@ -590,8 +590,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           isOwnProfileCheck && user ? supabase.from("conversations").select("id").or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`) : { data: null },
           // Agency wallet_balance (for agency owners) - wallet_balance is the source of truth
           isOwnProfileCheck && user && profileData?.is_agency_owner ? supabase.from("agencies").select("id, wallet_balance, diamond_balance").eq("owner_id", user.id).eq("is_active", true).maybeSingle() : { data: null },
-          // Face verification pending check
-          isOwnProfileCheck && user && !profileData?.is_face_verified ? supabase.from("face_verification_submissions").select("id", { count: 'exact', head: true }).eq("user_id", user.id).in("status", ["pending", "submitted"]) : { count: 0 },
+          // Latest face verification status (do not rely on a pending-only count; rejected rows must unlock retry UI)
+          isOwnProfileCheck && user && !profileData?.is_face_verified ? supabase.from("face_verification_submissions").select("status,rejection_reason,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle() : { data: null },
         ]);
 
         if (!isMounted) return;
@@ -638,8 +638,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         // Set following status
         setIsFollowing(!!followDataResult?.data);
 
-        // Set face verification pending status
-        setFaceVerificationPending((faceVerifPendingResult?.count || 0) > 0);
+        // Set face verification status from the freshest submission, falling back to profile columns.
+        const latestFaceStatus = String((faceVerifPendingResult as any)?.data?.status || profileData?.face_verification_status || profileData?.host_status || '').toLowerCase();
+        setFaceVerificationStatus(latestFaceStatus || null);
+        setFaceVerificationPending(latestFaceStatus === 'pending' || latestFaceStatus === 'submitted');
 
         // Own profile specific data
         if (isOwnProfileCheck && user) {
@@ -746,13 +748,22 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             syncBeansFromProfile(mergedProfile);
 
             // When admin approves face verification, instantly hide the menu item
+            if (payload?.face_verification_status || payload?.host_status) {
+              const nextStatus = String(payload.face_verification_status || payload.host_status || '').toLowerCase();
+              setFaceVerificationStatus(nextStatus || null);
+              setFaceVerificationPending(nextStatus === 'pending' || nextStatus === 'submitted');
+            }
+
             if (payload?.is_face_verified === true) {
               setFaceVerificationPending(false);
+              setFaceVerificationStatus('approved');
             }
           }
 
           // Face verification submission status changes (pending/approved/rejected)
           if (table === 'face_verification_submissions' && payload?.user_id === activeProfileId) {
+            const nextStatus = String(payload?.status || '').toLowerCase();
+            setFaceVerificationStatus(nextStatus || null);
             if (payload?.status === 'approved') {
               setFaceVerificationPending(false);
               // Also refresh profile to get is_face_verified update
@@ -1330,6 +1341,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Check face verification status
   const isFaceVerified = (profile as any)?.is_face_verified;
   const [faceVerificationPending, setFaceVerificationPending] = useState(false);
+  const [faceVerificationStatus, setFaceVerificationStatus] = useState<string | null>(null);
+  const effectiveFaceVerificationStatus = String(faceVerificationStatus || (profile as any)?.face_verification_status || (profile as any)?.host_status || '').toLowerCase();
+  const faceVerificationRejected = effectiveFaceVerificationStatus === 'rejected';
 
   // Open Call Price Modal - fetch settings and current rate
   const handleOpenCallPriceModal = async () => {
@@ -1491,7 +1505,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: Star,
       label: "Host Registration",
       path: "/host-verification",
-      rightText: faceVerificationPending ? "Under Review" : "Become a Host",
+      rightText: faceVerificationPending ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Become a Host",
       highlight: !faceVerificationPending,
       iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
       iconColor: "text-display",
@@ -1505,7 +1519,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: UserCheck,
       label: "Face Verification",
       path: faceVerificationPending ? "" : "/face-verification",
-      rightText: faceVerificationPending ? "Under Review" : "Required",
+      rightText: faceVerificationPending ? "Under Review" : faceVerificationRejected ? "Rejected - Retry" : "Required",
       highlight: !faceVerificationPending,
       iconBg: faceVerificationPending ? "bg-blue-50 border border-blue-100" : "bg-amber-100",
       iconColor: faceVerificationPending ? "text-blue-600" : "text-amber-500",
