@@ -1732,7 +1732,7 @@ const FaceVerification = () => {
     }
 
     // ★ STRICT: Validate video blob has actual content (prevents empty uploads)
-    if (faceVerificationVideo.size < 10000) {
+    if (!faceManualReviewRequired && faceVerificationVideo.size < 10000) {
       toast({ title: "❌ Invalid Video", description: "Face verification video is too small or empty. Please record again.", variant: "destructive" });
       resetVerification();
       return;
@@ -1810,7 +1810,9 @@ const FaceVerification = () => {
       }
 
       // CRITICAL: Generate face hash and check for duplicate face BEFORE submission
-      const faceHash = await generateFaceHash(faceVerificationVideo);
+      const faceHash = faceManualReviewRequired && capturedAnglesRef.current.center
+        ? await sha256String(capturedAnglesRef.current.center)
+        : await generateFaceHash(faceVerificationVideo);
       
       try {
         const { data: faceData } = await supabase.rpc('find_account_by_face', {
@@ -1985,7 +1987,7 @@ const FaceVerification = () => {
     }
 
     // ★ STRICT: Validate all media files have actual content
-    if (faceVerificationVideo && faceVerificationVideo.size < 10000) {
+    if (!faceManualReviewRequired && faceVerificationVideo && faceVerificationVideo.size < 10000) {
       toast({ title: "❌ Invalid Face Video", description: "Face verification video is too small or empty. Please record again.", variant: "destructive" });
       resetVerification();
       return;
@@ -2009,7 +2011,9 @@ const FaceVerification = () => {
     
     try {
       // Generate face hash and check for existing account
-      const faceHash = await generateFaceHash(faceVerificationVideo);
+      const faceHash = faceManualReviewRequired && capturedAnglesRef.current.center
+        ? await sha256String(capturedAnglesRef.current.center)
+        : await generateFaceHash(faceVerificationVideo);
       
       // CRITICAL: Check for duplicate face - BLOCK if found
       let duplicateFaceUserId: string | null = null;
