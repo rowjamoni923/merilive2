@@ -2351,7 +2351,7 @@ const LiveStream = () => {
   const hostOnlyOptions = [
     { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (deepAR.isNativeAndroid) { void deepAR.openBeautyPanel().catch(() => { /* native optional */ }); } } },
     { id: "sticker", name: "Sticker", iconName: "Smile" as const, color: "from-orange-400 to-amber-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); setShowStickerPanel(true); } },
-    { id: "flip", name: "Flip", iconName: "RotateCcw" as const, color: "from-blue-500 to-cyan-600", shadowColor: "shadow-blue-500/40", action: () => { setShowMoreOptions(false); switchCamera(); } },
+    // Flip camera button removed per request (no video icons in live)
     // Screen share removed for privacy
     // Pkg125/Pkg119: Virtual Background — web uses track-processors, native routes to Kotlin MediaPipe.
     { id: "virtualbg", name: "Background", iconName: "Wand2" as const, color: "from-emerald-400 to-teal-600", shadowColor: "shadow-emerald-500/40", action: () => {
