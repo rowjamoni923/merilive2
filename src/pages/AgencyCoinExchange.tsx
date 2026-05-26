@@ -157,8 +157,8 @@ const AgencyCoinExchange = () => {
       invalidateAppSetting('agency_coin_exchange');
       invalidateAppSetting('coin_exchange');
       const value =
-        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange')) ||
-        (await getAppSetting<Record<string, unknown>>('coin_exchange'));
+        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange', { maxAgeMs: 0 })) ||
+        (await getAppSetting<Record<string, unknown>>('coin_exchange', { maxAgeMs: 0 }));
       if (value) setExchangeSettings(normalizeExchangeSettings(value));
     };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
@@ -208,8 +208,8 @@ const AgencyCoinExchange = () => {
 
       // Fetch agency-specific exchange settings (rate + 25% fee); fall back to user setting
       const settingsValue =
-        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange')) ||
-        (await getAppSetting<Record<string, unknown>>('coin_exchange'));
+        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange', { maxAgeMs: 0 })) ||
+        (await getAppSetting<Record<string, unknown>>('coin_exchange', { maxAgeMs: 0 }));
       if (settingsValue) {
         setExchangeSettings(normalizeExchangeSettings(settingsValue));
       }
@@ -238,7 +238,7 @@ const AgencyCoinExchange = () => {
   // Example: 100,000 beans → 100,000 diamonds → 25% fee (25,000) → 75,000 diamonds
   useEffect(() => {
     const beans = parseInt(beansAmount) || 0;
-    // Step 1: Convert beans to diamonds at the configured rate (1:1 by default)
+    // Step 1: Convert beans to gross diamonds at the configured agency rate
     const rawDiamonds = Math.floor(beans / exchangeSettings.beans_to_diamonds_rate);
     // Step 2: Fee is deducted from diamonds
     const fee = Math.floor(rawDiamonds * exchangeSettings.exchange_fee_percent / 100);
@@ -731,13 +731,13 @@ const AgencyCoinExchange = () => {
                   {/* Fee deducted */}
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">Fee ({exchangeSettings.exchange_fee_percent}%):</span>
-                    <span className="text-danger-600 font-semibold">-{feeAmount.toLocaleString()} Beans</span>
+                    <span className="text-danger-600 font-semibold">-{feeAmount.toLocaleString()} Diamonds</span>
                   </div>
 
                   {/* Beans after fee */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Beans After Fee:</span>
-                    <span className="font-semibold text-slate-800">{((parseInt(beansAmount) || 0) - feeAmount).toLocaleString()}</span>
+                    <span className="text-slate-500">Gross Diamonds:</span>
+                    <span className="font-semibold text-slate-800">{Math.floor((parseInt(beansAmount) || 0) / exchangeSettings.beans_to_diamonds_rate).toLocaleString()}</span>
                   </div>
                   
                   <div className="border-t border-warning-200/60 pt-3 mt-2 space-y-2">
