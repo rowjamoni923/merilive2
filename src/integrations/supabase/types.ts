@@ -19465,6 +19465,8 @@ export type Database = {
         Returns: string
       }
       sweep_pending_face_verifications: { Args: never; Returns: number }
+      tick_agency_commission_scheduler: { Args: never; Returns: Json }
+      tick_agency_weekly_scheduler: { Args: never; Returns: Json }
       timeout_private_call: { Args: { _call_id: string }; Returns: Json }
       transfer_coins_to_user: {
         Args: {
