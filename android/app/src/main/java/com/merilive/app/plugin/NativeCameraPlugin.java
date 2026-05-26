@@ -2,8 +2,11 @@ package com.merilive.app.plugin;
 
 import android.Manifest;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
@@ -86,6 +89,7 @@ public class NativeCameraPlugin extends Plugin {
     private byte[] latestFrameJpeg;
     private int latestFrameWidth;
     private int latestFrameHeight;
+    private int latestFrameRotation;
     private long lastFrameEncodeAt;
 
     @Override
@@ -142,6 +146,7 @@ public class NativeCameraPlugin extends Plugin {
                     latestFrameJpeg = null;
                     latestFrameWidth = 0;
                     latestFrameHeight = 0;
+                    latestFrameRotation = 0;
                     lastFrameEncodeAt = 0L;
                 }
                 removePreviewView();
