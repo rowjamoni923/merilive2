@@ -4,7 +4,9 @@
  */
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import appLogo from '@/assets/app-logo.png';
+// Served from /public so it bypasses any stale service-worker cache or
+// private storage bucket and is always reachable as a same-origin asset.
+const appLogo = '/app-logo.png?v=3';
 import { APP_VERSION } from '@/lib/version';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -103,7 +105,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
             className="relative z-10"
           >
             <div
-              className="relative w-32 h-32 rounded-full overflow-hidden"
+              className="relative w-32 h-32 rounded-full overflow-hidden bg-white"
               style={{
                 boxShadow:
                   '0 20px 60px rgba(236,72,153,0.35), 0 0 0 1px rgba(236,72,153,0.22)',
@@ -112,7 +114,9 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
               <img 
                 src={appLogo}
                 alt="MeriLive"
-                className="absolute inset-0 block h-full w-full object-contain"
+                loading="eager"
+                decoding="async"
+                className="absolute inset-0 block h-full w-full object-cover"
                 style={{ objectPosition: 'center center' }}/>
             </div>
           </motion.div>
