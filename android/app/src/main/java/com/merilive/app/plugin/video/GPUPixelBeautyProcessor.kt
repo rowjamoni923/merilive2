@@ -9,10 +9,10 @@ import com.pixpark.gpupixel.GPUPixel
 import com.pixpark.gpupixel.GPUPixelFilter
 import com.pixpark.gpupixel.GPUPixelSinkRawData
 import com.pixpark.gpupixel.GPUPixelSourceRawData
-import org.webrtc.JavaI420Buffer
-import org.webrtc.VideoFrame
-import org.webrtc.VideoProcessor
-import org.webrtc.VideoSink
+import livekit.org.webrtc.JavaI420Buffer
+import livekit.org.webrtc.VideoFrame
+import livekit.org.webrtc.VideoProcessor
+import livekit.org.webrtc.VideoSink
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**

@@ -22,10 +22,10 @@ import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.imagesegmenter.ImageSegmenter
 import com.google.mediapipe.tasks.vision.imagesegmenter.ImageSegmenter.ImageSegmenterOptions
-import org.webrtc.VideoFrame
-import org.webrtc.VideoProcessor
-import org.webrtc.VideoSink
-import org.webrtc.YuvHelper
+import livekit.org.webrtc.VideoFrame
+import livekit.org.webrtc.VideoProcessor
+import livekit.org.webrtc.VideoSink
+import livekit.org.webrtc.YuvHelper
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
