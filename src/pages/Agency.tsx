@@ -21,6 +21,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { getCachedUser } from "@/utils/cachedAuth";
 
 interface CommissionTier {
   id: string;
@@ -46,45 +47,65 @@ const Agency = () => {
   const [helperTiers, setHelperTiers] = useState<HelperTier[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch commission tiers from database
-        const { data: tiersData } = await supabase
-          .from("agency_level_tiers")
-          .select("id, level_code, level_name, commission_rate, display_order")
-          .eq("is_active", true)
-          .order("display_order", { ascending: true });
-        
-        if (tiersData && tiersData.length > 0) {
-          setCommissionTiers(tiersData);
-        }
-
-        // Fetch helper level tiers from database
-        const { data: helperData } = await supabase
-          .from("helper_level_config")
-          .select("id, level_number, level_name, commission_rate")
-          .eq("is_enabled", true)
-          .order("level_number", { ascending: true });
-        
-        if (helperData && helperData.length > 0) {
-          setHelperTiers(helperData);
-        }
-
-        const { getCachedUser } = await import('@/utils/cachedAuth');
         const user = await getCachedUser();
         if (user) {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .maybeSingle();
+          const [{ data: profileData }, { data: hostRequests, error: hostRequestError }] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", user.id)
+              .maybeSingle(),
+            supabase.rpc("get_host_agency_request", { _host_id: user.id }),
+          ]);
+
+          if (cancelled) return;
           setProfile(profileData);
+
+          const activeHostAgency = (hostRequests || []).find((request) => request.status === "active");
+
+          if (hostRequestError) {
+            console.warn('[Agency] Host agency lookup failed:', hostRequestError);
+          }
 
           // FAST CHECK: If profile says user is agency owner, redirect immediately
           if (profileData?.is_agency_owner) {
             navigate("/agency-dashboard", { replace: true });
             return;
+          }
+
+          // Hosts must go straight to their joined agency details. Use the
+          // SECURITY DEFINER lookup because base agencies RLS is owner-only.
+          if (activeHostAgency) {
+            navigate("/agency-details", { replace: true });
+            return;
+          }
+
+          const [tiersRes, helperRes] = await Promise.all([
+            supabase
+              .from("agency_level_tiers")
+              .select("id, level_code, level_name, commission_rate, display_order")
+              .eq("is_active", true)
+              .order("display_order", { ascending: true }),
+            supabase
+              .from("helper_level_config")
+              .select("id, level_number, level_name, commission_rate")
+              .eq("is_enabled", true)
+              .order("level_number", { ascending: true }),
+          ]);
+
+          if (cancelled) return;
+
+          if (tiersRes.data && tiersRes.data.length > 0) {
+            setCommissionTiers(tiersRes.data);
+          }
+
+          if (helperRes.data && helperRes.data.length > 0) {
+            setHelperTiers(helperRes.data);
           }
 
           // Check if user owns an agency (RLS now allows owner access)
@@ -115,28 +136,35 @@ const Agency = () => {
             return;
           }
 
-          // Check if user is an approved host in an agency - redirect to agency details
-          const { data: hostData } = await supabase
-            .from("agency_hosts")
-            .select("id, status")
-            .eq("host_id", user.id)
-            .eq("status", "active")
-            .maybeSingle();
+        } else {
+          const [tiersRes, helperRes] = await Promise.all([
+            supabase
+              .from("agency_level_tiers")
+              .select("id, level_code, level_name, commission_rate, display_order")
+              .eq("is_active", true)
+              .order("display_order", { ascending: true }),
+            supabase
+              .from("helper_level_config")
+              .select("id, level_number, level_name, commission_rate")
+              .eq("is_enabled", true)
+              .order("level_number", { ascending: true }),
+          ]);
 
-          if (hostData) {
-            // Host is approved in an agency, redirect to agency details page
-            navigate("/agency-details", { replace: true });
-            return;
-          }
+          if (cancelled) return;
+
+          if (tiersRes.data && tiersRes.data.length > 0) setCommissionTiers(tiersRes.data);
+          if (helperRes.data && helperRes.data.length > 0) setHelperTiers(helperRes.data);
         }
       } catch (error) {
         console.error('[Agency] Error fetching data:', error);
         recordClientError({ label: "Agency.user", message: error instanceof Error ? error.message : String(error) });
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchData();
+
+    return () => { cancelled = true; };
   }, [navigate]);
 
   // Get min and max commission rates for display
