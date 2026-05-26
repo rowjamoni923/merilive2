@@ -45,10 +45,10 @@ export const LevelLockModal = ({
             exit={{ scale: 0.92, opacity: 0, y: 12 }}
             transition={{ type: "spring", damping: 22, stiffness: 280 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm overflow-hidden rounded-[28px] border border-amber-400/30 bg-gradient-to-br from-[#FAF5EA] via-[#FFFBF2] to-[#FAF5EA] shadow-[0_30px_80px_-20px_rgba(251,191,36,0.35)]"
+            className="relative w-full max-w-sm overflow-hidden rounded-[28px] border border-amber-400/20 bg-gradient-to-br from-[#1a1024] via-[#0f0a18] to-[#1a1024] shadow-[0_30px_80px_-20px_rgba(251,191,36,0.4)]"
           >
             {/* Ambient glow */}
-            <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-amber-400/25 blur-3xl" />
+            <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-amber-400/20 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -right-12 h-48 w-48 rounded-full bg-fuchsia-500/15 blur-3xl" />
 
             {/* Hero */}
@@ -61,27 +61,27 @@ export const LevelLockModal = ({
               >
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-yellow-600 opacity-90 blur-sm" />
                 <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-[#3a2410] via-[#1a0f06] to-[#2a1a08]" />
-                <Lock className="relative h-10 w-10 text-amber-700 drop-shadow-[0_0_12px_rgba(251,191,36,0.7)]" />
-                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-amber-700 animate-pulse" />
-                <Crown className="absolute -bottom-1 left-1 h-4 w-4 text-amber-600/80" />
+                <Lock className="relative h-10 w-10 text-amber-300 drop-shadow-[0_0_12px_rgba(251,191,36,0.7)]" />
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-amber-300 animate-pulse" />
+                <Crown className="absolute -bottom-1 left-1 h-4 w-4 text-amber-400/90" />
               </motion.div>
 
               <h3 className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
                 Level Required
               </h3>
-              <p className="mt-1.5 text-sm text-slate-700">
-                Unlock <span className="font-semibold text-slate-800">{featureName}</span> by leveling up
+              <p className="mt-1.5 text-sm text-white/80">
+                Unlock <span className="font-semibold text-white">{featureName}</span> by leveling up
               </p>
             </div>
 
             {/* Level cards */}
             <div className="relative mx-5 mb-5 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-amber-200/60 bg-white/5 px-3 py-3 text-center backdrop-blur-sm">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-slate-600">Your {roleLabel} Level</p>
-                <p className="mt-1 text-2xl font-bold text-slate-800">Lv {currentLevel}</p>
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-center backdrop-blur-sm">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-white/60">Your {roleLabel} Level</p>
+                <p className="mt-1 text-2xl font-bold text-white">Lv {currentLevel}</p>
               </div>
-              <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/15 to-amber-600/5 px-3 py-3 text-center">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-amber-700/80">Required</p>
+              <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/20 to-amber-600/10 px-3 py-3 text-center">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-amber-300/90">Required</p>
                 <p className="mt-1 bg-gradient-to-b from-amber-200 to-amber-500 bg-clip-text text-2xl font-bold text-transparent">
                   Lv {requiredLevel}
                 </p>
@@ -89,8 +89,8 @@ export const LevelLockModal = ({
             </div>
 
             {levelsToGo > 0 && (
-              <p className="mb-4 px-6 text-center text-xs text-slate-600">
-                Reach <span className="font-semibold text-amber-700">{levelsToGo} more level{levelsToGo > 1 ? "s" : ""}</span> to unlock this privilege
+              <p className="mb-4 px-6 text-center text-xs text-white/70">
+                Reach <span className="font-semibold text-amber-300">{levelsToGo} more level{levelsToGo > 1 ? "s" : ""}</span> to unlock this privilege
               </p>
             )}
 
@@ -99,7 +99,7 @@ export const LevelLockModal = ({
               <Button
                 variant="ghost"
                 onClick={onClose}
-                className="flex-1 h-12 rounded-2xl border border-amber-200/60 bg-white/5 text-white hover:bg-amber-50/70"
+                className="flex-1 h-12 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
               >
                 Not Now
               </Button>
@@ -122,3 +122,4 @@ export const LevelLockModal = ({
 };
 
 export default LevelLockModal;
+
