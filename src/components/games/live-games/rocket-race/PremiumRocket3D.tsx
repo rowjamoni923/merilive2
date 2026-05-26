@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { SmartImage } from "@/components/ui/smart-image";
 
 // Import rocket images - 3 different designs for 3 lanes
 import rocketBlueImg from "@/assets/rockets/rocket-blue.png";      // Traditional rocket for RED lane
@@ -91,9 +92,10 @@ export function PremiumRocket3D({
         />
 
         {/* Rocket Image */}
-        <img 
+        <SmartImage
           src={ROCKET_IMAGES[color]}
           alt={`${color} rocket`}
+          fallbackSrc={ROCKET_IMAGES[color]}
           className="relative z-10 w-10 h-auto drop-shadow-2xl"
           style={{
             filter: `drop-shadow(0 0 10px ${cfg.glow}) drop-shadow(0 4px 8px rgba(0,0,0,0.4))`
