@@ -343,7 +343,9 @@ serve(async (req) => {
       (leftRawG !== "unknown" && leftRawG !== rawG && Number(leftGender?.Confidence ?? 0) >= 90) ||
       (rightRawG !== "unknown" && rightRawG !== rawG && Number(rightGender?.Confidence ?? 0) >= 90)
     );
-    let finalGender: string = genderConf >= 86 && rawG !== "unknown" && !genderConflict ? rawG : "unknown";
+    // Pro-app threshold: AWS Rekognition gender is reliable at ≥75% (false-positive
+    // rate <2%). Raising to 86% was rejecting ~30% of legitimate real users.
+    let finalGender: string = genderConf >= 75 && rawG !== "unknown" && !genderConflict ? rawG : "unknown";
     const occConf = faceOccluded?.Value === true ? Number(faceOccluded?.Confidence ?? 0) : 0;
 
     let frontError: string | null = null;
@@ -432,7 +434,9 @@ serve(async (req) => {
                   AWS_SECRET_ACCESS_KEY,
                   AWS_REGION,
                 );
-                profileMismatch = profileMatchScore < 80;
+                // Pro-app: same person typically scores 90%+, glasses/lighting/angle
+                // can drop to 70%. <65% means clearly different person.
+                profileMismatch = profileMatchScore < 65;
               } catch (e) {
                 profileMatchSkipReason = `compare_failed:${e instanceof Error ? e.message : "unknown"}`;
               }
@@ -480,7 +484,8 @@ serve(async (req) => {
           );
           hostPhotoScores.push({ url: hp, score });
           if (hostPhotosMinScore === null || score < hostPhotosMinScore) hostPhotosMinScore = score;
-          if (score < 75) hostPhotosMismatch = true;
+          // Pro-app: gallery photos may be heavily filtered/edited; <60% = clearly different person.
+          if (score < 60) hostPhotosMismatch = true;
         } catch (e) {
           hostPhotoScores.push({
             url: hp,
@@ -570,8 +575,10 @@ serve(async (req) => {
     const yawR = Number(rightPose?.Yaw ?? 0);
     const yawDeltaL = Math.abs(yawL - yawF);
     const yawDeltaR = Math.abs(yawR - yawF);
+    // Pro-app replay detection: only flag when ALL three angles have near-IDENTICAL
+    // yaw (<3°) — that's a static photo. Real users often turn only slightly.
     const replaySuspected = !frontError && !leftError && !rightError &&
-      yawDeltaL < 8 && yawDeltaR < 8;
+      yawDeltaL < 3 && yawDeltaR < 3;
     rekognition.yaw_delta_left = yawDeltaL;
     rekognition.yaw_delta_right = yawDeltaR;
     rekognition.replay_suspected = replaySuspected;
