@@ -220,6 +220,21 @@ const CreateParty = () => {
     };
   }, []);
 
+  // Sync stream → video element whenever either changes (video element may
+  // mount AFTER startCameraInstant set srcObject on a null ref → preview blank).
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (stream && isVideoEnabled) {
+      if (v.srcObject !== stream) {
+        v.srcObject = stream;
+      }
+      v.play().then(() => setCameraReady(true)).catch(() => {});
+    } else {
+      try { v.srcObject = null; } catch {}
+    }
+  }, [stream, isVideoEnabled, mode]);
+
   // Handle mode changes - switch camera/audio
   useEffect(() => {
     if (stream) {
@@ -692,7 +707,7 @@ const CreateParty = () => {
             whileTap={{ scale: 0.95 }}
             onClick={handleCreateParty}
             disabled={isCreating || (mode === "game" && !selectedGame)}
-            className="flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold text-lg shadow-xl disabled:opacity-50"
+            className="flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-pink-500 via-fuchsia-500 to-orange-400 text-white font-bold text-lg shadow-xl shadow-fuchsia-500/40 ring-2 ring-white/30 disabled:opacity-50"
           >
             <ModeIcon className="w-6 h-6" />
             <span>{isCreating ? "Creating..." : "Let's Party"}</span>
