@@ -175,7 +175,7 @@ const AdminHelperRequests = () => {
         const req = selectedRequest as UpgradeRequest;
         
         // Update request status
-        await supabase
+        const { error: requestError } = await supabase
           .from('helper_upgrade_requests')
           .update({
             status: 'approved',
@@ -184,12 +184,14 @@ const AdminHelperRequests = () => {
             reviewed_by: user?.id
           })
           .eq('id', req.id);
+        if (requestError) throw requestError;
         
         // Update helper level - using trader_level column
-        await supabase
+        const { error: helperError } = await supabase
           .from('topup_helpers')
           .update({ trader_level: req.requested_level })
           .eq('id', req.helper_id);
+        if (helperError) throw helperError;
         
         // Send notification
         await adminSendNotification(req.user_id, 'Level Upgrade Approved! 🎉', `Your upgrade to Level ${req.requested_level} has been approved.`, 'level_upgrade')
@@ -249,7 +251,7 @@ const AdminHelperRequests = () => {
       const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const table = requestType === 'upgrade' ? 'helper_upgrade_requests' : 'helper_topup_requests';
       
-      await supabase
+      const { error } = await supabase
         .from(table)
         .update({
           status: 'rejected',
@@ -260,6 +262,7 @@ const AdminHelperRequests = () => {
           )
         })
         .eq('id', selectedRequest.id);
+      if (error) throw error;
       
       // Send notification
       await adminSendNotification(selectedRequest.user_id, 'Request Rejected', adminNotes || 'Your request has been rejected.', requestType);
