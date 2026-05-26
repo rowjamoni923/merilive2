@@ -158,6 +158,9 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
           <img 
             src={payrollHeroImage} 
             alt="Payroll Helper System" 
+            loading="eager"
+            decoding="async"
+            {...({ fetchpriority: "high" } as Record<string, string>)}
             className="w-full h-44 object-cover"/>
           <div className="absolute inset-0 bg-gradient-to-t from-warning-50 via-danger-50 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4">
