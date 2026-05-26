@@ -1019,29 +1019,40 @@ const FaceVerification = () => {
       } else {
         const webFaceStream = faceStream;
         if (!webFaceStream) throw new Error('Camera stream is not ready');
-        const mimeType = MediaRecorder.isTypeSupported('video/mp4')
-          ? 'video/mp4'
-          : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
-            ? 'video/webm;codecs=vp8,opus'
-            : MediaRecorder.isTypeSupported('video/webm')
-              ? 'video/webm'
-              : '';
-        
-        const mediaRecorder = mimeType
-          ? new MediaRecorder(webFaceStream, { mimeType })
-          : new MediaRecorder(webFaceStream);
-        faceRecorderRef.current = mediaRecorder;
-        
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) faceChunksRef.current.push(e.data);
-        };
-        
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
-          setFaceVerificationVideo(blob);
-        };
-        
-        mediaRecorder.start();
+        // MediaRecorder is optional — we capture liveness stills separately.
+        // If browser codec support fails (common on iOS Safari / some Android WebViews),
+        // we still proceed with the pose-checking flow so verification is never blocked.
+        try {
+          const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+            ? 'video/mp4'
+            : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+              ? 'video/webm;codecs=vp8,opus'
+              : MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
+                ? 'video/webm;codecs=vp8'
+                : MediaRecorder.isTypeSupported('video/webm')
+                  ? 'video/webm'
+                  : '';
+
+          const mediaRecorder = mimeType
+            ? new MediaRecorder(webFaceStream, { mimeType })
+            : new MediaRecorder(webFaceStream);
+          faceRecorderRef.current = mediaRecorder;
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) faceChunksRef.current.push(e.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
+            setFaceVerificationVideo(blob);
+          };
+
+          mediaRecorder.start();
+        } catch (recErr) {
+          console.warn('[FaceVerify] MediaRecorder unavailable, continuing without video capture:', recErr);
+          pushDebug({ kind: 'recorder_skip', message: recErr instanceof Error ? recErr.message : String(recErr) });
+          faceRecorderRef.current = null;
+        }
       }
       
       // Overall verification window: 3 essential liveness poses × stepWindowSec,
