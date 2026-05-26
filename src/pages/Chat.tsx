@@ -895,6 +895,8 @@ const Chat = () => {
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
+  const selectedConversationRef = useRef(selectedConversation);
+  selectedConversationRef.current = selectedConversation;
 
   // Subscribe to real-time messages via DEDICATED direct channel
   // (bypasses universal system to avoid gaps during channel rebuild loops)
@@ -1125,25 +1127,58 @@ const Chat = () => {
     };
   }, [selectedConversation?.other_user?.id]);
 
-  // Pkg92/Pkg327: conversation list refresh comes from the existing realtime
-  // notifications subscription only. Do NOT add visibility-refresh/polling as a
-  // substitute for realtime updates.
+  // Conversation list refresh — two parallel sources for zero-refresh instant feel:
+  //   (1) `chat:new-message` window event from useNotifications (notifications-row bridge)
+  //   (2) DIRECT realtime subscription on `messages` + `conversations` (Pkg360 — these
+  //       tables ARE in supabase_realtime publication, so we no longer have to wait for
+  //       the notifications round-trip). If selected conversation matches, also upsert
+  //       the row into the open thread as a safety-net for the broadcast 'message' path.
   useEffect(() => {
     if (!currentUserId) return;
 
     let refreshTimer: NodeJS.Timeout | null = null;
     const debouncedRefresh = () => {
       if (refreshTimer) clearTimeout(refreshTimer);
-      refreshTimer = setTimeout(() => fetchConversations(), 250);
+      refreshTimer = setTimeout(() => fetchConversations(), 200);
     };
 
     const onNewMessage = () => debouncedRefresh();
-
     window.addEventListener('chat:new-message', onNewMessage);
+
+    const unsubMessages = subscribeToTables(
+      `chat-conv-list-msgs-${currentUserId}`,
+      ['messages', 'conversations'],
+      (table: string, event: string, payload: any) => {
+        if (!payload) return;
+        if (table === 'messages') {
+          // Only refresh when this user is sender or recipient of the message
+          if (payload.sender_id !== currentUserId && payload.recipient_id !== currentUserId) return;
+          debouncedRefresh();
+          // Safety-net: if message belongs to currently open thread, upsert into live messages
+          const openConvId = selectedConversationRef.current?.id;
+          if (event === 'INSERT' && openConvId && payload.conversation_id === openConvId) {
+            upsertLiveMessageRef.current({
+              id: payload.id,
+              content: payload.content,
+              sender_id: payload.sender_id,
+              created_at: payload.created_at,
+              is_read: payload.is_read ?? false,
+              message_type: payload.message_type || 'text',
+              status: 'delivered',
+              reply_to_id: payload.reply_to_id ?? null,
+            } as Message);
+          }
+        } else if (table === 'conversations') {
+          if (payload.participant1_id !== currentUserId && payload.participant2_id !== currentUserId) return;
+          debouncedRefresh();
+        }
+      }
+    );
 
     return () => {
       if (refreshTimer) clearTimeout(refreshTimer);
       window.removeEventListener('chat:new-message', onNewMessage);
+      unsubMessages();
     };
   }, [currentUserId]);
 
