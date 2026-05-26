@@ -128,7 +128,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                         alt={sticker.name}
                        
                         decoding="sync"
-                        fetchPriority="high"
+                        {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
                         draggable={false}
                         className={cn('h-full w-full object-contain drop-shadow-md', getStickerAnimationClass(sticker.name))}
                       />
