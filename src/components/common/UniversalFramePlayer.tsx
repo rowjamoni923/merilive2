@@ -100,7 +100,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           </div>
         }>
           <SVGAPlayerWithAudio
-            src={src}
+            src={resolvedSrc}
             className={className}
             loop={loop}
             autoPlay={autoPlay}
@@ -117,7 +117,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
         </div>
       }>
         <SVGAPlayer
-          src={src}
+          src={resolvedSrc}
           className={className}
           loop={loop}
           autoPlay={autoPlay}
@@ -164,7 +164,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           </div>
         )}
         <video 
-          src={src}
+          src={resolvedSrc}
           autoPlay={autoPlay}
           loop={loop}
           muted
@@ -178,7 +178,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
             onLoad?.();
           }}
           onError={() => {
-            console.error('[UniversalFramePlayer] Failed to load video:', src);
+            console.error('[UniversalFramePlayer] Failed to load video:', resolvedSrc);
             onError?.(new Error('Failed to load video'));
           }}
         />
@@ -197,7 +197,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
         </div>
       )}
       <img 
-        src={src}
+        src={resolvedSrc}
         alt="Avatar Frame"
         className={cn(
           "w-full h-full object-contain pointer-events-none",
@@ -208,7 +208,7 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
           onLoad?.();
         }}
         onError={(e) => {
-          console.error('[UniversalFramePlayer] Failed to load image:', src);
+          console.error('[UniversalFramePlayer] Failed to load image:', resolvedSrc);
           onError?.(new Error('Failed to load image'));
         }}
       />
