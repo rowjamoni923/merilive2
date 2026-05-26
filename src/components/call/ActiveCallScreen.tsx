@@ -623,13 +623,10 @@ export function ActiveCallScreen({
 
   if (!isOpen || typeof document === 'undefined') return null;
 
-  // Pkg153: Private Call uses original Android camera (Camera2/CameraX). Web is blocked.
-  if (!isNativeAndroidApp()) {
-    return createPortal(
-      <RequireNativeAndroidGate feature="call"><div /></RequireNativeAndroidGate>,
-      document.body,
-    );
-  }
+  // Browser calling enabled — web uses LiveKit web SDK + getUserMedia,
+  // native Android still uses the native LiveKit plugin (handled inside
+  // useLiveKitCall via shouldUseNativeLiveKit). Old hard block removed so
+  // users on web actually see remote video + hear remote audio.
 
   const callUi = (
     <div
