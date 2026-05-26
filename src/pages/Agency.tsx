@@ -40,9 +40,7 @@ interface HelperTier {
 
 const Agency = () => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [agency, setAgency] = useState<any>(null);
   const [commissionTiers, setCommissionTiers] = useState<CommissionTier[]>([]);
   const [helperTiers, setHelperTiers] = useState<HelperTier[]>([]);
 
@@ -64,7 +62,6 @@ const Agency = () => {
           ]);
 
           if (cancelled) return;
-          setProfile(profileData);
 
           const activeHostAgency = (hostRequests || []).find((request) => request.status === "active");
 
@@ -128,8 +125,6 @@ const Agency = () => {
             userAgency = agencyData;
           }
           
-          setAgency(userAgency);
-
           // If user owns an active agency, redirect to dashboard
           if (userAgency?.is_active && !userAgency?.is_blocked) {
             navigate("/agency-dashboard", { replace: true });
