@@ -92,7 +92,10 @@ export default function RechargeBannerCarousel({
       preloadBannerImages(items);
       return items;
     },
-    initialData: () => readCachedBanners(),
+    initialData: () => {
+      const cached = readCachedBanners();
+      return cached.length ? cached : undefined;
+    },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,

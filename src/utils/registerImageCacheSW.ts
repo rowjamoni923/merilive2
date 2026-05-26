@@ -10,6 +10,7 @@
  * to pre-populate the cross-origin image cache so even the first view is instant.
  */
 import { supabase }  from '@/integrations/supabase/client';
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 
 let registered = false;
 
@@ -84,8 +85,9 @@ export async function warmAppImageCache(): Promise<void> {
 
   const run = async () => {
     const urls = new Set<string>();
-    const push = (v: any) => {
-      if (typeof v === 'string' && /^https?:\/\//.test(v)) urls.add(v);
+    const push = (v: any, bucket = 'banners') => {
+      const normalized = typeof v === 'string' ? normalizePublicMediaUrl(v, bucket) : undefined;
+      if (normalized && /^https?:\/\//.test(normalized)) urls.add(normalized);
     };
 
     const queries: Promise<any>[] = [];
@@ -102,6 +104,10 @@ export async function warmAppImageCache(): Promise<void> {
     }));
     queries.push(safe(async () => {
       const { data } = await supabase.from('recharge_campaigns').select('banner_image_url').eq('is_active', true).limit(10);
+      (data || []).forEach((r: any) => push(r.banner_image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('first_recharge_bonus').select('banner_image_url').eq('is_active', true).limit(10);
       (data || []).forEach((r: any) => push(r.banner_image_url));
     }));
     queries.push(safe(async () => {

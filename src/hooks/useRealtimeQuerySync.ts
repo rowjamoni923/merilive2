@@ -33,7 +33,7 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   support_tickets: [['support-tickets']],
   support_messages: [['support-messages']],
   // Admin-controlled tables — instant upgrade in app when admin changes them
-  banners: [['banners'], ['home-banners']],
+  banners: [['banners'], ['home-banners'], ['recharge-banners']],
   gifts: [['gifts'], ['gift-categories']],
   shop_items: [['shop-items'], ['shop-categories']],
   coin_packages: [['coin-packages']],
