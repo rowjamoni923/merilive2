@@ -16161,6 +16161,15 @@ export type Database = {
         Returns: Json
       }
       admin_agency_overview_stats: { Args: never; Returns: Json }
+      admin_apply_chat_punishment: {
+        Args: {
+          _duration_hours?: number
+          _punishment_type: string
+          _reason?: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       admin_apply_severity_ban: {
         Args: {
           _duration_value?: number
@@ -17345,6 +17354,10 @@ export type Database = {
           table_name: string
         }[]
       }
+      admin_record_helper_transaction_decision: {
+        Args: { _action: string; _transaction_id: string }
+        Returns: Json
+      }
       admin_reject_payment_transaction: {
         Args: { _reason?: string; _transaction_id: string }
         Returns: Json
@@ -17489,6 +17502,10 @@ export type Database = {
       }
       admin_set_section_permissions: {
         Args: { p_admin_user_id: string; p_permissions?: Json }
+        Returns: Json
+      }
+      admin_set_topup_helper_active: {
+        Args: { _active: boolean; _helper_id: string }
         Returns: Json
       }
       admin_set_topup_trader_approval: {
@@ -17780,6 +17797,7 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      admin_upsert_topup_helper: { Args: { _user_id: string }; Returns: Json }
       admin_user_stats: { Args: never; Returns: Json }
       admin_visual_assets_stats: { Args: never; Returns: Json }
       admin_withdrawal_stats: { Args: never; Returns: Json }
