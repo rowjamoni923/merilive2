@@ -48,37 +48,21 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
     },
     ref
   ) => {
-    const [failed, setFailed] = React.useState(false);
-
-    const dpr =
-      typeof window !== "undefined" ? Math.min(2, window.devicePixelRatio || 1) : 2;
-
     const cdnSrc = React.useMemo(() => {
       if (!src) return undefined;
-      if (failed) return src;
-      if (!cdnWidth && !cdnHeight) return src; // no size hint = leave alone
-      return (
-        toSupabaseCdnUrl(src, {
-          width: cdnWidth ? Math.round(cdnWidth * dpr) : undefined,
-          height: cdnHeight ? Math.round(cdnHeight * dpr) : undefined,
-          quality,
-          resize,
-        }) || src
-      );
-    }, [src, cdnWidth, cdnHeight, quality, resize, failed, dpr]);
+      // Pass-through: transform endpoint disabled to prevent double-request
+      // flicker on Pro plan / transforms-off. Original URL loads in one shot.
+      return src;
+    }, [src]);
 
     const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      // Transform failed → retry with original URL, then with fallback.
-      if (!failed && cdnSrc !== src) {
-        setFailed(true);
-        return;
-      }
       if (fallbackSrc && (e.currentTarget as HTMLImageElement).src !== fallbackSrc) {
         (e.currentTarget as HTMLImageElement).src = fallbackSrc;
         return;
       }
       onError?.(e);
     };
+
 
     if (!cdnSrc) {
       return fallbackSrc ? (
