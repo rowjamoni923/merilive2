@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
