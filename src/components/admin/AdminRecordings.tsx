@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Film, Play, Clock, User, Search, Download, Calendar, Video, Gift, Diamond, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,8 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { AdminMediaFrame } from "@/components/admin/AdminMediaViewer";
+import { resolveAdminStorageSignedUrl } from "@/utils/adminStorageImages";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Recording {
@@ -65,6 +68,10 @@ export default function AdminRecordings() {
   useEffect(() => {
     fetchRecordings();
   }, []);
+
+  useAdminRealtime(["stream_recordings"], () => {
+    void fetchRecordings();
+  }, "admin-recordings-rt", { debounceMs: 500 });
 
   const fetchRecordings = async () => {
     setLoading(true);
@@ -200,6 +207,11 @@ export default function AdminRecordings() {
     return `${(bytes / 1024).toFixed(1)} KB`;
   };
 
+  const openRecordingUrl = async (url: string) => {
+    const signedUrl = await resolveAdminStorageSignedUrl(url, "live-recordings").catch(() => null);
+    window.open(signedUrl || url, "_blank");
+  };
+
   const getStatusBadge = (status: string | null) => {
     switch (status) {
       case "recording": return <Badge className="bg-red-500 text-white border-0 text-[10px] animate-pulse">🔴 Recording</Badge>;
@@ -287,7 +299,7 @@ export default function AdminRecordings() {
                             <Play className="w-3.5 h-3.5 mr-1" /> Play
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 px-2"
-                            onClick={() => window.open(rec.recording_url!, "_blank")}>
+                            onClick={() => void openRecordingUrl(rec.recording_url!)}>
                             <Download className="w-3.5 h-3.5" />
                           </Button>
                         </>
@@ -414,10 +426,14 @@ export default function AdminRecordings() {
             <DialogTitle className="text-white text-sm">{playingTitle}</DialogTitle>
           </DialogHeader>
           {playingUrl && (
-            <video key={playingUrl} src={playingUrl} controls autoPlay crossOrigin="anonymous" className="w-full aspect-video object-contain" 
-              onError={(e) => {
-                console.error("Recording playback error:", e.currentTarget.error);
-              }}
+            <AdminMediaFrame
+              src={playingUrl}
+              alt={playingTitle || "Recording"}
+              kind="video"
+              bucket="live-recordings"
+              autoPlay
+              className="w-full border-0 bg-black"
+              mediaClassName="aspect-video w-full object-contain"
             />
           )}
         </DialogContent>

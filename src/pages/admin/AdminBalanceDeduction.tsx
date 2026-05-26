@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import useAdminRealtime from "@/hooks/useAdminRealtime";
+import useAdminRealtime, { dispatchAdminTableUpdate } from "@/hooks/useAdminRealtime";
 import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Search, 
@@ -202,14 +202,14 @@ export default function AdminBalanceDeduction() {
   // Quick ban from alert
   const handleQuickBan = async (alert: PhoneAlert) => {
     try {
-      await supabase
-        .from('profiles')
-        .update({
-          is_blocked: true,
-          blocked_at: new Date().toISOString(),
-          blocked_reason: `Phone number sharing: ${alert.detectedContent}`
-        })
-        .eq('id', alert.userId);
+      const { data, error } = await supabase.rpc('admin_block_user', {
+        _user_id: alert.userId,
+        _block: true,
+        _reason: `Phone number sharing: ${alert.detectedContent}`,
+        _ban_device: false,
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to ban user');
       
       // Log the admin action
       const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
@@ -226,6 +226,7 @@ export default function AdminBalanceDeduction() {
       });
       
       toast.success('User banned successfully');
+      dispatchAdminTableUpdate({ table: 'profiles', eventType: 'UPDATE' });
       
       // Update local state
       setPhoneAlerts(prev => prev.map(a => 
@@ -696,39 +697,22 @@ export default function AdminBalanceDeduction() {
 
     try {
       if (selectedResult.type === 'agency') {
-        const { error } = await supabase
-          .from('agencies')
-          .update({ 
-            is_blocked: true, 
-            blocked_at: new Date().toISOString(),
-            blocked_reason: blockReason 
-          })
-          .eq('id', selectedResult.agencyId);
-        
+        const { data, error } = await supabase.rpc('admin_block_agency', {
+          _agency_id: selectedResult.agencyId,
+          _block: true,
+          _reason: blockReason || null,
+        });
         if (error) throw error;
-      } else if (selectedResult.type === 'helper') {
-        const { error } = await supabase
-          .from('topup_helpers')
-          .update({ is_active: false })
-          .eq('id', selectedResult.helperId);
-        
-        if (error) throw error;
-        
-        // Also block the user profile
-        await supabase
-          .from('profiles')
-          .update({ is_blocked: true })
-          .eq('id', selectedResult.id);
+        if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to block agency');
       } else {
-        // Block user/host
-        const { error } = await supabase
-          .from('profiles')
-          .update({ 
-            is_blocked: true 
-          })
-          .eq('id', selectedResult.id);
-        
+        const { data, error } = await supabase.rpc('admin_block_user', {
+          _user_id: selectedResult.id,
+          _block: true,
+          _reason: blockReason || null,
+          _ban_device: false,
+        });
         if (error) throw error;
+        if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to block user');
       }
 
       // Log the admin action
@@ -747,6 +731,7 @@ export default function AdminBalanceDeduction() {
       toast.success("Blocked successfully");
       setShowBlockDialog(false);
       setBlockReason("");
+      dispatchAdminTableUpdate({ table: selectedResult.type === 'agency' ? 'agencies' : 'profiles', eventType: 'UPDATE' });
       
       // Refresh search results
       handleSearch();
