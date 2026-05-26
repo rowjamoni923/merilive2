@@ -160,19 +160,10 @@ const Live = () => {
       scheduleRefresh();
     });
 
-    const handleOnline = () => fetchLiveStreams();
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') handleOnline();
-    };
-    window.addEventListener('online', handleOnline);
-    document.addEventListener('visibilitychange', handleVisibility);
-
     return () => {
       mountedRef.current = false;
       if (pendingRefresh) clearTimeout(pendingRefresh);
       unsubscribe?.();
-      window.removeEventListener('online', handleOnline);
-      document.removeEventListener('visibilitychange', handleVisibility);
       cleanupAllPreloaded();
     };
 
