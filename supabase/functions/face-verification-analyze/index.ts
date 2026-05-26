@@ -495,12 +495,16 @@ serve(async (req) => {
       : profileMatchSkipReason
         ? `, profile-check skipped (${profileMatchSkipReason})`
         : "";
+    const hostPhotosSummary = hostPhotos.length > 0
+      ? `, host-photos(${hostPhotos.length}) min=${hostPhotosMinScore !== null ? hostPhotosMinScore.toFixed(1) + "%" : "n/a"}${hostPhotosMismatch ? " MISMATCH" : ""}`
+      : "";
     const summary =
       `Rekognition: faces F/L/R=${details.length}/${leftDetails.length}/${rightDetails.length}` +
       `${frontError || leftError || rightError ? ` (${[frontError, leftError, rightError].filter(Boolean).join(", ")})` : ""}, ` +
       `gender=${rawG} (${genderConf.toFixed(1)}%)${genderConflict ? " conflict" : ""}, ` +
       `match FL=${compareFL.toFixed(1)}% FR=${compareFR.toFixed(1)}%, faceConf=${faceConf.toFixed(1)}%` +
-      profileSummary;
+      profileSummary + hostPhotosSummary;
+
 
     // ───────────────────────────────────────────────────────────────────
     // Gender-declaration cross-check.
