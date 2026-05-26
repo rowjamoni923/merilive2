@@ -484,7 +484,8 @@ serve(async (req) => {
           );
           hostPhotoScores.push({ url: hp, score });
           if (hostPhotosMinScore === null || score < hostPhotosMinScore) hostPhotosMinScore = score;
-          if (score < 75) hostPhotosMismatch = true;
+          // Pro-app: gallery photos may be heavily filtered/edited; <60% = clearly different person.
+          if (score < 60) hostPhotosMismatch = true;
         } catch (e) {
           hostPhotoScores.push({
             url: hp,
