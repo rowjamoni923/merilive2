@@ -6,8 +6,6 @@
  * calls window.location.reload/replace/href. The user explicitly requires no
  * automatic app reloads.
  */
-import type { ComponentType } from 'react';
-
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || '');
 const getErrorName = (error: unknown) => error instanceof Error ? error.name : '';
 
@@ -113,7 +111,7 @@ export function resetChunkRecoveryMarkers() {
   }
 }
 
-export function lazyRetry<T extends ComponentType<unknown>>(
+export function lazyRetry<T>(
   importFn: () => Promise<{ default: T }>,
 ): () => Promise<{ default: T }> {
   return async () => {
@@ -146,10 +144,10 @@ export function lazyRetry<T extends ComponentType<unknown>>(
   };
 }
 
-export function lazyRetryOptional<T extends ComponentType<unknown>>(
+export function lazyRetryOptional<T>(
   importFn: () => Promise<{ default: T }>,
-  fallback: ComponentType<unknown>,
-): () => Promise<{ default: ComponentType<unknown> }> {
+  fallback: T,
+): () => Promise<{ default: T }> {
   const load = lazyRetry(importFn);
 
   return async () => {
