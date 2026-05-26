@@ -575,8 +575,10 @@ serve(async (req) => {
     const yawR = Number(rightPose?.Yaw ?? 0);
     const yawDeltaL = Math.abs(yawL - yawF);
     const yawDeltaR = Math.abs(yawR - yawF);
+    // Pro-app replay detection: only flag when ALL three angles have near-IDENTICAL
+    // yaw (<3°) — that's a static photo. Real users often turn only slightly.
     const replaySuspected = !frontError && !leftError && !rightError &&
-      yawDeltaL < 8 && yawDeltaR < 8;
+      yawDeltaL < 3 && yawDeltaR < 3;
     rekognition.yaw_delta_left = yawDeltaL;
     rekognition.yaw_delta_right = yawDeltaR;
     rekognition.replay_suspected = replaySuspected;
