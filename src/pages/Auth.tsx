@@ -820,8 +820,16 @@ const Auth = () => {
     patch: Record<string, unknown>,
     options: { requireHost?: boolean; maxAttempts?: number } = {}
   ) => {
+    // Strip server-protected columns (profiles triggers raise on direct mutation of these)
+    const PROTECTED_PROFILE_FIELDS = new Set([
+      'is_verified', 'is_host', 'is_face_verified', 'host_status', 'host_level',
+      'coins', 'beans', 'diamonds', 'beans_balance', 'total_earnings', 'pending_earnings',
+      'weekly_earnings', 'total_recharged', 'registration_ip', 'last_login_ip',
+      'device_id', 'is_banned', 'is_blocked', 'is_deleted', 'blocked_reason',
+      'agency_id', 'gender', 'call_rate_per_minute',
+    ]);
     const cleanPatch = Object.fromEntries(
-      Object.entries(patch).filter(([, value]) => value !== undefined)
+      Object.entries(patch).filter(([key, value]) => value !== undefined && !PROTECTED_PROFILE_FIELDS.has(key))
     );
     const maxAttempts = options.maxAttempts ?? 8;
 
