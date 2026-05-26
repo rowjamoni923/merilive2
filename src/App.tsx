@@ -673,7 +673,7 @@ const App = () => {
 
     return () => {
       cancelIdle(routeIdleId);
-      cancelIdle(imageIdleId);
+      window.clearTimeout(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
       cancelIdle(batteryIdleId);
