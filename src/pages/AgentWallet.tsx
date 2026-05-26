@@ -119,22 +119,9 @@ const AgentWallet = () => {
 
     fetchData();
 
-    // Pkg83-ext: removed static `agency-wallet-updates` channel (agencies +
-    // coin_transfers not in supabase_realtime publication). Visibility refetch
-    // covers tab-return; mutations refresh balances inline.
-    const onVisible = async () => {
-      if (document.visibilityState !== 'visible') return;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) await refreshBalances(user.id);
-      const { data: historyData } = await supabase
-        .rpc("get_agency_transfer_history", { _limit: 10 });
-      if (historyData) setTransfers(historyData as TransferRecord[]);
-    };
-    document.addEventListener('visibilitychange', onVisible);
-
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible);
-    };
+    // Zero-refresh policy: no visibility/tab-return refetch. Wallet mutations
+    // refresh balances inline, and push events update cross-screen state.
+    return undefined;
 
   }, [navigate]);
 
