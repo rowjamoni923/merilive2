@@ -16,6 +16,10 @@ import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 // This prevents non-publication tables from creating DB connections
 // =============================================
 installRealtimeGuard();
+// 🖼️ Global media src auto-normalizer — rewrites raw Supabase storage
+// paths to fully-qualified public URLs on EVERY <img>/<video>/<source>,
+// even in legacy or third-party code we don't own. Single source of truth.
+installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();
 if (!window.location.pathname.startsWith('/admin')) {
   startNetworkResilienceEngine();
