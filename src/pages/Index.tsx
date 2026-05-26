@@ -209,9 +209,9 @@ const Index = () => {
   // Fetch hosts based on subTab - Optimized for speed
   const { data: hosts, isLoading } = useQuery({
     queryKey: ["index-hosts-v4", selectedCountry, subTab, currentUserId],
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 10,
     gcTime: 1000 * 120,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     queryFn: async () => {
       // ⚡ PARALLEL FETCH: All independent queries at once
