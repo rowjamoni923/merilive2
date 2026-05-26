@@ -436,7 +436,7 @@ const Index = () => {
                 : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, (user.is_host || user.gender === 'female') ? 'female' : (user.gender === 'male' ? 'male' : 'female'));
             })()}
             alt={user.display_name || 'User'}
-            className="w-full h-full object-cover bg-muted [content-visibility:auto]"
+            className="w-full h-full object-cover bg-muted"
             style={{ filter: user.isLive && user.liveThumbnailUrl ? 'brightness(1.04) contrast(1.10) saturate(1.18)' : undefined }}
             loading="eager"
             {...({ fetchpriority: index < 12 ? "high" : "auto" } as any)}
