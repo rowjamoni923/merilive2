@@ -40,7 +40,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AdminMediaFrame } from "@/components/admin/AdminMediaViewer";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { resolveAdminStorageSignedUrl } from "@/utils/adminStorageImages";
 import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
@@ -180,6 +182,8 @@ export default function AdminRecordings() {
         return <Badge className="bg-yellow-500 text-white">⏳ Processing</Badge>;
       case "ready":
         return <Badge className="bg-green-500 text-white">✓ Ready</Badge>;
+      case "completed":
+        return <Badge className="bg-green-500 text-white">✓ Ready</Badge>;
       case "failed":
         return <Badge className="bg-red-600 text-white">✗ Failed</Badge>;
       case "expired":
@@ -187,6 +191,14 @@ export default function AdminRecordings() {
       default:
         return <Badge className="bg-slate-500 text-slate-900">{status}</Badge>;
     }
+  };
+
+  const isRecordingPlayable = (recording: Recording) =>
+    Boolean(recording.recording_url) && ["ready", "completed"].includes(recording.status);
+
+  const openRecordingUrl = async (url: string) => {
+    const signedUrl = await resolveAdminStorageSignedUrl(url, "live-recordings").catch(() => null);
+    window.open(signedUrl || url, "_blank");
   };
 
   const getDaysUntilExpiry = (expiresAt: string) => {
@@ -363,7 +375,7 @@ export default function AdminRecordings() {
                           <Video className="w-10 h-10 text-slate-600" />
                         </div>
                       )}
-                      {recording.status === "ready" && (
+                      {isRecordingPlayable(recording) && (
                         <button
                           onClick={() => handlePlayRecording(recording)}
                           className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity"
@@ -432,7 +444,7 @@ export default function AdminRecordings() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-2">
-                        {recording.status === "ready" && recording.recording_url && (
+                        {isRecordingPlayable(recording) && recording.recording_url && (
                           <>
                             <Button
                               size="sm"
@@ -446,7 +458,7 @@ export default function AdminRecordings() {
                               size="sm"
                               variant="outline"
                               className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                              onClick={() => window.open(recording.recording_url || "", "_blank")}
+                              onClick={() => void openRecordingUrl(recording.recording_url || "")}
                             >
                               <Download className="w-4 h-4 mr-1" />
                               Download
@@ -482,27 +494,15 @@ export default function AdminRecordings() {
           </DialogHeader>
           <div className="aspect-video bg-black rounded-lg overflow-hidden">
             {selectedRecording?.recording_url ? (
-              <video 
-                key={selectedRecording.id}
+              <AdminMediaFrame
                 src={selectedRecording.recording_url}
-                controls
+                alt={`Recording - ${selectedRecording.host?.display_name || selectedRecording.host_name || "Host"}`}
+                kind="video"
+                bucket="live-recordings"
                 autoPlay
-                preload="auto"
-                crossOrigin="anonymous"
-                className="w-full h-full"
-                onError={(e) => {
-                  console.error("Video playback error:", e);
-                  recordAdminError({ kind: "rpc", label: "AdminRecordings.adminId", message: formatAdminError(e) });
-                  // Try opening in new tab as fallback
-                  const videoEl = e.currentTarget;
-                  if (videoEl.error) {
-                    console.error("Video error code:", videoEl.error.code, "message:", videoEl.error.message);
-                    recordAdminError({ kind: "rpc", label: "AdminRecordings.videoEl", message: `code=${videoEl.error.code} ${videoEl.error.message}` });
-                  }
-                }}
-              >
-                Your browser does not support video playback
-              </video>
+                className="w-full h-full border-0 bg-black"
+                mediaClassName="aspect-video w-full h-full object-contain"
+              />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 gap-3">
                 <Film className="w-12 h-12 text-slate-600" />
