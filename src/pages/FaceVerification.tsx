@@ -49,6 +49,7 @@ import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
+import { detectLocalFacePoseFromBase64 } from "@/lib/localFacePose";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -116,13 +117,15 @@ const getLocalizedMessages = (_countryName?: string) => ({
 
 // Capture a frame from live video element as base64
 const captureFrameFromLiveVideo = (videoEl: HTMLVideoElement, size = 480): string | null => {
-  if (!videoEl || videoEl.readyState < 2) return null;
+  if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) return null;
   const canvas = document.createElement('canvas');
-  const aspect = videoEl.videoWidth / videoEl.videoHeight;
+  const aspect = videoEl.videoWidth / videoEl.videoHeight || 1;
   canvas.width = size;
   canvas.height = Math.round(size / aspect);
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
   ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
   return dataUrl.split(',')[1];
@@ -315,6 +318,7 @@ const FaceVerification = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const poseCheckInFlightRef = useRef(false);
   const currentInstructionRef = useRef(0);
   const instructionsCompletedRef = useRef<boolean[]>([false, false, false]);
   // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
@@ -846,17 +850,50 @@ const FaceVerification = () => {
   }, [faceStream, attachFacePreviewStream]);
 
   // Call face-check API to get real pose data
-  const checkFacePose = async (imageBase64: string): Promise<{faceDetected: boolean, pose: {yaw: number, pitch: number, roll: number}, eyesOpen: boolean} | null> => {
+  const checkFacePose = async (imageBase64: string): Promise<{faceDetected: boolean, pose: {yaw: number, pitch: number, roll: number}, eyesOpen: boolean, source?: 'server' | 'local'} | null> => {
+    const withSoftTimeout = async <T,>(promise: Promise<T>, timeoutMs: number): Promise<T | null> => {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise<null>((resolve) => { timeoutId = setTimeout(() => resolve(null), timeoutMs); }),
+        ]);
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    };
+
+    const localPosePromise = detectLocalFacePoseFromBase64(imageBase64);
+    const serverPosePromise = (async () => {
+      try {
+        const response = await supabase.functions.invoke('face-check', {
+          body: { imageBase64, streamId: 'face-verification' },
+        });
+        if (response.error || !response.data) return null;
+        return {
+          faceDetected: Boolean(response.data.faceDetected),
+          pose: response.data.pose || { yaw: 0, pitch: 0, roll: 0 },
+          eyesOpen: response.data.eyesOpen !== false,
+          source: 'server' as const,
+        };
+      } catch (err) {
+        console.error('[FaceVerify] Pose check error:', err);
+        recordClientError({ label: "FaceVerification.response", message: err instanceof Error ? err.message : String(err) });
+        return null;
+      }
+    })();
+
     try {
-      const response = await supabase.functions.invoke('face-check', {
-        body: { imageBase64, streamId: 'face-verification' },
-      });
-      if (response.error || !response.data) return null;
-      return {
-        faceDetected: response.data.faceDetected,
-        pose: response.data.pose || { yaw: 0, pitch: 0, roll: 0 },
-        eyesOpen: response.data.eyesOpen,
-      };
+      const serverPose = await withSoftTimeout(serverPosePromise, 2500);
+      if (serverPose?.faceDetected && serverPose.eyesOpen) return serverPose;
+
+      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 2500 : 6500);
+      if (serverPose?.faceDetected && localPose?.faceDetected) {
+        return { ...serverPose, eyesOpen: serverPose.eyesOpen || localPose.eyesOpen };
+      }
+      if (localPose?.faceDetected) return localPose;
+
+      return serverPose ?? localPose ?? null;
     } catch (err) {
       console.error('[FaceVerify] Pose check error:', err);
       recordClientError({ label: "FaceVerification.response", message: err instanceof Error ? err.message : String(err) });
@@ -1114,12 +1151,15 @@ const FaceVerification = () => {
     const CALIB_TARGET = 8;
     
     poseCheckIntervalRef.current = setInterval(async () => {
-      if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
+      if (poseCheckInFlightRef.current) return;
+      poseCheckInFlightRef.current = true;
+      try {
+        if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
       
-      const frameBase64 = await captureFaceFrameBase64();
-      if (!frameBase64) return;
+        const frameBase64 = await captureFaceFrameBase64();
+        if (!frameBase64) return;
       
-      setScanningStatus('scanning');
+        setScanningStatus('scanning');
       
       const result = await checkFacePose(frameBase64);
       
@@ -1242,6 +1282,9 @@ const FaceVerification = () => {
         } else {
           setScanningStatus('scanning');
         }
+      }
+      } finally {
+        poseCheckInFlightRef.current = false;
       }
     }, 1000); // Poll every 1s — faster lock-on without overloading Rekognition
   };
