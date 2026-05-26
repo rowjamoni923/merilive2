@@ -19,6 +19,8 @@ project_id = "ayjdlvuurscxucatbbah"
     verify_jwt = false
   [functions.livekit-auto-record]
     verify_jwt = false
+  [functions.livekit-auto-moderator]
+    verify_jwt = false
   [functions.livekit-egress]
     verify_jwt = true
   [functions.livekit-egress-ops]
