@@ -609,28 +609,19 @@ const AgencyDashboard = () => {
       });
     };
 
-    // Pkg83-ext: removed static `agency-dashboard-realtime` channel
-    // (agencies + agency_withdrawals not in supabase_realtime publication).
-    // Pkg52 admin_broadcast covers agency_withdrawals admin updates; visibility
-    // refetch handles own-agency snapshot on tab return.
+    // Pkg52 admin_broadcast covers agency_withdrawals/admin updates. Zero-refresh
+    // policy: no visibility/tab-return refetch.
     const onAdmin = async (e: Event) => {
       const table = (e as CustomEvent<{ table?: string }>).detail?.table;
       if (table !== 'agency_withdrawals' && table !== 'agencies') return;
       const { data } = await supabase.from('agencies').select('*').eq('id', agencyIdRef.current).maybeSingle();
       if (data) setAgency(data as Agency);
     };
-    const onVisible = async () => {
-      if (document.visibilityState !== 'visible' || !agencyIdRef.current) return;
-      const { data } = await supabase.from('agencies').select('*').eq('id', agencyIdRef.current).maybeSingle();
-      if (data) setAgency(data as Agency);
-    };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
       cancelled = true;
       window.removeEventListener('admin-table-update', onAdmin as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
     };
 
   }, [navigate]);

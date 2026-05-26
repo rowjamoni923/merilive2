@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { updateCachedBalance } from '@/hooks/useUserBalance';
 import { useToast } from '@/hooks/use-toast';
-import { Capacitor } from '@capacitor/core';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
 import { getAppSetting } from '@/utils/appSettingsCache';
@@ -48,10 +47,8 @@ const INITIAL_CALL_STATE: CallState = {
   callerRemainingCoins: 0,
 };
 
-// COST-CRITICAL: Incoming-call instant delivery is FCM notifications + a scoped
-// private_calls realtime listener. This is only a 30s safety-net REST poll for
-// foreground/resume recovery. Was 800ms (catastrophic: 10k users × 75 reads/min).
-const FALLBACK_PENDING_CALL_POLL_MS = 30000;
+// Incoming-call instant delivery is FCM notifications + a scoped private_calls
+// realtime listener. Zero-refresh policy forbids REST polling/resume checks.
 const DEFAULT_INCOMING_CALL_TIMEOUT_SECONDS = 60;
 const INCOMING_CALL_STALE_BUFFER_MS = 5000;
 
@@ -1087,14 +1084,9 @@ export function usePrivateCall(userId: string | null) {
     if (!userId) return;
 
     let isCleanedUp = false;
-    let pollingInterval: ReturnType<typeof setInterval> | null = null;
-    let appResumeCleanup: (() => void) | undefined;
-
     const checkPendingCalls = async () => {
       if (isCleanedUp) return;
-      // ✅ On native platforms (Capacitor), ALWAYS check - visibilityState unreliable during streaming
-      const isNative = Capacitor.isNativePlatform();
-      if (!isNative && document.visibilityState !== 'visible') return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       
       // ✅ Only skip if GENUINELY in an active call (connected/calling/ringing with valid ID)
       const currentStatus = callStateRef.current.status;
@@ -1147,45 +1139,12 @@ export function usePrivateCall(userId: string | null) {
       }
     };
 
-    const startFallbackPolling = () => {
-      if (isCleanedUp) return;
-
-      // One immediate check, then low-frequency fallback polling.
-      void checkPendingCalls();
-
-      pollingInterval = setInterval(() => {
-        void checkPendingCalls();
-      }, FALLBACK_PENDING_CALL_POLL_MS);
-    };
-
-    startFallbackPolling();
-
-    // Check when app comes back to foreground
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void checkPendingCalls();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Native app resume handler
-    if (Capacitor.isNativePlatform()) {
-      import('@capacitor/app').then(({ App }) => {
-        App.addListener('resume', () => {
-          void checkPendingCalls();
-        }).then(listener => {
-          appResumeCleanup = () => listener.remove();
-        });
-      }).catch(() => {});
-    }
+    // Zero-refresh policy: no fallback polling and no foreground/resume checks.
+    // FCM + scoped Supabase Realtime below are the instant authoritative paths.
+    void checkPendingCalls();
 
     return () => {
       isCleanedUp = true;
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      appResumeCleanup?.();
     };
   }, [userId, showVerifiedIncomingCall]);
 

@@ -1,11 +1,8 @@
 /**
  * Pkg212 — Auto-drain hook for offline DM outbox.
  *
- * Re-attempts queued sends on:
- *   • window "online" event
- *   • document visibilitychange → visible
- *   • Capacitor appStateChange → active
- *   • periodic 30s tick as belt-and-suspenders
+ * Re-attempts queued sends only on push-based connectivity changes and initial
+ * mount. Zero-refresh policy forbids visibility/resume/timer drain loops.
  *
  * The `send(item)` callback is provided by the caller (Chat.tsx) and
  * receives one OutboxItem; resolves on success (the hook then removes
@@ -14,12 +11,10 @@
  * Failsafe: max 12 attempts per item, otherwise dropped + logged.
  */
 import { useEffect, useRef } from 'react';
-import { App as CapApp } from '@capacitor/app';
 import { messageOutbox, type OutboxItem } from '@/lib/messageOutbox';
 import { networkBus } from '@/lib/networkBus';
 
 const MAX_ATTEMPTS = 12;
-const TICK_MS = 30_000;
 
 export function useMessageOutboxDrain(
   enabled: boolean,
@@ -67,25 +62,8 @@ export function useMessageOutboxDrain(
     const unsubBus = networkBus.subscribe((snap) => {
       if (snap.connected) drain();
     });
-    const onVisible = () => { if (document.visibilityState === 'visible') drain(); };
-    document.addEventListener('visibilitychange', onVisible);
-    const interval = window.setInterval(drain, TICK_MS);
-
-    let removeAppListener: (() => void) | undefined;
-    (async () => {
-      try {
-        const sub = await CapApp.addListener('appStateChange', ({ isActive }) => {
-          if (isActive) drain();
-        });
-        removeAppListener = () => sub.remove();
-      } catch {}
-    })();
-
     return () => {
       unsubBus();
-      document.removeEventListener('visibilitychange', onVisible);
-      window.clearInterval(interval);
-      removeAppListener?.();
     };
   }, [enabled, senderId]);
 }

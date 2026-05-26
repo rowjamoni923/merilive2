@@ -12,7 +12,6 @@ import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/Ca
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { loadPlayStoreProducts } from '@/sdk/PlayStoreBillingSDK';
-import { useAppState } from '@/hooks/useAppState';
 import SwiftPayDepositModal from '@/components/recharge/SwiftPayDepositModal';
 import { toSupabaseCdnUrl } from '@/lib/cdnImage';
 
@@ -118,7 +117,6 @@ function CampaignFloatingButton() {
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
-  const appState = useAppState();
   const location = useLocation();
   const navigate = useNavigate();
   // Profile page has wallet/beans cards stacked above bottom-nav — push the
@@ -236,11 +234,6 @@ function CampaignFloatingButton() {
   }, []);
 
   useEffect(() => { fetchCampaign(); }, [fetchCampaign]);
-
-  useEffect(() => {
-    if (!appState.isActive || !appState.backgroundDuration || !activeCampaignIdRef.current) return;
-    void fetchCampaign(true);
-  }, [appState.isActive, appState.backgroundDuration, fetchCampaign]);
 
   // Whether Google Play in-app billing is actually usable on this device.
   // On web/iOS we surface a clean inline banner instead of failing on Continue.

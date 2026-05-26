@@ -503,14 +503,8 @@ const ProfileDetail = () => {
     return () => clearInterval(interval);
   }, [purchasedItems.length]);
 
-  // Pkg90: removed dead postgres_changes channel.
-  //   - `profiles` UPDATE: not in supabase_realtime publication → was silent no-op.
-  //     Own-row updates now flow via Pkg85 `own-beans-updated` + Pkg91 `app-sync`.
-  //   - `gift_transactions` INSERT was UNFILTERED → every gift system-wide woke every
-  //     mounted ProfileDetail (exact $1400-rule pattern). Pkg76 `livekit-gift-sent`
-  //     already covers in-stream; here a visibilitychange refetch is enough.
-  //   - `live_streams` filtered postgres_changes also not in publication → bounded
-  //     30s safety REST poll on this host's active stream (Pkg82c pattern).
+  // Profile updates flow through app-sync / own-beans-updated / live_streams
+  // realtime only. Zero-refresh policy: no visibility/tab-return refetch.
   useEffect(() => {
     const targetId = userId || currentUser?.id;
     if (!targetId) return;
@@ -528,8 +522,6 @@ const ProfileDetail = () => {
     const onOwnBeans = () => {
       if (currentUser?.id && targetId === currentUser.id) void fetchData(true);
     };
-    // No-auto-refresh: removed visibility refetch; rely on app-sync / own-beans-updated / realtime.
-    const onVisible = () => { /* noop */ };
     // Realtime live_streams subscription (replaces 30s poll — Core rule: no polling in place of realtime).
     const refetchLiveStatus = async () => {
       try {
@@ -558,11 +550,9 @@ const ProfileDetail = () => {
 
     window.addEventListener('app-sync', onAppSync as EventListener);
     window.addEventListener('own-beans-updated', onOwnBeans);
-    document.addEventListener('visibilitychange', onVisible);
     return () => {
       window.removeEventListener('app-sync', onAppSync as EventListener);
       window.removeEventListener('own-beans-updated', onOwnBeans);
-      document.removeEventListener('visibilitychange', onVisible);
       unsubscribeLive();
     };
   }, [userId, currentUser?.id, fetchData]);

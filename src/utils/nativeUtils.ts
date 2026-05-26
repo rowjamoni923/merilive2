@@ -189,14 +189,9 @@ export const onAppStateChange = (callback: (isActive: boolean) => void): (() => 
     };
   }
   
-  // Web fallback
-  const handleVisibilityChange = () => {
-    callback(!document.hidden);
-  };
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  return () => {
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-  };
+  // Web zero-refresh policy: do not map visibilitychange to app-state changes.
+  callback(true);
+  return () => {};
 };
 
 // Back button handler for Android

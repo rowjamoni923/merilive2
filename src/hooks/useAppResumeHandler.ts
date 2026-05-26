@@ -1,11 +1,9 @@
 /**
  * 🔄 App Resume Handler
  * 
- * Centralized handler for when the app comes back from background.
- * Native apps don't have a refresh button, so this ensures:
- * - Real-time channels reconnect
- * - Critical data is refetched via React Query invalidation
- * - UI stays in sync without manual refresh
+ * Centralized resume observer.
+ * Zero-refresh policy: app foreground/resume must never refetch, invalidate,
+ * refresh session, or broadcast callbacks that components use as refresh hooks.
  */
 
 import { useEffect, useRef, useCallback } from 'react';
@@ -13,12 +11,12 @@ import { getConnectionStatus } from '@/hooks/useUniversalRealtime';
 
 type ResumeCallback = () => void;
 
-// Global event bus for app resume
+// Deprecated no-op event bus kept only for import compatibility.
 const resumeCallbacks = new Set<ResumeCallback>();
 
 /**
- * Register a callback that fires when app resumes from background
- * Returns unsubscribe function
+ * Deprecated: resume callbacks are intentionally not fired. Use realtime/admin
+ * push events or explicit user actions instead.
  */
 export const onAppResume = (callback: ResumeCallback): (() => void) => {
   resumeCallbacks.add(callback);
@@ -28,17 +26,12 @@ export const onAppResume = (callback: ResumeCallback): (() => void) => {
 };
 
 /**
- * Trigger all registered resume callbacks
+ * Intentionally disabled by the zero-refresh policy.
  */
 const triggerResumeCallbacks = () => {
-  console.log(`[AppResume] 📢 Broadcasting resume to ${resumeCallbacks.size} listeners`);
-  resumeCallbacks.forEach(cb => {
-    try {
-      cb();
-    } catch (e) {
-      console.error('[AppResume] Callback error:', e);
-    }
-  });
+  if (resumeCallbacks.size > 0) {
+    console.log(`[AppResume] Zero-refresh policy: skipped ${resumeCallbacks.size} resume callback(s)`);
+  }
 };
 
 /**
@@ -65,7 +58,7 @@ export const useAppResumeHandler = (userId: string | null, _queryClient?: unknow
       console.log('[AppResume] Realtime disconnected; waiting for native/socket auto-reconnect');
     }
 
-    // 2. Trigger explicit local callbacks only; no query invalidation/refetch.
+    // 2. Do not trigger refresh callbacks on foreground/resume.
     triggerResumeCallbacks();
   }, [userId]);
 
@@ -101,17 +94,13 @@ export const useAppResumeHandler = (userId: string | null, _queryClient?: unknow
 };
 
 /**
- * Hook for components that need to refresh data on app resume
- * Usage: useRefreshOnResume(() => { fetchMyData(); });
+ * Deprecated no-op. Components must use realtime/admin push or manual actions.
  */
 export const useRefreshOnResume = (refreshFn: () => void) => {
   const callbackRef = useRef(refreshFn);
   callbackRef.current = refreshFn;
 
   useEffect(() => {
-    const unsubscribe = onAppResume(() => {
-      callbackRef.current();
-    });
-    return unsubscribe;
+    return undefined;
   }, []);
 };

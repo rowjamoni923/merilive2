@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Capacitor } from "@capacitor/core";
 import { registerFCMToken, setupForegroundMessageHandler, deactivateFCMToken } from "@/services/firebaseMessaging";
 import { toast } from "sonner";
 
@@ -212,57 +211,14 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setOnlineStatus(userId);
     }, HEARTBEAT_INTERVAL);
 
-    // ============ NATIVE APP HANDLERS ============
-    let appStateCleanup: (() => void) | undefined;
-    
-    if (Capacitor.isNativePlatform()) {
-      const setupNativeListeners = async () => {
-        try {
-          const { App } = await import('@capacitor/app');
-          
-          const stateListener = await App.addListener('appStateChange', async ({ isActive }) => {
-            console.log('[Presence] Native state:', isActive ? 'ACTIVE' : 'BACKGROUND');
-            if (isActive) {
-              isSettingOffline.current = false;
-              if (localStorage.getItem(MANUAL_OFFLINE_KEY) !== 'true') {
-                await setOnlineStatus(userId);
-              }
-            }
-            // Background: DO NOTHING — user stays online
-            // cleanup_stale_online_users will handle truly stale sessions
-          });
-
-          const resumeListener = await App.addListener('resume', async () => {
-            console.log('[Presence] App RESUMED');
-            isSettingOffline.current = false;
-            if (localStorage.getItem(MANUAL_OFFLINE_KEY) !== 'true') {
-              await setOnlineStatus(userId);
-            }
-          });
-
-          appStateCleanup = () => {
-            stateListener.remove();
-            resumeListener.remove();
-          };
-        } catch (error) {
-          console.error('[Presence] Native listener error:', error);
-        }
-      };
-      
-      setupNativeListeners();
-    }
+    // ============ ZERO-REFRESH POLICY ============
+    // Presence is maintained by the heartbeat timer only. Foreground/resume and
+    // visibility changes must not trigger immediate DB writes or data refreshes.
 
     // ============ WEB BROWSER HANDLERS ============
     // App close / tab close: DO NOT set offline
     // User stays online until cleanup_stale_online_users handles it
     // or until they explicitly press "Go Offline"
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && localStorage.getItem(MANUAL_OFFLINE_KEY) !== 'true') {
-        setOnlineStatus(userId);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // ============ CLEANUP ============
     return () => {
@@ -270,8 +226,6 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
       clearInterval(cleanupInterval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      appStateCleanup?.();
       // DO NOT set offline on unmount — user stays online
     };
   }, [userId, isHost, setOnlineStatus, setOfflineStatus, runCleanupIfDue]);

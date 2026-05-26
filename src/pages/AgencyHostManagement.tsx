@@ -82,13 +82,9 @@ const AgencyHostManagement = () => {
     }
     fetchAgencyData();
 
-    // Pkg83-ext: removed static `agency-hosts-changes` channel
-    // (agency_hosts not in supabase_realtime publication). Visibility refetch.
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchAgencyData();
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    // Zero-refresh policy: no visibility/tab-return refetch. Mutations update
+    // this screen inline; admin/app-sync pushes handle cross-screen changes.
+    return undefined;
 
   }, [searchParams]);
 
