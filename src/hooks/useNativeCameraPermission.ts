@@ -351,12 +351,14 @@ export function useNativeCameraPermission() {
       }
 
       setPermissionGranted(false);
-      if (lastError?.name === 'NotAllowedError') {
+      if (lastError?.name === 'NotAllowedError' || lastError?.name === 'SecurityError') {
         permissionDeniedCount++;
-        throw new Error('Camera permission denied. Enable from Settings > Apps > MeriLive > Permissions.');
+        // Invalidate any stale "granted" cache so the next attempt re-prompts cleanly
+        globalPermissionGranted = null; writeCachedPerm(false);
+        throw new Error(denialHint(isNativeApp));
       }
-      if (lastError?.name === 'NotFoundError') throw new Error('No camera found on this device.');
-      if (lastError?.name === 'NotReadableError') throw new Error('Camera is being used by another app.');
+      if (lastError?.name === 'NotFoundError' || lastError?.name === 'OverconstrainedError') throw new Error('No usable camera was found on this device.');
+      if (lastError?.name === 'NotReadableError') throw new Error('Camera is busy. Close other apps/tabs using the camera and try again.');
       if (lastError?.name === 'TimeoutError') throw new Error('Camera stream request timed out. Please try again.');
       throw new Error(lastError?.message || 'Unable to access camera with any settings.');
     })();
