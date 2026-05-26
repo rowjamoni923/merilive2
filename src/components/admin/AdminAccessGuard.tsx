@@ -142,7 +142,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             const timeout = new Promise<{ data: any }>((_, reject) =>
               setTimeout(() => reject(new Error('admin session validation timeout')), VALIDATE_TIMEOUT_MS)
             );
-            const call = adminSupabase.rpc('current_admin_id_from_header' as any) as Promise<{ data: any }>;
+            const call = (async () => adminSupabase.rpc('current_admin_id_from_header' as any))();
             const { data } = await Promise.race([call, timeout]);
             if (!mounted) return;
             if (data && String(data) === session.admin_id) {
