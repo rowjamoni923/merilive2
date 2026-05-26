@@ -345,13 +345,6 @@ const AdminTransferScheduler = () => {
     toast.success('Timer stopped');
   };
 
-  const handleAutoProcess = async () => {
-    await processTransferNow();
-    // Restart timer for next cycle
-    if (schedule.is_active) {
-      await startTimer();
-    }
-  };
 
   const processTransferNow = async () => {
     setProcessing(true);
