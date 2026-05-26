@@ -3238,7 +3238,7 @@ const FaceVerification = () => {
               {videoPreview && (
                 <Button
                   variant="outline"
-                  className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
+                  className="w-full border-amber-300 text-slate-800 hover:bg-amber-100 h-12 rounded-xl font-semibold"
                   onClick={() => {
                     setVideoPreview(null);
                     setVideoFile(null);
