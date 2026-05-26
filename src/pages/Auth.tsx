@@ -207,7 +207,7 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
           className="absolute inset-0 w-full h-full object-cover"
           decoding="async"
          
-          fetchPriority="high"
+          {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
           onError={() => setMediaFailed(true)}
           style={mediaStyle}
         />
