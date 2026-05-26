@@ -5,7 +5,7 @@
  * "broken-up" or load in pieces. All images load instantly. API kept
  * stable so existing call sites compile unchanged.
  */
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface LazyImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'loading'> {
@@ -27,7 +27,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
   alt = '',
   ...rest
 }) => {
-  const [loaded, setLoaded] = useState(false);
   const finalSrc = src || fallback;
   const sizeStyle = size ? { width: size, height: size } : undefined;
 
@@ -35,20 +34,16 @@ const LazyImage: React.FC<LazyImageProps> = ({
     <img
       src={finalSrc}
       alt={alt}
-     
       decoding="async"
       fetchPriority="high"
-      onLoad={() => setLoaded(true)}
       onError={(e) => {
         const t = e.currentTarget;
         if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg';
-        setLoaded(true);
       }}
       style={sizeStyle}
       className={cn(
         'object-cover',
         rounded && 'rounded-full',
-        !loaded && 'bg-slate-800/40',
         className
       )}
       {...rest}
@@ -57,3 +52,4 @@ const LazyImage: React.FC<LazyImageProps> = ({
 };
 
 export default memo(LazyImage);
+

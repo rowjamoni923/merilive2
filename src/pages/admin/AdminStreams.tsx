@@ -300,13 +300,9 @@ export default function AdminStreams() {
     return () => window.removeEventListener('admin-table-update', handleRealtimeStreamUpdates);
   }, [fetchStreams]);
 
-  // Safety-net poll (30s) so admin still converges if realtime ever silences.
-  // Active filter only — ended/all filters are manually-refreshed.
-  useEffect(() => {
-    if (statusFilter !== 'active') return;
-    const id = setInterval(() => { void fetchStreams(); }, 30000); // guard-ok: admin safety-net 30s
-    return () => clearInterval(id);
-  }, [statusFilter, fetchStreams]);
+  // No-auto-refresh mandate: realtime + admin-table-update push handle freshness.
+  // Manual refresh button is the only fallback.
+
 
   // Clear watched-stream modal whenever the underlying row leaves active set.
   useEffect(() => {
