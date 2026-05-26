@@ -102,7 +102,21 @@ export const syncAdminAccessToSession = () => {
   if ((persistedKind === 'owner' || persistedKind === 'sub_admin') && !window.sessionStorage.getItem(ADMIN_LINK_KIND_KEY)) {
     window.sessionStorage.setItem(ADMIN_LINK_KIND_KEY, persistedKind);
   }
+  // Pkg361: Re-grant the tab-scoped access flag from the persisted secret-link
+  // token+kind. Without this, opening /admin/<section> in a new tab (or any
+  // restored tab) lost the sessionStorage-only access flag and dumped the user
+  // to the public BlogPage even though their secret link was still valid.
+  // Still secret-link gated: requires both persisted token AND kind.
+  if (persistedToken && (persistedKind === 'owner' || persistedKind === 'sub_admin')) {
+    if (window.sessionStorage.getItem(ADMIN_ACCESS_KEY) !== 'true') {
+      window.sessionStorage.setItem(ADMIN_ACCESS_KEY, 'true');
+    }
+    if (persistedKind === 'owner' && window.sessionStorage.getItem(OWNER_ACCESS_KEY) !== 'true') {
+      window.sessionStorage.setItem(OWNER_ACCESS_KEY, 'true');
+    }
+  }
 };
+
 
 export const hasAdminAccessFlag = (): boolean => {
   syncAdminAccessToSession();
