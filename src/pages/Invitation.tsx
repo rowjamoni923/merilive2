@@ -67,20 +67,16 @@ const Invitation = () => {
     fetchBanner();
     fetchClaimedTiers();
     
-    // Pkg83-ext: removed static `invitation-realtime-sync` +
-    // `invitation-tiers-realtime` channels. Pkg37 admin_broadcast pushes tier
-    // edits; own invitations refresh on visibility.
+    // Pkg37 admin_broadcast pushes tier edits. Zero-refresh policy: no
+    // visibility/tab-return refetch.
     const onAdmin = (e: Event) => {
       const table = (e as CustomEvent<{ table?: string }>).detail?.table;
       if (table === 'invitation_reward_tiers') fetchTiers();
     };
-    const onVisible = () => { if (document.visibilityState === 'visible') fetchData(); };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
       window.removeEventListener('admin-table-update', onAdmin as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
     };
 
   }, []);
