@@ -123,13 +123,12 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                           : 'border-white/10 bg-white/5 hover:bg-white/10'
                       )}
                     >
-                      <SmartImage
+                      <img
                         src={sticker.preview}
                         alt={sticker.name}
-                        fallbackSrc={sticker.preview}
-                       
+                        loading="eager"
                         decoding="sync"
-                        {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
+                        {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
                         draggable={false}
                         className={cn('h-full w-full object-contain drop-shadow-md', getStickerAnimationClass(sticker.name))}
                       />
