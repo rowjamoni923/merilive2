@@ -197,6 +197,7 @@ const FaceVerification = () => {
   const faceChunksRef = useRef<Blob[]>([]);
   const usingNativeFaceCameraRef = useRef(false);
   const nativeFaceRecordingRef = useRef(false);
+  const autoFaceStartRef = useRef(false);
   
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
@@ -805,6 +806,7 @@ const FaceVerification = () => {
   // Start face verification camera
   const startFaceCamera = useCallback(async () => {
     try {
+      autoFaceStartRef.current = false;
       if (await nativeFaceCam.isAvailable()) {
         if (faceStream) {
           faceStream.getTracks().forEach(track => track.stop());
@@ -1212,6 +1214,7 @@ const FaceVerification = () => {
           const calib = calibrateThresholds(calibSamplesRef.current);
           calibrationRef.current = calib;
           saveCalibration(calib);
+          setNeutralCalib(calib);
           setCalibrating(false);
           console.log('[FaceVerify] calibration', calib);
           pushDebug({ kind: 'calib_done', calibration: { ...calib }, samples: calibSamplesRef.current.length });
