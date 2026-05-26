@@ -116,13 +116,16 @@ class GPUPixelBeautyPlugin : Plugin() {
 
     @PluginMethod
     fun dispose(call: PluginCall) {
+        // NOTE: do NOT call GPUPixel.Destroy() here — the LiveKit broadcast
+        // processor (GPUPixelBeautyProcessor) shares the same native
+        // GPUPixel runtime. Tearing it down would crash live broadcasts.
+        // Filter handles are dropped (GC + native dtor) which is enough.
         beauty = null
         reshape = null
         lipstick = null
         blusher = null
         initialized = false
         BeautyPipelineBridge.setEnabled(false)
-        try { GPUPixel.Destroy() } catch (_: Throwable) {}
         call.resolve()
     }
 }
