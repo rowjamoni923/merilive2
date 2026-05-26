@@ -96,8 +96,9 @@ export async function warmAppImageCache(): Promise<void> {
 
     // Universal banners / campaigns (app + admin preview)
     queries.push(safe(async () => {
-      const { data } = await supabase.from('branding_settings').select('logo_image_url, background_url, setting_value').limit(30);
-      (data || []).forEach((r: any) => { push(r.logo_image_url, 'branding'); push(r.background_url, 'branding'); push(r.setting_value, 'branding'); });
+      // branding_settings is a key/value store — only `setting_value` exists.
+      const { data } = await supabase.from('branding_settings').select('setting_value').limit(30);
+      (data || []).forEach((r: any) => push(r.setting_value, 'branding'));
     }));
     queries.push(safe(async () => {
       const { data } = await supabase.from('entry_banners').select('image_url, animation_url').eq('is_active', true).limit(20);
@@ -120,8 +121,9 @@ export async function warmAppImageCache(): Promise<void> {
       (data || []).forEach((r: any) => push(r.image_url));
     }));
     queries.push(safe(async () => {
-      const { data } = await supabase.from('onboarding_slides').select('image_url, background_url').eq('is_active', true).limit(20);
-      (data || []).forEach((r: any) => { push(r.image_url, 'app-assets'); push(r.background_url, 'app-assets'); });
+      // onboarding_slides has no `background_url` column.
+      const { data } = await supabase.from('onboarding_slides').select('image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => push(r.image_url, 'app-assets'));
     }));
 
     // Host / gift / frame assets that appear on home feed & profile

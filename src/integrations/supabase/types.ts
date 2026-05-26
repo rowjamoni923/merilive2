@@ -13164,14 +13164,14 @@ export type Database = {
           {
             foreignKeyName: "topup_helpers_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "topup_helpers_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
@@ -15435,14 +15435,14 @@ export type Database = {
           {
             foreignKeyName: "topup_helpers_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "topup_helpers_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
@@ -15824,14 +15824,14 @@ export type Database = {
           {
             foreignKeyName: "topup_helpers_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "topup_helpers_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
