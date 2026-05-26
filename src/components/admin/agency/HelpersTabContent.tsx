@@ -77,16 +77,13 @@ export default function HelpersTabContent() {
       const detail = (ev as CustomEvent).detail as { table?: string } | undefined;
       if (detail?.table === 'topup_helpers') fetchHelpers();
     };
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') fetchHelpers();
-    };
+    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch — admin-table-update push covers updates.
     window.addEventListener('admin-table-update', onAdminUpdate);
-    document.addEventListener('visibilitychange', onVisible);
     return () => {
       window.removeEventListener('admin-table-update', onAdminUpdate);
-      document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);
+
 
 
   const fetchHelpers = async () => {
