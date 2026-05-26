@@ -1226,9 +1226,6 @@ const EditProfile = () => {
               ) : "Save Phone Number"}
             </Button>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Password must be at least <b>8 characters</b>, contain <b>letters + numbers</b>, plus a <b>symbol</b> (or be 12+ characters). It also must not appear in a public data breach.
-            </p>
         </DialogContent>
       </Dialog>
 
