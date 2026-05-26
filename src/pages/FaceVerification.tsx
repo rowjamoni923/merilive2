@@ -1283,12 +1283,6 @@ const FaceVerification = () => {
           instruction: faceInstructions[currentInstructionRef.current]?.id,
           apiOk: !!result,
         });
-        if (consecutiveFails >= 8 || Date.now() - noFaceStartedAt > 12000) {
-          const fallbackFrame = await captureFaceFrameBase64(720);
-          if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
-          pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
-          finishVerification(true, true);
-        }
         return;
       }
       
@@ -1326,6 +1320,10 @@ const FaceVerification = () => {
       // Track pose history for anti-spoof (photos have zero variance)
       poseHistoryRef.current = [...poseHistoryRef.current.slice(-20), { yaw: pose.yaw, pitch: pose.pitch }];
       
+      if (!capturedAnglesRef.current.center) {
+        capturedAnglesRef.current.center = frameBase64;
+      }
+
       // Check current instruction using LIVE calibration
       const calib = calibrationRef.current;
       const instrIdx = currentInstructionRef.current;
