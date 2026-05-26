@@ -95,13 +95,14 @@ const Reels = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("/chat");
-  const [reels, setReels] = useState<Reel[]>([]);
+  // Hydrate from module cache so re-entry is instant (no blank/loading flash)
+  const [reels, setReels] = useState<Reel[]>(() => reelsCache.byCategory.get('all') || []);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => (reelsCache.byCategory.get('all')?.length ?? 0) === 0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [isHost, setIsHost] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(() => reelsCache.categories || []);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showComments, setShowComments] = useState(false);
