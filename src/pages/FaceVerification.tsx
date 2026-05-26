@@ -1622,77 +1622,23 @@ const FaceVerification = () => {
     return out;
   };
 
-  // Trigger AWS Rekognition analyze (DetectFaces + CompareFaces front-vs-left/right)
-  // which writes ai_analysis.rekognition + (when app_settings allow) auto-finalizes the
-  // submission via service_auto_finalize_face_verification (gender, is_host, status).
-  const triggerRekognitionAutoApprove = async (submissionId: string) => {
-    const waitForFinalizedSubmission = async (): Promise<{
-      status: string | null;
-      rejection_reason: string | null;
-    } | null> => {
-      for (let i = 0; i < 6; i++) {
-        const { data } = await supabase
-          .from('face_verification_submissions')
-          .select('status,rejection_reason')
-          .eq('id', submissionId)
-          .maybeSingle();
-        const status = String((data as any)?.status || '').toLowerCase();
-        if (status === 'approved' || status === 'rejected') return data as any;
-        await new Promise(resolve => setTimeout(resolve, 350));
-      }
-      return null;
-    };
-
-    // Retry once on transient failure (cold-start / 401 token-refresh race).
-    let lastErr: unknown = null;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const { data, error } = await supabase.functions.invoke('face-verification-analyze', {
-          body: { submissionId },
-        });
-        if (error) {
-          lastErr = error;
-          console.warn(`[FaceVerification] face-verification-analyze attempt ${attempt + 1} error:`, error);
-          if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue; }
-        } else {
-          console.log('[FaceVerification] Rekognition analyze result:', data);
-          const result = data as {
-            ok?: boolean;
-            autoFinalize?: { success?: boolean; gender?: string; expected_gender?: string; verification_type?: string; reason?: string } | null;
-            blocker?: 'gender_mismatch' | 'liveness_failed' | 'replay_suspected' | 'profile_face_mismatch' | 'duplicate_face' | null;
-            declaredGender?: string | null;
-            expectedGender?: string | null;
-            detectedGender?: string | null;
-          };
-          if (!result?.autoFinalize?.success && !result?.blocker) {
-            const finalized = await waitForFinalizedSubmission();
-            if (finalized?.status === 'approved') {
-              return { ...result, autoFinalize: { ...(result.autoFinalize || {}), success: true } };
-            }
-            if (finalized?.status === 'rejected') {
-              return { ...result, blocker: 'gender_mismatch' };
-            }
-          }
-          return result;
-        }
-      } catch (err) {
-        lastErr = err;
-        console.warn(`[FaceVerification] face-verification-analyze attempt ${attempt + 1} threw:`, err);
-        if (attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue; }
-      }
-    }
-    toast({
-      title: '⚠️ AI Verification Skipped',
-      description: 'AI auto-approve service is temporarily unreachable — your submission was saved and will be reviewed by admin.',
-    });
-    return null;
-  };
+  // Analysis is now triggered by DB trigger + pg_cron sweeper after insert.
+  // Do not call/await the slow edge function from the browser; it caused the
+  // submit screen to sit on a full-page loader when the function cold-started or timed out.
+  type FaceAnalyzeResult = {
+    ok?: boolean;
+    autoFinalize?: { success?: boolean; gender?: string; expected_gender?: string; verification_type?: string; reason?: string } | null;
+    blocker?: 'gender_mismatch' | 'liveness_failed' | 'replay_suspected' | 'profile_face_mismatch' | 'duplicate_face' | null;
+    declaredGender?: string | null;
+    expectedGender?: string | null;
+    detectedGender?: string | null;
+  } | null;
 
   // If the edge function returned a hard `blocker`, show a blocking dialog
   // (English only, per app convention) and route the user to support. Returns
   // true when the user was routed so the caller can short-circuit normal flow.
   const handleVerificationBlocker = (
-    result: Awaited<ReturnType<typeof triggerRekognitionAutoApprove>>,
+    result: FaceAnalyzeResult,
   ): boolean => {
     const blocker = result?.blocker;
     if (!blocker) return false;
