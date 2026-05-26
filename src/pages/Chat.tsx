@@ -1851,6 +1851,15 @@ const Chat = () => {
         checkToxic(originalContent, { contextType: 'chat', groupId: selectedGroup.id }).catch(() => {});
       }
     } catch (error: any) {
+      // Pkg367: recipient toggled themselves offline — don't queue, surface friendly toast
+      const errMsg = String(error?.message || '').toLowerCase();
+      if (errMsg.includes('recipient_offline')) {
+        toast.error("This user is offline right now and cannot receive messages.");
+        setMessage(originalContent);
+        setMessages(prev => prev.filter(m => m.id !== optimisticId));
+        setSending(false);
+        return;
+      }
       // Pkg212 — instead of dropping the message, enqueue it to the
       // persistent outbox. The drain hook below auto-retries on
       // reconnect / app resume / 30 s tick.
