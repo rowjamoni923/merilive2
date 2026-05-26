@@ -401,6 +401,22 @@ public class NativeCameraPlugin extends Plugin {
         return out.toByteArray();
     }
 
+    private byte[] normalizeJpegForFaceDetection(byte[] jpeg, int rotationDegrees, boolean mirrorHorizontal, int quality) throws IOException {
+        Bitmap decoded = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
+        if (decoded == null) return jpeg;
+        Matrix matrix = new Matrix();
+        if (rotationDegrees != 0) matrix.postRotate(rotationDegrees);
+        if (mirrorHorizontal) {
+            matrix.postScale(-1f, 1f);
+        }
+        Bitmap transformed = Bitmap.createBitmap(decoded, 0, 0, decoded.getWidth(), decoded.getHeight(), matrix, true);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        transformed.compress(Bitmap.CompressFormat.JPEG, quality, out);
+        if (transformed != decoded) transformed.recycle();
+        decoded.recycle();
+        return out.toByteArray();
+    }
+
     // ============================================================
     // INTERNAL
     // ============================================================
