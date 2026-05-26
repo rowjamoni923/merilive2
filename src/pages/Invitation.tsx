@@ -346,7 +346,7 @@ const Invitation = () => {
           animate={{ y: 0, opacity: 1 }}
           className="relative rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/30"
         >
-          <img src={bannerUrl} alt="Invite Friends & Earn Rewards" className="w-full h-auto min-h-[120px] object-cover"/>
+          <img src={bannerUrl} alt="Invite Friends & Earn Rewards" loading="eager" decoding="async" {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)} className="w-full h-auto min-h-[120px] object-cover"/>
           {/* Premium overlay effects */}
           <div className="absolute inset-0 bg-gradient-to-t from-amber-100/20 via-transparent to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-transparent to-purple-500/10" />
