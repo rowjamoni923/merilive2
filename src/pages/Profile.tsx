@@ -1449,7 +1449,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return levelRate?.rate || callRateSettings?.default_rate || 2000;
   };
 
-  // Pkg336: Host availability toggle handler (moved from ProfileDetail to Profile menu)
+  // Pkg336 + Pkg367: Host availability toggle handler.
+  // When going offline → also mark presence offline + exit native app (or navigate home on web)
+  // so calls/DMs are immediately blocked and the user is fully detached.
   const handleToggleAvailability = useCallback(async () => {
     if (!currentUser?.id) return;
     const prev = hostAvailability;
@@ -1468,15 +1470,35 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         description: error.message || undefined,
         variant: "destructive",
       });
+      return;
+    }
+
+    if (newStatus === 'offline') {
+      // Hard-offline: kill presence + push user out of app
+      try { await goOfflineManually(currentUser.id); } catch {}
+      toast({
+        title: "You are now Offline",
+        description: "Calls and messages are blocked. You'll be back online when you re-open the app and tap Go Online.",
+      });
+      // Native: exit app; Web: navigate home so chat/call screens unmount
+      setTimeout(async () => {
+        try {
+          const { Capacitor } = await import('@capacitor/core');
+          if (Capacitor.isNativePlatform()) {
+            const { App } = await import('@capacitor/app');
+            await App.exitApp();
+            return;
+          }
+        } catch {}
+        try { navigate('/'); } catch {}
+      }, 1500);
     } else {
       toast({
-        title: newStatus === 'online' ? "You are now Online" : "You are now Offline",
-        description: newStatus === 'online'
-          ? "Users can see and call you"
-          : "You won't appear on the home page and incoming calls are blocked",
+        title: "You are now Online",
+        description: "Users can see and call you",
       });
     }
-  }, [currentUser?.id, hostAvailability, toast]);
+  }, [currentUser?.id, hostAvailability, toast, navigate]);
 
   const menuItems = [
     // Go Offline button - ONLY for hosts
