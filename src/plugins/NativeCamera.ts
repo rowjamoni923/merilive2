@@ -27,7 +27,7 @@ export interface NativeCameraPlugin {
   setTorch(opts: { on: boolean }): Promise<{ on: boolean }>;
 
   capturePhoto(): Promise<{ base64: string; mimeType: string; width: number; height: number }>;
-  captureFrame(): Promise<{ base64: string; mimeType: string; width: number; height: number }>;
+  captureFrame(): Promise<{ base64: string; mimeType: string; width: number; height: number; rotation?: number }>;
   startVideoRecording(opts?: { maxDurationMs?: number }): Promise<{ recording: boolean }>;
   stopVideoRecording(): Promise<{
     uri: string;

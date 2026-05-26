@@ -2,8 +2,11 @@ package com.merilive.app.plugin;
 
 import android.Manifest;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
@@ -86,6 +89,7 @@ public class NativeCameraPlugin extends Plugin {
     private byte[] latestFrameJpeg;
     private int latestFrameWidth;
     private int latestFrameHeight;
+    private int latestFrameRotation;
     private long lastFrameEncodeAt;
 
     @Override
@@ -142,6 +146,7 @@ public class NativeCameraPlugin extends Plugin {
                     latestFrameJpeg = null;
                     latestFrameWidth = 0;
                     latestFrameHeight = 0;
+                    latestFrameRotation = 0;
                     lastFrameEncodeAt = 0L;
                 }
                 removePreviewView();
@@ -339,10 +344,12 @@ public class NativeCameraPlugin extends Plugin {
         byte[] jpeg;
         int width;
         int height;
+        int rotation;
         synchronized (frameLock) {
             jpeg = latestFrameJpeg;
             width = latestFrameWidth;
             height = latestFrameHeight;
+            rotation = latestFrameRotation;
         }
         if (jpeg == null || jpeg.length == 0) {
             call.reject("Camera frame not ready");
@@ -353,6 +360,7 @@ public class NativeCameraPlugin extends Plugin {
         ret.put("mimeType", "image/jpeg");
         ret.put("width", width);
         ret.put("height", height);
+        ret.put("rotation", rotation);
         call.resolve(ret);
     }
 
@@ -393,6 +401,22 @@ public class NativeCameraPlugin extends Plugin {
         if (!yuv.compressToJpeg(new Rect(0, 0, width, height), quality, out)) {
             throw new IOException("YUV JPEG compression failed");
         }
+        return out.toByteArray();
+    }
+
+    private byte[] normalizeJpegForFaceDetection(byte[] jpeg, int rotationDegrees, boolean mirrorHorizontal, int quality) throws IOException {
+        Bitmap decoded = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
+        if (decoded == null) return jpeg;
+        Matrix matrix = new Matrix();
+        if (rotationDegrees != 0) matrix.postRotate(rotationDegrees);
+        if (mirrorHorizontal) {
+            matrix.postScale(-1f, 1f);
+        }
+        Bitmap transformed = Bitmap.createBitmap(decoded, 0, 0, decoded.getWidth(), decoded.getHeight(), matrix, true);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        transformed.compress(Bitmap.CompressFormat.JPEG, quality, out);
+        if (transformed != decoded) transformed.recycle();
+        decoded.recycle();
         return out.toByteArray();
     }
 
@@ -448,11 +472,14 @@ public class NativeCameraPlugin extends Plugin {
             try {
                 long now = System.currentTimeMillis();
                 if (now - lastFrameEncodeAt < 350) return;
-                byte[] jpeg = imageProxyToJpeg(image, 72);
+                int rotation = image.getImageInfo().getRotationDegrees();
+                boolean mirror = currentSelector == CameraSelector.DEFAULT_FRONT_CAMERA;
+                byte[] jpeg = normalizeJpegForFaceDetection(imageProxyToJpeg(image, 82), rotation, mirror, 82);
                 synchronized (frameLock) {
                     latestFrameJpeg = jpeg;
-                    latestFrameWidth = image.getWidth();
-                    latestFrameHeight = image.getHeight();
+                    latestFrameWidth = (rotation == 90 || rotation == 270) ? image.getHeight() : image.getWidth();
+                    latestFrameHeight = (rotation == 90 || rotation == 270) ? image.getWidth() : image.getHeight();
+                    latestFrameRotation = rotation;
                     lastFrameEncodeAt = now;
                 }
             } catch (Exception e) {

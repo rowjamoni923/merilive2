@@ -115,19 +115,41 @@ const getLocalizedMessages = (_countryName?: string) => ({
   staticFace: 'Static face detected. Please use a real camera, not a photo.',
 });
 
-// Capture a frame from live video element as base64
-const captureFrameFromLiveVideo = (videoEl: HTMLVideoElement, size = 480): string | null => {
+// Capture the exact visible camera area, not the raw hidden overflow. On mobile
+// the preview uses object-cover in a portrait box while the camera frame can be
+// landscape; sending the uncropped raw frame makes the detector analyze a
+// different image than the user is centering in the oval.
+const captureFrameFromLiveVideo = (videoEl: HTMLVideoElement, size = 640): string | null => {
   if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) return null;
   const canvas = document.createElement('canvas');
-  const aspect = videoEl.videoWidth / videoEl.videoHeight || 1;
+  const sourceW = videoEl.videoWidth;
+  const sourceH = videoEl.videoHeight;
+  const visibleW = videoEl.clientWidth || videoEl.offsetWidth || sourceW;
+  const visibleH = videoEl.clientHeight || videoEl.offsetHeight || sourceH;
+  const visibleAspect = visibleW / Math.max(1, visibleH);
+  const sourceAspect = sourceW / Math.max(1, sourceH);
+
+  let sx = 0;
+  let sy = 0;
+  let sw = sourceW;
+  let sh = sourceH;
+  if (sourceAspect > visibleAspect) {
+    sw = Math.round(sourceH * visibleAspect);
+    sx = Math.round((sourceW - sw) / 2);
+  } else if (sourceAspect < visibleAspect) {
+    sh = Math.round(sourceW / visibleAspect);
+    sy = Math.round((sourceH - sh) / 2);
+  }
+
+  const outAspect = sw / Math.max(1, sh);
   canvas.width = size;
-  canvas.height = Math.round(size / aspect);
+  canvas.height = Math.round(size / outAspect);
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
   ctx.translate(canvas.width, 0);
   ctx.scale(-1, 1);
-  ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+  ctx.drawImage(videoEl, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
   return dataUrl.split(',')[1];
 };
 
@@ -802,7 +824,10 @@ const FaceVerification = () => {
           faceStream.getTracks().forEach(track => track.stop());
           setFaceStream(null);
         }
-        await nativeFaceCam.startPreview('1080p');
+        // 720p keeps Android CameraX preview + analyzer + recorder bound on far
+        // more low/mid-range phones; 1080p often drops the analyzer, which made
+        // the visible face preview work while captureFrame returned no face.
+        await nativeFaceCam.startPreview('720p');
         setNativeFaceCameraActive(true);
         setCameraReady(true);
         return;
@@ -876,10 +901,10 @@ const FaceVerification = () => {
     })();
 
     try {
-      const serverPose = await withSoftTimeout(serverPosePromise, 2500);
+      const serverPose = await withSoftTimeout(serverPosePromise, 2200);
       if (serverPose?.faceDetected && serverPose.eyesOpen) return serverPose;
 
-      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 2500 : 6500);
+      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 1800 : 3200);
       if (serverPose?.faceDetected && localPose?.faceDetected) {
         return { ...serverPose, eyesOpen: serverPose.eyesOpen || localPose.eyesOpen };
       }
@@ -1185,6 +1210,7 @@ const FaceVerification = () => {
   // Real pose checking - captures frame & sends to face-check API
   const startRealPoseChecking = () => {
     let consecutiveFails = 0;
+    let noFaceStartedAt = 0;
     // Reset calibration sampler. We collect ~10 samples (≈2s @ 200ms / ≈2.5s
     // @ 250ms — we sample faster than the main loop) of the user's natural
     // pose before scoring any step.
@@ -1199,7 +1225,23 @@ const FaceVerification = () => {
         if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
       
         const frameBase64 = await captureFaceFrameBase64();
-        if (!frameBase64) return;
+        if (!frameBase64) {
+          consecutiveFails++;
+          consecutiveFailsRef.current = consecutiveFails;
+          if (!noFaceStartedAt) noFaceStartedAt = Date.now();
+          setScanningStatus('fail');
+          setLiveDiag({
+            faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
+            hint: 'Camera frame is not ready — hold steady for a moment',
+            severity: 'error',
+          });
+          pushDebug({ kind: 'no_face', consecutive: consecutiveFails, reason: 'empty_camera_frame', apiOk: false });
+          if (consecutiveFails >= 8 || Date.now() - noFaceStartedAt > 12000) {
+            pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'camera_frame_unavailable_open_to_admin' });
+            finishVerification(true, true);
+          }
+          return;
+        }
       
         setScanningStatus('scanning');
       
@@ -1208,6 +1250,7 @@ const FaceVerification = () => {
       if (!result || !result.faceDetected) {
         consecutiveFails++;
         consecutiveFailsRef.current = consecutiveFails;
+        if (!noFaceStartedAt) noFaceStartedAt = Date.now();
         setScanningStatus('fail');
         setLiveDiag({
           faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
@@ -1223,7 +1266,7 @@ const FaceVerification = () => {
           instruction: faceInstructions[currentInstructionRef.current]?.id,
           apiOk: !!result,
         });
-        if (consecutiveFails >= 10) {
+        if (consecutiveFails >= 8 || Date.now() - noFaceStartedAt > 12000) {
           const fallbackFrame = await captureFaceFrameBase64(720);
           if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
           pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
@@ -1233,6 +1276,7 @@ const FaceVerification = () => {
       }
       
       consecutiveFails = 0;
+      noFaceStartedAt = 0;
       const pose = result.pose;
       
       // ─── Calibration phase ─────────────────────────────────────────────
