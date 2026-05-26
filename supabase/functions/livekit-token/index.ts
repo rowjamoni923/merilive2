@@ -131,7 +131,8 @@ Deno.serve(async (req) => {
             .eq("id", m[1])
             .maybeSingle();
           if (!data || data.host_id !== identity) return json(403, { error: "not_stream_host" });
-          if (data.ended_at) return json(403, { error: "stream_ended" });
+          // Host bypass: allow rejoin even if is_active=false / ended_at set
+          // (client may have flipped it on remount/crash; host can resurrect).
         } else if (roomType === "viewer_stream") {
           const m = /^live_([0-9a-f-]{36})$/i.exec(roomName);
           if (!m) return json(400, { error: "invalid_viewer_room_name" });
