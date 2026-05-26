@@ -644,6 +644,11 @@ const App = () => {
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
     }).catch(() => {}), 0);
 
+    // Pkg371 — Preload every bundled banner asset (Recharge / Invitation /
+    // Agency Dashboard / PayrollHelperGuide / AgencyPolicy / Shop / VIP …)
+    // so the first paint of any banner section is instant.
+    import('@/utils/preloadAppBanners').then(m => m.preloadAppBanners()).catch(() => {});
+
     // Pkg357 — Global video lifecycle: pause off-screen + tab-hidden videos,
     // skip LiveKit publisher/subscriber. Mirrors Chamet/TikTok behavior.
     import('@/utils/globalVideoLifecycle')

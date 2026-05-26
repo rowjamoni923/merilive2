@@ -138,7 +138,7 @@ const PayrollHelperGuide = () => {
 
       {/* Hero Banner */}
       <div className="relative">
-        <img src={bannerImage} alt="Payroll Helper System" className="w-full h-52 object-cover"/>
+        <img src={bannerImage} alt="Payroll Helper System" loading="eager" decoding="async" {...({ fetchpriority: "high" } as Record<string, string>)} className="w-full h-52 object-cover"/>
         <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-rose-50 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-5">
           <Badge className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-amber-950 border border-amber-300/60 text-xs font-bold tracking-wide shadow-lg shadow-amber-500/30 mb-2 px-3 py-1">

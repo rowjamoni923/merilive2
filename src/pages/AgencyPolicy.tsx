@@ -310,12 +310,17 @@ const AgencyPolicy = () => {
             <img 
               src={policyHeroBanner} 
               alt="MeriLive — Tap to view all Policies & Benefits"
+              loading="eager"
+              decoding="async"
+              {...({ fetchpriority: "high" } as Record<string, string>)}
               className="w-full h-auto object-cover rounded-2xl"/>
             {/* Logo Overlay */}
             <div className="absolute top-3 left-1/2 -translate-x-1/2">
               <img 
                 src={meriliveLogo} 
                 alt="MeriLive" 
+                loading="eager"
+                decoding="async"
                 className="w-10 h-10 object-contain drop-shadow-lg"/>
             </div>
           </div>
