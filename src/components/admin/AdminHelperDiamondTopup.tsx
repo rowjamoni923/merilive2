@@ -115,8 +115,7 @@ const AdminHelperDiamondTopup = () => {
       const { data } = await supabase
         .from('admin_logs')
         .select('*')
-        .eq('target_type', 'helper')
-        .or('action_type.eq.helper_diamond_topup,action_type.eq.balance_add')
+        .or('and(target_type.eq.helper,action_type.eq.balance_add),and(target_type.eq.helper,action_type.eq.helper_diamond_topup),and(target_type.eq.topup_helper,action_type.eq.helper_diamond_topup)')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -132,8 +131,8 @@ const AdminHelperDiamondTopup = () => {
             return {
               id: log.id,
               helper_id: log.target_id || '',
-              amount: details?.amount || 0,
-              note: details?.note || null,
+              amount: details?.amount ?? details?.delta ?? 0,
+              note: details?.note ?? details?.reason ?? null,
               created_at: log.created_at || '',
               helper: helper as any,
             };
