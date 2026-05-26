@@ -770,54 +770,59 @@ const VIP = () => {
 
   const handleEquip = async (privilege: UserPrivilege) => {
     if (equipping) return;
-    
+
+    const privilegeSlot = getPrivilegeSlot(privilege.category);
+    const isFrame = privilegeSlot === 'frame';
+
+    if (privilegeSlot === 'other') {
+      toast({
+        title: 'Unsupported Item',
+        description: 'This privilege cannot be equipped yet.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // ⚡ INSTANT OPTIMISTIC UPDATE — flip UI BEFORE any network call
+    // so the "Equipped" badge + green ring appear immediately on tap.
+    const previousPrivileges = userPrivileges;
+    setUserPrivileges(prev => prev.map(p => {
+      if (p.id === privilege.id) return { ...p, is_equipped: true };
+      if (getPrivilegeSlot(p.category) === privilegeSlot) return { ...p, is_equipped: false };
+      return p;
+    }));
+
+    // Invalidate caches immediately so the next room entry uses the new equip.
+    if (isFrame) {
+      clearFrameCache();
+    }
+    if (privilegeSlot === 'entrance' || privilegeSlot === 'entry_name_bar' || privilegeSlot === 'vehicle') {
+      clearEntryAnimationCache();
+    }
+
+    // Instant feedback toast.
+    toast({
+      title: "✨ Equipped!",
+      description: `${privilege.name} is now active - Profile, Live, Party Rooms, Chat!`,
+    });
+
     setEquipping(privilege.id);
-    console.log('[VIP] Equipping privilege:', privilege);
-    
+    console.log('[VIP] Equipping privilege:', privilege, 'slot:', privilegeSlot);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.error('[VIP] No user found');
-        recordClientError({ label: "VIP.handleEquip", message: '[VIP] No user found' });
-        return;
-      }
-
-      // Determine the category type for proper equipping
-      // UNIFIED ENTRY EFFECT CATEGORY:
-      // - ALL entry animations (entrance, entrance_effect, entry_bar) share ONE slot
-      // - User can only have ONE entry effect equipped at a time, regardless of source
-      // SEPARATE CATEGORIES:
-      // - Frames (frame, portrait_frame) - ONE slot
-      // - Chat Bubbles (bubble) - ONE slot
-      // - Vehicles (vehicle) - ONE slot
-      // CRITICAL: Entry Effects and Entry Name Bars are SEPARATE categories
-      // Entry Effects = full-screen entrance animations (entrance, entrance_effect, entry_bar from level_privileges)
-      // Entry Name Bar = sliding name banner (entry_name_bar from entry_name_bars table)
-      const privilegeSlot = getPrivilegeSlot(privilege.category);
-      const isFrame = privilegeSlot === 'frame';
-
-      console.log('[VIP] Category detection:', { privilegeSlot, category: privilege.category });
-
-      if (privilegeSlot === 'other') {
-        toast({
-          title: 'Unsupported Item',
-          description: 'This privilege cannot be equipped yet.',
-          variant: 'destructive',
-        });
-        return;
+        throw new Error('No user found');
       }
 
       // For shop purchases, update user_purchases table
       if (privilege.source === 'shop') {
-        // Get all user purchases to filter by category
         const { data: allPurchases } = await supabase
           .from("user_purchases")
           .select("id, shop_items(category)")
           .eq("user_id", user.id)
           .eq("is_active", true);
 
-        // Find purchases in the SAME CATEGORY to unequip
-        // Entry Effects and Entry Name Bars are SEPARATE categories
         const sameCategoryIds = allPurchases
           ?.filter(p => {
             const pCategory = (p.shop_items as any)?.category;
@@ -825,146 +830,80 @@ const VIP = () => {
           })
           .map(p => p.id) || [];
 
-        console.log('[VIP] Unequipping same category items:', sameCategoryIds);
-
-        // Unequip only same category items
         if (sameCategoryIds.length > 0) {
-          const { error: unequipError } = await supabase
+          await supabase
             .from("user_purchases")
             .update({ is_equipped: false })
             .in("id", sameCategoryIds);
-
-          if (unequipError) {
-            console.error('[VIP] Error unequipping shop items:', unequipError);
-            recordClientError({ label: "VIP.pCategory", message: unequipError instanceof Error ? unequipError.message : String(unequipError) });
-          }
         }
 
-        // Equip the selected item
         const { error: equipError } = await supabase
           .from("user_purchases")
           .update({ is_equipped: true })
           .eq("id", privilege.id);
-
-        if (equipError) {
-          console.error('[VIP] Error equipping shop item:', equipError);
-          recordClientError({ label: "VIP.pCategory", message: equipError instanceof Error ? equipError.message : String(equipError) });
-        }
+        if (equipError) throw equipError;
       }
 
       // For admin-assigned frames, update user_role_frames table
       if (privilegeSlot === 'frame') {
-        const { error: unequipError } = await supabase
+        await supabase
           .from("user_role_frames")
           .update({ is_equipped: false })
           .eq("user_id", user.id);
-
-        if (unequipError) {
-          console.error('[VIP] Error unequipping admin-assigned frames:', unequipError);
-          recordClientError({ label: "VIP.pCategory", message: unequipError instanceof Error ? unequipError.message : String(unequipError) });
-        }
       }
 
       if (privilege.source === 'admin_assigned') {
-        // Unequip all other admin-assigned frames for this user
-        // Equip the selected admin-assigned frame
         const { error: equipError } = await supabase
           .from("user_role_frames")
           .update({ is_equipped: true })
           .eq("id", privilege.id);
-
-        if (equipError) {
-          console.error('[VIP] Error equipping admin-assigned frame:', equipError);
-          recordClientError({ label: "VIP.pCategory", message: equipError instanceof Error ? equipError.message : String(equipError) });
-        }
+        if (equipError) throw equipError;
       }
 
       // Update profile's equipped item based on category
-      // Entry Effects and Entry Name Bars are SEPARATE slots
       const updateData: Record<string, string | null> = {};
-      
+
       if (privilegeSlot === 'frame') {
         updateData.equipped_frame_id = privilege.item_id;
-        console.log('[VIP] Setting equipped_frame_id to:', privilege.item_id);
       } else if (privilegeSlot === 'entrance') {
         updateData.equipped_entrance_id = privilege.item_id;
         updateData.equipped_entry_banner_id = privilege.item_id;
-        console.log('[VIP] Setting entrance slot to:', privilege.item_id, 'type:', privilege.category);
       } else if (privilegeSlot === 'entry_name_bar') {
         updateData.equipped_entry_name_bar_id = privilege.item_id;
-        console.log('[VIP] Setting equipped_entry_name_bar_id to:', privilege.item_id);
       } else if (privilegeSlot === 'bubble') {
         updateData.equipped_bubble_id = privilege.item_id;
-        console.log('[VIP] Setting equipped_bubble_id to:', privilege.item_id);
       } else if (privilegeSlot === 'vehicle') {
         updateData.equipped_vehicle_id = privilege.item_id;
-        console.log('[VIP] Setting equipped_vehicle_id to:', privilege.item_id);
       } else if (privilegeSlot === 'medal') {
         updateData.equipped_medal_id = privilege.item_id;
-        console.log('[VIP] Setting equipped_medal_id to:', privilege.item_id);
       } else if (privilegeSlot === 'noble_card') {
         updateData.equipped_noble_card_id = privilege.item_id;
-        console.log('[VIP] Setting equipped_noble_card_id to:', privilege.item_id);
       }
-
-      console.log('[VIP] Profile update data:', updateData);
 
       if (Object.keys(updateData).length > 0) {
         const { error: profileError } = await supabase
           .from("profiles")
           .update(updateData)
           .eq("id", user.id);
-
-        if (profileError) {
-          console.error('[VIP] Error updating profile:', profileError);
-          recordClientError({ label: "VIP.updateData", message: profileError instanceof Error ? profileError.message : String(profileError) });
-          toast({
-            title: "Failed to Equip",
-            description: profileError.message,
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        console.log('[VIP] Profile updated successfully');
-        
-        // CRITICAL: Clear frame cache so profile shows new frame immediately
-        if (isFrame) {
-          clearFrameCache();
-          console.log('[VIP] Frame cache cleared for instant update');
-        }
+        if (profileError) throw profileError;
       }
 
-      // Update local state - unequip items in the SAME category
-      setUserPrivileges(prev => prev.map(p => {
-        // If this is the selected item, equip it
-        if (p.id === privilege.id) {
-          return { ...p, is_equipped: true };
-        }
-        
-        if (getPrivilegeSlot(p.category) === privilegeSlot) return { ...p, is_equipped: false };
-        
-        return p;
-      }));
-
-      toast({
-        title: "✨ Equipped!",
-        description: `${privilege.name} is now active everywhere - Profile, Live, Party Rooms, Chat!`,
-      });
-
-      void fetchData();
+      console.log('[VIP] Equip persisted successfully');
     } catch (error: any) {
+      // REVERT optimistic state on failure
       console.error("[VIP] Error equipping:", error);
-      recordClientError({ label: "VIP.updateData", message: error instanceof Error ? error.message : String(error) });
+      recordClientError({ label: "VIP.handleEquip", message: error instanceof Error ? error.message : String(error) });
+      setUserPrivileges(previousPrivileges);
       toast({
         title: "Failed to Equip",
-        description: error.message,
+        description: error?.message || "Could not equip item. Please try again.",
         variant: "destructive",
       });
     } finally {
       setEquipping(null);
     }
   };
+
 
   const getPrivilegesList = (tier: VIPTier) => {
     const privileges = [];
