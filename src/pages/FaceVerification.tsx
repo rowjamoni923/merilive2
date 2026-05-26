@@ -889,6 +889,12 @@ const FaceVerification = () => {
       }
     };
 
+    const quality = await assessCameraFrameQuality(imageBase64);
+    if (!quality.usable) {
+      pushDebug({ kind: 'bad_frame_quality', brightness: +quality.brightness.toFixed(1), contrast: +quality.contrast.toFixed(1) });
+      return null;
+    }
+
     const localPosePromise = detectLocalFacePoseFromBase64(imageBase64);
     const serverPosePromise = (async () => {
       try {
@@ -896,8 +902,10 @@ const FaceVerification = () => {
           body: { imageBase64, streamId: 'face-verification' },
         });
         if (response.error || !response.data) return null;
+        const faces = Number(response.data.faceCount ?? (response.data.faceDetected ? 1 : 0));
+        const confidence = Number(response.data.confidence ?? 0);
         return {
-          faceDetected: Boolean(response.data.faceDetected),
+          faceDetected: Boolean(response.data.faceDetected) && faces === 1 && confidence >= 70,
           pose: response.data.pose || { yaw: 0, pitch: 0, roll: 0 },
           eyesOpen: response.data.eyesOpen !== false,
           source: 'server' as const,
