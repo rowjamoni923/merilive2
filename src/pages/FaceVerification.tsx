@@ -1233,7 +1233,7 @@ const FaceVerification = () => {
           instruction: faceInstructions[currentInstructionRef.current]?.id,
           apiOk: !!result,
         });
-        if (consecutiveFails >= 15) {
+        if (consecutiveFails >= 10) {
           const fallbackFrame = await captureFaceFrameBase64(720);
           if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
           pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
