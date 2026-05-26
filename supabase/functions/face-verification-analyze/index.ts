@@ -356,7 +356,7 @@ serve(async (req) => {
     if (rightDetails.length === 0) rightError = "no_face_right";
     else if (rightDetails.length > 1) rightError = "multiple_faces_right";
 
-    if (frontError || leftError || rightError) finalGender = "unknown";
+    if (frontError) finalGender = "unknown";
 
     const rekognition: Record<string, unknown> = {
       version: 1,
@@ -713,7 +713,7 @@ serve(async (req) => {
       (detectedGenderForDecision === "male" || detectedGenderForDecision === "female") &&
       detectedGenderForDecision !== expectedGender &&
       genderConf >= 70 &&
-      !frontError && !leftError && !rightError
+      !frontError
     );
     const hardAutoReject: "gender_mismatch" | null = (genderDeclarationMismatch || strictGenderMismatch) ? "gender_mismatch" : null;
 
