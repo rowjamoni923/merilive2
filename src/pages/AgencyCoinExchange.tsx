@@ -153,14 +153,18 @@ const AgencyCoinExchange = () => {
     const onAdmin = async (e: Event) => {
       const detail = (e as CustomEvent<{ table?: string }>).detail;
       if (detail?.table !== 'app_settings') return;
-      // Bust cache so we read the latest admin value
+      // Bust cache so we read the latest admin value (agency-specific, fall back to shared)
+      invalidateAppSetting('agency_coin_exchange');
       invalidateAppSetting('coin_exchange');
-      const value = await getAppSetting<Record<string, unknown>>('coin_exchange');
+      const value =
+        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange')) ||
+        (await getAppSetting<Record<string, unknown>>('coin_exchange'));
       if (value) setExchangeSettings(normalizeExchangeSettings(value));
     };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
     return () => window.removeEventListener('admin-table-update', onAdmin as EventListener);
   }, []);
+
 
 
   const fetchData = async () => {
