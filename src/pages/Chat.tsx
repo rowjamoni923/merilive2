@@ -895,6 +895,8 @@ const Chat = () => {
 
   const upsertLiveMessageRef = useRef(upsertLiveMessage);
   upsertLiveMessageRef.current = upsertLiveMessage;
+  const selectedConversationRef = useRef(selectedConversation);
+  selectedConversationRef.current = selectedConversation;
 
   // Subscribe to real-time messages via DEDICATED direct channel
   // (bypasses universal system to avoid gaps during channel rebuild loops)
