@@ -469,11 +469,14 @@ public class NativeCameraPlugin extends Plugin {
             try {
                 long now = System.currentTimeMillis();
                 if (now - lastFrameEncodeAt < 350) return;
-                byte[] jpeg = imageProxyToJpeg(image, 72);
+                int rotation = image.getImageInfo().getRotationDegrees();
+                boolean mirror = currentSelector == CameraSelector.DEFAULT_FRONT_CAMERA;
+                byte[] jpeg = normalizeJpegForFaceDetection(imageProxyToJpeg(image, 82), rotation, mirror, 82);
                 synchronized (frameLock) {
                     latestFrameJpeg = jpeg;
-                    latestFrameWidth = image.getWidth();
-                    latestFrameHeight = image.getHeight();
+                    latestFrameWidth = (rotation == 90 || rotation == 270) ? image.getHeight() : image.getWidth();
+                    latestFrameHeight = (rotation == 90 || rotation == 270) ? image.getWidth() : image.getHeight();
+                    latestFrameRotation = rotation;
                     lastFrameEncodeAt = now;
                 }
             } catch (Exception e) {
