@@ -508,76 +508,95 @@ const AdminTransferScheduler = () => {
           </CardContent>
         </Card>
 
-        {/* Settings Card */}
+        {/* Settings Card — Weekday + Time */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <Clock className="w-5 h-5 text-primary" />
-              Transfer Interval Settings
+              Weekly Transfer Schedule
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Pick the weekday and exact time. The transfer runs automatically every week at that wall-clock time
+              — even when no admin is logged in.
+            </p>
+
+            <div className="space-y-2">
+              <Label>Day of the week</Label>
+              <Select
+                value={String(schedule.schedule_day_of_week)}
+                onValueChange={(v) => setSchedule({ ...schedule, schedule_day_of_week: parseInt(v) })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((name, i) => (
+                    <SelectItem key={i} value={String(i)}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Days</Label>
-                <Select 
-                  value={schedule.interval_days.toString()} 
-                  onValueChange={(v) => setSchedule({ ...schedule, interval_days: parseInt(v) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7, 14, 30].map(d => (
-                      <SelectItem key={d} value={d.toString()}>{d} Day(s)</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Hour (0-23)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={schedule.schedule_hour}
+                  onChange={(e) => {
+                    const n = Math.max(0, Math.min(23, parseInt(e.target.value || '0', 10) || 0));
+                    setSchedule({ ...schedule, schedule_hour: n });
+                  }}
+                />
               </div>
               <div className="space-y-2">
-                <Label>Hours</Label>
-                <Select 
-                  value={schedule.interval_hours.toString()} 
-                  onValueChange={(v) => setSchedule({ ...schedule, interval_hours: parseInt(v) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[0, 1, 2, 3, 4, 5, 6, 12, 18].map(h => (
-                      <SelectItem key={h} value={h.toString()}>{h} Hour(s)</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Minute (0-59)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={59}
+                  value={schedule.schedule_minute}
+                  onChange={(e) => {
+                    const n = Math.max(0, Math.min(59, parseInt(e.target.value || '0', 10) || 0));
+                    setSchedule({ ...schedule, schedule_minute: n });
+                  }}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label>Timezone</Label>
-              <Select 
-                value={schedule.timezone} 
+              <Select
+                value={schedule.timezone}
                 onValueChange={(v) => setSchedule({ ...schedule, timezone: v })}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Asia/Dhaka">Bangladesh (UTC+6)</SelectItem>
                   <SelectItem value="UTC">UTC</SelectItem>
                   <SelectItem value="Asia/Kolkata">India (UTC+5:30)</SelectItem>
+                  <SelectItem value="Asia/Karachi">Pakistan (UTC+5)</SelectItem>
+                  <SelectItem value="Asia/Dubai">UAE (UTC+4)</SelectItem>
+                  <SelectItem value="Asia/Singapore">Singapore (UTC+8)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <Button 
-              className="w-full" 
-              onClick={() => saveSchedule(schedule)}
+            <Button
+              className="w-full"
+              onClick={() => {
+                const next = computeNextRun(schedule);
+                saveSchedule({ ...schedule, next_transfer_at: schedule.is_active ? next.toISOString() : schedule.next_transfer_at });
+              }}
               disabled={saving}
             >
               {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-              Save Settings
+              Save Schedule
             </Button>
           </CardContent>
+
         </Card>
 
         {/* Manual Transfer Card */}
