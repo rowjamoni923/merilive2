@@ -207,6 +207,9 @@ export default function AdminRecordings() {
     return `${(bytes / 1024).toFixed(1)} KB`;
   };
 
+  const isRecordingPlayable = (rec: Recording) =>
+    Boolean(rec.recording_url) && ["ready", "completed"].includes(rec.status || "");
+
   const openRecordingUrl = async (url: string) => {
     const signedUrl = await resolveAdminStorageSignedUrl(url, "live-recordings").catch(() => null);
     window.open(signedUrl || url, "_blank");
@@ -292,7 +295,7 @@ export default function AdminRecordings() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {rec.recording_url && rec.status === "completed" && (
+                      {isRecordingPlayable(rec) && (
                         <>
                           <Button variant="outline" size="sm" className="h-8 text-xs border-pink-200 text-pink-600 hover:bg-pink-50"
                             onClick={() => { setPlayingUrl(rec.recording_url); setPlayingTitle(`${rec.host_name || "Host"} — ${formatTime(rec.started_at)}`); }}>
