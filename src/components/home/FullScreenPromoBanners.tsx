@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
+import { normalizePublicMediaUrl } from "@/lib/cdnImage";
 
 import bannerRatingRewardV2 from "@/assets/banners/banner-rating-reward-v2.jpg";
 import bannerRatingRewardV3 from "@/assets/banners/banner-rating-reward-v3.jpg";
@@ -103,7 +104,7 @@ export function FullScreenPromoBanners() {
         .select("image_url")
         .eq("is_active", true)
         .order("display_order", { ascending: true });
-      const urls = (data || []).map((r: any) => r.image_url).filter(Boolean);
+      const urls = (data || []).map((r: any) => normalizePublicMediaUrl(r.image_url, "banners")).filter(Boolean) as string[];
       CACHED_ADMIN_RATING_BANNERS = urls;
     } catch {
       CACHED_ADMIN_RATING_BANNERS = [];
@@ -278,6 +279,9 @@ export function FullScreenPromoBanners() {
             alt={currentBanner.alt}
             width={1080}
             height={currentBanner.fullScreen ? 1920 : 1080}
+            loading="eager"
+            decoding="async"
+            {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
             className={
               currentBanner.fullScreen
                 ? "h-full w-full object-contain"
