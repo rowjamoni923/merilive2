@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { updateCachedBalance } from '@/hooks/useUserBalance';
 import { useToast } from '@/hooks/use-toast';
-import { Capacitor } from '@capacitor/core';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
 import { getAppSetting } from '@/utils/appSettingsCache';
@@ -1147,44 +1146,15 @@ export function usePrivateCall(userId: string | null) {
       }
     };
 
-    const startFallbackPolling = () => {
-      if (isCleanedUp) return;
-
-      // One immediate check, then low-frequency fallback polling.
-      void checkPendingCalls();
-
-      pollingInterval = setInterval(() => {
-        void checkPendingCalls();
-      }, FALLBACK_PENDING_CALL_POLL_MS);
-    };
-
-    startFallbackPolling();
-
-    // Check when app comes back to foreground
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void checkPendingCalls();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Native app resume handler
-    if (Capacitor.isNativePlatform()) {
-      import('@capacitor/app').then(({ App }) => {
-        App.addListener('resume', () => {
-          void checkPendingCalls();
-        }).then(listener => {
-          appResumeCleanup = () => listener.remove();
-        });
-      }).catch(() => {});
-    }
+    // Zero-refresh policy: no fallback polling and no foreground/resume checks.
+    // FCM + scoped Supabase Realtime below are the instant authoritative paths.
+    void checkPendingCalls();
 
     return () => {
       isCleanedUp = true;
       if (pollingInterval) {
         clearInterval(pollingInterval);
       }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       appResumeCleanup?.();
     };
   }, [userId, showVerifiedIncomingCall]);
