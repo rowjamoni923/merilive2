@@ -316,19 +316,36 @@ const AdminTransferScheduler = () => {
     }
   };
 
+  // Compute next fire time (wall-clock) for the configured weekday+hour+minute in tz
+  const computeNextRun = (s: TransferSchedule): Date => {
+    // Use Intl to get current parts in target timezone
+    const tz = s.timezone || 'UTC';
+    const nowUtcMs = Date.now();
+    // Walk forward up to 8 days to find next slot >= now
+    for (let i = 0; i < 8 * 24 * 60; i++) {
+      const cand = new Date(nowUtcMs + i * 60 * 1000);
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+      }).formatToParts(cand);
+      const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(parts.find(p => p.type==='weekday')?.value || '');
+      const hh = parseInt(parts.find(p => p.type==='hour')?.value || '0', 10);
+      const mm = parseInt(parts.find(p => p.type==='minute')?.value || '0', 10);
+      if (wd === s.schedule_day_of_week && hh === s.schedule_hour && mm === s.schedule_minute) return cand;
+    }
+    return new Date(nowUtcMs + 7 * 24 * 60 * 60 * 1000);
+  };
+
   const startTimer = async () => {
-    const now = new Date();
-    const nextTransfer = new Date(now.getTime() + (schedule.interval_days * 24 + schedule.interval_hours) * 60 * 60 * 1000);
-    
+    const next = computeNextRun(schedule);
     const newSchedule = {
       ...schedule,
       is_active: true,
-      next_transfer_at: nextTransfer.toISOString()
+      next_transfer_at: next.toISOString()
     };
-    
     await saveSchedule(newSchedule);
-    toast.success('Timer started!');
+    toast.success('Schedule activated! Server will fire automatically.');
   };
+
 
   const stopTimer = async () => {
     const newSchedule = {
