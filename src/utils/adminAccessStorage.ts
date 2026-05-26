@@ -3,6 +3,8 @@ const OWNER_ACCESS_KEY = 'meri_owner_access';
 const ADMIN_LINK_TOKEN_KEY = 'meri_admin_link_token';
 const ADMIN_LINK_KIND_KEY = 'meri_admin_link_kind'; // 'owner' | 'sub_admin'
 const ADMIN_LINK_CHALLENGE_KEY = 'meri_admin_link_challenge';
+const ADMIN_LINK_TOKEN_PERSIST_KEY = 'meri_admin_link_token_persist';
+const ADMIN_LINK_KIND_PERSIST_KEY = 'meri_admin_link_kind_persist';
 
 export type AdminLinkKind = 'owner' | 'sub_admin';
 
@@ -30,23 +32,36 @@ export const setAdminLinkToken = (token: string) => {
   const normalized = token.trim();
   if (!normalized) return;
   window.sessionStorage.setItem(ADMIN_LINK_TOKEN_KEY, normalized);
+  window.localStorage.setItem(ADMIN_LINK_TOKEN_PERSIST_KEY, normalized);
   window.localStorage.removeItem(ADMIN_LINK_TOKEN_KEY);
 };
 
 export const getAdminLinkToken = (): string | null => {
   if (!hasWindow()) return null;
-  return window.sessionStorage.getItem(ADMIN_LINK_TOKEN_KEY);
+  const tabToken = window.sessionStorage.getItem(ADMIN_LINK_TOKEN_KEY);
+  if (tabToken) return tabToken;
+  const persisted = window.localStorage.getItem(ADMIN_LINK_TOKEN_PERSIST_KEY);
+  if (persisted) {
+    window.sessionStorage.setItem(ADMIN_LINK_TOKEN_KEY, persisted);
+    return persisted;
+  }
+  return null;
 };
 
 export const setAdminLinkKind = (kind: AdminLinkKind) => {
   if (!hasWindow()) return;
   window.sessionStorage.setItem(ADMIN_LINK_KIND_KEY, kind);
+  window.localStorage.setItem(ADMIN_LINK_KIND_PERSIST_KEY, kind);
   window.localStorage.removeItem(ADMIN_LINK_KIND_KEY);
 };
 
 export const getAdminLinkKind = (): AdminLinkKind | null => {
   if (!hasWindow()) return null;
-  const v = window.sessionStorage.getItem(ADMIN_LINK_KIND_KEY);
+  let v = window.sessionStorage.getItem(ADMIN_LINK_KIND_KEY);
+  if (!v) {
+    v = window.localStorage.getItem(ADMIN_LINK_KIND_PERSIST_KEY);
+    if (v === 'owner' || v === 'sub_admin') window.sessionStorage.setItem(ADMIN_LINK_KIND_KEY, v);
+  }
   return v === 'owner' || v === 'sub_admin' ? v : null;
 };
 
@@ -79,6 +94,14 @@ export const syncAdminAccessToSession = () => {
   window.localStorage.removeItem(ADMIN_LINK_TOKEN_KEY);
   window.localStorage.removeItem(ADMIN_LINK_KIND_KEY);
   window.localStorage.removeItem(ADMIN_LINK_CHALLENGE_KEY);
+  const persistedToken = window.localStorage.getItem(ADMIN_LINK_TOKEN_PERSIST_KEY);
+  const persistedKind = window.localStorage.getItem(ADMIN_LINK_KIND_PERSIST_KEY);
+  if (persistedToken && !window.sessionStorage.getItem(ADMIN_LINK_TOKEN_KEY)) {
+    window.sessionStorage.setItem(ADMIN_LINK_TOKEN_KEY, persistedToken);
+  }
+  if ((persistedKind === 'owner' || persistedKind === 'sub_admin') && !window.sessionStorage.getItem(ADMIN_LINK_KIND_KEY)) {
+    window.sessionStorage.setItem(ADMIN_LINK_KIND_KEY, persistedKind);
+  }
 };
 
 export const hasAdminAccessFlag = (): boolean => {
