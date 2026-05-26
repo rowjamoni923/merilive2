@@ -4,14 +4,14 @@ import android.util.Log
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Step 21 — Beauty Pipeline Bridge (DeepAR ↔ LiveKit).
+ * Step 21 — Beauty Pipeline Bridge (GPUPixel ↔ LiveKit).
  *
  * Singleton coordinator that arbitrates physical-camera ownership between
- * the LiveKit native publisher and the DeepAR beauty/AR pipeline. Only one
+ * the LiveKit native publisher and the GPUPixel beauty/AR pipeline. Only one
  * component may hold the Camera2 device at a time; this bridge is the
  * single source of truth for which is currently active.
  *
- * Lifecycle (driven from JS via NativeLiveKit + DeepAR plugins):
+ * Lifecycle (driven from JS via NativeLiveKit + GPUPixel plugins):
  *
  *   1. Beauty OFF (default):
  *      LiveKit owns the camera and publishes the raw 1080p capture.
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *   2. JS calls NativeLiveKit.setBeautyPipelineEnabled({ enabled: true }):
  *      → LiveKitPlugin.setCameraEnabled(false) — releases camera.
  *      → BeautyPipelineBridge.setEnabled(true) — flips state flag.
- *      → JS calls DeepAR.startCamera() — DeepAR opens camera, runs GL
+ *      → JS calls GPUPixel.startCamera() — GPUPixel opens camera, runs GL
  *        beauty effects, and pushes processed NV21 frames into the bridge
  *        via pushProcessedFrame(...).
  *      → LiveKit's external VideoCapturer (registered when bridge is
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  *   3. JS calls NativeLiveKit.setBeautyPipelineEnabled({ enabled: false }):
  *      → BeautyPipelineBridge.setEnabled(false) — drains pending frames.
- *      → JS calls DeepAR.stopCamera() — DeepAR releases camera.
+ *      → JS calls GPUPixel.stopCamera() — GPUPixel releases camera.
  *      → LiveKitPlugin re-enables its own camera track — direct capture
  *        resumes.
  *
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * decoupled. Frame-format negotiation (NV21 / GL texture id / timestamp)
  * is handled by the optional FrameSink registered by LiveKit's custom
  * capturer when present. When no sink is registered the pushed frames are
- * dropped — DeepAR continues running for preview only and viewers see the
+ * dropped — GPUPixel continues running for preview only and viewers see the
  * raw LiveKit camera, which is the safe fallback.
  */
 object BeautyPipelineBridge {
@@ -66,7 +66,7 @@ object BeautyPipelineBridge {
     }
 
     /**
-     * Called by DeepARPlugin every time a beauty-processed frame is ready.
+     * Called by GPUPixelPlugin every time a beauty-processed frame is ready.
      *
      * @param nv21        raw NV21 byte buffer (camera-native format)
      * @param width       frame width in pixels

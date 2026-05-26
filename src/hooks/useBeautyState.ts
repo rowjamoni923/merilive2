@@ -1,5 +1,5 @@
 /**
- * useDeepARBeauty — REMOVED (Pkg200 prep). Permissive stub.
+ * useBeautyState — REMOVED (Pkg200 prep). Permissive stub.
  *
  * Returns a permissive object so existing 20+ call-sites compile.
  * All operations are no-ops; no UI, no processing.
@@ -8,7 +8,7 @@ import { useState, useRef, useCallback } from 'react';
 import type { BeautySettings } from '@/components/live/BeautyFilterPanel';
 import { DEFAULT_BEAUTY } from '@/components/live/BeautyFilterPanel';
 
-export function useDeepARBeauty(): any {
+export function useBeautyState(): any {
   const [beautyEnabled, setBeautyEnabled] = useState(false);
   const [beautySettings, setBeautySettings] = useState<BeautySettings>({ ...DEFAULT_BEAUTY });
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
@@ -65,4 +65,4 @@ export function useDeepARBeauty(): any {
   };
 }
 
-export default useDeepARBeauty;
+export default useBeautyState;

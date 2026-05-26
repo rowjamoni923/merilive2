@@ -1,7 +1,7 @@
 /**
  * BEAUTY PROCESSOR — REMOVED (Pkg200 prep)
  *
- * পুরো বর্তমান beauty pipeline (Tencent / MediaPipe / DeepAR) সরানো হইছে।
+ * পুরো বর্তমান beauty pipeline (Tencent / MediaPipe / native beauty) সরানো হইছে।
  * GPUPixel-based new engine আসছে। এই file শুধু no-op stub রাখে যাতে
  * existing call-sites compile করে।
  */

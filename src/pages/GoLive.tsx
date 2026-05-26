@@ -23,7 +23,7 @@ import BeansIcon from "@/components/common/BeansIcon";
 import { BeautyFilterPanel, BeautySettings, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
-import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
+import { useBeautyState } from "@/hooks/useBeautyState";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
@@ -94,7 +94,7 @@ const GoLive = () => {
   const [nativePreviewActive, setNativePreviewActive] = useState(false);
   const nativePreviewStartInFlightRef = useRef(false);
 
-  // ===== UNIFIED DeepAR Camera + Beauty Hook =====
+  // ===== UNIFIED native beauty Camera + Beauty Hook =====
   const {
     isNativeAndroid,
     startNativeCamera,
@@ -113,12 +113,12 @@ const GoLive = () => {
     handleBeautySettingsChange,
     handleBeautyEnabledChange,
     handleStickerChange,
-  } = useDeepARBeauty();
+  } = useBeautyState();
 
 
 
   // Wrapper: start native camera with permission check
-  const startNativeDeepARPreview = useCallback(async () => {
+  const startNativePreview = useCallback(async () => {
     if (!isNativeAndroid) return false;
     if (nativePreviewActive) return true;
 
@@ -158,14 +158,14 @@ const GoLive = () => {
     }
   }, [isNativeAndroid, nativePreviewActive, requestCameraPermission, startNativeCamera]);
 
-  const stopNativeDeepARPreview = useCallback(async () => {
+  const stopNativePreview = useCallback(async () => {
     await stopNativeCamera();
     setNativePreviewActive(false);
   }, [stopNativeCamera]);
 
   const openBeautyStudio = useCallback(async () => {
     // Always open the panel — works on web (CSS/MediaPipe) and on Android
-    // (with optional native DeepAR enhancement when bridge is available).
+    // (with optional native native beauty enhancement when bridge is available).
     setShowBeautyPanel(true);
     if (isNativeAndroid) {
       void openBeautyPanel().catch(() => { /* native optional */ });
@@ -178,7 +178,7 @@ const GoLive = () => {
     setShowStickerPanel(true);
   }, []);
 
-  // Apply CSS beauty filter for web preview (also as fallback when native DeepAR fails)
+  // Apply CSS beauty filter for web preview (also as fallback when native native beauty fails)
   const beautyCSS = (isNativeAndroid && nativePreviewActive) ? "" : generateBeautyCSS(beautyEnabled, beautySettings);
 
   const markPreviewReady = useCallback(() => {
@@ -373,7 +373,7 @@ const GoLive = () => {
   // Handle back button
   const handleBack = async () => {
     clearPreparedHostPreviewStream();
-    await stopNativeDeepARPreview();
+    await stopNativePreview();
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -432,7 +432,7 @@ const GoLive = () => {
           console.log('[GoLive] Permission already granted, auto-starting camera');
           try {
             if (isNativeAndroid) {
-              const started = await startNativeDeepARPreview();
+              const started = await startNativePreview();
               if (isMounted) {
                 setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
                 if (!started) {
@@ -469,14 +469,14 @@ const GoLive = () => {
       if (preservePreviewForLiveRef.current) return;
       clearPreparedHostPreviewStream();
       if (isNativeAndroid) {
-        void stopNativeDeepARPreview();
+        void stopNativePreview();
       }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
     };
-  }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativeDeepARPreview, stopNativeDeepARPreview, attachWebPreviewStream, loadUserProfile]);
+  }, [navigate, useLiveKit, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativePreview, stopNativePreview, attachWebPreviewStream, loadUserProfile]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -500,15 +500,15 @@ const GoLive = () => {
   const handleAllowPermissions = async () => {
     setShowPermissionPrompt(false);
 
-    // Native fast-path: try DeepAR first, then web camera fallback
+    // Native fast-path: try native beauty first, then web camera fallback
     if (isNativeAndroid) {
-      const started = await startNativeDeepARPreview();
+      const started = await startNativePreview();
       if (started) {
         playSound('notification');
         return;
       }
 
-      // DeepAR failed → try web camera before giving up
+      // native beauty failed → try web camera before giving up
       try {
         const fallbackStream = await getCameraStream(true);
         if (fallbackStream) {
@@ -634,7 +634,7 @@ const GoLive = () => {
       console.log('[GoLive] Requesting camera and microphone permissions via native API...');
 
       if (isNativeAndroid) {
-        const started = await startNativeDeepARPreview();
+        const started = await startNativePreview();
         if (started) {
           playSound('notification');
           return;
@@ -695,8 +695,8 @@ const GoLive = () => {
   const startCamera = async () => {
     try {
       if (isNativeAndroid) {
-        await stopNativeDeepARPreview();
-        const started = await startNativeDeepARPreview();
+        await stopNativePreview();
+        const started = await startNativePreview();
         if (!started) {
           throw new Error(getLastError() || 'Native camera access failed');
         }
@@ -818,7 +818,7 @@ const GoLive = () => {
     }
 
     if (isNativeAndroid && !nativePreviewActive) {
-      const started = await startNativeDeepARPreview();
+      const started = await startNativePreview();
       if (!started) {
         // Fallback: try web camera instead of blocking Go Live
         console.warn('[GoLive] Native camera failed on Go Live, trying web camera fallback');
@@ -941,11 +941,11 @@ const GoLive = () => {
 
       // Handoff policy:
       // - Web preview: preserve same MediaStream for zero-gap transition
-      // - Native DeepAR preview: release camera BEFORE entering LiveStream to avoid Android camera resource crash
+      // - Native native beauty preview: release camera BEFORE entering LiveStream to avoid Android camera resource crash
       if (isNativeAndroid && nativePreviewActive) {
         preservePreviewForLiveRef.current = false;
         clearPreparedHostPreviewStream();
-        await stopNativeDeepARPreview();
+        await stopNativePreview();
         await new Promise((resolve) => setTimeout(resolve, 800));
       } else {
         // Preserve the real WebView camera stream on Android when native preview
@@ -986,7 +986,7 @@ const GoLive = () => {
 
   const goToEditProfile = async () => {
     clearPreparedHostPreviewStream();
-    await stopNativeDeepARPreview();
+    await stopNativePreview();
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -1834,7 +1834,7 @@ const GoLive = () => {
         )}
       </AnimatePresence>
 
-      {/* DeepAR stickers are handled natively on Android — no web panel needed */}
+      {/* native beauty stickers are handled natively on Android — no web panel needed */}
 
       {/* Right Side Quick Actions - Removed */}
 

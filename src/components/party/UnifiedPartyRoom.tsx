@@ -1724,7 +1724,7 @@ export function UnifiedPartyRoom({
             <Gamepad2 className="w-[18px] h-[18px]" />
           </motion.button>
 
-          {/* Beauty Button — REAL DeepAR Native */}
+          {/* Beauty Button — REAL native beauty Native */}
           {onBeautyClick && (
             <motion.button
               whileTap={{ scale: 0.92 }}
@@ -1736,7 +1736,7 @@ export function UnifiedPartyRoom({
             </motion.button>
           )}
 
-          {/* Sticker Button — REAL DeepAR Native */}
+          {/* Sticker Button — REAL native beauty Native */}
           {onStickerClick && (
             <motion.button
               whileTap={{ scale: 0.92 }}

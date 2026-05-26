@@ -9,7 +9,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.merilive.app.databinding.BottomSheetBeautyBinding
-import com.merilive.app.service.DeepARManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,7 +19,6 @@ class BeautyBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetBeautyBinding? = null
     private val binding get() = _binding!!
 
-    @Inject lateinit var deepARManager: DeepARManager
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = BottomSheetBeautyBinding.inflate(inflater, container, false)
@@ -76,7 +74,6 @@ class BeautyBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun updateBeauty() {
-        deepARManager.setBeautyParams(
             smooth = binding.seekSmoothing.progress / 100f,
             white = binding.seekWhitening.progress / 100f,
             thin = binding.seekThinFace.progress / 100f,

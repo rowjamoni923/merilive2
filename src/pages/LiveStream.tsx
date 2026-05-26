@@ -16,7 +16,7 @@ import { useLiveKitRpcHandlers } from "@/hooks/useLiveKitRpcHandlers";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
-import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
+import { useBeautyState } from "@/hooks/useBeautyState";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
 import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
@@ -210,8 +210,8 @@ const LiveStream = () => {
   const [message, setMessage] = useState("");
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
-  // REAL DeepAR native beauty integration
-  const deepAR = useDeepARBeauty();
+  // REAL native beauty native beauty integration
+  const beauty = useBeautyState();
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
   const [showStickerPanel, setShowStickerPanel] = useState(false);
   // Pkg125: Virtual Background dialog (web hosts only)
@@ -2349,7 +2349,7 @@ const LiveStream = () => {
 
   // Host-only options: Flip
   const hostOnlyOptions = [
-    { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (deepAR.isNativeAndroid) { void deepAR.openBeautyPanel().catch(() => { /* native optional */ }); } } },
+    { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (beauty.isNativeAndroid) { void beauty.openBeautyPanel().catch(() => { /* native optional */ }); } } },
     { id: "sticker", name: "Sticker", iconName: "Smile" as const, color: "from-orange-400 to-amber-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); setShowStickerPanel(true); } },
     // Flip camera button removed per request (no video icons in live)
     // Screen share removed for privacy
@@ -2361,7 +2361,7 @@ const LiveStream = () => {
     // Pkg123: Noise Cancellation toggle (Krisp — web hosts; native uses WebRTC NS)
     { id: "noisecancel", name: "Noise Cut", iconName: "ShieldCheck" as const, color: "from-sky-400 to-indigo-600", shadowColor: "shadow-sky-500/40", action: () => {
         setShowMoreOptions(false);
-        if (deepAR.isNativeAndroid) {
+        if (beauty.isNativeAndroid) {
           toast.info("Native mic uses built-in noise suppression.");
           return;
         }
@@ -3712,29 +3712,29 @@ const LiveStream = () => {
           <BeautyFilterPanel
             isOpen={showBeautyPanel}
             onClose={() => setShowBeautyPanel(false)}
-            settings={deepAR.beautySettings}
-            enabled={deepAR.beautyEnabled}
-            onSettingsChange={deepAR.handleBeautySettingsChange}
-            onEnabledChange={deepAR.handleBeautyEnabledChange}
+            settings={beauty.beautySettings}
+            enabled={beauty.beautyEnabled}
+            onSettingsChange={beauty.handleBeautySettingsChange}
+            onEnabledChange={beauty.handleBeautyEnabledChange}
           />
-          <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => { setActiveSticker(null); deepAR.handleStickerChange(null); }} />
+          <StickerOverlay stickerName={beauty.activeSticker} onDismiss={() => { setActiveSticker(null); beauty.handleStickerChange(null); }} />
           <StickerPanel
             isOpen={showStickerPanel}
             onClose={() => setShowStickerPanel(false)}
-            activeSticker={deepAR.activeSticker}
-            onStickerChange={(name) => { setActiveSticker(name); deepAR.handleStickerChange(name); }}
+            activeSticker={beauty.activeSticker}
+            onStickerChange={(name) => { setActiveSticker(name); beauty.handleStickerChange(name); }}
           />
           <VirtualBackgroundDialog
             open={showVirtualBackground}
             onClose={() => setShowVirtualBackground(false)}
             localVideoTrack={localVideoTrack}
-            isNative={deepAR.isNativeAndroid}
+            isNative={beauty.isNativeAndroid}
           />
           <NoiseCancellationDialog
             open={showNoiseCancellation}
             onClose={() => setShowNoiseCancellation(false)}
             localAudioTrack={localAudioTrack}
-            isNative={deepAR.isNativeAndroid}
+            isNative={beauty.isNativeAndroid}
           />
 
           <IngressDialog

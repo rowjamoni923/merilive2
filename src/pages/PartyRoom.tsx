@@ -96,7 +96,7 @@ import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
 // Room protection - blocks back button, auto-closes on network loss
 import { useRoomProtection } from "@/hooks/useRoomProtection";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
-import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
+import { useBeautyState } from "@/hooks/useBeautyState";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -252,8 +252,8 @@ const PartyRoom = () => {
     max_game_participants: 6
   });
   
-  // REAL DeepAR native beauty integration for Party Rooms
-  const deepAR = useDeepARBeauty();
+  // REAL native beauty native beauty integration for Party Rooms
+  const beauty = useBeautyState();
   
   // 🔥 AWS Comprehend content moderation
   const { checkToxicContent: checkToxic } = useContentModeration(currentUser?.id);
@@ -1909,15 +1909,15 @@ const PartyRoom = () => {
         onRequestSeat={requestSeat}
         onOpenGifts={() => setShowGiftPanel(true)}
         onBeautyClick={() => {
-          if (deepAR.isNativeAndroid) {
-            void deepAR.openBeautyPanel();
+          if (beauty.isNativeAndroid) {
+            void beauty.openBeautyPanel();
           } else {
-            deepAR.setShowBeautyPanel(true);
+            beauty.setShowBeautyPanel(true);
           }
         }}
         onStickerClick={() => {
-          if (deepAR.isNativeAndroid) {
-            void deepAR.toggleSticker();
+          if (beauty.isNativeAndroid) {
+            void beauty.toggleSticker();
           } else {
             toast("AR Stickers are available in the Android app only");
           }
@@ -2263,14 +2263,14 @@ const PartyRoom = () => {
 
       {/* Beauty Filter Panel with Stickers */}
       <BeautyFilterPanel
-        isOpen={deepAR.showBeautyPanel}
-        onClose={() => deepAR.setShowBeautyPanel(false)}
-        settings={deepAR.beautySettings}
-        enabled={deepAR.beautyEnabled}
-        onSettingsChange={deepAR.handleBeautySettingsChange}
-        onEnabledChange={deepAR.handleBeautyEnabledChange}
+        isOpen={beauty.showBeautyPanel}
+        onClose={() => beauty.setShowBeautyPanel(false)}
+        settings={beauty.beautySettings}
+        enabled={beauty.beautyEnabled}
+        onSettingsChange={beauty.handleBeautySettingsChange}
+        onEnabledChange={beauty.handleBeautyEnabledChange}
       />
-      <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => deepAR.handleStickerChange(null)} />
+      <StickerOverlay stickerName={beauty.activeSticker} onDismiss={() => beauty.handleStickerChange(null)} />
 
       {/* Pkg150: Selective video subscription picker — viewers in large rooms can cap concurrent video subs */}
       {!isHost && room?.room_type === 'video' && (

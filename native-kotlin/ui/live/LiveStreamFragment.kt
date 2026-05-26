@@ -14,7 +14,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.merilive.app.R
 import com.merilive.app.databinding.FragmentLiveStreamBinding
-import com.merilive.app.service.DeepARManager
 import com.merilive.app.service.LiveKitManager
 import com.merilive.app.service.UniversalAnimationPlayer
 import com.merilive.app.data.repository.*
@@ -46,7 +45,6 @@ class LiveStreamFragment : Fragment() {
     private val viewModel: LiveStreamViewModel by viewModels()
 
     @Inject lateinit var liveKitManager: LiveKitManager
-    @Inject lateinit var deepARManager: DeepARManager
 
     private var giftAnimationQueue: GiftAnimationQueue? = null
     private var musicPlayer: MusicPlayerManager? = null

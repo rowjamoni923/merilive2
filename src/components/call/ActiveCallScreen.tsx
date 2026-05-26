@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLiveKitCall } from "@/hooks/useLiveKitCall";
 import { useNativeAndroidPip } from "@/hooks/useNativeAndroidPip";
-import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
+import { useBeautyState } from "@/hooks/useBeautyState";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
 
@@ -67,8 +67,8 @@ export function ActiveCallScreen({
   onMediaConnected,
   isHost = false,
 }: ActiveCallScreenProps) {
-  // REAL DeepAR native beauty integration
-  const deepAR = useDeepARBeauty();
+  // REAL native beauty native beauty integration
+  const beauty = useBeautyState();
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
@@ -971,15 +971,15 @@ export function ActiveCallScreen({
               <span className="text-xs font-medium">Swap View</span>
             </button>
             {/* Beauty — Cross-platform */}
-              <button onClick={() => { deepAR.setShowBeautyPanel(true); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+              <button onClick={() => { beauty.setShowBeautyPanel(true); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
                 <Sparkles className="w-5 h-5 text-pink-400" />
                 <span className="text-xs font-medium">Beauty</span>
               </button>
-            {/* Sticker — REAL DeepAR Native */}
-            {deepAR.isNativeAndroid && (
-              <button onClick={() => { void deepAR.toggleSticker(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+            {/* Sticker — REAL native beauty Native */}
+            {beauty.isNativeAndroid && (
+              <button onClick={() => { void beauty.toggleSticker(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
                 <Smile className="w-5 h-5 text-orange-400" />
-                <span className="text-xs font-medium">{deepAR.stickerActive ? 'Remove Sticker' : 'Sticker'}</span>
+                <span className="text-xs font-medium">{beauty.stickerActive ? 'Remove Sticker' : 'Sticker'}</span>
               </button>
             )}
             {/* Speaker */}
@@ -1088,14 +1088,14 @@ export function ActiveCallScreen({
 
       {/* Beauty Filter Panel */}
       <BeautyFilterPanel
-        isOpen={deepAR.showBeautyPanel}
-        onClose={() => deepAR.setShowBeautyPanel(false)}
-        settings={deepAR.beautySettings}
-        enabled={deepAR.beautyEnabled}
-        onSettingsChange={deepAR.handleBeautySettingsChange}
-        onEnabledChange={deepAR.handleBeautyEnabledChange}
+        isOpen={beauty.showBeautyPanel}
+        onClose={() => beauty.setShowBeautyPanel(false)}
+        settings={beauty.beautySettings}
+        enabled={beauty.beautyEnabled}
+        onSettingsChange={beauty.handleBeautySettingsChange}
+        onEnabledChange={beauty.handleBeautyEnabledChange}
       />
-      <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => deepAR.handleStickerChange(null)} />
+      <StickerOverlay stickerName={beauty.activeSticker} onDismiss={() => beauty.handleStickerChange(null)} />
     </div>
   );
 

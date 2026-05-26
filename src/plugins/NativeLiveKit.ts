@@ -235,9 +235,9 @@ export interface NativeLiveKitPlugin {
 
   // --- Beauty pipeline ↔ camera ownership bridge (Step 21) ----
   /**
-   * Hand the physical camera over to (or back from) the DeepAR beauty
+   * Hand the physical camera over to (or back from) the native beauty beauty
    * pipeline. When `enabled: true` the LiveKit native camera track is
-   * disabled so DeepAR can open the camera; when `false`, LiveKit
+   * disabled so native beauty can open the camera; when `false`, LiveKit
    * resumes its own capture.
    */
   setBeautyPipelineEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; hasRoom: boolean }>;

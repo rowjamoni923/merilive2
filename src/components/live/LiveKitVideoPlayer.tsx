@@ -75,7 +75,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
 
   // === NATIVE BRIDGE: only enable native surface for REMOTE playback ===
-  // Host/local preview (mirror=true) must stay on web layer to avoid DeepAR surface conflicts.
+  // Host/local preview (mirror=true) must stay on web layer to avoid native beauty surface conflicts.
   useEffect(() => {
     const nativeAvailable = isNativeLiveKitAvailable();
     if (!nativeAvailable) return;

@@ -2,7 +2,6 @@ package com.merilive.app.di
 
 import android.content.Context
 import com.merilive.app.data.repository.*
-import com.merilive.app.service.DeepARManager
 import com.merilive.app.service.LiveKitManager
 import dagger.Module
 import dagger.Provides
@@ -53,8 +52,6 @@ object AppModule {
         TraderRepositoryImpl(postgrest, functions)
 
     @Provides @Singleton
-    fun provideDeepARManager(@ApplicationContext context: Context): DeepARManager =
-        DeepARManager(context)
 
     @Provides @Singleton
     fun provideLiveKitManager(@ApplicationContext context: Context): LiveKitManager =
