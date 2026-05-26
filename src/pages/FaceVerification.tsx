@@ -1086,14 +1086,40 @@ const FaceVerification = () => {
   useEffect(() => {
     const faceCameraActive = !!faceStream || usingNativeFaceCamera;
     if (!faceCameraActive || !cameraReady || verificationStarted || verificationRecording || faceVerified) return;
-    if (autoFaceStartRef.current) return;
+
+    let cancelled = false;
+    let attempt = 0;
+
+    const tryStart = async () => {
+      if (cancelled) return;
+      attempt += 1;
+      // Re-read latest state via refs / closure; if already started, bail
+      if (verificationStarted || verificationRecording || faceVerified) return;
+      try {
+        console.log(`[FaceVerify] auto-start attempt ${attempt}`);
+        await startFaceVerification();
+      } catch (err) {
+        console.error('[FaceVerify] auto-start error:', err);
+        recordClientError({ label: 'FaceVerification.autoStart', message: err instanceof Error ? err.message : String(err) });
+      }
+      // If the start did not actually flip the state within 1.5s, retry up to 3 times.
+      if (cancelled) return;
+      window.setTimeout(() => {
+        if (cancelled) return;
+        if (!verificationStarted && !verificationRecording && !faceVerified && attempt < 3) {
+          autoFaceStartRef.current = false;
+          tryStart();
+        }
+      }, 1500);
+    };
+
     autoFaceStartRef.current = true;
+    const timer = window.setTimeout(tryStart, 350);
 
-    const timer = window.setTimeout(() => {
-      void startFaceVerification();
-    }, 350);
-
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [faceStream, usingNativeFaceCamera, cameraReady, verificationStarted, verificationRecording, faceVerified]);
 
   const evaluateAdaptivePose = (
