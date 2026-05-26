@@ -125,11 +125,13 @@ const AgencyDetailsPage = () => {
             whatsapp_number: null,
           };
 
-          const { data: ownerData } = await supabase
-            .from("profiles")
-            .select("id, display_name, avatar_url, app_uid, country_flag, user_level")
-            .eq("id", normalizedAgency.owner_id)
-            .maybeSingle();
+          const { data: ownerData } = normalizedAgency.owner_id
+            ? await supabase
+                .from("profiles")
+                .select("id, display_name, avatar_url, app_uid, country_flag, user_level")
+                .eq("id", normalizedAgency.owner_id)
+                .maybeSingle()
+            : { data: null };
 
           setHostAgency({
             ...normalizedAgency,
@@ -182,6 +184,45 @@ const AgencyDetailsPage = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <div className="px-4 space-y-4 pt-4">
+          {/* Agency Info Card */}
+          <div className="bg-white rounded-2xl p-5 shadow-lg border">
+            <div className="flex items-center gap-4">
+              <Avatar className="w-16 h-16 border-2 border-brand-200">
+                <AvatarImage src={hostAgency.logo_url || undefined} />
+                <AvatarFallback className={`bg-gradient-to-br ${getLevelColor(hostAgency.level || 'A1')} text-white text-xl`}>
+                  {hostAgency.name?.charAt(0) || 'A'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="font-bold text-gray-800 text-xl truncate">{hostAgency.name}</h2>
+                  <Badge className={`bg-gradient-to-r ${getLevelColor(hostAgency.level || 'A1')} text-white border-0`}>
+                    {getLevelName(hostAgency.level || 'A1')}
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <Hash className="w-4 h-4" />
+                  {hostAgency.agency_code}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-5">
+              <div className="p-3 bg-brand-50 rounded-xl border border-brand-100">
+                <p className="text-xs text-brand-600 flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5" /> Hosts
+                </p>
+                <p className="text-lg font-bold text-brand-800">{hostAgency.total_hosts || 0}</p>
+              </div>
+              <div className="p-3 bg-warning-50 rounded-xl border border-warning-100">
+                <p className="text-xs text-warning-600 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5" /> Joined
+                </p>
+                <p className="text-sm font-bold text-warning-800">{new Date(hostAgency.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+
           {/* Owner Details Card */}
           {hostAgency.owner && (
             <div className="bg-white rounded-2xl p-5 shadow-lg border">
