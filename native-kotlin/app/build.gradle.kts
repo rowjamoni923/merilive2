@@ -34,11 +34,13 @@ android {
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc\"")
     }
 
+    val keystorePropsFile = rootProject.file("keystore.properties")
+    val hasReleaseKeystore = keystorePropsFile.exists()
+
     signingConfigs {
-        create("release") {
-            val keystoreFile = rootProject.file("keystore.properties")
-            if (keystoreFile.exists()) {
-                val props = java.util.Properties().apply { load(keystoreFile.inputStream()) }
+        if (hasReleaseKeystore) {
+            create("release") {
+                val props = java.util.Properties().apply { load(keystorePropsFile.inputStream()) }
                 storeFile = file(props["storeFile"] as String)
                 storePassword = props["storePassword"] as String
                 keyAlias = props["keyAlias"] as String
@@ -51,7 +53,13 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            // Only attach release signing when keystore.properties is present.
+            // Otherwise fall back to debug signing so the build still succeeds locally.
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
