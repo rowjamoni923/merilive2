@@ -4,7 +4,9 @@
  */
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import appLogo from '@/assets/app-logo.png';
+// Served from /public so it bypasses any stale service-worker cache or
+// private storage bucket and is always reachable as a same-origin asset.
+const appLogo = '/app-logo.png?v=3';
 import { APP_VERSION } from '@/lib/version';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
