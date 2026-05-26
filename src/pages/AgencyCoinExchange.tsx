@@ -153,14 +153,18 @@ const AgencyCoinExchange = () => {
     const onAdmin = async (e: Event) => {
       const detail = (e as CustomEvent<{ table?: string }>).detail;
       if (detail?.table !== 'app_settings') return;
-      // Bust cache so we read the latest admin value
+      // Bust cache so we read the latest admin value (agency-specific, fall back to shared)
+      invalidateAppSetting('agency_coin_exchange');
       invalidateAppSetting('coin_exchange');
-      const value = await getAppSetting<Record<string, unknown>>('coin_exchange');
+      const value =
+        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange')) ||
+        (await getAppSetting<Record<string, unknown>>('coin_exchange'));
       if (value) setExchangeSettings(normalizeExchangeSettings(value));
     };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
     return () => window.removeEventListener('admin-table-update', onAdmin as EventListener);
   }, []);
+
 
 
   const fetchData = async () => {
@@ -202,11 +206,14 @@ const AgencyCoinExchange = () => {
       // CRITICAL FIX: My Beans = profiles.beans (personal), NOT agency wallet_balance (Total Beans)
       setOwnerBeans(Math.max(0, Number(profileData?.beans || 0)));
 
-      // Fetch exchange settings (shared cache — dedupes with the admin-broadcast listener)
-      const settingsValue = await getAppSetting<Record<string, unknown>>('coin_exchange');
+      // Fetch agency-specific exchange settings (rate + 25% fee); fall back to user setting
+      const settingsValue =
+        (await getAppSetting<Record<string, unknown>>('agency_coin_exchange')) ||
+        (await getAppSetting<Record<string, unknown>>('coin_exchange'));
       if (settingsValue) {
         setExchangeSettings(normalizeExchangeSettings(settingsValue));
       }
+
 
       // Fetch recent transactions
       const { data: transactionsData } = await supabase
