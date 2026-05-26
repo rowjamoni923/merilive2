@@ -3146,11 +3146,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-orange-600">Fee ({agencyExchangeSettings.exchange_fee_percent}%)</span>
-                  <span className="text-orange-600 flex items-center gap-1 font-medium">-{exchangeFeeAmount.toLocaleString()} <BeansIcon size={12} /></span>
+                  <span className="text-orange-600 flex items-center gap-1 font-medium">-{exchangeFeeAmount.toLocaleString()} 💎</span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-body">Beans After Fee</span>
-                  <span className="text-body flex items-center gap-1">{(parseInt(exchangeBeansAmount) - exchangeFeeAmount).toLocaleString()} <BeansIcon size={12} /></span>
+                  <span className="text-body">Gross Diamonds</span>
+                  <span className="text-body flex items-center gap-1">{Math.floor((parseInt(exchangeBeansAmount) || 0) / agencyExchangeSettings.beans_to_diamonds_rate).toLocaleString()} 💎</span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1 pt-2 border-t border-emerald-200/70">
                   <span className="text-body">Total Beans Deducted</span>
