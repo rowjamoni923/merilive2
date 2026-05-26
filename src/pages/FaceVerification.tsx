@@ -513,7 +513,7 @@ const FaceVerification = () => {
   // unreliable male/female detection because it analysed ONE frame with no
   // cross-checks. All face verification now goes through the 3-API pipeline
   // in `face-verification-analyze` (AWS Rekognition multi-angle + external
-  // liveness provider + duplicate-face provider) — see triggerRekognitionAutoApprove.
+  // liveness provider + duplicate-face provider), triggered after DB insert.
 
 
   // Generate deterministic face/video hash; never random, so duplicate checks do not silently miss.
