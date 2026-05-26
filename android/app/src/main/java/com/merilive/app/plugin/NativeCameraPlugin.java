@@ -344,10 +344,12 @@ public class NativeCameraPlugin extends Plugin {
         byte[] jpeg;
         int width;
         int height;
+        int rotation;
         synchronized (frameLock) {
             jpeg = latestFrameJpeg;
             width = latestFrameWidth;
             height = latestFrameHeight;
+            rotation = latestFrameRotation;
         }
         if (jpeg == null || jpeg.length == 0) {
             call.reject("Camera frame not ready");
@@ -358,6 +360,7 @@ public class NativeCameraPlugin extends Plugin {
         ret.put("mimeType", "image/jpeg");
         ret.put("width", width);
         ret.put("height", height);
+        ret.put("rotation", rotation);
         call.resolve(ret);
     }
 
