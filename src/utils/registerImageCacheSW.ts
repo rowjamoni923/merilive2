@@ -16,8 +16,9 @@ let registered = false;
 
 function postWarm(urls: string[]) {
   if (!urls.length) return;
+  const chunked = urls.slice(0, 500);
   const send = (sw: ServiceWorker | null) => {
-    if (sw) sw.postMessage({ type: 'WARM_IMAGES', urls });
+    if (sw) sw.postMessage({ type: 'WARM_IMAGES', urls: chunked });
   };
   if (navigator.serviceWorker.controller) {
     send(navigator.serviceWorker.controller);
@@ -28,7 +29,7 @@ function postWarm(urls: string[]) {
 
 /** Browser-level preloads — works even when SW isn't ready yet. */
 function preloadInBrowser(urls: string[]) {
-  urls.forEach(u => {
+  urls.slice(0, 96).forEach(u => {
     if (!u) return;
     try {
       const img = new Image();
@@ -95,6 +96,10 @@ export async function warmAppImageCache(): Promise<void> {
 
     // Universal banners / campaigns (app + admin preview)
     queries.push(safe(async () => {
+      const { data } = await supabase.from('app_branding').select('logo_url, background_url, splash_image_url').limit(10);
+      (data || []).forEach((r: any) => { push(r.logo_url, 'branding'); push(r.background_url, 'branding'); push(r.splash_image_url, 'branding'); });
+    }));
+    queries.push(safe(async () => {
       const { data } = await supabase.from('entry_banners').select('image_url, animation_url').eq('is_active', true).limit(20);
       (data || []).forEach((r: any) => { push(r.image_url); push(r.animation_url); });
     }));
@@ -113,6 +118,10 @@ export async function warmAppImageCache(): Promise<void> {
     queries.push(safe(async () => {
       const { data } = await supabase.from('banners').select('image_url').eq('is_active', true).limit(20);
       (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('onboarding_slides').select('image_url, background_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => { push(r.image_url, 'app-assets'); push(r.background_url, 'app-assets'); });
     }));
 
     // Host / gift / frame assets that appear on home feed & profile
