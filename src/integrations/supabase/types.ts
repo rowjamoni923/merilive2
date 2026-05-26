@@ -17958,7 +17958,7 @@ export type Database = {
         | { Args: { p_identifier: string }; Returns: Json }
         | {
             Args: {
-              p_action_type: string
+              p_action_type?: string
               p_identifier: string
               p_ip_address?: string
             }
