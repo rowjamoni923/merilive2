@@ -15993,6 +15993,15 @@ export type Database = {
         Args: { _fingerprint: string }
         Returns: boolean
       }
+      _auto_moderator_post: {
+        Args: {
+          _host_id: string
+          _room_name: string
+          _scope: string
+          _scope_id: string
+        }
+        Returns: undefined
+      }
       _current_admin_display: { Args: never; Returns: string }
       _current_admin_role: { Args: never; Returns: string }
       _do_reverse_auto_action: {
