@@ -287,8 +287,11 @@ const Reels = () => {
       }));
 
       setReels(reelsWithStatus);
+      reelsCache.byCategory.set(selectedCategory, reelsWithStatus);
     } else {
-      setReels(data || []);
+      const list = data || [];
+      setReels(list);
+      reelsCache.byCategory.set(selectedCategory, list);
     }
     setLoading(false);
   };
