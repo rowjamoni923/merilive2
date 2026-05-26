@@ -49,6 +49,7 @@ import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
+import { detectLocalFacePoseFromBase64 } from "@/lib/localFacePose";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -315,6 +316,7 @@ const FaceVerification = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const poseCheckInFlightRef = useRef(false);
   const currentInstructionRef = useRef(0);
   const instructionsCompletedRef = useRef<boolean[]>([false, false, false]);
   // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
