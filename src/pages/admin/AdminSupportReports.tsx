@@ -6,6 +6,7 @@
  * the support admin's display name, the reason, and a status owner can update.
  */
 import { useEffect, useState, useCallback } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
