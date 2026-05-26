@@ -1335,11 +1335,8 @@ const Recharge = () => {
 
   // Stripe removed — global gateways are crypto (MeriCash) + Google Play only.
 
-  // Pkg83-ext: removed static `recharge-helper-methods-realtime` channel
-  // (helper_payment_methods/helper_country_payment_methods/topup_payment_methods
-  // are admin-managed → Pkg37 admin_broadcast push; agencies/profiles/
-  // coin_transfers/agency_diamond_transactions/topup_helpers/helper_orders
-  // are not in publication → visibility refetch covers tab return).
+    // Pkg37 admin_broadcast push handles admin-managed payment method edits.
+    // Zero-refresh policy: no visibility/tab-return refetch.
   useEffect(() => {
     const ADMIN_TABLES = new Set([
       'helper_payment_methods',
@@ -1355,17 +1352,9 @@ const Recharge = () => {
       }
       if (ADMIN_TABLES.has(table)) fetchLevel5HelperPaymentMethods();
     };
-    const onVisible = () => {
-      if (document.visibilityState !== 'visible') return;
-      fetchLevel5HelperPaymentMethods();
-      fetchTopUpHelpers();
-      fetchAdminPaymentMethods();
-    };
     window.addEventListener('admin-table-update', onAdmin as EventListener);
-    document.addEventListener('visibilitychange', onVisible);
     return () => {
       window.removeEventListener('admin-table-update', onAdmin as EventListener);
-      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [fetchLevel5HelperPaymentMethods, fetchAdminPaymentMethods, fetchTopUpHelpers]);
 
