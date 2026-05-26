@@ -155,8 +155,17 @@ serve(async (req) => {
       });
     }
 
+    const cleanBase64 = String(imageBase64).includes(',')
+      ? String(imageBase64).split(',').pop()!
+      : String(imageBase64);
+    if (cleanBase64.length > 6_500_000) {
+      return new Response(JSON.stringify({ error: "Image too large" }), {
+        status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Decode base64 image
-    const binaryString = atob(imageBase64);
+    const binaryString = atob(cleanBase64);
     const imageBytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       imageBytes[i] = binaryString.charCodeAt(i);
