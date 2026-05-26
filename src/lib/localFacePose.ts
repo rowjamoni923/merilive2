@@ -9,6 +9,15 @@ export type LocalFacePoseResult = {
 
 let detectorPromise: Promise<any | null> | null = null;
 
+type LocalDetector = {
+  estimateFaces: (
+    image: HTMLImageElement,
+    config?: { flipHorizontal?: boolean },
+  ) => Promise<Array<{ keypoints?: Array<{ x: number; y: number; z?: number }> }>>;
+};
+
+let detectorPromise: Promise<LocalDetector | null> | null = null;
+
 const loadLocalDetector = async () => {
   if (typeof window === "undefined") return null;
   if (!detectorPromise) {
@@ -18,10 +27,11 @@ const loadLocalDetector = async () => {
         const tf = await import("@tensorflow/tfjs-core");
         await tf.ready();
         const faceLandmarksDetection = await import("@tensorflow-models/face-landmarks-detection");
+        const config = { runtime: "tfjs" as const, refineLandmarks: false, maxFaces: 1 };
         return faceLandmarksDetection.createDetector(
           faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
-          { runtime: "tfjs", refineLandmarks: false, maxFaces: 1 } as any,
-        );
+          config,
+        ) as Promise<LocalDetector>;
       } catch (error) {
         console.warn("[LocalFacePose] detector load failed", error);
         return null;
