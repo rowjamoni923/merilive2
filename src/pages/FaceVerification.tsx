@@ -1936,6 +1936,11 @@ const FaceVerification = () => {
           display_name: fullName.trim(),
           age: parseInt(age, 10),
           language: language,
+          // Host gallery shown on ProfileDetail: 3 uploaded photos + intro video
+          // (NOT the face-verification liveness video — that stays admin-only).
+          host_photos: photoUrls,
+          profile_photo_url: profilePhotoUrl,
+          cover_url: introVideoUrl,
         };
         if (profilePhotoUrl) hostProfilePatch.avatar_url = profilePhotoUrl;
         const { error: hostProfUpdErr } = await supabase
