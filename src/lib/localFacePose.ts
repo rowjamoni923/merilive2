@@ -111,6 +111,6 @@ export function preloadLocalFacePoseDetector() {
   if ("requestIdleCallback" in window) {
     (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout?: number }) => number }).requestIdleCallback(run, { timeout: 2500 });
   } else {
-    window.setTimeout(run, 400);
+    globalThis.setTimeout(run, 400);
   }
 }
