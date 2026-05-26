@@ -2406,7 +2406,7 @@ const FaceVerification = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute left-3 right-3 bottom-3 pointer-events-auto max-h-[30%] overflow-y-auto"
+                className="absolute left-3 right-3 bottom-24 pointer-events-auto max-h-[22%] overflow-y-auto"
               >
                 <div className={`rounded-2xl backdrop-blur-xl px-3.5 py-3 border shadow-lg ${
                   liveDiag.severity === 'ok'
@@ -2447,7 +2447,7 @@ const FaceVerification = () => {
                   </div>
 
                   {/* Live signal chips */}
-                  <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
+                  <div className="mt-2 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-medium">
                     <span className={`px-2 py-0.5 rounded-full border ${
                       liveDiag.faceDetected
                         ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
@@ -2479,7 +2479,7 @@ const FaceVerification = () => {
                   <button
                     type="button"
                     onClick={() => setTroubleshootOpen(v => !v)}
-                    className="mt-2 w-full flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 py-1 rounded-md hover:bg-slate-100/60"
+                    className="mt-1 w-full hidden sm:flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 py-1 rounded-md hover:bg-slate-100/60"
                     aria-expanded={troubleshootOpen}
                   >
                     {troubleshootOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
