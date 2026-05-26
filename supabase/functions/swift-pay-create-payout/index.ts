@@ -198,15 +198,23 @@ Deno.serve(async (req) => {
     }
 
 
-    const paymentId = parsed?.payment_id ? String(parsed.payment_id) : null;
-    const status = parsed?.status ?? "processing";
+    // SwiftPay /withdraw returns: { withdrawal_id, payout_id, amount, fee_usd, net_amount_usd }
+    // and stamps withdrawals.status='sent' once the on-chain payout is dispatched.
+    // We accept either {payout_id} (real schema) or {payment_id} (legacy) for safety.
+    const paymentId = parsed?.payout_id
+      ? String(parsed.payout_id)
+      : parsed?.payment_id ? String(parsed.payment_id) : null;
+    const status = parsed?.status ?? (paymentId ? "sent" : "processing");
+    const settledStatuses = ["sent", "finished", "completed", "approved"];
 
     await admin.from("agency_withdrawals").update({
-      status: status === "completed" ? "approved" : "pending",
+      status: settledStatuses.includes(String(status).toLowerCase()) ? "approved" : "pending",
       payment_details: {
         ...initiatingDetails,
         swift_pay_payout: {
           payment_id: paymentId,
+          payout_id: paymentId,
+          swift_withdrawal_id: parsed?.withdrawal_id ?? null,
           status,
           pay_currency: payCurrency,
           pay_address: payAddress,
@@ -218,7 +226,8 @@ Deno.serve(async (req) => {
       },
     }).eq("id", w.id);
 
-    return json({ ok: true, payment_id: paymentId, status });
+    return json({ ok: true, payment_id: paymentId, payout_id: paymentId, status });
+
   } catch (e) {
     console.error("[swift-pay-create-payout] fatal", e);
     return json({ error: (e as Error).message ?? "unknown" }, 500);
