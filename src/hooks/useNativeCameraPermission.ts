@@ -84,9 +84,20 @@ const queryPermission = async (name: PermissionName, isNative: boolean): Promise
  * @capacitor/camera plugin only handles photo/gallery permissions, NOT WebRTC.
  * The native WebChromeClient.onPermissionRequest() handles the actual Android permission dialog.
  */
-const requestCameraViaGetUserMedia = async (includeAudio: boolean): Promise<{ granted: boolean; stream?: MediaStream; error?: string }> => {
+const denialHint = (isNative: boolean): string =>
+  isNative
+    ? 'Camera permission denied. Open phone Settings → Apps → MeriLive → Permissions → Camera, set it to Allow, then return to the app.'
+    : 'Camera blocked in your browser. Tap the lock/info icon next to the address bar → Site settings (Permissions) → Camera → Allow, then reload this page.';
+
+const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boolean = false): Promise<{ granted: boolean; stream?: MediaStream; error?: string }> => {
   try {
-    console.log('[Camera Permission] Requesting via getUserMedia (native WebView path), audio:', includeAudio);
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      return { granted: false, error: 'Your browser does not support camera access. Try the latest Chrome or Safari over HTTPS.' };
+    }
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      return { granted: false, error: 'Camera requires a secure (HTTPS) connection. Reload the site over HTTPS.' };
+    }
+    console.log('[Camera Permission] Requesting via getUserMedia, native:', isNative, 'audio:', includeAudio);
     const stream = await withTimeout(
       navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'user' }, 
@@ -125,17 +136,17 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean): Promise<{ gr
   } catch (err: any) {
     console.error('[Camera Permission] getUserMedia failed:', err?.name, err?.message);
     
-    if (err.name === 'NotAllowedError') {
-      return { granted: false, error: 'Camera permission denied. Enable from Settings > Apps > MeriLive > Permissions.' };
+    if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+      return { granted: false, error: denialHint(isNative) };
     }
-    if (err.name === 'NotFoundError') {
-      return { granted: false, error: 'No camera found on this device.' };
+    if (err.name === 'NotFoundError' || err.name === 'OverconstrainedError') {
+      return { granted: false, error: 'No usable camera was found on this device.' };
     }
     if (err.name === 'NotReadableError') {
-      return { granted: false, error: 'Camera is being used by another app.' };
+      return { granted: false, error: 'Camera is busy. Close other apps/tabs using the camera and try again.' };
     }
     if (err.name === 'TimeoutError') {
-      return { granted: false, error: 'Camera permission timed out. Please try again.' };
+      return { granted: false, error: 'Camera permission timed out. Please tap "Start Face Scan" again.' };
     }
     return { granted: false, error: err?.message || 'Camera access failed.' };
   }
