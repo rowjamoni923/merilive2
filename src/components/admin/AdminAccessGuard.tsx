@@ -55,6 +55,11 @@ const sessionMatchesLinkRole = (session: ReturnType<typeof getAdminSession>, rol
   return role === 'owner' ? session.is_owner === true : session.is_owner === false;
 };
 
+const hasUsableAdminSession = (): boolean => {
+  const session = getAdminSession();
+  return !!session && getAdminSessionToken().length >= 16;
+};
+
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   const location = useLocation();
   const accessTokenFromRoute = new URLSearchParams(location.search).get('access')?.trim() || null;
@@ -80,7 +85,10 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       return true;
     }
 
-    return hasAdminAccessFlag() && !!getAdminLinkToken();
+    // Existing admin sessions were created through a secret link already. Some
+    // older tabs can miss the stored link token; don't dump them to BlogPage on
+    // every /admin section click when a real x-admin-token session exists.
+    return hasUsableAdminSession() || (hasAdminAccessFlag() && !!getAdminLinkToken());
   });
 
   useEffect(() => {
@@ -110,11 +118,18 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       const accessToken = getAccessTokenFromURL();
       const tabAlreadyUnlocked = hasAdminAccessFlag();
       const storedLinkToken = getAdminLinkToken();
+      const usableAdminSession = !!session && getAdminSessionToken().length >= 16;
 
       // Fresh secret link in URL → optimistically grant + persist token,
       // validate in background. We do NOT switch to BlogPage on failure.
       if (accessToken) {
         setAdminLinkToken(accessToken);
+        setIsAuthorized(true);
+        return;
+      }
+
+      if (usableAdminSession) {
+        grantAdminAccess(session.is_owner);
         setIsAuthorized(true);
         return;
       }
@@ -200,7 +215,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
     const handler = () => {
       const session = getAdminSession();
-      if (session) setIsAuthorized(true);
+      if (session && getAdminSessionToken().length >= 16) setIsAuthorized(true);
       else if (!hasAdminAccessFlag() && !hasFreshAccessToken) {
         revokeAdminAccess();
         setIsAuthorized(false);
