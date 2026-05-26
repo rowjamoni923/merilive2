@@ -295,9 +295,9 @@ const Index = () => {
 
     try {
       if (snapshot.length > 0) {
-        window.sessionStorage.setItem("index-hosts-instant-cache-v1", JSON.stringify(snapshot));
+        window.sessionStorage.setItem("index-hosts-instant-cache-v2", JSON.stringify(snapshot));
       } else {
-        window.sessionStorage.removeItem("index-hosts-instant-cache-v1");
+        window.sessionStorage.removeItem("index-hosts-instant-cache-v2");
       }
     } catch {
       // no-op
