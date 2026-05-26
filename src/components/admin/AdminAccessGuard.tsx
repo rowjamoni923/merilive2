@@ -58,14 +58,22 @@ const sessionMatchesLinkRole = (session: ReturnType<typeof getAdminSession>, rol
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   const location = useLocation();
   const accessTokenFromRoute = new URLSearchParams(location.search).get('access')?.trim() || null;
+
+  // STRICT RULE (per user): a secret link must ALWAYS render the admin panel.
+  // It must NEVER fall back to the public BlogPage — not on slow networks,
+  // not on edge-function 5xx, not on validation race conditions. Validation
+  // failures are surfaced inside the admin auth screen, never as a blog.
+  const hasFreshAccessToken = !!accessTokenFromRoute;
+
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(() => {
     if (typeof window === 'undefined') return null;
     const isAuthRoute = window.location.pathname === '/admin/auth' || window.location.pathname === '/admin/login';
 
-    // Only a fresh secret link in the URL should put the guard into the
-    // async "verifying" state. Direct /admin opens must resolve immediately.
+    // Fresh secret link in URL → render admin shell immediately (optimistic).
+    // Background validation happens below; on failure we redirect within admin,
+    // never to BlogPage.
     if (getAccessTokenFromURL()) {
-      return null;
+      return true;
     }
 
     if (isAuthRoute && !accessTokenFromRoute) {
@@ -85,19 +93,16 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       validationSettled = true;
       clearAdminSession();
       revokeAdminAccess();
+      // If a secret link was in the URL, KEEP the user on the admin auth
+      // screen instead of dumping them onto the public BlogPage. The auth
+      // screen will simply show "invalid token" when they try to log in.
+      if (hasFreshAccessToken) {
+        setIsAuthorized(true);
+        return;
+      }
       setIsAuthorized(false);
     };
 
-    // Synchronous decision FIRST so we never spin forever if the edge fn is slow.
-    //
-    // STRICT RULE (per user): admin panel is reachable ONLY via a secret link.
-    // - Fresh URL ?access=<token>           → validate, then unlock this tab
-    // - This tab already unlocked via link  → allow (sessionStorage flag, tab-scoped)
-    // - Anything else (bookmark, stale local session, direct /admin) → BlogPage
-    //
-    // A persistent admin session WITHOUT a tab-scoped link unlock is NOT enough.
-    // This blocks: bookmarked /admin, shared session across new tab, attacker
-    // who steals localStorage session token but never had the secret link.
     const decideSync = () => {
       if (!mounted) return;
       const session = getAdminSession();
@@ -105,37 +110,24 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       const tabAlreadyUnlocked = hasAdminAccessFlag();
       const storedLinkToken = getAdminLinkToken();
 
-      // Fresh secret link in URL → always re-validate before rendering anything.
+      // Fresh secret link in URL → optimistically grant + persist token,
+      // validate in background. We do NOT switch to BlogPage on failure.
       if (accessToken) {
         setAdminLinkToken(accessToken);
-        setIsAuthorized(null);
-        return;
-      }
-
-      // Tab was unlocked earlier in this session via a secret link.
-      // Re-validate the stored token in the background; render is gated below.
-      if (tabAlreadyUnlocked && storedLinkToken) {
-        if (!isLoginRoute()) {
-          const token = getAdminSessionToken();
-          if (!token) {
-            // Tab is unlocked but no admin login yet → send to login page.
-            setIsAuthorized(true);
-            return;
-          }
-        }
         setIsAuthorized(true);
         return;
       }
 
-       // Plain admin login page must stay reachable so owners can at least see
-       // the login screen instead of being trapped on the public BlogPage.
-       if (isLoginRoute()) {
-         setIsAuthorized(true);
-         return;
-       }
+      if (tabAlreadyUnlocked && storedLinkToken) {
+        setIsAuthorized(true);
+        return;
+      }
 
-       // No secret link, no tab unlock → deny. Even if a stale local admin
-       // session exists, it cannot grant access without a secret-link unlock.
+      if (isLoginRoute()) {
+        setIsAuthorized(true);
+        return;
+      }
+
       if (session || storedLinkToken || tabAlreadyUnlocked) {
         clearAdminSession();
         revokeAdminAccess();
@@ -143,12 +135,11 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       setIsAuthorized(false);
     };
 
-
     decideSync();
 
-    // Background: validate URL access token (15s timeout) before rendering login.
-    // After retries, deny access so invalid/rotated links cannot keep a stale
-    // tab-scoped unlock flag alive.
+    // Background: validate URL access token. Even if it fails, we stay
+    // inside the admin shell (denyAccess re-routes to /admin/auth when a
+    // fresh access token was in the URL — never to BlogPage).
     const accessToken = getAccessTokenFromURL();
     if (accessToken) {
       safetyTimer = window.setTimeout(() => {
@@ -183,7 +174,6 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             }
             return true;
           }
-          // Real {valid:false} response → invalid token. Only then deny.
           if (data && data.valid === false && mounted && !getAdminSession()) {
             denyAccess();
             return true;
@@ -196,8 +186,6 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       };
 
       (async () => {
-        // Two short attempts before giving up; if all fail and no
-        // admin session exists, fall back to BlogPage.
         for (let i = 1; i <= VALIDATE_ATTEMPTS; i++) {
           if (!mounted || validationSettled) return;
           const resolved = await validateOnce(i);
@@ -208,11 +196,10 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       })();
     }
 
-    // Listen for session changes (login/logout in other tabs)
     const handler = () => {
       const session = getAdminSession();
       if (session) setIsAuthorized(true);
-      else if (!hasAdminAccessFlag()) {
+      else if (!hasAdminAccessFlag() && !hasFreshAccessToken) {
         revokeAdminAccess();
         setIsAuthorized(false);
       }
@@ -226,11 +213,14 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       window.removeEventListener('storage', handler);
       window.removeEventListener('admin-session-change', handler);
     };
-  }, [location.pathname, location.search]);
+  }, [location.pathname, location.search, hasFreshAccessToken]);
 
-  // Loading
+  // Loading state — only reachable when there's NO fresh access token
+  // (fresh tokens always optimistically render the admin shell).
   if (isAuthorized === null) {
     if (getAccessTokenFromURL()) {
+      // Defensive: should not hit because decideSync sets true for fresh tokens,
+      // but if it ever does, still avoid BlogPage flash.
       return (
         <div className="min-h-screen bg-slate-950 flex items-center justify-center">
           <div className="text-center">
@@ -247,20 +237,16 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   if (isAuthorized) {
     const session = getAdminSession();
     const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
-    // If the user has a session and opens the plain login route, redirect to
-    // admin home. But a fresh ?access= secret link must always render AdminAuth
-    // so stale/expired local sessions cannot bypass re-authentication and then
-    // get kicked to the public app by protected admin requests.
     if (isLoginRoute() && session && !getAccessTokenFromURL()) {
       return <Navigate to="/admin" replace />;
     }
-    // If NO session and NOT on login route → redirect to login (preserve token in URL is unnecessary, flag is stored)
     if (!session && !isLoginRoute()) {
       return <Navigate to={accessToken ? `/admin/auth?access=${encodeURIComponent(accessToken)}` : "/admin/auth"} replace />;
     }
     return <>{children}</>;
   }
 
-  // Not authorized
+  // Not authorized AND no fresh secret link → public BlogPage fallback.
   return <Suspense fallback={null}><BlogPage /></Suspense>;
 }
+
