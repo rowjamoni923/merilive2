@@ -1,6 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
+
+// Pkg361 ZERO-REFRESH: every hook below now opens a direct Supabase Realtime
+// subscription on the underlying row(s) so the UI reflects DB writes instantly
+// — no tab-focus refetch, no setInterval, no manual reload required.
 
 // Hook for real-time profile updates
 export function useRealtimeProfile(userId: string | null) {
@@ -13,6 +17,8 @@ export function useRealtimeProfile(userId: string | null) {
       return;
     }
 
+    let cancelled = false;
+
     const fetchProfile = async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -20,17 +26,33 @@ export function useRealtimeProfile(userId: string | null) {
         .eq('id', userId)
         .single();
 
-      if (!error && data) {
+      if (!cancelled && !error && data) {
         setProfile(data);
       }
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     };
 
     fetchProfile();
 
-    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch. Profile data
-    // is pushed via own-balance / admin-broadcast / Supabase Realtime channels
-    // already; we never re-query on tab focus.
+    // Pkg361: direct Realtime on own profile row — instant coins / beans /
+    // diamonds / level / host_status / avatar updates across every page.
+    const channel = supabase
+      .channel(`rt-profile-${userId}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+        (payload) => {
+          if (!cancelled && payload.new) {
+            setProfile((prev: any) => ({ ...(prev || {}), ...(payload.new as any) }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
   }, [userId]);
 
 
@@ -50,39 +72,61 @@ export function useRealtimeAgencyStats(agencyId: string | null) {
       return;
     }
 
+    let cancelled = false;
+    const weekStart = getWeekStart();
+
     const fetchData = async () => {
-      // Fetch agency info
-      const { data: agencyData } = await supabase
-        .from('agencies')
-        .select('*')
-        .eq('id', agencyId)
-        .single();
+      const [{ data: agencyData }, { data: perfData }] = await Promise.all([
+        supabase.from('agencies').select('*').eq('id', agencyId).single(),
+        supabase
+          .from('agency_performance')
+          .select('*')
+          .eq('agency_id', agencyId)
+          .eq('period_type', 'weekly')
+          .eq('period_start', weekStart)
+          .maybeSingle(),
+      ]);
 
-      if (agencyData) {
-        setStats(agencyData);
-      }
-
-      // Fetch current week performance
-      const weekStart = getWeekStart();
-      const { data: perfData } = await supabase
-        .from('agency_performance')
-        .select('*')
-        .eq('agency_id', agencyId)
-        .eq('period_type', 'weekly')
-        .eq('period_start', weekStart)
-        .maybeSingle();
-
-      if (perfData) {
-        setPerformance(perfData);
-      }
-
+      if (cancelled) return;
+      if (agencyData) setStats(agencyData);
+      if (perfData) setPerformance(perfData);
       setLoading(false);
     };
 
     fetchData();
 
-    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
-    // Updates arrive via admin-broadcast push.
+    // Pkg361: direct Realtime on agency row + this week's performance row.
+    const channel = supabase
+      .channel(`rt-agency-${agencyId}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'agencies', filter: `id=eq.${agencyId}` },
+        (payload) => {
+          if (!cancelled && payload.new) {
+            setStats((prev: any) => ({ ...(prev || {}), ...(payload.new as any) }));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'agency_performance', filter: `agency_id=eq.${agencyId}` },
+        (payload) => {
+          const row: any = payload.new || payload.old;
+          if (!cancelled && row && row.period_type === 'weekly' && row.period_start === weekStart) {
+            if (payload.eventType === 'DELETE') {
+              setPerformance(null);
+            } else {
+              setPerformance((prev: any) => ({ ...(prev || {}), ...(payload.new as any) }));
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
   }, [agencyId]);
 
 
@@ -103,64 +147,35 @@ export function useRealtimeLiveStream(streamId: string | null) {
       return;
     }
 
-    let streamChannel: RealtimeChannel;
-    let viewerChannel: RealtimeChannel;
-    let giftChannel: RealtimeChannel;
+    let cancelled = false;
 
     const fetchData = async () => {
-      // Fetch stream info
-      const { data: streamData } = await supabase
-        .from('live_streams')
-        .select('*')
-        .eq('id', streamId)
-        .single();
-      
-      if (streamData) {
-        setStream(streamData);
-      }
+      const [{ data: streamData }, { data: viewerData }, { data: giftData }] = await Promise.all([
+        supabase.from('live_streams').select('*').eq('id', streamId).single(),
+        supabase.from('stream_viewers').select('*').eq('stream_id', streamId).is('left_at', null),
+        supabase
+          .from('gift_transactions')
+          .select('*')
+          .eq('stream_id', streamId)
+          .order('created_at', { ascending: false })
+          .limit(50),
+      ]);
 
-      // Fetch current viewers
-      const { data: viewerData } = await supabase
-        .from('stream_viewers')
-        .select('*')
-        .eq('stream_id', streamId)
-        .is('left_at', null);
-      
-      if (viewerData) {
-        setViewers(viewerData);
-      }
-
-      // Fetch recent gifts
-      const { data: giftData } = await supabase
-        .from('gift_transactions')
-        .select('*')
-        .eq('stream_id', streamId)
-        .order('created_at', { ascending: false })
-        .limit(50);
-      
-      if (giftData) {
-        setGifts(giftData);
-      }
-      
+      if (cancelled) return;
+      if (streamData) setStream(streamData);
+      if (viewerData) setViewers(viewerData);
+      if (giftData) setGifts(giftData);
       setLoading(false);
     };
 
     fetchData();
 
-    // Pkg83 LiveKit-Purist: removed 3 stream-* Supabase Realtime channels
-    // (stream-${id}, stream-viewers-${id}, stream-gifts-${id}). This hook is
-    // currently unused in the app (only formatLastUpdate is imported); kept
-    // as a REST-only snapshot helper for future consumers. Any future caller
-    // must subscribe via LiveKit envelopes (livekit-gift-sent / live-event)
-    // — never re-introduce Supabase postgres_changes on stream tables.
-    streamChannel = null;
-    viewerChannel = null;
-    giftChannel = null;
-
+    // Pkg83 / Pkg361 reaffirmed: in-room data (viewers/gifts) is delivered
+    // through LiveKit data envelopes (livekit-gift-sent / live-event). Outside
+    // a live room this hook is only used as a REST snapshot helper, so we
+    // intentionally do NOT open per-stream postgres_changes channels here.
     return () => {
-      if (streamChannel) supabase.removeChannel(streamChannel);
-      if (viewerChannel) supabase.removeChannel(viewerChannel);
-      if (giftChannel) supabase.removeChannel(giftChannel);
+      cancelled = true;
     };
   }, [streamId]);
 
@@ -177,11 +192,11 @@ export function useRealtimeRankings(rankingType: string, periodType: string) {
     const { data, error } = await supabase.rpc('get_agency_rankings', {
       _ranking_type: rankingType,
       _period_type: periodType,
-      _limit: 100
+      _limit: 100,
     });
-    
+
     if (!error && data) {
-      setRankings(data);
+      setRankings(data as any[]);
       setLastUpdate(new Date());
     }
     setLoading(false);
@@ -190,9 +205,26 @@ export function useRealtimeRankings(rankingType: string, periodType: string) {
   useEffect(() => {
     fetchRankings();
 
-    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
-    // Manual refresh is exposed via the returned `refresh` callback.
-  }, [fetchRankings]);
+    // Pkg361: any agency_performance write triggers a debounced ranking
+    // refetch so the leaderboard reflects new beans/diamonds instantly.
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const channel = supabase
+      .channel(`rt-rankings-${rankingType}-${periodType}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'agency_performance' },
+        () => {
+          if (debounce) clearTimeout(debounce);
+          debounce = setTimeout(() => { fetchRankings(); }, 500);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (debounce) clearTimeout(debounce);
+      supabase.removeChannel(channel);
+    };
+  }, [fetchRankings, rankingType, periodType]);
 
 
 
@@ -208,71 +240,93 @@ export function useRealtimeEarnings(userId: string | null) {
   const [recentGifts, setRecentGifts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const userIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    userIdRef.current = userId;
     if (!userId) {
       setLoading(false);
       return;
     }
 
+    let cancelled = false;
+
+    const today = new Date().toISOString().split('T')[0];
+    const weekStart = getWeekStart();
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      .toISOString()
+      .split('T')[0];
+
     const fetchEarnings = async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const weekStart = getWeekStart();
-      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+      const [todayRes, weekRes, monthRes, profileRes, giftsRes] = await Promise.all([
+        supabase.from('gift_transactions').select('coin_amount').eq('receiver_id', userId).gte('created_at', today),
+        supabase.from('gift_transactions').select('coin_amount').eq('receiver_id', userId).gte('created_at', weekStart),
+        supabase.from('gift_transactions').select('coin_amount').eq('receiver_id', userId).gte('created_at', monthStart),
+        supabase.from('profiles').select('total_earnings').eq('id', userId).single(),
+        supabase
+          .from('gift_transactions')
+          .select('*')
+          .eq('receiver_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ]);
 
-      // Fetch today's earnings
-      const { data: todayData } = await supabase
-        .from('gift_transactions')
-        .select('coin_amount')
-        .eq('receiver_id', userId)
-        .gte('created_at', today);
-      
-      setTodayEarnings(todayData?.reduce((sum, t) => sum + t.coin_amount, 0) || 0);
-
-      // Fetch week earnings
-      const { data: weekData } = await supabase
-        .from('gift_transactions')
-        .select('coin_amount')
-        .eq('receiver_id', userId)
-        .gte('created_at', weekStart);
-      
-      setWeekEarnings(weekData?.reduce((sum, t) => sum + t.coin_amount, 0) || 0);
-
-      // Fetch month earnings
-      const { data: monthData } = await supabase
-        .from('gift_transactions')
-        .select('coin_amount')
-        .eq('receiver_id', userId)
-        .gte('created_at', monthStart);
-      
-      setMonthEarnings(monthData?.reduce((sum, t) => sum + t.coin_amount, 0) || 0);
-
-      // Fetch total earnings from profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('total_earnings')
-        .eq('id', userId)
-        .single();
-      
-      setTotalEarnings(profileData?.total_earnings || 0);
-
-      // Fetch recent gifts
-      const { data: giftsData } = await supabase
-        .from('gift_transactions')
-        .select('*')
-        .eq('receiver_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-      
-      setRecentGifts(giftsData || []);
+      if (cancelled) return;
+      setTodayEarnings(todayRes.data?.reduce((s, t: any) => s + (t.coin_amount || 0), 0) || 0);
+      setWeekEarnings(weekRes.data?.reduce((s, t: any) => s + (t.coin_amount || 0), 0) || 0);
+      setMonthEarnings(monthRes.data?.reduce((s, t: any) => s + (t.coin_amount || 0), 0) || 0);
+      setTotalEarnings((profileRes.data as any)?.total_earnings || 0);
+      setRecentGifts(giftsRes.data || []);
       setLastUpdate(new Date());
       setLoading(false);
     };
 
     fetchEarnings();
 
-    // Pkg360 NO-AUTO-REFRESH: removed visibilitychange refetch.
-    // Gift earnings push instantly via `livekit-gift-sent` + `own-beans-updated` window events.
+    // Pkg361: subscribe directly to incoming gift transactions + own profile
+    // row so earnings counters update the instant a gift is received.
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefetch = () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(() => { fetchEarnings(); }, 300);
+    };
+
+    const channel = supabase
+      .channel(`rt-earnings-${userId}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'gift_transactions', filter: `receiver_id=eq.${userId}` },
+        (payload) => {
+          if (cancelled) return;
+          const row: any = payload.new;
+          const createdAt = row?.created_at;
+          const coin = Number(row?.coin_amount || 0);
+          if (coin > 0) {
+            if (createdAt >= today) setTodayEarnings((v) => v + coin);
+            if (createdAt >= weekStart) setWeekEarnings((v) => v + coin);
+            if (createdAt >= monthStart) setMonthEarnings((v) => v + coin);
+            setRecentGifts((prev) => [row, ...prev].slice(0, 20));
+            setLastUpdate(new Date());
+          }
+          // Safety-net resync in case of out-of-order events.
+          scheduleRefetch();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+        (payload) => {
+          const next = (payload.new as any)?.total_earnings;
+          if (!cancelled && typeof next === 'number') setTotalEarnings(next);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      if (debounce) clearTimeout(debounce);
+      supabase.removeChannel(channel);
+    };
   }, [userId]);
 
 
@@ -292,7 +346,7 @@ function getWeekStart(): string {
 // Format last update time
 export function formatLastUpdate(date: Date): string {
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-  
+
   if (seconds < 5) return 'Just now';
   if (seconds < 60) return `${seconds} seconds ago`;
   if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
