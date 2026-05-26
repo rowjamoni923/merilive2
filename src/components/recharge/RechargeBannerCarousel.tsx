@@ -167,7 +167,7 @@ export default function RechargeBannerCarousel({
             draggable={false}
             loading="eager"
             decoding="async"
-            fetchPriority={i === 0 ? "high" : "low"}
+            {...({ fetchpriority: i === 0 ? "high" : "low" } as React.ImgHTMLAttributes<HTMLImageElement>)}
             onError={(event) => {
               const fallback = DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url;
               if (fallback && event.currentTarget.src !== fallback) event.currentTarget.src = fallback;
