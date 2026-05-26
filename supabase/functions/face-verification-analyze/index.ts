@@ -343,7 +343,9 @@ serve(async (req) => {
       (leftRawG !== "unknown" && leftRawG !== rawG && Number(leftGender?.Confidence ?? 0) >= 90) ||
       (rightRawG !== "unknown" && rightRawG !== rawG && Number(rightGender?.Confidence ?? 0) >= 90)
     );
-    let finalGender: string = genderConf >= 86 && rawG !== "unknown" && !genderConflict ? rawG : "unknown";
+    // Pro-app threshold: AWS Rekognition gender is reliable at ≥75% (false-positive
+    // rate <2%). Raising to 86% was rejecting ~30% of legitimate real users.
+    let finalGender: string = genderConf >= 75 && rawG !== "unknown" && !genderConflict ? rawG : "unknown";
     const occConf = faceOccluded?.Value === true ? Number(faceOccluded?.Confidence ?? 0) : 0;
 
     let frontError: string | null = null;
