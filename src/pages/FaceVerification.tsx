@@ -645,16 +645,6 @@ const FaceVerification = () => {
     !!userId,
   );
 
-  useEffect(() => {
-    if (!userId) return;
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') void refreshVerificationState(userId);
-    };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [userId, refreshVerificationState]);
-
-
   // Handle photo selection (Step 1)
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
