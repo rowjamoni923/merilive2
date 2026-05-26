@@ -168,6 +168,10 @@ export default function RechargeBannerCarousel({
             loading="eager"
             decoding="async"
             fetchPriority={i === 0 ? "high" : "low"}
+            onError={(event) => {
+              const fallback = DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url;
+              if (fallback && event.currentTarget.src !== fallback) event.currentTarget.src = fallback;
+            }}
           />
         </button>
       ))}

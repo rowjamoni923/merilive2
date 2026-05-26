@@ -638,11 +638,11 @@ const App = () => {
     const routeIdleId = idle(preloadCoreRoutes, 1800);
 
     // 🖼️ INSTANT-IMAGE: cache-first SW + warm banner cache so all app images load in ~0ms
-    const imageIdleId = idle(() => import('@/utils/registerImageCacheSW').then(m => {
+    const imageIdleId = window.setTimeout(() => import('@/utils/registerImageCacheSW').then(m => {
       m.registerImageCacheSW().then(() => m.warmAppImageCache());
       // Pkg B pass-3: prompt user to reload when a new SW version installs.
       import('@/utils/swUpdatePrompt').then(s => s.installSWUpdatePrompt()).catch(() => {});
-    }).catch(() => {}), 4500);
+    }).catch(() => {}), 0);
 
     // Pkg357 — Global video lifecycle: pause off-screen + tab-hidden videos,
     // skip LiveKit publisher/subscriber. Mirrors Chamet/TikTok behavior.

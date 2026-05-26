@@ -148,5 +148,5 @@ export async function warmAppImageCache(): Promise<void> {
       setTimeout(cb, 1200);
     }
   };
-  idle(() => { run().catch(() => {}); });
+  run().catch(() => {});
 }
