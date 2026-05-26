@@ -2701,7 +2701,7 @@ const FaceVerification = () => {
               <p className="text-slate-500 text-center px-6 mb-4">To resolve this issue, please contact our Support Team.</p>
               <Button
                 className="mt-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl px-8 shadow-lg shadow-blue-500/20"
-                onClick={() => navigate('/support')}
+                onClick={() => navigate('/settings/customer-service?mode=live_chat')}
               >
                 💬 Support Chat
               </Button>
