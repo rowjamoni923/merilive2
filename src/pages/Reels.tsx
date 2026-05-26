@@ -153,14 +153,78 @@ const Reels = () => {
         setIsHost(profileRes.data?.is_host || false);
         userCoinsRef.current = profileRes.data?.coins || 0;
         setUserCoins(profileRes.data?.coins || 0);
-        if (categoriesRes.data) setCategories(categoriesRes.data);
+        if (categoriesRes.data) {
+          setCategories(categoriesRes.data);
+          reelsCache.categories = categoriesRes.data;
+        }
       } else {
         const { data } = await supabase.from('reel_categories').select('*').eq('is_active', true).order('display_order');
-        if (data) setCategories(data);
+        if (data) {
+          setCategories(data);
+          reelsCache.categories = data;
+        }
       }
     };
     init();
   }, []);
+
+  // ⚡ Supabase Realtime — instant feed updates without any refresh.
+  // New reels appear at the top, deletes vanish, like/comment/share counts tick live.
+  useEffect(() => {
+    const refetchTimer = { current: null as ReturnType<typeof setTimeout> | null };
+    const scheduleRefetch = () => {
+      if (refetchTimer.current) clearTimeout(refetchTimer.current);
+      refetchTimer.current = setTimeout(() => fetchReels(false), 350);
+    };
+
+    const bumpCount = (reelId: string, field: 'like_count' | 'comment_count' | 'share_count', delta: number) => {
+      setReels(prev => {
+        const next = prev.map(r => r.id === reelId ? { ...r, [field]: Math.max(0, (r[field] as number) + delta) } : r);
+        reelsCache.byCategory.set(selectedCategory, next);
+        return next;
+      });
+    };
+
+    const unsubscribe = subscribeToTables(
+      `reels-feed-${selectedCategory}`,
+      ['reels', 'reel_likes', 'reel_comments', 'reel_shares'],
+      (table, event, payload) => {
+        const row: any = payload?.new || payload?.old;
+        if (!row) return;
+        if (table === 'reels') {
+          // New upload / approval flip / deletion → refetch list (debounced)
+          scheduleRefetch();
+        } else if (table === 'reel_likes') {
+          const reelId = row.reel_id;
+          if (!reelId) return;
+          if (event === 'INSERT') bumpCount(reelId, 'like_count', 1);
+          else if (event === 'DELETE') bumpCount(reelId, 'like_count', -1);
+        } else if (table === 'reel_comments') {
+          const reelId = row.reel_id;
+          if (!reelId) return;
+          if (event === 'INSERT') {
+            bumpCount(reelId, 'comment_count', 1);
+            // If user has the comments sheet open on this reel, prepend live
+            if (showComments && reels[currentIndex]?.id === reelId && row.user_id !== currentUserIdRef.current) {
+              // Re-fetch with profile join for the avatar/name
+              fetchComments(reelId);
+            }
+          } else if (event === 'DELETE') {
+            bumpCount(reelId, 'comment_count', -1);
+          }
+        } else if (table === 'reel_shares' && event === 'INSERT') {
+          bumpCount(row.reel_id, 'share_count', 1);
+        }
+      }
+    );
+
+    return () => {
+      if (refetchTimer.current) clearTimeout(refetchTimer.current);
+      unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, currentUserId]);
+
 
   useEffect(() => {
     fetchReels(reels.length === 0);
