@@ -238,8 +238,9 @@ const Reels = () => {
   }, [searchParams, reels]);
 
   const fetchReels = async (isInitial = false) => {
-    // Only show loading on initial load, not on category/filter change
-    if (isInitial || reels.length === 0) setLoading(true);
+    // Only show loading on initial cold start (no cache yet)
+    const hasCache = (reelsCache.byCategory.get(selectedCategory)?.length ?? 0) > 0;
+    if ((isInitial || reels.length === 0) && !hasCache) setLoading(true);
     let query = supabase
       .from('reels')
       .select(`
