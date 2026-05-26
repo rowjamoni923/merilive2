@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import useAdminRealtime from "@/hooks/useAdminRealtime";
+import useAdminRealtime, { dispatchAdminTableUpdate } from "@/hooks/useAdminRealtime";
 import {
   Search, MessageSquare, Phone, Shield, AlertTriangle,
   ChevronRight, ArrowLeft, Loader2, Eye, RefreshCw, Ban, Clock, Gavel,
@@ -145,129 +145,25 @@ const AdminChatInspector = () => {
     if (!banTargetUser) return;
     setBanning(true);
     try {
-      if (banType === "urgent") {
-        // URGENT BAN: Device + Account ban, host demoted, level reset, can never use this device again
-        // 1. Demote host to user & reset level
-        if (banTargetUser.is_host) {
-          await supabase.rpc('admin_update_user_gender', {
-            _user_id: banTargetUser.id,
-            _gender: 'male',
-          });
-        }
-        await supabase.from('profiles').update({
-          is_host: false,
-          host_status: null,
-          is_face_verified: false,
-          user_level: 0,
-          host_level: 0,
-        }).eq('id', banTargetUser.id);
-
-        // 2. Block the account
-        const { error: blockError } = await supabase.rpc('admin_block_user', {
-          _user_id: banTargetUser.id,
-          _block: true,
-          _reason: banReason || 'Urgent Ban - Device + Account Permanently Banned',
-        });
-        if (blockError) throw blockError;
-
-        // 3. Ban the device permanently
-        const { data: profileData } = await supabase.from('profiles').select('device_id').eq('id', banTargetUser.id).single();
-        if (profileData?.device_id) {
-          await supabase.from('banned_devices').upsert({
-            device_id: profileData.device_id,
-            user_id: banTargetUser.id,
-            reason: banReason || 'Urgent Ban - Device permanently banned',
-            is_permanent: true,
-            is_active: true,
-          }, { onConflict: 'device_id' });
-        }
-
-        // 4. Log to live_bans
-        await supabase.from('live_bans').insert({
-          user_id: banTargetUser.id,
-          ban_reason: banReason || 'Urgent Ban - Device + Account',
-          violation_type: 'urgent_ban',
-          ban_duration_hours: null,
-          ban_end: null,
-          is_active: true,
-          auto_banned: false,
-        });
-
-        // 5. Admin notification
-        await supabase.from('admin_notifications').insert({
-          type: 'urgent_ban',
-          title: '🚨 URGENT BAN Applied',
-          message: `${banTargetUser.display_name} (${banTargetUser.app_uid}) - Device + Account permanently banned. Reason: ${banReason}`,
-          priority: 'critical',
-          data: { user_id: banTargetUser.id, ban_type: 'urgent' },
-        });
-
-        toast({ title: "🚨 URGENT BAN Applied", description: `${banTargetUser.display_name} - Device + Account permanently banned. Cannot create new ID on this device.` });
-      } else if (banType === "medium") {
-        // MEDIUM BAN: Account permanently banned, but can make new account on same device
-        if (banTargetUser.is_host) {
-          await supabase.rpc('admin_update_user_gender', {
-            _user_id: banTargetUser.id,
-            _gender: 'male',
-          });
-        }
-        await supabase.from('profiles').update({
-          is_host: false,
-          host_status: null,
-          is_face_verified: false,
-          user_level: 0,
-          host_level: 0,
-        }).eq('id', banTargetUser.id);
-
-        const { error: blockError } = await supabase.rpc('admin_block_user', {
-          _user_id: banTargetUser.id,
-          _block: true,
-          _reason: banReason || 'Medium Ban - Account Permanently Banned',
-        });
-        if (blockError) throw blockError;
-
-        await supabase.from('live_bans').insert({
-          user_id: banTargetUser.id,
-          ban_reason: banReason || 'Medium Ban - Account Only',
-          violation_type: 'medium_ban',
-          ban_duration_hours: null,
-          ban_end: null,
-          is_active: true,
-          auto_banned: false,
-        });
-
-        await supabase.from('admin_notifications').insert({
-          type: 'medium_ban',
-          title: '🚫 Medium Ban Applied',
-          message: `${banTargetUser.display_name} (${banTargetUser.app_uid}) - Account permanently banned. Can create new ID. Reason: ${banReason}`,
-          priority: 'high',
-          data: { user_id: banTargetUser.id, ban_type: 'medium' },
-        });
-
-        toast({ title: "🚫 Medium Ban Applied", description: `${banTargetUser.display_name} - Account banned. Can create new ID on same device.` });
-      } else {
-        // NORMAL BAN: Timed ban (hours-based)
-        const hours = banDuration === "custom" ? parseInt(banCustomHours) : parseInt(banDuration);
-        if (!hours || hours < 1) {
-          toast({ title: "Invalid duration", variant: "destructive" });
-          setBanning(false);
-          return;
-        }
-        const banEnd = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-
-        const { error } = await supabase.from('live_bans').insert({
-          user_id: banTargetUser.id,
-          ban_reason: banReason || 'Normal Ban - Timed',
-          violation_type: 'normal_ban',
-          ban_duration_hours: hours,
-          ban_end: banEnd,
-          is_active: true,
-          auto_banned: false,
-        });
-        if (error) throw error;
-
-        toast({ title: "⏱️ Normal Ban Applied", description: `${banTargetUser.display_name} banned for ${hours} hours` });
+      const hours = banType === "normal" ? (banDuration === "custom" ? parseInt(banCustomHours) : parseInt(banDuration)) : null;
+      if (banType === "normal" && (!hours || hours < 1)) {
+        toast({ title: "Invalid duration", variant: "destructive" });
+        setBanning(false);
+        return;
       }
+      const { data, error } = await supabase.rpc('admin_apply_chat_punishment', {
+        _user_id: banTargetUser.id,
+        _punishment_type: banType,
+        _reason: banReason || null,
+        _duration_hours: hours,
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Punishment failed');
+      dispatchAdminTableUpdate({ table: 'profiles', eventType: 'UPDATE' });
+      dispatchAdminTableUpdate({ table: 'live_bans', eventType: 'INSERT' });
+      dispatchAdminTableUpdate({ table: 'admin_notifications', eventType: 'INSERT' });
+      const title = banType === "urgent" ? "🚨 URGENT BAN Applied" : banType === "medium" ? "🚫 Medium Ban Applied" : "⏱️ Normal Ban Applied";
+      toast({ title, description: `${banTargetUser.display_name || 'User'} punishment applied successfully` });
       setShowBanDialog(false);
     } catch (err) {
       recordAdminError({ kind: "rpc", label: "AdminChatInspector.BanError", message: formatAdminError(err)});

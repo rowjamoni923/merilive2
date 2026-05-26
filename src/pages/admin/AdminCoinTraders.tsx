@@ -101,8 +101,9 @@ const AdminCoinTraders = () => {
         .from('helper_transactions')
         .select(`*, helper:topup_helpers(id, user_id, wallet_balance, user:profiles!topup_helpers_user_id_fkey(display_name, avatar_url))`)
         .order('created_at', { ascending: false }).limit(100);
-      setTransactions(data || []);
-      setStats(prev => ({ ...prev, pendingTransactions: (data || []).filter((t: any) => t.status === 'pending').length }));
+      const rows = (data || []).map((t: any) => ({ ...t, coin_amount: t.coin_amount ?? t.amount ?? 0, status: t.status ?? 'completed' }));
+      setTransactions(rows);
+      setStats(prev => ({ ...prev, pendingTransactions: rows.filter((t: any) => t.status === 'pending').length }));
     } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: formatAdminError(error) }); }
   };
 
@@ -130,12 +131,11 @@ const AdminCoinTraders = () => {
     if (!selectedUser) return;
     setProcessing(true);
     try {
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
-      const { error } = await supabase.from('topup_helpers').insert({
-        user_id: selectedUser.id, is_active: true, is_verified: true,
-        approved_at: new Date().toISOString(), approved_by: user?.id
+      const { data, error } = await supabase.rpc('admin_upsert_topup_helper', {
+        _user_id: selectedUser.id,
       });
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to add helper');
       toast({ title: "Success", description: "New helper added" });
       setShowAddModal(false); setSelectedUser(null); fetchHelpers();
     } catch (error: any) {
@@ -145,51 +145,19 @@ const AdminCoinTraders = () => {
 
   const handleToggleHelper = async (helper: any, action: 'activate' | 'deactivate') => {
     const newStatus = action === 'activate';
-
-    const { error: updateError } = await supabase.from('topup_helpers').update({ is_active: newStatus }).eq('id', helper.id);
+    const { data, error: updateError } = await supabase.rpc('admin_set_topup_helper_active', {
+      _helper_id: helper.id,
+      _active: newStatus,
+    });
 
     if (updateError) {
       recordAdminError({ kind: "rpc", label: "AdminCoinTraders.CointradersFailedToToggleHelper", message: formatAdminError(updateError)});
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }
-
-    // Verify update
-    const { data: verifyData } = await supabase
-      .from('topup_helpers')
-      .select('is_active')
-      .eq('id', helper.id)
-      .maybeSingle();
-
-    if (verifyData?.is_active !== newStatus) {
-      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.ToggleVerify", message: `Toggle verification mismatch: expected ${newStatus}, got ${verifyData?.is_active}` });
-      toast({ title: "Error", description: `Database update failed - status did not change.`, variant: "destructive" });
+    if ((data as any)?.success === false) {
+      toast({ title: "Error", description: (data as any)?.error || `Failed to ${action} helper`, variant: "destructive" });
       return;
-    }
-
-    // If Level 5 payroll helper, update agency commission rate instantly
-    if (helper.trader_level === 5 && helper.payroll_enabled) {
-      const { data: agency } = await supabase
-        .from('agencies')
-        .select('id, level')
-        .eq('owner_id', helper.user_id)
-        .maybeSingle();
-
-      if (agency) {
-        if (action === 'deactivate') {
-          const levelMap: Record<string, string> = { 'A1': 'bronze', 'A2': 'silver', 'A3': 'gold', 'A4': 'platinum', 'A5': 'diamond' };
-          const tierCode = levelMap[agency.level || 'A1'] || agency.level || 'bronze';
-          const { data: tier } = await supabase
-            .from('agency_level_tiers')
-            .select('commission_rate')
-            .eq('level_code', tierCode)
-            .eq('is_active', true)
-            .maybeSingle();
-          await supabase.from('agencies').update({ commission_rate: tier?.commission_rate || 3 }).eq('id', agency.id);
-        } else {
-          await supabase.from('agencies').update({ commission_rate: 12 }).eq('id', agency.id);
-        }
-      }
     }
 
     console.log(`[CoinTraders] Helper ${helper.id} successfully ${action}d. Verified is_active=${newStatus}`);
@@ -209,35 +177,15 @@ const AdminCoinTraders = () => {
 
     setIsTransferring(true);
     try {
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
-      
-      // Update helper's wallet balance
-      const newBalance = (selectedHelper.wallet_balance || 0) + amount;
-      const { error: updateError } = await supabase
-        .from('topup_helpers')
-        .update({ 
-          wallet_balance: newBalance,
-          total_bought: (selectedHelper.total_bought || 0) + amount 
-        })
-        .eq('id', selectedHelper.id);
-
-      if (updateError) throw updateError;
-
-      // Log the transaction
-      const { error: txError } = await supabase
-        .from('helper_transactions')
-        .insert({
-          helper_id: selectedHelper.id,
-          transaction_type: 'admin_transfer',
-          coin_amount: amount,
-          usd_amount: 0,
-          status: 'completed',
-          notes: transferNote || `Admin manual transfer: ${amount} Diamonds`,
-          processed_by: user?.id,
-          processed_at: new Date().toISOString()
-        });
-
-      if (txError) throw txError;
+      const { data, error } = await supabase.rpc('admin_adjust_balance', {
+        _target_type: 'helper',
+        _target_id: selectedHelper.id,
+        _field: 'wallet_balance',
+        _delta: amount,
+        _reason: transferNote || `Admin manual transfer: ${amount} Diamonds`,
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Transfer failed');
 
       // Send notification to helper
       await adminSendNotification(selectedHelper.user_id, '💎 Diamonds Added!', `${amount.toLocaleString()} diamonds have been added to your Trader Wallet`, 'diamonds_credited')
@@ -333,13 +281,13 @@ const AdminCoinTraders = () => {
   };
 
   const handleProcessTransaction = async (txn: any, action: 'approve' | 'reject') => {
-    await supabase.from('helper_transactions').update({ 
-      status: action === 'approve' ? 'completed' : 'failed', processed_at: new Date().toISOString() 
-    }).eq('id', txn.id);
-    if (action === 'approve' && txn.transaction_type === 'buy_from_platform') {
-      await supabase.from('topup_helpers').update({ 
-        wallet_balance: (txn.helper?.wallet_balance || 0) + txn.coin_amount 
-      }).eq('id', txn.helper_id);
+    const { data, error } = await supabase.rpc('admin_record_helper_transaction_decision', {
+      _transaction_id: txn.id,
+      _action: action,
+    });
+    if (error || (data as any)?.success === false) {
+      toast({ title: "Error", description: error?.message || (data as any)?.error || 'Action failed', variant: "destructive" });
+      return;
     }
     toast({ title: "Success", description: action === 'approve' ? 'Approved' : 'Rejected' });
     fetchTransactions(); fetchHelpers();
