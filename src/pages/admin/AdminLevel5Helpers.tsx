@@ -375,44 +375,14 @@ const AdminLevel5Helpers = () => {
     try {
       const reward = parseInt(diamondReward) || selectedWithdrawal.diamond_reward || 0;
 
-      // Get helper info
-      const { data: helper } = await supabase
-        .from('topup_helpers')
-        .select('wallet_balance, user_id')
-        .eq('id', selectedWithdrawal.helper_id)
-        .maybeSingle();
-
-      if (!helper) throw new Error('Helper not found');
-
-      // Update withdrawal status
-      const { error: updateError } = await supabase
-        .from('helper_withdrawal_requests')
-        .update({
-          status: 'approved',
-          diamond_reward: reward,
-          admin_notes: adminNotes || null,
-          approved_at: new Date().toISOString()
-        })
-        .eq('id', selectedWithdrawal.id);
-
-      if (updateError) throw updateError;
-
-      // Add diamonds to helper wallet
-      if (reward > 0) {
-        await supabase
-          .from('topup_helpers')
-          .update({ wallet_balance: (helper.wallet_balance || 0) + reward })
-          .eq('id', selectedWithdrawal.helper_id);
-
-        // Send notification
-        await supabase.from('helper_notifications').insert({
-          helper_id: selectedWithdrawal.helper_id,
-          type: 'diamonds_credited',
-          title: '💎 Diamonds Credited!',
-          message: `${reward.toLocaleString()} diamonds added for processing withdrawal`,
-          data: { diamond_reward: reward, withdrawal_id: selectedWithdrawal.id }
-        });
-      }
+      const { data, error } = await supabase.rpc('admin_process_helper_withdrawal_request' as any, {
+        _request_id: selectedWithdrawal.id,
+        _status: 'approved',
+        _diamond_reward: reward,
+        _admin_notes: adminNotes || null,
+      });
+      const result = data as any;
+      if (error || !result?.success) throw new Error(result?.error || error?.message || 'Approval failed');
 
       toast({ title: "Approved!", description: `${reward.toLocaleString()} diamonds credited to helper` });
       setShowWithdrawalDialog(false);
@@ -432,22 +402,14 @@ const AdminLevel5Helpers = () => {
 
     setProcessing(true);
     try {
-      await supabase
-        .from('helper_withdrawal_requests')
-        .update({
-          status: 'rejected',
-          admin_notes: adminNotes || 'Rejected by admin'
-        })
-        .eq('id', selectedWithdrawal.id);
-
-      // Send notification
-      await supabase.from('helper_notifications').insert({
-        helper_id: selectedWithdrawal.helper_id,
-        type: 'withdrawal_rejected',
-        title: '❌ Withdrawal Rejected',
-        message: adminNotes || 'Your withdrawal submission was rejected',
-        data: { withdrawal_id: selectedWithdrawal.id }
+      const { data, error } = await supabase.rpc('admin_process_helper_withdrawal_request' as any, {
+        _request_id: selectedWithdrawal.id,
+        _status: 'rejected',
+        _diamond_reward: null,
+        _admin_notes: adminNotes || 'Rejected by admin',
       });
+      const result = data as any;
+      if (error || !result?.success) throw new Error(result?.error || error?.message || 'Rejection failed');
 
       toast({ title: "Rejected", description: "Withdrawal has been rejected" });
       setShowWithdrawalDialog(false);
@@ -463,10 +425,11 @@ const AdminLevel5Helpers = () => {
 
   const toggleLevelConfig = async (config: LevelConfig, field: 'is_enabled' | 'has_payroll_access' | 'has_withdrawal_processing') => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('helper_level_config')
         .update({ [field]: !config[field] })
         .eq('id', config.id);
+      if (error) throw error;
 
       toast({ title: "Updated", description: `Level ${config.level_number} ${field.replace(/_/g, ' ')} toggled` });
       loadLevelConfigs();
@@ -477,10 +440,11 @@ const AdminLevel5Helpers = () => {
 
   const toggleHelperPayroll = async (helper: Level5Helper, enabled: boolean) => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('topup_helpers')
         .update({ payroll_enabled: enabled })
         .eq('id', helper.id);
+      if (error) throw error;
 
       toast({ title: "Updated", description: `Payroll ${enabled ? 'enabled' : 'disabled'} for helper` });
       loadHelpers();
@@ -918,13 +882,14 @@ const AdminLevel5Helpers = () => {
                               onCheckedChange={async (checked) => {
                                 setProcessing(true);
                                 try {
-                                  await supabase
+                                  const { error } = await supabase
                                     .from('topup_helpers')
                                     .update({ 
                                       payroll_enabled: checked,
                                       payroll_status: checked ? 'approved' : 'rejected'
                                     })
                                     .eq('user_id', app.user_id);
+                                  if (error) throw error;
                                   
                                   toast({ 
                                     title: checked ? "Payroll Enabled" : "Payroll Disabled", 

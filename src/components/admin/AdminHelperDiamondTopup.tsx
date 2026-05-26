@@ -10,9 +10,9 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { adminSendNotification } from "@/utils/adminNotification";
 
 interface HelperResult {
   id: string;
@@ -115,7 +115,7 @@ const AdminHelperDiamondTopup = () => {
       const { data } = await supabase
         .from('admin_logs')
         .select('*')
-        .eq('action_type', 'helper_diamond_topup')
+        .or('and(target_type.eq.helper,action_type.eq.balance_add),and(target_type.eq.helper,action_type.eq.helper_diamond_topup),and(target_type.eq.topup_helper,action_type.eq.helper_diamond_topup)')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -131,8 +131,8 @@ const AdminHelperDiamondTopup = () => {
             return {
               id: log.id,
               helper_id: log.target_id || '',
-              amount: details?.amount || 0,
-              note: details?.note || null,
+              amount: details?.amount ?? details?.delta ?? 0,
+              note: details?.note ?? details?.reason ?? null,
               created_at: log.created_at || '',
               helper: helper as any,
             };
@@ -159,46 +159,29 @@ const AdminHelperDiamondTopup = () => {
     try {
       const diamondAmount = parseInt(amount);
 
-      // Update helper's wallet_balance
-      const { error: updateError } = await supabase
-        .from('topup_helpers')
-        .update({
-          wallet_balance: (selectedHelper.wallet_balance || 0) + diamondAmount
-        })
-        .eq('id', selectedHelper.id);
-
-      if (updateError) throw updateError;
-
-      // Get current admin user
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
-
-      // Log the action
-      await supabase.from('admin_logs').insert({
-        action_type: 'helper_diamond_topup',
-        admin_id: user?.id || null,
-        target_id: selectedHelper.id,
-        target_type: 'topup_helper',
-        details: {
-          amount: diamondAmount,
-          note: note || null,
-          helper_user_id: selectedHelper.user_id,
-          helper_name: selectedHelper.user?.display_name,
-          previous_balance: selectedHelper.wallet_balance,
-          new_balance: (selectedHelper.wallet_balance || 0) + diamondAmount,
-        }
+      const { data, error } = await supabase.rpc('admin_adjust_balance', {
+        _target_type: 'helper',
+        _target_id: selectedHelper.id,
+        _field: 'wallet_balance',
+        _delta: diamondAmount,
+        _reason: note || `Helper diamond topup: ${diamondAmount}`,
       });
+
+      if (error) throw error;
+      const result = data as { success?: boolean; error?: string; new_balance?: number } | null;
+      if (result?.success === false) throw new Error(result.error || 'Topup failed');
+      const newBalance = Number(result?.new_balance ?? ((selectedHelper.wallet_balance || 0) + diamondAmount));
 
       // Send notification to helper
       const noteSection = note ? `\n\n📝 Note: ${note}` : "";
       const guideLink = "\n\n📖 Payroll Helper Guide: /payroll-helper-guide";
-      await supabase.from('notifications').insert({
-        user_id: selectedHelper.user_id,
-        title: "💎 Diamond Topup Received!",
-        message: `You have received ${diamondAmount.toLocaleString()} Trader Diamonds!\n\n💎 Amount: ${diamondAmount.toLocaleString()} Diamonds\n💰 New Balance: ${((selectedHelper.wallet_balance || 0) + diamondAmount).toLocaleString()} Diamonds${noteSection}${guideLink}`,
-        type: "reward",
-        is_read: false,
-        data: { amount: diamondAmount, action_url: '/payroll-helper-guide' }
-      });
+      await adminSendNotification(
+        selectedHelper.user_id,
+        "💎 Diamond Topup Received!",
+        `You have received ${diamondAmount.toLocaleString()} Trader Diamonds!\n\n💎 Amount: ${diamondAmount.toLocaleString()} Diamonds\n💰 New Balance: ${newBalance.toLocaleString()} Diamonds${noteSection}${guideLink}`,
+        "reward",
+        { amount: diamondAmount, action_url: '/payroll-helper-guide' }
+      );
 
       toast({
         title: "Success! ✅",

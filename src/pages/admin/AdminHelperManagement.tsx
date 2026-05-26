@@ -404,7 +404,7 @@ const AdminHelperManagement = () => {
     try {
       const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('helper_applications')
         .update({
           status: 'rejected',
@@ -413,6 +413,7 @@ const AdminHelperManagement = () => {
           reviewed_at: new Date().toISOString()
         })
         .eq('id', app.id);
+      if (updateError) throw updateError;
 
       await adminSendNotification(app.user_id, '❌ Helper Application Rejected', adminNotes, 'helper_rejected')
 
@@ -476,44 +477,18 @@ const AdminHelperManagement = () => {
     if (!guardStart(`topup-${req.id}`)) return;
     setProcessingIds(prev => new Set(prev).add(req.id));
     try {
-      const { error: updateError } = await supabase
-        .from('helper_topup_requests')
-        .update({ status: 'approved', processed_at: new Date().toISOString() })
-        .eq('id', req.id);
+      const { data, error } = await supabase.rpc('admin_approve_helper_topup', {
+        _request_id: req.id,
+        _amount_usd: req.amount_usd ?? null,
+        _admin_notes: null,
+      });
 
-      if (updateError) {
-        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingTopupRequest", message: formatAdminError(updateError)});
-        throw updateError;
-      }
+      if (error) throw error;
+      const result = data as { success?: boolean; error?: string; diamonds?: number; diamonds_credited?: number } | null;
+      if (result?.success === false) throw new Error(result.error || 'Topup approval failed');
 
-      // Update wallet balance directly
-      const { data: helper, error: helperFetchError } = await supabase
-        .from('topup_helpers')
-        .select('wallet_balance, total_level_upgrade_cost')
-        .eq('id', req.helper_id)
-        .single();
-      
-      if (helperFetchError) {
-        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorFetchingHelper", message: formatAdminError(helperFetchError)});
-        throw helperFetchError;
-      }
-
-      if (helper) {
-        const { error: helperUpdateError } = await supabase
-          .from('topup_helpers')
-          .update({
-            wallet_balance: (helper.wallet_balance || 0) + (req.coin_amount || 0),
-            total_level_upgrade_cost: (helper.total_level_upgrade_cost || 0) + (req.amount_usd || 0)
-          })
-          .eq('id', req.helper_id);
-
-        if (helperUpdateError) {
-          recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingHelperWallet", message: formatAdminError(helperUpdateError)});
-          throw helperUpdateError;
-        }
-      }
-
-      toast({ title: "Approved!", description: "Topup added to wallet" });
+      const credited = Number(result?.diamonds ?? result?.diamonds_credited ?? req.coin_amount ?? 0);
+      toast({ title: "Approved!", description: `${credited.toLocaleString()} diamonds added to wallet` });
     } catch (error: any) {
       recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapprovetopupError", message: formatAdminError(error)});
       toast({ title: "Error", description: error.message, variant: "destructive" });

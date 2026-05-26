@@ -17332,6 +17332,15 @@ export type Database = {
         Args: { _action: string; _transaction_id: string }
         Returns: boolean
       }
+      admin_process_helper_withdrawal_request: {
+        Args: {
+          _admin_notes?: string
+          _diamond_reward?: number
+          _request_id: string
+          _status: string
+        }
+        Returns: Json
+      }
       admin_process_host_application: {
         Args: {
           _application_id: string
