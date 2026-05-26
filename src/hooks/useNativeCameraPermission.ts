@@ -254,9 +254,9 @@ export function useNativeCameraPermission() {
         setPermissionGranted(false);
 
         let errorMessage = 'Camera access failed.';
-        if (error.name === 'NotAllowedError') errorMessage = 'Camera permission denied. Enable from Settings.';
-        else if (error.name === 'NotFoundError') errorMessage = 'No camera found on this device.';
-        else if (error.name === 'NotReadableError') errorMessage = 'Camera is being used by another app.';
+        if (error.name === 'NotAllowedError' || error.name === 'SecurityError') errorMessage = denialHint(isNativeApp);
+        else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') errorMessage = 'No usable camera was found on this device.';
+        else if (error.name === 'NotReadableError') errorMessage = 'Camera is busy. Close other apps/tabs using the camera and try again.';
         else if (error.name === 'TimeoutError') errorMessage = 'Camera start timed out. Please try again.';
 
         return { granted: false, error: errorMessage };
