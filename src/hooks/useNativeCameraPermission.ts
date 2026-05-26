@@ -191,7 +191,7 @@ export function useNativeCameraPermission() {
           // ===== NATIVE ANDROID: Direct getUserMedia (the ONLY reliable method) =====
           // @capacitor/camera is for photo capture, NOT for WebRTC getUserMedia.
           // The native WebChromeClient.onPermissionRequest() handles the Android permission dialog.
-          const result = await requestCameraViaGetUserMedia(includeMicrophone);
+          const result = await requestCameraViaGetUserMedia(includeMicrophone, true);
           
           if (result.granted) {
             // Stop the probe stream - actual stream will be requested later
