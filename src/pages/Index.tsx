@@ -177,7 +177,11 @@ const Index = () => {
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
       if (typeof window === "undefined") return [];
-      const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v1");
+      // Pkg369: bump cache key to invalidate pre-Pkg368 snapshots that may
+      // still contain hosts marked is_online=true even though server now
+      // considers them offline (heartbeat>30min OR availability='offline').
+      window.sessionStorage.removeItem("index-hosts-instant-cache-v1");
+      const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v2");
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       return Array.isArray(parsed)
