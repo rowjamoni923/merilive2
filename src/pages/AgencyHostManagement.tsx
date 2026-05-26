@@ -161,8 +161,10 @@ const AgencyHostManagement = () => {
 
       if (error) throw error;
 
-      const result = typeof data === 'object' && data !== null ? data as { success?: boolean; error?: string } : null;
-      if (result?.success) {
+      // approve_host_request returns boolean (true on success)
+      const ok = data === true
+        || (typeof data === 'object' && data !== null && (data as { success?: boolean }).success === true);
+      if (ok) {
         supabase.functions.invoke('send-app-notification', {
           body: {
             userId: hostData.host_id,
