@@ -115,42 +115,51 @@ const getLocalizedMessages = (_countryName?: string) => ({
   staticFace: 'Static face detected. Please use a real camera, not a photo.',
 });
 
-// Capture the exact visible camera area, not the raw hidden overflow. On mobile
-// the preview uses object-cover in a portrait box while the camera frame can be
-// landscape; sending the uncropped raw frame makes the detector analyze a
-// different image than the user is centering in the oval.
+// Capture the full camera sensor frame for AI analysis. The old object-cover
+// crop matched the preview box, but on close-up mobile selfies it cut off part
+// of the forehead/chin and made Rekognition/FaceMesh report "no face" even
+// while the user clearly saw their face in the oval.
 const captureFrameFromLiveVideo = (videoEl: HTMLVideoElement, size = 640): string | null => {
   if (!videoEl || videoEl.readyState < 2 || !videoEl.videoWidth || !videoEl.videoHeight) return null;
   const canvas = document.createElement('canvas');
   const sourceW = videoEl.videoWidth;
   const sourceH = videoEl.videoHeight;
-  const visibleW = videoEl.clientWidth || videoEl.offsetWidth || sourceW;
-  const visibleH = videoEl.clientHeight || videoEl.offsetHeight || sourceH;
-  const visibleAspect = visibleW / Math.max(1, visibleH);
-  const sourceAspect = sourceW / Math.max(1, sourceH);
-
-  let sx = 0;
-  let sy = 0;
-  let sw = sourceW;
-  let sh = sourceH;
-  if (sourceAspect > visibleAspect) {
-    sw = Math.round(sourceH * visibleAspect);
-    sx = Math.round((sourceW - sw) / 2);
-  } else if (sourceAspect < visibleAspect) {
-    sh = Math.round(sourceW / visibleAspect);
-    sy = Math.round((sourceH - sh) / 2);
-  }
-
-  const outAspect = sw / Math.max(1, sh);
-  canvas.width = size;
-  canvas.height = Math.round(size / outAspect);
+  const scale = size / Math.max(sourceW, sourceH);
+  canvas.width = Math.max(1, Math.round(sourceW * scale));
+  canvas.height = Math.max(1, Math.round(sourceH * scale));
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  ctx.translate(canvas.width, 0);
-  ctx.scale(-1, 1);
-  ctx.drawImage(videoEl, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(videoEl, 0, 0, sourceW, sourceH, 0, 0, canvas.width, canvas.height);
   const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
   return dataUrl.split(',')[1];
+};
+
+const assessCameraFrameQuality = (imageBase64: string): Promise<{ usable: boolean; brightness: number; contrast: number }> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 40;
+      canvas.height = 40;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) return resolve({ usable: false, brightness: 0, contrast: 0 });
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let sum = 0;
+      const values: number[] = [];
+      for (let i = 0; i < data.length; i += 4) {
+        const y = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        values.push(y);
+        sum += y;
+      }
+      const brightness = sum / Math.max(1, values.length);
+      const variance = values.reduce((acc, v) => acc + (v - brightness) ** 2, 0) / Math.max(1, values.length);
+      const contrast = Math.sqrt(variance);
+      resolve({ usable: brightness > 18 && brightness < 245 && contrast > 8, brightness, contrast });
+    };
+    img.onerror = () => resolve({ usable: false, brightness: 0, contrast: 0 });
+    img.src = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
+  });
 };
 
 const FaceVerification = () => {
