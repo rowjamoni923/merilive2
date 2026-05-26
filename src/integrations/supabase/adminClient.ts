@@ -131,7 +131,8 @@ const adminFetch: typeof fetch = (input, init) => {
       url,
       silent: true,
     });
-    forceAdminLogout();
+    // 🛡️ NO AUTO-LOGOUT POLICY (Pkg359): do NOT force logout — admin stays on
+    // current page, sees the error in dev console, and can manually re-login.
     return Promise.resolve(new Response(JSON.stringify({ message }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
@@ -168,8 +169,9 @@ const adminFetch: typeof fetch = (input, init) => {
       /access denied|admin only|permission denied|forbidden|insufficient/i.test(parsedMsg);
     const missingToken = isRpc && !isLoginRpc && !token && isAuthStatus;
 
-    // Auth/session failures are security state, not UI errors: clear session and
-    // leave admin silently so users never see scary RPC error stacks/toasts.
+    // 🛡️ NO AUTO-LOGOUT POLICY (Pkg359): record the auth error silently but do
+    // NOT call forceAdminLogout(). Admin keeps current view; only manual logout
+    // or single-device displacement may end the session.
     if ((sessionExpired || accessDenied || missingToken) && !isLoginRpc) {
       recordAdminError({
         kind: isRpc ? 'rpc' : 'rest',
@@ -184,8 +186,6 @@ const adminFetch: typeof fetch = (input, init) => {
         url,
         silent: true,
       });
-
-      forceAdminLogout();
       return resp;
     }
 

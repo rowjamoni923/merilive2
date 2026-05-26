@@ -887,29 +887,33 @@ const App = () => {
             // Fire-and-forget — do not block any subsequent navigation/state updates
             void Promise.resolve(clearNativeSession()).catch(() => {});
           } else {
-            // 🛡️ Auto sign-out fired (refresh token likely dead). Try ONE silent
-            // refresh; if that also fails, the JWT is truly gone and every
-            // edge function will return 401 — force re-login.
-            console.warn('[App] ⚠️ Auto sign-out received — attempting silent refresh');
+            // 🛡️ NO AUTO-LOGOUT POLICY (Pkg359):
+            // Auto sign-out events (refresh token glitch, network blip, webview
+            // storage flush) must NEVER kick the user out. We try a silent
+            // refresh in the background; if it succeeds, session is restored
+            // seamlessly. If it fails, we still do NOT navigate to /auth and
+            // do NOT clear native storage — the user stays exactly where they
+            // are. Only a MANUAL logout or a single-device-displacement
+            // (useSingleDeviceSession.forceLogout) sets the manual flag.
+            console.warn('[App] ⚠️ Auto sign-out received — attempting silent refresh (no redirect)');
             (async () => {
               try {
                 const { data, error } = await supabase.auth.refreshSession();
-                if (error || !data?.session) {
-                  console.error('[App] 🔒 Refresh failed, redirecting to /auth', error);
-                  setSession(null);
-                  invalidateCachedUser();
-                  clearBalanceCache();
-                  void Promise.resolve(clearNativeSession()).catch(() => {});
-                  navigateInAppPath('/auth', { replace: true });
-                } else {
+                if (!error && data?.session) {
                   console.log('[App] ✅ Silent refresh succeeded, session restored');
                   setSession(data.session);
+                  if (data.session.access_token && data.session.refresh_token) {
+                    saveSessionToNative({
+                      access_token: data.session.access_token,
+                      refresh_token: data.session.refresh_token,
+                      expires_at: data.session.expires_at,
+                    });
+                  }
+                } else {
+                  console.warn('[App] silent refresh failed — staying put (no auto-logout)', error?.message);
                 }
               } catch (e) {
-                console.error('[App] 🔒 Refresh threw, redirecting to /auth', e);
-                setSession(null);
-                invalidateCachedUser();
-                navigateInAppPath('/auth', { replace: true });
+                console.warn('[App] silent refresh threw — staying put (no auto-logout)', e);
               }
             })();
           }
