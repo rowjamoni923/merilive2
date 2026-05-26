@@ -347,7 +347,7 @@ Menu items include:
 #### Video Player:
 - Full screen `SurfaceView` (LiveKit Android SDK)
 - Support for both host camera and viewer modes
-- Beauty filter overlay (DeepAR native)
+- Beauty filter overlay (Beauty native)
 - Face detection for content moderation
 
 #### Chat Overlay:
@@ -390,7 +390,7 @@ Menu items include:
 │ [←]                [⚙️]     │  ← Top bar
 │                             │
 │   CAMERA PREVIEW            │  ← Full-screen camera
-│   (with DeepAR overlay)     │
+│   (with Beauty overlay)     │
 │                             │
 │   [Face Verification]       │  ← Optional modal
 │                             │
@@ -407,7 +407,7 @@ Menu items include:
 ```
 
 #### Camera Preview:
-- Full-screen `SurfaceView` with DeepAR rendering
+- Full-screen `SurfaceView` with Beauty rendering
 - Mirror mode by default (front camera)
 - Grid overlay toggle (3x3)
 
@@ -661,7 +661,7 @@ NO Firebase Auth — Supabase only
 // LiveKit Android SDK for streaming
 // ExoPlayer for video playback (Reels)
 // Coil for image loading
-// DeepAR for beauty filters
+// Beauty for beauty filters
 // SVGAPlayer for gift animations
 // Lottie for UI animations
 ```

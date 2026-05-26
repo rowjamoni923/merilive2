@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.merilive.app.databinding.BottomSheetStickersBinding
 import com.merilive.app.data.repository.*
-import com.merilive.app.service.DeepARManager
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +26,6 @@ class StickerBottomSheet : BottomSheetDialogFragment() {
     private val binding get() = _binding!!
     private val viewModel: StickerViewModel by viewModels()
 
-    @Inject lateinit var deepARManager: DeepARManager
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = BottomSheetStickersBinding.inflate(inflater, container, false)

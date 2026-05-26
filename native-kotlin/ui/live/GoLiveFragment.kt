@@ -19,7 +19,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.merilive.app.databinding.FragmentGoLiveBinding
 import com.merilive.app.util.PermissionHelper
-import com.merilive.app.service.DeepARManager
 import com.merilive.app.service.LiveKitManager
 import com.merilive.app.data.repository.*
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,7 +45,6 @@ class GoLiveFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: GoLiveViewModel by viewModels()
 
-    @Inject lateinit var deepARManager: DeepARManager
     @Inject lateinit var liveKitManager: LiveKitManager
 
     private var cameraProvider: ProcessCameraProvider? = null

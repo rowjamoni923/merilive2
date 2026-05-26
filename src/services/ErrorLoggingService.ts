@@ -43,7 +43,7 @@ class ErrorLoggingService {
     '[NativeSession] Failed to clear session',
     'Failed to enable secure mode',
     'Failed to disable secure mode',
-    '[DeepARBeauty] Initialize failed',
+    '[Beauty] Initialize failed',
     '[LiveStream] Error fetching recent viewers',
     '❌ LiveKit error: {}',
     '[ErrorLogging] Failed to log errors:',

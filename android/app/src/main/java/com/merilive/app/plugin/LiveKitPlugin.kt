@@ -653,24 +653,24 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ------------------------------------------------------------
-    // Step 21 — Beauty pipeline (DeepAR) ↔ LiveKit camera bridge.
+    // Step 21 — Beauty pipeline (GPUPixel) ↔ LiveKit camera bridge.
     //
-    // The DeepAR plugin owns its own Camera2 capture surface and runs the
-    // GL beauty/AR effect pipeline. Both DeepAR and LiveKit cannot hold the
+    // The GPUPixel plugin owns its own Camera2 capture surface and runs the
+    // GL beauty/AR effect pipeline. Both GPUPixel and LiveKit cannot hold the
     // physical camera at the same time, so this method coordinates handoff:
     //
     //   setBeautyPipelineEnabled({ enabled: true })
-    //     → LiveKit unpublishes & releases its camera track. DeepAR plugin
+    //     → LiveKit unpublishes & releases its camera track. GPUPixel plugin
     //       (called separately from JS) opens the camera, processes frames,
     //       and pushes them into LiveKit via the shared external-frame
     //       channel registered by BeautyPipelineBridge.
     //
     //   setBeautyPipelineEnabled({ enabled: false })
-    //     → DeepAR releases the camera (called by JS). LiveKit re-publishes
+    //     → GPUPixel releases the camera (called by JS). LiveKit re-publishes
     //       its native camera track at the previously requested resolution.
     //
     // The actual GL texture / NV21 frame transport is implemented inside
-    // BeautyPipelineBridge (singleton) which DeepARPlugin pushes to and
+    // BeautyPipelineBridge (singleton) which GPUPixelPlugin pushes to and
     // LiveKit's custom VideoCapturer pulls from. This method only handles
     // the ownership flip — keeping the contract small and race-safe.
     // ------------------------------------------------------------
@@ -683,7 +683,7 @@ class LiveKitPlugin : Plugin() {
                 BeautyPipelineBridge.setEnabled(enabled)
                 if (r != null) {
                     // Flip LiveKit's camera ownership: when beauty is on we
-                    // mute the native camera track so DeepAR can use the
+                    // mute the native camera track so GPUPixel can use the
                     // device; when beauty is off we re-enable it so LiveKit
                     // resumes its own capture.
                     r.localParticipant.setCameraEnabled(!enabled)

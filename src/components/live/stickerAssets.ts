@@ -1,5 +1,5 @@
 /**
- * Sticker asset map — premium promo text stickers (own assets, no DeepAR).
+ * Sticker asset map — premium promo text stickers (own assets, no native beauty).
  * These are draggable promotional overlays the host pins on the stream.
  */
 import badGirl from '@/assets/stickers/promo-bad-girl.png';
