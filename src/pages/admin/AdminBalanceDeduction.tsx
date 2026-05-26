@@ -526,164 +526,128 @@ export default function AdminBalanceDeduction() {
     setShowAddDialog(true);
   };
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Pkg360: Unified add/deduct via `admin_adjust_balance` RPC.
+  // The old code did direct `.update()` on `profiles` / `topup_helpers`, which
+  // was silently rejected by `protect_sensitive_profile_columns` (Pkg338) +
+  // by the absent client write policy on `topup_helpers`. Everything now goes
+  // through ONE SECURITY DEFINER RPC that bypasses the trigger, audit-logs,
+  // and returns the new balance so the UI can refresh instantly.
+  // ─────────────────────────────────────────────────────────────────────────────
+  const adjustBalance = async (
+    addOrDeduct: 'add' | 'deduct',
+    fieldKey: string,
+    amount: number,
+    reason: string,
+  ): Promise<{ ok: boolean; error?: string; newBalance?: number }> => {
+    if (!selectedResult) return { ok: false, error: 'No selection' };
+
+    // Route to (target_type, target_id, db_field) by the UI field key.
+    let target_type: 'profile' | 'helper' | 'agency';
+    let target_id: string;
+    let db_field: string;
+
+    // Related agency on a user/host row
+    if (fieldKey.startsWith('agency_') && selectedResult.relatedAgency) {
+      target_type = 'agency';
+      target_id = selectedResult.relatedAgency.id;
+      db_field = fieldKey === 'agency_beans' ? 'beans_balance' : 'diamond_balance';
+    }
+    // Related helper on a user/host row
+    else if (fieldKey.startsWith('helper_') && selectedResult.relatedHelper) {
+      target_type = 'helper';
+      target_id = selectedResult.relatedHelper.id;
+      db_field = fieldKey === 'helper_wallet' ? 'wallet_balance' : 'total_earnings';
+    }
+    // Plain profile (user/host) — note: UI labels "coins" as Diamonds but the
+    // underlying column is profiles.coins (the in-app diamonds wallet).
+    else if (selectedResult.type === 'user' || selectedResult.type === 'host') {
+      target_type = 'profile';
+      target_id = selectedResult.id;
+      const profileFieldMap: Record<string, string> = {
+        coins: 'coins',
+        total_earnings: 'total_earnings',
+        pending_earnings: 'pending_earnings',
+        beans: 'beans',
+        diamonds: 'diamonds',
+      };
+      db_field = profileFieldMap[fieldKey] || fieldKey;
+    }
+    // Agency row searched directly
+    else if (selectedResult.type === 'agency') {
+      target_type = 'agency';
+      target_id = selectedResult.agencyId || selectedResult.id;
+      const agencyFieldMap: Record<string, string> = {
+        beans: 'beans_balance',
+        diamonds: 'diamond_balance',
+        wallet_balance: 'wallet_balance',
+      };
+      db_field = agencyFieldMap[fieldKey] || fieldKey;
+    }
+    // Helper row searched directly
+    else if (selectedResult.type === 'helper') {
+      target_type = 'helper';
+      target_id = selectedResult.helperId || selectedResult.id;
+      db_field = fieldKey === 'wallet_balance' ? 'wallet_balance' : 'total_earnings';
+    } else {
+      return { ok: false, error: 'Unsupported target type' };
+    }
+
+    const delta = addOrDeduct === 'add' ? amount : -amount;
+
+    const { data, error } = await supabase.rpc('admin_adjust_balance', {
+      _target_type: target_type,
+      _target_id: target_id,
+      _field: db_field,
+      _delta: delta,
+      _reason: reason || null,
+    });
+
+    if (error) return { ok: false, error: error.message };
+    const result = (data ?? {}) as { success?: boolean; error?: string; new_balance?: number };
+    if (!result.success) return { ok: false, error: result.error || 'Failed' };
+    return { ok: true, newBalance: result.new_balance };
+  };
+
   const handleConfirmAdd = async () => {
     if (!selectedResult || !addField || !addAmount) {
-      toast.error("Please fill all fields");
+      toast.error('Please fill all fields');
       return;
     }
-
     const amount = parseFloat(addAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error('Please enter a valid amount');
       return;
     }
-
     if (!guardStart('confirm-add')) return;
     setIsAdding(true);
-
     try {
-      let updateError = null;
-
-      // Check if this is an agency-related field for a user/host
-      if (addField.startsWith('agency_') && selectedResult.relatedAgency) {
-        const fieldKey = addField.replace('agency_', '');
-        const fieldMap: Record<string, string> = {
-          'beans': 'beans_balance',
-          'diamonds': 'diamond_balance'
-        };
-        
-        const dbField = fieldMap[fieldKey];
-        const currentValue = fieldKey === 'beans' 
-          ? selectedResult.relatedAgency.beans_balance 
-          : selectedResult.relatedAgency.diamond_balance;
-        const newValue = currentValue + amount;
-        
-        // Use edge function to bypass RLS
-        const { data: efData, error: efError } = await supabase.functions.invoke('admin-agency-balance', {
-          body: {
-            agency_id: selectedResult.relatedAgency.id,
-            field: dbField,
-            amount: newValue,
-            action: 'set'
-          }
+      const result = await adjustBalance('add', addField, amount, addReason);
+      if (!result.ok) {
+        recordAdminError({
+          kind: 'rpc',
+          label: 'AdminBalanceDeduction.AddError',
+          message: result.error || 'Unknown',
         });
-        
-        if (efError || !efData?.success) {
-          updateError = efError || new Error(efData?.error || 'Failed');
-        }
+        toast.error(result.error || 'Failed to add amount');
+        return;
       }
-      // Check if this is a helper-related field for a user/host
-      else if (addField.startsWith('helper_') && selectedResult.relatedHelper) {
-        const fieldKey = addField.replace('helper_', '');
-        const fieldMap: Record<string, string> = {
-          'wallet': 'wallet_balance',
-          'earnings': 'total_earnings'
-        };
-        
-        const dbField = fieldMap[fieldKey];
-        const currentValue = fieldKey === 'wallet' 
-          ? selectedResult.relatedHelper.wallet_balance 
-          : selectedResult.relatedHelper.total_earnings;
-        const newValue = currentValue + amount;
-        
-        const { error } = await supabase
-          .from('topup_helpers')
-          .update({ [dbField]: newValue })
-          .eq('id', selectedResult.relatedHelper.id);
-        
-        updateError = error;
-      }
-      else if (selectedResult.type === 'user' || selectedResult.type === 'host') {
-        const fieldMap: Record<string, string> = {
-          'coins': 'coins',
-          'total_earnings': 'total_earnings',
-          'pending_earnings': 'pending_earnings'
-        };
-        
-        const dbField = fieldMap[addField];
-        const currentValue = (selectedResult.balances as any)[addField] || 0;
-        const newValue = currentValue + amount;
-        
-        const { error } = await supabase
-          .from('profiles')
-          .update({ [dbField]: newValue })
-          .eq('id', selectedResult.id);
-        
-        updateError = error;
-      } else if (selectedResult.type === 'agency') {
-        const fieldMap: Record<string, string> = {
-          'beans': 'beans_balance',
-          'diamonds': 'diamond_balance',
-          'wallet_balance': 'wallet_balance'
-        };
-        
-        const dbField = fieldMap[addField];
-        const currentValue = (selectedResult.balances as any)[addField] || 0;
-        const newValue = currentValue + amount;
-        
-        // Use edge function to bypass RLS (admin is not agency owner)
-        const { data: efData, error: efError } = await supabase.functions.invoke('admin-agency-balance', {
-          body: {
-            agency_id: selectedResult.agencyId,
-            field: dbField,
-            amount: newValue,
-            action: 'set'
-          }
-        });
-        
-        if (efError || !efData?.success) {
-          updateError = efError || new Error(efData?.error || 'Failed to update agency balance');
-        }
-      } else if (selectedResult.type === 'helper') {
-        const fieldMap: Record<string, string> = {
-          'wallet_balance': 'wallet_balance',
-          'total_earnings': 'total_earnings'
-        };
-        
-        const dbField = fieldMap[addField];
-        const currentValue = (selectedResult.balances as any)[addField] || 0;
-        const newValue = currentValue + amount;
-        
-        const { error } = await supabase
-          .from('topup_helpers')
-          .update({ [dbField]: newValue })
-          .eq('id', selectedResult.helperId);
-        
-        updateError = error;
-      }
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // Log the admin action
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
-      await supabase.from('admin_logs').insert({
-        admin_id: user?.id,
-        action_type: 'balance_restore',
-        target_type: selectedResult.type,
-        target_id: selectedResult.id,
-        details: {
-          field: addField,
-          amount: amount,
-          reason: addReason,
-          uid: selectedResult.uid
-        }
-      });
-
-      toast.success(`${amount} added successfully`);
+      toast.success(`+${amount} added — new balance: ${result.newBalance ?? '—'}`);
       setShowAddDialog(false);
-      
-      // Refresh search results
       handleSearch();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.AddError", message: formatAdminError(error)});
-      toast.error("Failed to add amount");
+      recordAdminError({
+        kind: 'rpc',
+        label: 'AdminBalanceDeduction.AddError',
+        message: formatAdminError(error),
+      });
+      toast.error('Failed to add amount');
     } finally {
       setIsAdding(false);
       guardEnd('confirm-add');
     }
   };
+
 
   const handleConfirmDeduction = async () => {
     if (!selectedResult || !deductionField || !deductionAmount) {
