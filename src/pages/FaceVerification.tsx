@@ -1019,29 +1019,40 @@ const FaceVerification = () => {
       } else {
         const webFaceStream = faceStream;
         if (!webFaceStream) throw new Error('Camera stream is not ready');
-        const mimeType = MediaRecorder.isTypeSupported('video/mp4')
-          ? 'video/mp4'
-          : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
-            ? 'video/webm;codecs=vp8,opus'
-            : MediaRecorder.isTypeSupported('video/webm')
-              ? 'video/webm'
-              : '';
-        
-        const mediaRecorder = mimeType
-          ? new MediaRecorder(webFaceStream, { mimeType })
-          : new MediaRecorder(webFaceStream);
-        faceRecorderRef.current = mediaRecorder;
-        
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) faceChunksRef.current.push(e.data);
-        };
-        
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
-          setFaceVerificationVideo(blob);
-        };
-        
-        mediaRecorder.start();
+        // MediaRecorder is optional — we capture liveness stills separately.
+        // If browser codec support fails (common on iOS Safari / some Android WebViews),
+        // we still proceed with the pose-checking flow so verification is never blocked.
+        try {
+          const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+            ? 'video/mp4'
+            : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+              ? 'video/webm;codecs=vp8,opus'
+              : MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
+                ? 'video/webm;codecs=vp8'
+                : MediaRecorder.isTypeSupported('video/webm')
+                  ? 'video/webm'
+                  : '';
+
+          const mediaRecorder = mimeType
+            ? new MediaRecorder(webFaceStream, { mimeType })
+            : new MediaRecorder(webFaceStream);
+          faceRecorderRef.current = mediaRecorder;
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) faceChunksRef.current.push(e.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
+            setFaceVerificationVideo(blob);
+          };
+
+          mediaRecorder.start();
+        } catch (recErr) {
+          console.warn('[FaceVerify] MediaRecorder unavailable, continuing without video capture:', recErr);
+          pushDebug({ kind: 'recorder_skip', message: recErr instanceof Error ? recErr.message : String(recErr) });
+          faceRecorderRef.current = null;
+        }
       }
       
       // Overall verification window: 3 essential liveness poses × stepWindowSec,
@@ -1086,14 +1097,40 @@ const FaceVerification = () => {
   useEffect(() => {
     const faceCameraActive = !!faceStream || usingNativeFaceCamera;
     if (!faceCameraActive || !cameraReady || verificationStarted || verificationRecording || faceVerified) return;
-    if (autoFaceStartRef.current) return;
+
+    let cancelled = false;
+    let attempt = 0;
+
+    const tryStart = async () => {
+      if (cancelled) return;
+      attempt += 1;
+      // Re-read latest state via refs / closure; if already started, bail
+      if (verificationStarted || verificationRecording || faceVerified) return;
+      try {
+        console.log(`[FaceVerify] auto-start attempt ${attempt}`);
+        await startFaceVerification();
+      } catch (err) {
+        console.error('[FaceVerify] auto-start error:', err);
+        recordClientError({ label: 'FaceVerification.autoStart', message: err instanceof Error ? err.message : String(err) });
+      }
+      // If the start did not actually flip the state within 1.5s, retry up to 3 times.
+      if (cancelled) return;
+      window.setTimeout(() => {
+        if (cancelled) return;
+        if (!verificationStarted && !verificationRecording && !faceVerified && attempt < 3) {
+          autoFaceStartRef.current = false;
+          tryStart();
+        }
+      }, 1500);
+    };
+
     autoFaceStartRef.current = true;
+    const timer = window.setTimeout(tryStart, 350);
 
-    const timer = window.setTimeout(() => {
-      void startFaceVerification();
-    }, 350);
-
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [faceStream, usingNativeFaceCamera, cameraReady, verificationStarted, verificationRecording, faceVerified]);
 
   const evaluateAdaptivePose = (
@@ -1196,7 +1233,7 @@ const FaceVerification = () => {
           instruction: faceInstructions[currentInstructionRef.current]?.id,
           apiOk: !!result,
         });
-        if (consecutiveFails >= 15) {
+        if (consecutiveFails >= 10) {
           const fallbackFrame = await captureFaceFrameBase64(720);
           if (fallbackFrame && !capturedAnglesRef.current.center) capturedAnglesRef.current.center = fallbackFrame;
           pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'pose_api_or_face_detect_failed_open_to_admin' });
