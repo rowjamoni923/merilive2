@@ -83,6 +83,8 @@ const AdminAgencyCommissionLog = () => {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  // Pkg362: zero-refresh push from agency_commission_history bumps.
+  useAdminRealtime(['agency_commission_history'], load, 'admin-commission-log', { debounceMs: 500 });
 
   const openAdjust = (row: CommissionRow, sign: "plus" | "minus") => {
     setTarget(row);
