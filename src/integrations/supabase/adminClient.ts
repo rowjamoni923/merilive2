@@ -13,9 +13,8 @@
  * The user app login/logout will NEVER affect admin panel session and vice-versa.
  */
 import { createClient } from '@supabase/supabase-js';
-import { clearAdminSession, getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
+import { getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
 import { recordAdminError } from '@/utils/adminErrorLog';
-import { getAdminLinkToken, revokeAdminAccess } from '@/utils/adminAccessStorage';
 import { clearInstantRestCache, fetchWithInstantRestCache } from '@/utils/instantRestCache';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
@@ -58,24 +57,6 @@ const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: 
 const SAFETY_LIMIT = 500;
 const DEDUPE_MS = 250;
 const inflight = new Map<string, { p: Promise<Response>; t: number }>();
-let adminLogoutInProgress = false;
-
-function forceAdminLogout(): void {
-  if (typeof window === 'undefined') return;
-  if (adminLogoutInProgress) return;
-  adminLogoutInProgress = true;
-  const linkToken = getAdminLinkToken();
-  clearAdminSession();
-  revokeAdminAccess();
-  window.dispatchEvent(new CustomEvent('admin-session-change'));
-  if (window.location.pathname.startsWith('/admin')) {
-    const fallbackPath = linkToken
-      ? `/admin/auth?access=${encodeURIComponent(linkToken)}`
-      : '/admin/auth';
-    window.history.replaceState(null, '', fallbackPath);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  }
-}
 
 function urlString(input: RequestInfo | URL): string {
   if (typeof input === 'string') return input;

@@ -91,8 +91,9 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     const denyAccess = () => {
       if (!mounted || validationSettled) return;
       validationSettled = true;
-      clearAdminSession();
-      revokeAdminAccess();
+      // NO-AUTO-LOGOUT: validation failures must never delete an existing
+      // admin session. They only affect whether this route is rendered.
+      if (!getAdminSession()) revokeAdminAccess();
       // If a secret link was in the URL, KEEP the user on the admin auth
       // screen instead of dumping them onto the public BlogPage. The auth
       // screen will simply show "invalid token" when they try to log in.
@@ -164,7 +165,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             const role = data.role === 'owner' ? 'owner' : 'sub_admin';
             const existingSession = getAdminSession();
             if (!sessionMatchesLinkRole(existingSession, role)) {
-              clearAdminSession();
+              console.warn('[AdminAccessGuard] secret-link role differs from current session; keeping session until manual logout');
             }
             setAdminLinkToken(accessToken);
             setAdminLinkKind(role);

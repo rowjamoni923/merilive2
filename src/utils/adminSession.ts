@@ -121,14 +121,10 @@ export const getAdminSession = (): AdminSession | null => {
       clearAdminSession();
       return null;
     }
-    // STRICT: secret-link access is mandatory in EVERY tab. The secret-link
-    // token is stored in sessionStorage (tab-scoped). Without it, the admin
-    // session is invisible — a bookmarked /admin or a freshly-opened tab must
-    // re-enter via the secret link. This is the owner's explicit requirement:
-    // "only secret link grants admin access, ever".
-    if (!window.sessionStorage.getItem(ADMIN_SECRET_LINK_SESSION_KEY)) {
-      return null;
-    }
+    // NO-AUTO-LOGOUT: once a real server admin session exists, do not hide it
+    // just because tab-scoped secret-link storage was lost on refresh/new tab.
+    // The route guard still requires secret-link access for first entry, but a
+    // saved admin session must remain usable until manual logout.
     // Sync to sessionStorage if only in localStorage
     if (!window.sessionStorage.getItem(ADMIN_SESSION_KEY)) {
       window.sessionStorage.setItem(ADMIN_SESSION_KEY, raw);

@@ -59,13 +59,12 @@ export default function AdminAuth() {
     if (emailParam) setEmail(decodeURIComponent(emailParam));
   }, [searchParams]);
 
-  // If already signed in on the plain login route, redirect. A fresh secret
-  // link must keep the login form visible so the link role/challenge is checked
-  // again instead of reusing a stale local admin session.
+  // If already signed in, always enter admin instantly — even from a fresh
+  // owner/sub-admin secret link. Never trap an existing valid admin session on
+  // the login form unless the user manually logged out.
   useEffect(() => {
     const existing = getAdminSession();
-    const hasSecretLink = !!searchParams.get('access');
-    if (existing && !hasSecretLink) {
+    if (existing) {
       grantAdminAccess(existing.is_owner);
       navigate('/admin', { replace: true });
     }
@@ -130,14 +129,12 @@ export default function AdminAuth() {
     if (linkKind === 'owner' && !pendingAuthData.is_owner) {
       toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
       revokeAdminAccess();
-      clearAdminSession();
       setFlow('login');
       return;
     }
     if (linkKind === 'sub_admin' && pendingAuthData.is_owner) {
       toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
       revokeAdminAccess();
-      clearAdminSession();
       setFlow('login');
       return;
     }
@@ -173,7 +170,6 @@ export default function AdminAuth() {
       if (!accessToken) {
         toast.error('Access link missing or expired. Please reopen the secret link.');
         revokeAdminAccess();
-        clearAdminSession();
         navigate(getAdminAuthPath(), { replace: true });
         return;
       }
@@ -188,7 +184,6 @@ export default function AdminAuth() {
       if (linkError || !linkData?.valid || typeof linkData.challenge !== 'string') {
         toast.error('Secret link verification failed. Please use the latest valid admin link.');
         revokeAdminAccess();
-        clearAdminSession();
         navigate(getAdminAuthPath(), { replace: true });
         return;
       }
@@ -219,20 +214,17 @@ export default function AdminAuth() {
       if (!linkKind) {
         toast.error('Access link missing or expired. Please use a valid secret link.');
         revokeAdminAccess();
-        clearAdminSession();
         navigate(getAdminAuthPath(), { replace: true });
         return;
       }
       if (linkKind === 'owner' && !auth.is_owner) {
         toast.error('This is the Owner secret link. Sub-admins must use the Sub-Admin link.');
         revokeAdminAccess();
-        clearAdminSession();
         return;
       }
       if (linkKind === 'sub_admin' && auth.is_owner) {
         toast.error('This is the Sub-Admin secret link. Owners must use the Owner link.');
         revokeAdminAccess();
-        clearAdminSession();
         return;
       }
 

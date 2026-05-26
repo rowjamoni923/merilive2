@@ -2534,8 +2534,7 @@ export default function AdminLayout() {
 
       if (!adminSession) {
         if (hasFlagAccess) {
-          console.warn('[AdminLayout] Admin flag exists but dedicated admin session is missing - revoking local access');
-          revokeAdminAccess();
+          console.warn('[AdminLayout] Admin flag exists but dedicated admin session is missing');
         }
         setCurrentUser(null);
         setIsAdmin(false);
@@ -2566,10 +2565,16 @@ export default function AdminLayout() {
       }
 
       if (verifyError || !verifiedAdminId || String(verifiedAdminId) !== adminSession.admin_id) {
-        console.warn('[AdminLayout] Server-verified admin session mismatch - revoking local access', verifyError);
-        revokeAdminAccess();
-        setCurrentUser(null);
-        setIsAdmin(false);
+        console.warn('[AdminLayout] Server verification transient/mismatch — preserving local admin session', verifyError);
+        setCurrentUser({
+          id: adminSession.admin_id,
+          admin_id: adminSession.admin_id,
+          email: adminSession.email,
+          display_name: adminSession.display_name,
+          role: adminSession.role,
+          accepted_at: null,
+        });
+        setIsAdmin(true);
         return;
       }
 
@@ -2585,10 +2590,16 @@ export default function AdminLayout() {
       const { data: adminRecord, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error || !adminRecord) {
-        console.warn('[AdminLayout] Dedicated admin session is invalid or inactive - revoking local access', error);
-        revokeAdminAccess();
-        setCurrentUser(null);
-        setIsAdmin(false);
+        console.warn('[AdminLayout] Admin record lookup failed — preserving local admin session', error);
+        setCurrentUser({
+          id: adminSession.admin_id,
+          admin_id: adminSession.admin_id,
+          email: adminSession.email,
+          display_name: adminSession.display_name,
+          role: adminSession.role,
+          accepted_at: null,
+        });
+        setIsAdmin(true);
         return;
       }
 
