@@ -2097,11 +2097,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         .maybeSingle();
                       
                       if (settings?.setting_value) {
-                        const settingVal = settings.setting_value as any;
+                        // Pkg370 fix: app_settings.setting_value is stored as TEXT (JSON
+                        // string), not jsonb. If we treat it as an object the keys come
+                        // back undefined and the rate falls back to the stale default
+                        // (1:1, 25% fee) — which makes the client compute a diamond
+                        // amount that the server rejects with "Exchange rate mismatch".
+                        let settingVal: any = settings.setting_value;
+                        if (typeof settingVal === 'string') {
+                          try { settingVal = JSON.parse(settingVal); } catch { settingVal = {}; }
+                        }
                         setAgencyExchangeSettings({
-                          beans_to_diamonds_rate: settingVal.beans_to_diamonds_rate ?? 1,
-                          exchange_fee_percent: settingVal.exchange_fee_percent ?? 25,
-                          min_exchange_amount: settingVal.min_exchange_amount ?? 100000
+                          beans_to_diamonds_rate: Number(settingVal.beans_to_diamonds_rate) || 1,
+                          exchange_fee_percent: Number(settingVal.exchange_fee_percent ?? 0),
+                          min_exchange_amount: Number(settingVal.min_exchange_amount) || 100000
                         });
                       }
                       
