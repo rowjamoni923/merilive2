@@ -347,7 +347,36 @@ export function usePartyRoomWebRTC(
             }
           }
 
-          toast.error(roomType === 'video' ? 'Camera or mic failed to start. Please reopen the party room.' : 'Mic failed to start. Please reopen the party room.');
+          // Pkg371: Surface the actual cause instead of a generic "failed" toast.
+          // Browser MediaDevices errors have well-known names — map each to a
+          // specific, actionable message so the host can fix the real problem.
+          const err: any = lastError;
+          const errName: string = err?.name || err?.error?.name || '';
+          const errMsg: string = String(err?.message || err || '').toLowerCase();
+          const isVideo = roomType === 'video';
+          let friendly: string;
+          if (errName === 'NotAllowedError' || errMsg.includes('permission denied') || errMsg.includes('not allowed')) {
+            friendly = isVideo
+              ? 'Camera & mic permission denied. Open device Settings → Permissions and allow Camera + Microphone for this app, then retry.'
+              : 'Mic permission denied. Open device Settings → Permissions and allow Microphone for this app, then retry.';
+          } else if (errName === 'NotFoundError' || errMsg.includes('requested device not found')) {
+            friendly = isVideo
+              ? 'No camera or microphone found on this device.'
+              : 'No microphone found on this device.';
+          } else if (errName === 'NotReadableError' || errMsg.includes('could not start') || errMsg.includes('device in use')) {
+            friendly = isVideo
+              ? 'Camera/Mic is being used by another app. Close other camera apps and retry.'
+              : 'Mic is being used by another app. Close other mic apps and retry.';
+          } else if (errName === 'OverconstrainedError') {
+            friendly = 'Your camera does not support the required quality. Please reopen the room.';
+          } else if (errName === 'SecurityError' || errMsg.includes('insecure')) {
+            friendly = 'Camera/Mic requires a secure (HTTPS) connection.';
+          } else {
+            friendly = isVideo
+              ? 'Camera or mic failed to start. Please reopen the party room.'
+              : 'Mic failed to start. Please reopen the party room.';
+          }
+          toast.error(friendly, { duration: 7000 });
           throw lastError instanceof Error ? lastError : new Error(String(lastError || 'party_media_publish_failed'));
         };
 
