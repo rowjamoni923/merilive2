@@ -81,6 +81,9 @@ const AgencyDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [hostAgency, setHostAgency] = useState<AgencyDetails | null>(null);
   const [currentUserUid, setCurrentUserUid] = useState<string>('');
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const isOwner = !!currentUserId && currentUserId === hostAgency?.owner_id;
+
 
   useEffect(() => {
     const fetchData = async () => {
