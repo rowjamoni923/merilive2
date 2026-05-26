@@ -177,7 +177,11 @@ const Index = () => {
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
       if (typeof window === "undefined") return [];
-      const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v1");
+      // Pkg369: bump cache key to invalidate pre-Pkg368 snapshots that may
+      // still contain hosts marked is_online=true even though server now
+      // considers them offline (heartbeat>30min OR availability='offline').
+      window.sessionStorage.removeItem("index-hosts-instant-cache-v1");
+      const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v2");
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       return Array.isArray(parsed)
@@ -205,9 +209,9 @@ const Index = () => {
   // Fetch hosts based on subTab - Optimized for speed
   const { data: hosts, isLoading } = useQuery({
     queryKey: ["index-hosts-v4", selectedCountry, subTab, currentUserId],
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 10,
     gcTime: 1000 * 120,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     queryFn: async () => {
       // ⚡ PARALLEL FETCH: All independent queries at once
@@ -291,9 +295,9 @@ const Index = () => {
 
     try {
       if (snapshot.length > 0) {
-        window.sessionStorage.setItem("index-hosts-instant-cache-v1", JSON.stringify(snapshot));
+        window.sessionStorage.setItem("index-hosts-instant-cache-v2", JSON.stringify(snapshot));
       } else {
-        window.sessionStorage.removeItem("index-hosts-instant-cache-v1");
+        window.sessionStorage.removeItem("index-hosts-instant-cache-v2");
       }
     } catch {
       // no-op
