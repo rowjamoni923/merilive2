@@ -96,8 +96,8 @@ export async function warmAppImageCache(): Promise<void> {
 
     // Universal banners / campaigns (app + admin preview)
     queries.push(safe(async () => {
-      const { data } = await supabase.from('app_branding').select('logo_url, background_url, splash_image_url').limit(10);
-      (data || []).forEach((r: any) => { push(r.logo_url, 'branding'); push(r.background_url, 'branding'); push(r.splash_image_url, 'branding'); });
+      const { data } = await supabase.from('branding_settings').select('logo_image_url, background_url, setting_value').limit(30);
+      (data || []).forEach((r: any) => { push(r.logo_image_url, 'branding'); push(r.background_url, 'branding'); push(r.setting_value, 'branding'); });
     }));
     queries.push(safe(async () => {
       const { data } = await supabase.from('entry_banners').select('image_url, animation_url').eq('is_active', true).limit(20);
