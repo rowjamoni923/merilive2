@@ -86,6 +86,27 @@ const HostVerification = () => {
   const videoStreamRef = useRef<MediaStream | null>(null);
   const liveVideoRef = useRef<HTMLVideoElement>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  // Step 2 (cont'd): 3-photo gallery — shown on host profile after approval
+  const [galleryFiles, setGalleryFiles] = useState<(File | null)[]>([null, null, null]);
+  const [galleryPreviews, setGalleryPreviews] = useState<(string | null)[]>([null, null, null]);
+  const galleryInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+
+  const handleGallerySelect = (idx: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Error", description: "Image size cannot exceed 10MB", variant: "destructive" });
+      return;
+    }
+    setGalleryFiles((prev) => { const next = [...prev]; next[idx] = file; return next; });
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setGalleryPreviews((prev) => { const next = [...prev]; next[idx] = reader.result as string; return next; });
+    };
+    reader.readAsDataURL(file);
+  };
+
   
   // Step 3: Face Verification
   const [faceVerificationImage, setFaceVerificationImage] = useState<string | null>(null);
