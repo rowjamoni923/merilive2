@@ -13,6 +13,7 @@ import androidx.core.view.WindowCompat;
 import com.getcapacitor.BridgeActivity;
 import com.merilive.app.plugin.LiveKitPlugin;
 import com.merilive.app.util.NotificationHelper;
+import com.merilive.app.BuildConfig;
 
 public class MainActivity extends BridgeActivity {
 
