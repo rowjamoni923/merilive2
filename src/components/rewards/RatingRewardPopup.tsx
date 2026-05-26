@@ -194,13 +194,13 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
 
       const { error: uploadError } = await supabase.storage
         .from('rating-screenshots')
-        .upload(path, file);
+        .upload(path, file, { contentType: file.type || 'image/png', upsert: false });
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('rating-screenshots')
-        .getPublicUrl(path);
+      // Bucket is private — admins resolve via signed URL. Store the storage path,
+      // not a public URL (which would 404).
+      const screenshotRef = path;
 
       // Detect platform (Capacitor native → android/ios, otherwise web)
       let platform = 'web';
@@ -211,20 +211,32 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
         }
       } catch { /* web fallback */ }
 
-      const { error: claimError } = await supabase
-        .from('rating_reward_claims')
-        .insert({
-          user_id: userId,
-          screenshot_url: urlData.publicUrl,
-          platform,
-        });
+      // Server-side RPC decides reward type (host beans vs user diamonds) + amount
+      // from admin app_settings. Client cannot inflate reward.
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('submit_rating_proof', {
+        _screenshot_url: screenshotRef,
+        _platform: platform,
+      });
 
-      if (claimError) {
-        if (claimError.code === '23505') {
-          toast.error('You have already submitted a rating claim');
+      if (rpcError) {
+        console.error('Rating claim RPC error:', rpcError);
+        toast.error(rpcError.message || 'Failed to submit claim');
+        return;
+      }
+
+      const result = rpcResult as { success?: boolean; error?: string; status?: string } | null;
+      if (!result?.success) {
+        const code = result?.error;
+        if (code === 'already_submitted') {
+          toast.error(result?.status === 'approved'
+            ? 'You have already claimed this reward'
+            : 'Your previous submission is still under review');
+        } else if (code === 'reward_not_configured') {
+          toast.error('Reward is temporarily unavailable. Please try later.');
+        } else if (code === 'unauthorized') {
+          toast.error('Please sign in to submit a proof');
         } else {
-          console.error('Rating claim insert error:', claimError);
-          toast.error(claimError.message || 'Failed to submit claim');
+          toast.error('Failed to submit claim');
         }
         return;
       }
