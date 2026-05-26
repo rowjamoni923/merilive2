@@ -1148,6 +1148,9 @@ const FaceVerification = () => {
     const CALIB_TARGET = 8;
     
     poseCheckIntervalRef.current = setInterval(async () => {
+      if (poseCheckInFlightRef.current) return;
+      poseCheckInFlightRef.current = true;
+      try {
       if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
       
       const frameBase64 = await captureFaceFrameBase64();
@@ -1276,6 +1279,9 @@ const FaceVerification = () => {
         } else {
           setScanningStatus('scanning');
         }
+      }
+      } finally {
+        poseCheckInFlightRef.current = false;
       }
     }, 1000); // Poll every 1s — faster lock-on without overloading Rekognition
   };
