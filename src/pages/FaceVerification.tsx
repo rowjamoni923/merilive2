@@ -1647,8 +1647,17 @@ const FaceVerification = () => {
       }
       // Fallback only if public upload failed (keeps existing flow alive)
       if (!profilePhotoUrl) profilePhotoUrl = await uploadFile(userPhotoFile, 'profile-photos');
-      if (profilePhotoUrl) {
-        await supabase.from('profiles').update({ avatar_url: profilePhotoUrl }).eq('id', userId);
+      // ★ Save Basic Information (name/age/language/photo) directly onto profile
+      //   so it's reflected immediately app-wide, regardless of admin approval timing.
+      {
+        const profilePatch: Record<string, unknown> = {
+          display_name: fullName.trim(),
+          age: parseInt(age, 10),
+          language: language,
+        };
+        if (profilePhotoUrl) profilePatch.avatar_url = profilePhotoUrl;
+        const { error: profUpdErr } = await supabase.from('profiles').update(profilePatch).eq('id', userId);
+        if (profUpdErr) console.warn('[FaceVerification] profile basic-info update failed', profUpdErr);
       }
 
       // CRITICAL: Check for existing pending/approved submission before inserting
