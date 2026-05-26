@@ -1,5 +1,5 @@
 import * as React from "react";
-import { toSupabaseCdnUrl, type CdnImageOptions } from "@/lib/cdnImage";
+import { normalizePublicMediaUrl, toSupabaseCdnUrl, type CdnImageOptions } from "@/lib/cdnImage";
 import { cn } from "@/lib/utils";
 
 export interface SmartImageProps
@@ -52,8 +52,8 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
       if (!src) return undefined;
       // Pass-through: transform endpoint disabled to prevent double-request
       // flicker on Pro plan / transforms-off. Original URL loads in one shot.
-      return src;
-    }, [src]);
+      return toSupabaseCdnUrl(normalizePublicMediaUrl(src), { width: cdnWidth, height: cdnHeight, quality, resize });
+    }, [src, cdnWidth, cdnHeight, quality, resize]);
 
     const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
       if (fallbackSrc && (e.currentTarget as HTMLImageElement).src !== fallbackSrc) {
@@ -85,7 +85,7 @@ export const SmartImage = React.forwardRef<HTMLImageElement, SmartImageProps>(
         alt={alt}
         loading={eager ? "eager" : "lazy"}
         decoding="async"
-        fetchPriority={eager ? "high" : "auto"}
+          {...({ fetchpriority: eager ? "high" : "auto" } as React.ImgHTMLAttributes<HTMLImageElement>)}
         onError={handleError}
         className={cn(className)}
         {...rest}
