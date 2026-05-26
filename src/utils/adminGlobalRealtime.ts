@@ -18,12 +18,9 @@ import {
 } from "@/hooks/useAdminRealtime";
 
 const DEDUPE_WINDOW_MS = 800;
-const VISIBILITY_RESUME_THRESHOLD_MS = 30_000;
 
 let started = false;
 const recentEvents = new Map<string, number>();
-let lastVisibilityHidden = 0;
-let visibilityHandler: (() => void) | null = null;
 let cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
 function makeDedupeKey(table: string, eventType: string, payload: any): string {
@@ -50,41 +47,11 @@ function pruneDedupeMap() {
   }
 }
 
-function reconnectAll() {
-  window.dispatchEvent(new Event("visibilitychange"));
-}
-
-function setupVisibilityHandler() {
-  if (visibilityHandler || typeof document === "undefined") return;
-  visibilityHandler = () => {
-    if (document.visibilityState === "hidden") {
-      lastVisibilityHidden = Date.now();
-    } else if (document.visibilityState === "visible") {
-      const away = Date.now() - lastVisibilityHidden;
-      if (lastVisibilityHidden && away > VISIBILITY_RESUME_THRESHOLD_MS) {
-        console.log(
-          `[AdminGlobalRT] 🔄 Tab resumed after ${Math.round(away / 1000)}s — reconnecting channels`
-        );
-        reconnectAll();
-      }
-      lastVisibilityHidden = 0;
-    }
-  };
-  document.addEventListener("visibilitychange", visibilityHandler);
-}
-
-function teardownVisibilityHandler() {
-  if (!visibilityHandler || typeof document === "undefined") return;
-  document.removeEventListener("visibilitychange", visibilityHandler);
-  visibilityHandler = null;
-}
-
 export function startAdminGlobalRealtime() {
   if (started) return;
   started = true;
   const tables = Array.from(GLOBALLY_MONITORED_TABLES);
 
-  setupVisibilityHandler();
   if (!cleanupInterval) {
     cleanupInterval = setInterval(pruneDedupeMap, 5_000);
   }
@@ -98,7 +65,6 @@ export function stopAdminGlobalRealtime() {
   if (!started) return;
   started = false;
   recentEvents.clear();
-  teardownVisibilityHandler();
   if (cleanupInterval) {
     clearInterval(cleanupInterval);
     cleanupInterval = null;
@@ -107,8 +73,7 @@ export function stopAdminGlobalRealtime() {
 }
 
 export function forceAdminRealtimeReconnect() {
-  console.log("[AdminGlobalRT] 🔄 Manual force reconnect");
-  reconnectAll();
+  console.log("[AdminGlobalRT] Manual reconnect skipped — zero-refresh policy active");
 }
 
 // Re-export for convenience
