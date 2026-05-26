@@ -5,6 +5,7 @@ import { installAuthRequestGuard } from "./utils/authRequestGuard";
 import { startNetworkResilienceEngine } from "./utils/networkResilienceEngine";
 import { installAudioUnlock } from "./utils/audioUnlock";
 import { scheduleChunkLoadRecovery } from "./utils/lazyRetry";
+import { installGlobalMediaSrcNormalizer } from "./utils/installGlobalMediaSrcNormalizer";
 import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
@@ -15,6 +16,10 @@ import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 // This prevents non-publication tables from creating DB connections
 // =============================================
 installRealtimeGuard();
+// 🖼️ Global media src auto-normalizer — rewrites raw Supabase storage
+// paths to fully-qualified public URLs on EVERY <img>/<video>/<source>,
+// even in legacy or third-party code we don't own. Single source of truth.
+installGlobalMediaSrcNormalizer();
 installAuthRequestGuard();
 if (!window.location.pathname.startsWith('/admin')) {
   startNetworkResilienceEngine();
