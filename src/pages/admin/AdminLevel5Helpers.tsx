@@ -425,10 +425,11 @@ const AdminLevel5Helpers = () => {
 
   const toggleLevelConfig = async (config: LevelConfig, field: 'is_enabled' | 'has_payroll_access' | 'has_withdrawal_processing') => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('helper_level_config')
         .update({ [field]: !config[field] })
         .eq('id', config.id);
+      if (error) throw error;
 
       toast({ title: "Updated", description: `Level ${config.level_number} ${field.replace(/_/g, ' ')} toggled` });
       loadLevelConfigs();
@@ -439,10 +440,11 @@ const AdminLevel5Helpers = () => {
 
   const toggleHelperPayroll = async (helper: Level5Helper, enabled: boolean) => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('topup_helpers')
         .update({ payroll_enabled: enabled })
         .eq('id', helper.id);
+      if (error) throw error;
 
       toast({ title: "Updated", description: `Payroll ${enabled ? 'enabled' : 'disabled'} for helper` });
       loadHelpers();
