@@ -963,10 +963,47 @@ const HostVerification = () => {
               className="hidden"
             />
           </div>
-          
-          <Button 
+
+          {/* 3-photo gallery — shown on host profile after approval */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border">
+            <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+              <Camera className="w-5 h-5 text-purple-600" />
+              Gallery Photos (3 required)
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              These 3 photos will appear on your host profile after approval. Use clear, well-lit photos of yourself.
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {[0, 1, 2].map((idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => galleryInputRefs[idx].current?.click()}
+                  className="relative aspect-[3/4] rounded-xl overflow-hidden border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/40 flex items-center justify-center"
+                >
+                  {galleryPreviews[idx] ? (
+                    <img src={galleryPreviews[idx]!} alt={`Gallery ${idx + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center text-purple-500">
+                      <Upload className="w-6 h-6 mb-1" />
+                      <span className="text-xs font-medium">Photo {idx + 1}</span>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    ref={galleryInputRefs[idx]}
+                    accept="image/*"
+                    onChange={handleGallerySelect(idx)}
+                    className="hidden"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Button
             onClick={saveStep2}
-            disabled={loading || !videoFile}
+            disabled={loading || (!videoFile && !videoPreview) || ![0,1,2].every((i) => galleryFiles[i] || galleryPreviews[i])}
             className="w-full h-12 bg-gradient-to-r from-pink-500 to-purple-600"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Next Step"}
