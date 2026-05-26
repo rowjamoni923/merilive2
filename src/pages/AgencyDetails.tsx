@@ -91,11 +91,13 @@ const AgencyDetailsPage = () => {
       try {
         const user = await getCachedUser();
         if (!user) { navigate("/auth"); return; }
+        setCurrentUserId(user.id);
 
         // Get current user's app_uid
         const { data: myProfile } = await supabase
           .from("profiles").select("app_uid").eq("id", user.id).maybeSingle();
         if (myProfile?.app_uid) setCurrentUserUid(myProfile.app_uid);
+
 
         const { data: hostRequests, error: hostRequestError } = await supabase.rpc("get_host_agency_request", { _host_id: user.id });
 
