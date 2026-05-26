@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ImgHTMLAttributes } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -167,7 +167,7 @@ export default function RechargeBannerCarousel({
             draggable={false}
             loading="eager"
             decoding="async"
-            fetchPriority={i === 0 ? "high" : "low"}
+            {...({ fetchpriority: i === 0 ? "high" : "low" } as ImgHTMLAttributes<HTMLImageElement>)}
             onError={(event) => {
               const fallback = DEFAULT_BANNERS[i % DEFAULT_BANNERS.length]?.image_url;
               if (fallback && event.currentTarget.src !== fallback) event.currentTarget.src = fallback;

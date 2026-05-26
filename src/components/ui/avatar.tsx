@@ -118,7 +118,7 @@ const AvatarImage = React.forwardRef<
         src={renderSrc}
        
         decoding="async"
-        fetchPriority="high"
+        {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
         onError={handleError}
         {...props}
       />

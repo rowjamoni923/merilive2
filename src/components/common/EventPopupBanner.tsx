@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ImgHTMLAttributes } from "react";
 
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -163,7 +163,7 @@ const EventPopupBanner = () => {
               onClick={handleBannerClick}
              
               decoding="sync"
-              fetchPriority="high"
+              {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
               className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
               draggable={false}
               onError={(e) => { const t = e.currentTarget; if (banner.image_url && t.src !== banner.image_url) t.src = banner.image_url; }}

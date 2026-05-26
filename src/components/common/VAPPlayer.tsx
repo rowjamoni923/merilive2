@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 
 interface VAPConfig {
   v: number;           // version
@@ -50,6 +52,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
   onError,
   onComplete,
 }) => {
+  const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
+  const resolvedConfigSrc = React.useMemo(() => normalizeGiftMediaUrl(configSrc || '') || normalizePublicMediaUrl(configSrc || '') || configSrc, [configSrc]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
@@ -85,8 +89,8 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   // Load config
   useEffect(() => {
-    if (configSrc) {
-      fetch(configSrc)
+    if (resolvedConfigSrc) {
+      fetch(resolvedConfigSrc)
         .then(res => res.json())
         .then(data => {
           setConfig(data.info || data);
@@ -97,7 +101,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
         });
     } else {
       // Try to load config from same path with .json extension
-      const jsonPath = src.replace(/\.(mp4|webm)$/i, '.json');
+      const jsonPath = resolvedSrc.replace(/\.(mp4|webm)$/i, '.json');
       fetch(jsonPath)
         .then(res => {
           if (!res.ok) throw new Error('Config not found');
@@ -111,7 +115,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
           setConfig(null); // Will use auto-detection
         });
     }
-  }, [src, configSrc]);
+  }, [resolvedSrc, resolvedConfigSrc]);
 
   // WebGL shader for alpha blending
   const createShaders = useCallback((gl: WebGLRenderingContext) => {
@@ -312,7 +316,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
 
   // Initialize video and WebGL
   useEffect(() => {
-    if (!src) return;
+    if (!resolvedSrc) return;
 
     const video = document.createElement('video');
     video.crossOrigin = 'anonymous';
@@ -340,7 +344,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       onErrorRef.current?.(new Error('Video load failed'));
     };
 
-    video.src = src;
+    video.src = resolvedSrc;
 
     if (autoPlay) {
       video.play().catch(err => {
@@ -356,7 +360,7 @@ const VAPPlayer: React.FC<VAPPlayerProps> = ({
       video.src = '';
       videoRef.current = null;
     };
-  }, [src, config, loop, autoPlay, muted, volume, initWebGL]);
+  }, [resolvedSrc, config, loop, autoPlay, muted, volume, initWebGL]);
 
   if (error) {
     return (

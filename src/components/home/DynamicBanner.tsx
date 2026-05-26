@@ -4,11 +4,11 @@ import { useBannersRealtime, Banner } from "@/hooks/useAdminSettingsRealtime";
 import { X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isNativeApp } from "@/utils/nativeUtils";
-import { toSupabaseCdnUrl } from "@/lib/cdnImage";
+import { normalizePublicMediaUrl, toSupabaseCdnUrl } from "@/lib/cdnImage";
 
 // Banner is rendered at full screen width (~360-900px); ask CDN for an 800px wide WebP variant.
 const bannerCdn = (url: string | null | undefined) =>
-  toSupabaseCdnUrl(url, { width: 900, quality: 72, resize: "contain" }) || url || "";
+  toSupabaseCdnUrl(normalizePublicMediaUrl(url, "banners"), { width: 900, quality: 72, resize: "contain" }) || normalizePublicMediaUrl(url, "banners") || url || "";
 
 interface DynamicBannerProps {
   position?: 'top' | 'middle';
@@ -109,7 +109,7 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
                 decoding="async"
                 // @ts-expect-error – fetchpriority is a standard HTML hint
                 fetchpriority="high"
-                className={`block w-full h-auto rounded-2xl transition-opacity duration-300 ${loadedImages[banner.id] ? 'opacity-100' : 'opacity-0'}`}
+                className="block w-full h-auto rounded-2xl"
                 onLoad={() => setLoadedImages((s) => ({ ...s, [banner.id]: true }))}
                 onError={(e) => {
                   const t = e.currentTarget;
