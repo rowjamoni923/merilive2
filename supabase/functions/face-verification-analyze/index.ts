@@ -185,8 +185,31 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     const cronSecretHeader = req.headers.get("x-cron-secret") || req.headers.get("x-internal-secret");
-    const CRON_SECRET = Deno.env.get("CRON_SECRET");
-    const isInternalCall = !!(CRON_SECRET && cronSecretHeader && cronSecretHeader === CRON_SECRET);
+    const ENV_CRON_SECRET = Deno.env.get("CRON_SECRET");
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // Validate internal/cron secret against EITHER env var OR app_settings row.
+    // app_settings path lets the DB trigger/cron sync with edge fn without manual env juggling.
+    let isInternalCall = false;
+    if (cronSecretHeader) {
+      if (ENV_CRON_SECRET && cronSecretHeader === ENV_CRON_SECRET) {
+        isInternalCall = true;
+      } else {
+        try {
+          const { data: settingRow } = await supabaseAdmin
+            .from("app_settings")
+            .select("setting_value")
+            .eq("setting_key", "face_cron_secret")
+            .maybeSingle();
+          const dbSecret = (settingRow?.setting_value || "").trim();
+          if (dbSecret && cronSecretHeader === dbSecret) isInternalCall = true;
+        } catch (_e) { /* ignore */ }
+      }
+    }
 
     if (!isInternalCall && !authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -200,10 +223,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY")!,
       authHeader ? { global: { headers: { Authorization: authHeader } } } : {},
     );
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+
 
     let userId: string | null = null;
     if (!isInternalCall) {
