@@ -517,6 +517,11 @@ const FaceVerification = () => {
 
 
   // Generate deterministic face/video hash; never random, so duplicate checks do not silently miss.
+  const sha256String = async (value: string): Promise<string> => {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
   const generateFaceHash = async (videoBlob: Blob): Promise<string> => {
     const fallbackHash = async () => {
       const bytes = new Uint8Array(await videoBlob.slice(0, 1024 * 1024).arrayBuffer());
