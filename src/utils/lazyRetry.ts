@@ -1,21 +1,22 @@
 /**
  * Lazy import with automatic retry on chunk load failure.
  * 
- * When a new deployment ships, JS chunk filenames change (new hashes).
- * If a user has the old index.html cached, dynamic imports for the OLD
- * chunk hashes will return 404 ("Failed to fetch dynamically imported module").
- * 
- * Strategy:
- *  1. Retry the same lazy import inline with short backoff for transient hiccups.
- *  2. Clear stale runtime asset caches and reload ONCE per module per session.
- *  3. If the same module still fails after that reload, throw to ErrorBoundary.
+ * Zero-refresh lazy import recovery.
+ * Retries dynamic imports inline and clears stale runtime caches, but never
+ * calls window.location.reload/replace/href. The user explicitly requires no
+ * automatic app reloads.
  */
-export const isChunkLoadError = (error: any) =>
-  error?.message?.includes('Failed to fetch dynamically imported module') ||
-  error?.message?.includes('Loading chunk') ||
-  error?.message?.includes('Importing a module script failed') ||
-  error?.message?.includes('dynamically imported module') ||
-  error?.name === 'ChunkLoadError';
+const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || '');
+const getErrorName = (error: unknown) => error instanceof Error ? error.name : '';
+
+export const isChunkLoadError = (error: unknown) => {
+  const message = getErrorMessage(error);
+  return message.includes('Failed to fetch dynamically imported module') ||
+    message.includes('Loading chunk') ||
+    message.includes('Importing a module script failed') ||
+    message.includes('dynamically imported module') ||
+    getErrorName(error) === 'ChunkLoadError';
+};
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -25,7 +26,7 @@ declare global {
   }
 }
 
-const RELOAD_KEY_PREFIX = 'meri_lazy_chunk_reload_v2:';
+const RECOVERY_KEY_PREFIX = 'meri_lazy_chunk_recovery_v3:';
 
 const getModuleKey = (source: string) => {
   const match = source.match(/import\(["'`](.*?)["'`]\)/);
@@ -64,57 +65,40 @@ async function clearStaleRuntimeCaches() {
   }
 }
 
-// Pkg54: allow up to 3 reload attempts per module per session.
-// 1st: simple reload. 2nd+: cache-bust query string so CDN/browser fetches fresh index.html.
-const MAX_RELOADS_PER_MODULE = 3;
+const MAX_RECOVERIES_PER_MODULE = 1;
 
-export async function scheduleChunkLoadRecovery(error: any, source = ''): Promise<boolean> {
+export async function scheduleChunkLoadRecovery(error: unknown, source = ''): Promise<boolean> {
   if (!isChunkLoadError(error) || typeof window === 'undefined') return false;
   if (window.__meriChunkRecoveryScheduled) return true;
 
-  const moduleKey = getModuleKey(source || error?.message || String(error));
-  const reloadKey = `${RELOAD_KEY_PREFIX}${moduleKey}`;
+  const moduleKey = getModuleKey(source || getErrorMessage(error));
+  const recoveryKey = `${RECOVERY_KEY_PREFIX}${moduleKey}`;
 
   let attempts = 0;
   try {
-    attempts = parseInt(sessionStorage.getItem(reloadKey) || '0', 10) || 0;
-    if (attempts >= MAX_RELOADS_PER_MODULE) return false;
-    sessionStorage.setItem(reloadKey, String(attempts + 1));
+    attempts = parseInt(sessionStorage.getItem(recoveryKey) || '0', 10) || 0;
+    if (attempts >= MAX_RECOVERIES_PER_MODULE) return false;
+    sessionStorage.setItem(recoveryKey, String(attempts + 1));
   } catch {
     // If storage is blocked, still try one in-memory recovery.
   }
 
   window.__meriChunkRecoveryScheduled = true;
-  console.warn(`[LazyRetry] Recovering stale chunk (attempt ${attempts + 1}/${MAX_RELOADS_PER_MODULE}):`, moduleKey);
+  console.warn(`[LazyRetry] Recovering stale chunk without reload (attempt ${attempts + 1}/${MAX_RECOVERIES_PER_MODULE}):`, moduleKey);
   await clearStaleRuntimeCaches();
+  window.__meriChunkRecoveryScheduled = false;
 
-  setTimeout(() => {
-    try {
-      // From attempt #2 onward: append cache-bust query param so we force-fetch
-      // a fresh index.html (bypasses Cloudflare/browser HTML cache).
-      if (attempts >= 1) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('_cb', String(Date.now()));
-        window.location.replace(url.toString());
-      } else {
-        window.location.reload();
-      }
-    } catch {
-      window.location.href = window.location.href;
-    }
-  }, 80);
-
-  return true;
+  return false;
 }
 
-/** Pkg54: called from ErrorBoundary "Try Again" — wipe per-module reload counters
+/** Called from ErrorBoundary "Try Again" — wipe per-module recovery counters
  *  so a fresh recovery cycle can run. */
 export function resetChunkRecoveryMarkers() {
   try {
     const keys: string[] = [];
     for (let i = 0; i < sessionStorage.length; i++) {
       const k = sessionStorage.key(i);
-      if (k && k.startsWith(RELOAD_KEY_PREFIX)) keys.push(k);
+      if (k && k.startsWith(RECOVERY_KEY_PREFIX)) keys.push(k);
     }
     keys.forEach((k) => sessionStorage.removeItem(k));
   } catch {
@@ -122,10 +106,12 @@ export function resetChunkRecoveryMarkers() {
   }
   try {
     if (typeof window !== 'undefined') window.__meriChunkRecoveryScheduled = false;
-  } catch {}
+  } catch {
+    // best-effort
+  }
 }
 
-export function lazyRetry<T extends React.ComponentType<any>>(
+export function lazyRetry<T>(
   importFn: () => Promise<{ default: T }>,
 ): () => Promise<{ default: T }> {
   return async () => {
@@ -158,10 +144,10 @@ export function lazyRetry<T extends React.ComponentType<any>>(
   };
 }
 
-export function lazyRetryOptional<T extends React.ComponentType<any>>(
+export function lazyRetryOptional<T>(
   importFn: () => Promise<{ default: T }>,
-  fallback: React.ComponentType<any>,
-): () => Promise<{ default: React.ComponentType<any> }> {
+  fallback: T,
+): () => Promise<{ default: T }> {
   const load = lazyRetry(importFn);
 
   return async () => {

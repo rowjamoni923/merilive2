@@ -3,34 +3,19 @@
  *
  * Pairs with /firebase-messaging-sw.js (which no longer auto-skipWaiting).
  *
- * When a new SW is detected in the `waiting` state we show a sonner toast.
- * On user-confirm we postMessage SKIP_WAITING to the waiting worker, wait for
- * `controllerchange` (= new SW now controls the page), and then reload so the
- * user gets a fresh JS/CSS bundle that matches the new SW's cache.
+ * Zero-refresh policy: service-worker updates must never reload the running app.
+ * New workers are left waiting until the user naturally opens the app again.
  */
 import { toast } from 'sonner';
 
 let installed = false;
-let reloading = false;
 
-function promptForReload(waiting: ServiceWorker) {
+function promptForReload(_waiting: ServiceWorker) {
   // De-dupe if the same prompt is already on screen
-  toast('New version available', {
+  toast('New version ready', {
     id: 'sw-update-prompt',
-    description: 'Reload to get the latest update.',
-    duration: Infinity,
-    action: {
-      label: 'Reload',
-      onClick: () => {
-        try {
-          waiting.postMessage({ type: 'SKIP_WAITING' });
-        } catch {
-          // If postMessage fails (e.g., worker died), just reload — the next
-          // page load will pick up the new SW via its own install path.
-          window.location.reload();
-        }
-      },
-    },
+    description: 'It will apply next time you open the app. No auto refresh will run.',
+    duration: 5000,
   });
 }
 
@@ -61,12 +46,9 @@ export function installSWUpdatePrompt(): void {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   installed = true;
 
-  // Single global handler: when the active SW changes, the new one has taken
-  // control — reload exactly once so cached chunks match.
+  // Zero-refresh policy: never reload on service-worker controller changes.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloading) return;
-    reloading = true;
-    try { window.location.reload(); } catch {}
+    console.log('[SWUpdate] Controller changed — auto reload disabled');
   });
 
   // Wire any registrations that already exist…

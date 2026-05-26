@@ -8,8 +8,8 @@ self.addEventListener('activate', function(event) {
     try {
       const reg = await self.registration.unregister();
       if (reg) {
-        const clients = await self.clients.matchAll({ type: 'window' });
-        clients.forEach(function (c) { try { c.navigate(c.url); } catch (e) {} });
+        // Zero-refresh policy: unregister this deprecated worker silently.
+        // Do NOT navigate clients; that looked like random app auto-reloads.
       }
     } catch (e) {}
   })());
