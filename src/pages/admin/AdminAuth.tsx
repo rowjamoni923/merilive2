@@ -173,7 +173,6 @@ export default function AdminAuth() {
       if (!accessToken) {
         toast.error('Access link missing or expired. Please reopen the secret link.');
         revokeAdminAccess();
-        clearAdminSession();
         navigate(getAdminAuthPath(), { replace: true });
         return;
       }
@@ -188,7 +187,6 @@ export default function AdminAuth() {
       if (linkError || !linkData?.valid || typeof linkData.challenge !== 'string') {
         toast.error('Secret link verification failed. Please use the latest valid admin link.');
         revokeAdminAccess();
-        clearAdminSession();
         navigate(getAdminAuthPath(), { replace: true });
         return;
       }
@@ -219,7 +217,6 @@ export default function AdminAuth() {
       if (!linkKind) {
         toast.error('Access link missing or expired. Please use a valid secret link.');
         revokeAdminAccess();
-        clearAdminSession();
         navigate(getAdminAuthPath(), { replace: true });
         return;
       }
