@@ -49,7 +49,7 @@ import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { useAppSyncEvent } from "@/hooks/useAppSyncEvent";
 import { useNativeFaceCamera } from "@/hooks/useNativeFaceCamera";
-import { detectLocalFacePoseFromBase64 } from "@/lib/localFacePose";
+import { detectLocalFacePoseFromBase64, preloadLocalFacePoseDetector } from "@/lib/localFacePose";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -833,6 +833,7 @@ const FaceVerification = () => {
   const startFaceCamera = useCallback(async () => {
     try {
       autoFaceStartRef.current = false;
+      preloadLocalFacePoseDetector();
       if (await nativeFaceCam.isAvailable()) {
         if (faceStream) {
           faceStream.getTracks().forEach(track => track.stop());
