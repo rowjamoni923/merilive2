@@ -171,10 +171,40 @@ export function useUserBalancePrefetch(): void {
       fetchBalance();
     }, 300);
 
-    // `profiles` is deliberately NOT in supabase_realtime publication.
-    // Server-side balance changes arrive through app_sync rows on the approved
-    // notifications channel, keeping My Diamond/My Beans instant without adding
-    // a costly profiles realtime subscription.
+    // Pkg360: `profiles` IS in supabase_realtime publication — subscribe DIRECTLY to
+    // own profile row UPDATEs so coin/diamond/bean balance refreshes instantly on
+    // every page without waiting for a notifications-row round-trip. The legacy
+    // `app-sync` bridge below is kept as a safety-net for trigger-driven push paths.
+    let directProfileUnsub: (() => void) | null = null;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const uid = session?.user?.id;
+        if (!uid) return;
+        const { subscribeToTables } = await import('@/hooks/useUniversalRealtime');
+        directProfileUnsub = subscribeToTables(
+          `user-balance-self-${uid}`,
+          ['profiles'],
+          (_table, _event, payload: any) => {
+            if (!payload || payload.id !== uid) return;
+            const coins = payload.coins;
+            const diamonds = payload.diamonds;
+            if (coins !== undefined || diamonds !== undefined) {
+              balanceCache.userId = uid;
+              updateCachedBalance(Math.max(Number(coins || 0), Number(diamonds || 0)));
+            }
+            if (payload.beans !== undefined && typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('own-beans-updated', {
+                detail: { userId: uid, beans: Number(payload.beans || 0) },
+              }));
+            }
+          }
+        );
+      } catch (e) {
+        console.warn('[UserBalance] direct profiles realtime sub failed:', e);
+      }
+    })();
+
     const handleAppSync = async (event: Event) => {
       const detail = (event as CustomEvent<{ topic?: string; payload?: Record<string, any> }>).detail;
       if (detail?.topic !== 'profiles') return;
