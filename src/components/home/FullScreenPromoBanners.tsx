@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ImgHTMLAttributes } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -281,7 +281,7 @@ export function FullScreenPromoBanners() {
             height={currentBanner.fullScreen ? 1920 : 1080}
             loading="eager"
             decoding="async"
-            {...({ fetchpriority: "high" } as React.ImgHTMLAttributes<HTMLImageElement>)}
+            {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
             className={
               currentBanner.fullScreen
                 ? "h-full w-full object-contain"
