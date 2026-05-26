@@ -131,7 +131,8 @@ const adminFetch: typeof fetch = (input, init) => {
       url,
       silent: true,
     });
-    forceAdminLogout();
+    // 🛡️ NO AUTO-LOGOUT POLICY (Pkg359): do NOT force logout — admin stays on
+    // current page, sees the error in dev console, and can manually re-login.
     return Promise.resolve(new Response(JSON.stringify({ message }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
