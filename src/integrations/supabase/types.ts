@@ -6790,6 +6790,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           leaderboard_type: string
+          min_target: number | null
           period_type: string | null
           rank_from: number | null
           rank_position: number | null
@@ -6809,6 +6810,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           leaderboard_type: string
+          min_target?: number | null
           period_type?: string | null
           rank_from?: number | null
           rank_position?: number | null
@@ -6828,6 +6830,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           leaderboard_type?: string
+          min_target?: number | null
           period_type?: string | null
           rank_from?: number | null
           rank_position?: number | null
