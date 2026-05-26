@@ -707,7 +707,7 @@ const CreateParty = () => {
             whileTap={{ scale: 0.95 }}
             onClick={handleCreateParty}
             disabled={isCreating || (mode === "game" && !selectedGame)}
-            className="flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold text-lg shadow-xl disabled:opacity-50"
+            className="flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-pink-500 via-fuchsia-500 to-orange-400 text-white font-bold text-lg shadow-xl shadow-fuchsia-500/40 ring-2 ring-white/30 disabled:opacity-50"
           >
             <ModeIcon className="w-6 h-6" />
             <span>{isCreating ? "Creating..." : "Let's Party"}</span>
