@@ -2589,48 +2589,15 @@ const FaceVerification = () => {
 
       {faceCameraActive && !verificationStarted && !faceVerified && (
         <div className="space-y-3">
-          <Button
-            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 rounded-2xl text-base font-semibold shadow-lg shadow-emerald-600/25 text-white"
-            onClick={startFaceVerification}
-            disabled={!cameraReady}
-          >
-            {!cameraReady ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2.5 animate-spin" />
-                Initializing camera…
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5 mr-2.5" />
-                {localizedMsg.beginCheck}
-              </>
-            )}
-          </Button>
-
-          <Button
-            variant="outline"
-            className="w-full h-11 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 text-sm font-semibold leading-5 shadow-sm"
-            onClick={runNeutralCalibration}
-            disabled={!cameraReady || neutralCalibrating}
-          >
-            {neutralCalibrating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Calibrating… {Math.round(neutralProgress * 100)}%
-              </>
-            ) : (
-              <>
-                <ScanFace className="w-4 h-4 mr-2 text-slate-700" />
-                {neutralCalib && neutralCalib.capturedAt > 0 ? 'Recalibrate neutral pose' : 'Calibrate neutral pose (3s)'}
-              </>
-            )}
-          </Button>
-          {neutralCalib && neutralCalib.capturedAt > 0 && !neutralCalibrating && (
-            <p className="text-[11px] text-center text-slate-700 leading-5 font-medium">
-              Tuned for you · baseline {neutralCalib.baselineYaw.toFixed(1)}° / {neutralCalib.baselinePitch.toFixed(1)}° ·
-              turn ±{neutralCalib.turnYaw.toFixed(0)}°
+          <div className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-center shadow-sm">
+            <div className="flex items-center justify-center gap-2 text-slate-900 font-semibold text-sm">
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+              {cameraReady ? 'Auto-scanning now…' : 'Initializing camera…'}
+            </div>
+            <p className="mt-1 text-[11px] text-slate-600 leading-5">
+              Hold your face straight first. The app will calibrate automatically, then complete the liveness steps.
             </p>
-          )}
+          </div>
           <Button
             variant="outline"
             className="w-full h-11 rounded-xl border-slate-300 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 text-sm font-semibold shadow-sm"
