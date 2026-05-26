@@ -898,10 +898,10 @@ const FaceVerification = () => {
     })();
 
     try {
-      const serverPose = await withSoftTimeout(serverPosePromise, 2500);
+      const serverPose = await withSoftTimeout(serverPosePromise, 2200);
       if (serverPose?.faceDetected && serverPose.eyesOpen) return serverPose;
 
-      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 2500 : 6500);
+      const localPose = await withSoftTimeout(localPosePromise, serverPose?.faceDetected ? 1800 : 3200);
       if (serverPose?.faceDetected && localPose?.faceDetected) {
         return { ...serverPose, eyesOpen: serverPose.eyesOpen || localPose.eyesOpen };
       }
@@ -1207,6 +1207,7 @@ const FaceVerification = () => {
   // Real pose checking - captures frame & sends to face-check API
   const startRealPoseChecking = () => {
     let consecutiveFails = 0;
+    let noFaceStartedAt = 0;
     // Reset calibration sampler. We collect ~10 samples (≈2s @ 200ms / ≈2.5s
     // @ 250ms — we sample faster than the main loop) of the user's natural
     // pose before scoring any step.
@@ -1221,7 +1222,23 @@ const FaceVerification = () => {
         if (!usingNativeFaceCameraRef.current && !faceVideoRef.current) return;
       
         const frameBase64 = await captureFaceFrameBase64();
-        if (!frameBase64) return;
+        if (!frameBase64) {
+          consecutiveFails++;
+          consecutiveFailsRef.current = consecutiveFails;
+          if (!noFaceStartedAt) noFaceStartedAt = Date.now();
+          setScanningStatus('fail');
+          setLiveDiag({
+            faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
+            hint: 'Camera frame is not ready — hold steady for a moment',
+            severity: 'error',
+          });
+          pushDebug({ kind: 'no_face', consecutive: consecutiveFails, reason: 'empty_camera_frame', apiOk: false });
+          if (consecutiveFails >= 8 || Date.now() - noFaceStartedAt > 12000) {
+            pushDebug({ kind: 'finish', success: true, manualReviewRequired: true, reason: 'camera_frame_unavailable_open_to_admin' });
+            finishVerification(true, true);
+          }
+          return;
+        }
       
         setScanningStatus('scanning');
       
