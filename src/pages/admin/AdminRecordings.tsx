@@ -132,7 +132,7 @@ export default function AdminRecordings() {
 
       setStats({
         totalRecordings: validRows.length,
-        readyRecordings: validRows.filter((r) => r.status === "ready").length,
+        readyRecordings: validRows.filter((r) => ["ready", "completed"].includes(r.status)).length,
         totalDuration: formattedData.reduce((sum, r) => sum + (r.duration_seconds || 0), 0),
         expiringToday,
       });
