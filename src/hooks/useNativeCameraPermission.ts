@@ -214,16 +214,10 @@ export function useNativeCameraPermission() {
         if (cameraState === 'denied') {
           permissionDeniedCount++;
           setPermissionGranted(false);
-          return { granted: false, error: 'Camera permission denied in browser settings.' };
+          return { granted: false, error: denialHint(false) };
         }
 
         if (cameraState !== 'granted') {
-          // Need to request via getUserMedia
-          if (cameraState === 'denied') {
-            permissionDeniedCount++;
-            setPermissionGranted(false);
-            return { granted: false, error: denialHint(false) };
-          }
           const result = await requestCameraViaGetUserMedia(includeMicrophone, false);
           if (!result.granted) {
             permissionDeniedCount++;
