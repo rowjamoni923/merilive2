@@ -649,6 +649,10 @@ const App = () => {
     // so the first paint of any banner section is instant.
     import('@/utils/preloadAppBanners').then(m => m.preloadAppBanners()).catch(() => {});
 
+    // Clear stale-chunk auto-reload guard on a successful boot so the next
+    // post-deploy chunk failure can also self-heal exactly once.
+    try { sessionStorage.removeItem('meri_chunk_auto_reload_v1'); } catch { /* ignore */ }
+
     // Pkg357 — Global video lifecycle: pause off-screen + tab-hidden videos,
     // skip LiveKit publisher/subscriber. Mirrors Chamet/TikTok behavior.
     import('@/utils/globalVideoLifecycle')
