@@ -880,13 +880,14 @@ const AdminLevel5Helpers = () => {
                               onCheckedChange={async (checked) => {
                                 setProcessing(true);
                                 try {
-                                  await supabase
+                                  const { error } = await supabase
                                     .from('topup_helpers')
                                     .update({ 
                                       payroll_enabled: checked,
                                       payroll_status: checked ? 'approved' : 'rejected'
                                     })
                                     .eq('user_id', app.user_id);
+                                  if (error) throw error;
                                   
                                   toast({ 
                                     title: checked ? "Payroll Enabled" : "Payroll Disabled", 
