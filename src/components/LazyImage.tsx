@@ -1,5 +1,6 @@
-import { ImgHTMLAttributes, useState } from "react";
+import { ImgHTMLAttributes, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { normalizePublicMediaUrl } from "@/lib/cdnImage";
 
 interface LazyImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "loading"> {
   src: string;
@@ -27,7 +28,9 @@ export const LazyImage = ({
   ...rest
 }: LazyImageProps) => {
   const [errored, setErrored] = useState(false);
-  const showSrc = !errored ? src : placeholder;
+  const normalizedSrc = useMemo(() => normalizePublicMediaUrl(src), [src]);
+  const normalizedPlaceholder = useMemo(() => normalizePublicMediaUrl(placeholder), [placeholder]);
+  const showSrc = !errored ? normalizedSrc : normalizedPlaceholder;
 
   return (
     <img
@@ -36,7 +39,7 @@ export const LazyImage = ({
       alt={alt}
      
       decoding="async"
-      fetchPriority="high"
+      {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
       className={cn(className)}
       onLoad={(e) => onLoad?.(e)}
       onError={(e) => {
