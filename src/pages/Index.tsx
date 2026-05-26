@@ -44,6 +44,7 @@ interface Profile {
   is_verified?: boolean | null;
   is_face_verified?: boolean | null;
   created_at?: string;
+  last_seen_at?: string | null;
   frame_id?: string | null;
   host_status?: string | null;
   host_availability?: string | null;
@@ -80,6 +81,22 @@ function resolveFeedAvatar(
   const isOwner = !!viewerId && viewerId === profileId;
   if (isOwner) return DEFAULT_AVATAR;
   return getDisplayAvatar(profileId, null, { gender: gender === "male" ? "male" : "female" });
+}
+
+const ACTIVE_HEARTBEAT_WINDOW_MS = 30 * 60 * 1000;
+
+function hasFreshHeartbeat(lastSeenAt?: string | null): boolean {
+  if (!lastSeenAt) return false;
+  const lastSeen = new Date(lastSeenAt).getTime();
+  return Number.isFinite(lastSeen) && Date.now() - lastSeen <= ACTIVE_HEARTBEAT_WINDOW_MS;
+}
+
+function normalizePresenceForDisplay<T extends Partial<Profile>>(host: T): T {
+  const isManuallyOffline = String(host.host_availability || "online").toLowerCase() === "offline";
+  return {
+    ...host,
+    is_online: host.is_online === true && !isManuallyOffline && hasFreshHeartbeat(host.last_seen_at),
+  };
 }
 
 
