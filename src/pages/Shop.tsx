@@ -39,6 +39,7 @@ import Premium3DFrame from "@/components/common/Premium3DFrame";
 
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
+import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
 import { recordClientError } from "@/utils/clientErrorLog";
 
 // Lazy load SVGAPlayerWithAudio for full-screen entry animation previews with sound
@@ -94,6 +95,9 @@ const categories = [
 // Entry animation categories that need full-width display
 const isEntryAnimationCategory = (category: string) => 
   ['entrance', 'entrance_effect', 'entry_bar', 'vehicle'].includes(category);
+
+const shouldClearEntryAnimationCache = (category: string) =>
+  ['entrance', 'entrance_effect', 'entry_banner', 'entry_bar', 'entry_name_bar', 'vehicle', 'vehicle_entrance'].includes(category);
 
 // Shop Item Card Component - Luxury Style matching reference
 const ShopItemCard = ({ 
@@ -412,6 +416,9 @@ const Shop = () => {
         setPurchases(prev => [...prev, { id: purchaseResult.purchase_id || crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: purchaseResult.expires_at || null }]);
         if (item.category === 'frame' || item.category === 'portrait_frame') {
           clearFrameCache();
+        }
+        if (shouldClearEntryAnimationCache(item.category)) {
+          clearEntryAnimationCache();
         }
       }
 
