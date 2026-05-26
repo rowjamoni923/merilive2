@@ -19456,6 +19456,10 @@ export type Database = {
         Args: { p_call_id: string; p_rating: number; p_review?: string }
         Returns: Json
       }
+      submit_rating_proof: {
+        Args: { _platform?: string; _screenshot_url: string }
+        Returns: Json
+      }
       support_admin_file_report: {
         Args: { _message_id: string; _reason: string; _ticket_id: string }
         Returns: string
