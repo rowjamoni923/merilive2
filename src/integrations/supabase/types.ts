@@ -15993,6 +15993,14 @@ export type Database = {
         Args: { _fingerprint: string }
         Returns: boolean
       }
+      _apply_recharge_bonuses_internal: {
+        Args: {
+          p_base_coins: number
+          p_recharge_ref?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       _auto_moderator_post: {
         Args: {
           _host_id: string
