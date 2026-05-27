@@ -179,10 +179,10 @@ interface EpayWithdrawal {
  
        // Send notification to agency owner
        if (selectedWithdrawal.agency?.owner_id) {
-         const notifTitle = actionType === 'complete' ? '✅ ePay Withdrawal Completed!' : '❌ ePay Withdrawal Rejected';
+         const notifTitle = actionType === 'complete' ? '✅ MeriCash Withdrawal Completed!' : '❌ MeriCash Withdrawal Rejected';
          const notifMessage = actionType === 'complete' 
-           ? `Your ePay withdrawal request has been completed.` 
-           : `Your ePay withdrawal request has been rejected. ${actionNotes ? `Reason: ${actionNotes}` : ''}`;
+           ? `Your MeriCash (USDT) withdrawal has been completed.` 
+           : `Your MeriCash (USDT) withdrawal has been rejected. ${actionNotes ? `Reason: ${actionNotes}` : ''}`;
          
          await supabase.from('notifications').insert({
            user_id: selectedWithdrawal.agency.owner_id,
@@ -193,13 +193,13 @@ interface EpayWithdrawal {
          });
        }
  
-       toast.success(actionType === 'complete' ? 'ePay withdrawal completed!' : 'ePay withdrawal rejected');
+       toast.success(actionType === 'complete' ? 'MeriCash withdrawal marked completed!' : 'MeriCash withdrawal rejected');
        setShowActionDialog(false);
        setSelectedWithdrawal(null);
        setActionNotes("");
        fetchEpayWithdrawals();
      } catch (error) {
-       console.error("Error processing ePay withdrawal:", error);
+       console.error("Error processing MeriCash withdrawal:", error);
        toast.error("Failed to process withdrawal");
      } finally {
        setProcessing(false);
@@ -252,8 +252,8 @@ interface EpayWithdrawal {
                <Globe className="w-6 h-6" />
              </div>
              <div className="flex-1">
-               <h2 className="text-lg font-bold">ePay Global Withdrawals</h2>
-               <p className="text-white/80 text-sm">Admin-only processing for countries without local helpers</p>
+               <h2 className="text-lg font-bold">MeriCash Auto-Withdrawals (USDT TRC20)</h2>
+               <p className="text-white/80 text-sm">Auto-payouts handled by SwiftPay gateway. Use Complete/Reject only as fallback.</p>
              </div>
              <div className="text-right">
                <p className="text-2xl font-bold">{pendingCount}</p>
@@ -294,7 +294,7 @@ interface EpayWithdrawal {
            ) : filteredWithdrawals.length === 0 ? (
              <div className="text-center py-12 text-gray-500">
                <Globe className="w-12 h-12 mx-auto mb-3 opacity-30" />
-               <p>No ePay withdrawal requests</p>
+               <p>No MeriCash auto-withdrawal requests</p>
              </div>
            ) : (
              <ScrollArea className="max-h-[500px]">
@@ -404,7 +404,7 @@ interface EpayWithdrawal {
            <DialogHeader>
              <DialogTitle className="flex items-center gap-2">
                <Globe className="w-5 h-5 text-purple-500" />
-               ePay Withdrawal Details
+               MeriCash Withdrawal Details
              </DialogTitle>
            </DialogHeader>
            {selectedWithdrawal && (
@@ -467,7 +467,7 @@ interface EpayWithdrawal {
          <DialogContent>
            <DialogHeader>
              <DialogTitle>
-               {actionType === 'complete' ? '✅ Complete ePay Withdrawal' : '❌ Reject ePay Withdrawal'}
+               {actionType === 'complete' ? '✅ Mark MeriCash Withdrawal Completed' : '❌ Reject MeriCash Withdrawal'}
              </DialogTitle>
              <DialogDescription>
                {actionType === 'complete' 
