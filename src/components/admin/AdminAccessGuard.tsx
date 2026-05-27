@@ -135,7 +135,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       }
 
       if (potentialAdminSession) {
-        setIsAuthorized(null);
+        // Render admin shell immediately — validate silently in background.
+        setIsAuthorized(true);
         (async () => {
           try {
             const timeout = new Promise<{ data: any }>((_, reject) =>
@@ -146,13 +147,10 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             if (!mounted) return;
             if (data && String(data) === session.admin_id) {
               grantAdminAccess(session.is_owner);
-              setIsAuthorized(true);
-            } else {
-              setIsAuthorized(false);
             }
+            // On failure: keep session intact (NO-AUTO-LOGOUT). User stays in.
           } catch (e) {
-            console.warn('[AdminAccessGuard] existing admin session validation failed', e);
-            if (mounted) setIsAuthorized(false);
+            console.warn('[AdminAccessGuard] background session validation failed (kept session)', e);
           }
         })();
         return;
