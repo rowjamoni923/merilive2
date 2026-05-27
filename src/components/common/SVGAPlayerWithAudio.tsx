@@ -126,6 +126,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
+        player.setContentMode?.('AspectFit');
+        player.setClipsToBounds?.(false);
         player.loops = loop ? 0 : 1;
         player.clearsAfterStop = !loop;
 
