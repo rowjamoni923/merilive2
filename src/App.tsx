@@ -20,7 +20,6 @@ import { useAnalyticsBootstrap } from '@/hooks/useAnalyticsBootstrap';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 import { queryClient, queryPersister } from '@/lib/queryClient';
 import { navigateInAppPath } from '@/utils/inAppNavigation';
-import { prefetchCommonAdminRoutes } from '@/utils/adminRoutePrefetch';
 
 
 // =============================================
@@ -349,13 +348,14 @@ if (typeof window !== 'undefined') {
   try {
     const hasFlag = localStorage.getItem('meri_admin_access') === 'true' || localStorage.getItem('meri_owner_access') === 'true';
     if (hasFlag && window.location.pathname.startsWith('/admin')) {
-      // Prefetch core admin modules after a short idle delay
+      // Prefetch only the core admin shell. Do NOT bulk-prefetch every admin
+      // route here: on real devices it saturates the network with dozens of
+      // chunks and can leave admins stuck on the console loader.
       const prefetchAdmin = () => {
         import("./components/admin/AdminAccessGuard");
         import("./pages/admin/AdminLayout");
         import("./pages/admin/AdminDashboard");
         import("./components/admin/AdminRouteGuard");
-        prefetchCommonAdminRoutes();
       };
       if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(prefetchAdmin, { timeout: 2000 });
