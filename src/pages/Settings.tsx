@@ -873,8 +873,8 @@ const Settings = () => {
       <div className="mobile-page-scrollable">
       {/* Settings List */}
       <div className="divide-y">
-        {/* Pkg129: Host-only Auto-Record live stream toggle (self-gates on is_host). */}
-        <AutoRecordSettingsRow />
+        {/* Recording toggle hidden from UI per product decision — do not surface to users/hosts/agencies. */}
+        {/* <AutoRecordSettingsRow /> */}
 
         {/* Pkg210 — biometric app lock */}
         {isNativeApp() && (

@@ -320,9 +320,7 @@ const HostDashboard = () => {
           <Button variant="outline" size="sm" onClick={() => navigate('/host/obs-stream')}>
             OBS
           </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate('/my-recordings')}>
-            Recordings
-          </Button>
+          {/* Recordings entry hidden per product decision — no recording UI for hosts/users/agencies. */}
         </div>
       </header>
 
