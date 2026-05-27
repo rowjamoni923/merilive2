@@ -20,17 +20,16 @@ const PRIVATE_STORAGE_BUCKETS = new Set([
   'face-verification',
   'host-verification',
   'payment-proofs', 'payment-screenshots',
-  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
+  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings', 'chat-media',
 ]);
 // face-verification bucket is PRIVATE in this project (storage.buckets.public=false),
 // so /object/public/... URLs return 400. We must sign via the admin edge function.
-// Only chat-media is genuinely public among the verification-adjacent buckets.
-const PUBLIC_VERIFICATION_BUCKETS = new Set(['chat-media']);
+const PUBLIC_VERIFICATION_BUCKETS = new Set<string>();
 const KNOWN_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'avatars', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
   'app-assets', 'app-icons', 'assets', 'banners', 'banners-media', 'branding', 'chat-media',
-  'content-media', 'payment-logos', 'posters', 'reels',
+  'content-media', 'payment-logos', 'posters', 'reels', 'gifts',
 ]);
 const FALLBACK_SIGNING_BUCKETS = [
   'face-verification', 'host-verification', 'payment-screenshots', 'payment-proofs',
