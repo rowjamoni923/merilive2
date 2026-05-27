@@ -82,7 +82,7 @@ import { getAdminSession } from "@/utils/adminSession";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRoutePrefetch";
+import { prefetchAdminRoute } from "@/utils/adminRoutePrefetch";
 // installAdminMediaAutoResolver removed (Pkg42) — see useEffect below for rationale.
 
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
@@ -1433,20 +1433,13 @@ export default function AdminLayout() {
     return Number.isFinite(n) ? n : 0;
   };
 
-  // ⚡ Prefetch ALL admin page chunks after first paint so every tab opens instantly.
-  // Runs in idle slices (see adminRoutePrefetch.ts) — no main-thread blocking.
-  useEffect(() => {
-    const t = setTimeout(() => prefetchCommonAdminRoutes(), 100);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Safety net: never let "Preparing admin console…" spin past 7s.
+  // Safety net: never let "Preparing admin console…" spin past 4s.
   useEffect(() => {
     if (!isLoading) return;
     const t = setTimeout(() => {
-      console.warn('[AdminLayout] Forcing isLoading=false after 7s safety timeout');
+      console.warn('[AdminLayout] Forcing isLoading=false after 4s safety timeout');
       setIsLoading(false);
-    }, 7000);
+    }, 4000);
     return () => clearTimeout(t);
   }, [isLoading]);
 
