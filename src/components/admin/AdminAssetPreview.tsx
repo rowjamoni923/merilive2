@@ -47,7 +47,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
     if (type === 'chat-bubble' || aspectRatio === 'chat-bubble') return 'aspect-[3/1]';
     if (type === 'entry-name-bar' || aspectRatio === 'banner') return 'aspect-[4/1]';
     if (type === 'entry-banner' || type === 'entry-bar' || type === 'vehicle' || aspectRatio === 'video') return 'aspect-video';
-    if (aspectRatio === 'banner') return 'aspect-[4/1]';
+    
     return 'aspect-square';
   };
 
