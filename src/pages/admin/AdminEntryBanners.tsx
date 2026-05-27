@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
-import { SmartImage } from "@/components/ui/smart-image";
 import { 
   Plus, 
   Trash2, 
@@ -38,10 +37,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
-import SVGAPreviewWithMuteToggle from '@/components/admin/SVGAPreviewWithMuteToggle';
-import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
-import { EntryBannerAnimation } from "@/components/live/EntryBannerAnimation";
 import adminStyles from "@/styles/adminStyles";
 
 const adminCardClass = adminStyles.card;
@@ -523,14 +519,13 @@ export default function AdminEntryBanners() {
           <DialogHeader>
             <DialogTitle className="text-white">Preview: {selectedBanner?.name}</DialogTitle>
           </DialogHeader>
-          <div className="py-8">
+          <div className="py-8 flex justify-center">
             {selectedBanner && (
-              <EntryBannerAnimation
-                userName="Demo User"
-                userLevel={selectedBanner.min_level || 10}
-                avatarUrl="https://randomuser.me/api/portraits/women/44.jpg"
-                animationUrl={selectedBanner.animation_url}
-                onComplete={() => {}}
+              <AdminAssetPreview
+                type="entry-banner"
+                src={selectedBanner.animation_url}
+                previewUrl={selectedBanner.preview_url}
+                containerClassName="w-full max-w-[520px] min-h-[220px]"
               />
             )}
           </div>
