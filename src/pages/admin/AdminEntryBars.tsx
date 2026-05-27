@@ -14,6 +14,7 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
+import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface EntryBarItem {
@@ -345,21 +346,7 @@ const AdminEntryBars = () => {
 
               <CardContent className="space-y-4">
                 {/* YouTube-Style Thumbnail Preview */}
-                <div className="relative aspect-video bg-gradient-to-br from-slate-900 via-purple-900/50 to-slate-900 rounded-xl overflow-hidden group shadow-lg">
-                  {/* Thumbnail Image (Primary Display) */}
-                  {item.preview_url ? (
-                    <SmartImage 
-                      src={item.preview_url} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />
-                  ) : item.animation_url ? (
-                    <div >
-                      <FixedAnimationFrame size="fill" center={false}
-                        src={item.animation_url}
-                        className="w-full h-full object-cover"
-                        loop
-                      />
-                    </div>
+                <AdminAssetPreview type="entry-bar" src={item.animation_url} previewUrl={item.preview_url} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-orange-500/20">
                       <Play className="w-12 h-12 text-amber-400/50" />

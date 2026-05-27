@@ -572,15 +572,8 @@ const AdminFrames = () => {
               >
                 {/* Frame Preview - Use <SmartImage> only for real image thumbnails; otherwise play the animation */}
                 <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-hidden">
-                  {(() => {
-                    return (
-                      <AdminAvatarFramePreview
-                        frameUrl={frame.frame_url || frame.preview_url || ''}
-                        frameType={frame.frame_type}
-                        size={100}
-                      />
-                    );
-                  })()}
+                  <AdminAssetPreview type="frame" src={frame.frame_url} previewUrl={frame.preview_url} animationType={frame.frame_type} />
+                  <AdminAssetPreview type="frame" src={frame.frame_url} previewUrl={frame.preview_url} animationType={frame.frame_type} />
                   
                   {/* Type Badge */}
                   <Badge className={`absolute top-2 left-2 bg-black/60 backdrop-blur-sm ${getTypeColor(frame.frame_type)}`}>

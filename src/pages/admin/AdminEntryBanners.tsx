@@ -40,6 +40,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getAdminSessionToken } from "@/utils/adminSession";
 import SVGAPreviewWithMuteToggle from '@/components/admin/SVGAPreviewWithMuteToggle';
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 import { EntryBannerAnimation } from "@/components/live/EntryBannerAnimation";
 import adminStyles from "@/styles/adminStyles";
 
@@ -308,26 +309,7 @@ export default function AdminEntryBanners() {
             className={`${adminCardClass} p-4 space-y-3`}
           >
             {/* Preview */}
-            <div className="h-20 bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-lg flex items-center justify-center overflow-hidden">
-              {banner.preview_url ? (
-                <SmartImage src={banner.preview_url} alt={banner.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
-              ) : banner.animation_url?.toLowerCase().split('?')[0].endsWith('.svga') ? (
-                <SVGAPreviewWithMuteToggle
-                  src={banner.animation_url}
-                  className="w-full h-full object-contain"
-                  containerClassName="w-full h-full"
-                />
-              ) : banner.animation_url ? (
-                <FixedAnimationFrame size="fill" center={false}
-                  src={banner.animation_url}
-                  className="w-full h-full object-contain"
-                  loop
-                  muted
-                />
-              ) : (
-                <Sparkles className="w-8 h-8 text-purple-400" />
-              )}
-            </div>
+            <AdminAssetPreview type="entry-banner" src={banner.animation_url} previewUrl={banner.preview_url} />
 
             {/* Info */}
             <div className="space-y-2">
@@ -459,13 +441,7 @@ export default function AdminEntryBanners() {
                 )}
               </div>
               {formData.animation_url && (
-                <div className="mt-2 h-16 bg-black/30 rounded-lg overflow-hidden flex items-center justify-center">
-                  <SVGAPreviewWithMuteToggle
-                    src={formData.animation_url}
-                    className="h-full object-contain"
-                    containerClassName="h-full"
-                  />
-                </div>
+                  <AdminAssetPreview type="entry-banner" src={formData.animation_url} />
               )}
             </div>
 
