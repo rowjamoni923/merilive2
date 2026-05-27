@@ -3756,6 +3756,35 @@ input:focus-visible, textarea:focus-visible {
   overscroll-behavior-y: none;
 }
 
+/* Admin mobile emergency scroll unlock — must stay after global native locks.
+   Desktop keeps the fixed-pane model above; phones/tablets use document scroll. */
+@media (max-width: 1023px) {
+  body[data-admin-active="true"] {
+    position: relative !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  body[data-admin-active="true"] #root,
+  body[data-admin-active="true"] .admin-shell,
+  body[data-admin-active="true"] .admin-shell > div,
+  body[data-admin-active="true"] [data-admin-scroll-root="true"] {
+    position: relative !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  body[data-admin-active="true"] .admin-shell {
+    min-height: 100dvh !important;
+  }
+}
+
 /* ============================================================
  * Promo sticker animations — make every sticker feel like a GIF.
  * Applied per-category via getStickerAnimationClass().
