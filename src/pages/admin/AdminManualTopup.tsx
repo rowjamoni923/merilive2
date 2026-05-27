@@ -27,6 +27,7 @@ interface UserProfile {
   avatar_url: string;
   app_uid: string;
   coins: number;
+  diamonds: number;
   is_host: boolean;
   is_verified: boolean;
 }
@@ -109,7 +110,7 @@ const AdminManualTopup = () => {
       // First try exact app_uid match
       const { data: exactMatch, error: exactError } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
         .eq('app_uid', trimmedQuery)
         .limit(1);
       
@@ -128,7 +129,7 @@ const AdminManualTopup = () => {
       // Otherwise, try partial match on display_name or app_uid
       const { data: partialMatch, error: partialError } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
         .or(`display_name.ilike.%${trimmedQuery}%,app_uid.ilike.%${trimmedQuery}%`)
         .order('display_name', { ascending: true })
         .limit(20);
@@ -159,19 +160,21 @@ const AdminManualTopup = () => {
       const { data } = await supabase
         .from('admin_logs')
         .select('*')
-        .eq('action_type', 'add_user_coins')
+        .eq('action_type', 'balance_add')
+        .eq('target_type', 'profile')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (data) {
+        const diamondLogs = data.filter((log: any) => (log.details as any)?.field === 'diamonds').slice(0, 20);
         // Batch fetch all user profiles in one query
-        const targetIds = [...new Set(data.map(l => l.target_id).filter(Boolean))] as string[];
+        const targetIds = [...new Set(diamondLogs.map(l => l.target_id).filter(Boolean))] as string[];
         const { data: users } = targetIds.length > 0 ? await supabase
           .from('profiles')
           .select('id, display_name, avatar_url, app_uid')
           .in('id', targetIds) : { data: [] };
         const userMap = new Map((users || []).map(u => [u.id, u]));
-        const logsWithUsers = data.map(log => ({
+        const logsWithUsers = diamondLogs.map(log => ({
           ...log,
           user: userMap.get(log.target_id || '') || null,
           details: log.details as TopupLog['details'],
@@ -195,22 +198,25 @@ const AdminManualTopup = () => {
 
     setProcessing(true);
     try {
-      const { data, error } = await supabase.rpc('admin_add_user_coins', {
-        _user_id: selectedUser.id,
-        _amount: parseInt(amount),
-        _note: note || null
+      const diamondAmount = parseInt(amount);
+      const { data, error } = await supabase.rpc('admin_adjust_balance', {
+        _target_type: 'profile',
+        _target_id: selectedUser.id,
+        _field: 'diamonds',
+        _delta: diamondAmount,
+        _reason: note || null
       });
 
       if (error) throw error;
 
       const result = data as any;
       if (!result?.success) {
-        throw new Error(result?.error || 'Failed to add coins');
+        throw new Error(result?.error || 'Failed to add diamonds');
       }
 
       toast({ 
         title: "Success! ✅", 
-        description: `${amount} coins added to ${selectedUser.display_name}`
+        description: `${diamondAmount.toLocaleString()} diamonds added to ${selectedUser.display_name}`
       });
 
       // Reset form
