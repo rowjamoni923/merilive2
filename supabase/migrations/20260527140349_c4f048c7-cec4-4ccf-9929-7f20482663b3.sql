@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.admin_adjust_balance(text, uuid, text, bigint, text) TO anon;
