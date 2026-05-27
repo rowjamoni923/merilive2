@@ -146,18 +146,19 @@
  
      setProcessing(true);
      try {
-       const newStatus = actionType === 'complete' ? 'completed' : 'rejected';
-       
-       const { error } = await supabase
-         .from('agency_withdrawals')
-         .update({
-           status: newStatus,
-           processed_at: new Date().toISOString(),
-           notes: actionNotes || null
-         })
-         .eq('id', selectedWithdrawal.id);
- 
+       const newStatus = actionType === 'complete' ? 'approved' : 'rejected';
+
+       const { data, error } = await supabase.rpc('admin_process_withdrawal', {
+         _withdrawal_id: selectedWithdrawal.id,
+         _status: newStatus,
+         _notes: actionNotes || null,
+       });
+
        if (error) throw error;
+       const result = data as { success?: boolean; error?: string; message?: string } | null;
+       if (result?.success === false) {
+         throw new Error(result.error || result.message || 'Withdrawal processing failed');
+       }
  
        // Send notification to agency owner
        if (selectedWithdrawal.agency?.owner_id) {
@@ -200,8 +201,9 @@
          return <Badge className="bg-amber-100 text-amber-700 border border-amber-200"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
        case 'processing':
          return <Badge className="bg-blue-100 text-blue-700 border border-blue-200"><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing</Badge>;
-       case 'completed':
-         return <Badge className="bg-green-100 text-green-700 border border-green-200"><CheckCircle className="w-3 h-3 mr-1" /> Completed</Badge>;
+        case 'completed':
+        case 'approved':
+          return <Badge className="bg-green-100 text-green-700 border border-green-200"><CheckCircle className="w-3 h-3 mr-1" /> Completed</Badge>;
        case 'rejected':
          return <Badge className="bg-red-100 text-red-700 border border-red-200"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
        default:
