@@ -85,11 +85,10 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       return true;
     }
 
-    // Existing admin sessions were created through a secret link already, but
-    // localStorage is editable. If the tab/link flag is missing, pause on the
-    // admin loader and let the server x-admin-token check below decide — never
-    // flash BlogPage during normal admin section navigation.
-    if (hasPotentialAdminSession()) return null;
+    // Existing admin sessions were created through a secret link already.
+    // Render the admin shell INSTANTLY — background validation can revoke
+    // later if the session is actually invalid. No spinner, no delay.
+    if (hasPotentialAdminSession()) return true;
     return hasAdminAccessFlag() && !!getAdminLinkToken();
   });
 
