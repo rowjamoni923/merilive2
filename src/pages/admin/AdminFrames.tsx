@@ -28,6 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -71,32 +72,6 @@ const frameTypeOptions = [
 const categoryOptions = ['general', 'vip', 'seasonal', 'event', 'special', 'birthday', 'festival'];
 
 const ADMIN_FRAME_PREVIEW_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face";
-
-const AdminAvatarFramePreview = ({
-  frameUrl,
-  frameType,
-  size = 100,
-  avatarSrc = ADMIN_FRAME_PREVIEW_AVATAR,
-}: {
-  frameUrl: string;
-  frameType?: string | null;
-  size?: number;
-  avatarSrc?: string;
-}) => {
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <img
-        src={avatarSrc}
-        alt="Frame preview avatar"
-        className="absolute inset-0 h-full w-full rounded-full object-cover shadow-lg ring-2 ring-border/70"
-        loading="eager"
-        decoding="async"
-      />
-      <div className="absolute inset-0 pointer-events-none overflow-visible" style={{ zIndex: 2 }}>
-        <UniversalFramePlayer src={frameUrl} type={frameType as any} className="w-full h-full" loop={true} autoPlay={true} />
-      </div>
-    </div>
-  );
 };
 
 const AdminFrames = () => {
