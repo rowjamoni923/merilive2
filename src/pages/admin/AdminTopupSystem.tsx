@@ -579,28 +579,15 @@ const AdminTopupSystem = () => {
     }
     setIsTransferring(true);
     try {
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
-      const newBalance = (selectedHelper.wallet_balance || 0) + amt;
-      
-      const { error: updateError } = await supabase
-        .from('topup_helpers')
-        .update({ 
-          wallet_balance: newBalance,
-          total_bought: (selectedHelper.total_bought || 0) + amt 
-        })
-        .eq('id', selectedHelper.id);
-      if (updateError) throw updateError;
-
-      await supabase.from('helper_transactions').insert({
-        helper_id: selectedHelper.id,
-        transaction_type: 'admin_transfer',
-        coin_amount: amt,
-        usd_amount: 0,
-        status: 'completed',
-        notes: transferNote || `Admin transfer: ${amt} diamonds`,
-        processed_by: user?.id,
-        processed_at: new Date().toISOString()
+      const { data, error } = await supabase.rpc('admin_adjust_balance', {
+        _target_type: 'helper',
+        _target_id: selectedHelper.id,
+        _field: 'wallet_balance',
+        _delta: amt,
+        _reason: transferNote || `Admin transfer: ${amt} diamonds`,
       });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Transfer failed');
 
       // Send notification to helper
       await adminSendNotification(selectedHelper.user_id, '💎 Diamonds Added!', `${amt.toLocaleString()} diamonds have been added to your Trader Wallet`, 'diamonds_credited')
@@ -838,7 +825,7 @@ const AdminTopupSystem = () => {
                   <Coins className="w-5 h-5 text-amber-500" />
                   Add Diamonds to User
                 </CardTitle>
-                <CardDescription>Search for any user and add coins directly</CardDescription>
+                  <CardDescription>Search for any user and add diamonds directly</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* User Search */}
