@@ -1879,44 +1879,81 @@ video::-webkit-media-controls-toggle-closed-captions-button {
    let the page-content pane own vertical scrolling on every admin section. */
 body[data-admin-active="true"] {
   overflow-x: hidden !important;
-  overflow-y: hidden !important;
-  overscroll-behavior: contain !important;
-  touch-action: pan-y pinch-zoom !important;
+  overscroll-behavior-x: contain !important;
   background: hsl(230 15% 6%);
 }
 
-body[data-admin-active="true"] #root {
-  height: 100vh !important;
-  height: 100dvh !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  overscroll-behavior: contain !important;
+/* Desktop: lock body, scroll inside main pane */
+@media (min-width: 1024px) {
+  body[data-admin-active="true"] {
+    overflow-y: hidden !important;
+    touch-action: pan-y pinch-zoom;
+  }
+  body[data-admin-active="true"] #root {
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .admin-shell {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+  .admin-shell [data-admin-scroll-root="true"] {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    touch-action: pan-y pinch-zoom !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+  }
 }
 
-.admin-shell {
-  height: 100vh;
-  height: 100dvh;
-  min-height: 0;
-  width: 100%;
-  overflow: hidden;
-  touch-action: pan-y pinch-zoom;
-  overscroll-behavior: contain;
-}
-
-.admin-shell [data-admin-scroll-root="true"] {
-  /* Stay as a proper flex child of the shell so the parent's bounded height
-     (100dvh) constrains us and our own overflow-y becomes the scroller.
-     Do NOT use height:auto here — it lets the pane grow past the viewport
-     and the bottom gets clipped by the shell's overflow:hidden. */
-  flex: 1 1 0% !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  touch-action: pan-y pinch-zoom !important;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
+/* Mobile/Tablet: use NATURAL document scroll — most reliable on iOS/Capacitor */
+@media (max-width: 1023px) {
+  body[data-admin-active="true"] {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: auto;
+    height: auto !important;
+    min-height: 100dvh;
+  }
+  body[data-admin-active="true"] #root {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
+  .admin-shell {
+    position: static !important;
+    inset: auto !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+  .admin-shell [data-admin-scroll-root="true"] {
+    flex: 1 1 auto !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    touch-action: auto !important;
+    -webkit-overflow-scrolling: auto !important;
+  }
+  /* Main content wrapper inside .admin-shell (the flex column with h-screen overflow-hidden) */
+  .admin-shell > div[class*="flex-col"] {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
 }
 
 .admin-shell,
@@ -1924,11 +1961,6 @@ body[data-admin-active="true"] #root {
   -webkit-user-select: none !important;
   user-select: none !important;
   -webkit-touch-callout: none !important;
-}
-
-.admin-content,
-.admin-content *:not(button):not(a):not(input):not(textarea):not(select):not([role="button"]):not([role="menuitem"]):not([role="option"]):not([role="checkbox"]):not([role="switch"]):not([contenteditable="true"]) {
-  touch-action: pan-y pinch-zoom !important;
 }
 
 .admin-content button,
@@ -1968,10 +2000,8 @@ body[data-admin-active="true"] #root {
   min-width: 0 !important;
 }
 
-/* Many legacy admin pages were authored as standalone screens with
-   min-h-screen/h-screen wrappers. Inside AdminLayout those wrappers must not
-   become a second viewport that clips content while the scroll pane owns
-   scrolling. Force them to flow naturally. */
+/* Legacy admin pages with min-h-screen/h-screen wrappers should flow naturally,
+   not become a second viewport inside the scroll pane. */
 .admin-content > [class*="min-h-screen"],
 .admin-content > [class*="h-screen"],
 .admin-content [class*="min-h-screen"],
@@ -1987,31 +2017,12 @@ body[data-admin-active="true"] #root {
 }
 
 /* Legacy admin pages sometimes pin themselves with `fixed inset-0` which
-   escapes the scroll pane entirely and clips on mobile. Neutralize ONLY
-   direct-child wrappers (don't break modals/overlays inside the page). */
+   escapes the scroll pane entirely. Neutralize ONLY direct-child wrappers. */
 .admin-content > [class*="fixed"][class*="inset-0"] {
   position: relative !important;
   inset: auto !important;
 }
 
-.admin-shell [data-radix-scroll-area-viewport],
-.admin-shell .overflow-y-auto,
-.admin-shell .overflow-y-scroll,
-.admin-shell .overflow-auto,
-.admin-shell .overflow-scroll {
-  touch-action: pan-y pinch-zoom !important;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
-@media (max-width: 1023px) {
-  .admin-shell {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100dvh;
-  }
-}
 
 /* ============================================
    CARD & CONTAINER BACKGROUNDS
