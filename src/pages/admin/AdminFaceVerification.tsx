@@ -75,7 +75,7 @@ function RoleApproveBar({
   defaultRole?: 'host' | 'user';
   processing: boolean;
   onApprove: (role: 'host' | 'user') => void;
-  onReject: () => void;
+  onReject?: () => void;
   className?: string;
 }) {
   const [role, setRole] = useState<'host' | 'user'>(defaultRole);
