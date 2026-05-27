@@ -14,7 +14,7 @@ import * as LK from "npm:livekit-server-sdk@2.9.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-admin-access-token",
+    "authorization, x-client-info, apikey, content-type, x-admin-access-token, x-admin-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
     return json(403, { error: "room_metadata_disabled" });
   }
 
-  const adminToken = req.headers.get("x-admin-access-token") ?? "";
+  const adminToken = (req.headers.get("x-admin-access-token") ?? req.headers.get("x-admin-token") ?? "");
   let asAdmin = false;
   let userId: string | null = null;
 

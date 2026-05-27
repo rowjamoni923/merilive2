@@ -18,7 +18,7 @@ import { RoomServiceClient } from "npm:livekit-server-sdk@2.9.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-admin-access-token",
+    "authorization, x-client-info, apikey, content-type, x-admin-access-token, x-admin-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
   if (!roomName || !identity) return json(400, { error: "missing_required_fields" });
   if (!permission) return json(400, { error: "invalid_or_empty_permission" });
 
-  const adminToken = req.headers.get("x-admin-access-token") ?? "";
+  const adminToken = (req.headers.get("x-admin-access-token") ?? req.headers.get("x-admin-token") ?? "");
   const authHeader = req.headers.get("Authorization") ?? "";
   const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
