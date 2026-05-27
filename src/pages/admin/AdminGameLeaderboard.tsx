@@ -251,6 +251,42 @@ export default function AdminGameLeaderboard() {
     return parts.join(' + ') || 'No reward';
   };
 
+  const creditReward = async (entry: LeaderboardEntry, reward: RewardConfig, isAgency: boolean) => {
+    if (isAgency) {
+      if (reward.reward_beans > 0) {
+        const { data, error } = await supabase.rpc('admin_adjust_balance', {
+          _target_type: 'agency',
+          _target_id: entry.id,
+          _field: 'beans_balance',
+          _delta: reward.reward_beans,
+          _reason: `Leaderboard reward: ${category}/${period}`,
+        });
+        if (error) throw error;
+        if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Agency beans reward failed');
+      }
+      if (reward.reward_diamonds > 0) {
+        const { data, error } = await supabase.rpc('admin_adjust_balance', {
+          _target_type: 'agency',
+          _target_id: entry.id,
+          _field: 'diamond_balance',
+          _delta: reward.reward_diamonds,
+          _reason: `Leaderboard reward: ${category}/${period}`,
+        });
+        if (error) throw error;
+        if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Agency diamonds reward failed');
+      }
+      return;
+    }
+
+    const rewardCalls: Promise<any>[] = [];
+    if (reward.reward_beans > 0) rewardCalls.push(supabase.rpc('add_beans_to_user', { _user_id: entry.id, _amount: reward.reward_beans }));
+    if (reward.reward_diamonds > 0) rewardCalls.push(supabase.rpc('add_diamonds_to_user', { _user_id: entry.id, _amount: reward.reward_diamonds }));
+    if (reward.reward_coins > 0) rewardCalls.push(supabase.rpc('add_coins_to_user', { _user_id: entry.id, _amount: reward.reward_coins }));
+    const results = await Promise.all(rewardCalls);
+    const failed = results.find((result) => result.error);
+    if (failed?.error) throw failed.error;
+  };
+
   const sendAllRewards = async () => {
     if (!leaderboard.length || !rewards.length) return;
     setSendingAll(true);
@@ -273,15 +309,7 @@ export default function AdminGameLeaderboard() {
         }
         const isAgency = category === 'agency_performance';
 
-        // Credit rewards
-        if (!isAgency && (reward.reward_coins > 0 || reward.reward_diamonds > 0)) {
-          if (reward.reward_coins > 0) {
-            await supabase.rpc('add_coins_to_user', { _user_id: entry.id, _amount: reward.reward_coins });
-          }
-        }
-        if (isAgency && reward.reward_diamonds > 0) {
-          await supabase.rpc('add_diamonds_to_agency', { _agency_id: entry.id, _amount: reward.reward_diamonds });
-        }
+        await creditReward(entry, reward, isAgency);
 
         // Record history
         await supabase.from('leaderboard_reward_history').insert({
