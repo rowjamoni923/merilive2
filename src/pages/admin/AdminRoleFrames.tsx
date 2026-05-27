@@ -58,6 +58,29 @@ const ROLE_TYPES = [
   { value: 'vip', label: 'VIP', icon: Crown, color: 'from-amber-500 to-yellow-500' },
 ];
 
+const RoleFramePreview = ({ src, compact = false }: { src?: string | null; compact?: boolean }) => (
+  <div className="relative w-full h-full flex items-center justify-center bg-slate-800 overflow-hidden">
+    <div
+      className="absolute top-1/2 left-1/2 rounded-full bg-slate-700 border border-white/50 shadow-lg flex items-center justify-center text-white font-bold"
+      style={{
+        width: compact ? '70%' : '78%',
+        height: compact ? '70%' : '78%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 1,
+      }}
+    >
+      U
+    </div>
+    {src ? (
+      <div className="absolute inset-0 z-20 pointer-events-none">
+        <FixedAnimationFrame size="fill" center={false} src={src} loop />
+      </div>
+    ) : (
+      <Image className="relative z-20 w-12 h-12 text-slate-600" />
+    )}
+  </div>
+);
+
 const defaultFrame: Partial<RoleFrame> = {
   role_type: 'admin',
   frame_name: '',
@@ -472,16 +495,8 @@ const AdminRoleFrames = () => {
                   <div className={`h-1.5 bg-gradient-to-r ${roleConfig.color}`} />
                   <div className="p-3">
                     {/* Frame Preview */}
-                    <div className="aspect-square bg-slate-800 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                      {frame.frame_url ? (
-                        <FixedAnimationFrame size="fill" center={false}
-                          src={frame.frame_url}
-                          
-                          loop
-                        />
-                      ) : (
-                        <Image className="w-12 h-12 text-slate-600" />
-                      )}
+                    <div className="aspect-square bg-slate-800 rounded-lg mb-3 overflow-hidden">
+                      <RoleFramePreview src={frame.frame_url} />
                     </div>
                     
                     <h4 className="text-white font-semibold truncate">{frame.frame_name}</h4>
@@ -561,13 +576,7 @@ const AdminRoleFrames = () => {
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <div className="w-10 h-10 rounded bg-slate-800 overflow-hidden">
-                              {assignment.frame?.frame_url && (
-                                <FixedAnimationFrame size="fill" center={false}
-                                  src={assignment.frame.frame_url}
-                                  
-                                  loop
-                                />
-                              )}
+                              <RoleFramePreview src={assignment.frame?.frame_url} compact />
                             </div>
                             <span className="text-white text-sm">{assignment.frame?.frame_name}</span>
                           </div>
@@ -678,11 +687,7 @@ const AdminRoleFrames = () => {
               {/* Preview */}
               {frameForm.frame_url && (
                 <div className="mt-2 w-24 h-24 bg-slate-800 rounded-lg overflow-hidden">
-                  <FixedAnimationFrame size="fill" center={false}
-                    src={frameForm.frame_url}
-                    
-                    loop
-                  />
+                  <RoleFramePreview src={frameForm.frame_url} />
                 </div>
               )}
             </div>
