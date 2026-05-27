@@ -34,15 +34,18 @@ export function useEnableBrowserPageInteraction(options: BrowserPageInteractionO
       viewport.setAttribute("content", ZOOMABLE_VIEWPORT_CONTENT);
     }
 
-    html.style.overflow = mode === "app-shell" ? "hidden" : "auto";
-    body.style.overflow = mode === "app-shell" ? "hidden" : "auto";
-    html.style.touchAction = mode === "app-shell" ? "pan-y" : "auto";
-    body.style.touchAction = mode === "app-shell" ? "pan-y" : "auto";
-    body.style.overscrollBehavior = mode === "app-shell" ? "contain" : "auto";
+    // Do not hard-lock html/body/root for admin. The admin CSS layer decides
+    // desktop pane scrolling vs mobile natural document scrolling via media
+    // queries; an inline overflow:hidden here blocks mobile pages entirely.
+    html.style.overflow = "auto";
+    body.style.overflow = "auto";
+    html.style.touchAction = mode === "app-shell" ? "pan-y pinch-zoom" : "auto";
+    body.style.touchAction = mode === "app-shell" ? "pan-y pinch-zoom" : "auto";
+    body.style.overscrollBehavior = mode === "app-shell" ? "auto" : "auto";
 
     if (root) {
-      root.style.overflow = mode === "app-shell" ? "hidden" : "visible";
-      root.style.height = mode === "app-shell" ? "100dvh" : "auto";
+      root.style.overflow = "visible";
+      root.style.height = "auto";
     }
 
     return () => {
