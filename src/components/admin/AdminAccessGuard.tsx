@@ -269,7 +269,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   if (isAuthorized) {
     const session = getAdminSession();
     const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
-    if (isLoginRoute() && session && !getAccessTokenFromURL()) {
+    // Secret link + existing session → go straight to /admin (no re-login screen).
+    if (isLoginRoute() && session) {
       return <Navigate to="/admin" replace />;
     }
     if (!session && !isLoginRoute()) {
