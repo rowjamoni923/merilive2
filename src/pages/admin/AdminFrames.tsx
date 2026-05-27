@@ -73,20 +73,23 @@ const categoryOptions = ['general', 'vip', 'seasonal', 'event', 'special', 'birt
 
 const AdminAvatarFramePreview = ({
   frameUrl,
+  previewUrl,
   frameType,
   size = 100,
 }: {
   frameUrl: string;
+  previewUrl?: string | null;
   frameType?: string | null;
   size?: number;
   avatarSrc?: string;
 }) => (
-  <div className="relative shrink-0" style={{ width: size, height: size }}>
+  <div className="relative shrink-0 overflow-visible" style={{ width: size, height: size }}>
     <AdminAssetPreview
       type="frame"
       src={frameUrl}
+      previewUrl={previewUrl}
       animationType={frameType}
-      containerClassName="h-full w-full min-h-0 rounded-xl"
+      containerClassName="h-full w-full min-h-0 rounded-xl border-0 shadow-none"
     />
   </div>
 );
@@ -588,8 +591,8 @@ const AdminFrames = () => {
                 }`}
               >
                 {/* Frame Preview - Use <SmartImage> only for real image thumbnails; otherwise play the animation */}
-                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-hidden">
-                  <AdminAssetPreview type="frame" src={frame.frame_url} previewUrl={frame.preview_url} animationType={frame.frame_type} />
+                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-visible p-3">
+                  <AdminAvatarFramePreview frameUrl={frame.frame_url} previewUrl={frame.preview_url} frameType={frame.frame_type} size={132} />
                   
                   {/* Type Badge */}
                   <Badge className={`absolute top-2 left-2 bg-black/60 backdrop-blur-sm ${getTypeColor(frame.frame_type)}`}>
@@ -640,7 +643,7 @@ const AdminFrames = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="absolute bottom-14 right-2 flex gap-1">
+                <div className="px-3 pb-3 flex justify-end gap-1">
                   <Button
                     size="icon"
                     variant="ghost"
