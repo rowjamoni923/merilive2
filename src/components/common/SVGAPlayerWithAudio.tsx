@@ -52,6 +52,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
   const expectedDurationRef = useRef<number>(0);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   // Stable refs for callbacks — prevents parent re-renders from re-running the
   // load effect (which would tear down + rebuild the SVGA player and replay it).
@@ -128,6 +129,16 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         playerRef.current = player;
         player.setContentMode?.('AspectFit');
         player.setClipsToBounds?.(false);
+        if (typeof ResizeObserver !== 'undefined') {
+          resizeObserverRef.current?.disconnect();
+          resizeObserverRef.current = new ResizeObserver(() => {
+            if (!mountedRef.current || !playerRef.current) return;
+            requestAnimationFrame(() => {
+              try { playerRef.current?._update?.(); } catch (e) {}
+            });
+          });
+          resizeObserverRef.current.observe(containerRef.current);
+        }
         player.loops = loop ? 0 : 1;
         player.clearsAfterStop = !loop;
 
@@ -223,6 +234,8 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
       document.removeEventListener('visibilitychange', handleResume);
       window.removeEventListener('focus', handleResume);
       cleanupAudio();
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
       if (completionTimerRef.current) {
         clearTimeout(completionTimerRef.current);
         completionTimerRef.current = null;
