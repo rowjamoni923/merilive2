@@ -346,13 +346,13 @@ const AdminEntryNameBars = () => {
       </div>
 
       {formData.animation_url && (
-          <div className="mt-4">
-            <Label className="text-white mb-2 block">Preview</Label>
-            <AdminAssetPreview type="entry-name-bar" src={formData.animation_url} />
-          </div>
+        <div className="mt-4">
+          <Label className="text-white mb-2 block">Preview</Label>
+          <AdminAssetPreview type="entry-name-bar" src={formData.animation_url} />
         </div>
       )}
     </div>
+
   );
 
   if (loading) {
