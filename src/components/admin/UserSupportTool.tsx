@@ -27,6 +27,7 @@ interface UserResult {
   is_blocked: boolean | null;
   blocked_reason: string | null;
   coins: number | null;
+  diamonds: number | null;
   user_level: number | null;
   host_level: number | null;
   gender: string | null;
@@ -55,7 +56,7 @@ interface FaceVerification {
   created_at: string;
 }
 
-const PROFILE_SELECT_FIELDS = "id, display_name, avatar_url, app_uid, is_host, is_verified, is_blocked, blocked_reason, coins, user_level, host_level, gender, country_flag, country_name, is_face_verified, agency_id, total_earnings, created_at";
+const PROFILE_SELECT_FIELDS = "id, display_name, avatar_url, app_uid, is_host, is_verified, is_blocked, blocked_reason, coins, diamonds, user_level, host_level, gender, country_flag, country_name, is_face_verified, agency_id, total_earnings, created_at";
 
 export default function UserSupportTool() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -224,20 +225,16 @@ export default function UserSupportTool() {
       const amount = parseInt(diamondAmount);
       if (isNaN(amount) || amount <= 0) throw new Error("Invalid amount");
 
-      if (diamondAction === "add") {
-        const { error } = await supabase.rpc("admin_add_user_coins", {
-          _user_id: selectedUser.id,
-          _amount: amount,
-          _note: diamondNote || "Support action",
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.rpc("deduct_coins_from_user", {
-          p_user_id: selectedUser.id,
-          p_amount: amount,
-        });
-        if (error) throw error;
-      }
+      const { data, error } = await supabase.rpc("admin_adjust_balance", {
+        _target_type: "profile",
+        _target_id: selectedUser.id,
+        _field: "diamonds",
+        _delta: diamondAction === "add" ? amount : -amount,
+        _reason: diamondNote || "Support action",
+      });
+      if (error) throw error;
+      const result = (data || {}) as { success?: boolean; error?: string };
+      if (!result.success) throw new Error(result.error || "Diamond adjustment failed");
 
       emitInstantAdminSync(["profiles"]);
       toast.success(`💎 ${diamondAction === "add" ? "Added" : "Removed"} ${amount} diamonds`);
@@ -499,7 +496,7 @@ export default function UserSupportTool() {
                         </div>
                         <div>
                           <span className="text-muted-foreground">💎 Diamonds:</span>
-                          <span className="ml-1 font-bold text-cyan-400">{(selectedUser.coins || 0).toLocaleString()}</span>
+                          <span className="ml-1 font-bold text-cyan-400">{(selectedUser.diamonds || 0).toLocaleString()}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Level:</span>
@@ -684,7 +681,7 @@ export default function UserSupportTool() {
               {diamondAction === "add" ? "Add Diamonds" : "Remove Diamonds"}
             </DialogTitle>
             <DialogDescription>
-              {selectedUser?.display_name} • Current: 💎 {(selectedUser?.coins || 0).toLocaleString()}
+              {selectedUser?.display_name} • Current: 💎 {(selectedUser?.diamonds || 0).toLocaleString()}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
