@@ -600,14 +600,14 @@ const AdminFrames = () => {
                     return (
                       <div
                         className="relative"
-                        style={{ width: 128, height: 128 }}
+                        style={{ width: 124, height: 124 }}
                       >
                         {/* Centered avatar disc */}
                         <div
                           className="absolute top-1/2 left-1/2 rounded-full overflow-hidden border-2 border-white/80 shadow-lg bg-slate-700 flex items-center justify-center"
                           style={{
-                            width: 96,
-                            height: 96,
+                            width: 100,
+                            height: 100,
                             transform: 'translate(-50%, -50%)',
                             zIndex: 1,
                           }}
@@ -618,8 +618,8 @@ const AdminFrames = () => {
                         <div
                           className="absolute top-1/2 left-1/2 pointer-events-none"
                           style={{
-                            width: 128,
-                            height: 128,
+                            width: 124,
+                            height: 124,
                             transform: 'translate(-50%, -50%)',
                             zIndex: 2,
                           }}
