@@ -3,6 +3,22 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { useEffect, useState } from "react";
 import { getAdminSession, type AdminSession } from "@/utils/adminSession";
 
+const ADMIN_ACCESS_TIMEOUT_MS = 4_000;
+
+const withAdminAccessTimeout = async <T,>(promise: PromiseLike<T>, label: string): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timeout`)), ADMIN_ACCESS_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+};
+
 interface AdminUser {
   id: string;
   user_id: string | null;
@@ -52,20 +68,26 @@ export const useAdminAccess = () => {
     queryKey: ["verified-admin-id", adminId, session?.session_token],
     queryFn: async () => {
       if (!adminId) return null;
-      let { data, error } = await adminSupabase.rpc('current_admin_id_from_header' as any);
+      let { data, error } = await withAdminAccessTimeout<{ data: any; error: any }>(
+        adminSupabase.rpc('current_admin_id_from_header' as any),
+        'current_admin_id_from_header'
+      );
       // Self-heal: legacy admin_sessions rows without device_fingerprint break
       // the strict header→admin lookup. Re-run device-access RPC and retry once.
       if ((error || !data) && session?.device_fingerprint) {
         try {
-          await adminSupabase.rpc('admin_request_device_access' as any, {
+          await withAdminAccessTimeout<{ data: any; error: any }>(adminSupabase.rpc('admin_request_device_access' as any, {
             _admin_id: adminId,
             _device_fingerprint: session.device_fingerprint,
             _device_name: session.display_name || null,
             _device_info: { ua: typeof navigator !== 'undefined' ? navigator.userAgent : null },
             _ip_address: null,
             _user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-          });
-          const retry = await adminSupabase.rpc('current_admin_id_from_header' as any);
+          }), 'admin_request_device_access');
+          const retry = await withAdminAccessTimeout<{ data: any; error: any }>(
+            adminSupabase.rpc('current_admin_id_from_header' as any),
+            'current_admin_id_from_header retry'
+          );
           data = retry.data as any;
           error = retry.error as any;
         } catch { /* fall through */ }

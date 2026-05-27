@@ -1349,14 +1349,22 @@ export default function AdminLayout() {
   useEnableBrowserPageInteraction({ mode: "app-shell" });
   const navigate = useNavigate();
   const location = useLocation();
+  const initialAdminSession = getAdminSession();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  // Never render the admin shell from local flags/session blobs alone. Browser
-  // storage is editable; the shell opens only after the server validates the
-  // x-admin-token + approved device and returns the matching admin row.
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(() => initialAdminSession ? {
+    id: initialAdminSession.admin_id,
+    admin_id: initialAdminSession.admin_id,
+    email: initialAdminSession.email,
+    display_name: initialAdminSession.display_name,
+    role: initialAdminSession.role,
+    accepted_at: null,
+  } : null);
+  // Secret-link/session users must see the admin shell immediately. Server
+  // verification still runs in the background and every admin API call remains
+  // protected by x-admin-token/RLS, but this page never blocks on a spinner.
+  const [isAdmin, setIsAdmin] = useState(() => !!initialAdminSession);
+  const [isLoading, setIsLoading] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(navGroups.map(g => g.title));
   const [searchQuery, setSearchQuery] = useState("");
   const [onlineUsersCount, setOnlineUsersCount] = useState(0);
@@ -1432,17 +1440,6 @@ export default function AdminLayout() {
     const n = Number(value ?? 0);
     return Number.isFinite(n) ? n : 0;
   };
-
-  // Safety net: never let "Preparing admin console…" spin past 4s.
-  useEffect(() => {
-    if (!isLoading) return;
-    const t = setTimeout(() => {
-      console.warn('[AdminLayout] Forcing isLoading=false after 4s safety timeout');
-      setIsLoading(false);
-    }, 4000);
-    return () => clearTimeout(t);
-  }, [isLoading]);
-
 
   // Debounced pending counts fetch
   const pendingCountsTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -2531,8 +2528,23 @@ export default function AdminLayout() {
         }
         setCurrentUser(null);
         setIsAdmin(false);
+        setIsLoading(false);
         return;
       }
+
+      // Unblock the shell synchronously for any real admin session. The server
+      // check below may refine currentUser, but it must never hold the full
+      // admin panel behind "Preparing admin console…".
+      setCurrentUser((existing: any) => existing ?? {
+        id: adminSession.admin_id,
+        admin_id: adminSession.admin_id,
+        email: adminSession.email,
+        display_name: adminSession.display_name,
+        role: adminSession.role,
+        accepted_at: null,
+      });
+      setIsAdmin(true);
+      setIsLoading(false);
 
       let { data: verifiedAdminId, error: verifyError } = await adminSupabase.rpc('current_admin_id_from_header' as any);
 
