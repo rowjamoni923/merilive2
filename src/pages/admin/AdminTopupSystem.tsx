@@ -403,19 +403,21 @@ const AdminTopupSystem = () => {
       const { data } = await supabase
         .from('admin_logs')
         .select('*')
-        .eq('action_type', 'add_user_coins')
+        .eq('action_type', 'balance_add')
+        .eq('target_type', 'profile')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (data) {
+        const diamondLogs = data.filter((log: any) => (log.details as any)?.field === 'diamonds').slice(0, 20);
         // Batch fetch all user profiles in one query
-        const targetIds = [...new Set(data.map(l => l.target_id).filter(Boolean))] as string[];
+        const targetIds = [...new Set(diamondLogs.map(l => l.target_id).filter(Boolean))] as string[];
         const { data: users } = targetIds.length > 0 ? await supabase
           .from('profiles')
           .select('id, display_name, avatar_url, app_uid')
           .in('id', targetIds) : { data: [] };
         const userMap = new Map((users || []).map(u => [u.id, u]));
-        const logsWithUsers = data.map(log => ({
+        const logsWithUsers = diamondLogs.map(log => ({
           ...log,
           user: userMap.get(log.target_id || '') || null,
           details: log.details as TopupLog['details'],
@@ -435,16 +437,19 @@ const AdminTopupSystem = () => {
     }
     setProcessing(true);
     try {
-      const { data, error } = await supabase.rpc('admin_add_user_coins', {
-        _user_id: selectedUser.id,
-        _amount: parseInt(amount),
-        _note: note || null
+      const diamondAmount = parseInt(amount);
+      const { data, error } = await supabase.rpc('admin_adjust_balance', {
+        _target_type: 'profile',
+        _target_id: selectedUser.id,
+        _field: 'diamonds',
+        _delta: diamondAmount,
+        _reason: note || null
       });
       if (error) throw error;
       const result = data as any;
       if (!result?.success) throw new Error(result?.error || 'Failed to add diamonds');
       
-      toast({ title: "Success! ✅", description: `${amount} diamonds added to ${selectedUser.display_name}` });
+      toast({ title: "Success! ✅", description: `${diamondAmount.toLocaleString()} diamonds added to ${selectedUser.display_name}` });
       setSelectedUser(null);
       setAmount("");
       setNote("");
