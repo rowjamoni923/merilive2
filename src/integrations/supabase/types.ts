@@ -16090,6 +16090,17 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
+      _pkg366_is_admin_ctx: { Args: never; Returns: boolean }
+      _pkg366_notify_user: {
+        Args: {
+          _data?: Json
+          _message: string
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       _resolve_private_call_coins_per_minute: {
         Args: { p_host_id: string }
         Returns: number
