@@ -19,7 +19,7 @@ import { SipClient } from "npm:livekit-server-sdk@2.9.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-admin-access-token",
+    "authorization, x-client-info, apikey, content-type, x-admin-access-token, x-admin-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
     return json(403, { error: "sip_ops_disabled" });
   }
 
-  const adminToken = req.headers.get("x-admin-access-token") ?? "";
+  const adminToken = (req.headers.get("x-admin-access-token") ?? req.headers.get("x-admin-token") ?? "");
   if (!adminToken) return json(401, { error: "missing_admin_token" });
   const v = await validateAdminToken(adminToken);
   if (!v.ok) return json(401, { error: "invalid_admin_token" });
