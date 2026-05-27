@@ -278,7 +278,7 @@ export default function AdminGameLeaderboard() {
       return;
     }
 
-    const rewardCalls: Promise<any>[] = [];
+    const rewardCalls = [];
     if (reward.reward_beans > 0) rewardCalls.push(supabase.rpc('add_beans_to_user', { _user_id: entry.id, _amount: reward.reward_beans }));
     if (reward.reward_diamonds > 0) rewardCalls.push(supabase.rpc('add_diamonds_to_user', { _user_id: entry.id, _amount: reward.reward_diamonds }));
     if (reward.reward_coins > 0) rewardCalls.push(supabase.rpc('add_coins_to_user', { _user_id: entry.id, _amount: reward.reward_coins }));
