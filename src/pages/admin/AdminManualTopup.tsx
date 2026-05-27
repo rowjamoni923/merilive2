@@ -326,7 +326,7 @@ const AdminManualTopup = () => {
                         {user.is_host && <Badge className="bg-pink-100 text-pink-600 text-xs">Host</Badge>}
                         {user.is_verified && <Badge className="bg-blue-100 text-blue-600 text-xs">Verified</Badge>}
                       </div>
-                      <p className="text-sm text-slate-500">ID: {user.app_uid} • 💎 {(user.coins || 0).toLocaleString()}</p>
+                      <p className="text-sm text-slate-500">ID: {user.app_uid} • 💎 {(user.diamonds || 0).toLocaleString()}</p>
                     </div>
                   </button>
                 ))}
@@ -348,7 +348,7 @@ const AdminManualTopup = () => {
                     </div>
                     <p className="text-sm text-slate-600">ID: {selectedUser.app_uid}</p>
                     <p className="text-sm font-medium text-amber-700">
-                      Current Balance: {(selectedUser.coins || 0).toLocaleString()} 💎
+                      Current Balance: {(selectedUser.diamonds || 0).toLocaleString()} 💎
                     </p>
                   </div>
                   <Button 
@@ -410,7 +410,7 @@ const AdminManualTopup = () => {
                ) : (
                  <>
                    <Send className="w-4 h-4 mr-2" />
-                   Add Coins
+                   Add Diamonds
                 </>
               )}
             </Button>
@@ -459,11 +459,11 @@ const AdminManualTopup = () => {
                         </TableCell>
                         <TableCell>
                           <Badge className="bg-green-100 text-green-700">
-                            +{log.details?.amount?.toLocaleString()} 💎
+                            +{Math.abs(Number((log.details as any)?.delta ?? log.details?.amount ?? 0)).toLocaleString()} 💎
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">
-                          <span className="text-slate-500">{log.details?.previous_balance?.toLocaleString()}</span>
+                          <span className="text-slate-500">{((log.details as any)?.old_balance ?? log.details?.previous_balance)?.toLocaleString?.() ?? '—'}</span>
                           <span className="mx-1">→</span>
                           <span className="text-green-600 font-medium">{log.details?.new_balance?.toLocaleString()}</span>
                         </TableCell>
