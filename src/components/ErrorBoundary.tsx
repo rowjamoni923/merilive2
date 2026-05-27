@@ -97,7 +97,7 @@ class ErrorBoundary extends Component<Props, State> {
                 {isRecoveringChunk ? 'Please wait while the app refreshes safely.' : "An error occurred on this page. We're working to fix it."}
               </p>
               
-              {this.state.error && (
+              {this.state.error && !isRecoveringChunk && (
                 <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 text-xs space-y-2 max-h-64 overflow-auto">
                   <p className="font-mono text-destructive break-all font-semibold">
                     {this.state.error.name}: {this.state.error.message}
