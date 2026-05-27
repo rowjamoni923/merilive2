@@ -20,17 +20,16 @@ const PRIVATE_STORAGE_BUCKETS = new Set([
   'face-verification',
   'host-verification',
   'payment-proofs', 'payment-screenshots',
-  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
+  'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings', 'chat-media',
 ]);
 // face-verification bucket is PRIVATE in this project (storage.buckets.public=false),
 // so /object/public/... URLs return 400. We must sign via the admin edge function.
-// Only chat-media is genuinely public among the verification-adjacent buckets.
-const PUBLIC_VERIFICATION_BUCKETS = new Set(['chat-media']);
+const PUBLIC_VERIFICATION_BUCKETS = new Set<string>();
 const KNOWN_STORAGE_BUCKETS = new Set([
   'face-verification', 'host-verification', 'avatars', 'payment-proofs', 'payment-screenshots',
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
   'app-assets', 'app-icons', 'assets', 'banners', 'banners-media', 'branding', 'chat-media',
-  'content-media', 'payment-logos', 'posters', 'reels',
+  'content-media', 'payment-logos', 'posters', 'reels', 'gifts',
 ]);
 const FALLBACK_SIGNING_BUCKETS = [
   'face-verification', 'host-verification', 'payment-screenshots', 'payment-proofs',
@@ -40,6 +39,7 @@ const FALLBACK_SIGNING_BUCKETS = [
 ];
 const RAW_FILE_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|mp3|wav|m4a|pdf)(?:[?#].*)?$/i;
 const VIDEO_FILE_RE = /\.(?:mp4|m4v|mov|qt|webm|ogg|ogv|avi|mkv|3gp|3gpp|3g2|mpg|mpeg|hevc|ts|m3u8|mpd)(?:$|[?#])/i;
+const LOCAL_APP_MEDIA_RE = /^\/?(?:placeholder\.svg(?:[?#].*)?|favicon\.|icon-|assets\/|src\/assets\/|images\/|lovable-uploads\/)/i;
 
 type AdminBatchSignResponse = {
   success?: boolean;
@@ -55,6 +55,10 @@ const ADMIN_SIGN_BATCH_SIZE = 80;
 export const extractAdminStoragePath = (value: string, defaultBucket?: string): AdminStoragePath | null => {
   const raw = value.trim();
   if (!raw || raw.startsWith("data:") || raw.startsWith("blob:")) return null;
+  // Local bundled/public assets must never be treated as private Supabase
+  // objects. Otherwise `/placeholder.svg` becomes e.g. `avatars/placeholder.svg`
+  // and the admin client spams failing storage sign requests.
+  if (LOCAL_APP_MEDIA_RE.test(raw)) return null;
 
   try {
     const url = new URL(raw);
@@ -77,6 +81,7 @@ export const extractAdminStoragePath = (value: string, defaultBucket?: string): 
 
 export const isAdminStorageReference = (value?: string | null, defaultBucket?: string) => {
   if (!value) return false;
+  if (LOCAL_APP_MEDIA_RE.test(value.trim())) return false;
   return !!extractAdminStoragePath(value, defaultBucket) || RAW_FILE_PATH_RE.test(value.trim());
 };
 
@@ -141,7 +146,10 @@ if (typeof window !== "undefined") {
 
 
 
-const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
+const looksLikeRawFilePath = (value: string) => {
+  const raw = value.trim();
+  return !LOCAL_APP_MEDIA_RE.test(raw) && RAW_FILE_PATH_RE.test(raw);
+};
 
 const readStorageValue = (storage: Storage | undefined, key: string) => {
   try { return storage?.getItem(key) || ''; } catch { return ''; }
@@ -196,6 +204,7 @@ const isAlreadySignedStorageUrl = (value: string) => {
 };
 
 const buildStorageCandidates = (value: string, defaultBucket?: string): AdminStoragePath[] => {
+  if (LOCAL_APP_MEDIA_RE.test(value.trim())) return [];
   const explicit = extractAdminStoragePath(value);
   if (explicit) return [explicit];
 
