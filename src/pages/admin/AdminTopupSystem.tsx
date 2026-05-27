@@ -48,6 +48,7 @@ interface UserProfile {
   avatar_url: string;
   app_uid: string;
   coins: number;
+  diamonds: number;
   is_host: boolean;
   is_verified: boolean;
 }
@@ -348,7 +349,7 @@ const AdminTopupSystem = () => {
       // Try exact match on app_uid first (handles numeric UIDs)
       const { data: exactMatch, error: exactError } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
         .eq('app_uid', trimmedQuery)
         .limit(1);
       
@@ -363,7 +364,7 @@ const AdminTopupSystem = () => {
       // Try partial/contains match on app_uid (for partial UID search)
       const { data: uidContains } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
         .ilike('app_uid', `%${trimmedQuery}%`)
         .limit(10);
       
@@ -378,7 +379,7 @@ const AdminTopupSystem = () => {
       // Finally try display_name search
       const { data: nameMatch } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins, is_host, is_verified')
+        .select('id, display_name, avatar_url, app_uid, coins, diamonds, is_host, is_verified')
         .ilike('display_name', `%${trimmedQuery}%`)
         .limit(10);
       
