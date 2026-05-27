@@ -247,7 +247,7 @@ export default function AdminGameLeaderboard() {
     const parts: string[] = [];
     if (reward.reward_beans > 0) parts.push(`${reward.reward_beans} Beans`);
     if (reward.reward_diamonds > 0) parts.push(`${reward.reward_diamonds} 💎`);
-    if (reward.reward_coins > 0) parts.push(`${reward.reward_coins} 💎`);
+    if (reward.reward_coins > 0) parts.push(`${reward.reward_coins} Coins`);
     return parts.join(' + ') || 'No reward';
   };
 
@@ -300,7 +300,8 @@ export default function AdminGameLeaderboard() {
         // Send notification to user/agency owner about leaderboard reward
         if (!isAgency) {
           const rewardParts = [];
-          if (reward.reward_coins > 0) rewardParts.push(`${reward.reward_coins.toLocaleString()} Diamonds`);
+          if (reward.reward_coins > 0) rewardParts.push(`${reward.reward_coins.toLocaleString()} Coins`);
+          if (reward.reward_diamonds > 0) rewardParts.push(`${reward.reward_diamonds.toLocaleString()} Diamonds`);
           if (reward.reward_beans > 0) rewardParts.push(`${reward.reward_beans.toLocaleString()} Beans`);
           await adminSendNotification(entry.id, `🏆 Leaderboard Reward - Rank #${rank}!`, `Congratulations! You earned ${rewardParts.join(' + ')} from ${category} leaderboard`, 'reward')
         }
@@ -495,7 +496,7 @@ export default function AdminGameLeaderboard() {
                     </div>
                     <div className="flex-1 grid grid-cols-4 gap-2">
                       <div>
-                        <label className="text-[10px] text-slate-400">💎 Diamonds</label>
+                        <label className="text-[10px] text-slate-400">Coins</label>
                         <Input type="number" value={rw.reward_coins}
                           onChange={e => updateRewardConfig(rw.id, 'reward_coins', parseInt(e.target.value) || 0)}
                           className="h-8 bg-slate-900 border-slate-700 text-white text-sm" />

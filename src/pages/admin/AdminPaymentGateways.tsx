@@ -894,7 +894,7 @@ const AdminPaymentGateways = () => {
                           
                           <div className="flex items-center gap-4 text-sm text-white/70 mb-2">
                             <span className="font-medium text-pink-400">
-                              💎 {Number(txn.diamonds_amount || 0).toLocaleString()} coins
+                              💎 {Number(txn.diamonds_amount || 0).toLocaleString()} diamonds
                             </span>
                             <span>${Number(txn.amount_usd || 0).toFixed(2)}</span>
                             <span>{txn.currency || 'USD'} {Number(txn.amount || 0).toFixed(2)}</span>

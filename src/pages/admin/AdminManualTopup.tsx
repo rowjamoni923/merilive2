@@ -245,7 +245,7 @@ const AdminManualTopup = () => {
           </Button>
           <div>
              <h1 className="font-bold text-xl text-white">Manual Top-Up</h1>
-             <p className="text-white/80 text-sm">Add coins to any user</p>
+              <p className="text-white/80 text-sm">Add diamonds to any user</p>
           </div>
         </div>
 
@@ -256,7 +256,7 @@ const AdminManualTopup = () => {
             </div>
             <div>
                <p className="text-white/80 text-sm">Admin Diamond Management</p>
-               <p className="text-white font-bold">Search user & add coins</p>
+                <p className="text-white font-bold">Search user & add diamonds</p>
             </div>
           </div>
         </div>
