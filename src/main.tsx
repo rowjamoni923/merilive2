@@ -4,7 +4,7 @@ import { installRealtimeGuard } from "./utils/realtimeGuard";
 import { installAuthRequestGuard } from "./utils/authRequestGuard";
 import { startNetworkResilienceEngine } from "./utils/networkResilienceEngine";
 import { installAudioUnlock } from "./utils/audioUnlock";
-import { scheduleChunkLoadRecovery } from "./utils/lazyRetry";
+import { isChunkLoadError, performChunkRecoveryReload } from "./utils/lazyRetry";
 import { installGlobalMediaSrcNormalizer } from "./utils/installGlobalMediaSrcNormalizer";
 import App from "./App.tsx";
 import "./index.css";
