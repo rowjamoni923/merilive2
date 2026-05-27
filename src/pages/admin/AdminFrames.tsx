@@ -28,8 +28,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
@@ -84,26 +84,19 @@ const AdminAvatarFramePreview = ({
   size?: number;
   avatarSrc?: string;
 }) => {
-  const frameOutset = Math.max(8, Math.round(size * 0.12));
-  const previewSize = size + frameOutset * 2;
-
   return (
-    <div className="relative flex items-center justify-center" style={{ width: previewSize, height: previewSize }}>
-      <Avatar
-        className="absolute top-1/2 left-1/2 overflow-hidden border-2 border-white/80 shadow-lg"
-        style={{ width: size, height: size, transform: 'translate(-50%, -50%)', zIndex: 1 }}
-      >
-        <AvatarImage src={avatarSrc} className="object-cover" />
-        <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white font-semibold">U</AvatarFallback>
-      </Avatar>
-      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
-        <UniversalFramePlayer
-          src={frameUrl}
-          type={frameType as any}
-          className="w-full h-full"
-          loop={true}
-          autoPlay={true}
-        />
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <AvatarWithFrame
+        src={avatarSrc}
+        name="U"
+        level={1}
+        size={size >= 96 ? "xl" : "lg"}
+        showFrame={false}
+        isOwner={true}
+        avatarImageClassName="object-cover"
+      />
+      <div className="absolute inset-0 pointer-events-none overflow-visible" style={{ zIndex: 2 }}>
+        <UniversalFramePlayer src={frameUrl} type={frameType as any} className="w-full h-full" loop={true} autoPlay={true} />
       </div>
     </div>
   );
