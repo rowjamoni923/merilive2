@@ -475,7 +475,7 @@ const AdminRoleFrames = () => {
                   <div className="p-3">
                     {/* Frame Preview */}
                     <div className="aspect-square bg-slate-800 rounded-lg mb-3 overflow-hidden">
-                      <AdminAssetPreview type=role-frame src={frame.frame_url} animationType={frame.animation_type} />
+                      <AdminAssetPreview type="role-frame" src={frame.frame_url} animationType={frame.animation_type} />
                       <AdminAssetPreview type="role-frame" src={frame.frame_url} animationType={frame.animation_type} />
                     </div>
                     
