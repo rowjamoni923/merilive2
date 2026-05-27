@@ -798,16 +798,30 @@ const ProfileDetail = () => {
             </motion.div>
           );
         })}
-        {posterImages.length === 0 && (
-          <img
-            src={getCurrentCoverImage()}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-            loading="eager"
-            decoding="sync"
-            {...({ fetchpriority: 'high' } as ImgHTMLAttributes<HTMLImageElement>)}
-          />
-        )}
+        {posterImages.length === 0 && (() => {
+          const coverSrc = getCurrentCoverImage();
+          const coverIsVideo = !!coverSrc?.match(/\.(mp4|webm|mov|m4v)(?:$|[?#])/i);
+          return coverIsVideo ? (
+            <video
+              src={coverSrc}
+              className="absolute inset-0 w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+            />
+          ) : (
+            <img
+              src={coverSrc}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="eager"
+              decoding="sync"
+              {...({ fetchpriority: 'high' } as ImgHTMLAttributes<HTMLImageElement>)}
+            />
+          );
+        })()}
 
         {/* Premium gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-[#f7f8fa]" /> {/* dark-ok: intentional photo→footer overlay, no text inside */}
