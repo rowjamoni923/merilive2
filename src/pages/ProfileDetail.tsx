@@ -962,7 +962,7 @@ const ProfileDetail = () => {
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
  <Badge className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-slate-900 border-0 text-[10px] shadow-lg shadow-fuchsia-500/20 px-2.5 py-0.5 font-bold flex items-center gap-1">
                   {levelIcon?.icon_url && (levelIcon.icon_url.startsWith('http') || levelIcon.icon_url.startsWith('/')) ? (
-                    <img src={levelIcon.icon_url} alt={`Lv${level}`} className="w-3.5 h-3.5 object-contain rounded-sm"/>
+                    <img src={levelIcon.icon_url} alt={`Lv${level}`} className="w-3.5 h-3.5 object-contain rounded-sm" loading="eager" decoding="sync" {...({ fetchpriority: 'high' } as ImgHTMLAttributes<HTMLImageElement>)}/>
                   ) : null}
                   Lv{level}
                 </Badge>
