@@ -608,68 +608,12 @@ const AdminFrames = () => {
                 {/* Frame Preview - Use <SmartImage> only for real image thumbnails; otherwise play the animation */}
                 <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-hidden">
                   {(() => {
-                    const previewUrl = frame.preview_url || '';
-                    const lower = previewUrl.toLowerCase().split('?')[0].split('#')[0];
-                    const isImageThumb = previewUrl && (
-                      lower.endsWith('.png') ||
-                      lower.endsWith('.jpg') ||
-                      lower.endsWith('.jpeg') ||
-                      lower.endsWith('.webp') ||
-                      lower.endsWith('.gif') ||
-                      lower.endsWith('.avif') ||
-                      lower.endsWith('.svg')
-                    );
-
-                    if (isImageThumb) {
-                      return (
-                        <SmartImage
-                          src={previewUrl}
-                          alt={frame.name}
-                          decoding="async"
-                          className="w-full h-full object-contain" onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }} />
-                      );
-                    }
-
-                    // Animated formats (.svga, .json/lottie, .mp4, .webm) — render via player
-                    // Mirror the in-app AvatarWithFrame layout: a centered avatar disc
-                    // with the animated frame overlay scaled ~25% larger and perfectly
-                    // centered around it (matches Profile / Live / Chat rendering).
                     return (
-                      <div
-                        className="relative"
-                        style={{ width: 124, height: 124 }}
-                      >
-                        {/* Centered avatar disc */}
-                        <div
-                          className="absolute top-1/2 left-1/2 rounded-full overflow-hidden border-2 border-white/80 shadow-lg bg-slate-700 flex items-center justify-center"
-                          style={{
-                            width: 100,
-                            height: 100,
-                            transform: 'translate(-50%, -50%)',
-                            zIndex: 1,
-                          }}
-                        >
-                          <span className="text-white text-base font-semibold">U</span>
-                        </div>
-                        {/* Animated frame overlay — centered + slightly larger */}
-                        <div
-                          className="absolute top-1/2 left-1/2 pointer-events-none"
-                          style={{
-                            width: 124,
-                            height: 124,
-                            transform: 'translate(-50%, -50%)',
-                            zIndex: 2,
-                          }}
-                        >
-                          <UniversalFramePlayer
-                            src={frame.frame_url || previewUrl}
-                            type={frame.frame_type as any}
-                            className="w-full h-full"
-                            loop={true}
-                            autoPlay={true}
-                          />
-                        </div>
-                      </div>
+                      <AdminAvatarFramePreview
+                        frameUrl={frame.frame_url || frame.preview_url || ''}
+                        frameType={frame.frame_type}
+                        size={100}
+                      />
                     );
                   })()}
                   
