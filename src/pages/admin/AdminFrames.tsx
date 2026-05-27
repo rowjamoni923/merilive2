@@ -29,7 +29,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
-import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
@@ -86,14 +85,12 @@ const AdminAvatarFramePreview = ({
 }) => {
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <AvatarWithFrame
+      <img
         src={avatarSrc}
-        name="U"
-        level={1}
-        size={size >= 96 ? "xl" : "lg"}
-        showFrame={false}
-        isOwner={true}
-        avatarImageClassName="object-cover"
+        alt="Frame preview avatar"
+        className="absolute inset-0 h-full w-full rounded-full object-cover shadow-lg ring-2 ring-border/70"
+        loading="eager"
+        decoding="async"
       />
       <div className="absolute inset-0 pointer-events-none overflow-visible" style={{ zIndex: 2 }}>
         <UniversalFramePlayer src={frameUrl} type={frameType as any} className="w-full h-full" loop={true} autoPlay={true} />
