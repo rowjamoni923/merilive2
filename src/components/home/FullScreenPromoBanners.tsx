@@ -29,7 +29,11 @@ const pickRatingVariant = () => {
 };
 
 const PROMO_BANNERS: PromoBanner[] = [
-  { id: "rating", image: pickRatingVariant(), alt: "Rate us & win giveaway", fullScreen: false },
+  // fullScreen=true → image fills the device screen edge-to-edge with object-contain
+  // (no rounded-corner clipping, no max-w-sm shrink). Admin-uploaded 9:16 mobile banners
+  // are designed for full mobile screen; rendering them inside a 384px rounded card was
+  // visually clipping the sides via the rounded-3xl mask + max-w-sm width cap.
+  { id: "rating", image: pickRatingVariant(), alt: "Rate us & win giveaway", fullScreen: true },
 ];
 
 const SKIP_DELAY_MS = 3000;
