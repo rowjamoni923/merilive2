@@ -40,55 +40,28 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     if (isChunkLoadError(error)) {
       this.setState({ recovering: true });
-      // Stale-chunk recovery (post-deploy hash mismatch): clear SW + asset
-      // caches, then do exactly ONE cache-busting reload per session so the
-      // browser fetches a fresh index.html with the new chunk hashes.
-      // Without this the user stares at "Updating MeriLive" forever.
-      void (async () => {
-        try { await scheduleChunkLoadRecovery(error, error.message); } catch { /* best-effort */ }
-        try {
-          const ONCE_KEY = 'meri_chunk_auto_reload_v1';
-          const alreadyTried = sessionStorage.getItem(ONCE_KEY);
-          if (!alreadyTried) {
-            sessionStorage.setItem(ONCE_KEY, String(Date.now()));
-            const url = new URL(window.location.href);
-            url.searchParams.set('_r', String(Date.now()));
-            window.location.replace(url.toString());
-          }
-        } catch { /* best-effort */ }
-      })();
+      // Stale-chunk recovery (post-deploy hash mismatch): nuke all caches +
+      // SWs and do a cache-busting reload. Bounded inside performChunkRecoveryReload
+      // so we never loop forever if the CDN itself is broken.
+      void performChunkRecoveryReload();
+      return;
     }
 
     // Log error to our tracking system
     errorLoggingService.logRenderError(error, this.props.componentName || 'Unknown Component');
-    
+
     this.setState({ errorInfo });
-    
+
     console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
   handleRetry = () => {
-    // If the failure was a stale chunk (post-deploy hash mismatch), the only
-    // reliable recovery is to wipe SW + asset caches AND do a hard reload so
-    // the browser fetches a fresh index.html with the new chunk hashes.
-    // The user explicitly asked for this to work — manual "Try Again" click
-    // is NOT an "auto-refresh"; it's a user-initiated recovery.
     if (this.state.error && isChunkLoadError(this.state.error)) {
+      // User-initiated nuclear recovery: wipe per-module + global markers so
+      // the reload budget resets, then full nuke + cache-busting reload.
       resetChunkRecoveryMarkers();
       this.setState({ recovering: true });
-      void (async () => {
-        try {
-          await scheduleChunkLoadRecovery(this.state.error!, this.state.error!.message);
-        } catch { /* best-effort */ }
-        try {
-          // Cache-busting reload to current path (preserves admin secret URL).
-          const url = new URL(window.location.href);
-          url.searchParams.set('_r', String(Date.now()));
-          window.location.replace(url.toString());
-        } catch {
-          window.location.reload();
-        }
-      })();
+      void performChunkRecoveryReload();
       return;
     }
     this.setState({ hasError: false, error: null, errorInfo: null, recovering: false });
