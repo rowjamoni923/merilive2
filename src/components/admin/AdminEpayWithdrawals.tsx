@@ -126,33 +126,37 @@ interface EpayWithdrawal {
      }
    };
  
-   const fetchEpayWithdrawals = async () => {
-     setLoading(true);
-     try {
-       const { data, error } = await supabase
-         .from("agency_withdrawals")
-         .select(`
-           *,
-           agency:agencies(name, agency_code, owner_id)
-         `)
-         .eq('payment_method', 'epay')
-         .order("requested_at", { ascending: false });
- 
-       if (error) throw error;
- 
+  const fetchEpayWithdrawals = async () => {
+    setLoading(true);
+    try {
+      // Pkg382: ePay gateway has been removed. Auto-withdrawals now flow through
+      // SwiftPay / MeriCash (USDT TRC20). We show every auto-payout row here so admin
+      // can monitor SwiftPay payout_id / status without leaving the panel.
+      const { data, error } = await supabase
+        .from("agency_withdrawals")
+        .select(`
+          *,
+          agency:agencies(name, agency_code, owner_id)
+        `)
+        .in('payment_method', ['crypto_auto', 'usdt', 'usdttrc20'])
+        .order("requested_at", { ascending: false });
+
+      if (error) throw error;
+
       const enrichedData = (data || []).map(w => ({
           ...w,
           payment_details: w.payment_details as PaymentDetails | null,
         })) as unknown as EpayWithdrawal[];
- 
-       setWithdrawals(enrichedData);
-     } catch (error) {
-       console.error("Error fetching ePay withdrawals:", error);
-       toast.error("Failed to load ePay withdrawals");
-     } finally {
-       setLoading(false);
-     }
-   };
+
+      setWithdrawals(enrichedData);
+    } catch (error) {
+      console.error("Error fetching MeriCash withdrawals:", error);
+      toast.error("Failed to load MeriCash withdrawals");
+    } finally {
+      setLoading(false);
+    }
+  };
+
  
    const handleAction = async () => {
      if (!selectedWithdrawal) return;
