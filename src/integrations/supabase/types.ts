@@ -17537,6 +17537,10 @@ export type Database = {
         Args: { _active: boolean; _helper_id: string }
         Returns: Json
       }
+      admin_set_topup_helper_level: {
+        Args: { _helper_id: string; _level: number }
+        Returns: Json
+      }
       admin_set_topup_trader_approval: {
         Args: {
           _approve: boolean
