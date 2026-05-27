@@ -3323,17 +3323,20 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   max-width: 100%;
 }
 
-/* SVGA canvas sizing must be controlled by svgaplayerweb itself.
-   The library renders a native-size canvas and applies a matrix transform
-   for AspectFit centering. Forcing canvas width/height to 100% breaks that
-   math and makes avatar frames shift/crop in both app and admin previews. */
+/* SVGA canvas must fill its parent container so svgaplayerweb's AspectFit
+   matrix centers + scales the native videoSize into the container box.
+   Without explicit width/height the library renders the canvas at native
+   SVGA pixel size, so previews appear blank, tiny, or top-left aligned. */
 .svga-fit-canvas canvas,
 [data-svga-fit="true"] canvas {
   display: block;
-  max-width: none;
-  max-height: none;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
   transform-origin: 50% 50%;
   pointer-events: none;
+  object-fit: contain;
 }
 
 /* Tables: horizontal scroll wrapper on mobile */
