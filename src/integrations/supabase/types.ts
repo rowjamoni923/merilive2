@@ -5346,34 +5346,52 @@ export type Database = {
       }
       helper_admin_messages: {
         Row: {
+          attachments: Json | null
           created_at: string | null
+          has_replies: boolean
           helper_id: string
           id: string
           is_read: boolean | null
+          last_reply_at: string | null
           message: string
           message_type: string | null
+          priority: string
+          read_at: string | null
           sender_id: string | null
           sender_type: string
+          title: string | null
         }
         Insert: {
+          attachments?: Json | null
           created_at?: string | null
+          has_replies?: boolean
           helper_id: string
           id?: string
           is_read?: boolean | null
+          last_reply_at?: string | null
           message: string
           message_type?: string | null
+          priority?: string
+          read_at?: string | null
           sender_id?: string | null
           sender_type?: string
+          title?: string | null
         }
         Update: {
+          attachments?: Json | null
           created_at?: string | null
+          has_replies?: boolean
           helper_id?: string
           id?: string
           is_read?: boolean | null
+          last_reply_at?: string | null
           message?: string
           message_type?: string | null
+          priority?: string
+          read_at?: string | null
           sender_id?: string | null
           sender_type?: string
+          title?: string | null
         }
         Relationships: [
           {
@@ -5651,29 +5669,38 @@ export type Database = {
       }
       helper_message_replies: {
         Row: {
+          content: string | null
           created_at: string | null
           id: string
           is_read: boolean | null
           message_id: string
+          read_at: string | null
           reply_text: string
+          screenshot_url: string | null
           sender_id: string | null
           sender_type: string
         }
         Insert: {
+          content?: string | null
           created_at?: string | null
           id?: string
           is_read?: boolean | null
           message_id: string
+          read_at?: string | null
           reply_text: string
+          screenshot_url?: string | null
           sender_id?: string | null
           sender_type: string
         }
         Update: {
+          content?: string | null
           created_at?: string | null
           id?: string
           is_read?: boolean | null
           message_id?: string
+          read_at?: string | null
           reply_text?: string
+          screenshot_url?: string | null
           sender_id?: string | null
           sender_type?: string
         }
