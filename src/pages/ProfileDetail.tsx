@@ -771,27 +771,27 @@ const ProfileDetail = () => {
               key={p.id || idx}
               initial={false}
               animate={{ opacity: active ? 1 : 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.35 }}
               className="absolute inset-0"
               style={{ pointerEvents: active ? 'auto' : 'none' }}
             >
               {isV ? (
                 <video
                   src={url}
-                  className="w-full h-full object-contain bg-black"
+                  className="w-full h-full object-cover"
                   autoPlay={active}
                   muted
                   loop
                   playsInline
-                 
+                  preload="auto"
                 />
               ) : (
                 <img
                   src={url}
                   alt=""
-                  className="w-full h-full object-contain bg-black"
-                 
-                  decoding="async"
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  decoding="sync"
                   {...({ fetchpriority: active ? 'high' : 'low' } as ImgHTMLAttributes<HTMLImageElement>)}
                 />
               )}
@@ -799,8 +799,16 @@ const ProfileDetail = () => {
           );
         })}
         {posterImages.length === 0 && (
-          <img src={getCurrentCoverImage()} alt="" className="absolute inset-0 w-full h-full object-contain bg-black"/>
+          <img
+            src={getCurrentCoverImage()}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="eager"
+            decoding="sync"
+            {...({ fetchpriority: 'high' } as ImgHTMLAttributes<HTMLImageElement>)}
+          />
         )}
+
         {/* Premium gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-[#f7f8fa]" /> {/* dark-ok: intentional photo→footer overlay, no text inside */}
         {/* Subtle vignette */}
