@@ -138,6 +138,16 @@ const requestFreshToken = async (
     ({ data, error } = await invokeLiveKitToken(request, refreshedToken));
   }
 
+  // Edge fn may return 200 with { error, fallback: true } for expected lifecycle states
+  // (e.g. stream ended, viewer hasn't entered yet). Treat those as quiet, not console.error.
+  if (!error && data && typeof (data as any).error === 'string' && (data as any).fallback) {
+    const code = (data as any).error as string;
+    const quiet = new Error(code) as Error & { code?: string; quiet?: boolean };
+    quiet.code = code;
+    quiet.quiet = true;
+    throw quiet;
+  }
+
   if (error) {
     console.error('[LiveKit] Token error:', error);
     throw new Error((error as any)?.message || 'Failed to get LiveKit token');
