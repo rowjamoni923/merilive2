@@ -143,15 +143,15 @@ export default function AdminPermanentBan() {
     // non-uuid input never poisons `.or()` and silently returns "User not found".
     const tries: Array<() => Promise<any>> = [];
     if (isUuid) {
-      tries.push(() => supabase.from("profiles").select(cols).eq("id", q).maybeSingle());
+      tries.push(async () => await supabase.from("profiles").select(cols).eq("id", q).maybeSingle());
     }
-    tries.push(() => supabase.from("profiles").select(cols).eq("app_uid", q).maybeSingle());
+    tries.push(async () => await supabase.from("profiles").select(cols).eq("app_uid", q).maybeSingle());
     if (digits.length >= 6) {
-      tries.push(() => supabase.from("profiles").select(cols).eq("phone_number", e164).maybeSingle());
-      tries.push(() => supabase.from("profiles").select(cols).eq("phone_number", digits).maybeSingle());
-      tries.push(() => supabase.from("profiles").select(cols).ilike("phone_number", `%${digits}%`).limit(1).maybeSingle());
+      tries.push(async () => await supabase.from("profiles").select(cols).eq("phone_number", e164).maybeSingle());
+      tries.push(async () => await supabase.from("profiles").select(cols).eq("phone_number", digits).maybeSingle());
+      tries.push(async () => await supabase.from("profiles").select(cols).ilike("phone_number", `%${digits}%`).limit(1).maybeSingle());
     }
-    tries.push(() => supabase.from("profiles").select(cols).ilike("display_name", `%${q}%`).limit(1).maybeSingle());
+    tries.push(async () => await supabase.from("profiles").select(cols).ilike("display_name", `%${q}%`).limit(1).maybeSingle());
 
     for (const run of tries) {
       try {
