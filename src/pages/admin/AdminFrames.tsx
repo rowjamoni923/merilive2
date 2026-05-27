@@ -746,21 +746,8 @@ const AdminFrames = () => {
               {formData.frame_url ? (
                 <div className="flex items-center gap-4">
                   {/* Preview */}
-                  <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-gray-900 to-black flex items-center justify-center shadow-lg">
-                    {/* Centered avatar disc */}
-                    <Avatar className="absolute top-1/2 left-1/2 w-[72px] h-[72px] -translate-x-1/2 -translate-y-1/2 z-10 border-2 border-white/80 shadow-lg">
-                      <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white">U</AvatarFallback>
-                    </Avatar>
-                    {/* Frame - centered exactly like the app */}
-                    <div className="absolute top-1/2 left-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                      <UniversalFramePlayer
-                        src={formData.frame_url}
-                        type={formData.frame_type as any}
-                        className="w-full h-full"
-                        loop={true}
-                        autoPlay={true}
-                      />
-                    </div>
+                  <div className="relative w-28 h-28 rounded-xl overflow-visible bg-gradient-to-br from-gray-900 to-black flex items-center justify-center shadow-lg">
+                    <AdminAvatarFramePreview frameUrl={formData.frame_url} frameType={formData.frame_type} size={72} />
                   </div>
                   
                   <div className="flex-1 min-w-0">
@@ -938,23 +925,7 @@ const AdminFrames = () => {
             {/* Preview */}
             {formData.frame_url && (
               <div className="flex justify-center p-6 bg-gradient-to-br from-gray-900 to-black rounded-xl">
-                <div className="relative w-40 h-40">
-                  {/* Avatar - Behind the frame */}
-                  <Avatar className="w-28 h-28 border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                    <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
-                  {/* Frame - In front of avatar */}
-                  <div className="absolute inset-0 z-20 pointer-events-none">
-                    <UniversalFramePlayer
-                      src={formData.frame_url}
-                      type={formData.frame_type as any}
-                      className="w-full h-full"
-                      loop={true}
-                      autoPlay={true}
-                    />
-                  </div>
-                </div>
+                <AdminAvatarFramePreview frameUrl={formData.frame_url} frameType={formData.frame_type} size={128} />
               </div>
             )}
 
@@ -1017,22 +988,12 @@ const AdminFrames = () => {
           <div className="text-center" onClick={e => e.stopPropagation()}>
             <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewFrame.name}</p>
               <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
-                <div className="relative w-80 h-80 max-w-[80vw] max-h-[60vh]">
-                  <Avatar className="w-64 h-64 max-w-[64vw] max-h-[48vh] border-4 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                  <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                  <div className="absolute inset-0 z-20">
-                  <UniversalFramePlayer
-                    src={fullscreenPreviewFrame.frame_url}
-                    type={fullscreenPreviewFrame.frame_type as any}
-                    className="w-full h-full"
-                    loop={true}
-                    autoPlay={true}
-                    muted={false}
-                  />
-                </div>
-              </div>
+                <AdminAvatarFramePreview
+                  frameUrl={fullscreenPreviewFrame.frame_url}
+                  frameType={fullscreenPreviewFrame.frame_type}
+                  size={260}
+                  avatarSrc="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&h=500&fit=crop&crop=face"
+                />
             </div>
           </div>
         </div>
