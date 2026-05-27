@@ -85,11 +85,10 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       return true;
     }
 
-    // Existing admin sessions were created through a secret link already, but
-    // localStorage is editable. If the tab/link flag is missing, pause on the
-    // admin loader and let the server x-admin-token check below decide — never
-    // flash BlogPage during normal admin section navigation.
-    if (hasPotentialAdminSession()) return null;
+    // Existing admin sessions were created through a secret link already.
+    // Render the admin shell INSTANTLY — background validation can revoke
+    // later if the session is actually invalid. No spinner, no delay.
+    if (hasPotentialAdminSession()) return true;
     return hasAdminAccessFlag() && !!getAdminLinkToken();
   });
 
@@ -136,7 +135,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       }
 
       if (potentialAdminSession) {
-        setIsAuthorized(null);
+        // Render admin shell immediately — validate silently in background.
+        setIsAuthorized(true);
         (async () => {
           try {
             const timeout = new Promise<{ data: any }>((_, reject) =>
@@ -147,13 +147,10 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             if (!mounted) return;
             if (data && String(data) === session.admin_id) {
               grantAdminAccess(session.is_owner);
-              setIsAuthorized(true);
-            } else {
-              setIsAuthorized(false);
             }
+            // On failure: keep session intact (NO-AUTO-LOGOUT). User stays in.
           } catch (e) {
-            console.warn('[AdminAccessGuard] existing admin session validation failed', e);
-            if (mounted) setIsAuthorized(false);
+            console.warn('[AdminAccessGuard] background session validation failed (kept session)', e);
           }
         })();
         return;
@@ -272,7 +269,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   if (isAuthorized) {
     const session = getAdminSession();
     const accessToken = getAccessTokenFromURL() || getAdminLinkToken();
-    if (isLoginRoute() && session && !getAccessTokenFromURL()) {
+    // Secret link + existing session → go straight to /admin (no re-login screen).
+    if (isLoginRoute() && session) {
       return <Navigate to="/admin" replace />;
     }
     if (!session && !isLoginRoute()) {
