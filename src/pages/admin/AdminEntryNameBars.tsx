@@ -430,9 +430,7 @@ const AdminEntryNameBars = () => {
             <CardContent className="space-y-3">
               {/* Preview: preview_url image first → SVGA player → Universal fallback for lottie/mp4/gif */}
               <AdminAssetPreview type="entry-name-bar" src={nameBar.animation_url} previewUrl={nameBar.preview_url} />
-                  )}
-                </Suspense>
-              </div>
+
 
               {/* Info */}
               <div className="grid grid-cols-2 gap-2 text-sm">
