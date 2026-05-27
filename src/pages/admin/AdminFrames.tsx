@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SmartImage } from "@/components/ui/smart-image";
 import {
   Dialog,
   DialogContent,
@@ -71,6 +70,44 @@ const frameTypeOptions = [
 ];
 
 const categoryOptions = ['general', 'vip', 'seasonal', 'event', 'special', 'birthday', 'festival'];
+
+const ADMIN_FRAME_PREVIEW_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face";
+
+const AdminAvatarFramePreview = ({
+  frameUrl,
+  frameType,
+  size = 100,
+  avatarSrc = ADMIN_FRAME_PREVIEW_AVATAR,
+}: {
+  frameUrl: string;
+  frameType?: string | null;
+  size?: number;
+  avatarSrc?: string;
+}) => {
+  const frameOutset = Math.max(8, Math.round(size * 0.12));
+  const previewSize = size + frameOutset * 2;
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: previewSize, height: previewSize }}>
+      <Avatar
+        className="absolute top-1/2 left-1/2 overflow-hidden border-2 border-white/80 shadow-lg"
+        style={{ width: size, height: size, transform: 'translate(-50%, -50%)', zIndex: 1 }}
+      >
+        <AvatarImage src={avatarSrc} className="object-cover" />
+        <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white font-semibold">U</AvatarFallback>
+      </Avatar>
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
+        <UniversalFramePlayer
+          src={frameUrl}
+          type={frameType as any}
+          className="w-full h-full"
+          loop={true}
+          autoPlay={true}
+        />
+      </div>
+    </div>
+  );
+};
 
 const AdminFrames = () => {
   const location = useLocation();
