@@ -187,7 +187,8 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         if (typeof ref === 'function') ref(node);
         else if (ref) ref.current = node;
       }}
-      className={cn("relative overflow-hidden", className)}
+      className={cn("relative overflow-hidden svga-fit-canvas", className)}
+      data-svga-fit="true"
       style={{ 
         opacity: ready ? 1 : 0,
         transition: 'opacity 0.1s ease-out',
