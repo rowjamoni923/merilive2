@@ -90,7 +90,6 @@ const AdminAvatarFramePreview = ({
     />
   </div>
 );
-};
 
 const AdminFrames = () => {
   const location = useLocation();
