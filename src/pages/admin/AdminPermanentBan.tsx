@@ -134,16 +134,32 @@ export default function AdminPermanentBan() {
     if (!searchUid.trim()) return;
     setSearchedUser(null);
     const q = searchUid.trim();
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, display_name, avatar_url, app_uid, is_blocked, role, device_id, last_ip, face_hash")
-      .or(`app_uid.eq.${q},id.eq.${q}`)
-      .maybeSingle();
-    if (error || !data) {
-      toast.error("User not found");
-      return;
+    const cols = "id, display_name, avatar_url, app_uid, phone_number, is_blocked, role, device_id, last_ip, face_hash";
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q);
+    const digits = q.replace(/[^0-9]/g, "");
+    const e164 = q.startsWith("+") ? q : (digits ? `+${digits}` : "");
+
+    // Build candidate queries; run sequentially and stop at first hit so a
+    // non-uuid input never poisons `.or()` and silently returns "User not found".
+    const tries: Array<() => Promise<any>> = [];
+    if (isUuid) {
+      tries.push(async () => await supabase.from("profiles").select(cols).eq("id", q).maybeSingle());
     }
-    setSearchedUser(data);
+    tries.push(async () => await supabase.from("profiles").select(cols).eq("app_uid", q).maybeSingle());
+    if (digits.length >= 6) {
+      tries.push(async () => await supabase.from("profiles").select(cols).eq("phone_number", e164).maybeSingle());
+      tries.push(async () => await supabase.from("profiles").select(cols).eq("phone_number", digits).maybeSingle());
+      tries.push(async () => await supabase.from("profiles").select(cols).ilike("phone_number", `%${digits}%`).limit(1).maybeSingle());
+    }
+    tries.push(async () => await supabase.from("profiles").select(cols).ilike("display_name", `%${q}%`).limit(1).maybeSingle());
+
+    for (const run of tries) {
+      try {
+        const { data } = await run();
+        if (data) { setSearchedUser(data); return; }
+      } catch { /* ignore and try next */ }
+    }
+    toast.error("User not found — try app UID, phone, or display name");
   };
 
   const handleApplyBan = async () => {
