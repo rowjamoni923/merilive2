@@ -1,0 +1,164 @@
+import React, { Suspense } from 'react';
+import { cn } from '@/lib/utils';
+import { Loader2, Music, ShieldAlert } from 'lucide-react';
+import { SmartImage } from "@/components/ui/smart-image";
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
+import SVGAPreviewWithMuteToggle from "./SVGAPreviewWithMuteToggle";
+
+export type AdminAssetType = 'frame' | 'role-frame' | 'chat-bubble' | 'entry-banner' | 'entry-bar' | 'entry-name-bar' | 'gift' | 'vehicle' | 'game-logo';
+
+interface AdminAssetPreviewProps {
+  type: AdminAssetType;
+  src: string | null;
+  previewUrl?: string | null;
+  animationType?: string | null;
+  className?: string;
+  containerClassName?: string;
+  showMuteButton?: boolean;
+  aspectRatio?: 'square' | 'video' | 'chat-bubble' | 'banner';
+}
+
+/**
+ * Admin-only unified asset preview component.
+ * Provides stable dimensions, checkerboard background, and consistent loading/error states.
+ */
+const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
+  type,
+  src,
+  previewUrl,
+  animationType,
+  className,
+  containerClassName,
+  showMuteButton = false,
+  aspectRatio = 'square',
+}) => {
+  const [hasError, setHasError] = React.useState(false);
+
+  const normalizedSrc = src?.trim() || null;
+  const normalizedPreview = previewUrl?.trim() || null;
+  const displaySrc = normalizedSrc || normalizedPreview;
+  const cleanUrl = (displaySrc || '').toLowerCase().split('?')[0].split('#')[0];
+  const detectedType = animationType || (cleanUrl.endsWith('.svga') ? 'svga' : cleanUrl.endsWith('.json') ? 'lottie' : cleanUrl.endsWith('.mp4') ? 'mp4' : cleanUrl.endsWith('.webm') ? 'webm' : cleanUrl.endsWith('.gif') ? 'gif' : cleanUrl.endsWith('.webp') ? 'webp' : cleanUrl.endsWith('.png') ? 'png' : cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg') ? 'static' : undefined);
+  const isSvga = detectedType === 'svga' || cleanUrl.endsWith('.svga');
+  const shouldPlayAnimation = Boolean(normalizedSrc) && detectedType !== 'static';
+
+  // Determine container dimensions based on type/aspectRatio
+  const getAspectRatioClass = () => {
+    if (type === 'chat-bubble' || aspectRatio === 'chat-bubble') return 'aspect-[3/1]';
+    if (type === 'entry-name-bar' || aspectRatio === 'banner') return 'aspect-[4/1]';
+    if (type === 'entry-banner' || type === 'entry-bar' || type === 'vehicle' || aspectRatio === 'video') return 'aspect-video';
+    if (aspectRatio === 'banner') return 'aspect-[4/1]';
+    return 'aspect-square';
+  };
+
+  const getMinHeight = () => {
+    if (type === 'chat-bubble') return 'min-h-[60px]';
+    if (type === 'entry-name-bar') return 'min-h-[80px]';
+    if (type === 'entry-bar' || type === 'entry-banner' || type === 'vehicle') return 'min-h-[140px]';
+    return 'min-h-[120px]';
+  };
+
+  // Checkerboard background for transparency visibility
+  const checkerboardStyle = {
+    backgroundImage: 'linear-gradient(45deg, hsl(var(--muted) / 0.35) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--muted) / 0.35) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--muted) / 0.35) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--muted) / 0.35) 75%)',
+    backgroundSize: '20px 20px',
+    backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+    backgroundColor: 'hsl(var(--background))'
+  };
+
+  if (!displaySrc) {
+    return (
+      <div 
+        className={cn(
+          "relative flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 text-white/20 gap-2",
+          getAspectRatioClass(),
+          getMinHeight(),
+          containerClassName
+        )}
+        style={checkerboardStyle}
+      >
+        <ShieldAlert className="w-8 h-8 opacity-20" />
+        <span className="text-[10px] uppercase tracking-wider font-semibold">No Asset</span>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className={cn(
+        "relative rounded-xl overflow-hidden shadow-inner border border-border/60 flex items-center justify-center group isolate",
+        getAspectRatioClass(),
+        getMinHeight(),
+        containerClassName
+      )}
+      data-admin-asset-preview="true"
+      data-admin-asset-type={type}
+      style={checkerboardStyle}
+    >
+      <Suspense fallback={
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10">
+          <Loader2 className="w-6 h-6 animate-spin text-purple-500/50" />
+        </div>
+      }>
+        {isSvga && showMuteButton && normalizedSrc ? (
+          <SVGAPreviewWithMuteToggle
+            src={normalizedSrc}
+            className={cn("w-full h-full object-contain", className)}
+            containerClassName="w-full h-full"
+            showMuteButton={true}
+          />
+        ) : shouldPlayAnimation && normalizedSrc ? (
+          <div className="absolute inset-0 h-full w-full">
+            {(type === 'frame' || type === 'role-frame') && (
+              <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+                <img
+                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face"
+                  alt=""
+                  className="h-[68%] w-[68%] rounded-full object-cover opacity-70 grayscale ring-2 ring-border/70"
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
+            )}
+            <div className="absolute inset-0 z-10 h-full w-full pointer-events-none">
+              <FixedAnimationFrame
+                key={normalizedSrc}
+                src={normalizedSrc}
+                type={detectedType as any}
+                size="fill"
+                center={false}
+                loop={true}
+                autoPlay={true}
+                muted={true}
+                className={cn("h-full w-full", className)}
+              />
+            </div>
+          </div>
+        ) : (
+          <SmartImage
+            src={displaySrc}
+            alt="Asset preview"
+            className={cn("h-full w-full object-contain transition-transform group-hover:scale-105", className)}
+            onError={() => setHasError(true)}
+            fallbackSrc="/placeholder.svg"
+          />
+        )}
+      </Suspense>
+
+      {/* Error State */}
+      {hasError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/20 backdrop-blur-sm text-red-400 gap-1">
+          <ShieldAlert className="w-6 h-6" />
+          <span className="text-[10px] font-bold">LOAD ERROR</span>
+        </div>
+      )}
+
+      {/* Type Indicator Badge (Small) */}
+      <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded text-[9px] font-bold text-white/60 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        {detectedType || type}
+      </div>
+    </div>
+  );
+};
+
+export default AdminAssetPreview;

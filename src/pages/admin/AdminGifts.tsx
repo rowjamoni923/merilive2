@@ -35,6 +35,7 @@ import {
   X,
   Eye
 } from "lucide-react";
+import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1086,30 +1087,7 @@ export default function AdminGifts() {
                 <div className="p-3 md:p-4 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-pink-500/30">
                   <div className="flex items-center gap-3 md:gap-4">
                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
-                      {formData.icon_url.startsWith('http') ? (
-                        // Check if it's an SVGA or Lottie animation
-                        isSVGA(formData.icon_url) ? (
-                          <UniversalFramePlayer
-                            src={formData.icon_url}
-                            type="svga"
-                            className="w-full h-full"
-                            loop={true}
-                            autoPlay={true}
-                          />
-                        ) : isLottie(formData.icon_url) ? (
-                          <UniversalFramePlayer
-                            src={formData.icon_url}
-                            type="lottie"
-                            className="w-full h-full"
-                            loop={true}
-                            autoPlay={true}
-                          />
-                        ) : (
-                          <SmartImage src={formData.icon_url} alt="Icon" cdnWidth={128} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
-                        )
-                      ) : (
-                        <span className="text-4xl md:text-5xl">{formData.icon_url}</span>
-                      )}
+                      <AdminAssetPreview type="gift" src={formData.icon_url} animationType={formData.animation_type} />
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-pink-300 flex items-center gap-2">

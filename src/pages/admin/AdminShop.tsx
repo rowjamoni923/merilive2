@@ -35,6 +35,7 @@ import {
   RefreshCw,
   Play
 } from "lucide-react";
+import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1106,11 +1107,7 @@ const AdminShop = () => {
                   
                   {formData.preview_url ? (
                     <div className="mt-2 relative inline-block">
-                      <SmartImage
-                        src={formData.preview_url}
-                        alt="Preview"
-                        cdnWidth={200}
-                        className="w-24 h-24 rounded-lg object-cover border border-white/20" fallbackSrc="/placeholder.svg" />
+                      <AdminAssetPreview type="frame" src={null} previewUrl={formData.preview_url} />
 
                       <button
                         type="button"
