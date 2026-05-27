@@ -131,16 +131,18 @@ function RoleApproveBar({
           <CheckCircle2 className="h-4 w-4 mr-2" />
           Approve {role === 'host' ? 'as Host' : 'as User'}
         </Button>
-        <Button
-          variant="destructive"
-          size="default"
-          disabled={processing}
-          onClick={onReject}
-          className="w-full"
-        >
-          <XCircle className="h-4 w-4 mr-2" />
-          Reject
-        </Button>
+        {onReject && (
+          <Button
+            variant="destructive"
+            size="default"
+            disabled={processing}
+            onClick={onReject}
+            className="w-full"
+          >
+            <XCircle className="h-4 w-4 mr-2" />
+            Reject
+          </Button>
+        )}
       </div>
     </div>
   );
