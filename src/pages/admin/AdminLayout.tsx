@@ -2528,8 +2528,23 @@ export default function AdminLayout() {
         }
         setCurrentUser(null);
         setIsAdmin(false);
+        setIsLoading(false);
         return;
       }
+
+      // Unblock the shell synchronously for any real admin session. The server
+      // check below may refine currentUser, but it must never hold the full
+      // admin panel behind "Preparing admin console…".
+      setCurrentUser((existing: any) => existing ?? {
+        id: adminSession.admin_id,
+        admin_id: adminSession.admin_id,
+        email: adminSession.email,
+        display_name: adminSession.display_name,
+        role: adminSession.role,
+        accepted_at: null,
+      });
+      setIsAdmin(true);
+      setIsLoading(false);
 
       let { data: verifiedAdminId, error: verifyError } = await adminSupabase.rpc('current_admin_id_from_header' as any);
 
