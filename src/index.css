@@ -3323,20 +3323,13 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   max-width: 100%;
 }
 
-/* SVGA canvas must fill its parent container so svgaplayerweb's AspectFit
-   matrix centers + scales the native videoSize into the container box.
-   Without explicit width/height the library renders the canvas at native
-   SVGA pixel size, so previews appear blank, tiny, or top-left aligned. */
+/* Let svgaplayerweb own canvas sizing + matrix transforms. The React player
+   observes container resize, so previews recover without CSS double-scaling. */
 .svga-fit-canvas canvas,
 [data-svga-fit="true"] canvas {
   display: block;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100%;
-  max-height: 100%;
   transform-origin: 50% 50%;
   pointer-events: none;
-  object-fit: contain;
 }
 
 /* Tables: horizontal scroll wrapper on mobile */

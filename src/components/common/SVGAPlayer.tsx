@@ -32,6 +32,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   const [ready, setReady] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -90,6 +91,16 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         playerRef.current = player;
         player.setContentMode?.('AspectFit');
         player.setClipsToBounds?.(false);
+        if (typeof ResizeObserver !== 'undefined') {
+          resizeObserverRef.current?.disconnect();
+          resizeObserverRef.current = new ResizeObserver(() => {
+            if (!mountedRef.current || !playerRef.current) return;
+            requestAnimationFrame(() => {
+              try { playerRef.current?._update?.(); } catch (e) {}
+            });
+          });
+          resizeObserverRef.current.observe(containerRef.current);
+        }
         
         player.loops = loop ? 0 : 1;
         player.clearsAfterStop = !loop;
@@ -161,6 +172,8 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         clearTimeout(completionTimerRef.current);
         completionTimerRef.current = null;
       }
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
       if (playerRef.current) {
         try {
           playerRef.current.stopAnimation();
