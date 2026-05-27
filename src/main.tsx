@@ -36,8 +36,13 @@ window.addEventListener('error', (e) => {
   e.preventDefault?.();
 });
 window.addEventListener('unhandledrejection', (e) => {
-  try { console.error('[unhandled promise]', e.reason); } catch { /* noop */ }
-  void scheduleChunkLoadRecovery(e.reason, String(e.reason?.message || e.reason || ''));
+  const reason: any = e.reason;
+  // Quiet expected LiveKit lifecycle errors (stream ended, viewer not yet entered, etc.)
+  const isQuiet = reason && (reason.quiet === true || ['stream_inactive', 'must_enter_stream_first'].includes(reason.code));
+  if (!isQuiet) {
+    try { console.error('[unhandled promise]', reason); } catch { /* noop */ }
+  }
+  void scheduleChunkLoadRecovery(reason, String(reason?.message || reason || ''));
   e.preventDefault?.();
 });
 

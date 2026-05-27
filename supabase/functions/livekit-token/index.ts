@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
             .select("host_id,is_active,ended_at,live_privacy")
             .eq("id", m[1])
             .maybeSingle();
-          if (!ls || !ls.is_active || ls.ended_at) return json(403, { error: "stream_inactive" });
+          if (!ls || !ls.is_active || ls.ended_at) return json(200, { error: "stream_inactive", fallback: true });
           if (ls.host_id !== identity) {
             const { data: ban } = await svc.rpc("is_user_live_banned", { p_user_id: identity });
             if (ban === true) return json(403, { error: "live_banned" });
@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
               .eq("viewer_id", identity)
               .is("left_at", null)
               .maybeSingle();
-            if (!sv) return json(403, { error: "must_enter_stream_first" });
+            if (!sv) return json(200, { error: "must_enter_stream_first", fallback: true });
             }
           }
         } else if (roomType === "call") {
