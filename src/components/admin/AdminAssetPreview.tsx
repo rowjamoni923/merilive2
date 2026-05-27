@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { cn } from '@/lib/utils';
-import { Loader2, Music, ShieldAlert } from 'lucide-react';
+import { Loader2, ShieldAlert } from 'lucide-react';
 import { SmartImage } from "@/components/ui/smart-image";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import SVGAPreviewWithMuteToggle from "./SVGAPreviewWithMuteToggle";
@@ -34,11 +34,17 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
 }) => {
   const [hasError, setHasError] = React.useState(false);
 
+  const isFrameAsset = type === 'frame' || type === 'role-frame';
   const normalizedSrc = src?.trim() || null;
   const normalizedPreview = previewUrl?.trim() || null;
   const displaySrc = normalizedSrc || normalizedPreview;
   const cleanUrl = (displaySrc || '').toLowerCase().split('?')[0].split('#')[0];
-  const detectedType = animationType || (cleanUrl.endsWith('.svga') ? 'svga' : cleanUrl.endsWith('.json') ? 'lottie' : cleanUrl.endsWith('.mp4') ? 'mp4' : cleanUrl.endsWith('.webm') ? 'webm' : cleanUrl.endsWith('.gif') ? 'gif' : cleanUrl.endsWith('.webp') ? 'webp' : cleanUrl.endsWith('.png') ? 'png' : cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg') ? 'static' : undefined);
+  const extensionType = cleanUrl.endsWith('.svga') ? 'svga' : cleanUrl.endsWith('.json') ? 'lottie' : cleanUrl.endsWith('.mp4') ? 'mp4' : cleanUrl.endsWith('.webm') ? 'webm' : cleanUrl.endsWith('.gif') ? 'gif' : cleanUrl.endsWith('.webp') ? 'webp' : cleanUrl.endsWith('.png') ? 'png' : cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg') ? 'static' : undefined;
+  const normalizedAnimationType = animationType?.toLowerCase().trim();
+  const knownAnimationTypes = new Set(['svga', 'lottie', 'vap', 'gif', 'webp', 'png', 'mp4', 'webm', 'static']);
+  const detectedType = normalizedAnimationType && knownAnimationTypes.has(normalizedAnimationType)
+    ? normalizedAnimationType
+    : extensionType;
   const isSvga = detectedType === 'svga' || cleanUrl.endsWith('.svga');
   const shouldPlayAnimation = Boolean(normalizedSrc) && detectedType !== 'static';
 
@@ -109,18 +115,18 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
           />
         ) : shouldPlayAnimation && normalizedSrc ? (
           <div className="absolute inset-0 h-full w-full">
-            {(type === 'frame' || type === 'role-frame') && (
+            {isFrameAsset && (
               <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
                 <img
                   src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face"
                   alt=""
-                  className="h-[68%] w-[68%] rounded-full object-cover opacity-70 grayscale ring-2 ring-border/70"
+                  className="h-[56%] w-[56%] rounded-full object-cover opacity-75 grayscale ring-2 ring-border/70"
                   loading="eager"
                   decoding="async"
                 />
               </div>
             )}
-            <div className="absolute inset-0 z-10 h-full w-full pointer-events-none">
+            <div className={cn("absolute z-10 h-auto w-auto pointer-events-none", isFrameAsset ? "inset-[7%]" : "inset-0")}>
               <FixedAnimationFrame
                 key={normalizedSrc}
                 src={normalizedSrc}
@@ -133,6 +139,25 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
                 className={cn("h-full w-full", className)}
               />
             </div>
+          </div>
+        ) : isFrameAsset ? (
+          <div className="absolute inset-0 h-full w-full">
+            <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+              <img
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face"
+                alt=""
+                className="h-[56%] w-[56%] rounded-full object-cover opacity-75 grayscale ring-2 ring-border/70"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+            <SmartImage
+              src={displaySrc}
+              alt="Asset preview"
+              className={cn("absolute inset-[7%] z-10 h-auto w-auto object-contain transition-transform group-hover:scale-105", className)}
+              onError={() => setHasError(true)}
+              fallbackSrc="/placeholder.svg"
+            />
           </div>
         ) : (
           <SmartImage

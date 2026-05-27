@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Plus, Trash2, Edit, Eye, Upload, Sparkles, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,8 @@ import { toast } from "sonner";
 import { adminStyles } from "@/styles/adminStyles";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
-import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
-// Lazy load SVGA player
-const SVGAPreviewWithMuteToggle = lazy(() => import("@/components/admin/SVGAPreviewWithMuteToggle"));
-import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 interface EntryNameBar {
   id: string;
@@ -509,13 +505,12 @@ const AdminEntryNameBars = () => {
           </DialogHeader>
           <div className="py-8 flex justify-center">
             {selectedNameBar && (
-              <Suspense fallback={<div className="w-80 h-24 bg-purple-600/30 animate-pulse rounded" />}>
-                <SVGAPreviewWithMuteToggle
-                  src={selectedNameBar.animation_url}
-                  className="w-80 h-24"
-                  containerClassName="w-80 h-24"
-                />
-              </Suspense>
+              <AdminAssetPreview
+                type="entry-name-bar"
+                src={selectedNameBar.animation_url}
+                previewUrl={selectedNameBar.preview_url}
+                containerClassName="w-full max-w-[420px] min-h-[120px]"
+              />
             )}
           </div>
           <p className="text-center text-gray-300 text-sm">
