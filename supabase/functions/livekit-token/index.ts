@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
               .eq("viewer_id", identity)
               .is("left_at", null)
               .maybeSingle();
-            if (!sv) return json(403, { error: "must_enter_stream_first" });
+            if (!sv) return json(200, { error: "must_enter_stream_first", fallback: true });
             }
           }
         } else if (roomType === "call") {
