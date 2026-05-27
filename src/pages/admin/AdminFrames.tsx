@@ -71,7 +71,25 @@ const frameTypeOptions = [
 
 const categoryOptions = ['general', 'vip', 'seasonal', 'event', 'special', 'birthday', 'festival'];
 
-const ADMIN_FRAME_PREVIEW_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face";
+const AdminAvatarFramePreview = ({
+  frameUrl,
+  frameType,
+  size = 100,
+}: {
+  frameUrl: string;
+  frameType?: string | null;
+  size?: number;
+  avatarSrc?: string;
+}) => (
+  <div className="relative shrink-0" style={{ width: size, height: size }}>
+    <AdminAssetPreview
+      type="frame"
+      src={frameUrl}
+      animationType={frameType}
+      containerClassName="h-full w-full min-h-0 rounded-xl"
+    />
+  </div>
+);
 };
 
 const AdminFrames = () => {
@@ -572,7 +590,6 @@ const AdminFrames = () => {
               >
                 {/* Frame Preview - Use <SmartImage> only for real image thumbnails; otherwise play the animation */}
                 <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-hidden">
-                  <AdminAssetPreview type="frame" src={frame.frame_url} previewUrl={frame.preview_url} animationType={frame.frame_type} />
                   <AdminAssetPreview type="frame" src={frame.frame_url} previewUrl={frame.preview_url} animationType={frame.frame_type} />
                   
                   {/* Type Badge */}
