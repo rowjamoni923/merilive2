@@ -41,34 +41,47 @@
  import { toast } from "sonner";
  import { format } from "date-fns";
  
- interface PaymentDetails {
-   country_code?: string;
-   currency_code?: string;
-   local_amount?: number;
-   exchange_rate?: number;
-   usd_amount?: number;
-   account_name?: string;
-   account_number?: string;
-   bank_name?: string;
-   additional_info?: string;
- }
- 
- interface EpayWithdrawal {
-   id: string;
-   agency_id: string;
-   amount: number;
-   status: string;
-   payment_method: string;
-   payment_details: PaymentDetails | null;
-   requested_at: string;
-   processed_at: string | null;
-   notes: string | null;
-   agency?: {
-     name: string;
-     agency_code: string;
-     owner_id?: string;
-   };
- }
+interface PaymentDetails {
+  country_code?: string;
+  currency_code?: string;
+  local_amount?: number;
+  exchange_rate?: number;
+  usd_amount?: number;
+  account_name?: string;
+  account_number?: string;
+  bank_name?: string;
+  additional_info?: string;
+  swift_pay_payout?: {
+    payment_id?: string;
+    payout_id?: string;
+    swift_withdrawal_id?: string;
+    status?: string;
+    pay_currency?: string;
+    pay_address?: string;
+    pay_network?: string;
+    amount_usd?: number;
+    error?: unknown;
+    at?: string;
+  };
+}
+
+interface EpayWithdrawal {
+  id: string;
+  agency_id: string;
+  amount: number;
+  status: string;
+  payment_method: string;
+  payment_details: PaymentDetails | null;
+  requested_at: string;
+  processed_at: string | null;
+  notes: string | null;
+  agency?: {
+    name: string;
+    agency_code: string;
+    owner_id?: string;
+  };
+}
+
  
  const CURRENCY_INFO: Record<string, { symbol: string; flag: string; name: string }> = {
    BDT: { symbol: "Tk ", flag: "🇧🇩", name: "Bangladesh" },
@@ -113,33 +126,37 @@
      }
    };
  
-   const fetchEpayWithdrawals = async () => {
-     setLoading(true);
-     try {
-       const { data, error } = await supabase
-         .from("agency_withdrawals")
-         .select(`
-           *,
-           agency:agencies(name, agency_code, owner_id)
-         `)
-         .eq('payment_method', 'epay')
-         .order("requested_at", { ascending: false });
- 
-       if (error) throw error;
- 
+  const fetchEpayWithdrawals = async () => {
+    setLoading(true);
+    try {
+      // Pkg382: ePay gateway has been removed. Auto-withdrawals now flow through
+      // SwiftPay / MeriCash (USDT TRC20). We show every auto-payout row here so admin
+      // can monitor SwiftPay payout_id / status without leaving the panel.
+      const { data, error } = await supabase
+        .from("agency_withdrawals")
+        .select(`
+          *,
+          agency:agencies(name, agency_code, owner_id)
+        `)
+        .in('payment_method', ['crypto_auto', 'usdt', 'usdttrc20'])
+        .order("requested_at", { ascending: false });
+
+      if (error) throw error;
+
       const enrichedData = (data || []).map(w => ({
           ...w,
           payment_details: w.payment_details as PaymentDetails | null,
         })) as unknown as EpayWithdrawal[];
- 
-       setWithdrawals(enrichedData);
-     } catch (error) {
-       console.error("Error fetching ePay withdrawals:", error);
-       toast.error("Failed to load ePay withdrawals");
-     } finally {
-       setLoading(false);
-     }
-   };
+
+      setWithdrawals(enrichedData);
+    } catch (error) {
+      console.error("Error fetching MeriCash withdrawals:", error);
+      toast.error("Failed to load MeriCash withdrawals");
+    } finally {
+      setLoading(false);
+    }
+  };
+
  
    const handleAction = async () => {
      if (!selectedWithdrawal) return;
@@ -162,10 +179,10 @@
  
        // Send notification to agency owner
        if (selectedWithdrawal.agency?.owner_id) {
-         const notifTitle = actionType === 'complete' ? '✅ ePay Withdrawal Completed!' : '❌ ePay Withdrawal Rejected';
+         const notifTitle = actionType === 'complete' ? '✅ MeriCash Withdrawal Completed!' : '❌ MeriCash Withdrawal Rejected';
          const notifMessage = actionType === 'complete' 
-           ? `Your ePay withdrawal request has been completed.` 
-           : `Your ePay withdrawal request has been rejected. ${actionNotes ? `Reason: ${actionNotes}` : ''}`;
+           ? `Your MeriCash (USDT) withdrawal has been completed.` 
+           : `Your MeriCash (USDT) withdrawal has been rejected. ${actionNotes ? `Reason: ${actionNotes}` : ''}`;
          
          await supabase.from('notifications').insert({
            user_id: selectedWithdrawal.agency.owner_id,
@@ -176,13 +193,13 @@
          });
        }
  
-       toast.success(actionType === 'complete' ? 'ePay withdrawal completed!' : 'ePay withdrawal rejected');
+       toast.success(actionType === 'complete' ? 'MeriCash withdrawal marked completed!' : 'MeriCash withdrawal rejected');
        setShowActionDialog(false);
        setSelectedWithdrawal(null);
        setActionNotes("");
        fetchEpayWithdrawals();
      } catch (error) {
-       console.error("Error processing ePay withdrawal:", error);
+       console.error("Error processing MeriCash withdrawal:", error);
        toast.error("Failed to process withdrawal");
      } finally {
        setProcessing(false);
@@ -235,8 +252,8 @@
                <Globe className="w-6 h-6" />
              </div>
              <div className="flex-1">
-               <h2 className="text-lg font-bold">ePay Global Withdrawals</h2>
-               <p className="text-white/80 text-sm">Admin-only processing for countries without local helpers</p>
+               <h2 className="text-lg font-bold">MeriCash Auto-Withdrawals (USDT TRC20)</h2>
+               <p className="text-white/80 text-sm">Auto-payouts handled by SwiftPay gateway. Use Complete/Reject only as fallback.</p>
              </div>
              <div className="text-right">
                <p className="text-2xl font-bold">{pendingCount}</p>
@@ -277,7 +294,7 @@
            ) : filteredWithdrawals.length === 0 ? (
              <div className="text-center py-12 text-gray-500">
                <Globe className="w-12 h-12 mx-auto mb-3 opacity-30" />
-               <p>No ePay withdrawal requests</p>
+               <p>No MeriCash auto-withdrawal requests</p>
              </div>
            ) : (
              <ScrollArea className="max-h-[500px]">
@@ -387,7 +404,7 @@
            <DialogHeader>
              <DialogTitle className="flex items-center gap-2">
                <Globe className="w-5 h-5 text-purple-500" />
-               ePay Withdrawal Details
+               MeriCash Withdrawal Details
              </DialogTitle>
            </DialogHeader>
            {selectedWithdrawal && (
@@ -430,11 +447,33 @@
                      <p className="mt-1 text-sm">{selectedWithdrawal.payment_details.additional_info}</p>
                    </div>
                  )}
-               </div>
-               <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Status:</span>
-                  {getStatusBadge(selectedWithdrawal.status)}
                 </div>
+                {selectedWithdrawal.payment_details?.swift_pay_payout && (
+                  <div className="p-3 bg-indigo-500/10 rounded-lg border border-indigo-500/30 space-y-1 text-sm">
+                    <div className="font-semibold text-indigo-600 mb-1">💎 SwiftPay / MeriCash Payout</div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Status:</span><span className="font-mono">{selectedWithdrawal.payment_details.swift_pay_payout.status || '-'}</span></div>
+                    {selectedWithdrawal.payment_details.swift_pay_payout.payout_id && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Payout ID:</span><span className="font-mono text-xs">{selectedWithdrawal.payment_details.swift_pay_payout.payout_id}</span></div>
+                    )}
+                    {selectedWithdrawal.payment_details.swift_pay_payout.swift_withdrawal_id && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">SwiftPay ID:</span><span className="font-mono text-xs">{selectedWithdrawal.payment_details.swift_pay_payout.swift_withdrawal_id}</span></div>
+                    )}
+                    {selectedWithdrawal.payment_details.swift_pay_payout.pay_network && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Network:</span><span>{selectedWithdrawal.payment_details.swift_pay_payout.pay_network}</span></div>
+                    )}
+                    {selectedWithdrawal.payment_details.swift_pay_payout.amount_usd != null && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Amount:</span><span>${Number(selectedWithdrawal.payment_details.swift_pay_payout.amount_usd).toFixed(2)} USDT</span></div>
+                    )}
+                    {selectedWithdrawal.payment_details.swift_pay_payout.error != null && (
+                      <div className="mt-1 text-xs text-red-500 break-all">Error: {JSON.stringify(selectedWithdrawal.payment_details.swift_pay_payout.error)}</div>
+                    )}
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                   <span className="text-muted-foreground">Status:</span>
+                   {getStatusBadge(selectedWithdrawal.status)}
+                 </div>
+
                 {selectedWithdrawal.notes && (
                   <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
                     <p className="text-sm text-yellow-400">{selectedWithdrawal.notes}</p>
@@ -450,7 +489,7 @@
          <DialogContent>
            <DialogHeader>
              <DialogTitle>
-               {actionType === 'complete' ? '✅ Complete ePay Withdrawal' : '❌ Reject ePay Withdrawal'}
+               {actionType === 'complete' ? '✅ Mark MeriCash Withdrawal Completed' : '❌ Reject MeriCash Withdrawal'}
              </DialogTitle>
              <DialogDescription>
                {actionType === 'complete' 
