@@ -4,7 +4,7 @@ import { installRealtimeGuard } from "./utils/realtimeGuard";
 import { installAuthRequestGuard } from "./utils/authRequestGuard";
 import { startNetworkResilienceEngine } from "./utils/networkResilienceEngine";
 import { installAudioUnlock } from "./utils/audioUnlock";
-import { scheduleChunkLoadRecovery } from "./utils/lazyRetry";
+import { isChunkLoadError, performChunkRecoveryReload } from "./utils/lazyRetry";
 import { installGlobalMediaSrcNormalizer } from "./utils/installGlobalMediaSrcNormalizer";
 import App from "./App.tsx";
 import "./index.css";
@@ -31,7 +31,10 @@ installAudioUnlock();
 // React render errors are still caught by the in-tree <ErrorBoundary>.
 window.addEventListener('error', (e) => {
   try { console.error('[global error]', e.error || e.message); } catch { /* noop */ }
-  void scheduleChunkLoadRecovery(e.error || e, String(e.message || ''));
+  const err = e.error || e;
+  if (isChunkLoadError(err) || isChunkLoadError(e.message)) {
+    void performChunkRecoveryReload();
+  }
   // Prevent default browser "Uncaught" overlay that can stall WebViews
   e.preventDefault?.();
 });
@@ -42,7 +45,9 @@ window.addEventListener('unhandledrejection', (e) => {
   if (!isQuiet) {
     try { console.error('[unhandled promise]', reason); } catch { /* noop */ }
   }
-  void scheduleChunkLoadRecovery(reason, String(reason?.message || reason || ''));
+  if (isChunkLoadError(reason)) {
+    void performChunkRecoveryReload();
+  }
   e.preventDefault?.();
 });
 
