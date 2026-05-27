@@ -3319,8 +3319,23 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   user-select: text !important;
 }
 
-.admin-content :where(img, video, canvas, svg) {
+.admin-content :where(img, video, svg) {
   max-width: 100%;
+}
+
+/* SVGA / animation <canvas> elements: scale to fit their container box
+   while preserving aspect ratio. Without this, svgaplayerweb renders at
+   the native SVGA pixel size (often 500x500) and the parent's
+   overflow-hidden crops everything except the top-left corner — which
+   is why admin frame/entry/gift previews showed only a tiny icon in
+   the top-left of each card. */
+.admin-content canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 /* Tables: horizontal scroll wrapper on mobile */

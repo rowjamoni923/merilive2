@@ -594,12 +594,36 @@ const AdminFrames = () => {
                     }
 
                     // Animated formats (.svga, .json/lottie, .mp4, .webm) — render via player
+                    // Mirror the in-app AvatarWithFrame layout: a centered avatar disc
+                    // with the animated frame overlay scaled ~25% larger and perfectly
+                    // centered around it (matches Profile / Live / Chat rendering).
                     return (
-                      <div className="relative w-20 h-20">
-                        <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
-                          <AvatarFallback className="bg-slate-700 text-white text-xs">U</AvatarFallback>
-                        </Avatar>
-                        <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20">
+                      <div
+                        className="relative"
+                        style={{ width: 128, height: 128 }}
+                      >
+                        {/* Centered avatar disc */}
+                        <div
+                          className="absolute top-1/2 left-1/2 rounded-full overflow-hidden border-2 border-white/80 shadow-lg bg-slate-700 flex items-center justify-center"
+                          style={{
+                            width: 96,
+                            height: 96,
+                            transform: 'translate(-50%, -50%)',
+                            zIndex: 1,
+                          }}
+                        >
+                          <span className="text-white text-base font-semibold">U</span>
+                        </div>
+                        {/* Animated frame overlay — centered + slightly larger */}
+                        <div
+                          className="absolute top-1/2 left-1/2 pointer-events-none"
+                          style={{
+                            width: 128,
+                            height: 128,
+                            transform: 'translate(-50%, -50%)',
+                            zIndex: 2,
+                          }}
+                        >
                           <UniversalFramePlayer
                             src={frame.frame_url || previewUrl}
                             type={frame.frame_type as any}
