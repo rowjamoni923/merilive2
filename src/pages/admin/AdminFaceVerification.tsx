@@ -1508,91 +1508,58 @@ const AdminFaceVerification = () => {
                   </div>
                 </div>
 
-                {/* Direct Convert Buttons */}
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.02] border border-white/10">
-                  <p className="text-[10px] text-white/40 font-semibold text-center mb-3 uppercase tracking-widest">
-                    ⚡ Click to Convert Instantly
+                {/* Pkg382: single combined Approve bar + Convert-to-User (re-verify) */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.02] border border-white/10 space-y-3">
+                  <p className="text-[10px] text-white/40 font-semibold text-center uppercase tracking-widest">
+                    ⚡ Select role then Approve
                   </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Host Button */}
-                    <button disabled={processing || !selectedSubmission}
-                      onClick={async () => {
-                        if (!selectedSubmission || processing || actionInFlightRef.current) return;
-                        actionInFlightRef.current = true;
-                        setProcessing(true);
-                        try {
-                          const { data, error } = await supabase.rpc('admin_process_face_verification', {
-                            _submission_id: selectedSubmission.id, _action: 'approve', _reason: actionReason?.trim() || null, _approve_as: 'host', _set_gender: 'female'
+                  <RoleApproveBar
+                    defaultRole={selectedSubmission?.verification_type === 'host' ? 'host' : 'user'}
+                    processing={processing}
+                    onApprove={(role) => {
+                      if (!selectedSubmission) return;
+                      setApproveAs(role);
+                      setApproveGender(role === 'host' ? 'female' : 'male');
+                      handleAction();
+                    }}
+                  />
+                  <button
+                    disabled={processing || !selectedSubmission}
+                    onClick={async () => {
+                      if (!selectedSubmission || processing || actionInFlightRef.current) return;
+                      if (!confirm('Convert this account to a plain User and RESET face verification? The user will be able to re-submit face verification. If they were in an agency, they will be detached.')) return;
+                      actionInFlightRef.current = true;
+                      setProcessing(true);
+                      try {
+                        const { data, error } = await supabase.rpc('admin_remove_face_verification', { _user_id: selectedSubmission.user_id });
+                        if (error) throw error;
+                        if ((data as any)?.pending) {
+                          toast({ title: '⏳ Submitted for Owner Approval', description: 'Convert-to-user queued for owner approval.' });
+                        } else if ((data as any)?.success === false) {
+                          throw new Error((data as any)?.error || 'Failed to convert');
+                        } else {
+                          toast({
+                            title: '✅ Converted to User',
+                            description: (data as any)?.detached_from_agency
+                              ? 'User was detached from agency and can re-submit face verification.'
+                              : 'User can now re-submit face verification.',
                           });
-                          if (error) throw error;
-                          if ((data as any)?.pending) {
-                            toast({ title: "⏳ Submitted for Owner Approval", description: "Host conversion queued for owner approval." });
-                          } else if ((data as any)?.success === false) {
-                            throw new Error((data as any)?.error || 'Failed to approve');
-                          } else {
-                            toast({ title: "✅ Approved as Host!", description: "ID successfully converted to Host" });
-                          }
-                          setShowActionModal(false); setShowDetailModal(false); setActionReason(""); fetchSubmissions();
-                        } catch (error: any) {
-                          toast({ title: "Error", description: error.message || "Failed to process", variant: "destructive" });
-                        } finally { setProcessing(false); actionInFlightRef.current = false; }
-                      }}
-                      className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(219,39,119,0.3) 50%, rgba(190,24,93,0.2) 100%)',
-                        border: '2px solid rgba(236,72,153,0.4)',
-                        boxShadow: '0 0 30px rgba(236,72,153,0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
-                      }}>
-                      <div className="absolute inset-0 bg-gradient-to-r from-pink-500/0 via-pink-500/10 to-pink-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <div className="relative flex flex-col items-center gap-2">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500/30 to-rose-600/30 flex items-center justify-center border border-pink-500/30 shadow-lg shadow-pink-500/10">
-                          {processing ? <Loader2 className="w-6 h-6 text-pink-300 animate-spin" /> : <Mic className="w-7 h-7 text-pink-300" />}
-                        </div>
-                        <span className="text-pink-200 font-bold text-base">🎤 Host</span>
-                        <span className="text-pink-300/50 text-[10px] font-medium">Convert as Host</span>
-                      </div>
-                    </button>
-
-                    {/* User Button */}
-                    <button disabled={processing || !selectedSubmission}
-                      onClick={async () => {
-                        if (!selectedSubmission || processing || actionInFlightRef.current) return;
-                        actionInFlightRef.current = true;
-                        setProcessing(true);
-                        try {
-                          const { data, error } = await supabase.rpc('admin_process_face_verification', {
-                            _submission_id: selectedSubmission.id, _action: 'approve', _reason: actionReason?.trim() || null, _approve_as: 'user', _set_gender: 'male'
-                          });
-                          if (error) throw error;
-                          if ((data as any)?.pending) {
-                            toast({ title: "⏳ Submitted for Owner Approval", description: "User conversion queued for owner approval." });
-                          } else if ((data as any)?.success === false) {
-                            throw new Error((data as any)?.error || 'Failed to approve');
-                          } else {
-                            toast({ title: "✅ Approved as User!", description: "ID successfully converted to User" });
-                          }
-                          setShowActionModal(false); setShowDetailModal(false); setActionReason(""); fetchSubmissions();
-                        } catch (error: any) {
-                          toast({ title: "Error", description: error.message || "Failed to process", variant: "destructive" });
-                        } finally { setProcessing(false); actionInFlightRef.current = false; }
-                      }}
-                      className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(37,99,235,0.3) 50%, rgba(29,78,216,0.2) 100%)',
-                        border: '2px solid rgba(59,130,246,0.4)',
-                        boxShadow: '0 0 30px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
-                      }}>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <div className="relative flex flex-col items-center gap-2">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/30 to-cyan-600/30 flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/10">
-                          {processing ? <Loader2 className="w-6 h-6 text-blue-300 animate-spin" /> : <User className="w-7 h-7 text-blue-300" />}
-                        </div>
-                        <span className="text-blue-200 font-bold text-base">👤 User</span>
-                        <span className="text-blue-300/50 text-[10px] font-medium">Convert as User</span>
-                      </div>
-                    </button>
-                  </div>
+                        }
+                        setShowActionModal(false); setShowDetailModal(false); setActionReason(''); fetchSubmissions();
+                      } catch (error: any) {
+                        toast({ title: 'Error', description: error.message || 'Failed to convert', variant: 'destructive' });
+                      } finally { setProcessing(false); actionInFlightRef.current = false; }
+                    }}
+                    className="w-full rounded-2xl p-3 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none border-2 border-amber-500/40 bg-amber-500/10 text-amber-200 font-semibold text-sm"
+                  >
+                    {processing ? <Loader2 className="w-4 h-4 mr-2 inline animate-spin" /> : null}
+                    🔄 Convert to User (allow re-verify)
+                  </button>
+                  <p className="text-[10px] text-white/40 text-center leading-snug">
+                    "Convert to User" removes host status &amp; face-verified flag, detaches from agency, and lets the user submit face verification again.
+                  </p>
                 </div>
+
               </>
             )}
             {/* Rejection UI */}
