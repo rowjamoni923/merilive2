@@ -345,41 +345,18 @@ const AdminEntryBars = () => {
               )}
 
               <CardContent className="space-y-4">
-                {/* YouTube-Style Thumbnail Preview */}
-                <AdminAssetPreview type="entry-bar" src={item.animation_url} previewUrl={item.preview_url} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-orange-500/20">
-                      <Play className="w-12 h-12 text-amber-400/50" />
-                    </div>
-                  )}
-                  
-                  {/* Overlay Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                  
-                  {/* Play Button Overlay */}
-                  {item.animation_url && (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                      <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                        <Play className="w-6 h-6 text-white fill-white" />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Level Badge */}
+                <div className="relative group">
+                  <AdminAssetPreview type="entry-bar" src={item.animation_url} previewUrl={item.preview_url} />
                   <div className={`absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white rounded-lg bg-gradient-to-r ${getLevelGradient(item.level)} shadow-lg`}>
                     Lv{item.level}+
                   </div>
-                  
-                  {/* Animation Indicator */}
                   {item.animation_url && (
                     <div className="absolute top-2 left-2 px-2 py-1 text-[10px] font-medium text-white bg-purple-500/80 rounded-full backdrop-blur-sm flex items-center gap-1">
                       <Sparkles className="w-3 h-3" />
                       SVGA
                     </div>
                   )}
-                  
-                  {/* Bottom Info Bar */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
                     <p className="text-white font-semibold text-sm truncate">{item.name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-white/70">{item.duration_ms / 1000}s</span>
