@@ -58,6 +58,13 @@ const ROLE_TYPES = [
   { value: 'moderator', label: 'Moderator', icon: UserCog, color: 'from-blue-500 to-cyan-500' },
   { value: 'vip', label: 'VIP', icon: Crown, color: 'from-amber-500 to-yellow-500' },
 ];
+
+const RoleFramePreview = ({ src, compact = false }: { src?: string | null; compact?: boolean }) => (
+  <AdminAssetPreview
+    type="role-frame"
+    src={src || null}
+    containerClassName={compact ? "h-full w-full min-h-0 rounded" : "h-full w-full min-h-0 rounded-lg"}
+  />
 );
 
 const defaultFrame: Partial<RoleFrame> = {
