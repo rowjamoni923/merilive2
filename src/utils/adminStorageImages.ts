@@ -82,6 +82,7 @@ export const extractAdminStoragePath = (value: string, defaultBucket?: string): 
 
 export const isAdminStorageReference = (value?: string | null, defaultBucket?: string) => {
   if (!value) return false;
+  if (LOCAL_APP_MEDIA_RE.test(value.trim())) return false;
   return !!extractAdminStoragePath(value, defaultBucket) || RAW_FILE_PATH_RE.test(value.trim());
 };
 
@@ -146,7 +147,10 @@ if (typeof window !== "undefined") {
 
 
 
-const looksLikeRawFilePath = (value: string) => RAW_FILE_PATH_RE.test(value.trim());
+const looksLikeRawFilePath = (value: string) => {
+  const raw = value.trim();
+  return !LOCAL_APP_MEDIA_RE.test(raw) && RAW_FILE_PATH_RE.test(raw);
+};
 
 const readStorageValue = (storage: Storage | undefined, key: string) => {
   try { return storage?.getItem(key) || ''; } catch { return ''; }
