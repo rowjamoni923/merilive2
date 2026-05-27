@@ -30,7 +30,6 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -493,12 +492,11 @@ const AdminTopupSystem = () => {
     if (!selectedUserForHelper) return;
     setAddingHelper(true);
     try {
-      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
-      const { error } = await supabase.from('topup_helpers').insert({
-        user_id: selectedUserForHelper.id, is_active: true, is_verified: true,
-        approved_at: new Date().toISOString(), approved_by: user?.id
+      const { data, error } = await supabase.rpc('admin_upsert_topup_helper', {
+        _user_id: selectedUserForHelper.id,
       });
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Failed to add trader');
       toast({ title: "Success", description: "New trader added successfully" });
       setShowAddModal(false);
       setSelectedUserForHelper(null);
@@ -512,57 +510,22 @@ const AdminTopupSystem = () => {
 
   const handleToggleHelper = async (helper: Helper, action: 'activate' | 'deactivate') => {
     const newStatus = action === 'activate';
-    
-    // Step 1: Update is_active with error checking
-    const { error: updateError } = await supabase.from('topup_helpers').update({ 
-      is_active: newStatus
-    }).eq('id', helper.id);
+
+    const { data, error: updateError } = await supabase.rpc('admin_set_topup_helper_active', {
+      _helper_id: helper.id,
+      _active: newStatus,
+    });
 
     if (updateError) {
       recordAdminError({ kind: "rpc", label: "AdminTopupSystem.AdminFailedToToggleHelper", message: formatAdminError(updateError)});
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }
-
-    // Step 2: Verify the update actually applied
-    const { data: verifyData } = await supabase
-      .from('topup_helpers')
-      .select('is_active')
-      .eq('id', helper.id)
-      .maybeSingle();
-
-    if (verifyData?.is_active !== newStatus) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupSystem.ToggleVerify", message: `Toggle verification mismatch: expected ${newStatus}, got ${verifyData?.is_active}` });
-      toast({ title: "Error", description: `Database update failed - status did not change. Please try again or contact support.`, variant: "destructive" });
+    if ((data as any)?.success === false) {
+      const message = (data as any)?.error || `Failed to ${action} trader`;
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem.ToggleVerify", message });
+      toast({ title: "Error", description: message, variant: "destructive" });
       return;
-    }
-
-    // If Level 5 payroll helper, update agency commission rate instantly
-    if (helper.trader_level === 5 && helper.payroll_enabled) {
-      const { data: agency } = await supabase
-        .from('agencies')
-        .select('id, level')
-        .eq('owner_id', helper.user_id)
-        .maybeSingle();
-
-      if (agency) {
-        if (action === 'deactivate') {
-          const levelMap: Record<string, string> = { 'A1': 'bronze', 'A2': 'silver', 'A3': 'gold', 'A4': 'platinum', 'A5': 'diamond' };
-          const tierCode = levelMap[agency.level || 'A1'] || agency.level || 'bronze';
-          const { data: tier } = await supabase
-            .from('agency_level_tiers')
-            .select('commission_rate')
-            .eq('level_code', tierCode)
-            .eq('is_active', true)
-            .maybeSingle();
-          const tierRate = tier?.commission_rate || 3;
-          await supabase.from('agencies').update({ commission_rate: tierRate }).eq('id', agency.id);
-          console.log(`[Admin] Deactivated L5 helper → Agency ${agency.id} commission reset to ${tierRate}%`);
-        } else {
-          await supabase.from('agencies').update({ commission_rate: 12 }).eq('id', agency.id);
-          console.log(`[Admin] Activated L5 helper → Agency ${agency.id} commission restored to 12%`);
-        }
-      }
     }
 
     console.log(`[Admin] Helper ${helper.id} successfully ${action}d. Verified is_active=${newStatus}`);
@@ -610,14 +573,12 @@ const AdminTopupSystem = () => {
     if (!levelUpHelper) return;
     setUpgradingLevel(true);
     try {
-      const { error } = await supabase
-        .from('topup_helpers')
-        .update({ 
-          trader_level: newLevel,
-          payroll_enabled: newLevel >= 5
-        })
-        .eq('id', levelUpHelper.id);
+      const { data, error } = await supabase.rpc('admin_set_topup_helper_level', {
+        _helper_id: levelUpHelper.id,
+        _level: newLevel,
+      });
       if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any)?.error || 'Level update failed');
       
       toast({ title: "Success", description: `Trader upgraded to Level ${newLevel}` });
       setShowLevelModal(false);
