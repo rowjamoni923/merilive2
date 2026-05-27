@@ -447,11 +447,33 @@ interface EpayWithdrawal {
                      <p className="mt-1 text-sm">{selectedWithdrawal.payment_details.additional_info}</p>
                    </div>
                  )}
-               </div>
-               <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Status:</span>
-                  {getStatusBadge(selectedWithdrawal.status)}
                 </div>
+                {selectedWithdrawal.payment_details?.swift_pay_payout && (
+                  <div className="p-3 bg-indigo-500/10 rounded-lg border border-indigo-500/30 space-y-1 text-sm">
+                    <div className="font-semibold text-indigo-600 mb-1">💎 SwiftPay / MeriCash Payout</div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Status:</span><span className="font-mono">{selectedWithdrawal.payment_details.swift_pay_payout.status || '-'}</span></div>
+                    {selectedWithdrawal.payment_details.swift_pay_payout.payout_id && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Payout ID:</span><span className="font-mono text-xs">{selectedWithdrawal.payment_details.swift_pay_payout.payout_id}</span></div>
+                    )}
+                    {selectedWithdrawal.payment_details.swift_pay_payout.swift_withdrawal_id && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">SwiftPay ID:</span><span className="font-mono text-xs">{selectedWithdrawal.payment_details.swift_pay_payout.swift_withdrawal_id}</span></div>
+                    )}
+                    {selectedWithdrawal.payment_details.swift_pay_payout.pay_network && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Network:</span><span>{selectedWithdrawal.payment_details.swift_pay_payout.pay_network}</span></div>
+                    )}
+                    {selectedWithdrawal.payment_details.swift_pay_payout.amount_usd != null && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Amount:</span><span>${Number(selectedWithdrawal.payment_details.swift_pay_payout.amount_usd).toFixed(2)} USDT</span></div>
+                    )}
+                    {selectedWithdrawal.payment_details.swift_pay_payout.error != null && (
+                      <div className="mt-1 text-xs text-red-500 break-all">Error: {JSON.stringify(selectedWithdrawal.payment_details.swift_pay_payout.error)}</div>
+                    )}
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                   <span className="text-muted-foreground">Status:</span>
+                   {getStatusBadge(selectedWithdrawal.status)}
+                 </div>
+
                 {selectedWithdrawal.notes && (
                   <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
                     <p className="text-sm text-yellow-400">{selectedWithdrawal.notes}</p>
