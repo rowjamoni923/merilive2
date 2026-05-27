@@ -41,34 +41,47 @@
  import { toast } from "sonner";
  import { format } from "date-fns";
  
- interface PaymentDetails {
-   country_code?: string;
-   currency_code?: string;
-   local_amount?: number;
-   exchange_rate?: number;
-   usd_amount?: number;
-   account_name?: string;
-   account_number?: string;
-   bank_name?: string;
-   additional_info?: string;
- }
- 
- interface EpayWithdrawal {
-   id: string;
-   agency_id: string;
-   amount: number;
-   status: string;
-   payment_method: string;
-   payment_details: PaymentDetails | null;
-   requested_at: string;
-   processed_at: string | null;
-   notes: string | null;
-   agency?: {
-     name: string;
-     agency_code: string;
-     owner_id?: string;
-   };
- }
+interface PaymentDetails {
+  country_code?: string;
+  currency_code?: string;
+  local_amount?: number;
+  exchange_rate?: number;
+  usd_amount?: number;
+  account_name?: string;
+  account_number?: string;
+  bank_name?: string;
+  additional_info?: string;
+  swift_pay_payout?: {
+    payment_id?: string;
+    payout_id?: string;
+    swift_withdrawal_id?: string;
+    status?: string;
+    pay_currency?: string;
+    pay_address?: string;
+    pay_network?: string;
+    amount_usd?: number;
+    error?: unknown;
+    at?: string;
+  };
+}
+
+interface EpayWithdrawal {
+  id: string;
+  agency_id: string;
+  amount: number;
+  status: string;
+  payment_method: string;
+  payment_details: PaymentDetails | null;
+  requested_at: string;
+  processed_at: string | null;
+  notes: string | null;
+  agency?: {
+    name: string;
+    agency_code: string;
+    owner_id?: string;
+  };
+}
+
  
  const CURRENCY_INFO: Record<string, { symbol: string; flag: string; name: string }> = {
    BDT: { symbol: "Tk ", flag: "🇧🇩", name: "Bangladesh" },
