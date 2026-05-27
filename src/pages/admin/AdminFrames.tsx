@@ -765,13 +765,13 @@ const AdminFrames = () => {
               {formData.frame_url ? (
                 <div className="flex items-center gap-4">
                   {/* Preview */}
-                  <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center shadow-lg">
-                    {/* Avatar - Behind */}
-                    <Avatar className="w-12 h-12 z-10">
+                  <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-gray-900 to-black flex items-center justify-center shadow-lg">
+                    {/* Centered avatar disc */}
+                    <Avatar className="absolute top-1/2 left-1/2 w-[72px] h-[72px] -translate-x-1/2 -translate-y-1/2 z-10 border-2 border-white/80 shadow-lg">
                       <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white">U</AvatarFallback>
                     </Avatar>
-                    {/* Frame - In front */}
-                    <div className="absolute inset-0 z-20 pointer-events-none">
+                    {/* Frame - centered exactly like the app */}
+                    <div className="absolute top-1/2 left-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
                       <UniversalFramePlayer
                         src={formData.frame_url}
                         type={formData.frame_type as any}
@@ -957,14 +957,14 @@ const AdminFrames = () => {
             {/* Preview */}
             {formData.frame_url && (
               <div className="flex justify-center p-6 bg-gradient-to-br from-gray-900 to-black rounded-xl">
-                <div className="relative w-28 h-28">
+                <div className="relative w-40 h-40">
                   {/* Avatar - Behind the frame */}
-                  <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                  <Avatar className="w-28 h-28 border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                     <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
                     <AvatarFallback>U</AvatarFallback>
                   </Avatar>
                   {/* Frame - In front of avatar */}
-                  <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20 pointer-events-none">
+                  <div className="absolute inset-0 z-20 pointer-events-none">
                     <UniversalFramePlayer
                       src={formData.frame_url}
                       type={formData.frame_type as any}
@@ -1035,13 +1035,13 @@ const AdminFrames = () => {
           </button>
           <div className="text-center" onClick={e => e.stopPropagation()}>
             <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewFrame.name}</p>
-            <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
-              <div className="relative w-64 h-64">
-                <Avatar className="w-full h-full border-4 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+              <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
+                <div className="relative w-80 h-80 max-w-[80vw] max-h-[60vh]">
+                  <Avatar className="w-64 h-64 max-w-[64vw] max-h-[48vh] border-4 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                   <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <div className="absolute -inset-8 w-[calc(100%+64px)] h-[calc(100%+64px)] z-20">
+                  <div className="absolute inset-0 z-20">
                   <UniversalFramePlayer
                     src={fullscreenPreviewFrame.frame_url}
                     type={fullscreenPreviewFrame.frame_type as any}
