@@ -40,6 +40,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { loadAdminTopupHistory, formatTopupFieldLabel, type TopupHistoryEntry } from "@/utils/adminTopupHistory";
 // Interfaces
 interface UserProfile {
   id: string;
@@ -52,19 +53,7 @@ interface UserProfile {
   is_verified: boolean;
 }
 
-interface TopupLog {
-  id: string;
-  created_at: string;
-  action_type: string;
-  target_id: string;
-  details: {
-    amount: number;
-    note: string;
-    previous_balance: number;
-    new_balance: number;
-  };
-  user?: { display_name: string; avatar_url: string; app_uid: string };
-}
+type TopupLog = TopupHistoryEntry;
 
 interface Helper {
   id: string;
