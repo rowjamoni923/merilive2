@@ -53,7 +53,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
   const mappedAnimationType = normalizedAnimationType === 'image'
     ? (extensionType && !['svga', 'lottie', 'vap', 'mp4', 'webm'].includes(extensionType) ? extensionType : 'static')
     : normalizedAnimationType === 'video'
-      ? (extensionType === 'webm' || extensionType === 'mp4' || extensionType === 'vap' ? extensionType : 'mp4')
+      ? (extensionType === 'webm' || extensionType === 'mp4' ? extensionType : 'mp4')
       : normalizedAnimationType === 'animated' || normalizedAnimationType === 'custom' || normalizedAnimationType === 'glow' || normalizedAnimationType === 'none'
         ? (normalizedAnimationType === 'none' ? 'static' : extensionType)
         : normalizedAnimationType;
