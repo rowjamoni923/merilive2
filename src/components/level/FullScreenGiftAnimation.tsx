@@ -291,16 +291,14 @@ const FullScreenGiftAnimation = ({
   };
 
   const renderAnimation = () => {
-    // SVGA Animation - Proper sizing without excessive scaling
+    // SVGA Animation - true full-screen (no max-w/max-h constraint)
     if (animationType === 'svga' && gift.animation_url) {
       return (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0">
           <FixedAnimationFrame
             src={gift.animation_url}
             type="svga"
-            width="100%"
-            height="100%"
-            className="max-w-[90vw] max-h-[90vh]"
+            size="fullscreen"
             loop={false}
             muted={false}
             volume={0.8}
@@ -316,10 +314,10 @@ const FullScreenGiftAnimation = ({
     if (animationType === 'vap' && gift.animation_url) {
       return (
         <Suspense fallback={<AnimationLoader />}>
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0">
             <VAPPlayer
               src={gift.animation_url}
-              className="w-full h-full max-w-[90vw] max-h-[90vh]"
+              className="w-full h-full"
               loop={false}
               autoPlay={true}
               muted={false}
@@ -332,12 +330,12 @@ const FullScreenGiftAnimation = ({
 
     if (animationType === 'lottie' && lottieData) {
       return (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0">
           <Lottie
             animationData={lottieData}
             loop={false}
             onComplete={handleAnimationEnd}
-            className="w-full h-full max-w-[90vw] max-h-[90vh]"
+            className="w-full h-full"
           />
         </div>
       );
@@ -345,15 +343,16 @@ const FullScreenGiftAnimation = ({
 
     if (animationType === 'video' && gift.animation_url) {
       return (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <video 
+        <div className="absolute inset-0">
+          <video
             src={gift.animation_url}
             autoPlay
             loop={false}
             muted
             playsInline
             onEnded={handleAnimationEnd}
-            className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain"/>
+            className="w-full h-full object-contain"
+          />
         </div>
       );
     }

@@ -179,22 +179,11 @@ const EntranceAnimationInner = memo(({
             overflow: 'visible',
           }}
         >
-          {/* SVGA container with aggressive scale to fill entire screen */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              width: '100%',
-              height: '100%',
-              // Scale up to 1.6x to guarantee full coverage on all devices
-              transform: 'translate(-50%, -50%) scale(1.6)',
-              transformOrigin: 'center center',
-            }}
-          >
+          {/* True full-screen SVGA — preset handles 100vw×100vh natively */}
+          <div className="absolute inset-0">
             <FixedAnimationFrame
               src={displayAnimationUrl}
-              size="fill"
+              size="fullscreen"
               type="svga"
               loop={false}
               muted={false}

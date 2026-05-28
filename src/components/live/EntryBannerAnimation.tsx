@@ -125,22 +125,11 @@ const EntryBannerAnimationInner = memo(({
           />
           
           {hasCustomAnimation ? (
-            // SVGA Entry Name Bar - TRUE FULL SCREEN
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: '100%',
-                height: '100%',
-                // Scale up to fill screen like other entry animations
-                transform: 'translate(-50%, -50%) scale(1.5)',
-                transformOrigin: 'center center',
-              }}
-            >
+            // SVGA Entry Name Bar — TRUE FULL SCREEN via preset (no scale hack)
+            <div className="absolute inset-0">
               <FixedAnimationFrame
                 src={animationUrl!}
-                size="fill"
+                size="fullscreen"
                 type="svga"
                 loop={false}
                 muted={false}
@@ -148,6 +137,7 @@ const EntryBannerAnimationInner = memo(({
                 onComplete={handleAnimationComplete}
                 center={false}
               />
+              
               
               {/* User Name Overlay - Positioned in CENTER */}
               <div className="absolute inset-0 flex items-center justify-center">
