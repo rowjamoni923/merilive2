@@ -824,7 +824,7 @@ const AgencyCoinExchange = () => {
               }`}
             >
               <Diamond className="w-4 h-4" />
-              Agency
+              Trader Wallet
             </button>
           </div>
 
@@ -984,10 +984,10 @@ const AgencyCoinExchange = () => {
             <div className="bg-white rounded-2xl p-5 border border-warning-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Diamond className="w-5 h-5 text-brand-600" />
-                Send Diamonds to Agency
+                Send Coins to Trader Wallet
               </h3>
               <p className="text-xs text-slate-500 -mt-2 mb-4">
-                Diamonds will be added to the agency owner's Trader Wallet
+                Agency transfer goes directly to the target owner’s Trader Wallet
               </p>
               
               <div className="space-y-4">
@@ -1052,12 +1052,12 @@ const AgencyCoinExchange = () => {
                 {selectedTargetAgency && (
                   <>
                     <div>
-                      <Label className="text-slate-500">Diamond Amount</Label>
+                      <Label className="text-slate-500">Coin Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-600" />
                         <Input
                           type="number"
-                          placeholder="Enter diamond amount"
+                          placeholder="Enter coin amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
                           className="pl-10 text-lg h-12 bg-white border-warning-200 text-slate-800 placeholder:text-slate-500"
@@ -1079,7 +1079,7 @@ const AgencyCoinExchange = () => {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">To Agency:</span>
+                          <span className="text-slate-500">Agency Owner:</span>
                           <span className="font-semibold text-slate-800">{selectedTargetAgency.name}</span>
                         </div>
                         <div className="flex justify-between text-sm">
@@ -1110,7 +1110,7 @@ const AgencyCoinExchange = () => {
                       className="w-full h-12 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
-                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} 💎 →
+                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Coins → Trader Wallet
                     </Button>
                   </>
                 )}
