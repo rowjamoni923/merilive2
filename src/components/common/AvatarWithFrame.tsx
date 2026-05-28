@@ -12,6 +12,8 @@ import {
 } from '@/utils/frameCache';
 import { getDisplayAvatar } from '@/utils/placeholderAvatar';
 import { normalizeProfileMediaUrl } from '@/utils/profileMediaUrl';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import {
   getCachedGender,
   getCachedViewerId,
@@ -95,6 +97,11 @@ const detectFrameType = (url: string, fallbackType?: string | null) => {
   return fallbackType || 'static';
 };
 
+const normalizeFrameMediaUrl = (url?: string | null): string | null => {
+  if (!url) return null;
+  return normalizeGiftMediaUrl(url) || normalizePublicMediaUrl(url) || url;
+};
+
 const flushFrameIdBatch = async () => {
   const frameIds = Array.from(pendingFrameIds);
   pendingFrameIds.clear();
@@ -111,10 +118,12 @@ const flushFrameIdBatch = async () => {
 
     const mappedFrames = new Map<string, FrameData>();
     data?.forEach((frame: any) => {
-      if (!frame.frame_url) return;
+      const normalizedUrl = normalizeFrameMediaUrl(frame.frame_url);
+      if (!normalizedUrl) return;
       mappedFrames.set(frame.id, {
         ...frame,
-        frame_type: detectFrameType(frame.frame_url, frame.frame_type),
+        frame_url: normalizedUrl,
+        frame_type: detectFrameType(normalizedUrl, frame.frame_type),
       } as FrameData);
     });
 
@@ -209,9 +218,10 @@ export const preloadFrames = async (frameIds: string[]) => {
 
   const mappedFrames = new Map<string, FrameData>();
   data?.forEach((frame: any) => {
-    if (!frame.frame_url) return;
-    const type = detectFrameType(frame.frame_url, frame.frame_type);
-    const normalized = { ...frame, frame_type: type } as FrameData;
+    const normalizedUrl = normalizeFrameMediaUrl(frame.frame_url);
+    if (!normalizedUrl) return;
+    const type = detectFrameType(normalizedUrl, frame.frame_type);
+    const normalized = { ...frame, frame_url: normalizedUrl, frame_type: type } as FrameData;
     frameCache.set(`frame-${frame.id}`, normalized);
     mappedFrames.set(frame.id, normalized);
 
