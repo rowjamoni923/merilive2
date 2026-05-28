@@ -544,7 +544,7 @@ const AgencyCoinExchange = () => {
         
         toast({
           title: "Transfer Successful! 💎",
-          description: `Sent ${diamonds.toLocaleString()} diamonds to ${selectedUser.display_name || selectedUser.app_uid}`,
+          description: `Sent ${diamonds.toLocaleString()} coins to ${selectedUser.display_name || selectedUser.app_uid}'s top-up balance`,
         });
         
         setDiamondsToSend("");
@@ -552,7 +552,7 @@ const AgencyCoinExchange = () => {
         setSearchQuery("");
         fetchData(); // Refresh transactions
       } else if (confirmAction === "sendAgency" && selectedTargetAgency) {
-        // AGENCY-TO-AGENCY TRANSFER: Diamonds go to recipient agency's diamond_balance
+        // AGENCY TRANSFER: sender agency diamond balance funds the target agency owner's trader wallet.
         const diamonds = Math.floor(parseInt(diamondsToSend) || 0);
         
         // Use atomic RPC for agency-to-agency transfer
@@ -575,7 +575,7 @@ const AgencyCoinExchange = () => {
         
         toast({
           title: "Transfer Successful! 💎",
-          description: `Sent ${diamonds.toLocaleString()} diamonds to ${selectedTargetAgency.name}`,
+          description: `Sent ${diamonds.toLocaleString()} coins to ${selectedTargetAgency.owner_name || selectedTargetAgency.name}'s trader wallet`,
         });
         
         setDiamondsToSend("");
