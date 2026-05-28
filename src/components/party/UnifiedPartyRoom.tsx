@@ -1038,10 +1038,77 @@ export function UnifiedPartyRoom({
     };
     window.addEventListener('livekit-chat-message', handleLiveKitChat);
 
+    // ============= Pkg381: Supabase Realtime SAFETY-NET =============
+    // LiveKit DataPacket fanout (above) is the fast-path (<50ms). But when
+    // a viewer's LiveKit room isn't connected yet, is subscribe-only, or
+    // mobile background-drops the WS, messages never arrive. This Postgres
+    // realtime channel on party_room_messages guarantees delivery for
+    // every participant — host AND every viewer. Dedup via processedMsgIdsRef
+    // ensures messages received via LiveKit are NOT re-rendered here.
+    const chatChannel = supabase
+      .channel(`party-chat-rt-${roomId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'party_room_messages',
+        filter: `room_id=eq.${roomId}`,
+      }, async (payload) => {
+        const row: any = payload.new;
+        if (!row?.id || !row?.user_id || !row?.content) return;
+        if (processedMsgIdsRef.current.has(row.id)) return;
+        processedMsgIdsRef.current.add(row.id);
+        if (roomIdRef.current !== roomId) return;
+
+        // Resolve sender profile (cached miss → 1 small fetch per new sender)
+        const { data: profile } = await supabase
+          .from('profiles_public')
+          .select('display_name, user_level, avatar_url, is_host')
+          .eq('id', row.user_id)
+          .maybeSingle();
+        if (roomIdRef.current !== roomId) return;
+
+        const msgType = (row.message_type || 'text') as RoomChatMessage['type'];
+        const unifiedMsg: RoomChatMessage = {
+          id: row.id,
+          userId: row.user_id,
+          user: profile?.display_name || 'User',
+          initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
+          message: row.content,
+          color: msgType === 'gift' ? 'pink' : msgType === 'join' ? 'emerald' : 'white',
+          userLevel: profile?.user_level || 1,
+          userAvatar: profile?.avatar_url || undefined,
+          isHost: !!profile?.is_host || (row.user_id === hostIdRef.current),
+          isNewUser: false,
+          type: msgType,
+          bubbleUrl: null,
+        };
+        setPremiumMessages(prev => {
+          if (prev.some(m => m.id === row.id)) return prev;
+          const tempIdx = prev.findIndex(m =>
+            typeof m.id === 'string' && m.id.startsWith('temp-')
+            && m.userId === row.user_id
+            && m.message === row.content
+          );
+          if (tempIdx >= 0) {
+            const copy = prev.slice();
+            copy[tempIdx] = { ...copy[tempIdx], ...unifiedMsg };
+            return copy;
+          }
+          return [...prev.slice(-100), unifiedMsg];
+        });
+        void getEquippedBubble(row.user_id).then(bubbleUrl => {
+          if (!bubbleUrl || roomIdRef.current !== roomId) return;
+          setPremiumMessages(prev => prev.map(pm => pm.id === row.id ? { ...pm, bubbleUrl } : pm));
+        });
+      })
+      .subscribe();
+
     return () => {
       window.removeEventListener('livekit-chat-message', handleLiveKitChat);
+      try { supabase.removeChannel(chatChannel); } catch { /* ignore */ }
     };
   }, [roomId]);
+
 
   
   // ==================== LEGACY: JOIN MESSAGES FROM PROPS (for chat only) ====================
