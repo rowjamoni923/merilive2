@@ -27,7 +27,20 @@ function json(body: unknown, status = 200) {
 }
 
 function gatewayErrorMessage(body: any): string {
-  return String(body?.error ?? body?.message ?? body?.raw ?? "gateway_error");
+  return String(body?.error ?? body?.message ?? body?.details?.error ?? body?.details?.message ?? body?.raw ?? "gateway_error");
+}
+
+function isGatewayFallbackError(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("currency not enabled") ||
+    normalized.includes("currency is not enabled") ||
+    normalized.includes("not enabled") ||
+    normalized.includes("not supported") ||
+    normalized.includes("unsupported currency") ||
+    normalized.includes("disabled") ||
+    normalized.includes("gateway_error")
+  );
 }
 
 function isGatewayMinimumAmountError(message: string): boolean {
@@ -267,15 +280,7 @@ Deno.serve(async (req) => {
       // Currency disabled / not supported on the SwiftPay/NOWPayments account.
       // Return 200 with a fallback signal so the client can silently retry the
       // next currency in its list instead of crashing on a 502.
-      const lowerMsg = gatewayMessage.toLowerCase();
-      if (
-        lowerMsg.includes("currency not enabled") ||
-        lowerMsg.includes("currency is not enabled") ||
-        lowerMsg.includes("not enabled") ||
-        lowerMsg.includes("not supported") ||
-        lowerMsg.includes("unsupported currency") ||
-        lowerMsg.includes("disabled")
-      ) {
+      if (isGatewayFallbackError(gatewayMessage)) {
         return json({
           ok: false,
           error: "currency_not_enabled",
@@ -340,6 +345,10 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("[swift-pay-create-deposit] fatal", e);
-    return json({ error: (e as Error).message ?? "unknown" }, 500);
+    const message = (e as Error).message ?? "unknown";
+    if (isGatewayFallbackError(message)) {
+      return json({ ok: false, error: "currency_not_enabled", fallback: true, message, details: { error: message } });
+    }
+    return json({ error: message }, 500);
   }
 });
