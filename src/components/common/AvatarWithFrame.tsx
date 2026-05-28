@@ -498,11 +498,21 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
 
   return (
     <div ref={ref} className={cn('relative', className)} onClick={onClick} style={containerStyle}>
-      
-      {/* Animated Frame Layer - SVGA/Lottie */}
+
+      {/* ─────────────────────────────────────────────────────────────
+          LAYER ORDER (Bigo / Chamet / Mico standard):
+            z-1  →  Frame ring (extends beyond avatar, sits BEHIND photo)
+            z-2  →  Circular avatar photo (always ON TOP, never covered)
+            z-3  →  Online dot
+          This guarantees that even an opaque/square frame asset
+          (e.g. shield-style admin frame) never hides the user's photo —
+          the circular avatar is always rendered on top of the frame.
+      ───────────────────────────────────────────────────────────── */}
+
+      {/* Animated Frame Layer - SVGA/Lottie (BEHIND avatar) */}
       {hasValidFrame && (activeFrameType === 'svga' || activeFrameType === 'lottie') && (
-        <div className="absolute pointer-events-none" 
-          style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
+        <div className="absolute pointer-events-none"
+          style={{ inset: sizeConfig.frameInset, zIndex: 1 }}>
           <Suspense fallback={null}>
             <UniversalFramePlayer
               src={activeFrameUrl}
@@ -516,29 +526,31 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         </div>
       )}
 
-      {/* GIF/WebP Frame Layer */}
+      {/* GIF/WebP Frame Layer (BEHIND avatar) */}
       {hasValidFrame && (activeFrameType === 'gif' || activeFrameType === 'webp') && (
-        <div className="absolute pointer-events-none" 
-          style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
+        <div className="absolute pointer-events-none"
+          style={{ inset: sizeConfig.frameInset, zIndex: 1 }}>
           <img src={activeFrameUrl} alt="" className="w-full h-full object-contain"
             onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
         </div>
       )}
 
-      {/* Static Image Frame Layer */}
+      {/* Static Image Frame Layer (BEHIND avatar) */}
       {hasValidFrame && isStaticFrame && (
         <div className="absolute pointer-events-none"
-          style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
+          style={{ inset: sizeConfig.frameInset, zIndex: 1 }}>
           <img src={activeFrameUrl} alt="" className="w-full h-full object-contain"
             onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
         </div>
       )}
 
-      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 1 }}>
-        <Avatar className={cn('shadow-lg', avatarClassName)}
-          style={{ 
+      {/* Circular avatar — ALWAYS on top so frame never covers the photo */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
+        <Avatar className={cn('shadow-lg overflow-hidden rounded-full', avatarClassName)}
+          style={{
             width: sizeConfig.avatar, height: sizeConfig.avatar,
-            border: '2.5px solid rgba(255,255,255,0.15)',
+            border: '2.5px solid rgba(255,255,255,0.6)',
+            background: '#fff',
           }}>
           <AvatarImage src={effectiveSrc || undefined} className={cn('object-cover', avatarImageClassName)} loading={avatarImageLoading} decoding="async" />
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold', sizeConfig.text)}>
@@ -547,12 +559,10 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         </Avatar>
       </div>
 
-      {/* CSS fallback frame REMOVED — no gradient border before frame loads */}
-
       {/* Online indicator */}
       {isOnline && (
         <div className="absolute bg-green-500 rounded-full border-2 border-white"
-          style={{ 
+          style={{
             width: sizeConfig.online, height: sizeConfig.online,
             bottom: 0, right: 0, zIndex: 3,
           }} />
