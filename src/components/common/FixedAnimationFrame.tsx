@@ -1,6 +1,8 @@
 import React, { Suspense, lazy, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import UniversalAnimationPlayer, { type AnimationType, detectAnimationType } from './UniversalAnimationPlayer';
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 import {
   isAnimationDebugEnabled,
   logAnimationCompletion,
@@ -111,6 +113,11 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   debug,
   debugTag,
 }) => {
+  const normalizedSrc = React.useMemo(
+    () => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src,
+    [src],
+  );
+
   // Resolve dimensions: explicit width/height wins over preset.
   const presetStyle = SIZE_STYLES[size] || SIZE_STYLES.card;
   const frameStyle: React.CSSProperties = {
@@ -124,7 +131,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   // disagrees (e.g. type="svga" on a .png), trust the extension and fall back
   // to UniversalAnimationPlayer so we never spin up SVGA + audio decode on
   // a non-SVGA file. Unknown extensions also bypass audio handling.
-  const detected = detectAnimationType(src);
+  const detected = detectAnimationType(normalizedSrc);
   const KNOWN_TYPES = new Set<AnimationType>([
     'svga', 'lottie', 'vap', 'gif', 'webp', 'png', 'mp4', 'webm', 'static',
   ]);
@@ -133,7 +140,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
   if (explicitMismatch && typeof window !== 'undefined' && (debug ?? isAnimationDebugEnabled())) {
     // eslint-disable-next-line no-console
     console.warn(
-      `[FixedAnimationFrame] type="${type}" does not match detected "${detected}" for src=${src.split('/').pop()} — using detected type.`,
+        `[FixedAnimationFrame] type="${type}" does not match detected "${detected}" for src=${normalizedSrc.split('/').pop()} — using detected type.`,
     );
   }
   const safeType: AnimationType | undefined = type && KNOWN_TYPES.has(type) && !explicitMismatch
@@ -158,7 +165,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
     );
   };
 
-  if (!src) {
+  if (!normalizedSrc) {
     return (
       <div
         className={cn('flex items-center justify-center text-4xl', BG_CLASSES[background], className)}
@@ -185,7 +192,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
           }
         >
           <SVGAPlayerWithAudio
-            src={src}
+            src={normalizedSrc}
             className="w-full h-full"
             loop={loop}
             autoPlay={autoPlay}
@@ -200,7 +207,7 @@ const FixedAnimationFrame: React.FC<FixedAnimationFrameProps> = ({
         </Suspense>
       ) : (
         <UniversalAnimationPlayer
-          src={src}
+          src={normalizedSrc}
           type={safeType}
           className="w-full h-full"
           loop={loop}
