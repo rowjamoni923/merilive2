@@ -37,34 +37,41 @@ interface Props {
 
 }
 
-// Recommendation logic (per owner directive):
-//  - Small payments (< $10): ERC20 is recommended (accepts small amounts)
-//  - Large payments (≥ $10): TRC20 is recommended (lowest fee for bigger amounts)
+// Recommendation logic (corrected — based on real SwiftPay/network minimums):
+//  - TRC20 / BEP20 / SOL have the lowest network minimums (~$0.50-1) and lowest gas.
+//  - ERC20 / BTC / ETH have HIGH gateway minimums ($5-30+) due to Ethereum gas.
+//  - Therefore TRC20 is recommended for ALL sizes (it works for both small + large).
 const LARGE_PAYMENT_THRESHOLD_USD = 10;
 
+// Order matters — first option is tried first in the auto-fallback loop.
+// Low-min networks come first so small amounts succeed on the first try.
 const BASE_CRYPTO_OPTIONS = [
   { value: "usdttrc20", label: "USDT (TRC20)" },
   { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
-  { value: "usdterc20", label: "USDT (ERC20)" },
+  { value: "sol", label: "Solana (SOL)" },
+  { value: "ltc", label: "Litecoin (LTC)" },
+  { value: "bnb", label: "BNB" },
   { value: "btc", label: "Bitcoin (BTC)" },
   { value: "eth", label: "Ethereum (ETH)" },
-  { value: "bnb", label: "BNB" },
+  { value: "usdterc20", label: "USDT (ERC20)" },
 ];
 
-const getRecommendedCurrency = (priceUsd: number | null | undefined) => {
-  if (!priceUsd || priceUsd < LARGE_PAYMENT_THRESHOLD_USD) return "usdterc20";
+const getRecommendedCurrency = (_priceUsd: number | null | undefined) => {
+  // TRC20 has the lowest network minimum and lowest fee at any size.
   return "usdttrc20";
 };
 
 const getCryptoOptions = (priceUsd: number | null | undefined) => {
   const recommended = getRecommendedCurrency(priceUsd);
+  const isSmall = !priceUsd || priceUsd < LARGE_PAYMENT_THRESHOLD_USD;
   return BASE_CRYPTO_OPTIONS.map((o) => {
-    if (o.value !== recommended) return o;
-    const suffix =
-      recommended === "usdterc20"
-        ? " — recommended for small payments"
-        : " — recommended, lowest fee";
-    return { ...o, label: `${o.label}${suffix}` };
+    if (o.value === recommended) {
+      return { ...o, label: `${o.label} — recommended, lowest minimum` };
+    }
+    if (isSmall && (o.value === "usdterc20" || o.value === "btc" || o.value === "eth")) {
+      return { ...o, label: `${o.label} — high minimum, large payments only` };
+    }
+    return o;
   });
 };
 
