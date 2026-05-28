@@ -696,8 +696,10 @@ const App = () => {
       window.clearTimeout(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
+      cancelIdle(framesIdleId);
       cancelIdle(batteryIdleId);
     };
+
   }, []);
 
   // ⚡ REALTIME → REACT QUERY BRIDGE moved inside QueryClientProvider (see RealtimeQuerySyncBridge below)
