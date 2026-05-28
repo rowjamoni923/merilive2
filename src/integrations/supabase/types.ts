@@ -1204,6 +1204,7 @@ export type Database = {
           agency_id: string
           beans_amount: number
           created_at: string
+          description: string | null
           diamond_amount: number
           fee_amount: number
           id: string
@@ -1214,6 +1215,7 @@ export type Database = {
           agency_id: string
           beans_amount?: number
           created_at?: string
+          description?: string | null
           diamond_amount?: number
           fee_amount?: number
           id?: string
@@ -1224,6 +1226,7 @@ export type Database = {
           agency_id?: string
           beans_amount?: number
           created_at?: string
+          description?: string | null
           diamond_amount?: number
           fee_amount?: number
           id?: string
