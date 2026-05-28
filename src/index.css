@@ -3323,11 +3323,25 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   max-width: 100%;
 }
 
-/* Let svgaplayerweb own canvas sizing + matrix transforms. The React player
-   observes container resize, so previews recover without CSS double-scaling. */
+/* svgaplayerweb sizes the <canvas> backing store to the SVGA's intrinsic
+   pixel dimensions and leaves it pinned to top-left of the container.
+   Force the canvas to fill (and center within) its parent so previews render
+   centered at the container's size — fixes admin grid previews (frames,
+   entry animations, gifts) that were appearing in the top-left corner. */
+.svga-fit-canvas,
+[data-svga-fit="true"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .svga-fit-canvas canvas,
 [data-svga-fit="true"] canvas {
   display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
   transform-origin: 50% 50%;
   pointer-events: none;
 }
