@@ -877,16 +877,18 @@ const AdminTopupSystem = () => {
                       {recentTopups.map(log => (
                         <div key={log.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50">
                           <Avatar className="w-8 h-8">
-                            <AvatarImage src={log.user?.avatar_url} />
-                            <AvatarFallback>{log.user?.display_name?.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={log.user?.avatar_url ?? undefined} />
+                            <AvatarFallback>{(log.user?.display_name ?? log.recipient_name ?? '?').charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{log.user?.display_name}</p>
-                            <p className="text-xs text-slate-500">{log.user?.app_uid}</p>
+                            <p className="font-medium text-sm truncate">{log.user?.display_name ?? log.recipient_name ?? '—'}</p>
+                            <p className="text-xs text-slate-500 truncate">
+                              {log.target_label}{log.user?.app_uid ? ` • ${log.user.app_uid}` : ''}
+                            </p>
                           </div>
                           <div className="text-right flex-shrink-0">
                             <Badge className="bg-green-100 text-green-700 text-xs">
-                              +{Math.abs(Number((log.details as any)?.delta ?? log.details?.amount ?? 0)).toLocaleString()} 💎
+                              +{Math.abs(log.delta).toLocaleString()} {formatTopupFieldLabel(log.field)}
                             </Badge>
                             <p className="text-xs text-slate-400 mt-1">
                               {format(new Date(log.created_at), 'dd/MM HH:mm')}
