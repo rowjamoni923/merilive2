@@ -1,6 +1,19 @@
 project_id = "ayjdlvuurscxucatbbah"
 
 [functions]
+  # Push notification functions — internal auth (Pkg308) gates every call
+  # (service-role / admin x-admin-token / verified notifications-trigger / self).
+  # Platform JWT must be OFF so the DB trigger's pg_net.http_post (no
+  # Authorization header) can reach the function body.
+  [functions.send-push-notification]
+    verify_jwt = false
+  [functions.send-app-notification]
+    verify_jwt = false
+  [functions.push-on-notification]
+    verify_jwt = false
+  [functions.notify-new-message]
+    verify_jwt = false
+
   [functions.admin-sign-storage-url]
     verify_jwt = false
   [functions.ai-moderator]
