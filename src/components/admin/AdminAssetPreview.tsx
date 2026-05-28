@@ -122,14 +122,14 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
           <Loader2 className="w-6 h-6 animate-spin text-purple-500/50" />
         </div>
       }>
-        {isSvga && showMuteButton && normalizedSrc ? (
+        {isSvga && showMuteButton && displaySrc ? (
           <SVGAPreviewWithMuteToggle
-            src={normalizedSrc}
+            src={displaySrc}
             className={cn("w-full h-full object-contain", className)}
             containerClassName="w-full h-full"
             showMuteButton={true}
           />
-        ) : shouldPlayAnimation && normalizedSrc ? (
+        ) : shouldPlayAnimation && displaySrc ? (
           <div className="absolute inset-0 h-full w-full">
             {isFrameAsset && (
               <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
@@ -144,8 +144,8 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
             )}
             <div className={cn("absolute z-10 h-full w-full pointer-events-none", isFrameAsset ? "inset-0" : "inset-0")}>
               <FixedAnimationFrame
-                key={normalizedSrc}
-                src={normalizedSrc}
+                key={displaySrc}
+                src={displaySrc}
                 type={detectedType as any}
                 size="fill"
                 center={false}
