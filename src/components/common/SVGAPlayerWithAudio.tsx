@@ -262,11 +262,11 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative overflow-hidden svga-fit-canvas", className)} data-svga-fit="true">
       {loading && (
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="absolute inset-0 h-full w-full svga-fit-canvas" data-svga-fit="true" />
     </div>
   );
 };
