@@ -2648,41 +2648,8 @@ const Recharge = () => {
                     </button>
                   </div>
                   <div className="space-y-2">
-                    {/* Reason 1: No data at all */}
-                    {helperDiag.rawTotal === 0 && !helperDiag.isLoading && (
-                      <div className="flex items-start gap-2 rounded-xl bg-white/70 border border-rose-100 p-2.5">
-                        <span className="mt-0.5 text-base">📭</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-[11px] font-semibold text-rose-700">No trader data found</p>
-                            <button
-                              type="button"
-                              onClick={() => { navigator.clipboard.writeText('AUDIT:VT-NO-DATA'); toast({ title: 'Copied audit ID', description: 'VT-NO-DATA' }); }}
-                              className="inline-flex items-center gap-0.5 text-[9px] font-mono text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded px-1 py-0.5 transition-colors"
-                              title="Copy audit ID"
-                            >
-                              <Copy className="w-2.5 h-2.5" /> VT-NO-DATA
-                            </button>
-                          </div>
-                          <p className="text-[10px] text-rose-600/80 leading-snug">
-                            No helper-trader profiles exist in the system yet. This section will populate once traders register and are approved.
-                          </p>
-                          <div className="mt-1 text-[9px] font-mono text-rose-700 bg-rose-50/80 rounded px-1.5 py-0.5 inline-block">
-                            Filter: country === "{helperDiag.userCountry || '?'}" | is_active=true | is_verified=true
-                          </div>
-                          {isAdminViewer && (
-                            <a
-                              href="/admin/helper-applications"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 hover:text-rose-900 underline-offset-2 hover:underline"
-                            >
-                              Open Admin → Helper Applications <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    {/* Reason 1 (VT-NO-DATA) removed per user request */}
+
 
                     {/* Reason 2: Country mismatch */}
                     {helperDiag.byCountry > 0 && (
