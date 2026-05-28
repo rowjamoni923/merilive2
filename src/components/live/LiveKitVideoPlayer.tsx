@@ -12,7 +12,7 @@ import type { CSSProperties, VideoHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 import type { Track } from 'livekit-client';
 import { hardenVideoElementForNative, cleanupVideoHardening } from '@/utils/videoNativeHardening';
-import { isNativeLiveKitAvailable, setNativeVideoVisible } from '@/plugins/LiveKitNativeBridge';
+
 
 type VendorVideoProps = VideoHTMLAttributes<HTMLVideoElement> & {
   'x5-video-player-type'?: string;
@@ -74,25 +74,15 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
 
 
-  // === NATIVE BRIDGE: only enable native surface for REMOTE playback ===
-  // Host/local preview (mirror=true) must stay on web layer to avoid native beauty surface conflicts.
-  useEffect(() => {
-    const nativeAvailable = isNativeLiveKitAvailable();
-    if (!nativeAvailable) return;
+  // Pkg381: dead native-bridge effect removed.
+  // The previous code called `setNativeVideoVisible(true)` on every viewer mount,
+  // intended to show an Android SurfaceViewRenderer. But `connectNativeLiveKit` /
+  // `initNativeVideoSurface` were NEVER called anywhere in the app, so the native
+  // plugin stayed uninitialized — the call was a silent no-op at best, and on
+  // builds where the plugin partially initialized it painted an empty black
+  // SurfaceView over the working web <video>. All video flows now go through the
+  // web livekit-client SDK path below (videoTrack.attach + srcObject).
 
-    const shouldUseNativeSurface = !mirror;
-    const hasActiveTrack = Boolean(
-      shouldUseNativeSurface &&
-      videoTrack &&
-      videoTrack.mediaStreamTrack &&
-      videoTrack.mediaStreamTrack.readyState !== 'ended'
-    );
-
-    setNativeVideoVisible(hasActiveTrack);
-    return () => {
-      setNativeVideoVisible(false);
-    };
-  }, [videoTrack, mirror]);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -195,7 +185,23 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
     el.onstalled = () => { if (el.readyState >= 2) el.play().catch(() => {}); };
 
     // Lightweight retries for autoplay race conditions on some WebViews
-    const timers = [0, 60, 180].map((d) => setTimeout(playNow, d));
+    const timers = [0, 60, 180, 400, 800].map((d) => setTimeout(playNow, d));
+
+    // Pkg381 — REVEAL WATCHDOG.
+    // Android WebView often lacks requestVideoFrameCallback AND can silently
+    // drop `onplaying`/`oncanplay`. Without this, the video stays at opacity:0
+    // forever (white/black screen with only chat overlay visible) — exactly
+    // the host/viewer symptom we are fixing. After 1200ms force-reveal if the
+    // underlying mediaStreamTrack is live, regardless of whether any event fired.
+    const revealWatchdog = setTimeout(() => {
+      const mt = videoTrack?.mediaStreamTrack;
+      if (mt && mt.readyState === 'live') {
+        revealVideo();
+        // Best-effort: kick play() again in case autoplay was deferred.
+        try { el.play().catch(() => {}); } catch { /* ignore */ }
+      }
+    }, 1200);
+
 
     // === STALL WATCHDOG (optimized: 1.5s interval instead of 1s) ===
     let lastTime = -1;
@@ -229,6 +235,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     return () => {
       timers.forEach(clearTimeout);
+      clearTimeout(revealWatchdog);
       clearInterval(stallProbe);
       mediaTrack?.removeEventListener('ended', onTrackEnded);
       if (frameHandle !== null && typeof safeVideo.cancelVideoFrameCallback === 'function') {
