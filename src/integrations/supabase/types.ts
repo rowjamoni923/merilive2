@@ -13661,6 +13661,67 @@ export type Database = {
         }
         Relationships: []
       }
+      user_beans_exchanges: {
+        Row: {
+          beans_amount: number
+          completed_at: string | null
+          created_at: string
+          destination_type: string | null
+          diamonds_reward: number
+          exchange_rate: number
+          id: string
+          status: string
+          tier_id: string | null
+          user_id: string
+        }
+        Insert: {
+          beans_amount: number
+          completed_at?: string | null
+          created_at?: string
+          destination_type?: string | null
+          diamonds_reward: number
+          exchange_rate: number
+          id?: string
+          status?: string
+          tier_id?: string | null
+          user_id: string
+        }
+        Update: {
+          beans_amount?: number
+          completed_at?: string | null
+          created_at?: string
+          destination_type?: string | null
+          diamonds_reward?: number
+          exchange_rate?: number
+          id?: string
+          status?: string
+          tier_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_beans_exchanges_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "user_beans_exchange_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_beans_exchanges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_beans_exchanges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_blocks: {
         Row: {
           blocked_id: string
