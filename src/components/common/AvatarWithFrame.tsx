@@ -451,7 +451,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   }, [effectiveSrc]);
 
 
-  const hasValidFrame = activeFrameUrl && activeFrameUrl.startsWith('http') && !frameError && !brokenFrameUrls.has(activeFrameUrl);
+  const hasValidFrame = !!activeFrameUrl && (activeFrameUrl.startsWith('http') || activeFrameUrl.startsWith('/')) && !frameError && !brokenFrameUrls.has(activeFrameUrl);
   const frameAutoPlay = true; // Premium frames must animate nonstop everywhere, even if older call sites pass showAnimation={false}.
   const isAnimatedFrame = ['svga', 'lottie', 'gif', 'webp'].includes(activeFrameType);
   const isStaticFrame = activeFrameType === 'static';
