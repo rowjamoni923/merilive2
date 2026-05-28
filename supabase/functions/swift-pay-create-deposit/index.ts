@@ -264,15 +264,40 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Currency disabled / not supported on the SwiftPay/NOWPayments account.
+      // Return 200 with a fallback signal so the client can silently retry the
+      // next currency in its list instead of crashing on a 502.
+      const lowerMsg = gatewayMessage.toLowerCase();
+      if (
+        lowerMsg.includes("currency not enabled") ||
+        lowerMsg.includes("currency is not enabled") ||
+        lowerMsg.includes("not enabled") ||
+        lowerMsg.includes("not supported") ||
+        lowerMsg.includes("unsupported currency") ||
+        lowerMsg.includes("disabled")
+      ) {
+        return json({
+          ok: false,
+          error: "currency_not_enabled",
+          fallback: true,
+          message: gatewayMessage,
+          gateway_status: depositRes.status,
+          details: depositBody,
+        });
+      }
+
       return json(
         {
+          ok: false,
+          fallback: true,
           error: gatewayMessage,
           gateway_status: depositRes.status,
           details: depositBody,
         },
-        502,
+        200,
       );
     }
+
 
     const { data: row, error: insErr } = await admin
       .from("swift_pay_topups")
