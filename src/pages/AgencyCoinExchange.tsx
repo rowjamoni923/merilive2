@@ -544,7 +544,7 @@ const AgencyCoinExchange = () => {
         
         toast({
           title: "Transfer Successful! 💎",
-          description: `Sent ${diamonds.toLocaleString()} diamonds to ${selectedUser.display_name || selectedUser.app_uid}`,
+          description: `Sent ${diamonds.toLocaleString()} coins to ${selectedUser.display_name || selectedUser.app_uid}'s top-up balance`,
         });
         
         setDiamondsToSend("");
@@ -552,7 +552,7 @@ const AgencyCoinExchange = () => {
         setSearchQuery("");
         fetchData(); // Refresh transactions
       } else if (confirmAction === "sendAgency" && selectedTargetAgency) {
-        // AGENCY-TO-AGENCY TRANSFER: Diamonds go to recipient agency's diamond_balance
+        // AGENCY TRANSFER: sender agency diamond balance funds the target agency owner's trader wallet.
         const diamonds = Math.floor(parseInt(diamondsToSend) || 0);
         
         // Use atomic RPC for agency-to-agency transfer
@@ -575,7 +575,7 @@ const AgencyCoinExchange = () => {
         
         toast({
           title: "Transfer Successful! 💎",
-          description: `Sent ${diamonds.toLocaleString()} diamonds to ${selectedTargetAgency.name}`,
+          description: `Sent ${diamonds.toLocaleString()} coins to ${selectedTargetAgency.owner_name || selectedTargetAgency.name}'s trader wallet`,
         });
         
         setDiamondsToSend("");
@@ -824,7 +824,7 @@ const AgencyCoinExchange = () => {
               }`}
             >
               <Diamond className="w-4 h-4" />
-              Agency
+              Trader Wallet
             </button>
           </div>
 
@@ -833,7 +833,7 @@ const AgencyCoinExchange = () => {
             <div className="bg-white rounded-2xl p-5 border border-warning-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Send className="w-5 h-5 text-info-600" />
-                Send Diamonds to User
+                Send Coins to User Top-up
               </h3>
               
               <div className="space-y-4">
@@ -917,19 +917,19 @@ const AgencyCoinExchange = () => {
                 {selectedUser && (
                   <>
                     <div>
-                      <Label className="text-slate-500">Diamond Amount</Label>
+                      <Label className="text-slate-500">Coin Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-info-600" />
                         <Input
                           type="number"
-                          placeholder="Enter diamond amount"
+                          placeholder="Enter coin amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
                           className="pl-10 text-lg h-12 bg-white border-warning-200 text-slate-800 placeholder:text-slate-500"
                         />
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        You have: {agency.diamond_balance.toLocaleString()} diamonds
+                        Agency wallet: {agency.diamond_balance.toLocaleString()} 💎
                       </p>
                     </div>
 
@@ -937,14 +937,14 @@ const AgencyCoinExchange = () => {
                     <div className="bg-gradient-to-r from-info-500/10 to-info-500/10 rounded-xl p-4 border border-info-500/20">
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">Sending:</span>
+                            <span className="text-slate-500">Sending to top-up:</span>
                           <span className="font-semibold text-slate-800 flex items-center gap-1">
                             <Diamond className="w-4 h-4 text-info-600" />
                             {(parseInt(diamondsToSend) || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">Recipient:</span>
+                            <span className="text-slate-500">User:</span>
                           <span className="font-semibold text-slate-800">{selectedUser.display_name || selectedUser.app_uid}</span>
                         </div>
                         <div className="border-t border-warning-200/60 pt-2 mt-2">
@@ -971,7 +971,7 @@ const AgencyCoinExchange = () => {
                       className="w-full h-12 bg-gradient-to-r from-info-500 to-info-600 hover:from-info-600 hover:to-info-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
-                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} 💎
+                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Coins
                     </Button>
                   </>
                 )}
@@ -984,10 +984,10 @@ const AgencyCoinExchange = () => {
             <div className="bg-white rounded-2xl p-5 border border-warning-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Diamond className="w-5 h-5 text-brand-600" />
-                Send Diamonds to Agency
+                Send Coins to Trader Wallet
               </h3>
               <p className="text-xs text-slate-500 -mt-2 mb-4">
-                Diamonds will be added to the agency owner's Trader Wallet
+                Agency transfer goes directly to the target owner’s Trader Wallet
               </p>
               
               <div className="space-y-4">
@@ -1052,12 +1052,12 @@ const AgencyCoinExchange = () => {
                 {selectedTargetAgency && (
                   <>
                     <div>
-                      <Label className="text-slate-500">Diamond Amount</Label>
+                      <Label className="text-slate-500">Coin Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-600" />
                         <Input
                           type="number"
-                          placeholder="Enter diamond amount"
+                          placeholder="Enter coin amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
                           className="pl-10 text-lg h-12 bg-white border-warning-200 text-slate-800 placeholder:text-slate-500"
@@ -1079,7 +1079,7 @@ const AgencyCoinExchange = () => {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">To Agency:</span>
+                          <span className="text-slate-500">Agency Owner:</span>
                           <span className="font-semibold text-slate-800">{selectedTargetAgency.name}</span>
                         </div>
                         <div className="flex justify-between text-sm">
@@ -1110,7 +1110,7 @@ const AgencyCoinExchange = () => {
                       className="w-full h-12 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
-                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} 💎 →
+                      Send {(parseInt(diamondsToSend) || 0).toLocaleString()} Coins → Trader Wallet
                     </Button>
                   </>
                 )}
@@ -1197,12 +1197,12 @@ const AgencyCoinExchange = () => {
                   <p>Are you sure?</p>
                   <div className="bg-brand-500/10 p-4 rounded-lg border border-brand-500/20">
                     <p className="text-sm text-slate-800">
-                      Sending <span className="font-semibold text-brand-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> 💎 to{" "}
-                      <span className="font-semibold">{selectedTargetAgency.name}</span>
+                      Sending <span className="font-semibold text-brand-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> coins to{" "}
+                      <span className="font-semibold">{selectedTargetAgency.owner_name || selectedTargetAgency.name}</span>
                     </p>
                     <p className="text-xs text-slate-500 mt-1">Code: {selectedTargetAgency.agency_code}</p>
                     <p className="text-xs text-brand-700 mt-2">
-                      ✨ Diamonds will go to <strong>{selectedTargetAgency.owner_name || 'Owner'}'s Trader Wallet</strong>
+                      ✨ Funds will go to <strong>{selectedTargetAgency.owner_name || 'Owner'}'s Trader Wallet</strong>
                     </p>
                   </div>
                 </div>
@@ -1211,9 +1211,10 @@ const AgencyCoinExchange = () => {
                   <p>Are you sure?</p>
                   <div className="bg-info-500/10 p-4 rounded-lg border border-info-500/20">
                     <p className="text-sm text-slate-800">
-                      Sending <span className="font-semibold text-info-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> 💎 to{" "}
+                      Sending <span className="font-semibold text-info-600">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> coins to{" "}
                       <span className="font-semibold">{selectedUser?.display_name || selectedUser?.app_uid}</span>
                     </p>
+                    <p className="text-xs text-info-700 mt-1">Destination: user top-up balance</p>
                     <p className="text-xs text-slate-500 mt-1">UID: {selectedUser?.app_uid || selectedUser?.id.slice(0, 8)}</p>
                   </div>
                 </div>
