@@ -254,13 +254,13 @@ export default function SwiftPayDepositModal({
         // (cheaper-min) currency before showing the user any error.
         if (errPayload?.error === "minimum_deposit_not_met"
             || errPayload?.error === "below_minimum"
-            || /less than minim/i.test(String(errPayload?.message || error?.message || ""))) {
+            || /less than minim/i.test(combinedMsg)) {
           lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
           lastErrIsMinimum = true;
           continue; // try next network
         }
 
-        lastErrMsg = getDepositErrorMessage(errPayload, error?.message);
+        lastErrMsg = getDepositErrorMessage(errPayload, combinedMsg);
         // Non-currency, non-minimum gateway error → stop trying.
         break;
       }
