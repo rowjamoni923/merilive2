@@ -611,14 +611,71 @@ const AdminNotificationTemplates = () => {
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium text-white/80">Premium PNG URL</Label>
+                <Label className="text-sm font-medium text-white/80">Image URL</Label>
                 <Input
                   value={editForm.image_url}
                   onChange={(e) => setEditForm(prev => ({ ...prev, image_url: e.target.value }))}
-                  placeholder="/images/premium-notifications/recharge-mega-3d.png"
+                  placeholder="Pick below or paste URL"
                   className="mt-1.5 bg-white/5 border-white/10 text-white placeholder:text-white/30"
                 />
               </div>
+            </div>
+
+            {/* Visual Icon Picker */}
+            <div>
+              <Label className="text-sm font-medium text-white/80 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-300" /> Pick Premium 3D Icon
+              </Label>
+              <div className="mt-2 grid grid-cols-5 gap-2">
+                {premiumIcons.map((icon) => {
+                  const active = editForm.image_url === icon.url;
+                  return (
+                    <button
+                      type="button"
+                      key={icon.url}
+                      onClick={() => setEditForm(prev => ({ ...prev, image_url: icon.url }))}
+                      className={`rounded-lg p-1.5 border text-center transition ${active ? 'border-amber-400 bg-amber-400/10 ring-2 ring-amber-400/40' : 'border-white/10 bg-white/[0.04] hover:border-white/30'}`}
+                      title={icon.label}
+                    >
+                      <SmartImage src={icon.url} alt={icon.label} className="w-full aspect-square object-contain" />
+                      <p className="mt-1 text-[9px] text-white/70 truncate">{icon.label}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Visual Banner Picker */}
+            <div>
+              <Label className="text-sm font-medium text-white/80 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-blue-300" /> Pick Event Banner
+              </Label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {eventBanners.map((banner) => {
+                  const active = editForm.image_url === banner.url;
+                  return (
+                    <button
+                      type="button"
+                      key={banner.url}
+                      onClick={() => setEditForm(prev => ({ ...prev, image_url: banner.url }))}
+                      className={`rounded-lg overflow-hidden border transition text-left ${active ? 'border-amber-400 ring-2 ring-amber-400/40' : 'border-white/10 hover:border-white/30'}`}
+                      title={banner.title}
+                    >
+                      <SmartImage src={banner.url} alt={banner.title} className="w-full aspect-[4/1.8] object-cover" />
+                      <p className="px-2 py-1 text-[10px] text-white/70 truncate bg-white/[0.04]">{banner.title}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              {editForm.image_url && (
+                <button
+                  type="button"
+                  onClick={() => setEditForm(prev => ({ ...prev, image_url: '' }))}
+                  className="mt-2 text-xs text-white/50 hover:text-white/80 underline"
+                >
+                  Clear image (use emoji only)
+                </button>
+              )}
             </div>
 
             <div>
