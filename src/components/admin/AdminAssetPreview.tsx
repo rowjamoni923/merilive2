@@ -4,6 +4,8 @@ import { Loader2, ShieldAlert } from 'lucide-react';
 import { SmartImage } from "@/components/ui/smart-image";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import SVGAPreviewWithMuteToggle from "./SVGAPreviewWithMuteToggle";
+import { normalizePublicMediaUrl } from "@/lib/cdnImage";
+import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
 
 export type AdminAssetType = 'frame' | 'role-frame' | 'chat-bubble' | 'entry-banner' | 'entry-bar' | 'entry-name-bar' | 'gift' | 'vehicle' | 'game-logo';
 
@@ -36,18 +38,31 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
   const [usePreviewFallback, setUsePreviewFallback] = React.useState(false);
 
   const isFrameAsset = type === 'frame' || type === 'role-frame';
-  const normalizedSrc = src?.trim() || null;
-  const normalizedPreview = previewUrl?.trim() || null;
+  const normalizeAssetUrl = React.useCallback((value?: string | null) => {
+    const trimmed = value?.trim();
+    if (!trimmed) return null;
+    return normalizeGiftMediaUrl(trimmed) || normalizePublicMediaUrl(trimmed) || trimmed;
+  }, []);
+  const normalizedSrc = normalizeAssetUrl(src);
+  const normalizedPreview = normalizeAssetUrl(previewUrl);
   const displaySrc = (usePreviewFallback ? normalizedPreview : normalizedSrc) || normalizedPreview;
   const cleanUrl = (displaySrc || '').toLowerCase().split('?')[0].split('#')[0];
   const extensionType = cleanUrl.endsWith('.svga') ? 'svga' : cleanUrl.endsWith('.json') ? 'lottie' : cleanUrl.endsWith('.mp4') ? 'mp4' : cleanUrl.endsWith('.webm') ? 'webm' : cleanUrl.endsWith('.gif') ? 'gif' : cleanUrl.endsWith('.webp') ? 'webp' : cleanUrl.endsWith('.png') ? 'png' : cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg') ? 'static' : undefined;
   const normalizedAnimationType = animationType?.toLowerCase().trim();
   const knownAnimationTypes = new Set(['svga', 'lottie', 'vap', 'gif', 'webp', 'png', 'mp4', 'webm', 'static']);
-  const detectedType = normalizedAnimationType && knownAnimationTypes.has(normalizedAnimationType)
-    ? normalizedAnimationType
+  const mappedAnimationType = normalizedAnimationType === 'image'
+    ? (extensionType && !['svga', 'lottie', 'vap', 'mp4', 'webm'].includes(extensionType) ? extensionType : 'static')
+    : normalizedAnimationType === 'video'
+      ? (extensionType === 'webm' || extensionType === 'mp4' ? extensionType : 'mp4')
+      : normalizedAnimationType === 'animated' || normalizedAnimationType === 'custom' || normalizedAnimationType === 'glow' || normalizedAnimationType === 'none'
+        ? (normalizedAnimationType === 'none' ? 'static' : extensionType)
+        : normalizedAnimationType;
+  const detectedType = mappedAnimationType && knownAnimationTypes.has(mappedAnimationType)
+    ? mappedAnimationType
     : extensionType;
   const isSvga = detectedType === 'svga' || cleanUrl.endsWith('.svga');
-  const shouldPlayAnimation = Boolean(normalizedSrc) && detectedType !== 'static';
+  const shouldPlayAnimation = Boolean(normalizedSrc) && Boolean(detectedType) && detectedType !== 'static';
+  const compactPreview = Boolean(containerClassName?.includes('min-h-0') || containerClassName?.includes('h-full'));
 
   React.useEffect(() => {
     setHasError(false);
@@ -92,8 +107,8 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
       <div 
         className={cn(
           "relative flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 text-white/20 gap-2",
-          getAspectRatioClass(),
-          getMinHeight(),
+          !compactPreview && getAspectRatioClass(),
+          !compactPreview && getMinHeight(),
           containerClassName
         )}
         style={checkerboardStyle}
@@ -109,8 +124,8 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
       className={cn(
         "relative rounded-xl shadow-inner border border-border/60 flex items-center justify-center group isolate",
         isFrameAsset ? "overflow-visible" : "overflow-hidden",
-        getAspectRatioClass(),
-        getMinHeight(),
+        !compactPreview && getAspectRatioClass(),
+        !compactPreview && getMinHeight(),
         containerClassName
       )}
       data-admin-asset-preview="true"
