@@ -12,7 +12,7 @@ import type { CSSProperties, VideoHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 import type { Track } from 'livekit-client';
 import { hardenVideoElementForNative, cleanupVideoHardening } from '@/utils/videoNativeHardening';
-import { isNativeLiveKitAvailable, setNativeVideoVisible } from '@/plugins/LiveKitNativeBridge';
+
 
 type VendorVideoProps = VideoHTMLAttributes<HTMLVideoElement> & {
   'x5-video-player-type'?: string;
