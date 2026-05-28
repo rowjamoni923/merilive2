@@ -211,10 +211,21 @@ export default function SwiftPayDepositModal({
 
         // Try to parse a structured error payload from the FunctionsHttpError context.
         let parsedErrPayload: any = null;
+        let rawErrText = "";
         if (error) {
           try {
             const ctx: any = (error as any).context;
-            if (ctx && typeof ctx.json === "function") parsedErrPayload = await ctx.json();
+            if (ctx && typeof ctx.clone === "function") {
+              try { parsedErrPayload = await ctx.clone().json(); } catch { /* ignore */ }
+              if (!parsedErrPayload) {
+                try { rawErrText = await ctx.clone().text(); } catch { /* ignore */ }
+                if (rawErrText) {
+                  try { parsedErrPayload = JSON.parse(rawErrText); } catch { /* ignore */ }
+                }
+              }
+            } else if (ctx && typeof ctx.json === "function") {
+              try { parsedErrPayload = await ctx.json(); } catch { /* ignore */ }
+            }
           } catch { /* ignore */ }
         }
 
@@ -229,8 +240,10 @@ export default function SwiftPayDepositModal({
           return;
         }
 
+        const combinedMsg = String(errPayload?.message || errPayload?.details?.error || errPayload?.error || rawErrText || error?.message || "");
+
         // Decide whether to auto-fallback to next currency.
-        if (errPayload && isCurrencyDisabledError(errPayload, error?.message)) {
+        if (isCurrencyDisabledError(errPayload, combinedMsg)) {
           // silently try next currency
           continue;
         }
