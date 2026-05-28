@@ -380,28 +380,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       };
     }
 
-    // Use batch system for userId - fetch IMMEDIATELY (no idle deferral)
-    // Idle deferral caused 100-250ms frame lag on Profile/Chat/etc. Frame must be instant.
-    if (userId) {
-      const cached = getUserFrameUrl(userId);
-      if (cached) {
-        setActiveFrameUrl(cached.url);
-        setActiveFrameType(cached.type);
-        return;
-      }
-
-      requestUserFrame(userId).then(() => {
-        if (cancelled) return;
-        const result = getUserFrameUrl(userId);
-        if (result) {
-          setActiveFrameUrl(result.url);
-          setActiveFrameType(result.type);
-        }
-      });
-      return () => { cancelled = true; };
-    }
-
-    // No userId or propFrameId - use level-based frame
+    // Helper: fetch level-based frame as fallback when user has no equipped frame
     const fetchLevelFrame = async () => {
       const frame = await getLevelFrame(level, isHost);
       if (cancelled) return;
@@ -412,6 +391,36 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         setActiveFrameUrl(null);
       }
     };
+
+    // Use batch system for userId - fetch IMMEDIATELY (no idle deferral)
+    if (userId) {
+      const cached = getUserFrameUrl(userId);
+      if (cached) {
+        if (cached.url) {
+          setActiveFrameUrl(cached.url);
+          setActiveFrameType(cached.type);
+        } else {
+          // User has no equipped frame → fall back to level frame
+          fetchLevelFrame();
+        }
+        return;
+      }
+
+      requestUserFrame(userId).then(() => {
+        if (cancelled) return;
+        const result = getUserFrameUrl(userId);
+        if (result?.url) {
+          setActiveFrameUrl(result.url);
+          setActiveFrameType(result.type);
+        } else {
+          // No equipped frame → fall back to level frame
+          fetchLevelFrame();
+        }
+      });
+      return () => { cancelled = true; };
+    }
+
+    // No userId or propFrameId - use level-based frame
     fetchLevelFrame();
     return () => { cancelled = true; };
   }, [userId, propFrameId, showFrame, level, isHost]);
