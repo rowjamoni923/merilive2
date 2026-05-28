@@ -10,6 +10,7 @@
 // Kill-switch: app_settings.livekit_signaling_enabled.egress_ops === true (default OFF)
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { EgressClient } from "npm:livekit-server-sdk@2.9.4";
+import { requireAdminSession } from "../_shared/adminAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -161,11 +162,9 @@ Deno.serve(async (req) => {
     return json(403, { error: "egress_ops_disabled" });
   }
 
-  const adminToken = (req.headers.get("x-admin-access-token") ?? req.headers.get("x-admin-token") ?? "");
-  if (!adminToken) return json(401, { error: "missing_admin_token" });
-  const v = await validateAdminToken(adminToken);
-  if (!v.ok) return json(401, { error: "invalid_admin_token" });
-  const role = v.role ?? "sub_admin";
+  const adminAuth = await requireAdminSession(req, adminClient);
+  if (!adminAuth.ok) return json(adminAuth.status, { error: adminAuth.error });
+  const role = adminAuth.admin.role === "owner" ? "owner" : "sub_admin";
 
   const body = await req.json().catch(() => ({}));
   const action = String(body?.action ?? "") as Action;
