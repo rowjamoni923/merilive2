@@ -74,25 +74,15 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
 
 
-  // === NATIVE BRIDGE: only enable native surface for REMOTE playback ===
-  // Host/local preview (mirror=true) must stay on web layer to avoid native beauty surface conflicts.
-  useEffect(() => {
-    const nativeAvailable = isNativeLiveKitAvailable();
-    if (!nativeAvailable) return;
+  // Pkg381: dead native-bridge effect removed.
+  // The previous code called `setNativeVideoVisible(true)` on every viewer mount,
+  // intended to show an Android SurfaceViewRenderer. But `connectNativeLiveKit` /
+  // `initNativeVideoSurface` were NEVER called anywhere in the app, so the native
+  // plugin stayed uninitialized — the call was a silent no-op at best, and on
+  // builds where the plugin partially initialized it painted an empty black
+  // SurfaceView over the working web <video>. All video flows now go through the
+  // web livekit-client SDK path below (videoTrack.attach + srcObject).
 
-    const shouldUseNativeSurface = !mirror;
-    const hasActiveTrack = Boolean(
-      shouldUseNativeSurface &&
-      videoTrack &&
-      videoTrack.mediaStreamTrack &&
-      videoTrack.mediaStreamTrack.readyState !== 'ended'
-    );
-
-    setNativeVideoVisible(hasActiveTrack);
-    return () => {
-      setNativeVideoVisible(false);
-    };
-  }, [videoTrack, mirror]);
 
   useEffect(() => {
     const el = videoRef.current;
