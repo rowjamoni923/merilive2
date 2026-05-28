@@ -125,16 +125,14 @@ export function ParticipantVideo({
             )}
             style={{ touchAction: 'none', pointerEvents: 'none', objectPosition: 'center center', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
         ) : (
-          <Avatar className={cn(
-            "border-2",
-            roomType === 'audio' ? "w-12 h-12" : "w-16 h-16",
-            isHost ? "border-yellow-400" : "border-purple-400"
-          )}>
-            <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback className="bg-purple-600 text-white text-xl">
-              {displayName?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          <AvatarWithFrame
+            userId={userId}
+            src={avatarUrl}
+            name={displayName || 'U'}
+            level={level}
+            isHost={isHost}
+            size={roomType === 'audio' ? 'sm' : 'md'}
+          />
         )}
 
         {/* Pkg167: cinematic edge vignette */}
