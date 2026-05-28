@@ -153,6 +153,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
                 autoPlay={true}
                 muted={true}
                 className={cn("h-full w-full", className)}
+                onError={handleAssetError}
               />
             </div>
           </div>
@@ -171,7 +172,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
               src={displaySrc}
               alt="Asset preview"
               className={cn("absolute inset-0 z-10 h-full w-full object-contain transition-transform group-hover:scale-105", className)}
-              onError={() => setHasError(true)}
+              onError={handleAssetError}
               fallbackSrc="/placeholder.svg"
             />
           </div>
@@ -180,7 +181,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
             src={displaySrc}
             alt="Asset preview"
             className={cn("h-full w-full object-contain transition-transform group-hover:scale-105", className)}
-            onError={() => setHasError(true)}
+            onError={handleAssetError}
             fallbackSrc="/placeholder.svg"
           />
         )}
