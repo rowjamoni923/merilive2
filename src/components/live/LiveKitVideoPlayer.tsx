@@ -235,6 +235,7 @@ export const LiveKitVideoPlayer = memo(function LiveKitVideoPlayer({
 
     return () => {
       timers.forEach(clearTimeout);
+      clearTimeout(revealWatchdog);
       clearInterval(stallProbe);
       mediaTrack?.removeEventListener('ended', onTrackEnded);
       if (frameHandle !== null && typeof safeVideo.cancelVideoFrameCallback === 'function') {
