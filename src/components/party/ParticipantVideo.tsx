@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { Crown, Mic, MicOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,8 @@ interface ParticipantVideoProps {
   stream: MediaStream | null;
   displayName: string | null;
   avatarUrl: string | null;
+  userId?: string;
+  level?: number;
   isHost: boolean;
   isSelf: boolean;
   isMuted?: boolean;
@@ -22,6 +24,8 @@ export function ParticipantVideo({
   stream,
   displayName,
   avatarUrl,
+  userId,
+  level = 1,
   isHost,
   isSelf,
   isMuted = false,
@@ -121,16 +125,14 @@ export function ParticipantVideo({
             )}
             style={{ touchAction: 'none', pointerEvents: 'none', objectPosition: 'center center', WebkitTouchCallout: 'none', WebkitAppearance: 'none' } as React.CSSProperties}/>
         ) : (
-          <Avatar className={cn(
-            "border-2",
-            roomType === 'audio' ? "w-12 h-12" : "w-16 h-16",
-            isHost ? "border-yellow-400" : "border-purple-400"
-          )}>
-            <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback className="bg-purple-600 text-white text-xl">
-              {displayName?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          <AvatarWithFrame
+            userId={userId}
+            src={avatarUrl}
+            name={displayName || 'U'}
+            level={level}
+            isHost={isHost}
+            size={roomType === 'audio' ? 'sm' : 'md'}
+          />
         )}
 
         {/* Pkg167: cinematic edge vignette */}

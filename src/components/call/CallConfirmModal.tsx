@@ -1,6 +1,6 @@
 import React from "react";
 import { Phone, X, Diamond, Clock, Sparkles, User } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
@@ -90,12 +90,15 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
                 className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"
                 style={{ width: 120, height: 120, top: -10, left: "50%", marginLeft: -60 }}
               />
-              <Avatar className="w-24 h-24 border-4 border-pink-500 shadow-xl shadow-pink-500/30 relative z-10">
-                <AvatarImage src={hostAvatar || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-pink-500 to-purple-600 text-white text-2xl">
-                  <User className="w-10 h-10" />
-                </AvatarFallback>
-              </Avatar>
+              <AvatarWithFrame
+                userId={hostId}
+                src={hostAvatar}
+                name={hostName}
+                level={hostLevel}
+                isHost
+                size="xl"
+                className="relative z-10"
+              />
               
               {/* Level Badge */}
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-0.5 rounded-full shadow-lg z-20">
