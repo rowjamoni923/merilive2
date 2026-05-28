@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { cn } from "@/lib/utils";
 
 interface GameLeaderboardPanelProps {
@@ -17,6 +18,8 @@ interface LeaderboardEntry {
   id: string;
   name: string;
   avatar_url: string | null;
+  level?: number;
+  is_agency?: boolean;
   stat_value: number;
   stat_label: string;
   extra_info?: string;
@@ -160,7 +163,7 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
       .filter(([, val]) => val > 0)
       .sort(([, a], [, b]) => b - a).slice(0, 50)
       .map(([id, val]) => ({
-        id, name: aMap[id]?.name || 'Agency', avatar_url: aMap[id]?.logo_url || null,
+        id, name: aMap[id]?.name || 'Agency', avatar_url: aMap[id]?.logo_url || null, is_agency: true,
         stat_value: val, stat_label: 'income',
       }));
   };
@@ -169,8 +172,8 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
     const ids = Object.keys(stats);
     if (!ids.length) return [];
 
-    const { data: profiles } = await supabase.from('profiles')
-      .select('id, username, display_name, avatar_url').in('id', ids);
+    const { data: profiles } = await supabase.from('profiles_public')
+      .select('id, app_uid, display_name, avatar_url, user_level').in('id', ids);
 
     const pMap: Record<string, any> = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
@@ -179,8 +182,8 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
       .filter(([, val]) => val > 0)
       .sort(([, a], [, b]) => b - a).slice(0, 50)
       .map(([id, val]) => ({
-        id, name: pMap[id]?.display_name || pMap[id]?.username || 'User',
-        avatar_url: pMap[id]?.avatar_url || null, stat_value: val, stat_label: label,
+        id, name: pMap[id]?.display_name || pMap[id]?.app_uid || 'User',
+        avatar_url: pMap[id]?.avatar_url || null, level: pMap[id]?.user_level || 1, stat_value: val, stat_label: label,
       }));
   };
 
