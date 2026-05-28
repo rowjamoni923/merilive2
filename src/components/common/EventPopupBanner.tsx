@@ -8,6 +8,7 @@ import { toSupabaseCdnUrl } from "@/lib/cdnImage";
 // Full-screen popup banner — usually shown at viewport size; ask CDN for ~1080w WebP.
 const popupCdn = (url: string | null | undefined) =>
   toSupabaseCdnUrl(url, { width: 1080, quality: 75, resize: "contain" }) || url || "";
+const isVideoBanner = (url?: string | null) => /\.(mp4|webm|mov|m4v)(?:$|[?#])/i.test(url || "");
 
 interface PopupBanner {
   id: string;
@@ -157,17 +158,29 @@ const EventPopupBanner = () => {
             className="relative w-full h-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={popupCdn(banner.image_url)}
-              alt={banner.title}
-              onClick={handleBannerClick}
-             
-              decoding="sync"
-              {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
-              className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
-              draggable={false}
-              onError={(e) => { const t = e.currentTarget; if (banner.image_url && t.src !== banner.image_url) t.src = banner.image_url; }}
-            />
+            {isVideoBanner(banner.image_url) ? (
+              <video
+                src={popupCdn(banner.image_url)}
+                onClick={handleBannerClick}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
+              />
+            ) : (
+              <img
+                src={popupCdn(banner.image_url)}
+                alt={banner.title}
+                onClick={handleBannerClick}
+                decoding="sync"
+                {...({ fetchpriority: "high" } as ImgHTMLAttributes<HTMLImageElement>)}
+                className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
+                draggable={false}
+                onError={(e) => { const t = e.currentTarget; if (banner.image_url && t.src !== banner.image_url) t.src = banner.image_url; }}
+              />
+            )}
 
             {/* Countdown Timer Badge (safe-area aware) */}
             <div
