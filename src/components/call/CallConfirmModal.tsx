@@ -1,6 +1,6 @@
 import React from "react";
 import { Phone, X, Diamond, Clock, Sparkles, User } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
