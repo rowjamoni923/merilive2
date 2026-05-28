@@ -3,6 +3,8 @@
  * Eliminates N+1 queries by batching all frame lookups
  */
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 
 interface FrameData {
   id: string;
@@ -43,6 +45,21 @@ export const subscribeFrameCache = (fn: Listener) => {
 };
 
 const notify = () => listeners.forEach(fn => fn());
+
+const normalizeFrameUrl = (url?: string | null): string | null => {
+  if (!url) return null;
+  return normalizeGiftMediaUrl(url) || normalizePublicMediaUrl(url) || url;
+};
+
+const detectFrameType = (url: string, fallbackType?: string | null): string => {
+  const urlPath = url.split('?')[0].split('#')[0].toLowerCase();
+  if (urlPath.endsWith('.svga')) return 'svga';
+  if (urlPath.endsWith('.json')) return 'lottie';
+  if (urlPath.endsWith('.gif')) return 'gif';
+  if (urlPath.endsWith('.webp')) return 'webp';
+  if (urlPath.endsWith('.png') || urlPath.endsWith('.jpg') || urlPath.endsWith('.jpeg')) return 'static';
+  return fallbackType || 'static';
+};
 
 // === CACHE HELPERS ===
 const isValid = (timestamp: number) => Date.now() - timestamp < CACHE_TTL;
