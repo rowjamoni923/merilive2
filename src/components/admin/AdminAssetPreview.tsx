@@ -33,11 +33,12 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
   aspectRatio = 'square',
 }) => {
   const [hasError, setHasError] = React.useState(false);
+  const [usePreviewFallback, setUsePreviewFallback] = React.useState(false);
 
   const isFrameAsset = type === 'frame' || type === 'role-frame';
   const normalizedSrc = src?.trim() || null;
   const normalizedPreview = previewUrl?.trim() || null;
-  const displaySrc = normalizedSrc || normalizedPreview;
+  const displaySrc = (usePreviewFallback ? normalizedPreview : normalizedSrc) || normalizedPreview;
   const cleanUrl = (displaySrc || '').toLowerCase().split('?')[0].split('#')[0];
   const extensionType = cleanUrl.endsWith('.svga') ? 'svga' : cleanUrl.endsWith('.json') ? 'lottie' : cleanUrl.endsWith('.mp4') ? 'mp4' : cleanUrl.endsWith('.webm') ? 'webm' : cleanUrl.endsWith('.gif') ? 'gif' : cleanUrl.endsWith('.webp') ? 'webp' : cleanUrl.endsWith('.png') ? 'png' : cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg') ? 'static' : undefined;
   const normalizedAnimationType = animationType?.toLowerCase().trim();
@@ -47,6 +48,20 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
     : extensionType;
   const isSvga = detectedType === 'svga' || cleanUrl.endsWith('.svga');
   const shouldPlayAnimation = Boolean(normalizedSrc) && detectedType !== 'static';
+
+  React.useEffect(() => {
+    setHasError(false);
+    setUsePreviewFallback(false);
+  }, [normalizedSrc, normalizedPreview, type, animationType]);
+
+  const handleAssetError = React.useCallback(() => {
+    if (!usePreviewFallback && normalizedPreview && normalizedPreview !== normalizedSrc) {
+      setUsePreviewFallback(true);
+      setHasError(false);
+      return;
+    }
+    setHasError(true);
+  }, [normalizedPreview, normalizedSrc, usePreviewFallback]);
 
   // Determine container dimensions based on type/aspectRatio
   const getAspectRatioClass = () => {
@@ -92,7 +107,8 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
   return (
     <div 
       className={cn(
-        "relative rounded-xl overflow-hidden shadow-inner border border-border/60 flex items-center justify-center group isolate",
+        "relative rounded-xl shadow-inner border border-border/60 flex items-center justify-center group isolate",
+        isFrameAsset ? "overflow-visible" : "overflow-hidden",
         getAspectRatioClass(),
         getMinHeight(),
         containerClassName
@@ -106,14 +122,14 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
           <Loader2 className="w-6 h-6 animate-spin text-purple-500/50" />
         </div>
       }>
-        {isSvga && showMuteButton && normalizedSrc ? (
+        {isSvga && showMuteButton && displaySrc ? (
           <SVGAPreviewWithMuteToggle
-            src={normalizedSrc}
+            src={displaySrc}
             className={cn("w-full h-full object-contain", className)}
             containerClassName="w-full h-full"
             showMuteButton={true}
           />
-        ) : shouldPlayAnimation && normalizedSrc ? (
+        ) : shouldPlayAnimation && displaySrc ? (
           <div className="absolute inset-0 h-full w-full">
             {isFrameAsset && (
               <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
@@ -126,10 +142,10 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
                 />
               </div>
             )}
-            <div className={cn("absolute z-10 h-auto w-auto pointer-events-none", isFrameAsset ? "inset-[7%]" : "inset-0")}>
+            <div className={cn("absolute z-10 h-full w-full pointer-events-none", isFrameAsset ? "inset-0" : "inset-0")}>
               <FixedAnimationFrame
-                key={normalizedSrc}
-                src={normalizedSrc}
+                key={displaySrc}
+                src={displaySrc}
                 type={detectedType as any}
                 size="fill"
                 center={false}
@@ -137,6 +153,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
                 autoPlay={true}
                 muted={true}
                 className={cn("h-full w-full", className)}
+                onError={handleAssetError}
               />
             </div>
           </div>
@@ -154,8 +171,8 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
             <SmartImage
               src={displaySrc}
               alt="Asset preview"
-              className={cn("absolute inset-[7%] z-10 h-auto w-auto object-contain transition-transform group-hover:scale-105", className)}
-              onError={() => setHasError(true)}
+              className={cn("absolute inset-0 z-10 h-full w-full object-contain transition-transform group-hover:scale-105", className)}
+              onError={handleAssetError}
               fallbackSrc="/placeholder.svg"
             />
           </div>
@@ -164,7 +181,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
             src={displaySrc}
             alt="Asset preview"
             className={cn("h-full w-full object-contain transition-transform group-hover:scale-105", className)}
-            onError={() => setHasError(true)}
+            onError={handleAssetError}
             fallbackSrc="/placeholder.svg"
           />
         )}
