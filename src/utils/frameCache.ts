@@ -252,7 +252,8 @@ const executeBatch = async () => {
 
       const roleMap = new Map<string, string>();
       roleFrames?.forEach((rf: any) => {
-        if (rf.frame_url) roleMap.set(rf.id, rf.frame_url);
+        const url = normalizeFrameUrl(rf.frame_url);
+        if (url) roleMap.set(rf.id, url);
       });
 
       const now = Date.now();
@@ -261,13 +262,7 @@ const executeBatch = async () => {
         const equippedId = cached?.data.equipped_frame_id;
         if (equippedId && roleMap.has(equippedId)) {
           const url = roleMap.get(equippedId)!;
-          const urlPath = url.split('?')[0].toLowerCase();
-          let type = 'static';
-          if (urlPath.endsWith('.svga')) type = 'svga';
-          else if (urlPath.endsWith('.json')) type = 'lottie';
-          else if (urlPath.endsWith('.gif')) type = 'gif';
-          else if (urlPath.endsWith('.webp')) type = 'webp';
-          resolvedFrameUrlCache.set(userId, { url, type, timestamp: now });
+          resolvedFrameUrlCache.set(userId, { url, type: detectFrameType(url), timestamp: now });
         }
       });
     } catch (err) {
@@ -364,15 +359,9 @@ export const getLevelFrame = async (level: number, isHost: boolean): Promise<Fra
     if (tt) query = query.eq('target_type', tt);
     
     const { data } = await query.maybeSingle();
-    if (data?.frame_url?.startsWith('http')) {
-      const urlPath = data.frame_url.split('?')[0].toLowerCase();
-      let detectedType = data.frame_type || 'static';
-      if (urlPath.endsWith('.svga')) detectedType = 'svga';
-      else if (urlPath.endsWith('.json')) detectedType = 'lottie';
-      else if (urlPath.endsWith('.gif')) detectedType = 'gif';
-      else if (urlPath.endsWith('.webp')) detectedType = 'webp';
-      
-      const frame: FrameData = { ...data, frame_type: detectedType };
+    const normalizedUrl = normalizeFrameUrl(data?.frame_url);
+    if (normalizedUrl?.startsWith('http') || normalizedUrl?.startsWith('/')) {
+      const frame: FrameData = { ...data, frame_url: normalizedUrl, frame_type: detectFrameType(normalizedUrl, data.frame_type) };
       levelFrameCache.set(key, frame);
       return frame;
     }
