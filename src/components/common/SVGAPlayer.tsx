@@ -123,6 +123,9 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         const videoItemToUse = muted ? stripAudio(videoItem) : videoItem;
 
         player.setVideoItem(videoItemToUse);
+        requestAnimationFrame(() => {
+          try { playerRef.current?._update?.(); } catch (e) {}
+        });
         setReady(true);
         onLoadRef.current?.();
 
