@@ -33,11 +33,12 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
   aspectRatio = 'square',
 }) => {
   const [hasError, setHasError] = React.useState(false);
+  const [usePreviewFallback, setUsePreviewFallback] = React.useState(false);
 
   const isFrameAsset = type === 'frame' || type === 'role-frame';
   const normalizedSrc = src?.trim() || null;
   const normalizedPreview = previewUrl?.trim() || null;
-  const displaySrc = normalizedSrc || normalizedPreview;
+  const displaySrc = (usePreviewFallback ? normalizedPreview : normalizedSrc) || normalizedPreview;
   const cleanUrl = (displaySrc || '').toLowerCase().split('?')[0].split('#')[0];
   const extensionType = cleanUrl.endsWith('.svga') ? 'svga' : cleanUrl.endsWith('.json') ? 'lottie' : cleanUrl.endsWith('.mp4') ? 'mp4' : cleanUrl.endsWith('.webm') ? 'webm' : cleanUrl.endsWith('.gif') ? 'gif' : cleanUrl.endsWith('.webp') ? 'webp' : cleanUrl.endsWith('.png') ? 'png' : cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg') ? 'static' : undefined;
   const normalizedAnimationType = animationType?.toLowerCase().trim();
@@ -47,6 +48,20 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
     : extensionType;
   const isSvga = detectedType === 'svga' || cleanUrl.endsWith('.svga');
   const shouldPlayAnimation = Boolean(normalizedSrc) && detectedType !== 'static';
+
+  React.useEffect(() => {
+    setHasError(false);
+    setUsePreviewFallback(false);
+  }, [normalizedSrc, normalizedPreview, type, animationType]);
+
+  const handleAssetError = React.useCallback(() => {
+    if (!usePreviewFallback && normalizedPreview && normalizedPreview !== normalizedSrc) {
+      setUsePreviewFallback(true);
+      setHasError(false);
+      return;
+    }
+    setHasError(true);
+  }, [normalizedPreview, normalizedSrc, usePreviewFallback]);
 
   // Determine container dimensions based on type/aspectRatio
   const getAspectRatioClass = () => {
