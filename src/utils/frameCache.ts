@@ -166,15 +166,9 @@ const executeBatch = async () => {
         .eq('is_active', true);
 
       frames?.forEach((f: any) => {
-        if (f.frame_url?.startsWith('http')) {
-          const urlPath = f.frame_url.split('?')[0].toLowerCase();
-          let detectedType = f.frame_type || 'static';
-          if (urlPath.endsWith('.svga')) detectedType = 'svga';
-          else if (urlPath.endsWith('.json')) detectedType = 'lottie';
-          else if (urlPath.endsWith('.gif')) detectedType = 'gif';
-          else if (urlPath.endsWith('.webp')) detectedType = 'webp';
-          else if (urlPath.endsWith('.png') || urlPath.endsWith('.jpg')) detectedType = 'static';
-          frameDataCache.set(f.id, { ...f, frame_type: detectedType });
+        const normalizedUrl = normalizeFrameUrl(f.frame_url);
+        if (normalizedUrl?.startsWith('http') || normalizedUrl?.startsWith('/')) {
+          frameDataCache.set(f.id, { ...f, frame_url: normalizedUrl, frame_type: detectFrameType(normalizedUrl, f.frame_type) });
         } else {
           frameDataCache.set(f.id, null);
         }
@@ -212,7 +206,7 @@ const executeBatch = async () => {
       const shopMap = new Map<string, string>();
       shopItems?.forEach((item: any) => {
         if (item.category !== 'frame' && item.category !== 'portrait_frame') return;
-        const url = item.animation_file_url || item.animation_url || item.preview_url;
+        const url = normalizeFrameUrl(item.animation_file_url || item.animation_url || item.preview_url);
         if (url) shopMap.set(item.id, url);
       });
 
@@ -222,13 +216,7 @@ const executeBatch = async () => {
         const equippedId = cached?.data.equipped_frame_id;
         if (equippedId && shopMap.has(equippedId)) {
           const url = shopMap.get(equippedId)!;
-          const urlPath = url.split('?')[0].toLowerCase();
-          let type = 'static';
-          if (urlPath.endsWith('.svga')) type = 'svga';
-          else if (urlPath.endsWith('.json')) type = 'lottie';
-          else if (urlPath.endsWith('.gif')) type = 'gif';
-          else if (urlPath.endsWith('.webp')) type = 'webp';
-          resolvedFrameUrlCache.set(userId, { url, type, timestamp: now });
+          resolvedFrameUrlCache.set(userId, { url, type: detectFrameType(url), timestamp: now });
         }
       });
     } catch (err) {
