@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { cn } from "@/lib/utils";
 
 interface GameLeaderboardPanelProps {
@@ -17,6 +18,8 @@ interface LeaderboardEntry {
   id: string;
   name: string;
   avatar_url: string | null;
+  level?: number;
+  is_agency?: boolean;
   stat_value: number;
   stat_label: string;
   extra_info?: string;
@@ -160,7 +163,7 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
       .filter(([, val]) => val > 0)
       .sort(([, a], [, b]) => b - a).slice(0, 50)
       .map(([id, val]) => ({
-        id, name: aMap[id]?.name || 'Agency', avatar_url: aMap[id]?.logo_url || null,
+        id, name: aMap[id]?.name || 'Agency', avatar_url: aMap[id]?.logo_url || null, is_agency: true,
         stat_value: val, stat_label: 'income',
       }));
   };
@@ -169,8 +172,8 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
     const ids = Object.keys(stats);
     if (!ids.length) return [];
 
-    const { data: profiles } = await supabase.from('profiles')
-      .select('id, username, display_name, avatar_url').in('id', ids);
+    const { data: profiles } = await supabase.from('profiles_public')
+      .select('id, app_uid, display_name, avatar_url, user_level').in('id', ids);
 
     const pMap: Record<string, any> = {};
     (profiles || []).forEach(p => { pMap[p.id] = p; });
@@ -179,8 +182,8 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
       .filter(([, val]) => val > 0)
       .sort(([, a], [, b]) => b - a).slice(0, 50)
       .map(([id, val]) => ({
-        id, name: pMap[id]?.display_name || pMap[id]?.username || 'User',
-        avatar_url: pMap[id]?.avatar_url || null, stat_value: val, stat_label: label,
+        id, name: pMap[id]?.display_name || pMap[id]?.app_uid || 'User',
+        avatar_url: pMap[id]?.avatar_url || null, level: pMap[id]?.user_level || 1, stat_value: val, stat_label: label,
       }));
   };
 
@@ -300,12 +303,24 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
                   )}
                 >
                   <div className="w-6 h-6 flex items-center justify-center">{getRankBadge(i + 1)}</div>
-                  <Avatar className="w-8 h-8 border-2 border-white/10">
-                    <AvatarImage src={entry.avatar_url || undefined} />
-                    <AvatarFallback className="bg-purple-500/20 text-purple-300 text-xs">
-                      {entry.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  {entry.is_agency ? (
+                    <Avatar className="w-8 h-8 border-2 border-white/10">
+                      <AvatarImage src={entry.avatar_url || undefined} />
+                      <AvatarFallback className="bg-purple-500/20 text-purple-300 text-xs">
+                        {entry.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <AvatarWithFrame
+                      userId={entry.id}
+                      src={entry.avatar_url || undefined}
+                      name={entry.name}
+                      level={entry.level || 1}
+                      size="xs"
+                      showFrame
+                      showAnimation
+                    />
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="text-white text-xs font-medium truncate">{entry.name}</div>
                     {entry.extra_info && <div className="text-white/30 text-[9px]">{entry.extra_info}</div>}
@@ -327,12 +342,24 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
           <div className="p-2 border-t border-white/10 bg-purple-500/10">
             <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-500/20 border border-purple-500/30">
               <span className="text-purple-300 text-xs font-bold w-6 text-center">#{myRank.rank}</span>
-              <Avatar className="w-8 h-8 border-2 border-purple-500/30">
-                <AvatarImage src={myRank.data.avatar_url || undefined} />
-                <AvatarFallback className="bg-purple-500/20 text-purple-300 text-xs">
-                  {myRank.data.name.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              {myRank.data.is_agency ? (
+                <Avatar className="w-8 h-8 border-2 border-purple-500/30">
+                  <AvatarImage src={myRank.data.avatar_url || undefined} />
+                  <AvatarFallback className="bg-purple-500/20 text-purple-300 text-xs">
+                    {myRank.data.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <AvatarWithFrame
+                  userId={myRank.data.id}
+                  src={myRank.data.avatar_url || undefined}
+                  name={myRank.data.name}
+                  level={myRank.data.level || 1}
+                  size="xs"
+                  showFrame
+                  showAnimation
+                />
+              )}
               <div className="flex-1">
                 <div className="text-purple-300 text-xs font-medium">You</div>
               </div>
