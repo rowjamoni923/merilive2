@@ -37,6 +37,9 @@ const ROOT_STORAGE_RE = /^\/storage\/v1\/(?:object|render\/image)\/(?:public|sig
 const PUBLIC_MEDIA_BUCKETS = new Set([
   "app-assets", "app-icons", "assets", "avatars", "banners", "banners-media",
   "branding", "content-media", "payment-logos", "posters", "reels",
+  "frames", "avatar_frames", "svga-animations", "animations", "gifts",
+  "entry-banners", "entry-bars", "entry-name-bars", "vehicle-entrances",
+  "chat-bubbles", "chat_bubbles", "medals", "vip-medals", "noble-cards",
 ]);
 
 const APP_LOCAL_MEDIA_RE = /^\/?(?:src\/assets\/|assets\/|lovable-uploads\/|placeholder\.svg(?:[?#].*)?$|favicon\.|icon-)/i;
