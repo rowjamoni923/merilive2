@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { getEquippedPrivilegesForUser, EquippedPrivileges } from "@/hooks/useUserPrivileges";
 import { motion } from "framer-motion";
 import Premium3DFrame from "./Premium3DFrame";
+import UniversalFramePlayer from "./UniversalFramePlayer";
 import { getDisplayAvatar } from "@/utils/placeholderAvatar";
 import { normalizeProfileMediaUrl } from "@/utils/profileMediaUrl";
 import {
@@ -166,6 +167,17 @@ const FramedAvatarWithPrivileges = ({
   // Check if user has a custom frame
   const customFrame = privileges?.frame || privileges?.portrait_frame;
   const frameUrl = customFrame?.animation_file_url || customFrame?.animation_url || customFrame?.preview_url;
+  const frameType = useMemo(() => {
+    const clean = (frameUrl || '').split('?')[0].split('#')[0].toLowerCase();
+    if (clean.endsWith('.svga')) return 'svga';
+    if (clean.endsWith('.json')) return 'lottie';
+    if (clean.endsWith('.gif')) return 'gif';
+    if (clean.endsWith('.webp')) return 'webp';
+    if (clean.endsWith('.png')) return 'png';
+    if (clean.endsWith('.mp4')) return 'mp4';
+    if (clean.endsWith('.webm')) return 'webm';
+    return 'static';
+  }, [frameUrl]);
 
   const avatarContent = (
     <Avatar
@@ -288,11 +300,9 @@ const FramedAvatarWithPrivileges = ({
             </motion.div>
           )}
 
-          {/* The Animated Frame Image - extends slightly past the avatar disc */}
-          <motion.img
-            src={frameUrl}
-            alt="Frame"
-            className="absolute w-auto h-auto object-contain pointer-events-none"
+          {/* The Animated Frame - supports SVGA/GIF/WebP/PNG with the same sizing as AvatarWithFrame */}
+          <motion.div
+            className="absolute pointer-events-none"
             style={{
               inset: frameInsetPx[size],
               width: `calc(100% + ${Math.abs(frameInsetPx[size]) * 2}px)`,
@@ -310,7 +320,15 @@ const FramedAvatarWithPrivileges = ({
               repeat: Infinity,
               ease: "easeInOut",
             }}
-          />
+          >
+            <UniversalFramePlayer
+              src={frameUrl}
+              type={frameType as any}
+              className="w-full h-full"
+              loop={showAnimation}
+              autoPlay={showAnimation}
+            />
+          </motion.div>
           
           {/* Avatar fills the entire container — no inner padding gap */}
           <div 

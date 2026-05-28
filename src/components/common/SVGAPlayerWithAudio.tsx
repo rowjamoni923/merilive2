@@ -158,6 +158,9 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         );
 
         player.setVideoItem(videoItemToUse);
+        requestAnimationFrame(() => {
+          try { playerRef.current?._update?.(); } catch (e) {}
+        });
         setLoading(false);
         onLoadRef.current?.();
 
