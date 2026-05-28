@@ -931,17 +931,15 @@ const AdminFrames = () => {
               </div>
             </div>
 
-            {/* Preview */}
+            {/* Preview - mirrors in-app AvatarWithFrame (avatar 112, frame ~138 → -13 inset) */}
             {formData.frame_url && (
               <div className="flex justify-center p-6 bg-gradient-to-br from-gray-900 to-black rounded-xl">
-                <div className="relative w-28 h-28">
-                  {/* Avatar - Behind the frame */}
-                  <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                <div className="relative" style={{ width: 112, height: 112 }}>
+                  <Avatar className="absolute inset-0 w-full h-full border-2 border-white shadow-lg z-10">
                     <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
                     <AvatarFallback>U</AvatarFallback>
                   </Avatar>
-                  {/* Frame - In front of avatar */}
-                  <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20 pointer-events-none">
+                  <div className="absolute pointer-events-none z-20" style={{ inset: -13 }}>
                     <UniversalFramePlayer
                       src={formData.frame_url}
                       type={formData.frame_type as any}
