@@ -235,11 +235,16 @@ export default function SwiftPayDepositModal({
           continue;
         }
 
-        // Minimum-deposit failures are not currency-specific — bail out immediately.
-        if (errPayload?.error === "minimum_deposit_not_met") {
+        // Minimum-deposit failures ARE per-currency (every network has its own
+        // gateway minimum — TRC20 ~$0.50, ERC20 ~$5+, BTC ~$20+). So when one
+        // network rejects the amount as too small, silently try the next
+        // (cheaper-min) currency before showing the user any error.
+        if (errPayload?.error === "minimum_deposit_not_met"
+            || errPayload?.error === "below_minimum"
+            || /less than minim/i.test(String(errPayload?.message || error?.message || ""))) {
           lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
           lastErrIsMinimum = true;
-          break;
+          continue; // try next network
         }
 
         lastErrMsg = getDepositErrorMessage(errPayload, error?.message);
