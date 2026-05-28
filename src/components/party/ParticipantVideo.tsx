@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { Crown, Mic, MicOff } from "lucide-react";
 import { cn } from "@/lib/utils";
