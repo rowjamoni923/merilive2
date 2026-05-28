@@ -388,31 +388,9 @@ const AdminTopupSystem = () => {
 
   const loadRecentTopups = async () => {
     try {
-      const { data } = await supabase
-        .from('admin_logs')
-        .select('*')
-        .eq('action_type', 'balance_add')
-        .eq('target_type', 'profile')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (data) {
-        const diamondLogs = data.filter((log: any) => (log.details as any)?.field === 'diamonds').slice(0, 20);
-        // Batch fetch all user profiles in one query
-        const targetIds = [...new Set(diamondLogs.map(l => l.target_id).filter(Boolean))] as string[];
-        const { data: users } = targetIds.length > 0 ? await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, app_uid')
-          .in('id', targetIds) : { data: [] };
-        const userMap = new Map((users || []).map(u => [u.id, u]));
-        const logsWithUsers = diamondLogs.map(log => ({
-          ...log,
-          user: userMap.get(log.target_id || '') || null,
-          details: log.details as TopupLog['details'],
-        }));
-        setRecentTopups(logsWithUsers);
-        setStats(prev => ({ ...prev, totalManualTopups: logsWithUsers.length }));
-      }
+      const entries = await loadAdminTopupHistory({ limit: 30, creditsOnly: true });
+      setRecentTopups(entries);
+      setStats(prev => ({ ...prev, totalManualTopups: entries.length }));
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error) });
     }
