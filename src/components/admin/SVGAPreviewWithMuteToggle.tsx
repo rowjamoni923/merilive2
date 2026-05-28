@@ -3,6 +3,8 @@ import { Volume2, VolumeX, Loader2, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SmartImage } from "@/components/ui/smart-image";
+import { normalizePublicMediaUrl } from '@/lib/cdnImage';
+import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
 
 // Only load SVGA players when needed
 const SVGAPlayer = lazy(() => import('@/components/common/SVGAPlayer'));
@@ -42,6 +44,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
   const [hasAudio, setHasAudio] = useState(false);
   const [key, setKey] = useState(0);
   const [imgError, setImgError] = useState(false);
+  const resolvedSrc = React.useMemo(() => normalizeGiftMediaUrl(src) || normalizePublicMediaUrl(src) || src, [src]);
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev);
@@ -55,7 +58,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
     }
   }, []);
 
-  const isSvga = isSvgaUrl(src);
+  const isSvga = isSvgaUrl(resolvedSrc);
 
   // Empty / invalid src → graceful placeholder (no broken image icon)
   if (!src || src.trim() === '') {
@@ -86,7 +89,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
     return (
       <div className={cn("relative", containerClassName)}>
         <SmartImage
-          src={src}
+          src={resolvedSrc}
           alt="Animation preview"
           className={cn("object-contain w-full h-full", className)}
           decoding="async"
@@ -107,7 +110,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
         {isMuted ? (
           <SVGAPlayer
             key={`muted-${key}`}
-            src={src}
+            src={resolvedSrc}
             className={className}
             loop={loop}
             autoPlay={autoPlay}
@@ -116,7 +119,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
         ) : (
           <SVGAPlayerWithAudio
             key={`unmuted-${key}`}
-            src={src}
+            src={resolvedSrc}
             className={className}
             loop={loop}
             autoPlay={autoPlay}

@@ -29,14 +29,15 @@ const detectFrameType = (url: string): FrameType => {
   if (!url) return 'static';
   
   const lowercaseUrl = url.toLowerCase();
+  const urlWithoutParams = lowercaseUrl.split('?')[0].split('#')[0];
   
-  if (lowercaseUrl.endsWith('.svga')) return 'svga';
-  if (lowercaseUrl.endsWith('.json')) return 'lottie';
-  if (lowercaseUrl.endsWith('.gif')) return 'gif';
-  if (lowercaseUrl.endsWith('.webp')) return 'webp';
-  if (lowercaseUrl.endsWith('.png')) return 'png';
-  if (lowercaseUrl.endsWith('.mp4')) return 'mp4';
-  if (lowercaseUrl.endsWith('.webm')) return 'webm';
+  if (urlWithoutParams.endsWith('.svga')) return 'svga';
+  if (urlWithoutParams.endsWith('.json')) return 'lottie';
+  if (urlWithoutParams.endsWith('.gif')) return 'gif';
+  if (urlWithoutParams.endsWith('.webp')) return 'webp';
+  if (urlWithoutParams.endsWith('.png')) return 'png';
+  if (urlWithoutParams.endsWith('.mp4')) return 'mp4';
+  if (urlWithoutParams.endsWith('.webm')) return 'webm';
   if (lowercaseUrl.includes('lottie') || lowercaseUrl.includes('bodymovin')) return 'lottie';
   
   return 'static';

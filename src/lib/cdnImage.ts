@@ -37,10 +37,13 @@ const ROOT_STORAGE_RE = /^\/storage\/v1\/(?:object|render\/image)\/(?:public|sig
 const PUBLIC_MEDIA_BUCKETS = new Set([
   "app-assets", "app-icons", "assets", "avatars", "banners", "banners-media",
   "branding", "content-media", "payment-logos", "posters", "reels",
+  "gifts", "frames", "avatar_frames", "role-frames", "entry-banners", "entry-bars",
+  "entry-name-bars", "vehicle-entrances", "animations", "svga-animations",
+  "chat_bubbles", "medals", "vip-medals", "noble-cards",
 ]);
 
 const APP_LOCAL_MEDIA_RE = /^\/?(?:src\/assets\/|assets\/|lovable-uploads\/|placeholder\.svg(?:[?#].*)?$|favicon\.|icon-)/i;
-const RAW_MEDIA_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv)(?:[?#].*)?$/i;
+const RAW_MEDIA_PATH_RE = /^(?!https?:|data:|blob:|mailto:|tel:|#|\/\/)[A-Za-z0-9@._~!$&'()+,;=:/-]+\.(?:jpg|jpeg|png|gif|webp|avif|svg|bmp|heic|heif|mp4|m4v|mov|webm|ogg|ogv|3gp|mkv|svga|json)(?:[?#].*)?$/i;
 
 export function toSupabaseCdnUrl(
   url: string | null | undefined,
