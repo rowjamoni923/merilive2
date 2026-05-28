@@ -19,6 +19,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { loadAdminTopupHistory, formatTopupFieldLabel, type TopupHistoryEntry } from "@/utils/adminTopupHistory";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface UserProfile {
@@ -32,19 +33,7 @@ interface UserProfile {
   is_verified: boolean;
 }
 
-interface TopupLog {
-  id: string;
-  created_at: string;
-  action_type: string;
-  target_id: string;
-  details: {
-    amount: number;
-    note: string;
-    previous_balance: number;
-    new_balance: number;
-  };
-  user?: { display_name: string; avatar_url: string; app_uid: string };
-}
+type TopupLog = TopupHistoryEntry;
 
 const AdminManualTopup = () => {
   const navigate = useNavigate();
