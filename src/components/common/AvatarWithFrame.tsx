@@ -475,6 +475,13 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
     position: 'relative',
   };
 
+  const frameLayerStyle: React.CSSProperties = {
+    inset: sizeConfig.frameInset,
+    zIndex: 1,
+    borderRadius: '9999px',
+    overflow: 'hidden',
+  };
+
   // Simple avatar without frame
   if (!showFrame || level < 1) {
     return (
@@ -509,15 +516,15 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
           the circular avatar is always rendered on top of the frame.
       ───────────────────────────────────────────────────────────── */}
 
-      {/* Animated Frame Layer - SVGA/Lottie (BEHIND avatar) */}
+      {/* Animated Frame Layer - centered circular ring behind avatar */}
       {hasValidFrame && (activeFrameType === 'svga' || activeFrameType === 'lottie') && (
         <div className="absolute pointer-events-none"
-          style={{ inset: sizeConfig.frameInset, zIndex: 1 }}>
+          style={frameLayerStyle}>
           <Suspense fallback={null}>
             <UniversalFramePlayer
               src={activeFrameUrl}
               type={activeFrameType as any}
-              className="w-full h-full"
+              className="w-full h-full rounded-full overflow-hidden"
               loop={true}
               autoPlay={frameAutoPlay}
               onError={handleFrameError}
@@ -526,20 +533,20 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         </div>
       )}
 
-      {/* GIF/WebP Frame Layer (BEHIND avatar) */}
+      {/* GIF/WebP Frame Layer - clipped to a circular frame footprint */}
       {hasValidFrame && (activeFrameType === 'gif' || activeFrameType === 'webp') && (
         <div className="absolute pointer-events-none"
-          style={{ inset: sizeConfig.frameInset, zIndex: 1 }}>
-          <img src={activeFrameUrl} alt="" className="w-full h-full object-contain"
+          style={frameLayerStyle}>
+          <img src={activeFrameUrl} alt="" className="w-full h-full object-cover"
             onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
         </div>
       )}
 
-      {/* Static Image Frame Layer (BEHIND avatar) */}
+      {/* Static Image Frame Layer - clipped so square/non-transparent uploads never protrude */}
       {hasValidFrame && isStaticFrame && (
         <div className="absolute pointer-events-none"
-          style={{ inset: sizeConfig.frameInset, zIndex: 1 }}>
-          <img src={activeFrameUrl} alt="" className="w-full h-full object-contain"
+          style={frameLayerStyle}>
+          <img src={activeFrameUrl} alt="" className="w-full h-full object-cover"
             onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
         </div>
       )}
