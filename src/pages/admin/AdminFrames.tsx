@@ -594,12 +594,13 @@ const AdminFrames = () => {
                     }
 
                     // Animated formats (.svga, .json/lottie, .mp4, .webm) — render via player
+                    // Mirror in-app AvatarWithFrame proportions (avatar 80, frame ~98 → -9px inset)
                     return (
-                      <div className="relative w-20 h-20">
-                        <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+                      <div className="relative" style={{ width: 80, height: 80 }}>
+                        <Avatar className="absolute inset-0 w-full h-full border-2 border-white shadow-lg z-10">
                           <AvatarFallback className="bg-slate-700 text-white text-xs">U</AvatarFallback>
                         </Avatar>
-                        <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20">
+                        <div className="absolute pointer-events-none z-20" style={{ inset: -9 }}>
                           <UniversalFramePlayer
                             src={frame.frame_url || previewUrl}
                             type={frame.frame_type as any}
