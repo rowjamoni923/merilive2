@@ -92,7 +92,8 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
   return (
     <div 
       className={cn(
-        "relative rounded-xl overflow-hidden shadow-inner border border-border/60 flex items-center justify-center group isolate",
+        "relative rounded-xl shadow-inner border border-border/60 flex items-center justify-center group isolate",
+        isFrameAsset ? "overflow-visible" : "overflow-hidden",
         getAspectRatioClass(),
         getMinHeight(),
         containerClassName
@@ -126,7 +127,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
                 />
               </div>
             )}
-            <div className={cn("absolute z-10 h-auto w-auto pointer-events-none", isFrameAsset ? "inset-[7%]" : "inset-0")}>
+            <div className={cn("absolute z-10 h-full w-full pointer-events-none", isFrameAsset ? "inset-0" : "inset-0")}>
               <FixedAnimationFrame
                 key={normalizedSrc}
                 src={normalizedSrc}
@@ -154,7 +155,7 @@ const AdminAssetPreview: React.FC<AdminAssetPreviewProps> = ({
             <SmartImage
               src={displaySrc}
               alt="Asset preview"
-              className={cn("absolute inset-[7%] z-10 h-auto w-auto object-contain transition-transform group-hover:scale-105", className)}
+              className={cn("absolute inset-0 z-10 h-full w-full object-contain transition-transform group-hover:scale-105", className)}
               onError={() => setHasError(true)}
               fallbackSrc="/placeholder.svg"
             />
