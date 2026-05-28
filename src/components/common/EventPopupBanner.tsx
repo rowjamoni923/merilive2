@@ -30,10 +30,23 @@ const EventPopupBanner = () => {
   const autoDismiss = banner?.auto_dismiss_seconds ?? 10;
   const canSkip = elapsed >= skipDelay;
 
-  // Preload an image into the browser cache, resolves on load OR error
+  // Preload banner media into the browser cache, resolves on load OR error
   // (errors shouldn't block the popup forever — fall through after a short cap).
-  const preloadImage = (url: string, capMs = 3500) =>
+  const preloadBannerMedia = (url: string, capMs = 3500) =>
     new Promise<void>((resolve) => {
+      if (isVideoBanner(url)) {
+        const video = document.createElement('video');
+        let done = false;
+        const finish = () => { if (!done) { done = true; resolve(); } };
+        video.onloadeddata = finish;
+        video.onerror = finish;
+        video.preload = 'auto';
+        video.muted = true;
+        video.playsInline = true;
+        video.src = url;
+        setTimeout(finish, capMs);
+        return;
+      }
       const img = new Image();
       let done = false;
       const finish = () => { if (!done) { done = true; resolve(); } };
@@ -75,7 +88,7 @@ const EventPopupBanner = () => {
         //   user never sees the black-frame + ticking countdown without art.
         setBanner(data);
         setImageReady(false);
-        await preloadImage(popupCdn(data.image_url));
+        await preloadBannerMedia(popupCdn(data.image_url));
         setImageReady(true);
         setElapsed(0);
         setVisible(true);
