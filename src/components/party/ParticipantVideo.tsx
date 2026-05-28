@@ -10,6 +10,8 @@ interface ParticipantVideoProps {
   stream: MediaStream | null;
   displayName: string | null;
   avatarUrl: string | null;
+  userId?: string;
+  level?: number;
   isHost: boolean;
   isSelf: boolean;
   isMuted?: boolean;
