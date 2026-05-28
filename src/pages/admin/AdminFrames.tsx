@@ -1011,12 +1011,12 @@ const AdminFrames = () => {
           <div className="text-center" onClick={e => e.stopPropagation()}>
             <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewFrame.name}</p>
             <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
-              <div className="relative w-64 h-64">
-                <Avatar className="w-full h-full border-4 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+              <div className="relative" style={{ width: 256, height: 256 }}>
+                <Avatar className="absolute inset-0 w-full h-full border-4 border-white shadow-lg z-10">
                   <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <div className="absolute -inset-8 w-[calc(100%+64px)] h-[calc(100%+64px)] z-20">
+                <div className="absolute pointer-events-none z-20" style={{ inset: -30 }}>
                   <UniversalFramePlayer
                     src={fullscreenPreviewFrame.frame_url}
                     type={fullscreenPreviewFrame.frame_type as any}
