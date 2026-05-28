@@ -594,12 +594,13 @@ const AdminFrames = () => {
                     }
 
                     // Animated formats (.svga, .json/lottie, .mp4, .webm) — render via player
+                    // Mirror in-app AvatarWithFrame proportions (avatar 80, frame ~98 → -9px inset)
                     return (
-                      <div className="relative w-20 h-20">
-                        <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+                      <div className="relative" style={{ width: 80, height: 80 }}>
+                        <Avatar className="absolute inset-0 w-full h-full border-2 border-white shadow-lg z-10">
                           <AvatarFallback className="bg-slate-700 text-white text-xs">U</AvatarFallback>
                         </Avatar>
-                        <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20">
+                        <div className="absolute pointer-events-none z-20" style={{ inset: -9 }}>
                           <UniversalFramePlayer
                             src={frame.frame_url || previewUrl}
                             type={frame.frame_type as any}
@@ -930,17 +931,15 @@ const AdminFrames = () => {
               </div>
             </div>
 
-            {/* Preview */}
+            {/* Preview - mirrors in-app AvatarWithFrame (avatar 112, frame ~138 → -13 inset) */}
             {formData.frame_url && (
               <div className="flex justify-center p-6 bg-gradient-to-br from-gray-900 to-black rounded-xl">
-                <div className="relative w-28 h-28">
-                  {/* Avatar - Behind the frame */}
-                  <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                <div className="relative" style={{ width: 112, height: 112 }}>
+                  <Avatar className="absolute inset-0 w-full h-full border-2 border-white shadow-lg z-10">
                     <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
                     <AvatarFallback>U</AvatarFallback>
                   </Avatar>
-                  {/* Frame - In front of avatar */}
-                  <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20 pointer-events-none">
+                  <div className="absolute pointer-events-none z-20" style={{ inset: -13 }}>
                     <UniversalFramePlayer
                       src={formData.frame_url}
                       type={formData.frame_type as any}
@@ -1012,12 +1011,12 @@ const AdminFrames = () => {
           <div className="text-center" onClick={e => e.stopPropagation()}>
             <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewFrame.name}</p>
             <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
-              <div className="relative w-64 h-64">
-                <Avatar className="w-full h-full border-4 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+              <div className="relative" style={{ width: 256, height: 256 }}>
+                <Avatar className="absolute inset-0 w-full h-full border-4 border-white shadow-lg z-10">
                   <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
-                <div className="absolute -inset-8 w-[calc(100%+64px)] h-[calc(100%+64px)] z-20">
+                <div className="absolute pointer-events-none z-20" style={{ inset: -30 }}>
                   <UniversalFramePlayer
                     src={fullscreenPreviewFrame.frame_url}
                     type={fullscreenPreviewFrame.frame_type as any}
