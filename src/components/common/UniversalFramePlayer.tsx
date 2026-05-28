@@ -28,7 +28,7 @@ interface UniversalFramePlayerProps {
 const detectFrameType = (url: string): FrameType => {
   if (!url) return 'static';
   
-  const lowercaseUrl = url.toLowerCase().split('?')[0].split('#')[0];
+  const lowercaseUrl = url.toLowerCase();
   
   if (lowercaseUrl.endsWith('.svga')) return 'svga';
   if (lowercaseUrl.endsWith('.json')) return 'lottie';

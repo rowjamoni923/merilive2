@@ -88,8 +88,6 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
 
         player = new SVGA.Player(containerRef.current);
         playerRef.current = player;
-        player.setContentMode?.('AspectFit');
-        player.setClipsToBounds?.(false);
         
         player.loops = loop ? 0 : 1;
         player.clearsAfterStop = !loop;
@@ -189,8 +187,7 @@ const SVGAPlayerInner = forwardRef<HTMLDivElement, SVGAPlayerProps>(({
         if (typeof ref === 'function') ref(node);
         else if (ref) ref.current = node;
       }}
-      className={cn("relative overflow-hidden svga-fit-canvas", className)}
-      data-svga-fit="true"
+      className={cn("relative overflow-hidden", className)}
       style={{ 
         opacity: ready ? 1 : 0,
         transition: 'opacity 0.1s ease-out',
