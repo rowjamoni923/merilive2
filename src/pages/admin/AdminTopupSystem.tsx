@@ -40,6 +40,7 @@ import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
 import { formatAdminError } from "@/utils/formatAdminError";
+import { loadAdminTopupHistory, formatTopupFieldLabel, type TopupHistoryEntry } from "@/utils/adminTopupHistory";
 // Interfaces
 interface UserProfile {
   id: string;
@@ -52,19 +53,7 @@ interface UserProfile {
   is_verified: boolean;
 }
 
-interface TopupLog {
-  id: string;
-  created_at: string;
-  action_type: string;
-  target_id: string;
-  details: {
-    amount: number;
-    note: string;
-    previous_balance: number;
-    new_balance: number;
-  };
-  user?: { display_name: string; avatar_url: string; app_uid: string };
-}
+type TopupLog = TopupHistoryEntry;
 
 interface Helper {
   id: string;
@@ -399,31 +388,9 @@ const AdminTopupSystem = () => {
 
   const loadRecentTopups = async () => {
     try {
-      const { data } = await supabase
-        .from('admin_logs')
-        .select('*')
-        .eq('action_type', 'balance_add')
-        .eq('target_type', 'profile')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (data) {
-        const diamondLogs = data.filter((log: any) => (log.details as any)?.field === 'diamonds').slice(0, 20);
-        // Batch fetch all user profiles in one query
-        const targetIds = [...new Set(diamondLogs.map(l => l.target_id).filter(Boolean))] as string[];
-        const { data: users } = targetIds.length > 0 ? await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, app_uid')
-          .in('id', targetIds) : { data: [] };
-        const userMap = new Map((users || []).map(u => [u.id, u]));
-        const logsWithUsers = diamondLogs.map(log => ({
-          ...log,
-          user: userMap.get(log.target_id || '') || null,
-          details: log.details as TopupLog['details'],
-        }));
-        setRecentTopups(logsWithUsers);
-        setStats(prev => ({ ...prev, totalManualTopups: logsWithUsers.length }));
-      }
+      const entries = await loadAdminTopupHistory({ limit: 30, creditsOnly: true });
+      setRecentTopups(entries);
+      setStats(prev => ({ ...prev, totalManualTopups: entries.length }));
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error) });
     }
@@ -910,16 +877,18 @@ const AdminTopupSystem = () => {
                       {recentTopups.map(log => (
                         <div key={log.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50">
                           <Avatar className="w-8 h-8">
-                            <AvatarImage src={log.user?.avatar_url} />
-                            <AvatarFallback>{log.user?.display_name?.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={log.user?.avatar_url ?? undefined} />
+                            <AvatarFallback>{(log.user?.display_name ?? log.recipient_name ?? '?').charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{log.user?.display_name}</p>
-                            <p className="text-xs text-slate-500">{log.user?.app_uid}</p>
+                            <p className="font-medium text-sm truncate">{log.user?.display_name ?? log.recipient_name ?? '—'}</p>
+                            <p className="text-xs text-slate-500 truncate">
+                              {log.target_label}{log.user?.app_uid ? ` • ${log.user.app_uid}` : ''}
+                            </p>
                           </div>
                           <div className="text-right flex-shrink-0">
                             <Badge className="bg-green-100 text-green-700 text-xs">
-                              +{Math.abs(Number((log.details as any)?.delta ?? log.details?.amount ?? 0)).toLocaleString()} 💎
+                              +{Math.abs(log.delta).toLocaleString()} {formatTopupFieldLabel(log.field)}
                             </Badge>
                             <p className="text-xs text-slate-400 mt-1">
                               {format(new Date(log.created_at), 'dd/MM HH:mm')}
