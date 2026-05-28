@@ -3330,7 +3330,6 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
    the intrinsic canvas from the top-left origin it expects. */
 .svga-fit-canvas,
 [data-svga-fit="true"] {
-  position: relative;
   display: block;
 }
 .svga-fit-canvas canvas,
