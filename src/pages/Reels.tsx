@@ -831,7 +831,7 @@ const Reels = () => {
                       <div className="flex items-center gap-2 mb-2.5">
                         <button
                           onClick={() => navigate(`/profile/${currentReel.user_id}`)}
-                          className="relative w-[36px] h-[36px] rounded-full overflow-hidden flex-shrink-0 active:scale-95 transition-transform
+                          className="relative w-[36px] h-[36px] rounded-full flex-shrink-0 active:scale-95 transition-transform
                                      ring-2 ring-indigo-400/70 shadow-[0_0_16px_rgba(79,70,229,0.55),0_2px_8px_rgba(0,0,0,0.6)]"
                           aria-label="View profile"
                         >
