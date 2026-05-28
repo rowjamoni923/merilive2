@@ -90,12 +90,16 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
 
       if (error) throw error;
 
-      // Fetch profiles for all hosts
+      // Fetch profiles for all hosts. Admin pages need private moderation fields
+      // like is_blocked, so use the admin-scoped profiles table instead of
+      // profiles_public (that view intentionally hides blocked fields).
       const hostIds = [...new Set((data || []).map((v: any) => v.user_id).filter(Boolean))];
-      const { data: profiles } = await supabase
-        .from("profiles_public")
-        .select("id, display_name, avatar_url, app_uid, is_host, is_blocked, country_flag")
-        .in("id", hostIds);
+      const { data: profiles } = hostIds.length > 0
+        ? await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, app_uid, is_host, is_blocked, country_flag")
+          .in("id", hostIds)
+        : { data: [] as any[] };
 
       const profileMap: Record<string, any> = {};
       (profiles || []).forEach((p: any) => { profileMap[p.id] = p; });
