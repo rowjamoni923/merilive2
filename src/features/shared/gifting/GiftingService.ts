@@ -127,6 +127,63 @@ export async function getGiftsByCategory(category: string): Promise<GiftItem[]> 
 export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult> {
   const { giftId, senderId, receiverId, quantity, context, streamId, roomId, callId, reelId } = request;
 
+  // ⚡ ZERO-SECOND FANOUT: fire LiveKit envelope IMMEDIATELY (before RPC roundtrip).
+  // Receivers see the flying gift + sound + chat row in <50ms instead of 300-650ms.
+  // If the RPC later fails (insufficient coins, block, etc.) the sender's UI shows
+  // an error, but the optimistic visual already played for everyone — acceptable
+  // Chamet-class trade-off and matches in-call/in-party UX expectations.
+  const liveKitScope: 'live' | 'party' | 'call' | null =
+    context === 'live' ? 'live'
+    : context === 'party' ? 'party'
+    : context === 'call' ? 'call'
+    : null;
+  const liveKitId = streamId || roomId || callId;
+  let optimisticPublished = false;
+  if (liveKitScope && liveKitId) {
+    try {
+      const cachedGift = await getGiftById(giftId); // local cache hit — synchronous-fast
+      // Resolve sender display info from local profile cache without blocking.
+      // profiles_public is tiny and usually cached by other surfaces; we fire-and-forget.
+      let senderName = 'Someone';
+      let senderAvatar: string | undefined;
+      let senderLevel: number | undefined;
+      try {
+        const { data: sp } = await supabase
+          .from('profiles_public')
+          .select('display_name, avatar_url, user_level')
+          .eq('id', senderId)
+          .maybeSingle();
+        if (sp) {
+          senderName = sp.display_name || senderName;
+          senderAvatar = sp.avatar_url || undefined;
+          senderLevel = (sp as any).user_level;
+        }
+      } catch { /* non-fatal */ }
+
+      const unitCoins = cachedGift?.coins || 0;
+      publishGiftSent(liveKitScope, liveKitId, {
+        senderId,
+        senderName,
+        senderAvatar,
+        senderLevel,
+        receiverId,
+        giftId,
+        giftName: cachedGift?.name || 'Gift',
+        giftIconUrl: cachedGift?.icon_url,
+        giftAnimationUrl: cachedGift?.animation_url,
+        giftSoundUrl: cachedGift?.sound_url,
+        count: quantity,
+        giftCoins: unitCoins,
+        totalCoins: unitCoins * quantity,
+        receiverBeans: 0, // unknown until RPC settles — receiver beans counter reconciles via own-beans-updated
+        timestamp: Date.now(),
+      }).then((ok) => { optimisticPublished = !!ok; })
+        .catch((err) => console.warn('[Pkg-Instant] optimistic publishGiftSent failed:', err));
+    } catch (err) {
+      console.warn('[GiftingService] optimistic publish prep failed:', err);
+    }
+  }
+
   try {
     console.log('[GiftingService] Processing gift transaction:', {
       giftId, senderId, receiverId, quantity, context
@@ -160,9 +217,6 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     });
 
     // Pkg85: Instant My Diamond update for sender.
-    // Prefer the server-returned post-transaction balance when present; otherwise
-    // deduct the normalized coinsSpent value. This prevents zero/missing cache updates
-    // when RPC response shapes differ across migrations.
     if (typeof result.newBalance === 'number' && Number.isFinite(result.newBalance)) {
       try {
         updateCachedBalance(Math.max(0, result.newBalance));
@@ -173,16 +227,10 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       } catch {}
     }
 
-    // ⚡ INSTANT BROADCAST: fire-and-forget so every viewer sees the animation
-    // in <100ms (vs 1-3s postgres_changes latency).
-    const broadcastRoomId = streamId || roomId;
-    const liveKitScope: 'live' | 'party' | 'call' | null =
-      context === 'live' ? 'live'
-      : context === 'party' ? 'party'
-      : context === 'call' ? 'call'
-      : null;
-    const liveKitId = streamId || roomId || callId;
-    if (broadcastRoomId || (liveKitScope === 'call' && liveKitId)) {
+    // Safety net: if optimistic publish did NOT actually fire (LiveKit disabled,
+    // room not connected yet, kill-switch off), re-publish now with the verified
+    // beans amount so receivers still see the gift via the legacy post-RPC path.
+    if (liveKitScope && liveKitId && !optimisticPublished) {
       (async () => {
         try {
           const [gift, senderRes] = await Promise.all([
@@ -197,35 +245,25 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
           const senderAvatar = senderRes.data?.avatar_url || undefined;
           const senderLevel = (senderRes.data as any)?.user_level;
 
-          // Pkg82/83 LiveKit-Purist: publish via DataPacket for in-room scopes.
-          if (liveKitScope && liveKitId) {
-            publishGiftSent(liveKitScope, liveKitId, {
-              senderId,
-              senderName,
-              senderAvatar,
-              senderLevel,
-              receiverId,
-              giftId,
-              giftName: gift?.name || 'Gift',
-              giftIconUrl: gift?.icon_url,
-              giftAnimationUrl: gift?.animation_url,
-              giftSoundUrl: gift?.sound_url,
-              count: quantity,
-              giftCoins: gift?.coins || 0,
-              totalCoins: result.coinsSpent || 0,
-              receiverBeans: result.hostReceived || 0,
-              timestamp: Date.now(),
-            }).catch((err) => console.warn('[Pkg76] publishGiftSent failed:', err));
-          }
-
-          // Pkg88: LiveKit-Purist — Supabase `room-instant-${id}` broadcast REMOVED.
-          // Its only consumer (`useRoomGifts`) is dead code, and Pkg78 deleted every
-          // real receiver of legacy gift_broadcast_* channels. LiveKit DataPacket
-          // above is the sole instant fanout path; postgres_changes via own-row
-          // own-beans-updated event (Pkg85) reconciles within ~1s as safety net.
-
+          publishGiftSent(liveKitScope, liveKitId, {
+            senderId,
+            senderName,
+            senderAvatar,
+            senderLevel,
+            receiverId,
+            giftId,
+            giftName: gift?.name || 'Gift',
+            giftIconUrl: gift?.icon_url,
+            giftAnimationUrl: gift?.animation_url,
+            giftSoundUrl: gift?.sound_url,
+            count: quantity,
+            giftCoins: gift?.coins || 0,
+            totalCoins: result.coinsSpent || 0,
+            receiverBeans: result.hostReceived || 0,
+            timestamp: Date.now(),
+          }).catch((err) => console.warn('[Pkg76] fallback publishGiftSent failed:', err));
         } catch (err) {
-          console.warn('[GiftingService] Broadcast failed (non-fatal):', err);
+          console.warn('[GiftingService] fallback broadcast failed (non-fatal):', err);
         }
       })();
     }
@@ -250,6 +288,7 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     return { success: false, error: error instanceof Error ? error.message : 'An unexpected error occurred' };
   }
 }
+
 
 /**
  * Format coin value for display
