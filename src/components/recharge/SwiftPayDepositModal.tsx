@@ -78,7 +78,7 @@ const getCryptoOptions = (priceUsd: number | null | undefined) => {
 type Step = "pick_pkg" | "pick_currency" | "pay" | "done";
 
 const MINIMUM_DEPOSIT_MESSAGE =
-  "This crypto network requires a larger deposit amount. Please choose a bigger diamond package and try again.";
+  "This amount is below every supported crypto network's minimum deposit. Please choose a bigger diamond package and try again.";
 
 // Detect upstream gateway "currency not enabled / not supported" errors so we can
 // automatically fall back to another enabled crypto network instead of failing.
