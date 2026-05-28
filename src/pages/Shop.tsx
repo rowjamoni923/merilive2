@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -43,9 +43,6 @@ import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { normalizePublicMediaUrl } from "@/lib/cdnImage";
 import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
-
-// Lazy load SVGAPlayerWithAudio for full-screen entry animation previews with sound
-const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
 
 interface ShopItem {
   id: string;
