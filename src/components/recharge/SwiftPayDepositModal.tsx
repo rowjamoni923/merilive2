@@ -37,41 +37,48 @@ interface Props {
 
 }
 
-// Recommendation logic (per owner directive):
-//  - Small payments (< $10): ERC20 is recommended (accepts small amounts)
-//  - Large payments (≥ $10): TRC20 is recommended (lowest fee for bigger amounts)
+// Recommendation logic (corrected — based on real SwiftPay/network minimums):
+//  - TRC20 / BEP20 / SOL have the lowest network minimums (~$0.50-1) and lowest gas.
+//  - ERC20 / BTC / ETH have HIGH gateway minimums ($5-30+) due to Ethereum gas.
+//  - Therefore TRC20 is recommended for ALL sizes (it works for both small + large).
 const LARGE_PAYMENT_THRESHOLD_USD = 10;
 
+// Order matters — first option is tried first in the auto-fallback loop.
+// Low-min networks come first so small amounts succeed on the first try.
 const BASE_CRYPTO_OPTIONS = [
   { value: "usdttrc20", label: "USDT (TRC20)" },
   { value: "usdtbep20", label: "USDT (BEP20 / BSC)" },
-  { value: "usdterc20", label: "USDT (ERC20)" },
+  { value: "sol", label: "Solana (SOL)" },
+  { value: "ltc", label: "Litecoin (LTC)" },
+  { value: "bnb", label: "BNB" },
   { value: "btc", label: "Bitcoin (BTC)" },
   { value: "eth", label: "Ethereum (ETH)" },
-  { value: "bnb", label: "BNB" },
+  { value: "usdterc20", label: "USDT (ERC20)" },
 ];
 
-const getRecommendedCurrency = (priceUsd: number | null | undefined) => {
-  if (!priceUsd || priceUsd < LARGE_PAYMENT_THRESHOLD_USD) return "usdterc20";
+const getRecommendedCurrency = (_priceUsd: number | null | undefined) => {
+  // TRC20 has the lowest network minimum and lowest fee at any size.
   return "usdttrc20";
 };
 
 const getCryptoOptions = (priceUsd: number | null | undefined) => {
   const recommended = getRecommendedCurrency(priceUsd);
+  const isSmall = !priceUsd || priceUsd < LARGE_PAYMENT_THRESHOLD_USD;
   return BASE_CRYPTO_OPTIONS.map((o) => {
-    if (o.value !== recommended) return o;
-    const suffix =
-      recommended === "usdterc20"
-        ? " — recommended for small payments"
-        : " — recommended, lowest fee";
-    return { ...o, label: `${o.label}${suffix}` };
+    if (o.value === recommended) {
+      return { ...o, label: `${o.label} — recommended, lowest minimum` };
+    }
+    if (isSmall && (o.value === "usdterc20" || o.value === "btc" || o.value === "eth")) {
+      return { ...o, label: `${o.label} — high minimum, large payments only` };
+    }
+    return o;
   });
 };
 
 type Step = "pick_pkg" | "pick_currency" | "pay" | "done";
 
 const MINIMUM_DEPOSIT_MESSAGE =
-  "This crypto network requires a larger deposit amount. Please choose a bigger diamond package and try again.";
+  "This amount is below every supported crypto network's minimum deposit. Please choose a bigger diamond package and try again.";
 
 // Detect upstream gateway "currency not enabled / not supported" errors so we can
 // automatically fall back to another enabled crypto network instead of failing.
@@ -128,7 +135,7 @@ export default function SwiftPayDepositModal({
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("pick_pkg");
   const [pkg, setPkg] = useState<PkgLite | null>(null);
-  const [currency, setCurrency] = useState("usdterc20");
+  const [currency, setCurrency] = useState("usdttrc20");
   const [creating, setCreating] = useState(false);
   const [deposit, setDeposit] = useState<any>(null);
 
@@ -139,7 +146,7 @@ export default function SwiftPayDepositModal({
     if (!open) {
       setStep("pick_pkg");
       setPkg(null);
-      setCurrency("usdterc20");
+      setCurrency("usdttrc20");
       setDeposit(null);
       setCreating(false);
       return;
@@ -228,11 +235,16 @@ export default function SwiftPayDepositModal({
           continue;
         }
 
-        // Minimum-deposit failures are not currency-specific — bail out immediately.
-        if (errPayload?.error === "minimum_deposit_not_met") {
+        // Minimum-deposit failures ARE per-currency (every network has its own
+        // gateway minimum — TRC20 ~$0.50, ERC20 ~$5+, BTC ~$20+). So when one
+        // network rejects the amount as too small, silently try the next
+        // (cheaper-min) currency before showing the user any error.
+        if (errPayload?.error === "minimum_deposit_not_met"
+            || errPayload?.error === "below_minimum"
+            || /less than minim/i.test(String(errPayload?.message || error?.message || ""))) {
           lastErrMsg = MINIMUM_DEPOSIT_MESSAGE;
           lastErrIsMinimum = true;
-          break;
+          continue; // try next network
         }
 
         lastErrMsg = getDepositErrorMessage(errPayload, error?.message);
