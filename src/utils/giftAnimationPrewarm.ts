@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchWithBinaryCache, prewarmSVGA } from '@/utils/svgaPrewarm';
 import { fetchLottieCached } from '@/utils/lottieCache';
 
-const MAX_GIFTS = 25;
+const MAX_GIFTS = 60;
 let started = false;
 
 function classify(url: string): 'svga' | 'lottie' | 'image' | 'video' | 'unknown' {
