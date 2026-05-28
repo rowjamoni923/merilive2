@@ -4,7 +4,7 @@
 // rules. Companion to Pkg135/136/137. Create stays in feature-owned edge fns
 // (livekit-sip-inbound / Pkg110 livekit-sip).
 //
-// Actions (admin-only via x-admin-access-token):
+// Actions (admin-only via x-admin-token admin session):
 //   list_inbound_trunks
 //   list_outbound_trunks
 //   list_dispatch_rules
@@ -28,7 +28,6 @@ const LIVEKIT_URL = Deno.env.get("LIVEKIT_URL") ?? "";
 const LIVEKIT_API_KEY = Deno.env.get("LIVEKIT_API_KEY") ?? "";
 const LIVEKIT_API_SECRET = Deno.env.get("LIVEKIT_API_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const json = (status: number, body: unknown) =>
@@ -53,31 +52,6 @@ const ALLOWED: Action[] = [
   "delete_outbound_trunk",
   "delete_dispatch_rule",
 ];
-
-async function validateAdminToken(
-  token: string,
-): Promise<{ ok: boolean; role?: "owner" | "sub_admin" }> {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/functions/v1/validate-admin-token`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ token, action: "validate" }),
-      },
-    );
-    if (!res.ok) return { ok: false };
-    const data = await res.json().catch(() => ({}));
-    return data?.valid ? { ok: true, role: data.role } : { ok: false };
-  } catch (e) {
-    console.warn("[livekit-sip-ops] admin validate failed:", e);
-    return { ok: false };
-  }
-}
 
 async function killSwitchOn(admin: ReturnType<typeof createClient>): Promise<boolean> {
   try {
