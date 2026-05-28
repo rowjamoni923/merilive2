@@ -24,6 +24,8 @@ export function ParticipantVideo({
   stream,
   displayName,
   avatarUrl,
+  userId,
+  level = 1,
   isHost,
   isSelf,
   isMuted = false,
