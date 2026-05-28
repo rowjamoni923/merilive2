@@ -661,14 +661,25 @@ const App = () => {
 
 
     // Defer SVGA prewarm to idle
-    const svgaIdleId = idle(() => prewarmSVGA(), 3500);
+    const svgaIdleId = idle(() => prewarmSVGA(), 2000);
 
     // Pkg C — prewarm top gift animations (SVGA binaries + Lottie JSON + images)
+    // Pulled in earlier (1500ms) and widened to 60 gifts so that the first gift
+    // sent in any room/call/chat plays with zero network delay on the receiver side.
     const giftIdleId = idle(() => {
       import('@/utils/giftAnimationPrewarm')
         .then(m => m.prewarmGiftAnimations())
         .catch(() => {});
-    }, 5500);
+    }, 1500);
+
+    // Pkg-Instant — bulk prefetch every active avatar frame so frames load with
+    // zero delay everywhere (Profile, Chat, Live, Party, Call, leaderboards).
+    const framesIdleId = idle(() => {
+      import('@/utils/frameBulkPrewarm')
+        .then(m => m.prewarmActiveFrames())
+        .catch(() => {});
+    }, 2500);
+
 
     // Pkg205 — one-time battery-optimization whitelist prompt (native Android
     // only). Prevents Xiaomi/Oppo/Vivo/Samsung from killing FCM listener and
@@ -685,8 +696,10 @@ const App = () => {
       window.clearTimeout(imageIdleId);
       cancelIdle(svgaIdleId);
       cancelIdle(giftIdleId);
+      cancelIdle(framesIdleId);
       cancelIdle(batteryIdleId);
     };
+
   }, []);
 
   // ⚡ REALTIME → REACT QUERY BRIDGE moved inside QueryClientProvider (see RealtimeQuerySyncBridge below)
