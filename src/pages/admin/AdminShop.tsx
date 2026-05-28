@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -34,7 +35,6 @@ import {
   RefreshCw,
   Play
 } from "lucide-react";
-import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -568,14 +568,6 @@ const AdminShop = () => {
     return item.animation_file_url || item.svga_url || item.animation_url || item.preview_url || item.image_url;
   };
 
-  const getAdminPreviewType = (category: string) => {
-    if (category === 'frame') return 'frame';
-    if (category === 'bubble') return 'chat-bubble';
-    if (category === 'entrance') return 'entry-banner';
-    if (category === 'vehicle') return 'vehicle';
-    return 'gift';
-  };
-
   const isSVGA = (url: string | null | undefined) => {
     if (!url) return false;
     return url.toLowerCase().endsWith('.svga');
@@ -740,20 +732,35 @@ const AdminShop = () => {
             >
               <div className="flex gap-3">
                 {/* Preview - Show static preview if available, otherwise show animation */}
-                <div className="h-20 w-20 flex-shrink-0 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-1">
-                  {getAnimationUrl(item) ? (
-                    <AdminAssetPreview
-                      type={getAdminPreviewType(item.category)}
-                      src={item.animation_file_url || item.svga_url || item.animation_url || item.image_url}
-                      previewUrl={item.preview_url}
-                      animationType={item.file_type === 'video' ? undefined : item.file_type}
-                      containerClassName="h-full w-full min-h-0 rounded-lg border-0 shadow-none"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <CategoryIcon className="w-8 h-8 text-purple-400" />
-                    </div>
-                  )}
+                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {(() => {
+                    const previewUrl = item.preview_url;
+                    const animUrl = item.animation_file_url || item.svga_url || item.animation_url;
+                    
+                    // If preview_url exists and is a real image (not SVGA/Lottie), show as img
+                    if (previewUrl && !isSVGA(previewUrl) && !isLottie(previewUrl)) {
+                      return <SmartImage src={previewUrl} alt={item.name} cdnWidth={200} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />;
+                    }
+                    
+                    // Otherwise use animation player for SVGA/Lottie
+                    const srcUrl = animUrl || previewUrl;
+                    if (srcUrl) {
+                      return (
+                        <UniversalFramePlayer
+                          src={srcUrl}
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
+                      );
+                    }
+                    
+                    if (item.image_url) {
+                      return <SmartImage src={item.image_url} alt={item.name} cdnWidth={200} className="w-full h-full object-cover" fallbackSrc="/placeholder.svg" />;
+                    }
+                    
+                    return <CategoryIcon className="w-8 h-8 text-purple-400" />;
+                  })()}
                 </div>
 
                 {/* Info */}
@@ -1099,7 +1106,11 @@ const AdminShop = () => {
                   
                   {formData.preview_url ? (
                     <div className="mt-2 relative inline-block">
-                      <AdminAssetPreview type="frame" src={null} previewUrl={formData.preview_url} />
+                      <SmartImage
+                        src={formData.preview_url}
+                        alt="Preview"
+                        cdnWidth={200}
+                        className="w-24 h-24 rounded-lg object-cover border border-white/20" fallbackSrc="/placeholder.svg" />
 
                       <button
                         type="button"

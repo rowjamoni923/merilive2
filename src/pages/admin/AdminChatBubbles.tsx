@@ -14,7 +14,6 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { getAdminSessionToken } from "@/utils/adminSession";
 import { SmartImage } from "@/components/ui/smart-image";
-import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface ChatBubbleItem {
@@ -315,7 +314,19 @@ const AdminChatBubbles = () => {
                 <p className="text-sm text-muted-foreground">Level {item.level}+</p>
               </CardHeader>
               <CardContent>
-                <AdminAssetPreview type="chat-bubble" src={item.animation_url} previewUrl={item.preview_url} />
+                <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  {item.animation_url ? (
+                    <FixedAnimationFrame size="fill" center={false}
+                      src={item.animation_url}
+                      
+                      loop
+                    />
+                  ) : item.preview_url ? (
+                    <SmartImage src={item.preview_url} alt={item.name} className="w-full h-full object-contain" fallbackSrc="/placeholder.svg" />
+                  ) : (
+                    <MessageCircle className="h-12 w-12 text-muted-foreground" />
+                  )}
+                </div>
                 <div className="flex gap-2">
                   {item.animation_url && (
                     <Button
@@ -427,7 +438,13 @@ const AdminChatBubbles = () => {
             </div>
 
             {formData.animation_url && (
-                <AdminAssetPreview type="chat-bubble" src={formData.animation_url} previewUrl={formData.preview_url} />
+              <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                <FixedAnimationFrame size="fill" center={false}
+                  src={formData.animation_url}
+                  
+                  loop
+                />
+              </div>
             )}
           </div>
 

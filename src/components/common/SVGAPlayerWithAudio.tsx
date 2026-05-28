@@ -52,7 +52,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTimeRef = useRef<number>(0);
   const expectedDurationRef = useRef<number>(0);
-  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   // Stable refs for callbacks — prevents parent re-renders from re-running the
   // load effect (which would tear down + rebuild the SVGA player and replay it).
@@ -129,16 +128,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         playerRef.current = player;
         player.setContentMode?.('AspectFit');
         player.setClipsToBounds?.(false);
-        if (typeof ResizeObserver !== 'undefined') {
-          resizeObserverRef.current?.disconnect();
-          resizeObserverRef.current = new ResizeObserver(() => {
-            if (!mountedRef.current || !playerRef.current) return;
-            requestAnimationFrame(() => {
-              try { playerRef.current?._update?.(); } catch (e) {}
-            });
-          });
-          resizeObserverRef.current.observe(containerRef.current);
-        }
         player.loops = loop ? 0 : 1;
         player.clearsAfterStop = !loop;
 
@@ -158,9 +147,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         );
 
         player.setVideoItem(videoItemToUse);
-        requestAnimationFrame(() => {
-          try { playerRef.current?._update?.(); } catch (e) {}
-        });
         setLoading(false);
         onLoadRef.current?.();
 
@@ -237,8 +223,6 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
       document.removeEventListener('visibilitychange', handleResume);
       window.removeEventListener('focus', handleResume);
       cleanupAudio();
-      resizeObserverRef.current?.disconnect();
-      resizeObserverRef.current = null;
       if (completionTimerRef.current) {
         clearTimeout(completionTimerRef.current);
         completionTimerRef.current = null;
@@ -265,11 +249,11 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   }
 
   return (
-    <div className={cn("relative overflow-hidden svga-fit-canvas", className)} data-svga-fit="true">
+    <div className={cn("relative", className)}>
       {loading && (
         <div className="absolute inset-0 bg-transparent" aria-hidden="true" />
       )}
-      <div ref={containerRef} className="absolute inset-0 h-full w-full svga-fit-canvas" data-svga-fit="true" />
+      <div ref={containerRef} className="w-full h-full" />
     </div>
   );
 };

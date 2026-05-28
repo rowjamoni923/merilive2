@@ -3323,26 +3323,21 @@ body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="option
   max-width: 100%;
 }
 
-/* svgaplayerweb already computes AspectFit/AspectFill by setting the canvas
-   backing size plus its own transform. Do NOT flex-center or max-size this
-   canvas: that double-scales frames and pushes avatar/entry SVGA artwork into
-   the wrong corner. Keep the player container sized; let the library transform
-   the intrinsic canvas from the top-left origin it expects. */
-.svga-fit-canvas,
-[data-svga-fit="true"] {
-  display: block;
-}
+/* SVGA / animation <canvas> elements: scale to fit their container box
+   while preserving aspect ratio. Without this, svgaplayerweb renders at
+   the native SVGA pixel size (often 500x500) and the parent's
+   overflow-hidden crops everything except the top-left corner — which
+   is why admin frame/entry/gift previews showed only a tiny icon in
+   the top-left of each card. */
+.admin-content canvas,
 .svga-fit-canvas canvas,
 [data-svga-fit="true"] canvas {
   display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  max-width: none;
-  max-height: none;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  transform-origin: 0 0;
-  pointer-events: none;
 }
 
 /* Tables: horizontal scroll wrapper on mobile */

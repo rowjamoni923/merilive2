@@ -1,7 +1,7 @@
 import { useState, useEffect, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { InlineLevelBadge, LevelBadge } from "@/components/common/LevelBadge";
-import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 
@@ -240,16 +240,12 @@ const CustomEntranceNotification = ({ user, animationUrl }: { user: EntranceUser
                 mixBlendMode: 'overlay',
               }}
             />
-            <AvatarWithFrame
-              userId={user.id}
-              src={user.avatarUrl}
-              name={user.displayName}
-              level={user.level}
-              size="md"
-              showFrame
-              showAnimation
-              avatarClassName="border-2 border-yellow-200 shadow-[0_0_18px_rgba(251,191,36,0.7)]"
-            />
+            <Avatar className="relative w-12 h-12 border-2 border-yellow-200 shadow-[0_0_18px_rgba(251,191,36,0.7)]">
+              <AvatarImage src={user.avatarUrl} />
+              <AvatarFallback className="bg-amber-400 text-white font-bold">
+                {user.displayName[0]}
+              </AvatarFallback>
+            </Avatar>
             <div className="relative flex flex-col">
               <div className="flex items-center gap-2">
                 <LevelBadge level={user.level} size="sm" animated />

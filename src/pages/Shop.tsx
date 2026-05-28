@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -41,8 +41,9 @@ import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import { clearEntryAnimationCache } from "@/utils/fetchEntryAnimation";
 import { recordClientError } from "@/utils/clientErrorLog";
-import { normalizePublicMediaUrl } from "@/lib/cdnImage";
-import { normalizeGiftMediaUrl } from "@/utils/giftMediaUrl";
+
+// Lazy load SVGAPlayerWithAudio for full-screen entry animation previews with sound
+const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
 
 interface ShopItem {
   id: string;
@@ -97,9 +98,6 @@ const isEntryAnimationCategory = (category: string) =>
 
 const shouldClearEntryAnimationCache = (category: string) =>
   ['entrance', 'entrance_effect', 'entry_banner', 'entry_bar', 'entry_name_bar', 'vehicle', 'vehicle_entrance'].includes(category);
-
-const normalizeShopMediaUrl = (url?: string | null) =>
-  normalizeGiftMediaUrl(url) || normalizePublicMediaUrl(url) || url || '';
 
 // Shop Item Card Component - Luxury Style matching reference
 const ShopItemCard = ({ 
@@ -162,7 +160,7 @@ const ShopItemCard = ({
           // If preview_url exists and is a real image (not SVGA/Lottie), show static preview
           item.preview_url && !item.preview_url.endsWith('.svga') && !item.preview_url.endsWith('.json') ? (
             <img 
-              src={normalizeShopMediaUrl(item.preview_url)}
+              src={item.preview_url}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
@@ -170,7 +168,7 @@ const ShopItemCard = ({
           ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
             <div className={`relative ${isFullWidth ? 'w-[85%] h-[85%] scale-110' : 'w-[85%] h-[85%]'}`}>
               <FixedAnimationFrame
-                src={normalizeShopMediaUrl(item.animation_file_url)}
+                src={item.animation_file_url || ''}
                 size="fill"
                 loop
                 autoPlay
@@ -179,7 +177,7 @@ const ShopItemCard = ({
             </div>
           ) : (
             <img 
-              src={normalizeShopMediaUrl(item.animation_file_url || item.preview_url)}
+              src={item.animation_file_url || item.preview_url || ''}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
@@ -596,7 +594,7 @@ const Shop = () => {
                 >
                   {selectedItem.animation_file_url?.endsWith('.svga') || selectedItem.animation_file_url?.endsWith('.json') ? (
                     <FixedAnimationFrame
-                      src={normalizeShopMediaUrl(selectedItem.animation_file_url)}
+                      src={selectedItem.animation_file_url || ''}
                       size={isEntryAnimationCategory(selectedItem.category) ? 'full-square' : 'large'}
                       loop
                       autoPlay
@@ -606,7 +604,7 @@ const Shop = () => {
                     />
                   ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
                     <img 
-                      src={normalizeShopMediaUrl(selectedItem.animation_file_url || selectedItem.preview_url)}
+                      src={selectedItem.animation_file_url || selectedItem.preview_url || ''}
                       alt={selectedItem.name}
                       className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}

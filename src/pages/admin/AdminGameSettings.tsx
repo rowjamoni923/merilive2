@@ -18,7 +18,6 @@ import { Label } from "@/components/ui/label";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { SmartImage } from "@/components/ui/smart-image";
-import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface BetMultiplier {
@@ -1046,9 +1045,13 @@ export default function AdminGameSettings() {
                       </label>
                     </div>
                     {editingGame.logo_url && (
-                        <div className="mt-2 w-full">
-                          <AdminAssetPreview type="game-logo" src={null} previewUrl={editingGame.logo_url} aspectRatio="video" />
-                        </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        <SmartImage 
+                          src={editingGame.logo_url} 
+                          alt="Game Logo" 
+                          className="w-12 h-12 rounded-lg object-cover border" fallbackSrc="/placeholder.svg" />
+                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">{editingGame.logo_url}</span>
+                      </div>
                     )}
                   </div>
 
@@ -1241,8 +1244,12 @@ export default function AdminGameSettings() {
                         </label>
                       </div>
                       {newGame.logo_url && (
-                        <div className="mt-2 w-full">
-                          <AdminAssetPreview type="game-logo" src={null} previewUrl={editingGame.logo_url} aspectRatio="video" />
+                        <div className="mt-2 flex items-center gap-2">
+                          <SmartImage 
+                            src={newGame.logo_url} 
+                            alt="Game Logo Preview" 
+                            className="w-12 h-12 rounded-lg object-cover border" fallbackSrc="/placeholder.svg" />
+                          <span className="text-xs text-muted-foreground truncate max-w-[200px]">{newGame.logo_url}</span>
                         </div>
                       )}
                     </div>

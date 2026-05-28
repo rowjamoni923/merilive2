@@ -28,7 +28,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
-import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -71,28 +71,43 @@ const frameTypeOptions = [
 
 const categoryOptions = ['general', 'vip', 'seasonal', 'event', 'special', 'birthday', 'festival'];
 
+const ADMIN_FRAME_PREVIEW_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face";
+
 const AdminAvatarFramePreview = ({
   frameUrl,
-  previewUrl,
   frameType,
   size = 100,
+  avatarSrc = ADMIN_FRAME_PREVIEW_AVATAR,
 }: {
   frameUrl: string;
-  previewUrl?: string | null;
   frameType?: string | null;
   size?: number;
   avatarSrc?: string;
-}) => (
-  <div className="relative shrink-0 overflow-visible" style={{ width: size, height: size }}>
-    <AdminAssetPreview
-      type="frame"
-      src={frameUrl}
-      previewUrl={previewUrl}
-      animationType={frameType}
-      containerClassName="h-full w-full min-h-0 rounded-xl border-0 shadow-none"
-    />
-  </div>
-);
+}) => {
+  const frameOutset = Math.max(8, Math.round(size * 0.12));
+  const previewSize = size + frameOutset * 2;
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: previewSize, height: previewSize }}>
+      <Avatar
+        className="absolute top-1/2 left-1/2 overflow-hidden border-2 border-white/80 shadow-lg"
+        style={{ width: size, height: size, transform: 'translate(-50%, -50%)', zIndex: 1 }}
+      >
+        <AvatarImage src={avatarSrc} className="object-cover" />
+        <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white font-semibold">U</AvatarFallback>
+      </Avatar>
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
+        <UniversalFramePlayer
+          src={frameUrl}
+          type={frameType as any}
+          className="w-full h-full"
+          loop={true}
+          autoPlay={true}
+        />
+      </div>
+    </div>
+  );
+};
 
 const AdminFrames = () => {
   const location = useLocation();
@@ -591,8 +606,16 @@ const AdminFrames = () => {
                 }`}
               >
                 {/* Frame Preview - Use <SmartImage> only for real image thumbnails; otherwise play the animation */}
-                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-visible p-3">
-                  <AdminAvatarFramePreview frameUrl={frame.frame_url} previewUrl={frame.preview_url} frameType={frame.frame_type} size={132} />
+                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-hidden">
+                  {(() => {
+                    return (
+                      <AdminAvatarFramePreview
+                        frameUrl={frame.frame_url || frame.preview_url || ''}
+                        frameType={frame.frame_type}
+                        size={100}
+                      />
+                    );
+                  })()}
                   
                   {/* Type Badge */}
                   <Badge className={`absolute top-2 left-2 bg-black/60 backdrop-blur-sm ${getTypeColor(frame.frame_type)}`}>
@@ -643,7 +666,7 @@ const AdminFrames = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="px-3 pb-3 flex justify-end gap-1">
+                <div className="absolute bottom-14 right-2 flex gap-1">
                   <Button
                     size="icon"
                     variant="ghost"

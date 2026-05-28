@@ -3,8 +3,6 @@
  * Eliminates N+1 queries by batching all frame lookups
  */
 import { supabase } from '@/integrations/supabase/client';
-import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
-import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 
 interface FrameData {
   id: string;
@@ -45,21 +43,6 @@ export const subscribeFrameCache = (fn: Listener) => {
 };
 
 const notify = () => listeners.forEach(fn => fn());
-
-const normalizeFrameUrl = (url?: string | null): string | null => {
-  if (!url) return null;
-  return normalizeGiftMediaUrl(url) || normalizePublicMediaUrl(url) || url;
-};
-
-const detectFrameType = (url: string, fallbackType?: string | null): string => {
-  const urlPath = url.split('?')[0].split('#')[0].toLowerCase();
-  if (urlPath.endsWith('.svga')) return 'svga';
-  if (urlPath.endsWith('.json')) return 'lottie';
-  if (urlPath.endsWith('.gif')) return 'gif';
-  if (urlPath.endsWith('.webp')) return 'webp';
-  if (urlPath.endsWith('.png') || urlPath.endsWith('.jpg') || urlPath.endsWith('.jpeg')) return 'static';
-  return fallbackType || 'static';
-};
 
 // === CACHE HELPERS ===
 const isValid = (timestamp: number) => Date.now() - timestamp < CACHE_TTL;
@@ -166,9 +149,15 @@ const executeBatch = async () => {
         .eq('is_active', true);
 
       frames?.forEach((f: any) => {
-        const normalizedUrl = normalizeFrameUrl(f.frame_url);
-        if (normalizedUrl?.startsWith('http') || normalizedUrl?.startsWith('/')) {
-          frameDataCache.set(f.id, { ...f, frame_url: normalizedUrl, frame_type: detectFrameType(normalizedUrl, f.frame_type) });
+        if (f.frame_url?.startsWith('http')) {
+          const urlPath = f.frame_url.split('?')[0].toLowerCase();
+          let detectedType = f.frame_type || 'static';
+          if (urlPath.endsWith('.svga')) detectedType = 'svga';
+          else if (urlPath.endsWith('.json')) detectedType = 'lottie';
+          else if (urlPath.endsWith('.gif')) detectedType = 'gif';
+          else if (urlPath.endsWith('.webp')) detectedType = 'webp';
+          else if (urlPath.endsWith('.png') || urlPath.endsWith('.jpg')) detectedType = 'static';
+          frameDataCache.set(f.id, { ...f, frame_type: detectedType });
         } else {
           frameDataCache.set(f.id, null);
         }
@@ -206,7 +195,7 @@ const executeBatch = async () => {
       const shopMap = new Map<string, string>();
       shopItems?.forEach((item: any) => {
         if (item.category !== 'frame' && item.category !== 'portrait_frame') return;
-        const url = normalizeFrameUrl(item.animation_file_url || item.animation_url || item.preview_url);
+        const url = item.animation_file_url || item.animation_url || item.preview_url;
         if (url) shopMap.set(item.id, url);
       });
 
@@ -216,7 +205,13 @@ const executeBatch = async () => {
         const equippedId = cached?.data.equipped_frame_id;
         if (equippedId && shopMap.has(equippedId)) {
           const url = shopMap.get(equippedId)!;
-          resolvedFrameUrlCache.set(userId, { url, type: detectFrameType(url), timestamp: now });
+          const urlPath = url.split('?')[0].toLowerCase();
+          let type = 'static';
+          if (urlPath.endsWith('.svga')) type = 'svga';
+          else if (urlPath.endsWith('.json')) type = 'lottie';
+          else if (urlPath.endsWith('.gif')) type = 'gif';
+          else if (urlPath.endsWith('.webp')) type = 'webp';
+          resolvedFrameUrlCache.set(userId, { url, type, timestamp: now });
         }
       });
     } catch (err) {
@@ -252,8 +247,7 @@ const executeBatch = async () => {
 
       const roleMap = new Map<string, string>();
       roleFrames?.forEach((rf: any) => {
-        const url = normalizeFrameUrl(rf.frame_url);
-        if (url) roleMap.set(rf.id, url);
+        if (rf.frame_url) roleMap.set(rf.id, rf.frame_url);
       });
 
       const now = Date.now();
@@ -262,7 +256,13 @@ const executeBatch = async () => {
         const equippedId = cached?.data.equipped_frame_id;
         if (equippedId && roleMap.has(equippedId)) {
           const url = roleMap.get(equippedId)!;
-          resolvedFrameUrlCache.set(userId, { url, type: detectFrameType(url), timestamp: now });
+          const urlPath = url.split('?')[0].toLowerCase();
+          let type = 'static';
+          if (urlPath.endsWith('.svga')) type = 'svga';
+          else if (urlPath.endsWith('.json')) type = 'lottie';
+          else if (urlPath.endsWith('.gif')) type = 'gif';
+          else if (urlPath.endsWith('.webp')) type = 'webp';
+          resolvedFrameUrlCache.set(userId, { url, type, timestamp: now });
         }
       });
     } catch (err) {
@@ -359,9 +359,15 @@ export const getLevelFrame = async (level: number, isHost: boolean): Promise<Fra
     if (tt) query = query.eq('target_type', tt);
     
     const { data } = await query.maybeSingle();
-    const normalizedUrl = normalizeFrameUrl(data?.frame_url);
-    if (normalizedUrl?.startsWith('http') || normalizedUrl?.startsWith('/')) {
-      const frame: FrameData = { ...data, frame_url: normalizedUrl, frame_type: detectFrameType(normalizedUrl, data.frame_type) };
+    if (data?.frame_url?.startsWith('http')) {
+      const urlPath = data.frame_url.split('?')[0].toLowerCase();
+      let detectedType = data.frame_type || 'static';
+      if (urlPath.endsWith('.svga')) detectedType = 'svga';
+      else if (urlPath.endsWith('.json')) detectedType = 'lottie';
+      else if (urlPath.endsWith('.gif')) detectedType = 'gif';
+      else if (urlPath.endsWith('.webp')) detectedType = 'webp';
+      
+      const frame: FrameData = { ...data, frame_type: detectedType };
       levelFrameCache.set(key, frame);
       return frame;
     }

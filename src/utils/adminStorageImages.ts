@@ -30,9 +30,6 @@ const KNOWN_STORAGE_BUCKETS = new Set([
   'helper-screenshots', 'rating-screenshots', 'support-attachments', 'live-recordings',
   'app-assets', 'app-icons', 'assets', 'banners', 'banners-media', 'branding', 'chat-media',
   'content-media', 'payment-logos', 'posters', 'reels', 'gifts',
-  'animations', 'svga-animations', 'frames', 'avatar_frames',
-  'entry-banners', 'entry-bars', 'entry-name-bars', 'vehicle-entrances',
-  'chat-bubbles', 'chat_bubbles', 'medals', 'vip-medals', 'noble-cards',
 ]);
 const FALLBACK_SIGNING_BUCKETS = [
   'face-verification', 'host-verification', 'payment-screenshots', 'payment-proofs',

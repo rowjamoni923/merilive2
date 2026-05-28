@@ -68,6 +68,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically

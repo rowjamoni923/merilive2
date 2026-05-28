@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Plus, Trash2, Edit, Eye, Upload, Sparkles, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,12 @@ import { toast } from "sonner";
 import { adminStyles } from "@/styles/adminStyles";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { SmartImage } from "@/components/ui/smart-image";
 
 import { formatAdminError } from "@/utils/formatAdminError";
-import AdminAssetPreview from "@/components/admin/AdminAssetPreview";
+// Lazy load SVGA player
+const SVGAPreviewWithMuteToggle = lazy(() => import("@/components/admin/SVGAPreviewWithMuteToggle"));
+import FixedAnimationFrame from "@/components/common/FixedAnimationFrame";
 interface EntryNameBar {
   id: string;
   name: string;
@@ -342,13 +345,20 @@ const AdminEntryNameBars = () => {
       </div>
 
       {formData.animation_url && (
-        <div className="mt-4">
+        <div className="mt-4 p-4 bg-black/30 rounded-lg">
           <Label className="text-white mb-2 block">Preview</Label>
-          <AdminAssetPreview type="entry-name-bar" src={formData.animation_url} />
+          <div className="flex justify-center">
+            <Suspense fallback={<div className="w-80 h-20 bg-purple-600/30 animate-pulse rounded" />}>
+              <SVGAPreviewWithMuteToggle
+                src={formData.animation_url}
+                className="w-80 h-20"
+                containerClassName="w-80 h-20"
+              />
+            </Suspense>
+          </div>
         </div>
       )}
     </div>
-
   );
 
   if (loading) {
@@ -425,8 +435,35 @@ const AdminEntryNameBars = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {/* Preview: preview_url image first → SVGA player → Universal fallback for lottie/mp4/gif */}
-              <AdminAssetPreview type="entry-name-bar" src={nameBar.animation_url} previewUrl={nameBar.preview_url} />
-
+              <div className="bg-black/40 rounded-lg p-2 flex justify-center">
+                <Suspense fallback={<div className="w-full h-16 bg-purple-600/20 animate-pulse rounded" />}>
+                  {nameBar.preview_url ? (
+                    <SmartImage
+                      src={nameBar.preview_url}
+                      alt={nameBar.name}
+                      className="w-full h-16 object-contain"
+                      onError={(e) => { const t = e.currentTarget; if (t.src.indexOf('/placeholder.svg') === -1) t.src = '/placeholder.svg'; }}
+                    />
+                  ) : nameBar.animation_url?.toLowerCase().split('?')[0].endsWith('.svga') ? (
+                    <SVGAPreviewWithMuteToggle
+                      src={nameBar.animation_url}
+                      className="w-full h-16"
+                      containerClassName="w-full h-16"
+                    />
+                  ) : nameBar.animation_url ? (
+                    <FixedAnimationFrame size="fill" center={false}
+                      src={nameBar.animation_url}
+                      className="w-full h-16 object-contain"
+                      loop
+                      muted
+                    />
+                  ) : (
+                    <div className="w-full h-16 flex items-center justify-center text-purple-300/60">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                  )}
+                </Suspense>
+              </div>
 
               {/* Info */}
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -505,12 +542,13 @@ const AdminEntryNameBars = () => {
           </DialogHeader>
           <div className="py-8 flex justify-center">
             {selectedNameBar && (
-              <AdminAssetPreview
-                type="entry-name-bar"
-                src={selectedNameBar.animation_url}
-                previewUrl={selectedNameBar.preview_url}
-                containerClassName="w-full max-w-[420px] min-h-[120px]"
-              />
+              <Suspense fallback={<div className="w-80 h-24 bg-purple-600/30 animate-pulse rounded" />}>
+                <SVGAPreviewWithMuteToggle
+                  src={selectedNameBar.animation_url}
+                  className="w-80 h-24"
+                  containerClassName="w-80 h-24"
+                />
+              </Suspense>
             )}
           </div>
           <p className="text-center text-gray-300 text-sm">

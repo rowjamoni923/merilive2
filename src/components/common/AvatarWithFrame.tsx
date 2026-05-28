@@ -12,8 +12,6 @@ import {
 } from '@/utils/frameCache';
 import { getDisplayAvatar } from '@/utils/placeholderAvatar';
 import { normalizeProfileMediaUrl } from '@/utils/profileMediaUrl';
-import { normalizeGiftMediaUrl } from '@/utils/giftMediaUrl';
-import { normalizePublicMediaUrl } from '@/lib/cdnImage';
 import {
   getCachedGender,
   getCachedViewerId,
@@ -97,11 +95,6 @@ const detectFrameType = (url: string, fallbackType?: string | null) => {
   return fallbackType || 'static';
 };
 
-const normalizeFrameMediaUrl = (url?: string | null): string | null => {
-  if (!url) return null;
-  return normalizeGiftMediaUrl(url) || normalizePublicMediaUrl(url) || url;
-};
-
 const flushFrameIdBatch = async () => {
   const frameIds = Array.from(pendingFrameIds);
   pendingFrameIds.clear();
@@ -118,12 +111,10 @@ const flushFrameIdBatch = async () => {
 
     const mappedFrames = new Map<string, FrameData>();
     data?.forEach((frame: any) => {
-      const normalizedUrl = normalizeFrameMediaUrl(frame.frame_url);
-      if (!normalizedUrl) return;
+      if (!frame.frame_url) return;
       mappedFrames.set(frame.id, {
         ...frame,
-        frame_url: normalizedUrl,
-        frame_type: detectFrameType(normalizedUrl, frame.frame_type),
+        frame_type: detectFrameType(frame.frame_url, frame.frame_type),
       } as FrameData);
     });
 
@@ -218,10 +209,9 @@ export const preloadFrames = async (frameIds: string[]) => {
 
   const mappedFrames = new Map<string, FrameData>();
   data?.forEach((frame: any) => {
-    const normalizedUrl = normalizeFrameMediaUrl(frame.frame_url);
-    if (!normalizedUrl) return;
-    const type = detectFrameType(normalizedUrl, frame.frame_type);
-    const normalized = { ...frame, frame_url: normalizedUrl, frame_type: type } as FrameData;
+    if (!frame.frame_url) return;
+    const type = detectFrameType(frame.frame_url, frame.frame_type);
+    const normalized = { ...frame, frame_type: type } as FrameData;
     frameCache.set(`frame-${frame.id}`, normalized);
     mappedFrames.set(frame.id, normalized);
 
@@ -380,7 +370,28 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       };
     }
 
-    // Helper: fetch level-based frame as fallback when user has no equipped frame
+    // Use batch system for userId - fetch IMMEDIATELY (no idle deferral)
+    // Idle deferral caused 100-250ms frame lag on Profile/Chat/etc. Frame must be instant.
+    if (userId) {
+      const cached = getUserFrameUrl(userId);
+      if (cached) {
+        setActiveFrameUrl(cached.url);
+        setActiveFrameType(cached.type);
+        return;
+      }
+
+      requestUserFrame(userId).then(() => {
+        if (cancelled) return;
+        const result = getUserFrameUrl(userId);
+        if (result) {
+          setActiveFrameUrl(result.url);
+          setActiveFrameType(result.type);
+        }
+      });
+      return () => { cancelled = true; };
+    }
+
+    // No userId or propFrameId - use level-based frame
     const fetchLevelFrame = async () => {
       const frame = await getLevelFrame(level, isHost);
       if (cancelled) return;
@@ -391,36 +402,6 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         setActiveFrameUrl(null);
       }
     };
-
-    // Use batch system for userId - fetch IMMEDIATELY (no idle deferral)
-    if (userId) {
-      const cached = getUserFrameUrl(userId);
-      if (cached) {
-        if (cached.url) {
-          setActiveFrameUrl(cached.url);
-          setActiveFrameType(cached.type);
-        } else {
-          // User has no equipped frame → fall back to level frame
-          fetchLevelFrame();
-        }
-        return;
-      }
-
-      requestUserFrame(userId).then(() => {
-        if (cancelled) return;
-        const result = getUserFrameUrl(userId);
-        if (result?.url) {
-          setActiveFrameUrl(result.url);
-          setActiveFrameType(result.type);
-        } else {
-          // No equipped frame → fall back to level frame
-          fetchLevelFrame();
-        }
-      });
-      return () => { cancelled = true; };
-    }
-
-    // No userId or propFrameId - use level-based frame
     fetchLevelFrame();
     return () => { cancelled = true; };
   }, [userId, propFrameId, showFrame, level, isHost]);
@@ -460,7 +441,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   }, [effectiveSrc]);
 
 
-  const hasValidFrame = !!activeFrameUrl && (activeFrameUrl.startsWith('http') || activeFrameUrl.startsWith('/')) && !frameError && !brokenFrameUrls.has(activeFrameUrl);
+  const hasValidFrame = activeFrameUrl && activeFrameUrl.startsWith('http') && !frameError && !brokenFrameUrls.has(activeFrameUrl);
   const frameAutoPlay = true; // Premium frames must animate nonstop everywhere, even if older call sites pass showAnimation={false}.
   const isAnimatedFrame = ['svga', 'lottie', 'gif', 'webp'].includes(activeFrameType);
   const isStaticFrame = activeFrameType === 'static';
@@ -475,13 +456,6 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
     position: 'relative',
   };
 
-  const frameLayerStyle: React.CSSProperties = {
-    inset: sizeConfig.frameInset,
-    zIndex: 1,
-    borderRadius: '9999px',
-    overflow: 'hidden',
-  };
-
   // Simple avatar without frame
   if (!showFrame || level < 1) {
     return (
@@ -489,7 +463,7 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         style={{ ...containerStyle, overflow: 'hidden', borderRadius: '9999px' }}>
         <Avatar className={cn('border-2 border-white/30', avatarClassName)}
           style={{ width: sizeConfig.container, height: sizeConfig.container }}>
-          <AvatarImage src={effectiveSrc || undefined} className={cn('object-cover', avatarImageClassName)} loading={avatarImageLoading} decoding="async" />
+          <AvatarImage src={effectiveSrc || undefined} className={cn('object-contain', avatarImageClassName)} loading={avatarImageLoading} decoding="async" />
 
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold shadow-inner', sizeConfig.text)}>
             {displayName}
@@ -505,26 +479,16 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
 
   return (
     <div ref={ref} className={cn('relative', className)} onClick={onClick} style={containerStyle}>
-
-      {/* ─────────────────────────────────────────────────────────────
-          LAYER ORDER (Bigo / Chamet / Mico standard):
-            z-1  →  Frame ring (extends beyond avatar, sits BEHIND photo)
-            z-2  →  Circular avatar photo (always ON TOP, never covered)
-            z-3  →  Online dot
-          This guarantees that even an opaque/square frame asset
-          (e.g. shield-style admin frame) never hides the user's photo —
-          the circular avatar is always rendered on top of the frame.
-      ───────────────────────────────────────────────────────────── */}
-
-      {/* Animated Frame Layer - centered circular ring behind avatar */}
+      
+      {/* Animated Frame Layer - SVGA/Lottie */}
       {hasValidFrame && (activeFrameType === 'svga' || activeFrameType === 'lottie') && (
-        <div className="absolute pointer-events-none"
-          style={frameLayerStyle}>
+        <div className="absolute pointer-events-none" 
+          style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
           <Suspense fallback={null}>
             <UniversalFramePlayer
               src={activeFrameUrl}
               type={activeFrameType as any}
-              className="w-full h-full rounded-full overflow-hidden"
+              className="w-full h-full"
               loop={true}
               autoPlay={frameAutoPlay}
               onError={handleFrameError}
@@ -533,43 +497,43 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         </div>
       )}
 
-      {/* GIF/WebP Frame Layer - clipped to a circular frame footprint */}
+      {/* GIF/WebP Frame Layer */}
       {hasValidFrame && (activeFrameType === 'gif' || activeFrameType === 'webp') && (
-        <div className="absolute pointer-events-none"
-          style={frameLayerStyle}>
-          <img src={activeFrameUrl} alt="" className="w-full h-full object-cover"
+        <div className="absolute pointer-events-none" 
+          style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
+          <img src={activeFrameUrl} alt="" className="w-full h-full object-contain"
             onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
         </div>
       )}
 
-      {/* Static Image Frame Layer - clipped so square/non-transparent uploads never protrude */}
+      {/* Static Image Frame Layer */}
       {hasValidFrame && isStaticFrame && (
         <div className="absolute pointer-events-none"
-          style={frameLayerStyle}>
-          <img src={activeFrameUrl} alt="" className="w-full h-full object-cover"
+          style={{ inset: sizeConfig.frameInset, zIndex: 2 }}>
+          <img src={activeFrameUrl} alt="" className="w-full h-full object-contain"
             onError={handleFrameError} onLoad={handleFrameLoad} decoding="async" />
         </div>
       )}
 
-      {/* Circular avatar — ALWAYS on top so frame never covers the photo */}
-      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 2 }}>
-        <Avatar className={cn('shadow-lg overflow-hidden rounded-full', avatarClassName)}
-          style={{
+      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 1 }}>
+        <Avatar className={cn('shadow-lg', avatarClassName)}
+          style={{ 
             width: sizeConfig.avatar, height: sizeConfig.avatar,
-            border: '2.5px solid rgba(255,255,255,0.6)',
-            background: '#fff',
+            border: '2.5px solid rgba(255,255,255,0.15)',
           }}>
-          <AvatarImage src={effectiveSrc || undefined} className={cn('object-cover', avatarImageClassName)} loading={avatarImageLoading} decoding="async" />
+          <AvatarImage src={effectiveSrc || undefined} className={cn('object-contain', avatarImageClassName)} loading={avatarImageLoading} decoding="async" />
           <AvatarFallback className={cn('bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 text-white font-bold', sizeConfig.text)}>
             {displayName}
           </AvatarFallback>
         </Avatar>
       </div>
 
+      {/* CSS fallback frame REMOVED — no gradient border before frame loads */}
+
       {/* Online indicator */}
       {isOnline && (
         <div className="absolute bg-green-500 rounded-full border-2 border-white"
-          style={{
+          style={{ 
             width: sizeConfig.online, height: sizeConfig.online,
             bottom: 0, right: 0, zIndex: 3,
           }} />
