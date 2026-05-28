@@ -403,7 +403,7 @@ const AdminManualTopup = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                       <TableHead>User</TableHead>
+                       <TableHead>Recipient</TableHead>
                        <TableHead>Amount</TableHead>
                        <TableHead>Before/After</TableHead>
                        <TableHead>Date</TableHead>
@@ -415,24 +415,26 @@ const AdminManualTopup = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="w-8 h-8">
-                              <AvatarImage src={log.user?.avatar_url} />
-                              <AvatarFallback>{log.user?.display_name?.charAt(0)}</AvatarFallback>
+                              <AvatarImage src={log.user?.avatar_url ?? undefined} />
+                              <AvatarFallback>{(log.user?.display_name ?? log.recipient_name ?? '?').charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-sm">{log.user?.display_name}</p>
-                              <p className="text-xs text-slate-500">{log.user?.app_uid}</p>
+                              <p className="font-medium text-sm">{log.user?.display_name ?? log.recipient_name ?? '—'}</p>
+                              <p className="text-xs text-slate-500">
+                                {log.target_label}{log.user?.app_uid ? ` • ${log.user.app_uid}` : ''}
+                              </p>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge className="bg-green-100 text-green-700">
-                            +{Math.abs(Number((log.details as any)?.delta ?? log.details?.amount ?? 0)).toLocaleString()} 💎
+                            +{Math.abs(log.delta).toLocaleString()} {formatTopupFieldLabel(log.field)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">
-                          <span className="text-slate-500">{((log.details as any)?.old_balance ?? log.details?.previous_balance)?.toLocaleString?.() ?? '—'}</span>
+                          <span className="text-slate-500">{log.old_balance?.toLocaleString?.() ?? '—'}</span>
                           <span className="mx-1">→</span>
-                          <span className="text-green-600 font-medium">{log.details?.new_balance?.toLocaleString()}</span>
+                          <span className="text-green-600 font-medium">{log.new_balance?.toLocaleString?.() ?? '—'}</span>
                         </TableCell>
                         <TableCell className="text-sm text-slate-500">
                           {format(new Date(log.created_at), 'dd/MM/yy HH:mm')}
