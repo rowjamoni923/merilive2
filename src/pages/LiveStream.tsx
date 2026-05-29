@@ -3070,16 +3070,17 @@ const LiveStream = () => {
         {/* Host filter controls moved to More Options panel */}
 
         {/* Input & Action Buttons Bar - Professional Design */}
-        <div className="px-3 flex items-center gap-1.5 pt-2 pb-3"
+        <div className="px-2 flex items-center gap-1 pt-2 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 70%, transparent 100%)' }}
         >
-          {/* Chat Input — 40px tap target */}
+          {/* Chat Input — compact 36px tap target */}
           <div className="flex-1 min-w-0 relative">
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Say something..."
-              className="w-full h-10 rounded-full text-white text-xs pl-3.5 pr-10"
+              className="w-full h-9 rounded-full text-white text-xs pl-3.5 pr-9"
+
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.12)',
@@ -3104,13 +3105,13 @@ const LiveStream = () => {
               whileTap={{ scale: 0.9 }}
               onClick={handleCall}
               aria-label="Start private call"
-              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
               style={{
                 background: 'linear-gradient(135deg, #22c55e, #10b981)',
                 boxShadow: '0 2px 12px rgba(34,197,94,0.4)',
               }}
             >
-              <Phone className="w-[18px] h-[18px] text-white" />
+              <Phone className="w-4 h-4 text-white" />
             </motion.button>
           )}
 
@@ -3118,13 +3119,13 @@ const LiveStream = () => {
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowGamePanel(true)}
             aria-label="Open games"
-            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
             style={{
               background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
               boxShadow: '0 2px 12px rgba(139,92,246,0.4)',
             }}
           >
-            <Gamepad2 className="w-[18px] h-[18px] text-white" />
+            <Gamepad2 className="w-4 h-4 text-white" />
           </motion.button>
 
           {isHost && (
@@ -3136,7 +3137,7 @@ const LiveStream = () => {
                 toggleAudio(!newState);
               }}
               aria-label={isHostMicMuted ? 'Unmute microphone' : 'Mute microphone'}
-              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
               style={{
                 background: isHostMicMuted 
                   ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
@@ -3147,9 +3148,9 @@ const LiveStream = () => {
               }}
             >
               {isHostMicMuted ? (
-                <MicOff className="w-[18px] h-[18px] text-white" />
+                <MicOff className="w-4 h-4 text-white" />
               ) : (
-                <Mic className="w-[18px] h-[18px] text-white" />
+                <Mic className="w-4 h-4 text-white" />
               )}
             </motion.button>
           )}
@@ -3159,13 +3160,13 @@ const LiveStream = () => {
               whileTap={{ scale: 0.9 }}
               onClick={handleOpenPKPanel}
               aria-label="Start PK battle"
-              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
               style={{
                 background: 'linear-gradient(135deg, #f59e0b, #d97706)',
                 boxShadow: '0 2px 12px rgba(245,158,11,0.4)',
               }}
             >
-              <Swords className="w-[18px] h-[18px] text-white" />
+              <Swords className="w-4 h-4 text-white" />
             </motion.button>
           )}
 
@@ -3174,13 +3175,13 @@ const LiveStream = () => {
             whileTap={{ scale: 0.85 }}
             onClick={handleLike}
             aria-label="Like"
-            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
             style={{
               background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
               boxShadow: '0 2px 12px rgba(244,63,94,0.4)',
             }}
           >
-            <Heart className="w-[18px] h-[18px] text-white fill-white" />
+            <Heart className="w-4 h-4 text-white fill-white" />
           </motion.button>
 
           {/* Gift Button */}
@@ -3188,13 +3189,13 @@ const LiveStream = () => {
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowGiftPanel(true)}
             aria-label="Send gift"
-            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
             style={{
               background: 'linear-gradient(135deg, #ec4899, #db2777)',
               boxShadow: '0 2px 12px rgba(236,72,153,0.4)',
             }}
           >
-            <Gift className="w-[18px] h-[18px] text-white" />
+            <Gift className="w-4 h-4 text-white" />
           </motion.button>
 
           {/* More Options Button */}
@@ -3203,13 +3204,13 @@ const LiveStream = () => {
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 aria-label="More options"
-                className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                 style={{
                   background: 'rgba(255,255,255,0.12)',
                   border: '1px solid rgba(255,255,255,0.15)',
                 }}
               >
-                <Grid3X3 className="w-[18px] h-[18px] text-white/85" />
+                <Grid3X3 className="w-4 h-4 text-white/85" />
               </motion.button>
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-[24px] h-auto p-0 border-0"
