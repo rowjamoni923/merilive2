@@ -767,7 +767,55 @@ export function usePartyRoomWebRTC(
       delayedTimers.forEach(clearTimeout);
       cleanup();
     };
-  }, [roomId, userId, roomType, partyCanPublish, restartNonce]);
+    // NOTE: `partyCanPublish` is INTENTIONALLY excluded from this dep list.
+    // The Chamet-parity token now always grants publish capability for party
+    // rooms, so we never need to disconnect/reconnect to upgrade an audience
+    // member to a seat speaker. A separate effect below flips mic/camera
+    // instantly when the local user is approved onto a seat.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId, userId, roomType, restartNonce]);
+
+  // Instant seat upgrade: when partyCanPublish flips true (host approved seat),
+  // enable mic (+ camera for video rooms) WITHOUT reconnecting. When it flips
+  // false (user left seat / kicked), mute both again immediately.
+  useEffect(() => {
+    const room = roomRef.current;
+    if (!room || room.state !== 'connected') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (partyCanPublish) {
+          if (roomType === 'video') {
+            await room.localParticipant.setCameraEnabled(true);
+          }
+          await room.localParticipant.setMicrophoneEnabled(true);
+          if (cancelled) return;
+          // Apply Krisp noise filter on the freshly-published mic.
+          import('@/lib/livekitNoiseFilter')
+            .then((m) => m.applyKrispToRoomMic(room))
+            .catch(() => {});
+          setState((prev) => ({
+            ...prev,
+            isAudioEnabled: true,
+            isVideoEnabled: roomType === 'video' ? true : prev.isVideoEnabled,
+          }));
+        } else {
+          await room.localParticipant.setCameraEnabled(false);
+          await room.localParticipant.setMicrophoneEnabled(false);
+          setState((prev) => ({
+            ...prev,
+            isAudioEnabled: false,
+            isVideoEnabled: false,
+          }));
+        }
+      } catch (err) {
+        console.warn('[PartyLiveKit] Instant seat-upgrade mic toggle failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [partyCanPublish, roomType, state.isConnected]);
 
   // Pkg150: Selective video subscription — cap concurrent remote video subs to
   // top-N by recent active speakers. Audio is never touched. Pure client SFU
