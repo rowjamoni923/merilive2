@@ -1037,16 +1037,22 @@ const PartyRoom = () => {
       setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
     };
 
-    const unsubscribe = subscribeToTables(
-      `party-room-close-${roomId}`,
-      ['party_rooms'],
-      (_table, _event, payload) => {
-        const row = payload as any;
-        if (row?.id === roomId && row.is_active === false) closeFromDb();
-      }
-    );
+    // Direct scoped channel for room close. This is the durable fallback when
+    // LiveKit room_closed packet is missed and avoids shared-channel rebuild races.
+    const roomCloseChannel = supabase
+      .channel(`party-room-end-${roomId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'party_rooms',
+        filter: `id=eq.${roomId}`,
+      }, (payload) => {
+        const row = (payload as any).new;
+        if (row?.is_active === false || row?.ended_at) closeFromDb();
+      })
+      .subscribe();
 
-    return () => unsubscribe?.();
+    return () => { supabase.removeChannel(roomCloseChannel); };
   }, [roomId, isHost, cleanupWebRTC, navigate]);
 
 
