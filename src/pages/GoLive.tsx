@@ -500,6 +500,26 @@ const GoLive = () => {
   const handleAllowPermissions = async () => {
     setShowPermissionPrompt(false);
 
+    // Camera/mic MUST be requested immediately from this tap gesture. Any
+    // geolocation/network await before getUserMedia breaks Android WebView and
+    // leaves the preview blank.
+    try {
+      const mediaStream = await getCameraStream(true);
+      if (!mediaStream) throw new Error('Failed to get camera stream');
+      setPermissionsGranted(prev => ({ ...prev, camera: true, microphone: true }));
+      setStream(mediaStream);
+      setFacingMode('user');
+      attachWebPreviewStream(mediaStream);
+      playSound('notification');
+      return;
+    } catch (error: any) {
+      console.error("[GoLive] Camera/Mic access error:", error?.name, error?.message || error);
+      recordClientError({ label: "GoLive.mediaStream", message: error instanceof Error ? error.message : String(error) });
+      setShowPermissionPrompt(true);
+      toast.error(error?.message || "Camera Access Failed - Please allow camera access in your device settings and restart the app.");
+      return;
+    }
+
     // Native fast-path: try native beauty first, then web camera fallback
     if (isNativeAndroid) {
       const started = await startNativePreview();

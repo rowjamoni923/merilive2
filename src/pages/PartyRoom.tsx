@@ -1297,7 +1297,7 @@ const PartyRoom = () => {
 
   // Ensure video stream is connected when localStream changes
   useEffect(() => {
-    if (localStream && videoRef.current && room?.room_type === 'video') {
+    if (localStream && videoRef.current && (room?.room_type === 'video' || room?.room_type === 'game')) {
       console.log("[PartyRoom] Connecting local stream to video element, tracks:", localStream.getTracks().length);
       videoRef.current.srcObject = localStream;
       videoRef.current.onloadedmetadata = () => {
@@ -2321,7 +2321,7 @@ const PartyRoom = () => {
       <StickerOverlay stickerName={beauty.activeSticker} onDismiss={() => beauty.handleStickerChange(null)} />
 
       {/* Pkg150: Selective video subscription picker — viewers in large rooms can cap concurrent video subs */}
-      {!isHost && room?.room_type === 'video' && (
+      {!isHost && (room?.room_type === 'video' || room?.room_type === 'game') && (
         <SelectiveSubscriptionButton label="Video budget" />
       )}
     </>

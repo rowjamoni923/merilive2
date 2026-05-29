@@ -152,6 +152,45 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
   }
 };
 
+export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode: 'user' | 'environment' = 'user'): Promise<MediaStream> => {
+  const audio: boolean | MediaTrackConstraints = includeAudio
+    ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    : false;
+  const constraintOptions: MediaStreamConstraints[] = [
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }, audio },
+    { video: { facingMode: { ideal: facingMode }, width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 24 } }, audio },
+    { video: { facingMode: { ideal: facingMode } }, audio },
+    { video: true, audio },
+    { video: true, audio: false },
+  ];
+
+  let lastError: any = null;
+  for (let i = 0; i < constraintOptions.length; i++) {
+    try {
+      console.log(`[Camera] Attempt ${i + 1}/${constraintOptions.length}`);
+      const stream = await withTimeout(
+        navigator.mediaDevices.getUserMedia(constraintOptions[i]),
+        9000,
+        'Camera stream request timed out',
+      );
+      const videoTracks = stream.getVideoTracks();
+      const hasLiveVideo = videoTracks.some((track) => track.readyState === 'live');
+      if (!hasLiveVideo) {
+        stream.getTracks().forEach((track) => track.stop());
+        continue;
+      }
+      videoTracks.forEach((track) => {
+        try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
+      });
+      return stream;
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[Camera] Attempt ${i + 1} failed:`, err?.name, err?.message);
+    }
+  }
+  throw lastError || new Error('Unable to access camera with any settings.');
+};
+
 /**
  * Hook to handle camera permission requests.
  * 
@@ -284,70 +323,18 @@ export function useNativeCameraPermission() {
       // Android WebView gesture chain and leave verification with a black or
       // unusable stream.
 
-      // Full HD camera — NO aspectRatio constraint to avoid zoom/crop on Android WebView
-      // The display layer (CSS object-fit:cover) handles full-screen fill
-      const constraintOptions: MediaStreamConstraints[] = [
-        {
-          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-          audio: includeAudio,
-        },
-        {
-          video: { facingMode: { ideal: 'user' }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
-          audio: includeAudio,
-        },
-        {
-          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } },
-          audio: includeAudio,
-        },
-        {
-          video: { facingMode: { ideal: 'user' } },
-          audio: includeAudio,
-        },
-        {
-          video: true,
-          audio: includeAudio,
-        },
-      ];
-
       let lastError: any = null;
-
-      for (let i = 0; i < constraintOptions.length; i++) {
-        try {
-          console.log(`[Camera] Attempt ${i + 1}/${constraintOptions.length}`);
-          const stream = await withTimeout(
-            navigator.mediaDevices.getUserMedia(constraintOptions[i]),
-            7000,
-            'Camera stream request timed out'
-          );
-
-          const videoTracks = stream.getVideoTracks();
-          const hasLiveVideo = videoTracks.some(t => t.readyState === 'live');
-          const hasAudioIfNeeded = !includeAudio || stream.getAudioTracks().some(t => t.readyState === 'live');
-
-          if (!hasLiveVideo || !hasAudioIfNeeded) {
-            stream.getTracks().forEach(t => t.stop());
-            continue;
-          }
-
-          // Set contentHint for sharpness
-          videoTracks.forEach(vt => {
-            try { if ('contentHint' in vt) (vt as any).contentHint = 'detail'; } catch {}
-          });
-
-          const settings = videoTracks[0].getSettings();
-          console.log('[Camera] Success:', JSON.stringify(settings));
-
-          globalPermissionGranted = true; writeCachedPerm(true);
-          if (includeAudio) globalMicrophoneGranted = true;
-          permissionDeniedCount = 0;
-          setPermissionGranted(true);
-
-          return stream;
-        } catch (err: any) {
-          lastError = err;
-          console.warn(`[Camera] Attempt ${i + 1} failed:`, err?.name, err?.message);
-          continue;
-        }
+      try {
+        const stream = await getUserMediaWithFallback(includeAudio, 'user');
+        const settings = stream.getVideoTracks()[0]?.getSettings?.();
+        console.log('[Camera] Success:', JSON.stringify(settings || {}));
+        globalPermissionGranted = true; writeCachedPerm(true);
+        if (includeAudio) globalMicrophoneGranted = stream.getAudioTracks().some(t => t.readyState === 'live');
+        permissionDeniedCount = 0;
+        setPermissionGranted(true);
+        return stream;
+      } catch (err: any) {
+        lastError = err;
       }
 
       setPermissionGranted(false);
