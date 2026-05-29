@@ -547,6 +547,7 @@ export function usePrivateCall(userId: string | null) {
           call_rate_not_configured: { title: 'Call Rate Missing', description: 'Admin has not set a call rate for this host yet' },
           invalid_call_rate_config: { title: 'Config Error', description: 'Call rate config is invalid — contact admin' },
           unauthorized: { title: 'Unauthorized', description: 'Please log in again to make a call' },
+          internal_error: { title: 'Server Error', description: 'A server-side error occurred — please try again' },
         };
         const mapped = reasonMap[reason];
         if (reason === 'insufficient_balance' || reason === 'Insufficient balance') {
