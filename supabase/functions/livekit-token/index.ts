@@ -245,7 +245,15 @@ Deno.serve(async (req) => {
           canPublish = true;
           break;
         case "party":
-          canPublish = partyCanPublish;
+          // Chamet-parity: every party participant is granted publish
+          // capability up-front so seat approval is INSTANT (no LiveKit
+          // reconnect / token re-issue). Client keeps mic+camera muted by
+          // default for non-seat audience and only enables them once the
+          // host approves the seat. `partyCanPublish` is kept as a hint so
+          // future server-side moderation can still down-grade a banned
+          // user via UpdateParticipant — but it never blocks the initial
+          // token any more.
+          canPublish = true;
           break;
       }
     }
