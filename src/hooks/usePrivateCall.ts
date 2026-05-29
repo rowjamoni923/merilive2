@@ -778,6 +778,7 @@ export function usePrivateCall(userId: string | null) {
       });
       return null;
     } finally {
+      preparedOutgoingStream?.getTracks().forEach((track) => track.stop());
       startingCallRef.current = false;
     }
   }, [userId, toast, navigate]);
