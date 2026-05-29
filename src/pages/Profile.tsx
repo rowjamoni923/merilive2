@@ -1350,7 +1350,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const isFaceVerified = (profile as any)?.is_face_verified;
   const [faceVerificationPending, setFaceVerificationPending] = useState(false);
   const [faceVerificationStatus, setFaceVerificationStatus] = useState<string | null>(null);
-  const effectiveFaceVerificationStatus = String(faceVerificationStatus || (profile as any)?.face_verification_status || (profile as any)?.host_status || '').toLowerCase();
+  // Only the actual face_verification_submissions status drives this UI. Do NOT mix in host_status
+  // (host application state) or any other profile column — they caused false "Under Review" banners.
+  const effectiveFaceVerificationStatus = String(faceVerificationStatus || '').toLowerCase();
   const faceVerificationRejected = effectiveFaceVerificationStatus === 'rejected';
 
   // Open Call Price Modal - fetch settings and current rate
