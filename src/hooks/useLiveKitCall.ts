@@ -44,6 +44,7 @@ import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 import { toast } from 'sonner';
+import { consumePreparedCallMediaStream } from '@/features/call/preparedCallMedia';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
@@ -579,8 +580,18 @@ export function useLiveKitCall(
         if (callId) registerReactionRoom('call', callId, room);
 
 
-        // Enable camera and microphone
-        await room.localParticipant.enableCameraAndMicrophone();
+        // Enable camera and microphone. Prefer the stream captured directly
+        // from the user's call/accept tap so Android WebView never needs a
+        // delayed getUserMedia request after async DB/token work.
+        const preparedStream = consumePreparedCallMediaStream(callId);
+        if (preparedStream) {
+          const videoTrack = preparedStream.getVideoTracks().find((track) => track.readyState === 'live');
+          const audioTrack = preparedStream.getAudioTracks().find((track) => track.readyState === 'live');
+          if (videoTrack) await room.localParticipant.publishTrack(videoTrack, { source: Track.Source.Camera } as any);
+          if (audioTrack) await room.localParticipant.publishTrack(audioTrack, { source: Track.Source.Microphone } as any);
+        } else {
+          await room.localParticipant.enableCameraAndMicrophone();
+        }
         console.log('[LiveKitCall] ✅ Camera and mic enabled');
 
         // Section#5 pass-2 (Bug H continued): cleanup may have fired during
