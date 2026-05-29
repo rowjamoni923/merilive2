@@ -67,6 +67,7 @@ const SLIDERS: Array<{ key: keyof ProBeautyLevels; label: string }> = [
 
 interface BeautyFilterPanelProps {
   open?: boolean;
+  isOpen?: boolean; // alias used by GoLive/LiveStream/PartyRoom/ActiveCallScreen
   enabled?: boolean;
   onEnabledChange?: (v: boolean) => void;
   settings?: BeautySettings;
@@ -77,18 +78,21 @@ interface BeautyFilterPanelProps {
 
 export function BeautyFilterPanel({
   open,
+  isOpen,
   enabled = true,
   settings = DEFAULT_BEAUTY,
   onSettingsChange,
   onEnabledChange,
   onClose,
 }: BeautyFilterPanelProps) {
+  const panelOpen = open ?? isOpen ?? false;
   const initialLevels: ProBeautyLevels = useMemo(
     () => settings?.levels ?? loadStoredLevels(),
     // initialise once when panel opens
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [open],
+    [panelOpen],
   );
+
   const [levels, setLevels] = useState<ProBeautyLevels>(initialLevels);
   const native = isNativeBeautyAvailable();
 
