@@ -10009,6 +10009,45 @@ export type Database = {
         }
         Relationships: []
       }
+      private_call_diag: {
+        Row: {
+          auth_uid: string | null
+          caller_id: string | null
+          client_platform: string | null
+          id: number
+          occurred_at: string
+          receiver_id: string | null
+          result: Json | null
+          sqlerrm: string | null
+          sqlstate: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          auth_uid?: string | null
+          caller_id?: string | null
+          client_platform?: string | null
+          id?: number
+          occurred_at?: string
+          receiver_id?: string | null
+          result?: Json | null
+          sqlerrm?: string | null
+          sqlstate?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          auth_uid?: string | null
+          caller_id?: string | null
+          client_platform?: string | null
+          id?: number
+          occurred_at?: string
+          receiver_id?: string | null
+          result?: Json | null
+          sqlerrm?: string | null
+          sqlstate?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       private_call_security_logs: {
         Row: {
           action_taken: string | null
