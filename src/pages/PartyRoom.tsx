@@ -1013,6 +1013,31 @@ const PartyRoom = () => {
     };
     }, [roomId, markOptimisticPartyGiftCount, leaveRoomForCleanup, cleanupWebRTC]);
 
+  useEffect(() => {
+    if (!roomId || isHost) return;
+
+    const closeFromDb = () => {
+      if (roomClosedRef.current || !isMountedRef.current) return;
+      roomClosedRef.current = true;
+      console.log('[PartyRoom] Room detected closed by party_rooms realtime');
+      playSound('notification');
+      setShowRoomClosedModal(true);
+      cleanupWebRTC();
+      setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
+    };
+
+    const unsubscribe = subscribeToTables(
+      `party-room-close-${roomId}`,
+      ['party_rooms'],
+      (_table, _event, payload) => {
+        const row = payload as any;
+        if (row?.id === roomId && row.is_active === false) closeFromDb();
+      }
+    );
+
+    return () => unsubscribe?.();
+  }, [roomId, isHost, cleanupWebRTC, navigate]);
+
 
   // Pkg187: Removed 20s room-status safety poll. LiveKit `room_state_changed` + `livekit-party-closed` events already deliver instant room-close to all viewers. Zero functional loss, $1400-rule safe.
 
