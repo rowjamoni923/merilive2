@@ -1720,11 +1720,10 @@ export function UnifiedPartyRoom({
         )}
       </main>
 
-      {/* ==================== BOTTOM BAR - EXACT SAME AS LIVE STREAM ==================== */}
-      <div className="absolute bottom-0 left-0 right-0 z-20">
-        {/* Input & Action Buttons Bar — unified 40px tap targets */}
-        <div className="px-2 flex items-center gap-1.5 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-3">
-          {/* Chat Input — 40px tap target */}
+      {/* ==================== BOTTOM BAR - mobile-tight, professional density ==================== */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 pb-[env(safe-area-inset-bottom)]">
+        <div className="px-2 flex items-center gap-1 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-2 pb-2.5">
+          {/* Chat Input — flex-1 so it always gets the largest share */}
           <form 
             onSubmit={(e) => {
               e.preventDefault();
@@ -1740,14 +1739,14 @@ export function UnifiedPartyRoom({
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               placeholder="Say something..."
-              className="w-full h-10 bg-black/60 border border-white/20 rounded-full text-white placeholder:text-white/50 pr-10 text-[11px] pl-3.5 focus:outline-none"
+              className="w-full h-9 bg-black/60 border border-white/20 rounded-full text-white placeholder:text-white/50 pr-9 text-xs pl-3.5 focus:outline-none focus:border-white/40"
               onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.form?.requestSubmit()}
             />
             <button
               type="submit"
               disabled={!chatInput.trim()}
               aria-label="Send message"
-              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full text-white hover:bg-white/10 flex items-center justify-center disabled:opacity-50"
+              className="absolute right-0.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full text-white hover:bg-white/10 flex items-center justify-center disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -1759,21 +1758,19 @@ export function UnifiedPartyRoom({
             onClick={onMicToggle}
             aria-label={isMuted ? 'Unmute microphone' : 'Mute microphone'}
             className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center shadow-lg shrink-0",
+              "w-9 h-9 rounded-full flex items-center justify-center shadow-lg shrink-0",
               isMuted 
                 ? "bg-gradient-to-r from-red-500 to-rose-500" 
                 : "bg-gradient-to-r from-green-500 to-emerald-500"
             )}
           >
-            {isMuted ? <MicOff className="w-[18px] h-[18px] text-white" /> : <Mic className="w-[18px] h-[18px] text-white" />}
+            {isMuted ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-white" />}
           </motion.button>
 
-          {/* Game Button - Opens Game Selection for ALL room types */}
+          {/* Game Button — Opens Game Selection for ALL room types */}
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={() => {
-              console.log('[UnifiedPartyRoom] 🎮 Game button clicked! roomType:', roomType, 'isMinimized:', isGameBoardMinimized);
-              // If game board is minimized (in game room), restore it
               if (roomType === 'game' && isGameBoardMinimized) {
                 setIsGameBoardMinimized(false);
               } else {
@@ -1782,36 +1779,36 @@ export function UnifiedPartyRoom({
             }}
             aria-label="Open games"
             className={cn(
-              "w-10 h-10 rounded-full text-white flex items-center justify-center shadow-lg shrink-0",
+              "w-9 h-9 rounded-full text-white flex items-center justify-center shadow-lg shrink-0",
               (showGameBoard || (roomType === 'game' && activeGame && !isGameBoardMinimized))
                 ? "bg-gradient-to-r from-green-500 to-emerald-500" 
                 : "bg-gradient-to-r from-purple-500 to-violet-600"
             )}
           >
-            <Gamepad2 className="w-[18px] h-[18px]" />
+            <Gamepad2 className="w-4 h-4" />
           </motion.button>
 
-          {/* Beauty Button — REAL native beauty Native */}
-          {onBeautyClick && (
+          {/* Beauty Button — only for video/game (cameras) */}
+          {onBeautyClick && roomType !== 'audio' && (
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={onBeautyClick}
               aria-label="Beauty filters"
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-lg shrink-0"
+              className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-lg shrink-0"
             >
-              <Sparkles className="w-[18px] h-[18px]" />
+              <Sparkles className="w-4 h-4" />
             </motion.button>
           )}
 
-          {/* Sticker Button — REAL native beauty Native */}
-          {onStickerClick && (
+          {/* Sticker Button — only for video/game (cameras) */}
+          {onStickerClick && roomType !== 'audio' && (
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={onStickerClick}
               aria-label="AR stickers"
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white flex items-center justify-center shadow-lg shrink-0"
+              className="w-9 h-9 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white flex items-center justify-center shadow-lg shrink-0"
             >
-              <Smile className="w-[18px] h-[18px]" />
+              <Smile className="w-4 h-4" />
             </motion.button>
           )}
 
@@ -1820,19 +1817,20 @@ export function UnifiedPartyRoom({
             whileTap={{ scale: 0.92 }}
             onClick={onOpenGifts}
             aria-label="Send gift"
-            className="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white flex items-center justify-center shadow-lg shrink-0"
+            className="w-9 h-9 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white flex items-center justify-center shadow-lg shrink-0"
           >
-            <Gift className="w-[18px] h-[18px]" />
+            <Gift className="w-4 h-4" />
           </motion.button>
 
-          {/* More Options Button - Same 3D Design as Live Stream */}
+          {/* More Options Button — 3D design */}
           <motion.button
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.05 }}
             onClick={() => setShowSettingsPanel(true)}
             aria-label="More options"
-            className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0"
+            className="relative w-9 h-9 rounded-xl overflow-hidden shrink-0"
           >
+
             {/* Outer glow ring */}
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-600 rounded-xl" />
             
