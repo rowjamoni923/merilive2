@@ -55,7 +55,7 @@ export function ParticipantVideo({
     };
   }, [stream, isSelf]);
 
-  const showVideo = roomType === 'video' && stream && !isVideoOff;
+  const showVideo = (roomType === 'video' || roomType === 'game') && stream && !isVideoOff;
 
   return (
     <motion.div
