@@ -755,13 +755,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
             syncBeansFromProfile(mergedProfile);
 
-            // When admin approves face verification, instantly hide the menu item
-            if (payload?.face_verification_status || payload?.host_status) {
-              const nextStatus = String(payload.face_verification_status || payload.host_status || '').toLowerCase();
-              setFaceVerificationStatus(nextStatus || null);
-              setFaceVerificationPending(nextStatus === 'pending' || nextStatus === 'submitted');
-            }
-
+            // Face verification UI state is driven SOLELY by the
+            // face_verification_submissions table (handled below). Do NOT
+            // mirror profiles.face_verification_status or profiles.host_status
+            // here — the signup trigger sets host_status='pending_face' for
+            // every new female account before any submission exists, which
+            // would otherwise flash a false "Under Review" banner on the very
+            // first realtime payload (coins/last_seen/anything).
             if (payload?.is_face_verified === true) {
               setFaceVerificationPending(false);
               setFaceVerificationStatus('approved');
