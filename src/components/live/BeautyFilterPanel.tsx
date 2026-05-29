@@ -98,7 +98,7 @@ export function BeautyFilterPanel({
 
   // Apply to native engine + persist whenever sliders change.
   useEffect(() => {
-    if (!open) return;
+    if (!panelOpen) return;
     persistLevels(levels);
     if (enabled && native) {
       void applyProBeauty(levels);
@@ -106,11 +106,11 @@ export function BeautyFilterPanel({
       // explicitly enabled the broadcast flag (off by default).
       if (isBroadcastBeautyEnabled()) void applyBroadcastBeauty(levels, true);
     }
-  }, [levels, enabled, native, open]);
+  }, [levels, enabled, native, panelOpen]);
 
   // Push enabled state to native pipeline.
   useEffect(() => {
-    if (!open || !native) return;
+    if (!panelOpen || !native) return;
     void setBeautyEnabled(enabled);
     // Pkg201 — detach broadcast processor when beauty toggled off, or
     // (re)apply current levels when toggled on with the flag set.
@@ -119,9 +119,10 @@ export function BeautyFilterPanel({
     } else if (isBroadcastBeautyEnabled()) {
       void applyBroadcastBeauty(levels, true);
     }
-  }, [enabled, native, open, levels]);
+  }, [enabled, native, panelOpen, levels]);
 
-  if (!open) return null;
+  if (!panelOpen) return null;
+
 
   const currentPreset: BeautySettings["preset"] = settings?.preset ?? "natural";
 
