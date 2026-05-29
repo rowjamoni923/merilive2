@@ -319,19 +319,8 @@ export const ChametSettingsPanel = ({
                 checked: isMicEnabled,
                 onChange: onMicToggle,
               },
-              {
-                kind: 'toggle',
-                key: 'rec',
-                label: 'Auto-record Live',
-                sub: 'Save an MP4 of every live you start',
-                icon: Video,
-                iconGrad: 'linear-gradient(135deg, #fb7185 0%, #ef4444 100%)',
-                iconShadow: '0 6px 18px -4px rgba(239,68,68,0.55)',
-                checked: autoRecord,
-                disabled: autoRecordLoading,
-                onChange: (v: boolean) => void handleAutoRecordToggle(v),
-              },
             ];
+
 
             return rows.map((r, idx) => {
               const Icon = r.icon;
