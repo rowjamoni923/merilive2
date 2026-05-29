@@ -50,6 +50,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { getAppSetting } from "@/utils/appSettingsCache";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
@@ -229,6 +230,7 @@ const PartyRoom = () => {
   const [myRole, setMyRole] = useState<string | null>(null);
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   const [showRoomClosedModal, setShowRoomClosedModal] = useState(false);
+  const roomClosedRef = useRef(false);
   const [showGiftContributors, setShowGiftContributors] = useState(false);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
   // Per-participant beans tracking (sender_id -> beans earned for host)
