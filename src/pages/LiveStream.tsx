@@ -1281,6 +1281,18 @@ const LiveStream = () => {
   const [showStreamEndedModal, setShowStreamEndedModal] = useState(false);
   const [streamEndedBy, setStreamEndedBy] = useState<string>("");
 
+  const showViewerStreamEnded = useCallback(async (hostName?: string) => {
+    if (isHost || streamEndedRef.current) return;
+    streamEndedRef.current = true;
+    setStreamEndedBy(hostName || hostInfo?.name || "Host");
+    setShowStreamEndedModal(true);
+    await leaveChannel().catch(() => {});
+    if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
+    streamEndRedirectTimerRef.current = setTimeout(() => {
+      navigate('/', { replace: true });
+    }, 3000);
+  }, [hostInfo?.name, isHost, leaveChannel, navigate]);
+
   // Pkg78: LiveKit-ONLY stream-ended + viewer-count signaling.
   // Removed: Supabase `live-stream-close-${id}` broadcast + `stream_viewer_count_${id}` postgres_changes.
   // Safety net: live_streams row realtime + 30s stale-stream poll covers
@@ -1294,15 +1306,7 @@ const LiveStream = () => {
       if (detail.streamId !== id) return;
       if (isHost) return;
       console.log('[LiveStream] ⚡ Pkg74 livekit-stream-ended received');
-      if (streamEndedRef.current) return;
-      streamEndedRef.current = true;
-      setStreamEndedBy(detail.hostName || hostInfo?.name || 'Host');
-      setShowStreamEndedModal(true);
-      if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
-      streamEndRedirectTimerRef.current = setTimeout(async () => {
-        await leaveChannel();
-        navigate('/');
-      }, 3000);
+      void showViewerStreamEnded(detail.hostName || hostInfo?.name || 'Host');
     };
     window.addEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
 
@@ -1328,43 +1332,41 @@ const LiveStream = () => {
       window.removeEventListener('livekit-stream-ended', handleLiveKitStreamEnded);
       window.removeEventListener('livekit-viewer-count', handleLiveKitViewerCount);
     };
-  }, [id, isHost, hostInfo?.name, leaveChannel, navigate]);
+  }, [id, isHost, hostInfo?.name, showViewerStreamEnded]);
 
   // VIEWER: stream-ended detection via LiveKit + live_streams realtime only.
   useEffect(() => {
     if (!id || isHost) return;
 
     const showEndedFromDb = () => {
-      if (streamEndedRef.current) return;
-      streamEndedRef.current = true;
       console.log('[LiveStream] Stream detected as ended by live_streams update');
-      setStreamEndedBy(hostInfo?.name || "Host");
-      setShowStreamEndedModal(true);
-      if (streamEndRedirectTimerRef.current) clearTimeout(streamEndRedirectTimerRef.current);
-      streamEndRedirectTimerRef.current = setTimeout(async () => {
-        await leaveChannel();
-        navigate('/');
-      }, 3000);
+      void showViewerStreamEnded(hostInfo?.name || "Host");
     };
 
-    // Pkg305 pass-2: row-level realtime detects host/admin end instantly.
-    const unsubscribeStream = subscribeToTables(
-      `livestream-row-${id}`,
-      ['live_streams'],
-      (_table, _event, payload) => {
-        const row = payload as any;
-        if (row?.id === id && row.is_active === false) showEndedFromDb();
-      }
-    );
+    // Direct scoped channel for the current stream end-state. This avoids any
+    // shared-channel rebuild race and is the durable fallback when the LiveKit
+    // stream_ended packet is missed.
+    const streamChannel = supabase
+      .channel(`live-stream-end-${id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'live_streams',
+        filter: `id=eq.${id}`,
+      }, (payload) => {
+        const row = (payload as any).new;
+        if (row?.is_active === false || row?.status === 'ended' || row?.ended_at) showEndedFromDb();
+      })
+      .subscribe();
 
     return () => {
-      unsubscribeStream?.();
+      supabase.removeChannel(streamChannel);
       if (streamEndRedirectTimerRef.current) {
         clearTimeout(streamEndRedirectTimerRef.current);
         streamEndRedirectTimerRef.current = null;
       }
     };
-  }, [id, isHost, hostInfo?.name, leaveChannel, navigate]);
+  }, [id, isHost, hostInfo?.name, showViewerStreamEnded]);
 
   // ========== VIEWER: Detect host busy on call ==========
   // Source of truth = active private_calls (prevents stale is_in_call false positives)
@@ -1794,6 +1796,21 @@ const LiveStream = () => {
 
     try {
       if (id && streamData?.host_id) {
+        // Signal FIRST while the host is still connected to LiveKit. If we wait
+        // for DB/stat queries first, the host can disconnect before reliable
+        // DataPacket flushes and viewers stay on a blank live screen.
+        const hostName = hostInfo?.name || 'Host';
+        try {
+          const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
+          await publishStreamEnded(id, {
+            endedBy: currentUserId || 'host',
+            hostName,
+          });
+        } catch (e) {
+          console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
+        }
+        console.log('[LiveStream] ⚡ stream_ended sent before DB end flow');
+
         // SESSION-SPECIFIC: Get gift earnings only for THIS stream session
         const { data: sessionGifts } = await supabase
           .from("gift_transactions")
@@ -1845,18 +1862,6 @@ const LiveStream = () => {
           giftEarnings = Number(result.beans_earned ?? giftEarnings) || giftEarnings;
         }
 
-        // Pkg78: LiveKit-ONLY stream_ended fanout (Supabase broadcast removed).
-        const hostName = hostInfo?.name || 'Host';
-        try {
-          const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
-          await publishStreamEnded(id, {
-            endedBy: currentUserId || 'host',
-            hostName,
-          });
-        } catch (e) {
-          console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
-        }
-        console.log('[LiveStream] ⚡ stream_ended sent (LiveKit only)');
       }
     } catch (error) {
       console.error('[LiveStream] Error while ending stream stats flow:', error);
