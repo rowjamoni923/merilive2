@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
-import { getAutoRecordPreference, setAutoRecordPreference } from "@/lib/livekitAutoRecord";
-import { toast as sonner } from "sonner";
-import { Video } from "lucide-react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import { 
   X, 
   UserPlus, 
@@ -187,38 +185,8 @@ export const ChametSettingsPanel = ({
   onStickerClick,
   onBeautyClick,
 }: ChametSettingsPanelProps) => {
-  const [autoRecord, setAutoRecord] = useState(false);
-  const [autoRecordLoading, setAutoRecordLoading] = useState(false);
+  // Auto-record feature removed per product decision.
 
-  useEffect(() => {
-    if (!isOpen) return;
-    let cancelled = false;
-    void getAutoRecordPreference().then((r) => {
-      if (!cancelled && r.success) setAutoRecord(!!r.enabled);
-    });
-    return () => { cancelled = true; };
-  }, [isOpen]);
-
-  const handleAutoRecordToggle = async (next: boolean) => {
-    if (autoRecordLoading) return;
-    setAutoRecordLoading(true);
-    const prev = autoRecord;
-    setAutoRecord(next); // optimistic
-    const r = await setAutoRecordPreference(next);
-    if (!r.success) {
-      setAutoRecord(prev);
-      if (r.error === 'auto_record_disabled') {
-        sonner.error('Auto-record is currently disabled by admin');
-      } else if (r.error === 'not_authenticated') {
-        sonner.error('Please sign in again');
-      } else {
-        sonner.error('Could not save preference');
-      }
-    } else {
-      sonner.success(next ? 'Auto-record enabled for your lives' : 'Auto-record disabled');
-    }
-    setAutoRecordLoading(false);
-  };
 
   if (!isOpen) return null;
 
@@ -319,19 +287,8 @@ export const ChametSettingsPanel = ({
                 checked: isMicEnabled,
                 onChange: onMicToggle,
               },
-              {
-                kind: 'toggle',
-                key: 'rec',
-                label: 'Auto-record Live',
-                sub: 'Save an MP4 of every live you start',
-                icon: Video,
-                iconGrad: 'linear-gradient(135deg, #fb7185 0%, #ef4444 100%)',
-                iconShadow: '0 6px 18px -4px rgba(239,68,68,0.55)',
-                checked: autoRecord,
-                disabled: autoRecordLoading,
-                onChange: (v: boolean) => void handleAutoRecordToggle(v),
-              },
             ];
+
 
             return rows.map((r, idx) => {
               const Icon = r.icon;
