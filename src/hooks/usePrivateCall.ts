@@ -1174,16 +1174,17 @@ export function usePrivateCall(userId: string | null) {
 
       if (!isTerminal(status)) return;
 
+      const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
+
       if (incomingCallIdRef.current === callId) {
         incomingCallIdRef.current = null;
-        endedCallIdsRef.current.add(callId);
         setIncomingCall(null);
         if (isNativeAndroidApp()) {
           NativeCall.endIncomingUi({ callId, reason: status === 'missed' ? 'timeout' : status }).catch(() => {});
         }
+        if (trackedCallId !== callId) endedCallIdsRef.current.add(callId);
       }
 
-      const trackedCallId = currentCallIdRef.current || callStateRef.current.callId;
       if (trackedCallId !== callId || callEndedRef.current || endedCallIdsRef.current.has(callId)) return;
 
       if (status === 'ended') {
