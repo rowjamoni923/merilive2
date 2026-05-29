@@ -53,7 +53,7 @@ import {
   requestMicrophonePermission as requestNativeMicrophonePermission,
   requestNotificationPermission as requestNativeNotificationPermission,
 } from "@/utils/nativePermissions";
-import { AutoRecordSettingsRow } from "@/components/livekit/AutoRecordSettingsRow";
+// AutoRecordSettingsRow removed — Auto-record feature hidden from users app-wide.
 import AppLockToggle from "@/components/settings/AppLockToggle";
 
 
