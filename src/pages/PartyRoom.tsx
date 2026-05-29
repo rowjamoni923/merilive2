@@ -1022,7 +1022,7 @@ const PartyRoom = () => {
       if (joinBroadcastChannel) supabase.removeChannel(joinBroadcastChannel);
       if (roomCloseBroadcastChannel) supabase.removeChannel(roomCloseBroadcastChannel);
     };
-    }, [roomId, markOptimisticPartyGiftCount, leaveRoomForCleanup, cleanupWebRTC, fetchSeatRequests]);
+    }, [roomId, markOptimisticPartyGiftCount, leaveRoomForCleanup, cleanupWebRTC]);
 
   useEffect(() => {
     if (!roomId || isHost) return;
