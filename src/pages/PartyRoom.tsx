@@ -50,6 +50,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { getAppSetting } from "@/utils/appSettingsCache";
 import { LiveGameBoard } from "@/components/games/LiveGameBoard";
 import { toast } from "sonner";
@@ -229,6 +230,7 @@ const PartyRoom = () => {
   const [myRole, setMyRole] = useState<string | null>(null);
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   const [showRoomClosedModal, setShowRoomClosedModal] = useState(false);
+  const roomClosedRef = useRef(false);
   const [showGiftContributors, setShowGiftContributors] = useState(false);
   const [totalRoomBeans, setTotalRoomBeans] = useState(0);
   // Per-participant beans tracking (sender_id -> beans earned for host)
@@ -784,9 +786,10 @@ const PartyRoom = () => {
       if (!detail || detail.roomId !== roomId) return;
       if (!isMountedRef.current) return;
       const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
-      if (isHostNow || showRoomClosedModal) return;
+      if (isHostNow || roomClosedRef.current) return;
 
       console.log('[PartyRoom] 🟣 ⚡ Pkg75 livekit-party-closed received', detail);
+      roomClosedRef.current = true;
       playSound('notification');
       setShowRoomClosedModal(true);
       cleanupWebRTC();
@@ -973,7 +976,8 @@ const PartyRoom = () => {
         }
         if (data.is_active === false) {
           const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
-          if (!isHostNow && !showRoomClosedModal && isMountedRef.current) {
+          if (!isHostNow && !roomClosedRef.current && isMountedRef.current) {
+            roomClosedRef.current = true;
             setShowRoomClosedModal(true);
             cleanupWebRTC();
             setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
@@ -1008,6 +1012,31 @@ const PartyRoom = () => {
       if (roomCloseBroadcastChannel) supabase.removeChannel(roomCloseBroadcastChannel);
     };
     }, [roomId, markOptimisticPartyGiftCount, leaveRoomForCleanup, cleanupWebRTC]);
+
+  useEffect(() => {
+    if (!roomId || isHost) return;
+
+    const closeFromDb = () => {
+      if (roomClosedRef.current || !isMountedRef.current) return;
+      roomClosedRef.current = true;
+      console.log('[PartyRoom] Room detected closed by party_rooms realtime');
+      playSound('notification');
+      setShowRoomClosedModal(true);
+      cleanupWebRTC();
+      setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
+    };
+
+    const unsubscribe = subscribeToTables(
+      `party-room-close-${roomId}`,
+      ['party_rooms'],
+      (_table, _event, payload) => {
+        const row = payload as any;
+        if (row?.id === roomId && row.is_active === false) closeFromDb();
+      }
+    );
+
+    return () => unsubscribe?.();
+  }, [roomId, isHost, cleanupWebRTC, navigate]);
 
 
   // Pkg187: Removed 20s room-status safety poll. LiveKit `room_state_changed` + `livekit-party-closed` events already deliver instant room-close to all viewers. Zero functional loss, $1400-rule safe.
