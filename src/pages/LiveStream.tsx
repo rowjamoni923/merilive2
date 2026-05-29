@@ -3070,16 +3070,17 @@ const LiveStream = () => {
         {/* Host filter controls moved to More Options panel */}
 
         {/* Input & Action Buttons Bar - Professional Design */}
-        <div className="px-3 flex items-center gap-1.5 pt-2 pb-3"
+        <div className="px-2 flex items-center gap-1 pt-2 pb-2.5 pb-[max(env(safe-area-inset-bottom),0.625rem)]"
           style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 70%, transparent 100%)' }}
         >
-          {/* Chat Input — 40px tap target */}
+          {/* Chat Input — compact 36px tap target */}
           <div className="flex-1 min-w-0 relative">
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Say something..."
-              className="w-full h-10 rounded-full text-white text-xs pl-3.5 pr-10"
+              className="w-full h-9 rounded-full text-white text-xs pl-3.5 pr-9"
+
               style={{
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.12)',
