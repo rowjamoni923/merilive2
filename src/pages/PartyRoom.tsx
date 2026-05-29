@@ -742,7 +742,17 @@ const PartyRoom = () => {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     
-    // ============= Pkg81b/c: ALL party_room postgres_changes DELETED =============
+    const unsubscribeSeatRequests = subscribeToTables(
+      `party-room-seat-requests-${roomId}`,
+      ['seat_requests'],
+      (_table, _event, payload) => {
+        const row = payload as any;
+        if (row?.room_id !== roomId) return;
+        void fetchSeatRequests();
+      }
+    );
+
+    // ============= Pkg81b/c: MOST party_room postgres_changes DELETED =============
     // Removed channels (LiveKit-only — zero Supabase Realtime inside party rooms):
     //   - `party-room-all-${roomId}` (participants INSERT/UPDATE/DELETE + seat_requests *)
     //   - `party_room_messages` INSERT subscription (join/chat fanout)
@@ -994,6 +1004,7 @@ const PartyRoom = () => {
       window.removeEventListener('livekit-party-closed', handleLiveKitPartyClosed);
       window.removeEventListener('livekit-gift-sent', handleLiveKitPartyGift);
       window.removeEventListener('livekit-party-event', handleLiveKitPartyEvent);
+      unsubscribeSeatRequests?.();
       void (async () => {
         if (explicitLeaveRef.current) {
           await leaveRoomForCleanup(roomId);
@@ -1450,10 +1461,12 @@ const PartyRoom = () => {
         .from('seat_requests')
         .insert({
           room_id: roomId,
+          user_id: currentUser.id,
           requester_id: currentUser.id,
+          seat_number: position,
           seat_position: position,
           status: 'pending'
-        });
+        } as any);
 
       if (error) {
         console.error('[PartyRoom] Seat request insert error:', error);
