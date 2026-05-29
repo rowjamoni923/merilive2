@@ -1790,6 +1790,21 @@ const LiveStream = () => {
 
     try {
       if (id && streamData?.host_id) {
+        // Signal FIRST while the host is still connected to LiveKit. If we wait
+        // for DB/stat queries first, the host can disconnect before reliable
+        // DataPacket flushes and viewers stay on a blank live screen.
+        const hostName = hostInfo?.name || 'Host';
+        try {
+          const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
+          await publishStreamEnded(id, {
+            endedBy: currentUserId || 'host',
+            hostName,
+          });
+        } catch (e) {
+          console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
+        }
+        console.log('[LiveStream] ⚡ stream_ended sent before DB end flow');
+
         // SESSION-SPECIFIC: Get gift earnings only for THIS stream session
         const { data: sessionGifts } = await supabase
           .from("gift_transactions")
@@ -1841,18 +1856,6 @@ const LiveStream = () => {
           giftEarnings = Number(result.beans_earned ?? giftEarnings) || giftEarnings;
         }
 
-        // Pkg78: LiveKit-ONLY stream_ended fanout (Supabase broadcast removed).
-        const hostName = hostInfo?.name || 'Host';
-        try {
-          const { publishStreamEnded } = await import('@/lib/livekitLiveSignaling');
-          await publishStreamEnded(id, {
-            endedBy: currentUserId || 'host',
-            hostName,
-          });
-        } catch (e) {
-          console.warn('[LiveStream] Pkg74 publishStreamEnded failed:', e);
-        }
-        console.log('[LiveStream] ⚡ stream_ended sent (LiveKit only)');
       }
     } catch (error) {
       console.error('[LiveStream] Error while ending stream stats flow:', error);
