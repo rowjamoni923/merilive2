@@ -639,10 +639,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         // Set following status
         setIsFollowing(!!followDataResult?.data);
 
-        // Set face verification status from the freshest submission, falling back to profile columns.
-        const latestFaceStatus = String((faceVerifPendingResult as any)?.data?.status || profileData?.face_verification_status || profileData?.host_status || '').toLowerCase();
-        setFaceVerificationStatus(latestFaceStatus || null);
-        setFaceVerificationPending(latestFaceStatus === 'pending' || latestFaceStatus === 'submitted');
+        // Face verification status — SOLE source of truth is the face_verification_submissions row.
+        // Never fall back to profile.host_status (that tracks host application, NOT face verification —
+        // conflating them showed "Under Review" to users who never submitted face verification).
+        const submissionRow: any = (faceVerifPendingResult as any)?.data || null;
+        const submissionStatus = String(submissionRow?.status || '').toLowerCase();
+        const isPendingSubmission = submissionStatus === 'pending' || submissionStatus === 'submitted';
+        const effectiveStatus = profileData?.is_face_verified
+          ? 'approved'
+          : (submissionStatus || null);
+        setFaceVerificationStatus(effectiveStatus);
+        setFaceVerificationPending(!profileData?.is_face_verified && isPendingSubmission);
 
         // Own profile specific data
         if (isOwnProfileCheck && user) {
@@ -1343,7 +1350,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const isFaceVerified = (profile as any)?.is_face_verified;
   const [faceVerificationPending, setFaceVerificationPending] = useState(false);
   const [faceVerificationStatus, setFaceVerificationStatus] = useState<string | null>(null);
-  const effectiveFaceVerificationStatus = String(faceVerificationStatus || (profile as any)?.face_verification_status || (profile as any)?.host_status || '').toLowerCase();
+  // Only the actual face_verification_submissions status drives this UI. Do NOT mix in host_status
+  // (host application state) or any other profile column — they caused false "Under Review" banners.
+  const effectiveFaceVerificationStatus = String(faceVerificationStatus || '').toLowerCase();
   const faceVerificationRejected = effectiveFaceVerificationStatus === 'rejected';
 
   // Open Call Price Modal - fetch settings and current rate
