@@ -1343,18 +1343,24 @@ const LiveStream = () => {
       void showViewerStreamEnded(hostInfo?.name || "Host");
     };
 
-    // Pkg305 pass-2: row-level realtime detects host/admin end instantly.
-    const unsubscribeStream = subscribeToTables(
-      `livestream-row-${id}`,
-      ['live_streams'],
-      (_table, _event, payload) => {
-        const row = payload as any;
-        if (row?.id === id && row.is_active === false) showEndedFromDb();
-      }
-    );
+    // Direct scoped channel for the current stream end-state. This avoids any
+    // shared-channel rebuild race and is the durable fallback when the LiveKit
+    // stream_ended packet is missed.
+    const streamChannel = supabase
+      .channel(`live-stream-end-${id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'live_streams',
+        filter: `id=eq.${id}`,
+      }, (payload) => {
+        const row = (payload as any).new;
+        if (row?.is_active === false || row?.status === 'ended' || row?.ended_at) showEndedFromDb();
+      })
+      .subscribe();
 
     return () => {
-      unsubscribeStream?.();
+      supabase.removeChannel(streamChannel);
       if (streamEndRedirectTimerRef.current) {
         clearTimeout(streamEndRedirectTimerRef.current);
         streamEndRedirectTimerRef.current = null;
