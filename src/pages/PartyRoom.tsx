@@ -786,9 +786,10 @@ const PartyRoom = () => {
       if (!detail || detail.roomId !== roomId) return;
       if (!isMountedRef.current) return;
       const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
-      if (isHostNow || showRoomClosedModal) return;
+      if (isHostNow || roomClosedRef.current) return;
 
       console.log('[PartyRoom] 🟣 ⚡ Pkg75 livekit-party-closed received', detail);
+      roomClosedRef.current = true;
       playSound('notification');
       setShowRoomClosedModal(true);
       cleanupWebRTC();
@@ -975,7 +976,8 @@ const PartyRoom = () => {
         }
         if (data.is_active === false) {
           const isHostNow = roomRef.current?.host_id === currentUserRef.current?.id;
-          if (!isHostNow && !showRoomClosedModal && isMountedRef.current) {
+          if (!isHostNow && !roomClosedRef.current && isMountedRef.current) {
+            roomClosedRef.current = true;
             setShowRoomClosedModal(true);
             cleanupWebRTC();
             setTimeout(() => { if (isMountedRef.current) navigate('/'); }, 3000);
