@@ -67,6 +67,7 @@ const SLIDERS: Array<{ key: keyof ProBeautyLevels; label: string }> = [
 
 interface BeautyFilterPanelProps {
   open?: boolean;
+  isOpen?: boolean; // alias used by GoLive/LiveStream/PartyRoom/ActiveCallScreen
   enabled?: boolean;
   onEnabledChange?: (v: boolean) => void;
   settings?: BeautySettings;
@@ -77,24 +78,27 @@ interface BeautyFilterPanelProps {
 
 export function BeautyFilterPanel({
   open,
+  isOpen,
   enabled = true,
   settings = DEFAULT_BEAUTY,
   onSettingsChange,
   onEnabledChange,
   onClose,
 }: BeautyFilterPanelProps) {
+  const panelOpen = open ?? isOpen ?? false;
   const initialLevels: ProBeautyLevels = useMemo(
     () => settings?.levels ?? loadStoredLevels(),
     // initialise once when panel opens
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [open],
+    [panelOpen],
   );
+
   const [levels, setLevels] = useState<ProBeautyLevels>(initialLevels);
   const native = isNativeBeautyAvailable();
 
   // Apply to native engine + persist whenever sliders change.
   useEffect(() => {
-    if (!open) return;
+    if (!panelOpen) return;
     persistLevels(levels);
     if (enabled && native) {
       void applyProBeauty(levels);
@@ -102,11 +106,11 @@ export function BeautyFilterPanel({
       // explicitly enabled the broadcast flag (off by default).
       if (isBroadcastBeautyEnabled()) void applyBroadcastBeauty(levels, true);
     }
-  }, [levels, enabled, native, open]);
+  }, [levels, enabled, native, panelOpen]);
 
   // Push enabled state to native pipeline.
   useEffect(() => {
-    if (!open || !native) return;
+    if (!panelOpen || !native) return;
     void setBeautyEnabled(enabled);
     // Pkg201 — detach broadcast processor when beauty toggled off, or
     // (re)apply current levels when toggled on with the flag set.
@@ -115,9 +119,10 @@ export function BeautyFilterPanel({
     } else if (isBroadcastBeautyEnabled()) {
       void applyBroadcastBeauty(levels, true);
     }
-  }, [enabled, native, open, levels]);
+  }, [enabled, native, panelOpen, levels]);
 
-  if (!open) return null;
+  if (!panelOpen) return null;
+
 
   const currentPreset: BeautySettings["preset"] = settings?.preset ?? "natural";
 
