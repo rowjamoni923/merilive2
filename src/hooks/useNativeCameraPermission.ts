@@ -152,7 +152,7 @@ const requestCameraViaGetUserMedia = async (includeAudio: boolean, isNative: boo
   }
 };
 
-const getUserMediaWithFallback = async (includeAudio: boolean, facingMode: 'user' | 'environment' = 'user'): Promise<MediaStream> => {
+export const getUserMediaWithFallback = async (includeAudio: boolean, facingMode: 'user' | 'environment' = 'user'): Promise<MediaStream> => {
   const audio: boolean | MediaTrackConstraints = includeAudio
     ? { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     : false;
