@@ -303,7 +303,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
     // Pkg381: Ensure ALL participants (especially the host) are in the map
     // even before their tracks arrive. This prevents the "nothing but
     // background" viewer symptom.
-    const pUid = getUidForParticipant(participant.identity);
     setRemoteUsers((prev) => {
       const existing = prev.get(pUid);
 
