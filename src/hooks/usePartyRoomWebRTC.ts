@@ -281,6 +281,23 @@ export function usePartyRoomWebRTC(
           return ms;
         };
 
+        const setPeerStreamForParticipant = (participant: RemoteParticipant, stream: MediaStream) => {
+          const keys = new Set([participant.identity]);
+          const userId = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
+          if (userId) keys.add(userId);
+          stream.getTracks().forEach((track) => {
+            if (track.readyState !== 'live') return;
+            try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
+          });
+          keys.forEach((key) => peerStreamsRef.current.set(key, stream));
+        };
+
+        const deletePeerStreamForParticipant = (participant: RemoteParticipant) => {
+          peerStreamsRef.current.delete(participant.identity);
+          const userId = (participant as RemoteParticipant & { metadata?: string | null }).metadata;
+          if (userId) peerStreamsRef.current.delete(userId);
+        };
+
         const resetLocalPublications = async () => {
           const publications = Array.from(room.localParticipant.trackPublications.values());
           for (const pub of publications) {
@@ -385,7 +402,7 @@ export function usePartyRoomWebRTC(
 
           // Pkg381: Ensure peer is in state even if track arrives late
           const peerStream = buildPeerStream(participant);
-          peerStreamsRef.current.set(participant.identity, peerStream);
+          setPeerStreamForParticipant(participant, peerStream);
           setState(prev => ({
             ...prev,
             peerStreams: new Map(peerStreamsRef.current),
@@ -396,7 +413,7 @@ export function usePartyRoomWebRTC(
           console.log(`[PartyLiveKit] Participant connected: ${participant.identity}`);
           // Pkg381: Immediately add to state with empty stream so UI can show placeholder
           const peerStream = buildPeerStream(participant);
-          peerStreamsRef.current.set(participant.identity, peerStream);
+          setPeerStreamForParticipant(participant, peerStream);
           setState(prev => ({
             ...prev,
             peerStreams: new Map(peerStreamsRef.current),
@@ -420,7 +437,7 @@ export function usePartyRoomWebRTC(
 
           const peerStream = buildPeerStream(participant);
           if (peerStream.getTracks().length > 0) {
-            peerStreamsRef.current.set(participant.identity, peerStream);
+            setPeerStreamForParticipant(participant, peerStream);
             setState(prev => ({
               ...prev,
               peerStreams: new Map(peerStreamsRef.current),
