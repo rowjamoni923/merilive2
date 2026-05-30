@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Gamepad2, Coins, Sparkles, Loader2 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
+
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { LiveGameBoard } from "./LiveGameBoard";
