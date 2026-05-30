@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from \"react\";
+import { subscribeToTables } from \"@/hooks/useUniversalRealtime\";
+
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -229,60 +231,66 @@ const AgencyDashboard = () => {
 
   useEffect(() => {
     agencyIdRef.current = agency?.id ?? null;
-  }, [agency?.id]);
-  
+    if (agency?.id && currentUserId) {
+      // Pkg361 ZERO-REFRESH: Subscribe to ALL relevant tables for the agency dashboard
+      const unsubscribe = subscribeToTables(
+        `agency-dashboard-${agency.id}`,
+        ['agencies', 'agency_hosts', 'agency_performance', 'profiles', 'topup_helpers', 'agency_earnings_transfers'],
+        (table, event, payload) => {
+          const row = payload as any;
+          
+          if (table === 'agencies' && row.id === agency.id) {
+            setAgency(prev => prev ? { ...prev, ...row } : row);
+          }
+          
+          if (table === 'agency_hosts' && row.agency_id === agency.id) {
+            fetchHostsData(agency.id);
+          }
+          
+          if (table === 'profiles' && row.id === currentUserId) {
+            setOwnerPersonalBeans(Number(row.beans || 0));
+          }
+
+          if (table === 'topup_helpers' && row.user_id === currentUserId) {
+            setHasHelperAccess(row.is_verified && row.is_active);
+            setIsLevel5Helper(row.trader_level >= 5);
+          }
+          
+          if (table === 'agency_earnings_transfers' && row.agency_id === agency.id) {
+            fetchTransfersData(agency.id);
+          }
+        }
+      );
+      return unsubscribe;
+    }
+  }, [agency?.id, currentUserId]);
+
+  const fetchHostsData = async (aid: string) => {
+    const { data: h } = await supabase.from(\"agency_hosts\").select(\"id, host_id, joined_at, status\").eq(\"agency_id\", aid).eq(\"status\", \"active\");
+    if (h) {
+      const hIds = h.map(i => i.host_id);
+      if (hIds.length > 0) {
+        const { data: p } = await supabase.from(\"profiles\").select(\"id, display_name, avatar_url, is_online, total_earnings, is_verified\").in(\"id\", hIds);
+        const pMap = new Map((p || []).map(i => [i.id, i]));
+        setHosts(h.map(i => ({ ...i, profile: pMap.get(i.host_id) || null })));
+      }
+    }
+  };
+
+  const fetchTransfersData = async (aid: string) => {
+    const { data: t } = await supabase.from('agency_earnings_transfers').select('gift_earnings, call_earnings, amount, commission_rate').eq('agency_id', aid);
+    if (t) {
+      const totalEarned = t.reduce((sum, item) => sum + (Number(item.gift_earnings || 0) + Number(item.call_earnings || 0)), 0);
+      const totalComm = t.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      setTotalHostEarningsFromTransfers(totalEarned);
+      setTotalAgencyCommission(totalComm);
+    }
+  };
+
   // Initialize notification sound
   useEffect(() => {
-    // Create audio element for notification sound
-    audioRef.current = new Audio('data:audio/wav;base64,UklGRl9vT19telefonering/2FBBQw==');
-    // Use a simple beep sound created via Web Audio API
-    return () => {
-      if (audioRef.current) {
-        audioRef.current = null;
-      }
-    };
-  }, []);
+    // ... keep existing code
 
-  // Play notification sound function
-  const playNotificationSound = useCallback(() => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = 800; // Frequency in Hz
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.5);
-      
-      // Play second beep
-      setTimeout(() => {
-        const oscillator2 = audioContext.createOscillator();
-        const gainNode2 = audioContext.createGain();
-        
-        oscillator2.connect(gainNode2);
-        gainNode2.connect(audioContext.destination);
-        
-        oscillator2.frequency.value = 1000;
-        oscillator2.type = 'sine';
-        
-        gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
-        oscillator2.start(audioContext.currentTime);
-        oscillator2.stop(audioContext.currentTime + 0.3);
-      }, 200);
-    } catch (error) {
-      console.log('Could not play notification sound:', error);
-    }
-  }, []);
 
   // Watch for helper pending count changes and play sound
   useEffect(() => {
@@ -310,12 +318,14 @@ const AgencyDashboard = () => {
           navigate("/auth");
           return;
         }
+        setCurrentUserId(user.id);
 
         const { data: agencyData, error: agencyError } = await supabase
-          .from("agencies")
-          .select("*")
-          .eq("owner_id", user.id)
+          .from(\"agencies\")
+          .select(\"*")
+          .eq(\"owner_id\", user.id)
           .maybeSingle();
+
 
         if (cancelled) return;
 
