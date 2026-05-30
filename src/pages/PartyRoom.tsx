@@ -1208,9 +1208,28 @@ const PartyRoom = () => {
         scheduleRefetch,
       )
       .subscribe();
+
+    // ============= Safety-net: Supabase Broadcast for seat events =============
+    // LiveKit DataPacket (Pkg80 seat_action) + postgres_changes above are the
+    // primary instant paths. But LiveKit DataPackets are best-effort and
+    // postgres_changes can be filtered out by RLS edge cases. This dedicated
+    // broadcast channel guarantees every participant (esp. the HOST) is
+    // notified instantly when ANY seat event happens, then refetches the
+    // source-of-truth DB rows. Zero RLS dependency on the realtime path.
+    const seatBroadcast = supabase
+      .channel(`party-seat-broadcast-${roomId}`, { config: { broadcast: { self: false } } })
+      .on('broadcast', { event: 'seat_event' }, () => {
+        scheduleRefetch();
+      })
+      .subscribe();
+    (window as any).__partySeatBroadcast = (window as any).__partySeatBroadcast || {};
+    (window as any).__partySeatBroadcast[roomId] = seatBroadcast;
+
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       try { supabase.removeChannel(channel); } catch { /* ignore */ }
+      try { supabase.removeChannel(seatBroadcast); } catch { /* ignore */ }
+      try { delete (window as any).__partySeatBroadcast[roomId]; } catch { /* ignore */ }
     };
   }, [roomId, fetchParticipants, fetchSeatRequests]);
 
