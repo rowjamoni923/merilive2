@@ -2793,6 +2793,7 @@ const FaceVerification = () => {
             Back to Profile
           </Button>
         </div>
+        </div>
       </div>
     );
   }
