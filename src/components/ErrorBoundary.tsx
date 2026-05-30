@@ -49,11 +49,12 @@ class ErrorBoundary extends Component<Props, State> {
         try {
           const ONCE_KEY = 'meri_chunk_auto_reload_v1';
           const alreadyTried = sessionStorage.getItem(ONCE_KEY);
+          // Zero-refresh policy: do NOT automatically reload the whole page.
+          // Instead, we just let the ErrorBoundary show the "Try Again" UI.
+          // This prevents the infinite reload loops the user complained about.
           if (!alreadyTried) {
             sessionStorage.setItem(ONCE_KEY, String(Date.now()));
-            const url = new URL(window.location.href);
-            url.searchParams.set('_r', String(Date.now()));
-            window.location.replace(url.toString());
+            console.warn('[ErrorBoundary] Chunk load failure detected. User must manually Retry to avoid reload loop.');
           }
         } catch { /* best-effort */ }
       })();
