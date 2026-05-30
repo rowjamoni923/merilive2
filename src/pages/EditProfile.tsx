@@ -137,7 +137,6 @@ const EditProfile = () => {
       if (error) throw error;
       return data;
     },
-    },
     onSuccess: (data) => {
       if (data) {
         syncProfileState(data as ProfileData);
@@ -150,6 +149,7 @@ const EditProfile = () => {
   });
 
   const onSave = useCallback(() => handleSave(), [handleSave]);
+
 
 
 
