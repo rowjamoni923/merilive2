@@ -452,21 +452,17 @@ const VideoGridSeat = ({
           className="w-full h-full"
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-700/80 to-indigo-800/80">
-          <AvatarWithFrame
-            userId={participant.id}
-            src={participant.avatarUrl}
-            name={participant.displayName}
-            level={participant.level}
-            isHost={participant.isHost}
-            size="lg"
-            showAnimation={true}
-            showGlow={true}
-            showFrame={true}
-          />
-          <div className="mt-2 text-white/40 text-[10px] flex items-center gap-1">
-            <EyeOff className="w-3 h-3" />
-            Camera Off
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#0c0818] via-[#050208] to-black">
+          {participant.avatarUrl && (
+            <img 
+              src={participant.avatarUrl} 
+              alt="" 
+              className="absolute inset-0 w-full h-full object-cover opacity-30 blur-xl"
+            />
+          )}
+          {/* Pkg381: No generic user icon in video grid — subtle status only */}
+          <div className="relative z-10 flex flex-col items-center">
+             <div className="w-1.5 h-1.5 rounded-full bg-white/20 animate-pulse" />
           </div>
         </div>
       )}
