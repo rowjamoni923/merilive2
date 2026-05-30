@@ -2208,7 +2208,7 @@ const FaceVerification = () => {
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
-                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
+                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'], minHeight: '100%', transform: 'scaleX(-1) translateZ(0)', backfaceVisibility: 'hidden' }}
               />
             )}
             
