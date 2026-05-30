@@ -563,13 +563,13 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
         }
 
         if (track.kind === Track.Kind.Video) {
-          // Pkg147: viewer audio-only data-saver — drop video sub immediately.
+          // Data-saver must never hide the host camera. Keep video subscribed;
+          // only reduce quality so visitors still see live/video-party/call faces.
           if (isAudioOnlyEnabled()) {
-            try { publication.setSubscribed(false); } catch { /* ignore */ }
-            return;
+            try { publication.setVideoQuality?.(VideoQuality.LOW); } catch { /* ignore */ }
           }
           try {
-            publication.setVideoQuality?.(preferredVideoQualityRef.current);
+            publication.setVideoQuality?.(isAudioOnlyEnabled() ? VideoQuality.LOW : preferredVideoQualityRef.current);
           } catch {
             // ignore optional API failures
           }
@@ -611,12 +611,6 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
 
       // Subscribe immediately as soon as remote track is published to reduce first-frame delay
       room.on(RoomEvent.TrackPublished, (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
-        // Pkg147: in audio-only viewer mode, only subscribe audio.
-        const audioOnly = isAudioOnlyEnabled();
-        if (audioOnly && publication.kind === Track.Kind.Video) {
-          try { publication.setSubscribed(false); } catch { /* ignore */ }
-          return;
-        }
         try {
           publication.setSubscribed(true);
         } catch {
@@ -654,8 +648,10 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
             }
             return newMap;
           });
-          // Defensive: try to re-subscribe in case the unsubscribe was transient.
-          try { publication.setSubscribed(true); } catch { /* ignore */ }
+          const mediaTrack = (track as any)?.mediaStreamTrack as MediaStreamTrack | undefined;
+          if (mediaTrack?.readyState === 'ended') {
+            try { publication.setSubscribed(true); } catch { /* ignore */ }
+          }
         }
 
         if (track.kind === Track.Kind.Audio) {
@@ -994,7 +990,8 @@ export function useLiveKitClient(options: UseLiveKitClientOptions = {}) {
                   // see a black/frozen face for the entire stream.
                   try {
                     await room.localParticipant.unpublishTrack(cameraPub.track, false);
-                    await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
+                    const replacementPub = await room.localParticipant.publishTrack(beautifiedTrack as any, { source: Track.Source.Camera } as any);
+                    if (replacementPub?.track) setLocalVideoTrack(replacementPub.track);
                     console.log('[LiveKitClient] ✅ Replaced camera track with beauty-processed track');
                   } catch (e) {
                     console.warn('[LiveKitClient] Beauty track replacement failed, using original:', e);

@@ -109,6 +109,19 @@ export function supportsH264Encode(): boolean {
   return canEncode('video/H264');
 }
 
+function isAndroid(): boolean {
+  return /Android/i.test(ua());
+}
+
+function isMobileLike(): boolean {
+  if (isIOS() || isAndroid()) return true;
+  try {
+    return typeof navigator !== 'undefined' && /Mobi|Mobile/i.test(navigator.userAgent || '');
+  } catch {
+    return false;
+  }
+}
+
 // ─── Decision ─────────────────────────────────────────────────────────────
 
 export interface PickOptions {
@@ -165,7 +178,15 @@ export function pickOptimalCodecs(opts: PickOptions = {}): CodecChoice {
     return { videoCodec: 'h264' };
   }
 
-  // 4. Chromium → prefer AV1 if encoder is available (Chrome 124+ with
+  // 4. Mobile Chromium / Android WebView → H.264 first. AV1/VP9 encode may
+  //    report as available on some WebViews but fail to render on the visitor
+  //    side or paint black under hardware overlays. H.264 is the safest floor
+  //    for camera-heavy live, party, and private-call flows.
+  if (isMobileLike() && h264Available) {
+    return { videoCodec: 'h264' };
+  }
+
+  // 5. Desktop Chromium → prefer AV1 if encoder is available (Chrome 124+ with
   //    hardware support on modern Intel/AMD/Apple Silicon), else VP9.
   if (supportsAV1Encode()) {
     return { videoCodec: 'av1', backupCodec: chosenBackup };

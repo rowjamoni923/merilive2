@@ -374,8 +374,23 @@ const FaceVerification = () => {
     
     // Clear any previous srcObject
     videoEl.srcObject = null;
+    videoEl.muted = true;
+    videoEl.defaultMuted = true;
+    videoEl.autoplay = true;
+    videoEl.playsInline = true;
+    videoEl.controls = false;
+    videoEl.removeAttribute('controls');
+    videoEl.setAttribute('muted', '');
+    videoEl.setAttribute('autoplay', '');
+    videoEl.setAttribute('playsinline', '');
+    videoEl.setAttribute('webkit-playsinline', 'true');
+    videoEl.setAttribute('x5-playsinline', 'true');
     videoEl.style.opacity = '0';
     videoEl.style.transition = 'opacity 200ms ease-out';
+    videoEl.style.backgroundColor = '#000';
+    stream.getVideoTracks().forEach(track => {
+      try { if ('contentHint' in track) (track as any).contentHint = 'motion'; } catch {}
+    });
     
     const reveal = () => {
       if (videoEl) videoEl.style.opacity = '1';
@@ -402,6 +417,13 @@ const FaceVerification = () => {
           }
         }, 300);
       });
+    setTimeout(() => {
+      const liveVideo = stream.getVideoTracks().some(track => track.readyState === 'live');
+      if (liveVideo) {
+        reveal();
+        if (videoEl.paused) videoEl.play().catch(() => {});
+      }
+    }, 900);
   }, []);
 
   const setNativeFaceCameraActive = useCallback((active: boolean) => {
@@ -850,36 +872,12 @@ const FaceVerification = () => {
         setFaceStream(null);
       }
 
-      const nativeAvailable = await nativeFaceCam.isAvailable();
-      if (nativeAvailable) {
-        try {
-          await nativeFaceCam.stopPreview().catch(() => null);
-          await nativeFaceCam.startPreview('720p');
-          setFaceStream(null);
-          setNativeFaceCameraActive(true);
-
-          let frameReady = false;
-          for (let i = 0; i < 10; i++) {
-            const warmFrame = await nativeFaceCam.captureFrame();
-            if (warmFrame) {
-              frameReady = true;
-              break;
-            }
-            await new Promise(resolve => setTimeout(resolve, 180));
-          }
-          if (!frameReady) throw new Error('Native camera frame is not ready');
-          setCameraReady(true);
-          return;
-        } catch (nativeErr) {
-          console.warn('[FaceVerification] Native Android camera failed, falling back to WebRTC:', nativeErr);
-          recordClientError({ label: 'FaceVerification.nativeCamera', message: nativeErr instanceof Error ? nativeErr.message : String(nativeErr) });
-          await nativeFaceCam.stopPreview().catch(() => null);
-          setNativeFaceCameraActive(false);
-        }
-      }
-
-      // getCameraStream already handles permission internally — no separate probe needed
-      // This avoids the double getUserMedia issue that causes black screen on Android WebView
+      // Use WebRTC <video> preview as the permanent source of truth. The native
+      // CameraX bridge can capture frames, but it does not reliably paint inside
+      // the WebView layer on all Android builds, which caused the blank oval seen
+      // in live face scan. getCameraStream already handles permission internally —
+      // no separate probe, so Android WebView keeps the user-gesture chain intact.
+      await nativeFaceCam.stopPreview().catch(() => null);
       const stream = await getCameraStream(false);
       if (!stream) {
         throw new Error('Failed to get camera stream');
@@ -2210,7 +2208,7 @@ const FaceVerification = () => {
                 onLoadedMetadata={() => setCameraReady(true)}
                 onCanPlay={() => setCameraReady(true)}
                 onPlaying={() => setCameraReady(true)}
-                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'] }}
+                style={{ backgroundColor: '#000', pointerEvents: 'none', WebkitAppearance: 'none' as React.CSSProperties['WebkitAppearance'], minHeight: '100%', transform: 'scaleX(-1) translateZ(0)', backfaceVisibility: 'hidden' }}
               />
             )}
             
