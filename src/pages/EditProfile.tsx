@@ -149,8 +149,8 @@ const EditProfile = () => {
     successMessage: "Profile saved!"
   });
 
-  // Re-define for direct onClick handlers (Button event bypass)
   const onSave = useCallback(() => handleSave(), [handleSave]);
+
 
 
   const syncProfileState = (nextProfile: ProfileData) => {
