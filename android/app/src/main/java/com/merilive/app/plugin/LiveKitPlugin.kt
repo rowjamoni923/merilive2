@@ -1035,6 +1035,7 @@ class LiveKitPlugin : Plugin() {
     private fun createRenderer(): TextureViewRenderer {
         val renderer = TextureViewRenderer(context)
         renderer.setEnableHardwareScaler(true)
+        renderer.setScalingType(org.webrtc.RendererCommon.ScalingType.SCALE_ASPECT_FILL)
         return renderer
     }
 
