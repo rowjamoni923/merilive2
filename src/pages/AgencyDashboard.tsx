@@ -157,6 +157,7 @@ const AgencyDashboard = () => {
 
       setAgency(agencyData);
       setCurrentUserId(user.id);
+      localStorage.removeItem('meri_agency_redirecting');
 
       const [
         parentRes,
