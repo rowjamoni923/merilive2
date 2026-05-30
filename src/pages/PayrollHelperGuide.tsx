@@ -22,19 +22,19 @@ const PayrollHelperGuide = () => {
       icon: Wallet,
       title: "Process Agency Withdrawals",
       desc: "Agencies request weekly salary withdrawals. You process these payments by sending money to the owner and receiving diamonds as reward.",
-      color: "from-teal-500 to-cyan-600",
+      color: "from-brand-500 to-indigo-600",
     },
     {
       icon: Gem,
       title: "Diamond Trading",
       desc: "Every withdrawal earns you diamonds. Sell them back to agencies or users at market rates for consistent profit.",
-      color: "from-cyan-500 to-blue-600",
+      color: "from-brand-400 to-indigo-500",
     },
     {
       icon: Globe,
       title: "Regional Financial Hub",
       desc: "Act as the bridge between the platform's economy and real-world currency for your entire country region.",
-      color: "from-blue-500 to-indigo-600",
+      color: "from-indigo-600 to-brand-800",
     },
   ];
 
