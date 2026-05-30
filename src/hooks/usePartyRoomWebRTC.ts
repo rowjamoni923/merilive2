@@ -460,7 +460,7 @@ export function usePartyRoomWebRTC(
           });
           const peerStream = buildPeerStream(participant);
           if (peerStream.getTracks().length > 0) {
-            peerStreamsRef.current.set(participant.identity, peerStream);
+            setPeerStreamForParticipant(participant, peerStream);
             setState(prev => ({
               ...prev,
               peerStreams: new Map(peerStreamsRef.current),
@@ -492,9 +492,9 @@ export function usePartyRoomWebRTC(
 
           const peerStream = buildPeerStream(participant);
           if (peerStream.getTracks().length > 0) {
-            peerStreamsRef.current.set(participant.identity, peerStream);
+            setPeerStreamForParticipant(participant, peerStream);
           } else {
-            peerStreamsRef.current.delete(participant.identity);
+            deletePeerStreamForParticipant(participant);
           }
           setState(prev => ({
             ...prev,
@@ -718,7 +718,7 @@ export function usePartyRoomWebRTC(
         room.remoteParticipants.forEach(participant => {
           const peerStream = buildPeerStream(participant);
           if (peerStream.getTracks().length > 0) {
-            peerStreamsRef.current.set(participant.identity, peerStream);
+            setPeerStreamForParticipant(participant, peerStream);
           }
           // Play audio for existing participants
           participant.trackPublications.forEach(pub => {
@@ -746,7 +746,7 @@ export function usePartyRoomWebRTC(
 
             const peerStream = buildPeerStream(participant);
             if (peerStream.getTracks().length > 0) {
-              peerStreamsRef.current.set(participant.identity, peerStream);
+              setPeerStreamForParticipant(participant, peerStream);
             }
           });
           setState(prev => ({
