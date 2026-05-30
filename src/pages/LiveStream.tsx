@@ -2465,7 +2465,7 @@ const LiveStream = () => {
   const handleHostCameraRecover = useCallback(async () => {
     setShowHostCameraRecover(false);
     try {
-      const { default: nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
+      const { nativeLiveKitController } = await import('@/lib/nativeLiveKitController');
       try { await nativeLiveKitController.setCameraEnabled(false); } catch { /* ignore */ }
       await new Promise((r) => setTimeout(r, 120));
       try { await nativeLiveKitController.setCameraEnabled(true); } catch { /* ignore */ }
