@@ -94,9 +94,16 @@ export async function publishReliableLocalMedia(
   },
 ): Promise<{ localStream: MediaStream; videoPublication?: LocalTrackPublication; audioPublication?: LocalTrackPublication }> {
   const { needVideo, needAudio, preparedStream, processVideoTrack } = options;
-  const stream = preparedStream?.getTracks().some(isLive)
-    ? preparedStream
-    : await createFallbackStream(needVideo, needAudio);
+  const preparedTracks = preparedStream?.getTracks().filter(isLive) ?? [];
+  const preparedHasVideo = preparedTracks.some((track) => track.kind === 'video');
+  const preparedHasAudio = preparedTracks.some((track) => track.kind === 'audio');
+  const fallbackStream = (!preparedTracks.length || (needVideo && !preparedHasVideo) || (needAudio && !preparedHasAudio))
+    ? await createFallbackStream(needVideo && !preparedHasVideo, needAudio && !preparedHasAudio)
+    : null;
+  const stream = new MediaStream([
+    ...preparedTracks,
+    ...(fallbackStream?.getTracks().filter(isLive) ?? []),
+  ]);
 
   let videoPublication: LocalTrackPublication | undefined;
   let audioPublication: LocalTrackPublication | undefined;
