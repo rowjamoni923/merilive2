@@ -290,11 +290,15 @@ export const PKBattlePanel = ({
         />
 
         <motion.div
-          className="relative w-full max-w-lg rounded-t-[28px] overflow-hidden border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]"
+          className={cn(
+            "relative w-full max-w-lg rounded-t-[28px] overflow-hidden border-t border-white/10 shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.6)]",
+            isLandscape && "max-w-xl rounded-t-2xl"
+          )}
           style={{
             background: 'linear-gradient(180deg, rgba(20,15,35,0.97) 0%, rgba(12,8,24,0.98) 100%)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
+            maxHeight: isLandscape ? '95dvh' : '75dvh'
           }}
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
@@ -309,6 +313,7 @@ export const PKBattlePanel = ({
                 'radial-gradient(60% 40% at 12% 0%, rgba(239,68,68,0.28), transparent 70%), radial-gradient(60% 40% at 88% 0%, rgba(59,130,246,0.28), transparent 70%), radial-gradient(50% 30% at 50% 100%, rgba(168,85,247,0.18), transparent 70%)',
             }}
           />
+
 
           {/* Header */}
           <div className="relative px-4 pt-3 pb-3 border-b border-white/10">
