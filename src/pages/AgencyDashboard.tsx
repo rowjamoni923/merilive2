@@ -260,6 +260,27 @@ const AgencyDashboard = () => {
               Financial Stats
             </h2>
           </div>
+          
+          {/* Total Beans Card - Main Source: wallet_balance */}
+          <div className="relative overflow-hidden rounded-[2rem] bg-slate-900 border border-white/5 p-6 group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-brand-500/20 transition-colors" />
+            <div className="relative flex flex-col items-center text-center">
+              <div className="w-14 h-14 bg-brand-500/20 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-500">
+                <Coins className="w-8 h-8 text-brand-400" />
+              </div>
+              <p className="text-slate-400 text-xs font-black uppercase tracking-[0.2em] mb-1">Total Beans</p>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-4xl font-black text-white tracking-tighter">
+                  {fmtNum(agency.wallet_balance)}
+                </h3>
+              </div>
+              <div className="mt-4 flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estimated Value</p>
+                <p className="text-xs font-black text-brand-400">${(agency.wallet_balance / 210).toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-slate-900/50 rounded-3xl p-5 border border-white/5 space-y-1 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-16 h-16 bg-brand-500/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-xl group-hover:bg-brand-500/10 transition-colors" />
