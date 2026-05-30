@@ -1156,7 +1156,7 @@ const Chat = () => {
 
     const unsubMessages = subscribeToTables(
       `chat-conv-list-msgs-${currentUserId}`,
-      ['messages', 'conversations', 'group_messages'],
+      ['messages', 'conversations', 'groups', 'group_members', 'group_messages'],
       (table: string, event: string, payload: any) => {
         if (!payload) return;
         if (table === 'messages') {
