@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, ReactNode, useCallback, memo, useMemo, Suspense, lazy } from "react";
+import { useMobileOrientation } from "@/hooks/useMobileOrientation";
 import { cn } from "@/lib/utils";
+
 import { GiftData, formatCoinValue } from "./GiftPanel";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 
