@@ -2857,11 +2857,11 @@ const FaceVerification = () => {
     const showUserFaceStep = !userPhotoStep;
 
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
-        {renderHeader("Face Verification", "Verify your identity")}
+      <div className={`fixed inset-0 flex flex-col ${usingNativeFaceCamera ? 'bg-transparent' : 'bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2]'} overflow-hidden`}><div className={`flex-1 overflow-y-auto overscroll-contain p-4 ${usingNativeFaceCamera ? 'pt-[40vh]' : ''}`} style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+        {!usingNativeFaceCamera && renderHeader("Face Verification", "Verify your identity")}
 
         {/* Progress Steps - 3 steps */}
-        <div className="flex items-center justify-center gap-3 mb-6">
+        <div className={`flex items-center justify-center gap-3 mb-6 ${usingNativeFaceCamera ? 'hidden' : ''}`}>
           {[1, 2, 3].map((step) => {
             const isActive = (!userInfoDone && step === 1) || (userInfoDone && userPhotoStep && step === 2) || (!userPhotoStep && step === 3);
             const isDone = (step === 1 && userInfoDone) || (step === 2 && !userPhotoStep && userPhotoFile);
